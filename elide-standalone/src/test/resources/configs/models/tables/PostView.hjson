@@ -12,7 +12,7 @@
             {
                 name : content
                 type : TEXT
-                definition : content
+                definition : '{{content}}'
             }
         ]
     }]

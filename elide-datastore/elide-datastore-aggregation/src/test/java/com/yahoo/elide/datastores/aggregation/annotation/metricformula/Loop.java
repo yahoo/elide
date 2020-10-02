@@ -27,8 +27,16 @@ public class Loop {
     @Setter
     private long highScore;
 
-    @MetricFormula("{{highScore}}")
+    @Setter
+    private long lowScore;
+
+    @MetricFormula("{{lowScore}}")
     public long getHighScore() {
         return highScore;
+    }
+
+    @MetricFormula("{{highScore}}")
+    public long getLowScore() {
+        return lowScore;
     }
 }

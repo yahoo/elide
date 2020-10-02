@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.annotation.metricformula;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
@@ -22,8 +22,6 @@ public class MetricFormulaTest {
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
                 () -> new SQLQueryEngine(metaDataStore, null, null));
-        assertEquals(
-                "Formula reference loop found: loop.highScore->loop.highScore",
-                exception.getMessage());
+        assertTrue(exception.getMessage().startsWith("Formula reference loop found:"));
     }
 }

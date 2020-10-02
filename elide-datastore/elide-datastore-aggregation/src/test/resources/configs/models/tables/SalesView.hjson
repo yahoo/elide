@@ -21,7 +21,7 @@
         {
           name: orderTotal
           type: DECIMAL
-          definition: SUM(orderTotal)
+          definition: 'SUM({{orderTotal}})'
           readAccess: allow all
         }
       ]
@@ -30,19 +30,19 @@
         {
           name: orderId
           type: TEXT
-          definition: orderId
+          definition: '{{orderId}}'
           readAccess: allow all
         }
         {
           name: customerRegion
           type: TEXT
-          definition: "{{customerDetails.region}}"
+          definition: '{{customerDetails.region}}'
           readAccess: allow all
         }
         {
           name: orderDate
           type: TIME
-          definition: createdOn
+          definition: '{{createdOn}}'
           readAccess: allow all
           grain:
           {
@@ -53,7 +53,7 @@
         {
           name: orderMonth
           type: TIME
-          definition: createdOn
+          definition: '{{createdOn}}'
           readAccess: allow all
           grain:
           {
@@ -64,7 +64,7 @@
         {
           name: orderTime
           type: TIME
-          definition: createdOn
+          definition: '{{createdOn}}'
           readAccess: allow all
           grain:
           {
@@ -86,7 +86,7 @@
         {
           name: region
           type: TEXT
-          definition: region
+          definition: '{{region}}'
           readAccess: allow all
         }
       ]

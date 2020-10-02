@@ -90,10 +90,9 @@ public abstract class SQLUnitTest {
         WHERE_METRICS_ONLY (() -> {
             return Query.builder()
                     .table(playerStatsTable)
-                    .metric(invoke(playerStatsTable.getMetric("highScoreNoAgg")))
                     .metric(invoke(playerStatsTable.getMetric("lowScore")))
                     .whereFilter(new FilterPredicate(
-                            new Path(PlayerStats.class, dictionary, "highScoreNoAgg"),
+                            new Path(PlayerStats.class, dictionary, "lowScore"),
                             Operator.GT,
                             Arrays.asList(9000)))
                     .build();
@@ -152,10 +151,9 @@ public abstract class SQLUnitTest {
         HAVING_METRICS_ONLY (() -> {
             return Query.builder()
                     .table(playerStatsTable)
-                    .metric(invoke(playerStatsTable.getMetric("highScoreNoAgg")))
                     .metric(invoke(playerStatsTable.getMetric("lowScore")))
                     .havingFilter(new FilterPredicate(
-                            new Path(PlayerStats.class, dictionary, "highScoreNoAgg"),
+                            new Path(PlayerStats.class, dictionary, "lowScore"),
                             Operator.GT,
                             Arrays.asList(9000)))
                     .build();
@@ -211,19 +209,19 @@ public abstract class SQLUnitTest {
         }),
         SORT_METRIC_ASC (() -> {
             Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
-            sortMap.put("highScoreNoAgg", Sorting.SortOrder.asc);
+            sortMap.put("lowScore", Sorting.SortOrder.asc);
             return Query.builder()
                     .table(playerStatsTable)
-                    .metric(invoke(playerStatsTable.getMetric("highScoreNoAgg")))
+                    .metric(invoke(playerStatsTable.getMetric("lowScore")))
                     .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                     .build();
         }),
         SORT_METRIC_DESC (() -> {
             Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
-            sortMap.put("highScoreNoAgg", Sorting.SortOrder.desc);
+            sortMap.put("lowScore", Sorting.SortOrder.desc);
             return Query.builder()
                     .table(playerStatsTable)
-                    .metric(invoke(playerStatsTable.getMetric("highScoreNoAgg")))
+                    .metric(invoke(playerStatsTable.getMetric("lowScore")))
                     .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                     .build();
         }),
@@ -266,10 +264,10 @@ public abstract class SQLUnitTest {
         COMPLICATED (() -> {
             // Sorting
             Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
-            sortMap.put("highScoreNoAgg", Sorting.SortOrder.desc);
+            sortMap.put("lowScore", Sorting.SortOrder.desc);
             // WHERE filter
             FilterPredicate predicate = new FilterPredicate(
-                    new Path(PlayerStats.class, dictionary, "highScoreNoAgg"),
+                    new Path(PlayerStats.class, dictionary, "lowScore"),
                     Operator.GT,
                     Arrays.asList(9000));
             return Query.builder()
