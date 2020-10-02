@@ -25,17 +25,17 @@ public class Loop {
     @Setter
     private String id;
 
-    @Id
-    public String getId() {
-        return id;
-    }
-
     // degenerated dimension using sql expression
     @Setter
     private int playerLevel1;
 
     @Setter
     private int playerLevel2;
+
+    @Id
+    public String getId() {
+        return id;
+    }
 
     @DimensionFormula("CASE WHEN {{playerLevel2}} = 'Good' THEN 1 ELSE 2 END")
     public int getPlayerLevel1() {
