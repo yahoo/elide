@@ -14,7 +14,6 @@ import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
-import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
@@ -132,15 +131,6 @@ public class PlayerStats {
     }
 
     public void setHighScore(final long highScore) {
-        this.highScore = highScore;
-    }
-
-    @MetricFormula(value = "{{highScore}}")
-    @ColumnMeta(description = "highScore with no aggregation")
-    public long getHighScoreNoAgg() {
-        return highScore;
-    }
-    public void setHighScoreNoAgg(final long highScore) {
         this.highScore = highScore;
     }
 

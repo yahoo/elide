@@ -25,9 +25,7 @@ public class DimensionFormulaTest {
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
                 () -> new SQLQueryEngine(metaDataStore, null, null));
-        assertEquals(
-                "Formula reference loop found: loop.playerLevel1->loop.playerLevel2->loop.playerLevel1",
-                exception.getMessage());
+        assertTrue(exception.getMessage().startsWith("Formula reference loop found:"));
     }
 
     @Test

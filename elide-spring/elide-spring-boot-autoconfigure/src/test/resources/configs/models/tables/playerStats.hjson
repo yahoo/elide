@@ -28,7 +28,7 @@
             {
                 name : name
                 type : TEXT
-                definition : {{name}}
+                definition : '{{name}}'
             },
             {
                 name : countryCode
@@ -38,7 +38,7 @@
             {
                 name : createdOn
                 type : TIME
-                definition : {{createdOn}}
+                definition : '{{createdOn}}'
                 grain:
                 {
                     type :  SIMPLEDATE
@@ -50,7 +50,7 @@
             {
                 name : updatedOn
                 type : TIME
-                definition : {{updatedOn}}
+                definition : '{{updatedOn}}'
                 grain:
                 {
                     type :  YEARMONTH
