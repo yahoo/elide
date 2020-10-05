@@ -16,10 +16,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Join {
     /**
-     * Join on clause constraint for customizing relationship joins as a plain sql string. Provided in the model.
-     * Use "%from" and "%join% to represent the two sides of join.
+     * Join ON clause constraint for customizing relationship joins. {{..}} is used for column references.
      *
-     * @return join constraint like <code>%from.col1 = %join.col2</code>
+     * @return join constraint like <code>{{col1}} = {{joinField.col2}}</code>
      */
     String value();
 }

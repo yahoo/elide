@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers.validator;
 
+import static com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.HandlebarsHelper.REFERENCE_PARENTHESES;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.Config;
@@ -121,7 +122,7 @@ public class DynamicConfigValidator {
         validateRequiredConfigsProvided();
         validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs());
         validateNameUniqueness(this.elideTableConfig.getTables());
-        validateSqlInTableConfig(this.elideTableConfig);
+        validateTableConfig(this.elideTableConfig);
         validateJoinedTablesDBConnectionName(this.elideTableConfig);
     }
 
@@ -326,18 +327,16 @@ public class DynamicConfigValidator {
      * @param elideTableConfig ElideTableConfig
      * @return boolean true if all sql/definition passes validation
      */
-    private static boolean validateSqlInTableConfig(ElideTableConfig elideTableConfig) {
+    private static boolean validateTableConfig(ElideTableConfig elideTableConfig) {
         for (Table table : elideTableConfig.getTables()) {
             validateSql(table.getSql());
             for (Dimension dim : table.getDimensions()) {
                 validateSql(dim.getDefinition());
             }
-            for (Join join : table.getJoins()) {
-                validateSql(join.getDefinition());
-            }
             for (Measure measure : table.getMeasures()) {
                 validateSql(measure.getDefinition());
             }
+            table.getJoins().forEach(DynamicConfigValidator::validateJoin);
         }
         return true;
     }
@@ -395,6 +394,33 @@ public class DynamicConfigValidator {
             throw new IllegalStateException("sql/definition provided in table config contain either '" + SEMI_COLON
                     + "' or one of these words: " + Arrays.toString(SQL_DISALLOWED_WORDS.toArray()));
         }
+    }
+
+    /**
+     * Check if input join definition is valid.
+     */
+    private static void validateJoin(Join join) {
+        validateSql(join.getDefinition());
+
+        Matcher matcher = REFERENCE_PARENTHESES.matcher(join.getDefinition());
+        Set<String> references = new HashSet<>();
+        while (matcher.find()) {
+            references.add(matcher.group(1).trim());
+        }
+
+        if (references.size() < 2) {
+            throw new IllegalStateException("Atleast 2 unique references are expected in join definition");
+        }
+
+        references.forEach(reference -> {
+            if (reference.indexOf('.') != -1) {
+                String joinField = reference.substring(0, reference.indexOf('.'));
+                if (!joinField.equals(join.getName())) {
+                    throw new IllegalStateException("Join name must be used before '.' in join definition. Found '"
+                                    + joinField + "' instead of '" + join.getName() + "'");
+                }
+            }
+        });
     }
 
     /**

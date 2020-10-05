@@ -3,17 +3,25 @@
   [
     {
       name: OrderDetails
-      table: OrderDetails
+      table: order_details
       dbConnectionName: SalesDBConnection
       cardinality: large
       readAccess: Principal is guest user
       joins:
       [
         {
-          name: customerDetails
+          name: customer
           to: CustomerDetails
           type: toOne
-          definition: %join.id = %from.customerId
+          // References Physical Columns
+          definition: '{{customer_id}} = {{ customer.id}}'
+        }
+        {
+          name: delivery
+          to: DeliveryDetails
+          type: toOne
+          // References Logical Columns, multiple join condition
+          definition: "{{ orderId}} = {{delivery.orderId}} AND {{ delivery.deliveryDate }} > '2020-09-01'"
         }
       ]
       measures:
@@ -21,7 +29,7 @@
         {
           name: orderTotal
           type: DECIMAL
-          definition: 'SUM({{orderTotal}})'
+          definition: 'SUM({{ order_total }})'
           readAccess: Principal is admin
         }
       ]
@@ -30,19 +38,48 @@
         {
           name: orderId
           type: TEXT
-          definition: '{{orderId}}'
+          definition: '{{ order_id }}'
           readAccess: Principal is guest user
+        }
+        {
+          name: courierName
+          type: TEXT
+          definition: '{{delivery.courierName}}'
+          readAccess: Principal is operator
         }
         {
           name: customerRegion
           type: TEXT
-          definition: '{{customerDetails.region}}'
+          definition: '{{customer.customerRegion}}'
+          readAccess: Principal is operator
+        }
+        {
+          name: customerRegionRegion
+          type: TEXT
+          definition: '{{customer.region.region}}'
+          readAccess: Principal is operator
+        }
+        {
+          name: zipCode
+          type: INTEGER
+          definition: '{{customer.zipCode}}'
           readAccess: Principal is operator
         }
         {
           name: orderDate
           type: TIME
-          definition: '{{createdOn}}'
+          definition: '{{created_on}}'
+          readAccess: Principal is guest user
+          grain:
+          {
+            type: SIMPLEDATE
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+          }
+        }
+        {
+          name: deliveryDate
+          type: TIME
+          definition: '{{delivery.deliveryDate}}'
           readAccess: Principal is guest user
           grain:
           {
@@ -53,7 +90,7 @@
         {
           name: orderMonth
           type: TIME
-          definition: '{{createdOn}}'
+          definition: '{{created_on}}'
           readAccess: Principal is guest user
           grain:
           {
@@ -64,7 +101,7 @@
         {
           name: orderTime
           type: TIME
-          definition: '{{createdOn}}'
+          definition: '{{created_on}}'
           readAccess: Principal is guest user
           grain:
           {
@@ -77,7 +114,45 @@
     }
     {
       name: CustomerDetails
-      table: CustomerDetails
+      table: customer_details
+      dbConnectionName: SalesDBConnection
+      cardinality: small
+      readAccess: Principal is guest user
+      joins:
+      [
+        {
+          name: region
+          to: RegionDetails
+          type: toOne
+          // References Physical & Logical Columns
+          definition: '{{zipCode}} = {{region.zip_code}}'
+        }
+      ]
+      dimensions:
+      [
+        {
+          name: name
+          type: TEXT
+          definition: '{{name}}'
+          readAccess: Principal is guest user
+        }
+        {
+          name: zipCode
+          type: INTEGER
+          definition: '{{zip_code}}'
+          readAccess: Principal is guest user
+        }
+        {
+          name: customerRegion
+          type: TEXT
+          definition: '{{region.region}}'
+          readAccess: Principal is guest user
+        }
+      ]
+    }
+    {
+      name: RegionDetails
+      table: region_details
       dbConnectionName: SalesDBConnection
       cardinality: small
       readAccess: Principal is guest user
@@ -88,6 +163,45 @@
           type: TEXT
           definition: '{{region}}'
           readAccess: Principal is guest user
+        }
+      ]
+    }
+    {
+      name: DeliveryDetails
+      table: delivery_details
+      dbConnectionName: SalesDBConnection
+      cardinality: large
+      readAccess: Principal is guest user
+      dimensions:
+      [
+        {
+          name: orderId
+          type: TEXT
+          definition: '{{order_id}}'
+          readAccess: Principal is guest user
+        }
+        {
+          name: trackingNumber
+          type: INTEGER
+          definition: '{{tracking_number}}'
+          readAccess: Principal is operator
+        }
+        {
+          name: courierName
+          type: TEXT
+          definition: '{{courier_name}}'
+          readAccess: Principal is operator
+        }
+        {
+          name: deliveryDate
+          type: TIME
+          definition: '{{delivered_on}}'
+          readAccess: Principal is guest user
+          grain:
+          {
+            type: SIMPLEDATE
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+          }
         }
       ]
     }

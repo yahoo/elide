@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -37,6 +39,7 @@ public class HandlebarsHelper {
     private static final String WHITESPACE_REGEX = "\\s+";
     private static final char SPACE = ' ';
     private static final char UNDERSCORE = '_';
+    public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
 
     /**
      * Capitalize first letter of the string.
@@ -182,5 +185,20 @@ public class HandlebarsHelper {
         return collection.stream()
                 .map(item -> "\"" + item + "\"")
                 .collect(Collectors.joining(","));
+    }
+
+    /**
+     * Removes whitespace around column references.
+     * @param str eg: {{ playerCountry.id}} = {{country_id}}
+     * @return String without whitespace around column references eg: {{playerCountry.id}} = {{country_id}}
+     */
+    public String trimColumnReferences(String str) {
+        Matcher matcher = REFERENCE_PARENTHESES.matcher(str);
+
+        while (matcher.find()) {
+            String reference = matcher.group(1);
+            str = str.replace(reference, reference.trim());
+        }
+        return str;
     }
 }

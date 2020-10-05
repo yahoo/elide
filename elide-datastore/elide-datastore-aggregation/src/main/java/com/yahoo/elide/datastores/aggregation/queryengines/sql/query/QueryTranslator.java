@@ -27,6 +27,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSu
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceVisitor;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
 import org.hibernate.annotations.Subselect;
@@ -45,6 +46,7 @@ import java.util.stream.Stream;
  * Translates a client query into a SQL query.
  */
 public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
+
     private final SQLReferenceTable referenceTable;
     private final EntityDictionary dictionary;
     private final SQLDialect dialect;
@@ -268,7 +270,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
                         dictionary.getAnnotatedColumnName(
                                 joinClass,
                                 dictionary.getIdFieldName(joinClass)))
-                : extractJoinExpression(join.value(), fromAlias, joinAlias);
+                : getJoinClause(fromClass, fromAlias, joinClass, joinAlias, join.value());
 
         return String.format("LEFT JOIN %s AS %s ON %s",
                 joinSource,
@@ -276,6 +278,21 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
                 joinClause);
     }
 
+    /**
+     * Resolve references to construct a join ON clause.
+     *
+     * @param fromClass parent class
+     * @param fromAlias parent alias
+     * @param joinClass join class
+     * @param joinAlias join alias
+     * @param expr unresolved ON clause
+     * @return string resolved ON clause
+     */
+    private String getJoinClause(Class<?> fromClass, String fromAlias, Class<?> joinClass, String joinAlias,
+                    String expr) {
+        SQLReferenceVisitor visitor = new SQLReferenceVisitor(referenceTable.getMetaDataStore(), fromAlias);
+        return visitor.resolveReferences(fromClass, joinClass, joinAlias, expr);
+    }
 
     /**
      * Make a select statement for a table a sub select query.
@@ -451,19 +468,6 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
         fullTableName.append(table.name());
 
         return fullTableName.toString();
-    }
-
-    /**
-     * Construct a join on clause based on given constraint expression, replace "%from" with from table alias
-     * and "%join" with join table alias.
-     *
-     * @param joinClause sql join constraint
-     * @param fromAlias from table alias
-     * @param joinToAlias join to table alias
-     * @return sql string that represents a full join condition
-     */
-    private String extractJoinExpression(String joinClause, String fromAlias, String joinToAlias) {
-        return joinClause.replace("%from", fromAlias).replace("%join", joinToAlias);
     }
 
     /**
