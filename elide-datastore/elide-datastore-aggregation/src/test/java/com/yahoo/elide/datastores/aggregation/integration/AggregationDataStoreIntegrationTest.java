@@ -1047,6 +1047,91 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     }
 
     @Test
+    public void testGraphQLDynamicAggregationModelAllFields() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "orderDetails",
+                                arguments(
+                                        argument("sort", "\"courierName,deliveryDate,orderTotal\""),
+                                        argument("filter", "\"deliveryDate>='2020-08-01'\"")
+                                ),
+                                selections(
+                                        field("courierName"),
+                                        field("deliveryDate"),
+                                        field("orderDate"),
+                                        field("customerRegion"),
+                                        field("customerRegionRegion"),
+                                        field("orderTotal"),
+                                        field("zipCode"),
+                                        field("orderMonth"),
+                                        field("orderTime"),
+                                        field("orderId")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "orderDetails",
+                                selections(
+                                        field("courierName", "FEDEX"),
+                                        field("deliveryDate", "2020-09-11"),
+                                        field("orderDate", "2020-09-08"),
+                                        field("customerRegion", "Virginia"),
+                                        field("customerRegionRegion", "Virginia"),
+                                        field("orderTotal", 84.11F),
+                                        field("zipCode", 20166),
+                                        field("orderMonth", "2020-09"),
+                                        field("orderTime", "2020-09-08 16:30:11"),
+                                        field("orderId", "order-1b")
+                                ),
+                                selections(
+                                        field("courierName", "FEDEX"),
+                                        field("deliveryDate", "2020-09-11"),
+                                        field("orderDate", "2020-09-08"),
+                                        field("customerRegion", "Virginia"),
+                                        field("customerRegionRegion", "Virginia"),
+                                        field("orderTotal", 97.36F),
+                                        field("zipCode", 20166),
+                                        field("orderMonth", "2020-09"),
+                                        field("orderTime", "2020-09-08 16:30:11"),
+                                        field("orderId", "order-1c")
+                                ),
+                                selections(
+                                        field("courierName", "UPS"),
+                                        field("deliveryDate", "2020-09-05"),
+                                        field("orderDate", "2020-08-30"),
+                                        field("customerRegion", "Virginia"),
+                                        field("customerRegionRegion", "Virginia"),
+                                        field("orderTotal", 103.72F),
+                                        field("zipCode", 20166),
+                                        field("orderMonth", "2020-08"),
+                                        field("orderTime", "2020-08-30 16:30:11"),
+                                        field("orderId", "order-1a")
+                                ),
+                                selections(
+                                        field("courierName", "UPS"),
+                                        field("deliveryDate", "2020-09-13"),
+                                        field("orderDate", "2020-09-09"),
+                                        field("customerRegion", "Virginia"),
+                                        field("customerRegionRegion", "Virginia"),
+                                        field("orderTotal", 78.87F),
+                                        field("zipCode", 20170),
+                                        field("orderMonth", "2020-09"),
+                                        field("orderTime", "2020-09-09 16:30:11"),
+                                        field("orderId", "order-3b")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
     public void testGraphQLDynamicAggregationModelDateTime() throws Exception {
         String graphQLRequest = document(
                 selection(
