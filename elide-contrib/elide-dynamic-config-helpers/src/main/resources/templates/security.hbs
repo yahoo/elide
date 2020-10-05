@@ -7,12 +7,13 @@ package dynamicconfig.models;
 
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.security.checks.prefab.Role.RoleMemberCheck;
+<%#assign "upperCaseName"%> <%#toUpperCaseReplaceSpace this%><%/toUpperCaseReplaceSpace%> <%/assign%>
+<%#assign "titleCaseName"%> <%#titleCaseRemoveSpaces this%><%/titleCaseRemoveSpaces%> <%/assign%>
+@SecurityCheck(DynamicConfigOperationChecksPrincipalIs<%titleCaseName%>.PRINCIPAL_IS_<%upperCaseName%>)
+public class DynamicConfigOperationChecksPrincipalIs<%titleCaseName%> extends RoleMemberCheck {
 
-@SecurityCheck(DynamicConfigOperationChecksPrincipalIs<%#titleCaseRemoveSpaces this%><%/titleCaseRemoveSpaces%>.PRINCIPAL_IS_<%#toUpperCaseReplaceSpace this%><%/toUpperCaseReplaceSpace%>)
-public class DynamicConfigOperationChecksPrincipalIs<%#titleCaseRemoveSpaces this%><%/titleCaseRemoveSpaces%> extends RoleMemberCheck {
-
-    public static final String PRINCIPAL_IS_<%#toUpperCaseReplaceSpace this%><%/toUpperCaseReplaceSpace%> = "Principal is <%this%>";
-    public DynamicConfigOperationChecksPrincipalIs<%#titleCaseRemoveSpaces this%><%/titleCaseRemoveSpaces%>() {
+    public static final String PRINCIPAL_IS_<%upperCaseName%> = "Principal is <%this%>";
+    public DynamicConfigOperationChecksPrincipalIs<%titleCaseName%>() {
         super("<%this%>");
     }
 }
