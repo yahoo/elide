@@ -68,7 +68,7 @@ public class AggregationDataStoreDynamicSecurityIT extends IntegrationTest {
     }
 
     @Test
-    public void testSecurityHjosnWithAggregationModel() throws Exception {
+    public void testSecurityHjsonWithAggregationModel() throws Exception {
 
         SecurityContextUser operator = new SecurityContextUser(new SecurityContext() {
             @Override
