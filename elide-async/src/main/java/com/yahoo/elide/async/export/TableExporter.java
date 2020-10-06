@@ -7,8 +7,11 @@ package com.yahoo.elide.async.export;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.User;
@@ -49,15 +52,23 @@ public class TableExporter {
         Observable<PersistentResource> results = Observable.empty();
 
         UUID requestId = UUID.fromString(query.getRequestId());
+        
 
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
-            EntityProjection projection = graphQLParser.parse(query);
-
-            //TODO - we need to add the baseUrlEndpoint to the queryObject.
-            //TODO - Can we have projectionInfo as null?
-            GraphQLRequestScope requestScope =
-                    new GraphQLRequestScope("", tx, user, apiVersion, elide.getElideSettings(), null, requestId);
+            
+            EntityProjection projection = null;
+            RequestScope requestScope = null;
+            
+            if(query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
+                projection = graphQLParser.parse(query);
+                //TODO - we need to add the baseUrlEndpoint to the queryObject.
+                //TODO - Can we have projectionInfo as null?
+                requestScope = new GraphQLRequestScope("", tx, user, apiVersion, elide.getElideSettings(), null, requestId);
+            } else {
+            	//TODO - Add JSON Support
+                throw new InvalidValueException("QueryType not supported");
+            }           
 
             if (projection != null) {
                 results = PersistentResource.loadRecords(projection, Collections.emptyList(), requestScope);
