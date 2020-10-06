@@ -16,44 +16,114 @@ import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.Mockito.when;
 
+import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.annotation.SecurityCheck;
+import com.yahoo.elide.audit.TestAuditLogger;
 import com.yahoo.elide.contrib.dynamicconfighelpers.DBPasswordExtractor;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
+import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
-
+import com.yahoo.elide.resources.JsonApiEndpoint;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import example.TestCheckMappings;
+
+import org.glassfish.jersey.internal.inject.AbstractBinder;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Base64;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.inject.Inject;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.SecurityContext;
 
 /**
  * Integration tests for {@link AggregationDataStore}.
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest {
+
+    @Mock private static SecurityContext securityContextMock;
+
+    private static final ElideDynamicEntityCompiler COMPILER = getCompiler("src/test/resources/configs");
+    private static final class SecurityHjsonIntegrationTestResourceConfig extends ResourceConfig {
+
+        @Inject
+        public SecurityHjsonIntegrationTestResourceConfig() {
+            register(new AbstractBinder() {
+                @Override
+                protected void configure() {
+                    EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
+
+                    try {
+                        dictionary.addSecurityChecks(COMPILER.findAnnotatedClasses(SecurityCheck.class));
+                    } catch (ClassNotFoundException e) {
+                    }
+
+                    Elide elide = new Elide(new ElideSettingsBuilder(getDataStore())
+                                    .withEntityDictionary(dictionary)
+                                    .withAuditLogger(new TestAuditLogger())
+                                    .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
+                                    .build());
+                    bind(elide).to(Elide.class).named("elide");
+                }
+            });
+            register(new ContainerRequestFilter() {
+                @Override
+                public void filter(final ContainerRequestContext requestContext) throws IOException {
+                    requestContext.setSecurityContext(securityContextMock);
+                }
+            });
+        }
+    }
+
+    public AggregationDataStoreIntegrationTest() {
+        super(SecurityHjsonIntegrationTestResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
+    }
 
     @BeforeAll
     public void beforeAll() {
         SQLUnitTest.init();
+    }
+
+    @BeforeEach
+    public void setUp() {
+        when(securityContextMock.isUserInRole("admin")).thenReturn(true);
+        when(securityContextMock.isUserInRole("operator")).thenReturn(true);
+        when(securityContextMock.isUserInRole("guest user")).thenReturn(true);
     }
 
     @Override
@@ -70,14 +140,13 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore", prop);
 
         Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
+
         // Add an entry for "mycon" connection which is not from hjson
         connectionDetailsMap.put("mycon", defaultConnectionDetails);
-
-        ElideDynamicEntityCompiler compiler = getCompiler("src/test/resources/configs");
         // Add connection details fetched from hjson
-        connectionDetailsMap.putAll(compiler.getConnectionDetailsMap());
+        connectionDetailsMap.putAll(COMPILER.getConnectionDetailsMap());
 
-        return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, compiler);
+        return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, COMPILER);
     }
 
     private static DBPasswordExtractor getDBPasswordExtractor() {
@@ -95,7 +164,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         };
     }
 
-    public static ElideDynamicEntityCompiler getCompiler(String path) {
+    private static ElideDynamicEntityCompiler getCompiler(String path) {
         try {
             return new ElideDynamicEntityCompiler(path, getDBPasswordExtractor());
         } catch (Exception e) {
@@ -886,5 +955,120 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         ).toResponse();
 
         runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testAdminRole() throws Exception {
+
+        when(securityContextMock.isUserInRole("admin")).thenReturn(true);
+        when(securityContextMock.isUserInRole("operator")).thenReturn(true);
+        when(securityContextMock.isUserInRole("guest user")).thenReturn(true);
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "orderDetails",
+                                arguments(
+                                        argument("sort", "\"customerRegion\""),
+                                        argument("filter", "\"orderMonth=='2020-08'\"")
+                                ),
+                                selections(
+                                        field("orderTotal"),
+                                        field("customerRegion"),
+                                        field("orderMonth")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selection(
+                        field(
+                                "orderDetails",
+                                selections(
+                                        field("orderTotal", 61.43F),
+                                        field("customerRegion", "NewYork"),
+                                        field("orderMonth", "2020-08")
+                                ),
+                                selections(
+                                        field("orderTotal", 113.07F),
+                                        field("customerRegion", "Virginia"),
+                                        field("orderMonth", "2020-08")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testOperatorRole() throws Exception {
+
+        when(securityContextMock.isUserInRole("admin")).thenReturn(false);
+        when(securityContextMock.isUserInRole("operator")).thenReturn(true);
+        when(securityContextMock.isUserInRole("guest user")).thenReturn(true);
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "orderDetails",
+                                arguments(
+                                        argument("sort", "\"customerRegion\""),
+                                        argument("filter", "\"orderMonth=='2020-08'\"")
+                                ),
+                                selections(
+                                        field("customerRegion"),
+                                        field("orderMonth")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selection(
+                        field(
+                                "orderDetails",
+                                selections(
+                                        field("customerRegion", "NewYork"),
+                                        field("orderMonth", "2020-08")
+                                ),
+                                selections(
+                                        field("customerRegion", "Virginia"),
+                                        field("orderMonth", "2020-08")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testGuestUserRole() throws Exception {
+
+        when(securityContextMock.isUserInRole("admin")).thenReturn(false);
+        when(securityContextMock.isUserInRole("operator")).thenReturn(false);
+        when(securityContextMock.isUserInRole("guest user")).thenReturn(true);
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "orderDetails",
+                                arguments(
+                                        argument("sort", "\"customerRegion\""),
+                                        argument("filter", "\"orderMonth=='2020-08'\"")
+                                ),
+                                selections(
+                                        field("customerRegion"),
+                                        field("orderMonth")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "\"Exception while fetching data (/orderDetails/edges[0]/node/customerRegion) : ReadPermission Denied\"";
+
+        runQueryWithExpectedError(graphQLRequest, expected);
     }
 }
