@@ -52,23 +52,23 @@ public class TableExporter {
         Observable<PersistentResource> results = Observable.empty();
 
         UUID requestId = UUID.fromString(query.getRequestId());
-        
 
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
-            
+
             EntityProjection projection = null;
             RequestScope requestScope = null;
-            
-            if(query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
+
+            if (query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
                 projection = graphQLParser.parse(query);
                 //TODO - we need to add the baseUrlEndpoint to the queryObject.
                 //TODO - Can we have projectionInfo as null?
-                requestScope = new GraphQLRequestScope("", tx, user, apiVersion, elide.getElideSettings(), null, requestId);
+                requestScope = new GraphQLRequestScope("", tx, user, apiVersion, elide.getElideSettings(), null,
+                        requestId);
             } else {
-            	//TODO - Add JSON Support
+                //TODO - Add JSON Support
                 throw new InvalidValueException("QueryType not supported");
-            }           
+            }
 
             if (projection != null) {
                 results = PersistentResource.loadRecords(projection, Collections.emptyList(), requestScope);
