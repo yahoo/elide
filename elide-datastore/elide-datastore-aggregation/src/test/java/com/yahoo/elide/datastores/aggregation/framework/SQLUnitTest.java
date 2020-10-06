@@ -34,7 +34,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
-import com.yahoo.elide.datastores.aggregation.metadata.models.TableId;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
@@ -327,8 +326,7 @@ public abstract class SQLUnitTest {
 
         engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect));
 
-        TableId tableId = new TableId("playerStats", "", "");
-        playerStatsTable = engine.getTable(tableId);
+        playerStatsTable = engine.getTable("playerStats");
 
     }
 

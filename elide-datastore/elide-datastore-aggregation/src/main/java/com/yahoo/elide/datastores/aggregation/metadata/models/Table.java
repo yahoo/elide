@@ -36,7 +36,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.persistence.Embedded;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
@@ -50,10 +49,11 @@ import javax.persistence.OneToMany;
 public class Table implements Queryable {
 
     @Id
-    @Embedded
-    private TableId id;
+    private final String id;
 
     private final String name;
+
+    private final String dbConnectionName;
 
     private final String category;
 
@@ -112,7 +112,12 @@ public class Table implements Queryable {
             dbConnectionName = ((FromSubquery) annotation).dbConnectionName();
         }
 
-        this.id = new TableId(this.name, this.version, dbConnectionName);
+        if (this.version != null && ! this.version.isEmpty()) {
+            this.id = this.name + "." + this.version;
+        } else {
+            this.id = this.name;
+        }
+        this.dbConnectionName = dbConnectionName;
 
         this.columns = constructColumns(cls, dictionary);
         this.columnMap = this.columns.stream().collect(Collectors.toMap(Column::getName, Function.identity()));
@@ -255,14 +260,6 @@ public class Table implements Queryable {
 
     public boolean isMetric(String fieldName) {
         return getMetric(fieldName) != null;
-    }
-
-    /**
-     * Getter for Db Connection Name
-     * @return String Db Connection Name
-     */
-    public String getDbConnectionName() {
-        return this.getId().getDbConnectionName();
     }
 
     public FilterExpression getRequiredFilter(EntityDictionary dictionary) {
