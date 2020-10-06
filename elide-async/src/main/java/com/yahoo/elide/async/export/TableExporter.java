@@ -40,6 +40,11 @@ public class TableExporter {
         this.graphQLParser = graphQLParser;
     }
 
+    /**
+     * Exports the Data based on AsyncQuery.
+     * @param query AsyncQuery object.
+     * @return Observable of PersistentResource.
+     */
     public Observable<PersistentResource> export(AsyncQuery query) {
         Observable<PersistentResource> results = Observable.empty();
 
