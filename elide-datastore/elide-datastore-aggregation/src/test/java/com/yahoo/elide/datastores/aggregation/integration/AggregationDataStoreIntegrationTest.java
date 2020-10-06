@@ -960,10 +960,6 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     @Test
     public void testAdminRole() throws Exception {
 
-        when(securityContextMock.isUserInRole("admin")).thenReturn(true);
-        when(securityContextMock.isUserInRole("operator")).thenReturn(true);
-        when(securityContextMock.isUserInRole("guest user")).thenReturn(true);
-
         String graphQLRequest = document(
                 selection(
                         field(
@@ -1006,8 +1002,6 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     public void testOperatorRole() throws Exception {
 
         when(securityContextMock.isUserInRole("admin")).thenReturn(false);
-        when(securityContextMock.isUserInRole("operator")).thenReturn(true);
-        when(securityContextMock.isUserInRole("guest user")).thenReturn(true);
 
         String graphQLRequest = document(
                 selection(
@@ -1049,7 +1043,6 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
         when(securityContextMock.isUserInRole("admin")).thenReturn(false);
         when(securityContextMock.isUserInRole("operator")).thenReturn(false);
-        when(securityContextMock.isUserInRole("guest user")).thenReturn(true);
 
         String graphQLRequest = document(
                 selection(
