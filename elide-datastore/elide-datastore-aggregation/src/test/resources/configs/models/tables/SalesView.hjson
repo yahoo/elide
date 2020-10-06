@@ -6,7 +6,7 @@
       table: OrderDetails
       dbConnectionName: SalesDBConnection
       cardinality: large
-      readAccess: allow all
+      readAccess: Principal is guest user
       joins:
       [
         {
@@ -22,7 +22,7 @@
           name: orderTotal
           type: DECIMAL
           definition: 'SUM({{orderTotal}})'
-          readAccess: allow all
+          readAccess: Principal is admin
         }
       ]
       dimensions:
@@ -31,19 +31,19 @@
           name: orderId
           type: TEXT
           definition: '{{orderId}}'
-          readAccess: allow all
+          readAccess: Principal is guest user
         }
         {
           name: customerRegion
           type: TEXT
           definition: '{{customerDetails.region}}'
-          readAccess: allow all
+          readAccess: Principal is operator
         }
         {
           name: orderDate
           type: TIME
           definition: '{{createdOn}}'
-          readAccess: allow all
+          readAccess: Principal is guest user
           grain:
           {
             type: SIMPLEDATE
@@ -54,7 +54,7 @@
           name: orderMonth
           type: TIME
           definition: '{{createdOn}}'
-          readAccess: allow all
+          readAccess: Principal is guest user
           grain:
           {
             type: YEARMONTH
@@ -65,7 +65,7 @@
           name: orderTime
           type: TIME
           definition: '{{createdOn}}'
-          readAccess: allow all
+          readAccess: Principal is guest user
           grain:
           {
             type: DATETIME
@@ -80,14 +80,14 @@
       table: CustomerDetails
       dbConnectionName: SalesDBConnection
       cardinality: small
-      readAccess: allow all
+      readAccess: Principal is guest user
       dimensions:
       [
         {
           name: region
           type: TEXT
           definition: '{{region}}'
-          readAccess: allow all
+          readAccess: Principal is guest user
         }
       ]
     }
