@@ -65,7 +65,7 @@ public abstract class IntegrationTest {
     }
 
     protected IntegrationTest(final Class<? extends ResourceConfig> resourceConfig, String packageName) {
-        this.resourceConfig = resourceConfig.getCanonicalName();
+        this.resourceConfig = resourceConfig.getName();
         this.packageName = packageName;
 
         if (dataStoreHarness == null) {
