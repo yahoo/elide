@@ -3,12 +3,19 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
+package com.yahoo.elide.datastores.aggregation.queryengines.sql.query.plan;
 
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
 import com.google.common.collect.Sets;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
+import com.yahoo.elide.request.Pagination;
+import com.yahoo.elide.request.Sorting;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -21,23 +28,32 @@ import java.util.stream.Collectors;
  * SQLQueryTemplate contains projections information about a sql query.
  */
 @Data
-public class SQLQueryTemplate {
+@Builder
+public class QueryPlan {
 
-    private final SQLTable table;
-    private final List<SQLMetricProjection> metrics;
-    private final Set<SQLColumnProjection> nonTimeDimensions;
-    private final Set<SQLTimeDimensionProjection> timeDimensions;
+    private Source source;
+    private List<SQLMetricProjection> metrics;
+    private Set<SQLColumnProjection> nonTimeDimensions;
+    private Set<SQLTimeDimensionProjection> timeDimensions;
+    private FilterExpression where;
+    private FilterExpression having;
+    private Sorting sortBy;
+    private Pagination pagination;
 
-    public SQLQueryTemplate(SQLTable table, List<SQLMetricProjection> metrics,
+    public QueryPlan(Source source, List<SQLMetricProjection> metrics,
                      Set<SQLColumnProjection> nonTimeDimensions, Set<SQLTimeDimensionProjection> timeDimensions) {
-        this.table = table;
+        this.source = source;
         this.nonTimeDimensions = nonTimeDimensions;
         this.timeDimensions = timeDimensions;
         this.metrics = metrics;
     }
 
-    public SQLQueryTemplate(Query query) {
-        table = (SQLTable) query.getTable();
+    public <T> T accept(QueryPlanVisitor<T> visitor) {
+        return visitor.visitQueryPlan(this);
+    }
+
+    public QueryPlan(Query query) {
+        source = new TableSource((SQLTable) query.getTable());
         timeDimensions = query.getTimeDimensions().stream()
                 .map(SQLTimeDimensionProjection.class::cast)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -49,6 +65,11 @@ public class SQLQueryTemplate {
         metrics = query.getMetrics().stream()
                 .map(SQLMetricProjection.class::cast)
                 .collect(Collectors.toList());
+
+        where = query.getWhereFilter();
+        having = query.getHavingFilter();
+        sortBy = query.getSorting();
+        pagination = query.getPagination();
     }
 
     /**
@@ -68,14 +89,14 @@ public class SQLQueryTemplate {
      * @param second other query template
      * @return merged query template
      */
-     public SQLQueryTemplate merge(SQLQueryTemplate second) {
+     public QueryPlan merge(QueryPlan second) {
          // TODO: validate dimension
-         assert this.getTable().equals(second.getTable());
-         SQLQueryTemplate first = this;
+         assert this.getSource().equals(second.getSource());
+         QueryPlan first = this;
          List<SQLMetricProjection> merged = new ArrayList<>(first.getMetrics());
          merged.addAll(second.getMetrics());
 
-         return new SQLQueryTemplate(first.getTable(), merged, first.getNonTimeDimensions(), first.getTimeDimensions());
+         return new QueryPlan(first.getSource(), merged, first.getNonTimeDimensions(), first.getTimeDimensions());
      }
 
     /**

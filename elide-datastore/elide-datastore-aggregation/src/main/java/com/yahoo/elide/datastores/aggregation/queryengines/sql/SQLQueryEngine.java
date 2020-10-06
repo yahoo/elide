@@ -32,11 +32,11 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLMetri
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.SQLMetricFunction;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryTranslator;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryConstructor;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.plan.QueryPlan;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
 import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Pagination;
@@ -313,7 +313,7 @@ public class SQLQueryEngine extends QueryEngine {
      */
     private SQLQuery toSQL(Query query, SQLDialect sqlDialect) {
 
-        SQLQueryTemplate queryTemplate = query.getMetrics().stream()
+        QueryPlan queryPlan = query.getMetrics().stream()
                 .map(metricProjection -> {
                     if (!(metricProjection.getColumn().getMetricFunction() instanceof SQLMetricFunction)) {
                         throw new BadRequestException("Non-SQL metric function on " + metricProjection.getAlias());
@@ -321,16 +321,12 @@ public class SQLQueryEngine extends QueryEngine {
 
                     return ((SQLMetric) metricProjection.getColumn()).resolve(query, metricProjection, referenceTable);
                 })
-                .reduce(SQLQueryTemplate::merge)
-                .orElse(new SQLQueryTemplate(query));
+                .reduce(QueryPlan::merge)
+                .orElse(new QueryPlan(query));
 
-        return new SQLQueryConstructor(referenceTable, sqlDialect).resolveTemplate(
-                query,
-                queryTemplate,
-                query.getSorting(),
-                query.getWhereFilter(),
-                query.getHavingFilter(),
-                query.getPagination());
+        QueryTranslator translator = new QueryTranslator(referenceTable, sqlDialect);
+
+        return translator.visitQueryPlan(queryPlan).build();
     }
 
 

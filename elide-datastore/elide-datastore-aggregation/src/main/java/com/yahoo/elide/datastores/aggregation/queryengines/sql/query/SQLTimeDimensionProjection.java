@@ -11,6 +11,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.plan.QueryPlan;
 import com.yahoo.elide.request.Argument;
 
 import lombok.Value;
@@ -73,7 +74,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimen
     }
 
     @Override
-    public String toSQL(SQLQueryTemplate queryTemplate) {
+    public String toSQL(QueryPlan plan) {
         //TODO - We will likely migrate to a templating language when we support parameterized metrics.
         return grain.getExpression().replaceFirst(TIME_DIMENSION_REPLACEMENT_REGEX,
                         referenceTable.getResolvedReference(column.getTable(), column.getName()));

@@ -13,7 +13,9 @@ import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.plan.Source;
 import lombok.Getter;
+import lombok.Value;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,8 +31,14 @@ public class SQLReferenceTable {
     @Getter
     private final EntityDictionary dictionary;
 
-    private final Map<Class<?>, Map<String, String>> resolvedReferences = new HashMap<>();
-    private final Map<Class<?>, Map<String, Set<JoinPath>>> resolvedJoinPaths = new HashMap<>();
+    private final Map<TableIdentifier, Map<String, String>> resolvedReferences = new HashMap<>();
+    private final Map<TableIdentifier, Map<String, Set<JoinPath>>> resolvedJoinPaths = new HashMap<>();
+
+    @Value
+    private class TableIdentifier {
+        String tableName;
+        String tableVersion;
+    }
 
     public SQLReferenceTable(MetaDataStore metaDataStore) {
         this.metaDataStore = metaDataStore;
@@ -53,11 +61,14 @@ public class SQLReferenceTable {
     /**
      * Get the resolved physical SQL reference for a field from storage
      *
-     * @param table table class
+     * @param source table class
      * @param fieldName field name
      * @return resolved reference
      */
-    public Set<JoinPath> getResolvedJoinPaths(Table table, String fieldName) {
+    public Set<JoinPath> getResolvedJoinPaths(Source source, String fieldName) {
+
+        //TODO - The reference table either needs to lookup by the name of the table/view OR we need to
+        //do a separate lookup outside the reference table.
         return resolvedJoinPaths.get(dictionary.getEntityClass(table.getName(), table.getVersion())).get(fieldName);
     }
 

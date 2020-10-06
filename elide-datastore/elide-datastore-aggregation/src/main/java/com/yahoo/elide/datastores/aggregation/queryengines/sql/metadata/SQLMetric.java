@@ -12,7 +12,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.SQLMetricFunction;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQueryTemplate;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.plan.QueryPlan;
 
 import java.util.Set;
 
@@ -40,7 +40,7 @@ public class SQLMetric extends Metric {
      * @param metric The metric to resolve.
      * @return <code>SELECT function(arguments, fields) AS alias GROUP BY dimensions, timeDimension </code>
      */
-    public SQLQueryTemplate resolve(Query query, MetricProjection metric, SQLReferenceTable referenceTable) {
+    public QueryPlan resolve(Query query, MetricProjection metric, SQLReferenceTable referenceTable) {
         Query singleMetricQuery = Query.builder()
                 .metric(metric)
                 .table(query.getTable())
@@ -53,6 +53,6 @@ public class SQLMetric extends Metric {
                 .scope(query.getScope())
                 .build();
 
-        return new SQLQueryTemplate(singleMetricQuery);
+        return new QueryPlan(singleMetricQuery);
     }
 }
