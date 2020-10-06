@@ -68,7 +68,7 @@ public class TableExporterTest {
     }
 
     @Test
-    public void testExporterEmptyProjection() {
+    public void testExporterNonEmptyProjection() {
         TableExporter exporter = new TableExporter(elide, NO_VERSION, user, graphQLParser);
         Object[] queries = {asyncQuery};
         when(tx.loadObjects(any(), any())).thenReturn(Arrays.asList(queries));
