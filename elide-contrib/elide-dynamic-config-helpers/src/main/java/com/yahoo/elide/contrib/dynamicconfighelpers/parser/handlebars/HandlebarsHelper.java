@@ -33,6 +33,8 @@ public class HandlebarsHelper {
     private static final String LONG = "Long";
     private static final String BOOLEAN = "Boolean";
     private static final String WHITESPACE_REGEX = "\\s+";
+    private static final char SPACE = ' ';
+    private static final char UNDERSCORE = '_';
 
     /**
      * Capitalize first letter of the string.
@@ -78,6 +80,15 @@ public class HandlebarsHelper {
     public String toUpperCase(Object obj) {
 
         return (obj == null) ? EMPTY_STRING : obj.toString().toUpperCase(Locale.ENGLISH);
+    }
+
+    /**
+     * Transform string to upper case and replace space with underscore.
+     * @param obj Object representation of the string
+     * @return string converted to upper case and spaces replaced
+     */
+    public String toUpperCaseReplaceSpace(Object obj) {
+        return toUpperCase(obj).replace(SPACE, UNDERSCORE);
     }
 
     /**

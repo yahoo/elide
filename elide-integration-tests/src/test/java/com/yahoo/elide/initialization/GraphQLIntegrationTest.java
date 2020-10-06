@@ -15,6 +15,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.TestInstance;
 
 import io.restassured.response.ValidatableResponse;
@@ -35,7 +37,16 @@ import javax.ws.rs.core.MediaType;
 @Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class GraphQLIntegrationTest extends IntegrationTest {
+
     protected static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+
+    public GraphQLIntegrationTest() {
+        super();
+    }
+
+    public GraphQLIntegrationTest(Class<? extends ResourceConfig> resourceConfig, String packageName) {
+        super(resourceConfig, packageName);
+    }
 
     protected void runQueryWithExpectedResult(
             String graphQLQuery,

@@ -129,7 +129,7 @@
         </dependency>
         <dependency>
             <groupId>com.github.jknack</groupId>
-            <artifactId>handlebars</artifactId>
+            <artifactId>handlebars-helpers</artifactId>
             <version>${handlebars.version}</version>
         </dependency>
         <dependency>
