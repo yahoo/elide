@@ -16,6 +16,7 @@ import static org.mockito.Mockito.when;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
@@ -58,6 +59,7 @@ public class TableExporterTest {
         EntityProjection projection = EntityProjection.builder().type(AsyncQuery.class).build();
 
         when(asyncQuery.getRequestId()).thenReturn(UUID.randomUUID().toString());
+        when(asyncQuery.getQueryType()).thenReturn(QueryType.GRAPHQL_V1_0);
         when(elide.getTransactionRegistry()).thenReturn(transactionRegistry);
         when(elide.getAuditLogger()).thenReturn(auditLogger);
         when(elide.getDataStore()).thenReturn(dataStore);
