@@ -1,9 +1,13 @@
 /*
- * Copyright 2019, Yahoo Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
+
+import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isTableJoin;
+import static com.yahoo.elide.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
@@ -19,7 +23,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
-import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
@@ -44,11 +47,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isTableJoin;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
-import static com.yahoo.elide.utils.TypeHelper.appendAlias;
-import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
-
 /**
  * Class to construct query plan into real sql query.
  */
@@ -56,17 +54,17 @@ public class QueryTranslator implements QueryPlanVisitor<SQLQuery.SQLQueryBuilde
     private final SQLReferenceTable referenceTable;
     private final EntityDictionary dictionary;
     private final SQLDialect dialect;
-    private final SQLQuery.SQLQueryBuilder builder;
 
     public QueryTranslator(SQLReferenceTable referenceTable, SQLDialect sqlDialect) {
         this.referenceTable = referenceTable;
         this.dictionary = referenceTable.getDictionary();
         this.dialect = sqlDialect;
-        this.builder = SQLQuery.builder();
     }
 
     @Override
     public SQLQuery.SQLQueryBuilder visitQueryPlan(QueryPlan plan) {
+        SQLQuery.SQLQueryBuilder builder = plan.getSource().accept(this);
+
         Set<JoinPath> joinPaths = new HashSet<>();
 
         builder.projectionClause(constructProjectionWithReference(plan));
@@ -116,9 +114,11 @@ public class QueryTranslator implements QueryPlanVisitor<SQLQuery.SQLQueryBuilde
 
     @Override
     public SQLQuery.SQLQueryBuilder visitTableSource(TableSource source) {
+        SQLQuery.SQLQueryBuilder builder = SQLQuery.builder();
+
         Table table = source.getTable();
         Class<?> tableCls = dictionary.getEntityClass(table.getName(), table.getVersion());
-        String tableAlias = getClassAlias(tableCls);
+        String tableAlias = source.getAlias();
 
         String tableStatement = tableCls.isAnnotationPresent(FromSubquery.class)
                 ? "(" + tableCls.getAnnotation(FromSubquery.class).sql() + ")"

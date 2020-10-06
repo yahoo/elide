@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
-import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
-
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.TimedFunction;
 import com.yahoo.elide.core.exceptions.BadRequestException;
@@ -36,8 +34,8 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryTransl
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.plan.QueryPlan;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.plan.QueryPlan;
 import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
@@ -402,16 +400,6 @@ public class SQLQueryEngine extends QueryEngine {
         return query.getDimensions().stream()
                 .map(projection -> table.getDimension(projection.getColumn().getName()))
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * Get alias for an entity class.
-     *
-     * @param entityClass entity class
-     * @return alias
-     */
-    public static String getClassAlias(Class<?> entityClass) {
-        return getTypeAlias(entityClass);
     }
 
     private static boolean returnPageTotals(Pagination pagination) {

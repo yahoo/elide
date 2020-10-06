@@ -9,13 +9,13 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
-import com.google.common.collect.Sets;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
-import lombok.Builder;
+
+import com.google.common.collect.Sets;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
  * SQLQueryTemplate contains projections information about a sql query.
  */
 @Data
-@Builder
 public class QueryPlan {
 
     private Source source;
