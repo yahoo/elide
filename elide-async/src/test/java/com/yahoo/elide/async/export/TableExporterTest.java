@@ -13,13 +13,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.UUID;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -32,7 +25,14 @@ import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.User;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import io.reactivex.Observable;
+
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.UUID;
 
 public class TableExporterTest {
 
@@ -66,15 +66,15 @@ public class TableExporterTest {
         when(dataStore.beginTransaction()).thenReturn(tx);
         when(graphQLParser.parse(any())).thenReturn(projection);
     }
-    
+
     @Test
     public void testExporterEmptyProjection() {
         TableExporter exporter = new TableExporter(elide, NO_VERSION, user, graphQLParser);
-        Object[] queries= {asyncQuery};
+        Object[] queries = {asyncQuery};
         when(tx.loadObjects(any(), any())).thenReturn(Arrays.asList(queries));
 
         Observable<PersistentResource> results = exporter.export(asyncQuery);
-        
+
         assertNotEquals(Observable.empty(), results);
         assertEquals(1, results.toList(LinkedHashSet::new).blockingGet().size());
     }

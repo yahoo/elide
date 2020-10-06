@@ -5,10 +5,6 @@
  */
 package com.yahoo.elide.async.export;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.UUID;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.core.DataStoreTransaction;
@@ -19,8 +15,12 @@ import com.yahoo.elide.security.User;
 
 import io.reactivex.Observable;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.UUID;
+
 /**
- * Class for Table Export functionality.  
+ * Class for Table Export functionality.
  */
 public class TableExporter {
 
