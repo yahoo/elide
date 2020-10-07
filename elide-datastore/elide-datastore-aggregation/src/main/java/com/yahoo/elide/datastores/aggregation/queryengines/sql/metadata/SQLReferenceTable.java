@@ -85,7 +85,7 @@ public class SQLReferenceTable {
 
             resolvedReferences.get(id).put(
                     fieldName,
-                    new SQLReferenceVisitor(metaDataStore, queryable.getAlias()).visitColumn(column));
+                    new SQLReferenceVisitor(metaDataStore, queryable.getAlias(fieldName)).visitColumn(column));
 
             resolvedJoinPaths.get(id).put(fieldName, joinVisitor.visitColumn(column));
         });

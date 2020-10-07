@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Class to construct query plan into real sql query.
+ * Translates a client query into a SQL query.
  */
 public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
     private final SQLReferenceTable referenceTable;

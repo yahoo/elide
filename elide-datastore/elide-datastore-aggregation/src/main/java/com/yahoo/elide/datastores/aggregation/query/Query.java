@@ -148,11 +148,6 @@ public class Query implements Queryable {
     }
 
     @Override
-    public boolean isStatic() {
-        return false;
-    }
-
-    @Override
     public <T> T accept(QueryVisitor<T> visitor) {
         return visitor.visitQuery(this);
     }
