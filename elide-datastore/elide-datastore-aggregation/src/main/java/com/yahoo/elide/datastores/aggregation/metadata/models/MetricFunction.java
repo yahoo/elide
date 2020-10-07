@@ -6,13 +6,11 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.request.Argument;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
 
-import java.util.Map;
 import java.util.Set;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
