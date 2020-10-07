@@ -8,10 +8,9 @@ package example.models.aggregation;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
-import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
+import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlSum;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -34,7 +33,7 @@ public class Stats {
     /**
      * A metric.
      */
-    @MetricAggregation(function = SqlSum.class)
+    @MetricFormula("SUM({{measure}})")
     private long measure;
 
     /**
