@@ -112,11 +112,7 @@ public class Table implements Queryable {
             dbConnectionName = ((FromSubquery) annotation).dbConnectionName();
         }
 
-        if (this.version != null && ! this.version.isEmpty()) {
-            this.id = this.name + "." + this.version;
-        } else {
-            this.id = this.name;
-        }
+        this.id = this.name;
         this.dbConnectionName = dbConnectionName;
 
         this.columns = constructColumns(cls, dictionary);

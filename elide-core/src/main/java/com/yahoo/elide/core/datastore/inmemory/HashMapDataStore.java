@@ -78,6 +78,10 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
         return this;
     }
 
+    public Map<Class<?>, Map<String, Object>> getStorage() {
+        return dataStore;
+    }
+
     @Override
     public void cleanseTestData() {
         for (Map<String, Object> objects : dataStore.values()) {
