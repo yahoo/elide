@@ -11,7 +11,6 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.parsers.expression.FilterExpressionNormalizationVisitor;
@@ -225,7 +224,7 @@ public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<Fil
      * Returns whether or not a {@link FilterPredicate} corresponds to a {@code HAVING} clause in JPQL query.
      * <p>
      * A {@link FilterPredicate} corresponds to a {@code HAVING} clause iff the predicate field has
-     * {@link MetricAggregation} or {@link MetricFormula} annotation on it.
+     * {@link MetricFormula} annotation on it.
      *
      * @param filterPredicate  The terminal filter expression to check for
      *

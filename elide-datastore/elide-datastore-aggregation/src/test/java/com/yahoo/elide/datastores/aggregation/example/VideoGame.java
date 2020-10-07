@@ -8,10 +8,8 @@ package com.yahoo.elide.datastores.aggregation.example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlSum;
 
 import lombok.Setter;
 
@@ -51,12 +49,12 @@ public class VideoGame {
     }
 
     @Column(name = "game_rounds")
-    @MetricAggregation(function = SqlSum.class)
+    @MetricFormula("SUM({{game_rounds}})")
     public Long getSessions() {
         return sessions;
     }
 
-    @MetricAggregation(function = SqlSum.class)
+    @MetricFormula("SUM({{timeSpent}})")
     public Long getTimeSpent() {
         return timeSpent;
     }
