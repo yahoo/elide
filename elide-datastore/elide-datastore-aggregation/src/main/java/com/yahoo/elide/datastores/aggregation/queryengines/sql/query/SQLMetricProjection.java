@@ -8,8 +8,8 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.plan.QueryPlan;
 import com.yahoo.elide.request.Argument;
 
 import lombok.Value;
@@ -28,7 +28,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     Map<String, Argument> arguments;
 
     @Override
-    public String toSQL(QueryPlan plan) {
+    public String toSQL(Queryable query) {
         return referenceTable.getResolvedReference(column.getTable(), column.getName());
     }
 }

@@ -4,14 +4,17 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.datastores.aggregation.metadata.models;
+package com.yahoo.elide.datastores.aggregation.query;
+
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 
 import java.util.Set;
 
 public interface Queryable {
-    public String getName();
     public String getAlias();
-    public String getVersion();
     public Dimension getDimension(String name);
     public Set<Dimension> getDimensions();
     public Metric getMetric(String name);
@@ -19,4 +22,10 @@ public interface Queryable {
     public TimeDimension getTimeDimension(String name);
     public Set<TimeDimension> getTimeDimensions();
     public Set<Column> getColumns();
+    public String getDbConnectionName();
+    public <T> T accept(QueryVisitor<T> visitor);
+
+    default public boolean isStatic() {
+        return true;
+    }
 }

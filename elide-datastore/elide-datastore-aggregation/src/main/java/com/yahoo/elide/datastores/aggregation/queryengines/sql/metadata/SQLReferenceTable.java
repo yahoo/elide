@@ -9,11 +9,10 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Queryable;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
 
 import lombok.Getter;
-import lombok.Value;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,14 +28,8 @@ public class SQLReferenceTable {
     @Getter
     private final EntityDictionary dictionary;
 
-    private final Map<QueryableId, Map<String, String>> resolvedReferences = new HashMap<>();
-    private final Map<QueryableId, Map<String, Set<JoinPath>>> resolvedJoinPaths = new HashMap<>();
-
-    @Value
-    private class QueryableId {
-        String name;
-        String version;
-    }
+    private final Map<String, Map<String, String>> resolvedReferences = new HashMap<>();
+    private final Map<String, Map<String, Set<JoinPath>>> resolvedJoinPaths = new HashMap<>();
 
     public SQLReferenceTable(MetaDataStore metaDataStore) {
         this.metaDataStore = metaDataStore;
@@ -53,8 +46,7 @@ public class SQLReferenceTable {
      * @return resolved reference
      */
     public String getResolvedReference(Queryable queryable, String fieldName) {
-        QueryableId id = new QueryableId(queryable.getName(), queryable.getVersion());
-        return resolvedReferences.get(id).get(fieldName);
+        return resolvedReferences.get(queryable.getAlias()).get(fieldName);
     }
 
     /**
@@ -65,8 +57,7 @@ public class SQLReferenceTable {
      * @return resolved reference
      */
     public Set<JoinPath> getResolvedJoinPaths(Queryable queryable, String fieldName) {
-        QueryableId id = new QueryableId(queryable.getName(), queryable.getVersion());
-        return resolvedJoinPaths.get(id).get(fieldName);
+        return resolvedJoinPaths.get(queryable.getAlias()).get(fieldName);
     }
 
     /**
@@ -75,7 +66,7 @@ public class SQLReferenceTable {
      * @param queryable meta data table
      */
     private void resolveAndStoreAllReferencesAndJoins(Queryable queryable) {
-        QueryableId id = new QueryableId(queryable.getName(), queryable.getVersion());
+        String id = queryable.getAlias();
         if (!resolvedReferences.containsKey(id)) {
             resolvedReferences.put(id, new HashMap<>());
         }

@@ -66,10 +66,10 @@ public class EntityProjectionTranslator {
      */
     public Query getQuery() {
         Query query = Query.builder()
-                .table(queriedTable)
-                .metrics(metrics)
-                .groupByDimensions(dimensionProjections)
-                .timeDimensions(timeDimensions)
+                .source(queriedTable)
+                .metricProjections(metrics)
+                .dimensionProjections(dimensionProjections)
+                .timeDimensionProjections(timeDimensions)
                 .whereFilter(whereFilter)
                 .havingFilter(havingFilter)
                 .sorting(entityProjection.getSorting())

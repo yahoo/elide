@@ -18,6 +18,8 @@ import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
+import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 
@@ -274,5 +276,10 @@ public class Table implements Queryable {
             }
         }
         return null;
+    }
+
+    @Override
+    public <T> T accept(QueryVisitor<T> visitor) {
+        return visitor.visitTable(this);
     }
 }

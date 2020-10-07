@@ -7,6 +7,8 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
 
+import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
+import com.yahoo.elide.datastores.aggregation.query.Query;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
@@ -32,4 +34,18 @@ public class MetricFunction {
 
     @OneToMany
     private Set<FunctionArgument> arguments;
+
+    public Query resolve(Query query, MetricProjection metric) {
+        return Query.builder()
+                .metricProjection(metric)
+                .source(query.getSource())
+                .dimensionProjections(query.getAllDimensionProjections())
+                .timeDimensionProjections(query.getTimeDimensionProjections())
+                .whereFilter(query.getWhereFilter())
+                .havingFilter(query.getHavingFilter())
+                .sorting(query.getSorting())
+                .pagination(query.getPagination())
+                .scope(query.getScope())
+                .build();
+    }
 }

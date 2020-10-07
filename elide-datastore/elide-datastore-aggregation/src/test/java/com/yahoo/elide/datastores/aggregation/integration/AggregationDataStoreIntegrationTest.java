@@ -587,8 +587,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         ).toQuery();
 
         String errorMessage = "\"Exception while fetching data (/playerStats) : Invalid operation: "
-                + "Can not filter on relationship field [PlayerStats].country/[Country].isoCode in HAVING clause "
-                + "when querying table PlayerStats.\"";
+                + "Relationship traversal not supported for analytic queries.\"";
 
         runQueryWithExpectedError(graphQLRequest, errorMessage);
     }
