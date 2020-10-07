@@ -8,76 +8,101 @@ package com.yahoo.elide.async.export;
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryType;
-import com.yahoo.elide.audit.AuditLogger;
-import com.yahoo.elide.core.DataStore;
+import com.yahoo.elide.async.models.security.AsyncQueryInlineChecks;
+import com.yahoo.elide.audit.Slf4jLogger;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.TransactionRegistry;
-import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.security.User;
+import com.yahoo.elide.security.checks.Check;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.reactivex.Observable;
 
-import java.util.Arrays;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.UUID;
 
 public class TableExporterTest {
 
-    private DataStoreTransaction tx = mock(DataStoreTransaction.class);
+    private HashMapDataStore dataStore;
     private Elide elide;
     private User user;
-    private GraphQLParser graphQLParser;
-    private AsyncQuery asyncQuery;
 
     @BeforeEach
     public void beforeTest() {
-        reset(tx);
-        elide = mock(Elide.class);
+        dataStore = new HashMapDataStore(AsyncQuery.class.getPackage());
+        Map<String, Class<? extends Check>> map = new HashMap<>();
+        map.put(AsyncQueryInlineChecks.AsyncQueryOwner.PRINCIPAL_IS_OWNER,
+                AsyncQueryInlineChecks.AsyncQueryOwner.class);
+        map.put(AsyncQueryInlineChecks.AsyncQueryAdmin.PRINCIPAL_IS_ADMIN,
+                AsyncQueryInlineChecks.AsyncQueryAdmin.class);
+        map.put(AsyncQueryInlineChecks.AsyncQueryStatusValue.VALUE_IS_CANCELLED,
+                AsyncQueryInlineChecks.AsyncQueryStatusValue.class);
+        map.put(AsyncQueryInlineChecks.AsyncQueryStatusQueuedValue.VALUE_IS_QUEUED,
+                AsyncQueryInlineChecks.AsyncQueryStatusQueuedValue.class);
+        elide = new Elide(
+                    new ElideSettingsBuilder(dataStore)
+                        .withEntityDictionary(new EntityDictionary(map))
+                        .withAuditLogger(new Slf4jLogger())
+                        .build());
         user = mock(User.class);
-        asyncQuery = mock(AsyncQuery.class);
-        graphQLParser = mock(GraphQLParser.class);
-
-        TransactionRegistry transactionRegistry = mock(TransactionRegistry.class);
-        DataStore dataStore = mock(DataStore.class);
-        AuditLogger auditLogger = mock(AuditLogger.class);
-        ElideSettings settings = mock(ElideSettings.class);
-        EntityDictionary dictionary = mock(EntityDictionary.class);
-        EntityProjection projection = EntityProjection.builder().type(AsyncQuery.class).build();
-
-        when(asyncQuery.getRequestId()).thenReturn(UUID.randomUUID().toString());
-        when(asyncQuery.getQueryType()).thenReturn(QueryType.GRAPHQL_V1_0);
-        when(elide.getTransactionRegistry()).thenReturn(transactionRegistry);
-        when(elide.getAuditLogger()).thenReturn(auditLogger);
-        when(elide.getDataStore()).thenReturn(dataStore);
-        when(elide.getElideSettings()).thenReturn(settings);
-        when(settings.getDictionary()).thenReturn(dictionary);
-        when(dataStore.beginTransaction()).thenReturn(tx);
-        when(graphQLParser.parse(any())).thenReturn(projection);
     }
 
     @Test
-    public void testExporterNonEmptyProjection() {
-        TableExporter exporter = new TableExporter(elide, NO_VERSION, user, graphQLParser);
-        Object[] queries = {asyncQuery};
-        when(tx.loadObjects(any(), any())).thenReturn(Arrays.asList(queries));
+    public void testExporterNonEmptyProjection() throws IOException {
+        dataPrep();
+        // Query
+        AsyncQuery asyncQuery = new AsyncQuery();
+        asyncQuery.setQueryType(QueryType.GRAPHQL_V1_0);
+        asyncQuery.setQuery("{\"query\":\"{ asyncQuery { edges { node { id principalName} } } }\",\"variables\":null}");
 
+        TableExporter exporter = new TableExporter(elide, NO_VERSION, user);
         Observable<PersistentResource> results = exporter.export(asyncQuery);
 
         assertNotEquals(Observable.empty(), results);
         assertEquals(1, results.toList(LinkedHashSet::new).blockingGet().size());
+    }
+
+    @Test
+    public void testExporterJsonAPI() {
+        AsyncQuery asyncQuery = new AsyncQuery();
+        asyncQuery.setQueryType(QueryType.JSONAPI_V1_0);
+
+        TableExporter exporter = new TableExporter(elide, NO_VERSION, user);
+        assertThrows(InvalidValueException.class, () -> exporter.export(asyncQuery));
+    }
+
+    /**
+     * Prepping and Storing an asyncQuery entry to be queried later on.
+     * @throws IOException  IOException
+     */
+    private void dataPrep() throws IOException {
+        AsyncQuery temp = new AsyncQuery();
+        DataStoreTransaction tx = dataStore.beginTransaction();
+        RequestScope scope = new RequestScope(null, null, NO_VERSION, null, tx, user, null, UUID.randomUUID(), elide.getElideSettings());
+        tx.save(temp, scope);
+        tx.commit(scope);
+        tx.close();
+    }
+
+    @AfterEach
+    public void clearDataStore() {
+        dataStore.cleanseTestData();
     }
 }

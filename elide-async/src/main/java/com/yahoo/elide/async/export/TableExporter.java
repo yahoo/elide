@@ -12,11 +12,13 @@ import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.User;
 
 import io.reactivex.Observable;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -25,6 +27,7 @@ import java.util.UUID;
 /**
  * Class for Table Export functionality.
  */
+@Slf4j
 public class TableExporter {
 
     private Elide elide;
@@ -87,7 +90,8 @@ public class TableExporter {
 
             requestScope.runQueuedPostCommitTriggers();
         } catch (IOException e) {
-            throw new IllegalStateException(e);
+            log.error("IOException during TableExport", e);
+            throw new TransactionException(e);
         } finally {
             elide.getTransactionRegistry().removeRunningTransaction(requestId);
             elide.getAuditLogger().clear();
