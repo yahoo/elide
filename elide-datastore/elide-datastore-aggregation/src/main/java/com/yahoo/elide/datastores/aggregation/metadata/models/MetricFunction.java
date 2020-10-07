@@ -34,14 +34,4 @@ public class MetricFunction {
 
     @OneToMany
     private Set<FunctionArgument> arguments;
-
-    /**
-     * Construct full metric expression using arguments.
-     *
-     * @param arguments provided arguments
-     * @return <code>FUNCTION(field1, field2, ..., arg1, arg2, ...)</code>
-     */
-    public String constructExpression(Map<String, Argument> arguments) {
-        return getExpression();
-    }
 }

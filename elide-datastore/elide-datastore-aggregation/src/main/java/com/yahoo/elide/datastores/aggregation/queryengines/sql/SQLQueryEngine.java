@@ -311,6 +311,9 @@ public class SQLQueryEngine extends QueryEngine {
      */
     private SQLQuery toSQL(Query query, SQLDialect sqlDialect) {
 
+        //TODO - The result of merging the queries can result in multiple incompatible queries that should be split
+        //apart, executed in parallel, and then stitched back together.
+
         QueryPlan queryPlan = query.getMetrics().stream()
                 .map(metricProjection -> {
                     if (!(metricProjection.getColumn().getMetricFunction() instanceof SQLMetricFunction)) {
