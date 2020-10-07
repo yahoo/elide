@@ -127,7 +127,7 @@ public class PlayerStatsWithRequiredFilter {
         this.id = id;
     }
 
-    @MetricFormula("MIN(lowScore)")
+    @MetricFormula("MAX(highScore)")
     @ColumnMeta(description = "very awesome score", category = "Score Category")
     public long getHighScore() {
         return highScore;
@@ -137,7 +137,7 @@ public class PlayerStatsWithRequiredFilter {
         this.highScore = highScore;
     }
 
-    @MetricFormula("MAX({{highScore}})")
+    @MetricFormula(value = "{{highScore}}")
     @ColumnMeta(description = "highScore with no aggregation")
     public long getHighScoreNoAgg() {
         return highScore;
