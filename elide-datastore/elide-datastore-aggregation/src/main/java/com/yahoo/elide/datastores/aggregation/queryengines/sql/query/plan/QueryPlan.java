@@ -16,6 +16,7 @@ import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
 
 import com.google.common.collect.Sets;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
  * SQLQueryTemplate contains projections information about a sql query.
  */
 @Data
+@AllArgsConstructor
 public class QueryPlan {
 
     private Source source;
@@ -38,14 +40,6 @@ public class QueryPlan {
     private FilterExpression having;
     private Sorting sortBy;
     private Pagination pagination;
-
-    public QueryPlan(Source source, List<SQLMetricProjection> metrics,
-                     Set<SQLColumnProjection> nonTimeDimensions, Set<SQLTimeDimensionProjection> timeDimensions) {
-        this.source = source;
-        this.nonTimeDimensions = nonTimeDimensions;
-        this.timeDimensions = timeDimensions;
-        this.metrics = metrics;
-    }
 
     public <T> T accept(QueryPlanVisitor<T> visitor) {
         return visitor.visitQueryPlan(this);
@@ -89,13 +83,31 @@ public class QueryPlan {
      * @return merged query template
      */
      public QueryPlan merge(QueryPlan second) {
-         // TODO: validate dimension
          assert this.getSource().equals(second.getSource());
+         assert ((this.getWhere() == null && second.getWhere() == null)
+                 || this.getWhere().equals(second.getWhere()));
+         assert ((this.getHaving() == null && second.getHaving() == null)
+                 || this.getHaving().equals(second.getHaving()));
+         assert this.getTimeDimensions().equals(second.getTimeDimensions());
+         assert this.getNonTimeDimensions().equals(second.getNonTimeDimensions());
+         assert ((this.getSortBy() == null && second.getSortBy() == null)
+                 || this.getSortBy().equals(second.getSortBy()));
+         assert ((this.getPagination() == null && second.getPagination() == null)
+                 || this.getPagination().equals(second.getPagination()));
+
          QueryPlan first = this;
          List<SQLMetricProjection> merged = new ArrayList<>(first.getMetrics());
          merged.addAll(second.getMetrics());
 
-         return new QueryPlan(first.getSource(), merged, first.getNonTimeDimensions(), first.getTimeDimensions());
+         return new QueryPlan(
+                 first.getSource(),
+                 merged,
+                 first.getNonTimeDimensions(),
+                 first.getTimeDimensions(),
+                 first.getWhere(),
+                 first.getHaving(),
+                 first.getSortBy(),
+                 first.getPagination());
      }
 
     /**

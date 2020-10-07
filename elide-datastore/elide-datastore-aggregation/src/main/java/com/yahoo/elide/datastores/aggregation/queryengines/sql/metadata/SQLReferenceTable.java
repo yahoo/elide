@@ -13,6 +13,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Queryable;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
 import lombok.Getter;
+import lombok.Value;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,8 +29,14 @@ public class SQLReferenceTable {
     @Getter
     private final EntityDictionary dictionary;
 
-    private final Map<Queryable, Map<String, String>> resolvedReferences = new HashMap<>();
-    private final Map<Queryable, Map<String, Set<JoinPath>>> resolvedJoinPaths = new HashMap<>();
+    private final Map<QueryableId, Map<String, String>> resolvedReferences = new HashMap<>();
+    private final Map<QueryableId, Map<String, Set<JoinPath>>> resolvedJoinPaths = new HashMap<>();
+
+    @Value
+    private class QueryableId {
+        String name;
+        String version;
+    }
 
     public SQLReferenceTable(MetaDataStore metaDataStore) {
         this.metaDataStore = metaDataStore;
@@ -46,7 +53,8 @@ public class SQLReferenceTable {
      * @return resolved reference
      */
     public String getResolvedReference(Queryable queryable, String fieldName) {
-        return resolvedReferences.get(queryable).get(fieldName);
+        QueryableId id = new QueryableId(queryable.getName(), queryable.getVersion());
+        return resolvedReferences.get(id).get(fieldName);
     }
 
     /**
@@ -57,10 +65,8 @@ public class SQLReferenceTable {
      * @return resolved reference
      */
     public Set<JoinPath> getResolvedJoinPaths(Queryable queryable, String fieldName) {
-
-        //TODO - The reference table either needs to lookup by the name of the table/view OR we need to
-        //do a separate lookup outside the reference table.
-        return resolvedJoinPaths.get(queryable).get(fieldName);
+        QueryableId id = new QueryableId(queryable.getName(), queryable.getVersion());
+        return resolvedJoinPaths.get(id).get(fieldName);
     }
 
     /**
@@ -69,11 +75,12 @@ public class SQLReferenceTable {
      * @param queryable meta data table
      */
     private void resolveAndStoreAllReferencesAndJoins(Queryable queryable) {
-        if (!resolvedReferences.containsKey(queryable)) {
-            resolvedReferences.put(queryable, new HashMap<>());
+        QueryableId id = new QueryableId(queryable.getName(), queryable.getVersion());
+        if (!resolvedReferences.containsKey(id)) {
+            resolvedReferences.put(id, new HashMap<>());
         }
-        if (!resolvedJoinPaths.containsKey(queryable)) {
-            resolvedJoinPaths.put(queryable, new HashMap<>());
+        if (!resolvedJoinPaths.containsKey(id)) {
+            resolvedJoinPaths.put(id, new HashMap<>());
         }
 
         FormulaValidator validator = new FormulaValidator(metaDataStore);
@@ -85,11 +92,11 @@ public class SQLReferenceTable {
 
             String fieldName = column.getName();
 
-            resolvedReferences.get(queryable).put(
+            resolvedReferences.get(id).put(
                     fieldName,
                     new SQLReferenceVisitor(metaDataStore, queryable.getAlias()).visitColumn(column));
 
-            resolvedJoinPaths.get(queryable).put(fieldName, joinVisitor.visitColumn(column));
+            resolvedJoinPaths.get(id).put(fieldName, joinVisitor.visitColumn(column));
         });
     }
 }

@@ -324,7 +324,9 @@ public class SQLQueryEngine extends QueryEngine {
 
         QueryTranslator translator = new QueryTranslator(referenceTable, sqlDialect);
 
-        return translator.visitQueryPlan(queryPlan).build();
+        return translator.visitQueryPlan(queryPlan)
+                .clientQuery(query)
+                .build();
     }
 
 
