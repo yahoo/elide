@@ -41,7 +41,7 @@ import java.lang.annotation.Target;
  *
  *     {@literal @}MetricFormula("SUM({{sessions}})")
  *     Long sessions
- *     
+ *
  *     {@literal @}MetricFormula("SUM({{timeSpent}})")
  *     Long timeSpent
  *
