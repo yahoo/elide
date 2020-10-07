@@ -89,6 +89,7 @@ public class Table implements Queryable {
     @ToString.Exclude
     private final Map<String, Column> columnMap;
 
+    @Exclude
     private final String alias;
 
     public Table(Class<?> cls, EntityDictionary dictionary) {

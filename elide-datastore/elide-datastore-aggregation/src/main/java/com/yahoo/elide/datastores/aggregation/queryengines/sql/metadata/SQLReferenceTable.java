@@ -28,7 +28,10 @@ public class SQLReferenceTable {
     @Getter
     private final EntityDictionary dictionary;
 
+    //Stores  MAP<table alias, MAP<fieldName, reference>>
     private final Map<String, Map<String, String>> resolvedReferences = new HashMap<>();
+
+    //Stores  MAP<table alias, MAP<fieldName, join path>>
     private final Map<String, Map<String, Set<JoinPath>>> resolvedJoinPaths = new HashMap<>();
 
     public SQLReferenceTable(MetaDataStore metaDataStore) {

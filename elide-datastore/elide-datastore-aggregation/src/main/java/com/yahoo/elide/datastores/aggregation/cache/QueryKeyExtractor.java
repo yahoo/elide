@@ -78,9 +78,7 @@ public final class QueryKeyExtractor implements FilterExpressionVisitor<Object> 
     // Query Components
     //
     private void visit(Queryable source) {
-        //TODO - this is wrong...
         visit(source.getAlias().toString());
-        // `name`, `version` and `dbconnection` are included in id field
     }
 
     private void visit(MetricProjection metricProjection) {
