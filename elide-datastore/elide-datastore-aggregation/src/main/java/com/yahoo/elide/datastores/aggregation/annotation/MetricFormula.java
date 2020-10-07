@@ -39,10 +39,10 @@ import java.lang.annotation.Target;
  * {@code
  * public class FactTable {
  *
- *     {@literal @}MetricAggregation(sum.class)
+ *     {@literal @}MetricFormula("SUM({{sessions}})")
  *     Long sessions
  *
- *     {@literal @}MetricAggregation(sum.class)
+ *     {@literal @}MetricFormula("SUM({{timeSpent}})")
  *     Long timeSpent
  *
  *     {@literal @}MetricFormula("{{timeSpent}} / {{sessions}}")

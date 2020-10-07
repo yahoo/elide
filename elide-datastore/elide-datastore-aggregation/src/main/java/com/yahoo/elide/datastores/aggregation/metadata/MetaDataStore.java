@@ -12,7 +12,6 @@ import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
-import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.FunctionArgument;
@@ -214,9 +213,9 @@ public class MetaDataStore extends HashMapDataStore {
     /**
      * Returns whether or not an entity field is a metric field.
      * <p>
-     * A field is a metric field iff that field is annotated by at least one of
+     * A field is a metric field if that field is annotated by
      * <ol>
-     *     <li> {@link MetricAggregation}
+     *     <li> {@link MetricFormula}
      * </ol>
      *
      * @param dictionary entity dictionary in current Elide instance
@@ -226,8 +225,7 @@ public class MetaDataStore extends HashMapDataStore {
      * @return {@code true} if the field is a metric field
      */
     public static boolean isMetricField(EntityDictionary dictionary, Class<?> cls, String fieldName) {
-        return dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricAggregation.class)
-                || dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricFormula.class);
+        return dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricFormula.class);
     }
 
     /**
