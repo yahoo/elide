@@ -215,7 +215,7 @@ public class MetaDataStore extends HashMapDataStore {
      * <p>
      * A field is a metric field if that field is annotated by
      * <ol>
-     *     <li> {@link MetricFunction}
+     *     <li> {@link MetricFormula}
      * </ol>
      *
      * @param dictionary entity dictionary in current Elide instance
