@@ -33,7 +33,7 @@ import java.util.TimeZone;
 
 public class AsyncQueryCleanerThreadTest {
 
-    private AsyncQueryCleanerThread cleanerThread;
+    private AsyncQueryCleanerThread<AsyncQuery> cleanerThread;
     private Elide elide;
     private AsyncQueryDAO asyncQueryDao;
     private DateUtil dateUtil;
@@ -51,7 +51,7 @@ public class AsyncQueryCleanerThreadTest {
                         .build());
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
         dateUtil = mock(DateUtil.class);
-        cleanerThread = new AsyncQueryCleanerThread(7, elide, 7, asyncQueryDao, dateUtil);
+        cleanerThread = new AsyncQueryCleanerThread<AsyncQuery>(7, elide, 7, asyncQueryDao, dateUtil, AsyncQuery.class);
     }
 
     @Test
@@ -67,7 +67,7 @@ public class AsyncQueryCleanerThreadTest {
         when(dateUtil.calculateFilterDate(Calendar.DATE, cleanerThread.getQueryCleanupDays())).thenReturn(testDate);
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
         cleanerThread.deleteAsyncQuery();
-        verify(asyncQueryDao, times(1)).deleteAsyncQueryAndResultCollection(filterCaptor.capture());
+        verify(asyncQueryDao, times(1)).deleteAsyncQueryAndResultCollection(filterCaptor.capture(), any());
         assertEquals("asyncQuery.createdOn LE [" + testDate + "]", filterCaptor.getValue().toString());
     }
 
@@ -76,7 +76,7 @@ public class AsyncQueryCleanerThreadTest {
         when(dateUtil.calculateFilterDate(Calendar.MINUTE, cleanerThread.getMaxRunTimeMinutes())).thenReturn(testDate);
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
         cleanerThread.timeoutAsyncQuery();
-        verify(asyncQueryDao, times(1)).updateStatusAsyncQueryCollection(filterCaptor.capture(), any(QueryStatus.class));
+        verify(asyncQueryDao, times(1)).updateStatusAsyncQueryCollection(filterCaptor.capture(), any(QueryStatus.class), any());
         assertEquals("(asyncQuery.status IN [[PROCESSING, QUEUED]] AND asyncQuery.createdOn LE [" + testDate + "])", filterCaptor.getValue().toString());
     }
 }

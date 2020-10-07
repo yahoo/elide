@@ -17,7 +17,6 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryType;
-import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
@@ -27,22 +26,26 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 
-public class AsyncQueryThreadTest {
+public class AsyncAPIThreadTest {
 
     private User user;
     private Elide elide;
+    private Map<String, QueryRunner> runners = new HashMap();
     private QueryRunner runner;
-    private AsyncQueryResult queryResultObj;
-    private AsyncQueryDAO asyncQueryDao;
+    private AsyncExecutorService asyncExecutorService;
 
     @BeforeEach
     public void setupMocks() {
         user = mock(User.class);
         elide = mock(Elide.class);
         runner = mock(QueryRunner.class);
-        queryResultObj = mock(AsyncQueryResult.class);
-        asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
+        runners.put("v1", runner);
+        asyncExecutorService = mock(AsyncExecutorService.class);
+        when(asyncExecutorService.getElide()).thenReturn(elide);
+        when(asyncExecutorService.getRunners()).thenReturn(runners);
     }
 
     @Test
@@ -54,11 +57,10 @@ public class AsyncQueryThreadTest {
         queryObj.setId(id);
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
-        queryObj.setResultType(ResultType.EMBEDDED);
 
         when(elide.get(anyString(), anyString(), any(), any(), anyString(), any())).thenReturn(response);
-        AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1");
-        queryResultObj = queryThread.processQuery();
+        AsyncAPIThread queryThread = new AsyncAPIThread(queryObj, user, asyncExecutorService, "v1");
+        AsyncQueryResult queryResultObj = (AsyncQueryResult) queryThread.processQuery();
         assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
         assertEquals(queryResultObj.getHttpStatus(), 200);
     }
@@ -72,11 +74,10 @@ public class AsyncQueryThreadTest {
         queryObj.setId(id);
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
-        queryObj.setResultType(ResultType.EMBEDDED);
 
         when(runner.run(anyString(), eq(query), eq(user), any())).thenReturn(response);
-        AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, "v1");
-        queryResultObj = queryThread.processQuery();
+        AsyncAPIThread queryThread = new AsyncAPIThread(queryObj, user, asyncExecutorService, "v1");
+        AsyncQueryResult queryResultObj = (AsyncQueryResult) queryThread.processQuery();
         assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
         assertEquals(queryResultObj.getHttpStatus(), 200);
     }

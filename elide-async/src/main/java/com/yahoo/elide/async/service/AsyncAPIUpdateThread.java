@@ -6,8 +6,8 @@
 package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.AsyncQueryResult;
+import com.yahoo.elide.async.models.AsyncAPI;
+import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.QueryStatus;
 
 import lombok.AllArgsConstructor;
@@ -22,11 +22,11 @@ import java.util.concurrent.Future;
 @Slf4j
 @Data
 @AllArgsConstructor
-public class AsyncQueryUpdateThread implements Runnable {
+public class AsyncAPIUpdateThread implements Runnable {
 
     private Elide elide;
-    private Future<AsyncQueryResult> task;
-    private AsyncQuery queryObj;
+    private Future<AsyncAPIResult> task;
+    private AsyncAPI queryObj;
     private AsyncQueryDAO asyncQueryDao;
 
     @Override
@@ -39,16 +39,16 @@ public class AsyncQueryUpdateThread implements Runnable {
      */
     protected void updateQuery() {
         try {
-            AsyncQueryResult queryResultObj = task.get();
+            AsyncAPIResult queryResultObj = task.get();
             // add queryResult object to query object
-            asyncQueryDao.updateAsyncQueryResult(queryResultObj, queryObj.getId());
+            asyncQueryDao.updateAsyncQueryResult(queryResultObj, queryObj.getId(), queryObj.getClass());
 
         } catch (InterruptedException e) {
             log.error("InterruptedException: {}", e);
-            asyncQueryDao.updateStatus(queryObj.getId(), QueryStatus.FAILURE);
+            asyncQueryDao.updateStatus(queryObj.getId(), QueryStatus.FAILURE, queryObj.getClass());
         } catch (Exception e) {
             log.error("Exception: {}", e);
-            asyncQueryDao.updateStatus(queryObj.getId(), QueryStatus.FAILURE);
+            asyncQueryDao.updateStatus(queryObj.getId(), QueryStatus.FAILURE, queryObj.getClass());
         }
     }
 }

@@ -8,8 +8,8 @@ package com.yahoo.elide.async.service;
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.AsyncQueryResult;
+import com.yahoo.elide.async.models.AsyncAPI;
+import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
@@ -51,13 +51,14 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
         this.dataStore = dataStore;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public AsyncQuery updateStatus(String asyncQueryId, QueryStatus status) {
-        AsyncQuery queryObj = (AsyncQuery) executeInTransaction(dataStore, (tx, scope) -> {
+    public <T extends AsyncAPI> T updateStatus(String asyncQueryId, QueryStatus status, Class<T> type) {
+        T queryObj = (T) executeInTransaction(dataStore, (tx, scope) -> {
             EntityProjection asyncQueryCollection = EntityProjection.builder()
-                    .type(AsyncQuery.class)
+                    .type(type)
                     .build();
-            AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
+            T query = (T) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
             query.setStatus(status);
             tx.save(query, scope);
             return query;
@@ -66,11 +67,11 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
     }
 
     @Override
-    public Collection<AsyncQuery> updateStatusAsyncQueryCollection(FilterExpression filterExpression,
-            QueryStatus status) {
+    public <T extends AsyncAPI> Collection<T> updateStatusAsyncQueryCollection(FilterExpression filterExpression,
+            QueryStatus status, Class<T> type) {
         return updateAsyncQueryCollection(filterExpression, (asyncQuery) -> {
             asyncQuery.setStatus(status);
-            });
+            }, type);
     }
 
     /**
@@ -78,18 +79,19 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
      * returns the objects updated.
      * @param filterExpression Filter expression to update AsyncQuery Objects based on
      * @param updateFunction Functional interface for updating AsyncQuery Object
+     * @param type AsyncAPI Type Implementation.
      * @return query object list updated
      */
     @SuppressWarnings("unchecked")
-    private Collection<AsyncQuery> updateAsyncQueryCollection(FilterExpression filterExpression,
-            UpdateQuery updateFunction) {
+    private <T extends AsyncAPI> Collection<T> updateAsyncQueryCollection(FilterExpression filterExpression,
+            UpdateQuery updateFunction, Class<T> type) {
         log.debug("updateAsyncQueryCollection");
 
-        Collection<AsyncQuery> asyncQueryList = null;
-        asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore,
+        Collection<T> asyncQueryList = null;
+        asyncQueryList = (Collection<T>) executeInTransaction(dataStore,
                 (tx, scope) -> {
             EntityProjection asyncQueryCollection = EntityProjection.builder()
-                    .type(AsyncQuery.class)
+                    .type(type)
                     .filterExpression(filterExpression)
                     .build();
 
@@ -97,7 +99,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
             Iterator<Object> itr = loaded.iterator();
 
             while (itr.hasNext()) {
-                AsyncQuery query = (AsyncQuery) itr.next();
+                T query = (T) itr.next();
                 updateFunction.update(query);
                 tx.save(query, scope);
             }
@@ -108,12 +110,13 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
 
     @Override
     @SuppressWarnings("unchecked")
-    public Collection<AsyncQuery> deleteAsyncQueryAndResultCollection(FilterExpression filterExpression) {
+    public <T extends AsyncAPI> Collection<T> deleteAsyncQueryAndResultCollection(
+            FilterExpression filterExpression, Class<T> type) {
         log.debug("deleteAsyncQueryAndResultCollection");
-        Collection<AsyncQuery> asyncQueryList = null;
-        asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore, (tx, scope) -> {
+        Collection<T> asyncQueryList = null;
+        asyncQueryList = (Collection<T>) executeInTransaction(dataStore, (tx, scope) -> {
             EntityProjection asyncQueryCollection = EntityProjection.builder()
-                    .type(AsyncQuery.class)
+                    .type(type)
                     .filterExpression(filterExpression)
                     .build();
 
@@ -121,7 +124,7 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
             Iterator<Object> itr = loaded.iterator();
 
             while (itr.hasNext()) {
-                AsyncQuery query = (AsyncQuery) itr.next();
+                T query = (T) itr.next();
                 if (query != null) {
                     tx.delete(query, scope);
                 }
@@ -131,15 +134,16 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
         return asyncQueryList;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public AsyncQuery updateAsyncQueryResult(AsyncQueryResult asyncQueryResult,
-            String asyncQueryId) {
+    public <T extends AsyncAPI> T updateAsyncQueryResult(AsyncAPIResult asyncQueryResult,
+            String asyncQueryId, Class<T> type) {
         log.debug("updateAsyncQueryResult");
-        AsyncQuery queryObj = (AsyncQuery) executeInTransaction(dataStore, (tx, scope) -> {
+        T queryObj = (T) executeInTransaction(dataStore, (tx, scope) -> {
             EntityProjection asyncQueryCollection = EntityProjection.builder()
-                    .type(AsyncQuery.class)
+                    .type(type)
                     .build();
-            AsyncQuery query = (AsyncQuery) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
+            T query = (T) tx.loadObject(asyncQueryCollection, asyncQueryId, scope);
             query.setResult(asyncQueryResult);
             if (query.getStatus().equals(QueryStatus.CANCELLED)) {
                 query.setStatus(QueryStatus.CANCEL_COMPLETE);
@@ -179,14 +183,15 @@ public class DefaultAsyncQueryDAO implements AsyncQueryDAO {
 
     @Override
     @SuppressWarnings("unchecked")
-    public Collection<AsyncQuery> loadAsyncQueryCollection(FilterExpression filterExpression) {
-        Collection<AsyncQuery> asyncQueryList = null;
+    public <T extends AsyncAPI> Collection<T> loadAsyncQueryCollection(FilterExpression filterExpression,
+            Class<T> type) {
+        Collection<T> asyncQueryList = null;
         log.debug("loadAsyncQueryCollection");
         try {
-            asyncQueryList = (Collection<AsyncQuery>) executeInTransaction(dataStore, (tx, scope) -> {
+            asyncQueryList = (Collection<T>) executeInTransaction(dataStore, (tx, scope) -> {
 
                 EntityProjection asyncQueryCollection = EntityProjection.builder()
-                        .type(AsyncQuery.class)
+                        .type(type)
                         .filterExpression(filterExpression)
                         .build();
                 Iterable<Object> loaded = tx.loadObjects(asyncQueryCollection, scope);

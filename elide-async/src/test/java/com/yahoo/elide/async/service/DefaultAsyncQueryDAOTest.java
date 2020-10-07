@@ -79,7 +79,7 @@ public class DefaultAsyncQueryDAOTest {
     @Test
     public void testUpdateStatus() {
         when(tx.loadObject(any(), any(), any())).thenReturn(asyncQuery);
-        asyncQueryDAO.updateStatus("1234", QueryStatus.PROCESSING);
+        asyncQueryDAO.updateStatus("1234", QueryStatus.PROCESSING, asyncQuery.getClass());
         verify(dataStore, times(1)).beginTransaction();
         verify(tx, times(1)).save(any(AsyncQuery.class), any(RequestScope.class));
         verify(asyncQuery, times(1)).setStatus(QueryStatus.PROCESSING);
@@ -89,7 +89,7 @@ public class DefaultAsyncQueryDAOTest {
    public void testUpdateStatusAsyncQueryCollection() {
        Iterable<Object> loaded = Arrays.asList(asyncQuery, asyncQuery);
        when(tx.loadObjects(any(), any())).thenReturn(loaded);
-       asyncQueryDAO.updateStatusAsyncQueryCollection(filter, QueryStatus.TIMEDOUT);
+       asyncQueryDAO.updateStatusAsyncQueryCollection(filter, QueryStatus.TIMEDOUT, asyncQuery.getClass());
        verify(tx, times(2)).save(any(AsyncQuery.class), any(RequestScope.class));
        verify(asyncQuery, times(2)).setStatus(QueryStatus.TIMEDOUT);
    }
@@ -98,7 +98,7 @@ public class DefaultAsyncQueryDAOTest {
     public void testDeleteAsyncQueryAndResultCollection() {
         Iterable<Object> loaded = Arrays.asList(asyncQuery, asyncQuery, asyncQuery);
         when(tx.loadObjects(any(), any())).thenReturn(loaded);
-        asyncQueryDAO.deleteAsyncQueryAndResultCollection(filter);
+        asyncQueryDAO.deleteAsyncQueryAndResultCollection(filter, asyncQuery.getClass());
         verify(dataStore, times(1)).beginTransaction();
         verify(tx, times(1)).loadObjects(any(), any());
         verify(tx, times(3)).delete(any(AsyncQuery.class), any(RequestScope.class));
@@ -108,7 +108,7 @@ public class DefaultAsyncQueryDAOTest {
     public void testUpdateAsyncQueryResult() {
         when(tx.loadObject(any(), any(), any())).thenReturn(asyncQuery);
         when(asyncQuery.getStatus()).thenReturn(QueryStatus.PROCESSING);
-        asyncQueryDAO.updateAsyncQueryResult(asyncQueryResult, asyncQuery.getId());
+        asyncQueryDAO.updateAsyncQueryResult(asyncQueryResult, asyncQuery.getId(), asyncQuery.getClass());
         verify(dataStore, times(1)).beginTransaction();
         verify(tx, times(1)).save(any(AsyncQuery.class), any(RequestScope.class));
         verify(asyncQuery, times(1)).setResult(asyncQueryResult);
@@ -120,7 +120,7 @@ public class DefaultAsyncQueryDAOTest {
     public void testLoadAsyncQueryCollection() {
         Iterable<Object> loaded = Arrays.asList(asyncQuery, asyncQuery, asyncQuery);
         when(tx.loadObjects(any(), any())).thenReturn(loaded);
-        asyncQueryDAO.loadAsyncQueryCollection(filter);
+        asyncQueryDAO.loadAsyncQueryCollection(filter, asyncQuery.getClass());
         verify(dataStore, times(1)).beginTransaction();
         verify(tx, times(1)).loadObjects(any(), any());
     }

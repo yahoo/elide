@@ -6,8 +6,8 @@
 package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.AsyncQueryResult;
+import com.yahoo.elide.async.models.AsyncAPI;
+import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.graphql.QueryRunner;
@@ -98,17 +98,17 @@ public class AsyncExecutorService {
      * @param user User
      * @param apiVersion api version
      */
-    public void executeQuery(AsyncQuery queryObj, User user, String apiVersion) {
+    public void executeQuery(AsyncAPI queryObj, User user, String apiVersion) {
 
         QueryRunner runner = runners.get(apiVersion);
         if (runner == null) {
             throw new InvalidOperationException("Invalid API Version");
         }
-        AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, apiVersion);
-        Future<AsyncQueryResult> task = executor.submit(queryWorker);
+        AsyncAPIThread queryWorker = new AsyncAPIThread(queryObj, user, this, apiVersion);
+        Future<AsyncAPIResult> task = executor.submit(queryWorker);
         try {
             queryObj.setStatus(QueryStatus.PROCESSING);
-            AsyncQueryResult queryResultObj = task.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);
+            AsyncAPIResult queryResultObj = task.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);
             queryObj.setResult(queryResultObj);
             queryObj.setStatus(QueryStatus.COMPLETE);
             queryObj.setUpdatedOn(new Date());
@@ -120,7 +120,7 @@ public class AsyncExecutorService {
             queryObj.setStatus(QueryStatus.FAILURE);
         } catch (TimeoutException e) {
             log.error("TimeoutException: {}", e);
-            queryObj.setQueryUpdateWorker(new AsyncQueryUpdateThread(elide, task, queryObj, asyncQueryDao));
+            queryObj.setQueryUpdateWorker(new AsyncAPIUpdateThread(elide, task, queryObj, asyncQueryDao));
         } catch (Exception e) {
             log.error("Exception: {}", e);
             queryObj.setStatus(QueryStatus.FAILURE);
@@ -133,7 +133,7 @@ public class AsyncExecutorService {
      * @param user User
      * @param apiVersion API Version
      */
-    public void completeQuery(AsyncQuery query, User user, String apiVersion) {
+    public void completeQuery(AsyncAPI query, User user, String apiVersion) {
         if (query.getQueryUpdateWorker() != null) {
             log.debug("Task has not completed");
             updater.execute(query.getQueryUpdateWorker());

@@ -7,8 +7,6 @@ package com.yahoo.elide.async.models;
 
 import lombok.Data;
 
-import java.util.Date;
-
 import javax.persistence.Embeddable;
 
 /**
@@ -16,17 +14,8 @@ import javax.persistence.Embeddable;
  */
 @Embeddable
 @Data
-
-public class AsyncQueryResult {
-
+public class AsyncQueryResult extends AsyncAPIResult {
     private Integer contentLength;
 
-    private Integer recordCount;
-
     private String responseBody;  //URL or Response body
-
-    private Integer httpStatus; // HTTP Status
-
-    private Date completedOn = new Date();
-
 }

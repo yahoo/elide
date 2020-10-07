@@ -6,6 +6,7 @@
 package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.async.models.AsyncQuery;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,8 +38,10 @@ public class AsyncCleanerService {
 
         // Setting up query cleaner that marks long running query as TIMEDOUT.
         ScheduledExecutorService cleaner = Executors.newSingleThreadScheduledExecutor();
-        AsyncQueryCleanerThread cleanUpTask = new AsyncQueryCleanerThread(queryRunTimeThresholdMinutes, elide,
-            queryCleanupDays, asyncQueryDao, new DateUtil());
+        AsyncQueryCleanerThread<AsyncQuery> cleanUpTask = new AsyncQueryCleanerThread<AsyncQuery>(
+                queryRunTimeThresholdMinutes, elide, queryCleanupDays, asyncQueryDao, new DateUtil(),
+                AsyncQuery.class);
+        //TODO Create task for TableExport Cleanup
 
         // Since there will be multiple hosts running the elide service,
         // setting up random delays to avoid all of them trying to cleanup at the same time.
@@ -56,7 +59,9 @@ public class AsyncCleanerService {
         //Setting up query cancel service that cancels long running queries based on status or runtime
         ScheduledExecutorService cancellation = Executors.newSingleThreadScheduledExecutor();
 
-        AsyncQueryCancelThread cancelTask = new AsyncQueryCancelThread(maxRunTimeSeconds, elide, asyncQueryDao);
+        AsyncQueryCancelThread<AsyncQuery> cancelTask = new AsyncQueryCancelThread<AsyncQuery>(maxRunTimeSeconds,
+                elide, asyncQueryDao, AsyncQuery.class);
+        //TODO Create task for TableExport cancel
 
         cancellation.scheduleWithFixedDelay(cancelTask, 0, cancelDelaySeconds, TimeUnit.SECONDS);
     }

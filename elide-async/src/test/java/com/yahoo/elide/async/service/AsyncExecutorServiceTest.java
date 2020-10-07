@@ -24,10 +24,12 @@ import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
 
+import org.apache.http.NoHttpResponseException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -40,7 +42,7 @@ public class AsyncExecutorServiceTest {
     private Elide elide;
     private AsyncQueryDAO asyncQueryDao;
     private User testUser;
-    private AsyncQueryUpdateThread asyncQueryUpdateThread;
+    private AsyncAPIUpdateThread asyncAPIUpdateThread;
     private ResultStorageEngine resultStorageEngine;
 
     @BeforeAll
@@ -56,7 +58,7 @@ public class AsyncExecutorServiceTest {
         resultStorageEngine = mock(FileResultStorageEngine.class);
         AsyncExecutorService.init(elide, 5, 60, asyncQueryDao, resultStorageEngine);
         service = AsyncExecutorService.getInstance();
-        asyncQueryUpdateThread = mock(AsyncQueryUpdateThread.class);
+        asyncAPIUpdateThread = mock(AsyncAPIUpdateThread.class);
     }
 
     @Test
@@ -72,10 +74,11 @@ public class AsyncExecutorServiceTest {
 
     //Test for executor hook execution
     @Test
-    public void testExecuteQueryFail() throws ExecutionException, TimeoutException, InterruptedException {
-
+    public void testExecuteQueryFail() throws ExecutionException, TimeoutException, InterruptedException,
+           NoHttpResponseException, URISyntaxException {
        AsyncQuery queryObj = mock(AsyncQuery.class);
        when(queryObj.getAsyncAfterSeconds()).thenReturn(10);
+       when(queryObj.executeRequest(service, testUser, NO_VERSION)).thenThrow(new NoHttpResponseException(null));
        service.executeQuery(queryObj, testUser, NO_VERSION);
        verify(queryObj, times(1)).setStatus(QueryStatus.PROCESSING);
        verify(queryObj, times(1)).setStatus(QueryStatus.FAILURE);
@@ -104,7 +107,7 @@ public class AsyncExecutorServiceTest {
 
         AsyncQuery queryObj = mock(AsyncQuery.class);
         when(queryObj.getAsyncAfterSeconds()).thenReturn(0);
-        when(queryObj.getQueryUpdateWorker()).thenReturn(asyncQueryUpdateThread);
+        when(queryObj.getQueryUpdateWorker()).thenReturn(asyncAPIUpdateThread);
         service.executeQuery(queryObj, testUser, NO_VERSION);
         service.completeQuery(queryObj, testUser, NO_VERSION);
         verify(queryObj, times(1)).setStatus(QueryStatus.PROCESSING);
