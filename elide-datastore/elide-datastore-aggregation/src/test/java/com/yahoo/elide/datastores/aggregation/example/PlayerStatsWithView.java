@@ -12,13 +12,11 @@ import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
-import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
+import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlMax;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions.SqlMin;
 
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
@@ -102,7 +100,7 @@ public class PlayerStatsWithView {
         this.id = id;
     }
 
-    @MetricAggregation(function = SqlMax.class)
+    @MetricFormula("MAX({{highScore}})")
     @ColumnMeta(description = "very awesome score")
     public long getHighScore() {
         return highScore;
@@ -112,7 +110,7 @@ public class PlayerStatsWithView {
         this.highScore = highScore;
     }
 
-    @MetricAggregation(function = SqlMin.class)
+    @MetricFormula("MIN({{lowScore}})")
     public long getLowScore() {
         return lowScore;
     }

@@ -196,16 +196,16 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("lowScore"))
                 .body("data.attributes.valueType",  equalTo("INTEGER"))
-                .body("data.attributes.columnType",  equalTo("FIELD"))
-                .body("data.attributes.expression",  equalTo("lowScore"))
+                .body("data.attributes.columnType",  equalTo("FORMULA"))
+                .body("data.attributes.expression",  equalTo("MIN({{lowScore}})"))
                 .body("data.attributes.category",  equalTo("Score Category"))
                 .body("data.attributes.description",  equalTo("very low score"))
                 .body("data.attributes.tags",  hasItems("PRIVATE"))
                 .body("data.relationships.table.data.id", equalTo(getTableId("playerStats")))
-                .body("data.relationships.metricFunction.data.id", equalTo("playerStats.lowScore[min]"))
-                .body("included.id", hasItem("playerStats.lowScore[min]"))
+                .body("data.relationships.metricFunction.data.id", equalTo("playerStats.lowScore[lowScore]"))
+                .body("included.id", hasItem("playerStats.lowScore[lowScore]"))
                 .body("included.attributes.description", hasItem("very low score"))
-                .body("included.attributes.expression", hasItem("MIN(%s)"));
+                .body("included.attributes.expression", hasItem("MIN({{lowScore}})"));
 
         given()
                 .accept("application/vnd.api+json")

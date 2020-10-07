@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
-import com.yahoo.elide.datastores.aggregation.annotation.MetricAggregation;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 
 import lombok.EqualsAndHashCode;
@@ -35,65 +34,26 @@ public class Metric extends Column {
         super(table, fieldName, dictionary);
         Class<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
 
-        MetricAggregation aggregation = dictionary.getAttributeOrRelationAnnotation(
-                tableClass,
-                MetricAggregation.class,
-                fieldName);
-
         ColumnMeta meta = dictionary.getAttributeOrRelationAnnotation(
                 tableClass,
                 ColumnMeta.class,
                 fieldName);
 
-        if (aggregation != null) {
-            this.metricFunction = resolveAggregation(tableClass, fieldName, aggregation, meta, dictionary);
+        MetricFormula formula = dictionary.getAttributeOrRelationAnnotation(
+                tableClass,
+                MetricFormula.class,
+                fieldName);
+
+        if (formula != null) {
+            this.metricFunction = constructMetricFunction(
+                    constructColumnName(tableClass, fieldName, dictionary) + "[" + fieldName + "]",
+                    meta == null ? null : meta.description(),
+                    formula.value(),
+                    new HashSet<>());
+
         } else {
-            MetricFormula formula = dictionary.getAttributeOrRelationAnnotation(
-                    tableClass,
-                    MetricFormula.class,
-                    fieldName);
-
-            if (formula != null) {
-                this.metricFunction = constructMetricFunction(
-                        constructColumnName(tableClass, fieldName, dictionary) + "[" + fieldName + "]",
-                        meta == null ? null : meta.description(),
-                        formula.value(),
-                        new HashSet<>());
-
-            } else {
-                throw new IllegalArgumentException("Trying to construct metric field "
-                        + getId() + " without @MetricAggregation and @MetricFormula.");
-            }
-        }
-    }
-
-    /**
-     * Resolve aggregation function from {@link MetricAggregation} annotation.
-     *
-     * @param tableClass table class
-     * @param fieldName metric field name
-     * @param aggregation aggregation annotation on the field
-     * @param meta meta annotation on the field
-     * @param dictionary dictionary with entity information
-     * @return resolved metric function instance
-     */
-    private static MetricFunction resolveAggregation(Class<?> tableClass,
-                                                     String fieldName,
-                                                     MetricAggregation aggregation,
-                                                     ColumnMeta meta,
-                                                     EntityDictionary dictionary) {
-        String columnName = constructColumnName(tableClass, fieldName, dictionary);
-        try {
-            MetricFunction metricFunction = aggregation.function().newInstance();
-            metricFunction.setName(columnName + "[" + metricFunction.getName() + "]");
-
-            if (meta != null) {
-                metricFunction.setDescription(meta.description());
-            }
-
-            return metricFunction;
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new IllegalArgumentException("Can't initialize function for metric " + columnName);
+            throw new IllegalArgumentException("Trying to construct metric field "
+                    + getId() + " without @MetricFormula.");
         }
     }
 
