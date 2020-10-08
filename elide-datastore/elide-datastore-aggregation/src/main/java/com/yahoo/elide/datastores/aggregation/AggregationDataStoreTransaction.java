@@ -80,8 +80,9 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
             queryLogger.acceptQuery(scope.getRequestId(), scope.getUser(), scope.getHeaders(),
                     scope.getApiVersion(), scope.getQueryParams(), scope.getPath());
             Query query = buildQuery(entityProjection, scope);
+            Table table = (Table) query.getSource();
             if (cache != null && !query.isBypassingCache()) {
-                String tableVersion = queryEngine.getTableVersion(query.getTable(), queryEngineTransaction);
+                String tableVersion = queryEngine.getTableVersion(table, queryEngineTransaction);
                 tableVersion = tableVersion == null ? "" : tableVersion;
 
                 cacheKey = tableVersion + ';' + QueryKeyExtractor.extractKey(query);

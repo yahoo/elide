@@ -18,9 +18,12 @@ import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
+import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 
+import com.yahoo.elide.utils.TypeHelper;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -44,7 +47,7 @@ import javax.persistence.OneToMany;
 @Getter
 @EqualsAndHashCode
 @ToString
-public class Table {
+public class Table implements Queryable {
 
     @Id
     @Embedded
@@ -86,8 +89,10 @@ public class Table {
     @ToString.Exclude
     private final Map<String, Column> columnMap;
 
-    public Table(Class<?> cls, EntityDictionary dictionary) {
+    @Exclude
+    private final String alias;
 
+    public Table(Class<?> cls, EntityDictionary dictionary) {
         if (!dictionary.getBoundClasses().contains(cls)) {
             throw new IllegalArgumentException(
                     String.format("Table class {%s} is not defined in dictionary.", cls));
@@ -95,6 +100,8 @@ public class Table {
 
         this.name = dictionary.getJsonAliasFor(cls);
         this.version = EntityDictionary.getModelVersion(cls);
+
+        this.alias = TypeHelper.getTypeAlias(cls);
 
         String dbConnectionName = "";
         Annotation annotation =
@@ -270,5 +277,10 @@ public class Table {
             }
         }
         return null;
+    }
+
+    @Override
+    public <T> T accept(QueryVisitor<T> visitor) {
+        return visitor.visitTable(this);
     }
 }

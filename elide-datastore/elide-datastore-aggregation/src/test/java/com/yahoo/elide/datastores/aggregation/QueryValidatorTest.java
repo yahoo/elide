@@ -41,10 +41,10 @@ public class QueryValidatorTest extends SQLUnitTest {
         sortMap.put("id", Sorting.SortOrder.asc);
 
         Query query = Query.builder()
-                .table(playerStatsTable)
-                .metric(invoke(playerStatsTable.getMetric("lowScore")))
-                .groupByDimension(toProjection(playerStatsTable.getDimension("id")))
-                .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                .source(playerStatsTable)
+                .metricProjection(invoke(playerStatsTable.getMetric("lowScore")))
+                .dimensionProjection(toProjection(playerStatsTable.getDimension("id")))
+                .dimensionProjection(toProjection(playerStatsTable.getDimension("overallRating")))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
@@ -61,9 +61,9 @@ public class QueryValidatorTest extends SQLUnitTest {
         sortMap.put("countryIsoCode", Sorting.SortOrder.asc);
 
         Query query = Query.builder()
-                .table(playerStatsTable)
-                .metric(invoke(playerStatsTable.getMetric("lowScore")))
-                .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                .source(playerStatsTable)
+                .metricProjection(invoke(playerStatsTable.getMetric("lowScore")))
+                .dimensionProjection(toProjection(playerStatsTable.getDimension("overallRating")))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
@@ -80,9 +80,9 @@ public class QueryValidatorTest extends SQLUnitTest {
         sortMap.put("highScore", Sorting.SortOrder.asc);
 
         Query query = Query.builder()
-                .table(playerStatsTable)
-                .metric(invoke(playerStatsTable.getMetric("lowScore")))
-                .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                .source(playerStatsTable)
+                .metricProjection(invoke(playerStatsTable.getMetric("lowScore")))
+                .dimensionProjection(toProjection(playerStatsTable.getDimension("overallRating")))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
@@ -103,8 +103,8 @@ public class QueryValidatorTest extends SQLUnitTest {
         FilterExpression havingFilter = constraints.getHavingExpression();
 
         Query query = Query.builder()
-                .table(playerStatsTable)
-                .metric(invoke(playerStatsTable.getMetric("lowScore")))
+                .source(playerStatsTable)
+                .metricProjection(invoke(playerStatsTable.getMetric("lowScore")))
                 .whereFilter(whereFilter)
                 .havingFilter(havingFilter)
                 .build();
@@ -127,8 +127,8 @@ public class QueryValidatorTest extends SQLUnitTest {
         FilterExpression havingFilter = constraints.getHavingExpression();
 
         Query query = Query.builder()
-                .table(playerStatsTable)
-                .metric(invoke(playerStatsTable.getMetric("highScore")))
+                .source(playerStatsTable)
+                .metricProjection(invoke(playerStatsTable.getMetric("highScore")))
                 .whereFilter(whereFilter)
                 .havingFilter(havingFilter)
                 .build();
@@ -152,8 +152,8 @@ public class QueryValidatorTest extends SQLUnitTest {
         FilterExpression havingFilter = constraints.getHavingExpression();
 
         Query query = Query.builder()
-                .table(playerStatsTable)
-                .metric(invoke(playerStatsTable.getMetric("lowScore")))
+                .source(playerStatsTable)
+                .metricProjection(invoke(playerStatsTable.getMetric("lowScore")))
                 .whereFilter(whereFilter)
                 .havingFilter(havingFilter)
                 .build();
@@ -163,7 +163,7 @@ public class QueryValidatorTest extends SQLUnitTest {
 
         InvalidOperationException exception = assertThrows(InvalidOperationException.class, validator::validate);
         assertEquals(
-                "Invalid operation: Can not filter on relationship field [PlayerStats].country/[Country].isoCode in HAVING clause when querying table PlayerStats.",
+                "Invalid operation: Relationship traversal not supported for analytic queries.",
                 exception.getMessage());
     }
 }

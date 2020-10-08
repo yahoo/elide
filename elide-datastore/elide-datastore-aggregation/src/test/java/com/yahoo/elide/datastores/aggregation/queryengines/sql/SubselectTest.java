@@ -49,9 +49,9 @@ public class SubselectTest extends SQLUnitTest {
     @Test
     public void testJoinToGroupBy() throws Exception {
         Query query = Query.builder()
-                .table(playerStatsTable)
-                .metric(invoke(playerStatsTable.getMetric("highScore")))
-                .groupByDimension(toProjection(playerStatsTable.getDimension("subCountryIsoCode")))
+                .source(playerStatsTable)
+                .metricProjection(invoke(playerStatsTable.getMetric("highScore")))
+                .dimensionProjection(toProjection(playerStatsTable.getDimension("subCountryIsoCode")))
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
@@ -77,9 +77,9 @@ public class SubselectTest extends SQLUnitTest {
     @Test
     public void testJoinToFilter() throws Exception {
         Query query = Query.builder()
-                .table(playerStatsTable)
-                .metric(invoke(playerStatsTable.getMetric("highScore")))
-                .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
+                .source(playerStatsTable)
+                .metricProjection(invoke(playerStatsTable.getMetric("highScore")))
+                .dimensionProjection(toProjection(playerStatsTable.getDimension("overallRating")))
                 .whereFilter(filterParser.parseFilterExpression("subCountryIsoCode==USA",
                         PlayerStats.class, false))
                 .build();
@@ -113,10 +113,10 @@ public class SubselectTest extends SQLUnitTest {
         sortMap.put("highScore", Sorting.SortOrder.asc);
 
         Query query = Query.builder()
-                .table(playerStatsTable)
-                .metric(invoke(playerStatsTable.getMetric("highScore")))
-                .groupByDimension(toProjection(playerStatsTable.getDimension("overallRating")))
-                .groupByDimension(toProjection(playerStatsTable.getDimension("subCountryIsoCode")))
+                .source(playerStatsTable)
+                .metricProjection(invoke(playerStatsTable.getMetric("highScore")))
+                .dimensionProjection(toProjection(playerStatsTable.getDimension("overallRating")))
+                .dimensionProjection(toProjection(playerStatsTable.getDimension("subCountryIsoCode")))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
