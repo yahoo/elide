@@ -62,7 +62,7 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
         assertEquals(1, query.getAllDimensionProjections().size());
 
         List<ColumnProjection> dimensions = new ArrayList<>(query.getAllDimensionProjections());
-        assertEquals("overallRating", dimensions.get(0).getColumn().getName());
+        assertEquals("overallRating", dimensions.get(0).getName());
     }
 
     @Test

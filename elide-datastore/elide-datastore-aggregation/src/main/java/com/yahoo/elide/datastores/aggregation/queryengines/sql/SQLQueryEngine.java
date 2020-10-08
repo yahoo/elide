@@ -329,7 +329,7 @@ public class SQLQueryEngine extends QueryEngine {
 
         //Expand each metric into its own Query.  Merge them all together.
         for (MetricProjection metricProjection : query.getMetricProjections()) {
-            Query metricQuery = metricProjection.getColumn().getMetricFunction().resolve(query, metricProjection);
+            Query metricQuery = metricProjection.getMetricFunction().resolve(query, metricProjection);
             merged = merge(merged, metricQuery);
         }
 
@@ -385,7 +385,7 @@ public class SQLQueryEngine extends QueryEngine {
     private SQLQuery toPageTotalSQL(SQLQuery sql, SQLDialect sqlDialect) {
         // TODO: refactor this method
         String groupByDimensions =
-                extractSQLDimensions(sql.getClientQuery(), sql.getClientQuery().getSource())
+                sql.getClientQuery().getAllDimensionProjections()
                         .stream()
                         .map(dimension -> referenceTable.getResolvedReference(
                                 sql.getClientQuery().getSource(),
@@ -445,19 +445,6 @@ public class SQLQueryEngine extends QueryEngine {
                 .havingFilter(first.getHavingFilter())
                 .pagination(first.getPagination())
                 .build();
-    }
-
-    /**
-     * Extract dimension projects in a query to sql dimensions.
-     *
-     * @param query requested query
-     * @param source queried table
-     * @return sql dimensions in this query
-     */
-    private List<Dimension> extractSQLDimensions(Query query, Queryable source) {
-        return query.getAllDimensionProjections().stream()
-                .map(projection -> source.getDimension(projection.getColumn().getName()))
-                .collect(Collectors.toList());
     }
 
     private static boolean returnPageTotals(Pagination pagination) {

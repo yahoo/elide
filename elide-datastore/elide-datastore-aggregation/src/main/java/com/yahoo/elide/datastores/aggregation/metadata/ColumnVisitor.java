@@ -11,6 +11,8 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,19 +50,19 @@ public abstract class ColumnVisitor<T> {
      * @param column meta data column
      * @return output value
      */
-    public final T visitColumn(Column column)  {
+    public final T visitColumn(ColumnProjection column)  {
         switch (column.getColumnType()) {
             case FIELD:
-                if (column instanceof Metric) {
-                    return visitFieldMetric((Metric) column);
+                if (column instanceof MetricProjection) {
+                    return visitFieldMetric((MetricProjection) column);
                 } else {
-                    return visitFieldDimension((Dimension) column);
+                    return visitFieldDimension(column);
                 }
             case FORMULA:
                 if (column instanceof Metric) {
-                    return visitFormulaMetric((Metric) column);
+                    return visitFormulaMetric((MetricProjection) column);
                 } else {
-                    return visitFormulaDimension((Dimension) column);
+                    return visitFormulaDimension(column);
                 }
             default:
                 return null;
@@ -71,14 +73,13 @@ public abstract class ColumnVisitor<T> {
         return null;
     }
 
-    protected abstract T visitFieldMetric(Metric metric);
+    protected abstract T visitFieldMetric(MetricProjection metric);
 
-    protected abstract T visitFormulaMetric(Metric metric);
+    protected abstract T visitFormulaMetric(MetricProjection metric);
 
-    protected abstract T visitFieldDimension(Dimension dimension);
+    protected abstract T visitFieldDimension(ColumnProjection dimension);
 
-    protected abstract T visitFormulaDimension(Dimension dimension);
-
+    protected abstract T visitFormulaDimension(ColumnProjection dimension);
 
     /**
      * Use regex to get all references from a formula expression.

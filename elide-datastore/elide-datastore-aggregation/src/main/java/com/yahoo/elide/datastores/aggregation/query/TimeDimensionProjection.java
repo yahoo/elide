@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.request.Argument;
 
@@ -88,6 +89,11 @@ public interface TimeDimensionProjection extends ColumnProjection<TimeDimension>
             @Override
             public String getName() {
                 return projection.getName();
+            }
+
+            @Override
+            public ValueType getValueType() {
+                return projection.getValueType();
             }
         };
     }

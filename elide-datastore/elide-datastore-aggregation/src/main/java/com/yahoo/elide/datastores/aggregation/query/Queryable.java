@@ -6,11 +6,6 @@
 
 package com.yahoo.elide.datastores.aggregation.query;
 
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
-import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
-
 import java.util.Set;
 
 /**
@@ -37,49 +32,56 @@ public interface Queryable {
     }
 
     /**
+     * Retrieves a column by name.
+     * @param name The name of the column.
+     * @return The column.
+     */
+    public ColumnProjection getColumn(String name);
+
+    /**
      * Retrieves a non-time dimension by name.
      * @param name The name of the dimension.
      * @return The dimension.
      */
-    public Dimension getDimension(String name);
+    public ColumnProjection getDimension(String name);
 
     /**
      * Retrieves all the non-time dimensions.
      * @return The non-time dimensions.
      */
-    public Set<Dimension> getDimensions();
+    public Set<ColumnProjection> getDimensions();
 
     /**
      * Retrieves a metric by name.
      * @param name The name of the metric.
      * @return The metric.
      */
-    public Metric getMetric(String name);
+    public MetricProjection getMetric(String name);
 
     /**
      * Retrieves all the metrics.
      * @return The metrics.
      */
-    public Set<Metric> getMetrics();
+    public Set<MetricProjection> getMetrics();
 
     /**
      * Retrieves a time dimension by name.
      * @param name The name of the time dimension.
      * @return The time dimension.
      */
-    public TimeDimension getTimeDimension(String name);
+    public TimeDimensionProjection getTimeDimension(String name);
 
     /**
      * Retrieves all the time dimensions.
      * @return The time dimensions.
      */
-    public Set<TimeDimension> getTimeDimensions();
+    public Set<TimeDimensionProjection> getTimeDimensions();
 
     /**
      * Returns all the columns.
      * @return the columns.
      */
-    public Set<Column> getColumns();
+    public Set<ColumnProjection> getColumns();
 
     /**
      * Returns the connection name where this queryable is sourced from.

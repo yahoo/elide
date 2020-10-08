@@ -12,6 +12,8 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 
 import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
@@ -34,12 +36,12 @@ public class FormulaValidator extends ColumnVisitor<Void> {
      * @return null
      */
     @Override
-    protected Void visitFieldMetric(Metric metric) {
+    protected Void visitFieldMetric(MetricProjection metric) {
         return null;
     }
 
     @Override
-    protected Void visitFormulaMetric(Metric metric) {
+    protected Void visitFormulaMetric(MetricProjection metric) {
         return visitFormulaColumn(metric);
     }
 
@@ -50,12 +52,12 @@ public class FormulaValidator extends ColumnVisitor<Void> {
      * @return null
      */
     @Override
-    protected Void visitFieldDimension(Dimension dimension) {
+    protected Void visitFieldDimension(ColumnProjection dimension) {
         return null;
     }
 
     @Override
-    protected Void visitFormulaDimension(Dimension dimension) {
+    protected Void visitFormulaDimension(ColumnProjection dimension) {
         return visitFormulaColumn(dimension);
     }
 

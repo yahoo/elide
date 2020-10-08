@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
@@ -51,5 +52,10 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     @Override
     public MetricFunction getMetricFunction() {
         return column.getMetricFunction();
+    }
+
+    @Override
+    public ValueType getValueType() {
+        return column.getValueType();
     }
 }

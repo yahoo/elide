@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.query;
 
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.request.Argument;
 
@@ -46,6 +48,18 @@ public interface ColumnProjection<T extends Column> extends Serializable {
      * @return the name of the column.
      */
     String getName();
+
+    /**
+     * Returns the value type of the column.
+     * @return the value type of the column.
+     */
+    ValueType getValueType();
+
+    /**
+     * Returns the column type of the column.
+     * @return the column type of the column.
+     */
+    ColumnType getColumnType();
 
     /**
      * Get all arguments provided for this metric function.

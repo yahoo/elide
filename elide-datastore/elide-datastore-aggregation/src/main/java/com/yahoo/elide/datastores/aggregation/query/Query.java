@@ -8,12 +8,9 @@ package com.yahoo.elide.datastores.aggregation.query;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
-import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.request.Sorting;
 
+import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 
 import lombok.Builder;
@@ -74,68 +71,59 @@ public class Query implements Queryable {
     }
 
     @Override
-    public Dimension getDimension(String name) {
+    public ColumnProjection getDimension(String name) {
         return dimensionProjections.stream()
-                .filter(dim -> dim.getColumn().getName().equals(name))
-                .map(ColumnProjection::getColumn)
-                .map(Dimension.class::cast)
+                .filter(dim -> dim.getName().equals(name))
                 .findFirst()
                 .orElse(null);
     }
 
     @Override
-    public Set<Dimension> getDimensions() {
-        return dimensionProjections.stream()
-                .map(ColumnProjection::getColumn)
-                .map(Dimension.class::cast)
-                .collect(Collectors.toSet());
+    public ColumnProjection getColumn(String name) {
+        return getColumns().stream()
+                .filter(dim -> dim.getName().equals(name))
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
-    public Metric getMetric(String name) {
+    public Set<ColumnProjection> getDimensions() {
+        return Sets.newHashSet(dimensionProjections);
+    }
+
+    @Override
+    public MetricProjection getMetric(String name) {
         return metricProjections.stream()
-                .filter(metric -> metric.getColumn().getName().equals(name))
-                .map(ColumnProjection::getColumn)
+                .filter(metric -> metric.getName().equals(name))
                 .findFirst()
                 .orElse(null);
     }
 
     @Override
-    public Set<Metric> getMetrics() {
-        return metricProjections.stream()
-                .map(ColumnProjection::getColumn)
-                .collect(Collectors.toSet());
+    public Set<MetricProjection> getMetrics() {
+        return Sets.newHashSet(metricProjections);
     }
 
     @Override
-    public TimeDimension getTimeDimension(String name) {
+    public TimeDimensionProjection getTimeDimension(String name) {
         return timeDimensionProjections.stream()
-                .filter(dim -> dim.getColumn().getName().equals(name))
-                .map(ColumnProjection::getColumn)
+                .filter(dim -> dim.getName().equals(name))
                 .findFirst()
                 .orElse(null);
     }
 
     @Override
-    public Set<TimeDimension> getTimeDimensions() {
-        return timeDimensionProjections.stream()
-                .map(ColumnProjection::getColumn)
-                .collect(Collectors.toSet());
+    public Set<TimeDimensionProjection> getTimeDimensions() {
+        return Sets.newHashSet(timeDimensionProjections);
     }
 
     @Override
-    public Set<Column> getColumns() {
+    public Set<ColumnProjection> getColumns() {
         return Streams.concat(
-                timeDimensionProjections.stream().map(ColumnProjection::getColumn),
-                dimensionProjections.stream().map(ColumnProjection::getColumn),
-                metricProjections.stream().map(ColumnProjection::getColumn))
-                .collect(Collectors.toSet());
-    }
-
-    public Set<ColumnProjection> getColumnProjections() {
-        return Streams.concat(timeDimensionProjections.stream(),
+                timeDimensionProjections.stream(),
                 dimensionProjections.stream(),
-                metricProjections.stream()).collect(Collectors.toSet());
+                metricProjections.stream())
+                .collect(Collectors.toSet());
     }
 
     @Override

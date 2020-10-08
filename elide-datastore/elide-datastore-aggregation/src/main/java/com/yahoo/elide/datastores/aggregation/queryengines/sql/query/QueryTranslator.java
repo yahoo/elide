@@ -18,11 +18,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
-import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
@@ -31,14 +27,12 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSu
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
-import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
 import org.hibernate.annotations.Subselect;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -308,7 +302,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
                     Path.PathElement last = path.lastElement().get();
 
                     SQLColumnProjection projection = fieldToColumnProjection(plan, last.getFieldName());
-                    String orderByClause = (plan.getColumnProjections().contains(projection)
+                    String orderByClause = (plan.getColumns().contains(projection)
                             && dialect.useAliasForOrderByClause())
                             ? projection.getAlias()
                             : projection.toSQL(plan);
@@ -371,7 +365,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
      */
     private Set<JoinPath> extractJoinPaths(Set<ColumnProjection> groupByDimensions,
                                            Queryable source) {
-        return resolveProjectedDimensions(groupByDimensions, source).stream()
+        return groupByDimensions.stream()
                 .map(column -> referenceTable.getResolvedJoinPaths(source, column.getName()))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -403,19 +397,6 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
 
         SQLColumnProjection projection = fieldToColumnProjection(query, last.getFieldName());
         return projection.toSQL(query);
-    }
-
-    /**
-     * Resolve all projected sql column from a queried table.
-     *
-     * @param columnProjections projections
-     * @param source sql table
-     * @return projected columns
-     */
-    private Set<Dimension> resolveProjectedDimensions(Set<ColumnProjection> columnProjections, Queryable source) {
-        return columnProjections.stream()
-                .map(colProjection -> source.getDimension(colProjection.getColumn().getName()))
-                .collect(Collectors.toSet());
     }
 
     /**
@@ -489,65 +470,10 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
     }
 
     private SQLColumnProjection fieldToColumnProjection(Query query, String fieldName) {
-        SQLColumnProjection projection = query.getColumnProjections()
-                .stream()
-                .map(SQLColumnProjection.class::cast)
-                .filter(columnProjection -> fieldName.equals(columnProjection.getAlias()))
-                .findFirst()
-                .orElse(null);
-
-        if (projection != null) {
-            return projection;
+        ColumnProjection projection = query.getColumn(fieldName);
+        if (projection == null) {
+            projection = query.getSource().getColumn(fieldName);
         }
-
-        Queryable source = query.getSource();
-
-        Metric metric = source.getMetric(fieldName);
-        if (metric != null) {
-            return new SQLMetricProjection(metric, referenceTable, metric.getName(), new LinkedHashMap<>());
-        }
-        TimeDimension timeDimension = source.getTimeDimension(fieldName);
-        if (timeDimension != null) {
-            return new SQLTimeDimensionProjection(timeDimension, referenceTable);
-        }
-
-        Dimension dimension = source.getDimension(fieldName);
-
-        return new SQLColumnProjection() {
-            @Override
-            public SQLReferenceTable getReferenceTable() {
-                return referenceTable;
-            }
-
-            @Override
-            public Column getColumn() {
-                return dimension;
-            }
-
-            @Override
-            public String getAlias() {
-                return dimension.getName();
-            }
-
-            @Override
-            public Map<String, Argument> getArguments() {
-                return new LinkedHashMap<>();
-            }
-
-            @Override
-            public Queryable getSource() {
-                return dimension.getTable();
-            }
-
-            @Override
-            public String getId() {
-                return dimension.getId();
-            }
-
-            @Override
-            public String getName() {
-                return dimension.getName();
-            }
-        };
+        return (SQLColumnProjection) projection;
     }
 }
