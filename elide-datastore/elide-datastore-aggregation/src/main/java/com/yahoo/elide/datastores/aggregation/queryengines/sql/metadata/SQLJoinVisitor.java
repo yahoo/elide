@@ -57,17 +57,6 @@ public class SQLJoinVisitor extends ColumnVisitor<Set<JoinPath>> {
         return Collections.emptySet();
     }
 
-    /**
-     * REFERENCE dimension needs a JOIN for its reference path.
-     *
-     * @param dimension a REFERENCE dimension
-     * @return JOIN to its reference path.
-     */
-    @Override
-    protected Set<JoinPath> visitReferenceDimension(Dimension dimension) {
-        return visitJoinToReference(dimension, dimension.getExpression());
-    }
-
     @Override
     protected Set<JoinPath> visitFormulaDimension(Dimension dimension) {
         return visitFormulaColumn(dimension);

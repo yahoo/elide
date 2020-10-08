@@ -6,8 +6,8 @@
 package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
-import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 
@@ -74,7 +74,7 @@ public class VideoGame {
         return player;
     }
 
-    @JoinTo(path = "player.name")
+    @DimensionFormula("{{player.name}}")
     public String getPlayerName() {
         return playerName;
     }

@@ -6,9 +6,9 @@
 package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
-import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 
 import lombok.Data;
@@ -36,7 +36,7 @@ public class CountryView {
         return nestedView;
     }
 
-    @JoinTo(path = "nestedView.isoCode")
+    @DimensionFormula("{{nestedView.isoCode}}")
     private String nestedViewIsoCode;
 
     public String getCountryId() {

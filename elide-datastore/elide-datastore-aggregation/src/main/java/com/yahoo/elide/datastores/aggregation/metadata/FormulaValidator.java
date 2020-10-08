@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation.metadata;
 
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
-import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
@@ -18,7 +17,7 @@ import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
 
 /**
- * FormulaValidator check whether a column defined with {@link JoinTo}, {@link MetricFormula} or
+ * FormulaValidator check whether a column defined with {@link MetricFormula} or
  * {@link DimensionFormula} has reference loop. If so, throw out exception.
  */
 public class FormulaValidator extends ColumnVisitor<Void> {
@@ -58,33 +57,6 @@ public class FormulaValidator extends ColumnVisitor<Void> {
     @Override
     protected Void visitFormulaDimension(Dimension dimension) {
         return visitFormulaColumn(dimension);
-    }
-
-    /**
-     * For a reference dimension column. We mark the column as visited and visit the source column.
-     *
-     * @param dimension dimension defined with {@link JoinTo}
-     * @return null
-     */
-    @Override
-    protected Void visitReferenceDimension(Dimension dimension) {
-        if (visited.contains(dimension)) {
-            throw new IllegalArgumentException(referenceLoopMessage(visited, dimension));
-        }
-
-        Table table = dimension.getTable();
-        Class<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
-
-        JoinPath joinToPath = new JoinPath(
-                tableClass,
-                dictionary,
-                dictionary.getAttributeOrRelationAnnotation(tableClass, JoinTo.class, dimension.getName()).path());
-
-        visited.add(dimension);
-        visitColumn(getColumn(joinToPath));
-        visited.remove(dimension);
-
-        return null;
     }
 
     /**

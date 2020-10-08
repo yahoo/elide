@@ -102,10 +102,10 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("playerName"))
                 .body("data.attributes.valueType",  equalTo("TEXT"))
-                .body("data.attributes.columnType",  equalTo("REFERENCE"))
-                .body("data.attributes.valueSourceType",  equalTo("TABLE"))
-                .body("data.attributes.expression",  equalTo("player.name"))
-                .body("data.attributes.tableSource",  equalTo("player.name"))
+                .body("data.attributes.columnType",  equalTo("FORMULA"))
+                .body("data.attributes.valueSourceType",  equalTo("NONE"))
+                .body("data.attributes.expression",  equalTo("{{player.name}}"))
+                .body("data.attributes.tableSource",  nullValue())
                 .body("data.relationships.table.data.id", equalTo("playerStats"));
     }
 
@@ -119,7 +119,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.values", hasItems("US", "HK"))
                 .body("data.attributes.valueSourceType", equalTo("ENUM"))
                 .body("data.attributes.tableSource", nullValue())
-                .body("data.attributes.columnType", equalTo("REFERENCE"))
+                .body("data.attributes.columnType", equalTo("FORMULA"))
                 .statusCode(HttpStatus.SC_OK);
     }
 
@@ -156,9 +156,9 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .get("/table/playerStats/dimensions/playerStats.countryNickName")
                 .then()
                 .body("data.attributes.valueSourceType", equalTo("TABLE"))
-                .body("data.attributes.columnType", equalTo("REFERENCE"))
+                .body("data.attributes.columnType", equalTo("FORMULA"))
                 .body("data.attributes.tableSource",  equalTo("subcountry.nickName"))
-                .body("data.attributes.expression",  equalTo("country.nickName"))
+                .body("data.attributes.expression",  equalTo("{{country.nickName}}"))
                 .body("data.attributes.values", equalTo(Collections.emptyList()))
                 .statusCode(HttpStatus.SC_OK);
     }

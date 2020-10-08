@@ -14,7 +14,6 @@ import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
-import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueSourceType;
@@ -95,11 +94,6 @@ public abstract class Column implements Versioned {
             columnType = FORMULA;
             expression = dictionary
                     .getAttributeOrRelationAnnotation(tableClass, DimensionFormula.class, fieldName).value();
-        } else if (dictionary.attributeOrRelationAnnotationExists(tableClass, fieldName, JoinTo.class)) {
-            JoinTo joinTo = dictionary.getAttributeOrRelationAnnotation(tableClass, JoinTo.class, fieldName);
-
-            columnType = REFERENCE;
-            expression = joinTo.path();
         } else {
             columnType = FIELD;
             expression = dictionary.getAnnotatedColumnName(tableClass, fieldName);

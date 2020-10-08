@@ -12,7 +12,6 @@ import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
-import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
@@ -175,7 +174,7 @@ public class PlayerStatsWithRequiredFilter {
         this.country = country;
     }
 
-    @JoinTo(path = "country.nickName")
+    @DimensionFormula("{{country.nickName}}")
     public String getCountryNickName() {
         return countryNickName;
     }
@@ -184,7 +183,7 @@ public class PlayerStatsWithRequiredFilter {
         this.countryNickName = countryNickName;
     }
 
-    @JoinTo(path = "country.unSeats")
+    @DimensionFormula("{{country.unSeats}}")
     public int getCountryUnSeats() {
         return countryUnSeats;
     }
@@ -193,7 +192,7 @@ public class PlayerStatsWithRequiredFilter {
         this.countryUnSeats = seats;
     }
 
-    @JoinTo(path = "country.isoCode")
+    @DimensionFormula("{{country.isoCode}}")
     public String getCountryIsoCode() {
         return countryIsoCode;
     }
@@ -211,7 +210,7 @@ public class PlayerStatsWithRequiredFilter {
         this.subCountry = subCountry;
     }
 
-    @JoinTo(path = "subCountry.isoCode")
+    @DimensionFormula("{{subCountry.isoCode}}")
     @Column(updatable = false, insertable = false) // subselect field should be read-only
     public String getSubCountryIsoCode() {
         return subCountryIsoCode;
@@ -239,7 +238,7 @@ public class PlayerStatsWithRequiredFilter {
         this.player2 = player2;
     }
 
-    @JoinTo(path = "player.name")
+    @DimensionFormula("{{player.name}}")
     public String getPlayerName() {
         return playerName;
     }
@@ -248,7 +247,7 @@ public class PlayerStatsWithRequiredFilter {
         this.playerName = playerName;
     }
 
-    @JoinTo(path = "player2.name")
+    @DimensionFormula("{{player2.name}}")
     public String getPlayer2Name() {
         return player2Name;
     }

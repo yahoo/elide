@@ -9,9 +9,9 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
+import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
-import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
@@ -170,7 +170,7 @@ public class PlayerStatsWithView {
         this.recordedDate = recordedDate;
     }
 
-    @JoinTo(path = "country.isoCode")
+    @DimensionFormula("{{country.isoCode}}")
     public String getCountryIsoCode() {
         return countryIsoCode;
     }
@@ -180,7 +180,7 @@ public class PlayerStatsWithView {
     }
 
 
-    @JoinTo(path = "subCountry.isoCode")
+    @DimensionFormula("{{subCountry.isoCode}}")
     @Column(updatable = false, insertable = false) // subselect field should be read-only
     public String getSubCountryIsoCode() {
         return subCountryIsoCode;
@@ -195,12 +195,12 @@ public class PlayerStatsWithView {
         return countryView;
     }
 
-    @JoinTo(path = "countryView.isoCode")
+    @DimensionFormula("{{countryView.isoCode}}")
     public String getCountryViewIsoCode() {
         return countryViewIsoCode;
     }
 
-    @JoinTo(path = "countryView.nestedView.isoCode")
+    @DimensionFormula("{{countryView.nestedView.isoCode}}")
     public String getCountryViewViewIsoCode() {
         return countryViewViewIsoCode;
     }
