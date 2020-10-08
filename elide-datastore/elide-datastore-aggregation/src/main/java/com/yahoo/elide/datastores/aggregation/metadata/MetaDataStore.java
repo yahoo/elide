@@ -50,7 +50,7 @@ public class MetaDataStore implements DataStore {
     private static final List<Class<? extends Annotation>> METADATA_STORE_ANNOTATIONS =
             Arrays.asList(FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class);
 
-    public static final Function<String, HashMapDataStore> SERVER_ERROR = new Function<String, HashMapDataStore>() {
+    private static final Function<String, HashMapDataStore> SERVER_ERROR = new Function<String, HashMapDataStore>() {
         @Override
         public HashMapDataStore apply(String key) {
             throw new InternalServerErrorException("API version " + key + " not found");
