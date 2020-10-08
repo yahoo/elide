@@ -177,7 +177,7 @@ public class MetaDataStore implements DataStore {
      * @param column column metadata
      */
     private void addColumn(Column column) {
-        String version = column.getTable().getVersion();
+        String version = column.getVersion();
         addMetaData(column, version);
 
         if (column instanceof TimeDimension) {

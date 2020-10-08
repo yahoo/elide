@@ -46,7 +46,7 @@ import javax.persistence.OneToMany;
 @Getter
 @EqualsAndHashCode
 @ToString
-public class Table implements Queryable {
+public class Table implements Queryable, Versioned  {
 
     @Id
     private final String id;
