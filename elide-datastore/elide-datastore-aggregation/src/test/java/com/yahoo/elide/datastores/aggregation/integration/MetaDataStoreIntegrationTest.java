@@ -11,6 +11,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.core.HttpStatus;
@@ -213,5 +215,41 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.expression",  equalTo("({{timeSpent}} / (CASE WHEN SUM({{game_rounds}}) = 0 THEN 1 ELSE {{sessions}} END))"))
                 .body("data.relationships.table.data.id", equalTo("videoGame"));
 
+    }
+
+    @Test
+    public void versioningTest() {
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data", hasSize(greaterThan(30)));
+
+        given()
+                .header("ApiVersion", "")
+                .accept("application/vnd.api+json")
+                .get("/table")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data", hasSize(greaterThan(30)));
+
+        given()
+                .header("ApiVersion", "1.0")
+                .accept("application/vnd.api+json")
+                .get("/table")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data", hasSize(1))
+                .body("data.attributes.name", hasItem("book"))
+                .body("data.attributes.dbConnectionName", hasItem(""));
+
+        given()
+                .header("ApiVersion", "2.0")
+                .accept("application/vnd.api+json")
+                .get("/table")
+                .then()
+                .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 }
