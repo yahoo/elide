@@ -206,7 +206,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/videoGame-mycon/metrics/videoGame.timeSpentPerSession")
+                .get("/table/videoGame/metrics/videoGame.timeSpentPerSession")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("timeSpentPerSession"))
