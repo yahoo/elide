@@ -84,4 +84,9 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimen
     public TimeGrain getGrain() {
         return grain.getGrain();
     }
+
+    @Override
+    public Queryable getSource() {
+        return column.getTable();
+    }
 }

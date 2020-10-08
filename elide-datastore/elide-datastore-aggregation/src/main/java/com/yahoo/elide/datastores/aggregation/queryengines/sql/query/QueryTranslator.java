@@ -533,6 +533,11 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
             public Map<String, Argument> getArguments() {
                 return new LinkedHashMap<>();
             }
+
+            @Override
+            public Queryable getSource() {
+                return dimension.getTable();
+            }
         };
     }
 }

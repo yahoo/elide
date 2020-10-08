@@ -96,7 +96,6 @@ public class Query implements Queryable {
         return metricProjections.stream()
                 .filter(metric -> metric.getColumn().getName().equals(name))
                 .map(ColumnProjection::getColumn)
-                .map(Metric.class::cast)
                 .findFirst()
                 .orElse(null);
     }
@@ -105,7 +104,6 @@ public class Query implements Queryable {
     public Set<Metric> getMetrics() {
         return metricProjections.stream()
                 .map(ColumnProjection::getColumn)
-                .map(Metric.class::cast)
                 .collect(Collectors.toSet());
     }
 
@@ -114,7 +112,6 @@ public class Query implements Queryable {
         return timeDimensionProjections.stream()
                 .filter(dim -> dim.getColumn().getName().equals(name))
                 .map(ColumnProjection::getColumn)
-                .map(TimeDimension.class::cast)
                 .findFirst()
                 .orElse(null);
     }
@@ -123,7 +120,6 @@ public class Query implements Queryable {
     public Set<TimeDimension> getTimeDimensions() {
         return timeDimensionProjections.stream()
                 .map(ColumnProjection::getColumn)
-                .map(TimeDimension.class::cast)
                 .collect(Collectors.toSet());
     }
 

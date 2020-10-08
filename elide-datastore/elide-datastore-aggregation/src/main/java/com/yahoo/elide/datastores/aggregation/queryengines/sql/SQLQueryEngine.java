@@ -116,6 +116,11 @@ public class SQLQueryEngine extends QueryEngine {
             }
 
             @Override
+            public Queryable getSource() {
+                return dimension.getTable();
+            }
+
+            @Override
             public Column getColumn() {
                 return dimension;
             }

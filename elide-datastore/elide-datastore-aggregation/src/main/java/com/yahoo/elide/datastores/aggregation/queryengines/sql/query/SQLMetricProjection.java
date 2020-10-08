@@ -31,4 +31,9 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     public String toSQL(Queryable query) {
         return referenceTable.getResolvedReference(column.getTable(), column.getName());
     }
+
+    @Override
+    public Queryable getSource() {
+        return column.getTable();
+    }
 }

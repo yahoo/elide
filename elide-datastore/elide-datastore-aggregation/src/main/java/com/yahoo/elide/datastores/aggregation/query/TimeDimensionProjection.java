@@ -74,6 +74,11 @@ public interface TimeDimensionProjection extends ColumnProjection<TimeDimension>
             public Map<String, Argument> getArguments() {
                 return projection.getArguments();
             }
+
+            @Override
+            public Queryable getSource() {
+                return projection.getColumn().getTable();
+            }
         };
     }
 }

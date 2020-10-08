@@ -17,6 +17,11 @@ import java.util.Map;
  */
 public interface ColumnProjection<T extends Column> extends Serializable {
     /**
+     * Get the query source associated with the column.
+     * @return the query source
+     */
+    Queryable getSource();
+    /**
      * Get the projected column.
      *
      * @return column
