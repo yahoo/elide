@@ -132,7 +132,7 @@ public class MetaDataStore implements DataStore {
      */
     public void addTable(Table table) {
         String version = table.getVersion();
-        EntityDictionary dictionary = hashMapDataStores.get(version).getDictionary();
+        EntityDictionary dictionary = hashMapDataStores.computeIfAbsent(version, ERROR_OUT).getDictionary();
         tables.put(dictionary.getEntityClass(table.getName(), version), table);
         addMetaData(table, version);
         table.getColumns().forEach(this::addColumn);
