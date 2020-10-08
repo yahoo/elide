@@ -89,4 +89,9 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimen
     public Queryable getSource() {
         return column.getTable();
     }
+
+    @Override
+    public String getId() {
+        return column.getId();
+    }
 }

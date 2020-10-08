@@ -35,6 +35,8 @@ public interface ColumnProjection<T extends Column> extends Serializable {
      */
     String getAlias();
 
+    String getId();
+
     /**
      * Get all arguments provided for this metric function.
      *

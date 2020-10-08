@@ -538,6 +538,11 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
             public Queryable getSource() {
                 return dimension.getTable();
             }
+
+            @Override
+            public String getId() {
+                return dimension.getId();
+            }
         };
     }
 }

@@ -77,7 +77,12 @@ public interface TimeDimensionProjection extends ColumnProjection<TimeDimension>
 
             @Override
             public Queryable getSource() {
-                return projection.getColumn().getTable();
+                return projection.getSource();
+            }
+
+            @Override
+            public String getId() {
+                return projection.getId();
             }
         };
     }

@@ -36,4 +36,9 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     public Queryable getSource() {
         return column.getTable();
     }
+
+    @Override
+    public String getId() {
+        return column.getId();
+    }
 }
