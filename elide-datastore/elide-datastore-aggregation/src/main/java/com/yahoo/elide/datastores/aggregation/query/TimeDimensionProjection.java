@@ -84,6 +84,11 @@ public interface TimeDimensionProjection extends ColumnProjection<TimeDimension>
             public String getId() {
                 return projection.getId();
             }
+
+            @Override
+            public String getName() {
+                return projection.getName();
+            }
         };
     }
 }

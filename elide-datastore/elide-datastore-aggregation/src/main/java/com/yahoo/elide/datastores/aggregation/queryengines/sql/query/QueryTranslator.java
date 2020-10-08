@@ -543,6 +543,11 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
             public String getId() {
                 return dimension.getId();
             }
+
+            @Override
+            public String getName() {
+                return dimension.getName();
+            }
         };
     }
 }

@@ -94,4 +94,9 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimen
     public String getId() {
         return column.getId();
     }
+
+    @Override
+    public String getName() {
+        return column.getName();
+    }
 }

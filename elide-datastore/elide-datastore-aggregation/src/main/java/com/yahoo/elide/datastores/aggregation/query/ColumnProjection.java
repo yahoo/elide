@@ -35,7 +35,17 @@ public interface ColumnProjection<T extends Column> extends Serializable {
      */
     String getAlias();
 
+    /**
+     * Returns a unique identifier for the column.
+     * @return a unique column ID
+     */
     String getId();
+
+    /**
+     * Returns the name of the column.
+     * @return the name of the column.
+     */
+    String getName();
 
     /**
      * Get all arguments provided for this metric function.

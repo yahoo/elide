@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
@@ -40,5 +41,15 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     @Override
     public String getId() {
         return column.getId();
+    }
+
+    @Override
+    public String getName() {
+        return column.getName();
+    }
+
+    @Override
+    public MetricFunction getMetricFunction() {
+        return column.getMetricFunction();
     }
 }
