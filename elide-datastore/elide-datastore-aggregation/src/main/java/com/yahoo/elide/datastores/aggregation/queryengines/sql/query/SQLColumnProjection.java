@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
 /**
@@ -20,10 +21,10 @@ public interface SQLColumnProjection<T extends Column> extends ColumnProjection<
 
     /**
      * Generate a SQL fragment for this combination column and client arguments.
-     * @param queryTemplate The query template.
+     * @param query The SQL query this column is referenced from.
      * @return
      */
-    default String toSQL(SQLQueryTemplate queryTemplate) {
+    default String toSQL(Queryable query) {
         return getReferenceTable().getResolvedReference(getColumn().getTable(), getColumn().getName());
     }
 }

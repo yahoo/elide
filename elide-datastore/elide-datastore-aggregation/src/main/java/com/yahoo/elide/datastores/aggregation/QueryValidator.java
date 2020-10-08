@@ -13,10 +13,10 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.request.Sorting;
 
 import java.util.List;
@@ -31,7 +31,7 @@ public class QueryValidator {
     private Query query;
     private Set<String> allFields;
     private EntityDictionary dictionary;
-    private Table queriedTable;
+    private Queryable queriedTable;
     private List<MetricProjection> metrics;
     private Set<ColumnProjection> dimensionProjections;
 
@@ -39,9 +39,9 @@ public class QueryValidator {
         this.query = query;
         this.allFields = allFields;
         this.dictionary = dictionary;
-        this.queriedTable = query.getTable();
-        this.metrics = query.getMetrics();
-        this.dimensionProjections = query.getDimensions();
+        this.queriedTable = query.getSource();
+        this.metrics = query.getMetricProjections();
+        this.dimensionProjections = query.getAllDimensionProjections();
     }
 
     /**
@@ -72,21 +72,11 @@ public class QueryValidator {
             Class<?> cls = last.getType();
             String fieldName = last.getFieldName();
 
-            Class<?> tableClass = dictionary.getEntityClass(queriedTable.getName(), queriedTable.getVersion());
-
-            if (cls != tableClass) {
-                throw new InvalidOperationException(
-                        String.format(
-                                "Can not filter on relationship field %s in HAVING clause when querying table %s.",
-                                path.toString(),
-                                tableClass.getSimpleName()));
-            }
-
             if (path.getPathElements().size() > 1) {
                 throw new InvalidOperationException("Relationship traversal not supported for analytic queries.");
             }
 
-            if (queriedTable.isMetric(fieldName)) {
+            if (queriedTable.getMetric(fieldName) != null) {
                 if (metrics.stream().noneMatch(m -> m.getAlias().equals(fieldName))) {
                     throw new InvalidOperationException(
                             String.format(

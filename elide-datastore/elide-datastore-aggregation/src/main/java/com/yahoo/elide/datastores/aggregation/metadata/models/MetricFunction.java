@@ -6,13 +6,13 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.request.Argument;
 
+import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
+import com.yahoo.elide.datastores.aggregation.query.Query;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
 
-import java.util.Map;
 import java.util.Set;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
@@ -35,13 +35,17 @@ public class MetricFunction {
     @OneToMany
     private Set<FunctionArgument> arguments;
 
-    /**
-     * Construct full metric expression using arguments.
-     *
-     * @param arguments provided arguments
-     * @return <code>FUNCTION(field1, field2, ..., arg1, arg2, ...)</code>
-     */
-    public String constructExpression(Map<String, Argument> arguments) {
-        return getExpression();
+    public Query resolve(Query query, MetricProjection metric) {
+        return Query.builder()
+                .metricProjection(metric)
+                .source(query.getSource())
+                .dimensionProjections(query.getAllDimensionProjections())
+                .timeDimensionProjections(query.getTimeDimensionProjections())
+                .whereFilter(query.getWhereFilter())
+                .havingFilter(query.getHavingFilter())
+                .sorting(query.getSorting())
+                .pagination(query.getPagination())
+                .scope(query.getScope())
+                .build();
     }
 }

@@ -56,11 +56,11 @@ public class EntityHydrator {
         this.entityDictionary = entityDictionary;
 
         //Get all the projections from the client query.
-        List<String> projections = this.query.getMetrics().stream()
+        List<String> projections = this.query.getMetricProjections().stream()
                 .map(MetricProjection::getAlias)
                 .collect(Collectors.toList());
 
-        projections.addAll(this.query.getDimensions().stream()
+        projections.addAll(this.query.getAllDimensionProjections().stream()
                 .map(ColumnProjection::getAlias)
                 .collect(Collectors.toList()));
 
@@ -86,11 +86,11 @@ public class EntityHydrator {
         this.entityDictionary = entityDictionary;
 
         //Get all the projections from the client query.
-        List<String> projections = this.query.getMetrics().stream()
+        List<String> projections = this.query.getMetricProjections().stream()
                 .map(MetricProjection::getAlias)
                 .collect(Collectors.toList());
 
-        projections.addAll(this.query.getDimensions().stream()
+        projections.addAll(this.query.getAllDimensionProjections().stream()
                 .map(ColumnProjection::getAlias)
                 .collect(Collectors.toList()));
 
@@ -131,7 +131,7 @@ public class EntityHydrator {
      * @return A hydrated entity object.
      */
     protected Object coerceObjectToEntity(Map<String, Object> result, MutableInt counter) {
-        Table table = query.getTable();
+        Table table = (Table) query.getSource();
         Class<?> entityClass = entityDictionary.getEntityClass(table.getName(), table.getVersion());
 
         //Construct the object.
@@ -143,7 +143,7 @@ public class EntityHydrator {
         }
 
         result.forEach((fieldName, value) -> {
-            Dimension dim = query.getTable().getDimension(fieldName);
+            Dimension dim = query.getSource().getDimension(fieldName);
 
             if (dim != null && dim.getValueType().equals(ValueType.RELATIONSHIP)) {
                 // We don't hydrate relationships here.
