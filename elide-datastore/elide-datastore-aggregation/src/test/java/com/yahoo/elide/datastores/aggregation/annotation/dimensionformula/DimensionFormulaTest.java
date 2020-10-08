@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.annotation.dimensionformula;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -26,18 +25,6 @@ public class DimensionFormulaTest {
                 IllegalArgumentException.class,
                 () -> new SQLQueryEngine(metaDataStore, null, null));
         assertTrue(exception.getMessage().startsWith("Formula reference loop found:"));
-    }
-
-    @Test
-    public void testJoinToLoop() {
-        MetaDataStore metaDataStore = new MetaDataStore(Sets.newHashSet(JoinToLoop.class));
-
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> new SQLQueryEngine(metaDataStore, null, null));
-        assertEquals(
-                "Formula reference loop found: joinToLoop.playerLevel->joinToLoop.playerLevel",
-                exception.getMessage());
     }
 
     @Test

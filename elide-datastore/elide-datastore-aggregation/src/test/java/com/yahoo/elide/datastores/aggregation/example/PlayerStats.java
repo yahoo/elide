@@ -12,7 +12,6 @@ import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
-import com.yahoo.elide.datastores.aggregation.annotation.JoinTo;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
@@ -163,7 +162,7 @@ public class PlayerStats {
         this.country = country;
     }
 
-    @JoinTo(path = "country.nickName")
+    @DimensionFormula("{{country.nickName}}")
     @ColumnMeta(
             tableSource = "subcountry.nickName"
     )
@@ -175,7 +174,7 @@ public class PlayerStats {
         this.countryNickName = countryNickName;
     }
 
-    @JoinTo(path = "country.unSeats")
+    @DimensionFormula("{{country.unSeats}}")
     public int getCountryUnSeats() {
         return countryUnSeats;
     }
@@ -184,7 +183,7 @@ public class PlayerStats {
         this.countryUnSeats = seats;
     }
 
-    @JoinTo(path = "country.isoCode")
+    @DimensionFormula("{{country.isoCode}}")
     @ColumnMeta(values = {"HK", "US"})
     public String getCountryIsoCode() {
         return countryIsoCode;
@@ -203,7 +202,7 @@ public class PlayerStats {
         this.subCountry = subCountry;
     }
 
-    @JoinTo(path = "subCountry.isoCode")
+    @DimensionFormula("{{subCountry.isoCode}}")
     @Column(updatable = false, insertable = false) // subselect field should be read-only
     public String getSubCountryIsoCode() {
         return subCountryIsoCode;
@@ -231,7 +230,7 @@ public class PlayerStats {
         this.player2 = player2;
     }
 
-    @JoinTo(path = "player.name")
+    @DimensionFormula("{{player.name}}")
     public String getPlayerName() {
         return playerName;
     }
@@ -240,7 +239,7 @@ public class PlayerStats {
         this.playerName = playerName;
     }
 
-    @JoinTo(path = "player2.name")
+    @DimensionFormula("{{player2.name}}")
     public String getPlayer2Name() {
         return player2Name;
     }

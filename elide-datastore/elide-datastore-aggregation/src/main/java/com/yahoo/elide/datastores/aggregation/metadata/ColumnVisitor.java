@@ -56,8 +56,6 @@ public abstract class ColumnVisitor<T> {
                 } else {
                     return visitFieldDimension((Dimension) column);
                 }
-            case REFERENCE:
-                return visitReferenceDimension((Dimension) column);
             case FORMULA:
                 if (column instanceof Metric) {
                     return visitFormulaMetric((Metric) column);
@@ -78,8 +76,6 @@ public abstract class ColumnVisitor<T> {
     protected abstract T visitFormulaMetric(Metric metric);
 
     protected abstract T visitFieldDimension(Dimension dimension);
-
-    protected abstract T visitReferenceDimension(Dimension dimension);
 
     protected abstract T visitFormulaDimension(Dimension dimension);
 
