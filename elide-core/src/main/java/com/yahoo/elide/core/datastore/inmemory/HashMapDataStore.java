@@ -78,6 +78,15 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
         return this;
     }
 
+    /**
+     * Returns metadata mapping for an entity class.
+     * @param cls entity class
+     * @return Map
+     */
+    public Map<String, Object> get(Class<?> cls) {
+        return dataStore.get(cls);
+    }
+
     @Override
     public void cleanseTestData() {
         for (Map<String, Object> objects : dataStore.values()) {

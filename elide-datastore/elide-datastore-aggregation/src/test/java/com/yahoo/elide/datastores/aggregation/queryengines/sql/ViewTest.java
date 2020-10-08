@@ -13,7 +13,6 @@ import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
-import com.yahoo.elide.datastores.aggregation.metadata.models.TableId;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.request.Sorting;
 
@@ -30,8 +29,7 @@ public class ViewTest extends SQLUnitTest {
     @BeforeAll
     public static void init() {
         SQLUnitTest.init();
-        TableId tableId = new TableId("playerStatsWithView", "", "");
-        playerStatsWithViewSchema = engine.getTable(tableId);
+        playerStatsWithViewSchema = engine.getTable("playerStatsWithView");
     }
 
     @Test
