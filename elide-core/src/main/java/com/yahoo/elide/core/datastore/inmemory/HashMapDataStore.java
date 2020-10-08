@@ -78,8 +78,8 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
         return this;
     }
 
-    public Map<Class<?>, Map<String, Object>> getStorage() {
-        return dataStore;
+    public Map<String, Object> get(Class<?> cls) {
+        return dataStore.get(cls);
     }
 
     @Override

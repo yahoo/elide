@@ -8,6 +8,8 @@ package com.yahoo.elide.datastores.aggregation.metadata;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
+import com.yahoo.elide.core.exceptions.BadRequestException;
+import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 
 import com.yahoo.elide.request.EntityProjection;
@@ -17,11 +19,20 @@ import com.yahoo.elide.request.Sorting;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * MetaDataStore transaction handler.
  */
 public class MetaDataStoreTransaction implements DataStoreTransaction {
+
+    private static final Function<String, HashMapDataStore> REQUEST_ERROR = new Function<String, HashMapDataStore>() {
+        @Override
+        public HashMapDataStore apply(String key) {
+            throw new BadRequestException("API version " + key + " not found");
+        }
+    };
+
     private final Map<String, HashMapDataStore> hashMapDataStores;
 
     public MetaDataStoreTransaction(Map<String, HashMapDataStore> hashMapDataStores) {
@@ -35,12 +46,12 @@ public class MetaDataStoreTransaction implements DataStoreTransaction {
 
     @Override
     public void save(Object object, RequestScope requestScope) {
-        // Do nothing
+        throw new InvalidOperationException("save not supported for metadatastore");
     }
 
     @Override
     public void delete(Object object, RequestScope requestScope) {
-        // Do nothing
+        throw new InvalidOperationException("delete not supported for metadatastore");
     }
 
     @Override
@@ -57,7 +68,7 @@ public class MetaDataStoreTransaction implements DataStoreTransaction {
     public Object getRelation(DataStoreTransaction relationTx, Object entity, Relationship relationship,
                     RequestScope scope) {
         return hashMapDataStores
-                        .computeIfAbsent(scope.getApiVersion(), MetaDataStore.ERROR_OUT)
+                        .computeIfAbsent(scope.getApiVersion(), REQUEST_ERROR)
                         .getDictionary()
                         .getValue(entity, relationship.getName(), scope);
     }
@@ -65,7 +76,7 @@ public class MetaDataStoreTransaction implements DataStoreTransaction {
     @Override
     public Iterable<Object> loadObjects(EntityProjection projection, RequestScope scope) {
         return hashMapDataStores
-                        .computeIfAbsent(scope.getApiVersion(), MetaDataStore.ERROR_OUT)
+                        .computeIfAbsent(scope.getApiVersion(), REQUEST_ERROR)
                         .beginTransaction()
                         .loadObjects(projection, scope);
     }
@@ -73,7 +84,7 @@ public class MetaDataStoreTransaction implements DataStoreTransaction {
     @Override
     public Object loadObject(EntityProjection projection, Serializable id, RequestScope scope) {
         return hashMapDataStores
-                        .computeIfAbsent(scope.getApiVersion(), MetaDataStore.ERROR_OUT)
+                        .computeIfAbsent(scope.getApiVersion(), REQUEST_ERROR)
                         .beginTransaction()
                         .loadObject(projection, id, scope);
     }

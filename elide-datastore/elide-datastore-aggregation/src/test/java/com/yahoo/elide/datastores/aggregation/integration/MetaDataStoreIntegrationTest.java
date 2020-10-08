@@ -250,6 +250,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/table")
                 .then()
-                .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("errors.detail", hasItem("API version 2.0 not found"));
     }
 }

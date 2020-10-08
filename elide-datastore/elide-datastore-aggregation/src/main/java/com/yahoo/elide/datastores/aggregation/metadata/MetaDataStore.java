@@ -12,6 +12,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
+import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
@@ -49,10 +50,10 @@ public class MetaDataStore implements DataStore {
     private static final List<Class<? extends Annotation>> METADATA_STORE_ANNOTATIONS =
             Arrays.asList(FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class);
 
-    public static final Function<String, HashMapDataStore> ERROR_OUT = new Function<String, HashMapDataStore>() {
+    public static final Function<String, HashMapDataStore> SERVER_ERROR = new Function<String, HashMapDataStore>() {
         @Override
         public HashMapDataStore apply(String key) {
-            throw new IllegalStateException("API version " + key + " not found");
+            throw new InternalServerErrorException("API version " + key + " not found");
         }
     };
 
@@ -132,7 +133,7 @@ public class MetaDataStore implements DataStore {
      */
     public void addTable(Table table) {
         String version = table.getVersion();
-        EntityDictionary dictionary = hashMapDataStores.computeIfAbsent(version, ERROR_OUT).getDictionary();
+        EntityDictionary dictionary = hashMapDataStores.computeIfAbsent(version, SERVER_ERROR).getDictionary();
         tables.put(dictionary.getEntityClass(table.getName(), version), table);
         addMetaData(table, version);
         table.getColumns().forEach(this::addColumn);
@@ -222,18 +223,17 @@ public class MetaDataStore implements DataStore {
      */
     private void addMetaData(Object object, String version) {
 
-        HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version, ERROR_OUT);
+        HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version, SERVER_ERROR);
         EntityDictionary dictionary = hashMapDataStore.getDictionary();
-        Map<Class<?>, Map<String, Object>> dataStore = hashMapDataStore.getStorage();
         Class<?> cls = dictionary.lookupBoundClass(object.getClass());
         String id = dictionary.getId(object);
 
-        if (dataStore.get(cls).containsKey(id)) {
-            if (!dataStore.get(cls).get(id).equals(object)) {
+        if (hashMapDataStore.get(cls).containsKey(id)) {
+            if (!hashMapDataStore.get(cls).get(id).equals(object)) {
                 throw new DuplicateMappingException("Duplicated " + cls.getSimpleName() + " metadata " + id);
             }
         } else {
-            dataStore.get(cls).put(id, object);
+            hashMapDataStore.get(cls).put(id, object);
         }
     }
 
@@ -247,9 +247,8 @@ public class MetaDataStore implements DataStore {
     public <T> Set<T> getMetaData(Class<T> cls) {
 
         String version = EntityDictionary.getModelVersion(cls);
-        HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version, ERROR_OUT);
-        Map<Class<?>, Map<String, Object>> dataStore = hashMapDataStore.getStorage();
-        return dataStore.get(cls).values().stream().map(cls::cast).collect(Collectors.toSet());
+        HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version, SERVER_ERROR);
+        return hashMapDataStore.get(cls).values().stream().map(cls::cast).collect(Collectors.toSet());
     }
 
     /**
