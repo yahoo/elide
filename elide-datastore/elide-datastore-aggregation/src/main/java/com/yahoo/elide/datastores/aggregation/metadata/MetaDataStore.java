@@ -74,7 +74,7 @@ public class MetaDataStore implements DataStore {
     private Map<Class<?>, Table> tables = new HashMap<>();
 
     @Getter
-    private EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+    private EntityDictionary metadataDictionary = new EntityDictionary(new HashMap<>());
 
     @Getter
     private Map<String, HashMapDataStore> hashMapDataStores = new HashMap<>();
@@ -94,7 +94,7 @@ public class MetaDataStore implements DataStore {
                 String version = EntityDictionary.getModelVersion(cls);
                 HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version, SETUP_NEW);
                 hashMapDataStore.getDictionary().bindEntity(cls, Collections.singleton(Join.class));
-                this.dictionary.bindEntity(cls, Collections.singleton(Join.class));
+                this.metadataDictionary.bindEntity(cls, Collections.singleton(Join.class));
                 this.modelsToBind.add(cls);
                 this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);
             });
@@ -112,7 +112,7 @@ public class MetaDataStore implements DataStore {
             String version = EntityDictionary.getModelVersion(cls);
             HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version, SETUP_NEW);
             hashMapDataStore.getDictionary().bindEntity(cls, Collections.singleton(Join.class));
-            this.dictionary.bindEntity(cls, Collections.singleton(Join.class));
+            this.metadataDictionary.bindEntity(cls, Collections.singleton(Join.class));
             this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);
         });
 

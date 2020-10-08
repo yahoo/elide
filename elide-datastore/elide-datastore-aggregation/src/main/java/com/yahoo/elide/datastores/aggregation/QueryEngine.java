@@ -84,7 +84,7 @@ public abstract class QueryEngine {
      */
     public QueryEngine(MetaDataStore metaDataStore) {
         this.metaDataStore = metaDataStore;
-        this.metadataDictionary = metaDataStore.getDictionary();
+        this.metadataDictionary = metaDataStore.getMetadataDictionary();
         populateMetaData(metaDataStore);
         this.tables = metaDataStore.getMetaData(Table.class).stream()
                 .collect(Collectors.toMap(Table::getId, Functions.identity()));

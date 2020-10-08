@@ -66,8 +66,8 @@ public class SqlReferenceVisitorTest {
     @BeforeAll
     public void init() {
         store = new MetaDataStore(Sets.newHashSet(TestModel.class, JoinModel.class));
-        Table table1 = new SQLTable(TestModel.class, store.getDictionary());
-        Table table2 = new SQLTable(JoinModel.class, store.getDictionary());
+        Table table1 = new SQLTable(TestModel.class, store.getMetadataDictionary());
+        Table table2 = new SQLTable(JoinModel.class, store.getMetadataDictionary());
         store.addTable(table1);
         store.addTable(table2);
     }
