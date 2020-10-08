@@ -7,6 +7,7 @@ package com.yahoo.elide.parsers.state;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.generated.parsers.CoreParser.EntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntitiesContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntityContext;
@@ -64,6 +65,13 @@ public class StartState extends BaseState {
 
     private PersistentResource<?> entityRecord(StateContext state, EntityContext entity) {
         String id = entity.id().getText();
+        String entityName = entity.term().getText();
+        EntityDictionary dictionary = state.getRequestScope().getDictionary();
+        Class<?> entityClass = dictionary.getEntityClass(entityName, state.getRequestScope().getApiVersion());
+
+        if (entityClass == null || !dictionary.isRoot(entityClass)) {
+            throw new InvalidCollectionException(entityName);
+        }
 
         return PersistentResource.loadRecord(state.getRequestScope().getEntityProjection(),
                 id, state.getRequestScope());

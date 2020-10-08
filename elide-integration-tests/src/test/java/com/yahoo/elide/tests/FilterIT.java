@@ -378,6 +378,24 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    void testNonRootCollectionError() {
+        given()
+                .get("/publisher")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND)
+                .body("errors.detail", contains("Unknown collection publisher"));
+    }
+
+    @Test
+    void testNonRootEntityError() {
+        given()
+                .get("/publisher/1")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND)
+                .body("errors.detail", contains("Unknown collection publisher"));
+    }
+
+    @Test
     void testRootFilterPostfix() throws JsonProcessingException {
         int genreEndsWithFictionBookCount = 0;
         for (JsonNode node : books.get("data")) {
