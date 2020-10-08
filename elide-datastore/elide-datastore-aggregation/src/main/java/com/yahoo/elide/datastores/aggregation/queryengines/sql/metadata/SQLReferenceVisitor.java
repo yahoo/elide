@@ -80,21 +80,6 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
                         dimension.getName()));
     }
 
-    /**
-     * For a REFERENCE dimension, resolve its join to expression. Append the join alias to table alias to get new table
-     * alias, then resolve source column using new table alias.
-     *
-     * @param dimension a REFERENCE dimension
-     * @return <code>table_joinTo + resolvedReference</code>
-     */
-    @Override
-    protected String visitReferenceDimension(Dimension dimension) {
-        Table table = dimension.getTable();
-        return visitTableJoinToReference(
-                dictionary.getEntityClass(table.getName(), table.getVersion()),
-                dimension.getExpression());
-    }
-
     @Override
     protected String visitFormulaDimension(Dimension dimension) {
         return visitFormulaColumn(dimension);
