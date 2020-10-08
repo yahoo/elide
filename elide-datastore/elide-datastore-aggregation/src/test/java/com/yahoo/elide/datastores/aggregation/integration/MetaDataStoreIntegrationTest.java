@@ -100,7 +100,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/dimension/playerStats.playerName")
+                .get("/table/playerStats/dimensions/playerStats.playerName")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("playerName"))
@@ -117,7 +117,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/dimension/playerStats.countryIsoCode")
+                .get("/table/playerStats/dimensions/playerStats.countryIsoCode")
                 .then()
                 .body("data.attributes.values", hasItems("US", "HK"))
                 .body("data.attributes.valueSourceType", equalTo("ENUM"))
@@ -131,7 +131,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/dimension/playerStats.overallRating")
+                .get("/table/playerStats/dimensions/playerStats.overallRating")
                 .then()
                 .body("data.attributes.values", hasItems("GOOD", "OK", "TERRIBLE"))
                 .body("data.attributes.valueSourceType", equalTo("ENUM"))
@@ -145,7 +145,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/dimension/playerStats.overallRating")
+                .get("/table/playerStats/dimensions/playerStats.overallRating")
                 .then()
                 .body("data.attributes.tags", hasItems("PUBLIC"))
                 .statusCode(HttpStatus.SC_OK);
@@ -156,7 +156,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/dimension/playerStats.countryNickName")
+                .get("/table/playerStats/dimensions/playerStats.countryNickName")
                 .then()
                 .body("data.attributes.valueSourceType", equalTo("TABLE"))
                 .body("data.attributes.columnType", equalTo("REFERENCE"))
@@ -171,7 +171,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/timeDimension/playerStats.recordedDate?include=supportedGrain")
+                .get("/table/playerStats/timeDimensions/playerStats.recordedDate?include=supportedGrain")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("recordedDate"))
@@ -191,7 +191,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/metric/playerStats.lowScore?include=metricFunction")
+                .get("/table/playerStats/metrics/playerStats.lowScore?include=metricFunction")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("lowScore"))
@@ -209,7 +209,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/metric/videoGame.timeSpentPerSession")
+                .get("/table/videoGame-mycon/metrics/videoGame.timeSpentPerSession")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("timeSpentPerSession"))

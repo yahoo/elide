@@ -83,13 +83,13 @@ public class EntityProjectionMaker
     @Override
     public Function<Class<?>, NamedEntityProjection> visitRootCollectionLoadEntities(
             CoreParser.RootCollectionLoadEntitiesContext ctx) {
-        return visitTerminalCollection(ctx.term());
+        return visitTerminalCollection(ctx.term(), true);
     }
 
     @Override
     public Function<Class<?>, NamedEntityProjection> visitSubCollectionReadCollection(
             CoreParser.SubCollectionReadCollectionContext ctx) {
-        return visitTerminalCollection(ctx.term());
+        return visitTerminalCollection(ctx.term(), false);
     }
 
     @Override
@@ -256,11 +256,16 @@ public class EntityProjectionMaker
         };
     }
 
-    private Function<Class<?>, NamedEntityProjection> visitTerminalCollection(CoreParser.TermContext collectionName) {
+    private Function<Class<?>, NamedEntityProjection> visitTerminalCollection(CoreParser.TermContext collectionName,
+                                                                              boolean isRoot) {
         return (parentClass) -> {
             String collectionNameText = collectionName.getText();
 
             Class<?> entityClass = getEntityClass(parentClass, collectionNameText);
+
+            if (isRoot && !dictionary.isRoot(entityClass)) {
+                throw new InvalidCollectionException(collectionNameText);
+            }
 
             FilterExpression filter;
             if (parentClass == null) {
