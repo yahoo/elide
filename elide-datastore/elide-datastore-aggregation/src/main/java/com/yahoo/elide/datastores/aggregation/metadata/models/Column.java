@@ -37,7 +37,7 @@ import javax.persistence.Id;
 @Getter
 @EqualsAndHashCode
 @ToString
-public abstract class Column {
+public abstract class Column implements Versioned {
     @Id
     private final String id;
 
@@ -173,5 +173,10 @@ public abstract class Column {
             return ValueSourceType.TABLE;
         }
         return ValueSourceType.NONE;
+    }
+
+    @Override
+    public String getVersion() {
+        return table.getVersion();
     }
 }

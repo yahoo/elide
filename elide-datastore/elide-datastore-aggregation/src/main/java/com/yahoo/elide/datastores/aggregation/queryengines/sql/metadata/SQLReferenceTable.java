@@ -36,7 +36,7 @@ public class SQLReferenceTable {
 
     public SQLReferenceTable(MetaDataStore metaDataStore) {
         this.metaDataStore = metaDataStore;
-        this.dictionary = this.metaDataStore.getDictionary();
+        this.dictionary = this.metaDataStore.getMetadataDictionary();
 
         metaDataStore.getMetaData(Table.class).forEach(this::resolveAndStoreAllReferencesAndJoins);
     }
