@@ -40,9 +40,9 @@ public class ViewTest extends SQLUnitTest {
         sortMap.put("countryViewIsoCode", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
-                .table(playerStatsWithViewSchema)
-                .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
-                .groupByDimension(toProjection(playerStatsWithViewSchema.getDimension("countryViewIsoCode")))
+                .source(playerStatsWithViewSchema)
+                .metricProjection(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
+                .dimensionProjection(toProjection(playerStatsWithViewSchema.getDimension("countryViewIsoCode")))
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
@@ -73,9 +73,9 @@ public class ViewTest extends SQLUnitTest {
         sortMap.put("countryViewIsoCode", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
-                .table(playerStatsWithViewSchema)
-                .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
-                .groupByDimension(toProjection(playerStatsWithViewSchema.getDimension("countryViewViewIsoCode")))
+                .source(playerStatsWithViewSchema)
+                .metricProjection(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
+                .dimensionProjection(toProjection(playerStatsWithViewSchema.getDimension("countryViewViewIsoCode")))
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
@@ -106,9 +106,9 @@ public class ViewTest extends SQLUnitTest {
         sortMap.put("countryViewIsoCode", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
-                .table(playerStatsWithViewSchema)
-                .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
-                .groupByDimension(
+                .source(playerStatsWithViewSchema)
+                .metricProjection(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
+                .dimensionProjection(
                         toProjection(playerStatsWithViewSchema.getDimension("countryViewViewIsoCode")))
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
@@ -140,9 +140,9 @@ public class ViewTest extends SQLUnitTest {
         sortMap.put("countryViewIsoCode", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
-                .table(playerStatsWithViewSchema)
-                .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
-                .groupByDimension(
+                .source(playerStatsWithViewSchema)
+                .metricProjection(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
+                .dimensionProjection(
                         toProjection(playerStatsWithViewSchema.getDimension("countryViewViewIsoCode")))
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
@@ -174,9 +174,9 @@ public class ViewTest extends SQLUnitTest {
         sortMap.put("countryViewViewIsoCode", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
-                .table(playerStatsWithViewSchema)
-                .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
-                .groupByDimension(
+                .source(playerStatsWithViewSchema)
+                .metricProjection(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
+                .dimensionProjection(
                         toProjection(playerStatsWithViewSchema.getDimension("countryViewViewIsoCode")))
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
@@ -208,9 +208,9 @@ public class ViewTest extends SQLUnitTest {
         sortMap.put("countryViewViewIsoCode", Sorting.SortOrder.desc);
 
         Query query = Query.builder()
-                .table(playerStatsWithViewSchema)
-                .metric(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
-                .groupByDimension(
+                .source(playerStatsWithViewSchema)
+                .metricProjection(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
+                .dimensionProjection(
                         toProjection(playerStatsWithViewSchema.getDimension("countryViewViewIsoCode")))
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();

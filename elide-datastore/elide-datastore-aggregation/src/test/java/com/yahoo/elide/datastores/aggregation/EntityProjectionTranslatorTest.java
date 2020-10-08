@@ -56,12 +56,12 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
 
         Query query = translator.getQuery();
 
-        assertEquals(playerStatsTable, query.getTable());
-        assertEquals(1, query.getMetrics().size());
-        assertEquals("lowScore", query.getMetrics().get(0).getAlias());
-        assertEquals(1, query.getGroupByDimensions().size());
+        assertEquals(playerStatsTable, query.getSource());
+        assertEquals(1, query.getMetricProjections().size());
+        assertEquals("lowScore", query.getMetricProjections().get(0).getAlias());
+        assertEquals(1, query.getAllDimensionProjections().size());
 
-        List<ColumnProjection> dimensions = new ArrayList<>(query.getGroupByDimensions());
+        List<ColumnProjection> dimensions = new ArrayList<>(query.getAllDimensionProjections());
         assertEquals("overallRating", dimensions.get(0).getColumn().getName());
     }
 
@@ -109,7 +109,7 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
 
         Query query = translator.getQuery();
 
-        List<TimeDimensionProjection> timeDimensions = new ArrayList<>(query.getTimeDimensions());
+        List<TimeDimensionProjection> timeDimensions = new ArrayList<>(query.getTimeDimensionProjections());
         assertEquals(1, timeDimensions.size());
         assertEquals("recordedDate", timeDimensions.get(0).getAlias());
         assertEquals(TimeGrain.SIMPLEDATE, timeDimensions.get(0).getGrain());

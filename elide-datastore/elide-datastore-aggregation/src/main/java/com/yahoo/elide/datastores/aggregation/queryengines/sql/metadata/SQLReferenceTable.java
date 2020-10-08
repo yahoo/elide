@@ -5,13 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine.getClassAlias;
-
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
 
 import lombok.Getter;
 
@@ -29,8 +28,11 @@ public class SQLReferenceTable {
     @Getter
     private final EntityDictionary dictionary;
 
-    private final Map<Class<?>, Map<String, String>> resolvedReferences = new HashMap<>();
-    private final Map<Class<?>, Map<String, Set<JoinPath>>> resolvedJoinPaths = new HashMap<>();
+    //Stores  MAP<table alias, MAP<fieldName, reference>>
+    private final Map<String, Map<String, String>> resolvedReferences = new HashMap<>();
+
+    //Stores  MAP<table alias, MAP<fieldName, join path>>
+    private final Map<String, Map<String, Set<JoinPath>>> resolvedJoinPaths = new HashMap<>();
 
     public SQLReferenceTable(MetaDataStore metaDataStore) {
         this.metaDataStore = metaDataStore;
@@ -42,53 +44,53 @@ public class SQLReferenceTable {
     /**
      * Get the resolved physical SQL reference for a field from storage
      *
-     * @param table table class
+     * @param queryable table class
      * @param fieldName field name
      * @return resolved reference
      */
-    public String getResolvedReference(Table table, String fieldName) {
-        return resolvedReferences.get(dictionary.getEntityClass(table.getName(), table.getVersion())).get(fieldName);
+    public String getResolvedReference(Queryable queryable, String fieldName) {
+        return resolvedReferences.get(queryable.getAlias()).get(fieldName);
     }
 
     /**
      * Get the resolved physical SQL reference for a field from storage
      *
-     * @param table table class
+     * @param queryable table class
      * @param fieldName field name
      * @return resolved reference
      */
-    public Set<JoinPath> getResolvedJoinPaths(Table table, String fieldName) {
-        return resolvedJoinPaths.get(dictionary.getEntityClass(table.getName(), table.getVersion())).get(fieldName);
+    public Set<JoinPath> getResolvedJoinPaths(Queryable queryable, String fieldName) {
+        return resolvedJoinPaths.get(queryable.getAlias()).get(fieldName);
     }
 
     /**
      * Resolve all references and joins for a table and store them in this reference table.
      *
-     * @param table meta data table
+     * @param queryable meta data table
      */
-    private void resolveAndStoreAllReferencesAndJoins(Table table) {
-        Class<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
-        if (!resolvedReferences.containsKey(tableClass)) {
-            resolvedReferences.put(tableClass, new HashMap<>());
+    private void resolveAndStoreAllReferencesAndJoins(Queryable queryable) {
+        String id = queryable.getAlias();
+        if (!resolvedReferences.containsKey(id)) {
+            resolvedReferences.put(id, new HashMap<>());
         }
-        if (!resolvedJoinPaths.containsKey(tableClass)) {
-            resolvedJoinPaths.put(tableClass, new HashMap<>());
+        if (!resolvedJoinPaths.containsKey(id)) {
+            resolvedJoinPaths.put(id, new HashMap<>());
         }
 
         FormulaValidator validator = new FormulaValidator(metaDataStore);
         SQLJoinVisitor joinVisitor = new SQLJoinVisitor(metaDataStore);
 
-        table.getColumns().forEach(column -> {
+        queryable.getColumns().forEach(column -> {
             // validate that there is no reference loop
             validator.visitColumn(column);
 
             String fieldName = column.getName();
 
-            resolvedReferences.get(tableClass).put(
+            resolvedReferences.get(id).put(
                     fieldName,
-                    new SQLReferenceVisitor(metaDataStore, getClassAlias(tableClass)).visitColumn(column));
+                    new SQLReferenceVisitor(metaDataStore, queryable.getAlias(fieldName)).visitColumn(column));
 
-            resolvedJoinPaths.get(tableClass).put(fieldName, joinVisitor.visitColumn(column));
+            resolvedJoinPaths.get(id).put(fieldName, joinVisitor.visitColumn(column));
         });
     }
 }

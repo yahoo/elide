@@ -52,7 +52,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
     @Mock private Cache cache;
     @Mock private QueryLogger queryLogger;
 
-    private Query query = Query.builder().table(playerStatsTable).build();
+    private Query query = Query.builder().source(playerStatsTable).build();
     private final String queryKey = QueryKeyExtractor.extractKey(query);
     private static final Iterable<Object> DATA = Collections.singletonList("xyzzy");
 
@@ -85,7 +85,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
 
         QueryResult queryResult = QueryResult.builder().data(DATA).build();
         SQLQuery myQuery = SQLQuery.builder().clientQuery(query)
-                .fromClause(query.getTable().getName())
+                .fromClause(playerStatsTable.getName())
                 .projectionClause(" ").build();
         when(queryEngine.getTableVersion(playerStatsTable, qeTransaction)).thenReturn("foo");
         when(queryEngine.executeQuery(query, qeTransaction)).thenReturn(queryResult);
@@ -116,7 +116,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         String cacheKey = "foo;" + queryKey;
         QueryResult queryResult = QueryResult.builder().data(DATA).build();
         SQLQuery myQuery = SQLQuery.builder().clientQuery(query)
-                .fromClause(query.getTable().getName())
+                .fromClause(playerStatsTable.getName())
                 .projectionClause(" ").build();
         when(cache.get(cacheKey)).thenReturn(queryResult);
         when(queryEngine.getTableVersion(playerStatsTable, qeTransaction)).thenReturn("foo");
@@ -145,7 +145,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
 
         QueryResult queryResult = QueryResult.builder().data(DATA).pageTotals(314L).build();
         SQLQuery myQuery = SQLQuery.builder().clientQuery(query)
-                .fromClause(query.getTable().getName())
+                .fromClause(playerStatsTable.getName())
                 .projectionClause(" ").build();
         when(cache.get(anyString())).thenReturn(queryResult);
         when(queryEngine.getTableVersion(playerStatsTable, qeTransaction)).thenReturn("foo");
@@ -178,7 +178,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         Mockito.reset(queryLogger);
 
         SQLQuery myQuery = SQLQuery.builder().clientQuery(query)
-                .fromClause(query.getTable().getName())
+                .fromClause(playerStatsTable.getName())
                 .projectionClause(" ").build();
 
         QueryResult queryResult = QueryResult.builder().data(DATA).build();
@@ -208,9 +208,9 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
     public void loadObjectsBypassCache() {
         Mockito.reset(queryLogger);
 
-        query = Query.builder().table(playerStatsTable).bypassingCache(true).build();
+        query = Query.builder().source(playerStatsTable).bypassingCache(true).build();
         SQLQuery myQuery = SQLQuery.builder().clientQuery(query)
-                .fromClause(query.getTable().getName())
+                .fromClause(playerStatsTable.getName())
                 .projectionClause(" ").build();
 
         QueryResult queryResult = QueryResult.builder().data(DATA).build();
@@ -238,7 +238,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         Mockito.reset(queryLogger);
         String nullPointerExceptionMessage = "Cannot dereference an object with value Null";
         try {
-            query = Query.builder().table(playerStatsTable).bypassingCache(true).build();
+            query = Query.builder().source(playerStatsTable).bypassingCache(true).build();
             doThrow(new NullPointerException(nullPointerExceptionMessage))
                     .when(queryEngine).executeQuery(query, qeTransaction);
             AggregationDataStoreTransaction transaction =

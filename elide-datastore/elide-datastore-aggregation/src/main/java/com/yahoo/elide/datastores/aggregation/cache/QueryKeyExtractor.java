@@ -14,10 +14,10 @@ import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
@@ -51,20 +51,20 @@ public final class QueryKeyExtractor implements FilterExpressionVisitor<Object> 
     }
 
     private void visit(Query query) {
-        visit(query.getTable());
+        visit(query.getSource());
 
         beginGroup();
         // `metrics` is a list - don't sort
-        query.getMetrics().forEach(this::visit);
+        query.getMetricProjections().forEach(this::visit);
         endGroup();
         beginGroup();
         // `groupByDimensions` is an unordered set - sort
-        query.getGroupByDimensions().stream().sorted(Comparator.comparing(ColumnProjection::getAlias))
+        query.getDimensionProjections().stream().sorted(Comparator.comparing(ColumnProjection::getAlias))
                 .forEachOrdered(this::visit);
         endGroup();
         beginGroup();
         // `timeDimensions` is an unordered set - sort
-        query.getTimeDimensions().stream().sorted(Comparator.comparing(ColumnProjection::getAlias))
+        query.getTimeDimensionProjections().stream().sorted(Comparator.comparing(ColumnProjection::getAlias))
                 .forEachOrdered(this::visit);
         endGroup();
 
@@ -77,9 +77,8 @@ public final class QueryKeyExtractor implements FilterExpressionVisitor<Object> 
 
     // Query Components
     //
-    private void visit(Table table) {
-        visit(table.getId().toString());
-        // `name`, `version` and `dbconnection` are included in id field
+    private void visit(Queryable source) {
+        visit(source.getAlias().toString());
     }
 
     private void visit(MetricProjection metricProjection) {
