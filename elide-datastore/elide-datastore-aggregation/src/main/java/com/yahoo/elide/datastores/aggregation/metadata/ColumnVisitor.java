@@ -30,7 +30,7 @@ public abstract class ColumnVisitor<T> {
 
     public ColumnVisitor(MetaDataStore metaDataStore) {
         this.metaDataStore = metaDataStore;
-        this.dictionary = metaDataStore.getDictionary();
+        this.dictionary = metaDataStore.getMetadataDictionary();
     }
 
     public final Column getColumn(Class<?> tableClass, String fieldName) {

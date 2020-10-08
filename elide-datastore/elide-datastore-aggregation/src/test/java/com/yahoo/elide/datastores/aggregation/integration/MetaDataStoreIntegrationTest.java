@@ -11,13 +11,13 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
-import com.yahoo.elide.datastores.aggregation.metadata.models.TableId;
-import com.yahoo.elide.datastores.aggregation.metadata.models.TableIdSerde;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -64,19 +64,16 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
     @Test
     public void tableMetaDataTest() {
 
-        TableIdSerde serde = new TableIdSerde();
-        String countryId = serde.serialize(new TableId("country", "", ""));
-        String playerStatsId = serde.serialize(new TableId("playerStats", "", ""));
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/" + countryId)
+                .get("/table/country")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.cardinality", equalTo("SMALL"))
                 .body("data.relationships.columns.data.id", hasItems("country.id", "country.name", "country.isoCode"));
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/" + playerStatsId)
+                .get("/table/playerStats")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.cardinality", equalTo("LARGE"))
@@ -109,7 +106,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.valueSourceType",  equalTo("TABLE"))
                 .body("data.attributes.expression",  equalTo("player.name"))
                 .body("data.attributes.tableSource",  equalTo("player.name"))
-                .body("data.relationships.table.data.id", equalTo(getTableId("playerStats")));
+                .body("data.relationships.table.data.id", equalTo("playerStats"));
     }
 
     @Test
@@ -178,7 +175,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.valueType",  equalTo("TIME"))
                 .body("data.attributes.columnType",  equalTo("FIELD"))
                 .body("data.attributes.expression",  equalTo("recordedDate"))
-                .body("data.relationships.table.data.id", equalTo(getTableId("playerStats")))
+                .body("data.relationships.table.data.id", equalTo("playerStats"))
                 .body("data.relationships.supportedGrain.data.id", hasItem("playerStats.recordedDate.simpledate"))
                 .body("included.id", hasItem("playerStats.recordedDate.simpledate"))
                 .body("included.attributes.grain", hasItem("SIMPLEDATE"))
@@ -201,7 +198,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.category",  equalTo("Score Category"))
                 .body("data.attributes.description",  equalTo("very low score"))
                 .body("data.attributes.tags",  hasItems("PRIVATE"))
-                .body("data.relationships.table.data.id", equalTo(getTableId("playerStats")))
+                .body("data.relationships.table.data.id", equalTo("playerStats"))
                 .body("data.relationships.metricFunction.data.id", equalTo("playerStats.lowScore[lowScore]"))
                 .body("included.id", hasItem("playerStats.lowScore[lowScore]"))
                 .body("included.attributes.description", hasItem("very low score"))
@@ -216,15 +213,44 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.valueType",  equalTo("DECIMAL"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.expression",  equalTo("({{timeSpent}} / (CASE WHEN SUM({{game_rounds}}) = 0 THEN 1 ELSE {{sessions}} END))"))
-                .body("data.relationships.table.data.id", equalTo(getTableId("videoGame", "", "mycon")));
+                .body("data.relationships.table.data.id", equalTo("videoGame"));
 
     }
 
-    private String getTableId(String name, String version, String dbConnectionName) {
-        return new TableId(name, version, dbConnectionName).toString();
-    }
+    @Test
+    public void versioningTest() {
 
-    private String getTableId(String name) {
-        return getTableId(name, "", "");
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data", hasSize(greaterThan(30)));
+
+        given()
+                .header("ApiVersion", "")
+                .accept("application/vnd.api+json")
+                .get("/table")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data", hasSize(greaterThan(30)));
+
+        given()
+                .header("ApiVersion", "1.0")
+                .accept("application/vnd.api+json")
+                .get("/table")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data", hasSize(1))
+                .body("data.attributes.name", hasItem("book"))
+                .body("data.attributes.dbConnectionName", hasItem(""));
+
+        given()
+                .header("ApiVersion", "2.0")
+                .accept("application/vnd.api+json")
+                .get("/table")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("errors.detail", hasItem("API version 2.0 not found"));
     }
 }

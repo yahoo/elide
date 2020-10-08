@@ -6,10 +6,13 @@
 package com.yahoo.elide.datastores.aggregation.metadata;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
+import com.yahoo.elide.core.DataStore;
+import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
+import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
@@ -35,21 +38,46 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * MetaDataStore is a in-memory data store that manage data models for an {@link AggregationDataStore}.
  */
-public class MetaDataStore extends HashMapDataStore {
+public class MetaDataStore implements DataStore {
     private static final Package META_DATA_PACKAGE = Table.class.getPackage();
 
     private static final List<Class<? extends Annotation>> METADATA_STORE_ANNOTATIONS =
             Arrays.asList(FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class);
 
+    private static final Function<String, HashMapDataStore> SERVER_ERROR = new Function<String, HashMapDataStore>() {
+        @Override
+        public HashMapDataStore apply(String key) {
+            throw new InternalServerErrorException("API version " + key + " not found");
+        }
+    };
+
+    private static final Function<String, HashMapDataStore> SETUP_NEW = new Function<String, HashMapDataStore>() {
+        @Override
+        public HashMapDataStore apply(String key) {
+            HashMapDataStore hashMapDataStore = new HashMapDataStore(META_DATA_PACKAGE);
+            EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+            ClassScanner.getAllClasses(META_DATA_PACKAGE.getName()).forEach(dictionary::bindEntity);
+            hashMapDataStore.populateEntityDictionary(dictionary);
+            return hashMapDataStore;
+        }
+    };
+
     @Getter
     private final Set<Class<?>> modelsToBind;
 
     private Map<Class<?>, Table> tables = new HashMap<>();
+
+    @Getter
+    private EntityDictionary metadataDictionary = new EntityDictionary(new HashMap<>());
+
+    @Getter
+    private Map<String, HashMapDataStore> hashMapDataStores = new HashMap<>();
 
     public MetaDataStore() {
         this(ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS));
@@ -62,9 +90,13 @@ public class MetaDataStore extends HashMapDataStore {
         dynamicCompiledClasses.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
 
         if (dynamicCompiledClasses != null && dynamicCompiledClasses.size() != 0) {
-            dynamicCompiledClasses.forEach(dynamicCompiledClass -> {
-                this.dictionary.bindEntity(dynamicCompiledClass, Collections.singleton(Join.class));
-                this.modelsToBind.add(dynamicCompiledClass);
+            dynamicCompiledClasses.forEach(cls -> {
+                String version = EntityDictionary.getModelVersion(cls);
+                HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version, SETUP_NEW);
+                hashMapDataStore.getDictionary().bindEntity(cls, Collections.singleton(Join.class));
+                this.metadataDictionary.bindEntity(cls, Collections.singleton(Join.class));
+                this.modelsToBind.add(cls);
+                this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);
             });
         }
     }
@@ -75,17 +107,17 @@ public class MetaDataStore extends HashMapDataStore {
      * @param modelsToBind models to bind
      */
     public MetaDataStore(Set<Class<?>> modelsToBind) {
-        super(META_DATA_PACKAGE);
 
-        this.dictionary = new EntityDictionary(new HashMap<>());
-
-        // bind meta data models to dictionary
-        ClassScanner.getAllClasses(Table.class.getPackage().getName()).forEach(dictionary::bindEntity);
+        modelsToBind.forEach(cls -> {
+            String version = EntityDictionary.getModelVersion(cls);
+            HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version, SETUP_NEW);
+            hashMapDataStore.getDictionary().bindEntity(cls, Collections.singleton(Join.class));
+            this.metadataDictionary.bindEntity(cls, Collections.singleton(Join.class));
+            this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);
+        });
 
         // bind external data models in the package.
         this.modelsToBind = modelsToBind;
-
-        this.modelsToBind.forEach(cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class)));
     }
 
     @Override
@@ -100,8 +132,10 @@ public class MetaDataStore extends HashMapDataStore {
      * @param table table metadata
      */
     public void addTable(Table table) {
-        tables.put(dictionary.getEntityClass(table.getName(), table.getVersion()), table);
-        addMetaData(table);
+        String version = table.getVersion();
+        EntityDictionary dictionary = hashMapDataStores.computeIfAbsent(version, SERVER_ERROR).getDictionary();
+        tables.put(dictionary.getEntityClass(table.getName(), version), table);
+        addMetaData(table, version);
         table.getColumns().forEach(this::addColumn);
     }
 
@@ -144,12 +178,13 @@ public class MetaDataStore extends HashMapDataStore {
      * @param column column metadata
      */
     private void addColumn(Column column) {
-        addMetaData(column);
+        String version = column.getVersion();
+        addMetaData(column, version);
 
         if (column instanceof TimeDimension) {
-            addTimeDimensionGrain(((TimeDimension) column).getSupportedGrain());
+            addTimeDimensionGrain(((TimeDimension) column).getSupportedGrain(), version);
         } else if (column instanceof Metric) {
-            addMetricFunction(((Metric) column).getMetricFunction());
+            addMetricFunction(((Metric) column).getMetricFunction(), version);
         }
     }
 
@@ -158,9 +193,9 @@ public class MetaDataStore extends HashMapDataStore {
      *
      * @param metricFunction metric function metadata
      */
-    private void addMetricFunction(MetricFunction metricFunction) {
-        addMetaData(metricFunction);
-        metricFunction.getArguments().forEach(this::addFunctionArgument);
+    private void addMetricFunction(MetricFunction metricFunction, String version) {
+        addMetaData(metricFunction, version);
+        metricFunction.getArguments().forEach(arg -> addFunctionArgument(arg, version));
     }
 
     /**
@@ -168,8 +203,8 @@ public class MetaDataStore extends HashMapDataStore {
      *
      * @param functionArgument function argument metadata
      */
-    private void addFunctionArgument(FunctionArgument functionArgument) {
-        addMetaData(functionArgument);
+    private void addFunctionArgument(FunctionArgument functionArgument, String version) {
+        addMetaData(functionArgument, version);
     }
 
     /**
@@ -177,8 +212,8 @@ public class MetaDataStore extends HashMapDataStore {
      *
      * @param timeDimensionGrain time dimension grain metadata
      */
-    private void addTimeDimensionGrain(TimeDimensionGrain timeDimensionGrain) {
-        addMetaData(timeDimensionGrain);
+    private void addTimeDimensionGrain(TimeDimensionGrain timeDimensionGrain, String version) {
+        addMetaData(timeDimensionGrain, version);
     }
 
     /**
@@ -186,16 +221,19 @@ public class MetaDataStore extends HashMapDataStore {
      *
      * @param object a meta data object
      */
-    private void addMetaData(Object object) {
+    private void addMetaData(Object object, String version) {
+
+        HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version, SERVER_ERROR);
+        EntityDictionary dictionary = hashMapDataStore.getDictionary();
         Class<?> cls = dictionary.lookupBoundClass(object.getClass());
         String id = dictionary.getId(object);
 
-        if (dataStore.get(cls).containsKey(id)) {
-            if (!dataStore.get(cls).get(id).equals(object)) {
+        if (hashMapDataStore.get(cls).containsKey(id)) {
+            if (!hashMapDataStore.get(cls).get(id).equals(object)) {
                 throw new DuplicateMappingException("Duplicated " + cls.getSimpleName() + " metadata " + id);
             }
         } else {
-            dataStore.get(cls).put(id, object);
+            hashMapDataStore.get(cls).put(id, object);
         }
     }
 
@@ -207,7 +245,10 @@ public class MetaDataStore extends HashMapDataStore {
      * @return all metadata of given class
      */
     public <T> Set<T> getMetaData(Class<T> cls) {
-        return dataStore.get(cls).values().stream().map(cls::cast).collect(Collectors.toSet());
+
+        String version = EntityDictionary.getModelVersion(cls);
+        HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version, SERVER_ERROR);
+        return hashMapDataStore.get(cls).values().stream().map(cls::cast).collect(Collectors.toSet());
     }
 
     /**
@@ -238,5 +279,10 @@ public class MetaDataStore extends HashMapDataStore {
      */
     public static boolean isTableJoin(Class<?> cls, String fieldName, EntityDictionary dictionary) {
         return dictionary.getAttributeOrRelationAnnotation(cls, Join.class, fieldName) != null;
+    }
+
+    @Override
+    public DataStoreTransaction beginTransaction() {
+        return new MetaDataStoreTransaction(hashMapDataStores);
     }
 }

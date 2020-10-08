@@ -71,7 +71,7 @@ public class QueryKeyExtractorTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .pagination(new ImmutablePagination(0, 2, false, true))
                 .build();
-        assertEquals("com_yahoo_elide_datastores_aggregation_example_PlayerStats;" // table name.version-db connection
+        assertEquals("com_yahoo_elide_datastores_aggregation_example_PlayerStats;" // table name
                         + "{playerStats.highScore;}" // columns
                         + "{playerStats.overallRating;overallRating;{}}" // group by
                         + "{playerStats.recordedDate;recordedDate;{}}" // time dimensions
