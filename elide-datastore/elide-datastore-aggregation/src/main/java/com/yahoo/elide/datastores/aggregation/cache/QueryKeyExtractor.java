@@ -78,7 +78,7 @@ public final class QueryKeyExtractor implements FilterExpressionVisitor<Object> 
         visit(source.getAlias().toString());
     }
 
-    private void visit(ColumnProjection<?> columnProjection) {
+    private void visit(ColumnProjection columnProjection) {
         visit(columnProjection.getId());
         visit(columnProjection.getAlias());
         visit(columnProjection.getArguments());

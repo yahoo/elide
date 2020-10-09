@@ -25,7 +25,7 @@ import javax.persistence.ManyToMany;
 @EqualsAndHashCode(callSuper = true)
 @Include(rootLevel = false, type = "timeDimension")
 @Value
-public class TimeDimension extends Column<TimeDimension> implements TimeDimensionProjection {
+public class TimeDimension extends Column implements TimeDimensionProjection {
     @ManyToMany
     @ToString.Exclude
     TimeDimensionGrain supportedGrain;

@@ -16,7 +16,7 @@ import lombok.EqualsAndHashCode;
  */
 @Include(rootLevel = false, type = "dimension")
 @EqualsAndHashCode(callSuper = true)
-public class Dimension extends Column<Dimension> implements ColumnProjection<Dimension> {
+public class Dimension extends Column implements ColumnProjection {
     public Dimension(Table table, String fieldName, EntityDictionary dictionary) {
         super(table, fieldName, dictionary);
     }

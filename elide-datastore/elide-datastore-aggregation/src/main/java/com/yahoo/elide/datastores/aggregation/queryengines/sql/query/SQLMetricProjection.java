@@ -23,7 +23,7 @@ import java.util.Map;
  * Metric projection that can expand the metric into a SQL projection fragment.
  */
 @Value
-public class SQLMetricProjection implements MetricProjection, SQLColumnProjection<Metric> {
+public class SQLMetricProjection implements MetricProjection, SQLColumnProjection {
 
     Metric column;
     SQLReferenceTable referenceTable;

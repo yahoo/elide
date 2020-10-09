@@ -25,7 +25,7 @@ import java.util.TimeZone;
  * Column projection that can expand the column into a SQL projection fragment.
  */
 @Value
-public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimension>, TimeDimensionProjection {
+public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDimensionProjection {
 
     private static final String TIME_DIMENSION_REPLACEMENT_REGEX = "\\{\\{(\\s*)}}";
 

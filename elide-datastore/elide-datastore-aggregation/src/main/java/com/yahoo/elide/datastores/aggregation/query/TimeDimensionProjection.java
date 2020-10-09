@@ -7,14 +7,13 @@
 package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
-import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 
 import java.util.TimeZone;
 
 /**
  * Represents a requested time dimension in a query.
  */
-public interface TimeDimensionProjection extends ColumnProjection<TimeDimension> {
+public interface TimeDimensionProjection extends ColumnProjection {
 
     /**
      * Get the requested time grain.

@@ -36,13 +36,12 @@ import javax.persistence.Id;
 
 /**
  * Column is the super class of a field in a table, it can be either dimension or metric.
- * @param <T> the type of column.
  */
 @Include(rootLevel = false, type = "column")
 @Getter
 @EqualsAndHashCode
 @ToString
-public abstract class Column<T extends Column> implements Versioned, ColumnProjection<T> {
+public abstract class Column implements Versioned, ColumnProjection {
     @Id
     private final String id;
 

@@ -26,7 +26,7 @@ import javax.persistence.ManyToOne;
 @Getter
 @EqualsAndHashCode(callSuper = true)
 @ToString
-public class Metric extends Column<Metric> implements MetricProjection {
+public class Metric extends Column implements MetricProjection {
     @ManyToOne
     @ToString.Exclude
     private final MetricFunction metricFunction;

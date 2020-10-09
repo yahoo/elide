@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.request.Argument;
 
 import java.io.Serializable;
@@ -15,9 +14,8 @@ import java.util.Map;
 
 /**
  * Represents a projected column as an alias in a query.
- * @param <T> Column type of the projection.
  */
-public interface ColumnProjection<T extends Column> extends Serializable {
+public interface ColumnProjection extends Serializable {
     /**
      * Get the query source associated with the column.
      * @return the query source
