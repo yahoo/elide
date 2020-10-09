@@ -11,6 +11,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.request.Argument;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,7 +41,7 @@ public class SQLDimensionProjection implements SQLColumnProjection {
                                   Map<String, Argument> arguments,
                                   SQLReferenceTable referenceTable) {
         this.id = dimension.getId();
-        this.source = dimension.getSource();
+        this.source = (SQLTable) dimension.getTable();
         this.name = dimension.getName();
         this.expression = dimension.getExpression();
         this.valueType = dimension.getValueType();

@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
@@ -15,6 +16,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
+import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
@@ -46,6 +48,25 @@ public class SQLTable extends Table implements Queryable {
     }
 
     @Override
+    public ColumnProjection toProjection(Column column) {
+        ColumnProjection projection;
+        projection = getTimeDimensionProjection(column.getName());
+        if (projection != null) {
+            return projection;
+        }
+        projection = getMetricProjection(column.getName());
+        if (projection != null) {
+            return projection;
+        }
+        return getColumnProjection(column.getName());
+    }
+
+    @Override
+    public Queryable toQueryable() {
+        return this;
+    }
+
+    @Override
     public MetricProjection getMetricProjection(String fieldName) {
         Metric metric = super.getMetric(fieldName);
         if (metric == null) {
@@ -53,19 +74,19 @@ public class SQLTable extends Table implements Queryable {
         }
         return new SQLMetricProjection(metric,
                 engine.getReferenceTable(),
-                metric.getAlias(),
+                metric.getName(),
                 new HashMap<>());
     }
 
     @Override
     public Set<MetricProjection> getMetricProjections() {
         return super.getMetrics().stream()
-            .map((metric) ->
-                    new SQLMetricProjection(metric,
-                            engine.getReferenceTable(),
-                            metric.getAlias(),
-                            new HashMap<>()))
-            .collect(Collectors.toSet());
+                .map((metric) ->
+                        new SQLMetricProjection(metric,
+                                engine.getReferenceTable(),
+                                metric.getName(),
+                                new HashMap<>()))
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -75,7 +96,7 @@ public class SQLTable extends Table implements Queryable {
             return null;
         }
         return new SQLDimensionProjection(dimension,
-                dimension.getAlias(),
+                dimension.getName(),
                 new HashMap<>(),
                 engine.getReferenceTable());
     }
@@ -85,7 +106,7 @@ public class SQLTable extends Table implements Queryable {
         return super.getDimensions()
                 .stream()
                 .map((dimension) -> new SQLDimensionProjection(dimension,
-                        dimension.getAlias(),
+                        dimension.getName(),
                         new HashMap<>(),
                         engine.getReferenceTable()))
                 .collect(Collectors.toSet());
@@ -98,9 +119,9 @@ public class SQLTable extends Table implements Queryable {
             return null;
         }
         return new SQLTimeDimensionProjection(dimension,
-                dimension.getTimeZone(),
+                dimension.getTimezone(),
                 engine.getReferenceTable(),
-                dimension.getAlias(),
+                dimension.getName(),
                 new HashMap<>());
     }
 
@@ -109,18 +130,31 @@ public class SQLTable extends Table implements Queryable {
         return super.getTimeDimensions()
                 .stream()
                 .map((dimension) -> new SQLTimeDimensionProjection(dimension,
-                        dimension.getTimeZone(),
+                        dimension.getTimezone(),
                         engine.getReferenceTable(),
-                        dimension.getAlias(),
+                        dimension.getName(),
                         new HashMap<>()))
                 .collect(Collectors.toSet());
     }
 
     @Override
-    public ColumnProjection getColumnProjection(String name) {
-        ColumnProjection projection = super.getColumnProjection(name);
+    public Set<ColumnProjection> getColumnProjections() {
+        return super.getColumns()
+                .stream()
+                .map((column) -> { return getColumnProjection(column.getName()); })
+                .collect(Collectors.toSet());
+    }
 
-        if (projection == null) {
+    @Override
+    public String getAlias(String columnName) {
+        return super.getAlias();
+    }
+
+    @Override
+    public ColumnProjection getColumnProjection(String name) {
+        Column column = super.getColumn(Column.class, name);
+
+        if (column == null) {
             return null;
         }
 
@@ -137,33 +171,38 @@ public class SQLTable extends Table implements Queryable {
 
             @Override
             public String getAlias() {
-                return projection.getAlias();
+                return column.getName();
             }
 
             @Override
             public String getId() {
-                return projection.getId();
+                return column.getId();
             }
 
             @Override
             public String getName() {
-                return projection.getName();
+                return column.getName();
             }
 
             @Override
             public String getExpression() {
-                return projection.getExpression();
+                return column.getExpression();
             }
 
             @Override
             public ValueType getValueType() {
-                return projection.getValueType();
+                return column.getValueType();
             }
 
             @Override
             public ColumnType getColumnType() {
-                return projection.getColumnType();
+                return column.getColumnType();
             }
         };
+    }
+
+    @Override
+    public <T> T accept(QueryVisitor<T> visitor) {
+        return visitor.visitTable(this);
     }
 }

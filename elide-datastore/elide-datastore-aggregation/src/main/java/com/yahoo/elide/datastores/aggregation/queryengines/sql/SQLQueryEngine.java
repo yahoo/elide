@@ -117,7 +117,7 @@ public class SQLQueryEngine extends QueryEngine {
     public TimeDimensionProjection constructTimeDimensionProjection(TimeDimension dimension,
                                                                     String alias,
                                                                     Map<String, Argument> arguments) {
-        return new SQLTimeDimensionProjection(dimension, dimension.getTimeZone(), referenceTable, alias, arguments);
+        return new SQLTimeDimensionProjection(dimension, dimension.getTimezone(), referenceTable, alias, arguments);
     }
 
     @Override

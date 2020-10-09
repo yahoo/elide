@@ -14,6 +14,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.request.Argument;
 
 import lombok.AllArgsConstructor;
@@ -64,7 +65,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
         this.expression = column.getExpression();
         this.id = column.getId();
         this.name = column.getName();
-        this.source = column.getSource();
+        this.source = (SQLTable) column.getTable();
         this.grain = column.getSupportedGrain();
         this.referenceTable = referenceTable;
         this.arguments = arguments;

@@ -66,7 +66,7 @@ public class EntityProjectionTranslator {
      */
     public Query getQuery() {
         Query query = Query.builder()
-                .source(queriedTable)
+                .source(queriedTable.toQueryable())
                 .metricProjections(metrics)
                 .dimensionProjections(dimensionProjections)
                 .timeDimensionProjections(timeDimensions)
@@ -104,7 +104,7 @@ public class EntityProjectionTranslator {
      */
     private Set<TimeDimensionProjection> resolveTimeDimensions() {
         return entityProjection.getAttributes().stream()
-                .filter(attribute -> queriedTable.getTimeDimensionProjection(attribute.getName()) != null)
+                .filter(attribute -> queriedTable.getTimeDimension(attribute.getName()) != null)
                 .map(timeDimAttr -> {
                     TimeDimension timeDim = queriedTable.getTimeDimension(timeDimAttr.getName());
 
@@ -122,7 +122,7 @@ public class EntityProjectionTranslator {
      */
     private Set<ColumnProjection> resolveNonTimeDimensions() {
         Set<ColumnProjection> attributes = entityProjection.getAttributes().stream()
-                .filter(attribute -> queriedTable.getTimeDimensionProjection(attribute.getName()) == null)
+                .filter(attribute -> queriedTable.getTimeDimension(attribute.getName()) == null)
                 .map(dimAttr -> {
                     Dimension dimension = queriedTable.getDimension(dimAttr.getName());
                     return dimension == null

@@ -19,8 +19,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueSourceType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
-import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
-import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -38,7 +36,7 @@ import javax.persistence.Id;
 @Getter
 @EqualsAndHashCode
 @ToString
-public abstract class Column implements Versioned, ColumnProjection {
+public abstract class Column implements Versioned {
     @Id
     private final String id;
 
@@ -174,15 +172,5 @@ public abstract class Column implements Versioned, ColumnProjection {
     @Override
     public String getVersion() {
         return table.getVersion();
-    }
-
-    @Override
-    public Queryable getSource() {
-        return table;
-    }
-
-    @Override
-    public String getAlias() {
-        return getName();
     }
 }

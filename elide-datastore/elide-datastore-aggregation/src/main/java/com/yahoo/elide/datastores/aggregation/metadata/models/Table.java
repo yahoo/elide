@@ -19,10 +19,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
-import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
-import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 
@@ -49,7 +46,7 @@ import javax.persistence.OneToMany;
 @Getter
 @EqualsAndHashCode
 @ToString
-public class Table implements Queryable, Versioned  {
+public abstract class Table implements Versioned  {
 
     @Id
     private final String id;
@@ -272,48 +269,8 @@ public class Table implements Queryable, Versioned  {
         return getColumn(TimeDimension.class, fieldName);
     }
 
-    @Override
-    public MetricProjection getMetricProjection(String fieldName) {
-        return getMetric(fieldName);
-    }
-
-    @Override
-    public Set<MetricProjection> getMetricProjections() {
-        return metrics.stream().map(MetricProjection.class::cast).collect(Collectors.toSet());
-    }
-
-    @Override
-    public ColumnProjection getColumnProjection(String name) {
-        return columnMap.get(name);
-    }
-
-    @Override
-    public ColumnProjection getDimensionProjection(String fieldName) {
-        return getDimension(fieldName);
-    }
-
-    @Override
-    public Set<ColumnProjection> getDimensionProjections() {
-        return metrics.stream().map(ColumnProjection.class::cast).collect(Collectors.toSet());
-    }
-
-    @Override
-    public TimeDimensionProjection getTimeDimensionProjection(String fieldName) {
-        return getTimeDimension(fieldName);
-    }
-
-    @Override
-    public Set<TimeDimensionProjection> getTimeDimensionProjections() {
-        return metrics.stream().map(TimeDimensionProjection.class::cast).collect(Collectors.toSet());
-    }
-
-    @Override
-    public Set<ColumnProjection> getColumnProjections() {
-        return getColumns().stream().map(ColumnProjection.class::cast).collect(Collectors.toSet());
-    }
-
     public boolean isMetric(String fieldName) {
-        return getMetricProjection(fieldName) != null;
+        return getMetric(fieldName) != null;
     }
 
     public FilterExpression getRequiredFilter(EntityDictionary dictionary) {
@@ -330,8 +287,7 @@ public class Table implements Queryable, Versioned  {
         return null;
     }
 
-    @Override
-    public <T> T accept(QueryVisitor<T> visitor) {
-        return visitor.visitTable(this);
-    }
+    public abstract ColumnProjection toProjection(Column column);
+
+    public abstract Queryable toQueryable();
 }

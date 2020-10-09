@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.metadata;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 
@@ -33,7 +34,8 @@ public abstract class ColumnVisitor<T> {
     }
 
     public final ColumnProjection getColumn(Path path) {
-        return metaDataStore.getColumn(path);
+        Column column = metaDataStore.getColumn(path);
+        return column.getTable().toProjection(column);
     }
 
     /**

@@ -14,11 +14,11 @@ import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.request.Sorting;
 
 import com.google.common.collect.ImmutableList;
@@ -33,12 +33,12 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class QueryEngineTest extends SQLUnitTest {
-    private static Table playerStatsViewTable;
+    private static SQLTable playerStatsViewTable;
 
     @BeforeAll
     public static void init() {
         SQLUnitTest.init();
-        playerStatsViewTable = engine.getTable("playerStatsView");
+        playerStatsViewTable = (SQLTable) engine.getTable("playerStatsView");
     }
 
     /**
@@ -82,7 +82,7 @@ public class QueryEngineTest extends SQLUnitTest {
     @Test
     public void testFromSubQuery() throws Exception {
         Query query = Query.builder()
-                .source(playerStatsViewTable)
+                .source(playerStatsViewTable.toQueryable())
                 .metricProjection(playerStatsViewTable.getMetricProjection("highScore"))
                 .build();
 

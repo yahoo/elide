@@ -13,6 +13,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.request.Argument;
 
 import lombok.AllArgsConstructor;
@@ -44,7 +45,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                                String alias,
                                Map<String, Argument> arguments) {
         this.id = metric.getId();
-        this.source = metric.getSource();
+        this.source = (SQLTable) metric.getTable();
         this.name = metric.getName();
         this.expression = metric.getExpression();
         this.valueType = metric.getValueType();

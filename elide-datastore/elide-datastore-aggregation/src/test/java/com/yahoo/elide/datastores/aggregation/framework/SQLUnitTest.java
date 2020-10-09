@@ -31,7 +31,6 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
 import com.yahoo.elide.datastores.aggregation.example.SubCountry;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -39,6 +38,7 @@ import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.utils.ClassScanner;
 import com.zaxxer.hikari.HikariConfig;
@@ -66,7 +66,7 @@ import javax.sql.DataSource;
 
 public abstract class SQLUnitTest {
 
-    protected static Table playerStatsTable;
+    protected static SQLTable playerStatsTable;
     protected static EntityDictionary dictionary;
     protected static RSQLFilterDialect filterParser;
     protected static MetaDataStore metaDataStore;
@@ -241,7 +241,7 @@ public abstract class SQLUnitTest {
                     .build();
         }),
         SUBQUERY (() -> {
-            Table playerStatsViewTable = engine.getTable("playerStatsView");
+            SQLTable playerStatsViewTable = (SQLTable) engine.getTable("playerStatsView");
             return Query.builder()
                     .source(playerStatsViewTable)
                     .metricProjection(playerStatsViewTable.getMetricProjection("highScore"))
@@ -322,7 +322,7 @@ public abstract class SQLUnitTest {
 
         engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect));
 
-        playerStatsTable = engine.getTable("playerStats");
+        playerStatsTable = (SQLTable) engine.getTable("playerStats");
 
     }
 
