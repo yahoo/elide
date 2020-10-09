@@ -21,16 +21,13 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.request.Argument;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import javax.persistence.Id;
 
@@ -187,10 +184,5 @@ public abstract class Column implements Versioned, ColumnProjection {
     @Override
     public String getAlias() {
         return getName();
-    }
-
-    @Override
-    public Map<String, Argument> getArguments() {
-        return new HashMap<>();
     }
 }

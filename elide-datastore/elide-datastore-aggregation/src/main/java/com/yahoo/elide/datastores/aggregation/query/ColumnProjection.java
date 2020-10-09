@@ -10,6 +10,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.request.Argument;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -64,7 +65,9 @@ public interface ColumnProjection extends Serializable {
      *
      * @return request arguments
      */
-    Map<String, Argument> getArguments();
+    default Map<String, Argument> getArguments() {
+        return Collections.EMPTY_MAP;
+    }
 
     // force implementations to define equals/hashCode
     boolean equals(Object other);
