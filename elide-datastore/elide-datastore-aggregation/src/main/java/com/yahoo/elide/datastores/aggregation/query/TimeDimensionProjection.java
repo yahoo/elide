@@ -6,13 +6,9 @@
 
 package com.yahoo.elide.datastores.aggregation.query;
 
-import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
-import com.yahoo.elide.request.Argument;
 
-import java.util.Map;
 import java.util.TimeZone;
 
 /**
@@ -40,72 +36,4 @@ public interface TimeDimensionProjection extends ColumnProjection<TimeDimension>
      * @return time zone
      */
     TimeZone getTimeZone();
-
-    /**
-     * Convert this projection to a new time grain.
-     *
-     * @param newGrain new time grain
-     * @return a new projection
-     */
-    default TimeDimensionProjection toTimeGrain(TimeGrain newGrain) {
-
-        TimeDimensionProjection projection = this;
-
-        return new TimeDimensionProjection() {
-            @Override
-            public TimeDimension getColumn() {
-                return projection.getColumn();
-            }
-
-            @Override
-            public TimeGrain getGrain() {
-                return newGrain;
-            }
-
-            @Override
-            public TimeZone getTimeZone() {
-                return projection.getTimeZone();
-            }
-
-            @Override
-            public String getAlias() {
-                return projection.getAlias();
-            }
-
-            @Override
-            public Map<String, Argument> getArguments() {
-                return projection.getArguments();
-            }
-
-            @Override
-            public Queryable getSource() {
-                return projection.getSource();
-            }
-
-            @Override
-            public String getId() {
-                return projection.getId();
-            }
-
-            @Override
-            public String getName() {
-                return projection.getName();
-            }
-
-            @Override
-            public String getExpression() {
-                return projection.getExpression();
-            }
-
-            @Override
-            public ValueType getValueType() {
-                return projection.getValueType();
-            }
-
-            @Override
-            public ColumnType getColumnType() {
-                return projection.getColumnType();
-            }
-        };
-    }
 }

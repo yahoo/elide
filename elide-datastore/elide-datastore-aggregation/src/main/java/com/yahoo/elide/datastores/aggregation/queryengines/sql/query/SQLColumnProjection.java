@@ -25,6 +25,11 @@ public interface SQLColumnProjection<T extends Column> extends ColumnProjection<
      * @return
      */
     default String toSQL(Queryable query) {
-        return getReferenceTable().getResolvedReference(getSource(), getName());
+        try {
+            return getReferenceTable().getResolvedReference(getSource(), getName());
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

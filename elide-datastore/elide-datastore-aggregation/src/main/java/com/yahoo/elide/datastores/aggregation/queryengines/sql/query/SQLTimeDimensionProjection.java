@@ -46,7 +46,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimen
                                       SQLReferenceTable referenceTable) {
         this(
                 column,
-                column.getTimezone(),
+                column.getTimeZone(),
                 referenceTable,
                 column.getName(),
                 new LinkedHashMap<>()

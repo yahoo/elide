@@ -268,8 +268,8 @@ public class Table implements Queryable, Versioned  {
         return metrics.stream().map(ColumnProjection.class::cast).collect(Collectors.toSet());
     }
 
-    public TimeDimensionProjection getTimeDimensionProjection(String fieldName) {
-        return getColumn(TimeDimensionProjection.class, fieldName);
+    public TimeDimension getTimeDimensionProjection(String fieldName) {
+        return getColumn(TimeDimension.class, fieldName);
     }
 
     @Override

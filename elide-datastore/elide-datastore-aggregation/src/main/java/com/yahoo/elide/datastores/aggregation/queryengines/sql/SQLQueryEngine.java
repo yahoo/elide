@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.TimedFunction;
+import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -59,14 +60,13 @@ import javax.sql.DataSource;
  */
 @Slf4j
 public class SQLQueryEngine extends QueryEngine {
-    private final SQLReferenceTable referenceTable;
+    private SQLReferenceTable referenceTable;
     private final ConnectionDetails defaultConnectionDetails;
     private final Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
     public SQLQueryEngine(MetaDataStore metaDataStore,
                     com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails defaultConnectionDetails) {
         super(metaDataStore);
-        this.referenceTable = new SQLReferenceTable(metaDataStore);
         this.defaultConnectionDetails = new ConnectionDetails(defaultConnectionDetails.getDataSource(),
                         SQLDialectFactory.getDialect(defaultConnectionDetails.getDialect()));
     }
@@ -87,6 +87,24 @@ public class SQLQueryEngine extends QueryEngine {
         });
     }
 
+    @Override
+    protected void populateMetaData(MetaDataStore metaDataStore) {
+        metaDataStore.getModelsToBind()
+                .forEach(model -> {
+                    if (!metadataDictionary.isJPAEntity(model)
+                            && !metadataDictionary.getRelationships(model).isEmpty()) {
+                        throw new InvalidPredicateException(
+                                "Non-JPA entities " + model.getSimpleName() + " is not allowed to have relationship.");
+                    }
+                });
+
+        referenceTable = new SQLReferenceTable(metaDataStore);
+
+        metaDataStore.getModelsToBind().stream()
+                .map(model -> constructTable(model, metadataDictionary))
+                .forEach(metaDataStore::addTable);
+    }
+
     private static final Function<ResultSet, Object> SINGLE_RESULT_MAPPER = new Function<ResultSet, Object>() {
         @Override
         public Object apply(ResultSet rs) {
@@ -104,7 +122,7 @@ public class SQLQueryEngine extends QueryEngine {
 
     @Override
     protected Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary) {
-        return new SQLTable(entityClass, metaDataDictionary);
+        return new SQLTable(entityClass, metaDataDictionary, referenceTable);
     }
 
     @Override
@@ -168,7 +186,7 @@ public class SQLQueryEngine extends QueryEngine {
     public TimeDimensionProjection constructTimeDimensionProjection(TimeDimension dimension,
                                                                     String alias,
                                                                     Map<String, Argument> arguments) {
-        return new SQLTimeDimensionProjection(dimension, dimension.getTimezone(), referenceTable, alias, arguments);
+        return new SQLTimeDimensionProjection(dimension, dimension.getTimeZone(), referenceTable, alias, arguments);
     }
 
     @Override
@@ -255,7 +273,7 @@ public class SQLQueryEngine extends QueryEngine {
         // Run the primary query and log the time spent.
         ResultSet resultSet = runQuery(stmt, queryString, Function.identity());
 
-        resultBuilder.data(new EntityHydrator(resultSet, query, getMetadataDictionary()).hydrate());
+        resultBuilder.data(new EntityHydrator(resultSet, query, metadataDictionary).hydrate());
         return resultBuilder.build();
     }
 
@@ -279,7 +297,7 @@ public class SQLQueryEngine extends QueryEngine {
     public String getTableVersion(Table table, Transaction transaction) {
 
         String tableVersion = null;
-        Class<?> tableClass = getMetadataDictionary().getEntityClass(table.getName(), table.getVersion());
+        Class<?> tableClass = metadataDictionary.getEntityClass(table.getName(), table.getVersion());
         VersionQuery versionAnnotation = tableClass.getAnnotation(VersionQuery.class);
         if (versionAnnotation != null) {
             String versionQueryString = versionAnnotation.sql();

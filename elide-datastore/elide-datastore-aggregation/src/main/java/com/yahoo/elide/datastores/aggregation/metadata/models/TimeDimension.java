@@ -9,6 +9,8 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
+import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
@@ -23,7 +25,7 @@ import javax.persistence.ManyToMany;
 @EqualsAndHashCode(callSuper = true)
 @Include(rootLevel = false, type = "timeDimension")
 @Value
-public class TimeDimension extends Dimension {
+public class TimeDimension extends Column<TimeDimension> implements TimeDimensionProjection {
     @ManyToMany
     @ToString.Exclude
     TimeDimensionGrain supportedGrain;
@@ -40,5 +42,20 @@ public class TimeDimension extends Dimension {
                 fieldName);
 
         this.supportedGrain = new TimeDimensionGrain(getId(), temporal.grain());
+    }
+
+    @Override
+    public TimeGrain getGrain() {
+        return supportedGrain.getGrain();
+    }
+
+    @Override
+    public TimeZone getTimeZone() {
+        return timezone;
+    }
+
+    @Override
+    public TimeDimension getColumn() {
+        return this;
     }
 }

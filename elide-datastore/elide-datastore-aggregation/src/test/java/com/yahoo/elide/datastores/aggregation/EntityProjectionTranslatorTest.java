@@ -15,6 +15,7 @@ import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressi
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.request.Attribute;
@@ -58,7 +59,12 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
 
         assertEquals(playerStatsTable, query.getSource());
         assertEquals(1, query.getMetricProjections().size());
-        assertEquals("lowScore", query.getMetricProjections().get(0).getAlias());
+        String actual = query.getMetricProjections().stream()
+                .map(MetricProjection::getAlias)
+                .findFirst()
+                .orElse(null);
+
+        assertEquals("lowScore", actual);
         assertEquals(1, query.getAllDimensionProjections().size());
 
         List<ColumnProjection> dimensions = new ArrayList<>(query.getAllDimensionProjections());

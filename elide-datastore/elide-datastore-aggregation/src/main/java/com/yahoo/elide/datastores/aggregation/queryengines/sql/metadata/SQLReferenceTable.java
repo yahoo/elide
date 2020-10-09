@@ -68,7 +68,7 @@ public class SQLReferenceTable {
      *
      * @param queryable meta data table
      */
-    private void resolveAndStoreAllReferencesAndJoins(Queryable queryable) {
+    public void resolveAndStoreAllReferencesAndJoins(Queryable queryable) {
         String id = queryable.getAlias();
         if (!resolvedReferences.containsKey(id)) {
             resolvedReferences.put(id, new HashMap<>());
