@@ -15,6 +15,8 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.request.Argument;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Value;
 
 import java.util.Map;
@@ -23,45 +25,33 @@ import java.util.Map;
  * Metric projection that can expand the metric into a SQL projection fragment.
  */
 @Value
+@Builder
+@AllArgsConstructor
 public class SQLMetricProjection implements MetricProjection, SQLColumnProjection {
+    private String id;
+    private Queryable source;
+    private String name;
+    private ValueType valueType;
+    private ColumnType columnType;
+    private String expression;
+    private SQLReferenceTable referenceTable;
+    private String alias;
+    private Map<String, Argument> arguments;
+    private MetricFunction metricFunction;
 
-    Metric column;
-    SQLReferenceTable referenceTable;
-    String alias;
-    Map<String, Argument> arguments;
-
-    @Override
-    public Queryable getSource() {
-        return column.getTable();
-    }
-
-    @Override
-    public String getId() {
-        return column.getId();
-    }
-
-    @Override
-    public String getName() {
-        return column.getName();
-    }
-
-    @Override
-    public String getExpression() {
-        return column.getExpression();
-    }
-
-    @Override
-    public MetricFunction getMetricFunction() {
-        return column.getMetricFunction();
-    }
-
-    @Override
-    public ValueType getValueType() {
-        return column.getValueType();
-    }
-
-    @Override
-    public ColumnType getColumnType() {
-        return column.getColumnType();
+    public SQLMetricProjection(Metric metric,
+                               SQLReferenceTable referenceTable,
+                               String alias,
+                               Map<String, Argument> arguments) {
+        this.id = metric.getId();
+        this.source = metric.getSource();
+        this.name = metric.getName();
+        this.expression = metric.getExpression();
+        this.valueType = metric.getValueType();
+        this.columnType = metric.getColumnType();
+        this.metricFunction = metric.getMetricFunction();
+        this.referenceTable = referenceTable;
+        this.alias = alias;
+        this.arguments = arguments;
     }
 }
