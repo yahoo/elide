@@ -14,11 +14,7 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
-import com.yahoo.elide.request.Argument;
 import lombok.EqualsAndHashCode;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * SQL extension of {@link Table} which also contains sql column meta data.
@@ -84,11 +80,6 @@ public class SQLTable extends Table {
             @Override
             public ColumnType getColumnType() {
                 return projection.getColumnType();
-            }
-
-            @Override
-            public Map<String, Argument> getArguments() {
-                return new HashMap<>();
             }
         };
     }

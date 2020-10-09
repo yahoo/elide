@@ -11,8 +11,6 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
@@ -21,7 +19,6 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
-import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.EntityHydrator;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
@@ -30,7 +27,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryTranslator;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
@@ -113,52 +110,7 @@ public class SQLQueryEngine extends QueryEngine {
     public ColumnProjection constructDimensionProjection(Dimension dimension,
                                                          String alias,
                                                          Map<String, Argument> arguments) {
-        return new SQLColumnProjection() {
-            @Override
-            public SQLReferenceTable getReferenceTable() {
-                return referenceTable;
-            }
-
-            @Override
-            public Queryable getSource() {
-                return dimension.getTable();
-            }
-
-            @Override
-            public String getId() {
-                return dimension.getId();
-            }
-
-            @Override
-            public String getName() {
-                return dimension.getName();
-            }
-
-            @Override
-            public String getExpression() {
-                return dimension.getExpression();
-            }
-
-            @Override
-            public ValueType getValueType() {
-                return dimension.getValueType();
-            }
-
-            @Override
-            public ColumnType getColumnType() {
-                return dimension.getColumnType();
-            }
-
-            @Override
-            public String getAlias() {
-                return alias;
-            }
-
-            @Override
-            public Map<String, Argument> getArguments() {
-                return arguments;
-            }
-        };
+        return new SQLDimensionProjection(dimension, alias, arguments, referenceTable);
     }
 
     @Override
