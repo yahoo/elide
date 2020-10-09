@@ -303,9 +303,7 @@ public class SQLQueryEngine extends QueryEngine {
 
         QueryTranslator translator = new QueryTranslator(referenceTable, sqlDialect);
 
-        return translator.visitQuery(merged)
-                .clientQuery(query)
-                .build();
+        return merged.accept(translator).clientQuery(query).build();
     }
 
 
