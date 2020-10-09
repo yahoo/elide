@@ -18,7 +18,6 @@ import com.yahoo.elide.request.Argument;
 
 import lombok.Value;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -36,22 +35,6 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimen
     SQLReferenceTable referenceTable;
     String alias;
     Map<String, Argument> arguments;
-
-    /**
-     * Default constructor for columns that are projected in filter and sorting clauses.
-     * @param column The column in the filter/sorting clause.
-     * @param referenceTable The reference table.
-     */
-    public SQLTimeDimensionProjection(TimeDimension column,
-                                      SQLReferenceTable referenceTable) {
-        this(
-                column,
-                column.getTimeZone(),
-                referenceTable,
-                column.getName(),
-                new LinkedHashMap<>()
-        );
-    }
 
     /**
      * All argument constructor.
