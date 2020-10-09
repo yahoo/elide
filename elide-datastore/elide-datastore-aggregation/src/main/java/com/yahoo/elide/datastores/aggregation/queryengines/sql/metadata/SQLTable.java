@@ -43,8 +43,8 @@ public class SQLTable extends Table implements Queryable {
     }
 
     @Override
-    protected SQLMetric constructMetric(String fieldName, EntityDictionary dictionary) {
-        return new SQLMetric(this, fieldName, dictionary);
+    protected Metric constructMetric(String fieldName, EntityDictionary dictionary) {
+        return new Metric(this, fieldName, dictionary);
     }
 
     @Override
