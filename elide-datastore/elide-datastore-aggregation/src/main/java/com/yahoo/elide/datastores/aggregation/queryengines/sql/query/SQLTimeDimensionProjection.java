@@ -16,6 +16,8 @@ import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.request.Argument;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Value;
 
 import java.util.Map;
@@ -25,16 +27,23 @@ import java.util.TimeZone;
  * Column projection that can expand the column into a SQL projection fragment.
  */
 @Value
+@Builder
+@AllArgsConstructor
 public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDimensionProjection {
 
     private static final String TIME_DIMENSION_REPLACEMENT_REGEX = "\\{\\{(\\s*)}}";
 
-    TimeDimension column;
-    TimeDimensionGrain grain;
-    TimeZone timeZone;
-    SQLReferenceTable referenceTable;
-    String alias;
-    Map<String, Argument> arguments;
+    private Queryable source;
+    private String alias;
+    private String id;
+    private String name;
+    private String expression;
+    private ValueType valueType;
+    private ColumnType columnType;
+    private TimeDimensionGrain grain;
+    private TimeZone timeZone;
+    private SQLReferenceTable referenceTable;
+    private Map<String, Argument> arguments;
 
     /**
      * All argument constructor.
@@ -50,11 +59,16 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
                                       String alias,
                                       Map<String, Argument> arguments) {
         //TODO remove arguments
-        this.column = column;
+        this.columnType = column.getColumnType();
+        this.valueType = column.getValueType();
+        this.expression = column.getExpression();
+        this.id = column.getId();
+        this.name = column.getName();
+        this.source = column.getSource();
+        this.grain = column.getSupportedGrain();
         this.referenceTable = referenceTable;
         this.arguments = arguments;
         this.alias = alias;
-        this.grain = column.getSupportedGrain();
         this.timeZone = timeZone;
     }
 
@@ -62,41 +76,11 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     public String toSQL(Queryable query) {
         //TODO - We will likely migrate to a templating language when we support parameterized metrics.
         return grain.getExpression().replaceFirst(TIME_DIMENSION_REPLACEMENT_REGEX,
-                        referenceTable.getResolvedReference(column.getTable(), column.getName()));
+                        referenceTable.getResolvedReference(source, name));
     }
 
     @Override
     public TimeGrain getGrain() {
         return grain.getGrain();
-    }
-
-    @Override
-    public Queryable getSource() {
-        return column.getTable();
-    }
-
-    @Override
-    public String getId() {
-        return column.getId();
-    }
-
-    @Override
-    public String getName() {
-        return column.getName();
-    }
-
-    @Override
-    public String getExpression() {
-        return column.getExpression();
-    }
-
-    @Override
-    public ValueType getValueType() {
-        return column.getValueType();
-    }
-
-    @Override
-    public ColumnType getColumnType() {
-        return column.getColumnType();
     }
 }
