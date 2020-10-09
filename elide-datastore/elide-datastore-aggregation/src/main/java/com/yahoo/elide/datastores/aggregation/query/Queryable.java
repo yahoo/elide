@@ -23,6 +23,18 @@ public interface Queryable {
     public String getAlias();
 
     /**
+     * The name of the queryable
+     * @return The name
+     */
+    public String getName();
+
+    /**
+     * The version of the queryable
+     * @return The version
+     */
+    public String getVersion();
+
+    /**
      * Looks up the alias for a particular column.
      * @param columnName The name of the column.
      * @return The alias for the given column.
@@ -36,52 +48,52 @@ public interface Queryable {
      * @param name The name of the column.
      * @return The column.
      */
-    public ColumnProjection getColumn(String name);
+    public ColumnProjection getColumnProjection(String name);
 
     /**
      * Retrieves a non-time dimension by name.
      * @param name The name of the dimension.
      * @return The dimension.
      */
-    public ColumnProjection getDimension(String name);
+    public ColumnProjection getDimensionProjection(String name);
 
     /**
      * Retrieves all the non-time dimensions.
      * @return The non-time dimensions.
      */
-    public Set<ColumnProjection> getDimensions();
+    public Set<ColumnProjection> getDimensionProjections();
 
     /**
      * Retrieves a metric by name.
      * @param name The name of the metric.
      * @return The metric.
      */
-    public MetricProjection getMetric(String name);
+    public MetricProjection getMetricProjection(String name);
 
     /**
      * Retrieves all the metrics.
      * @return The metrics.
      */
-    public Set<MetricProjection> getMetrics();
+    public Set<MetricProjection> getMetricProjections();
 
     /**
      * Retrieves a time dimension by name.
      * @param name The name of the time dimension.
      * @return The time dimension.
      */
-    public TimeDimensionProjection getTimeDimension(String name);
+    public TimeDimensionProjection getTimeDimensionProjection(String name);
 
     /**
      * Retrieves all the time dimensions.
      * @return The time dimensions.
      */
-    public Set<TimeDimensionProjection> getTimeDimensions();
+    public Set<TimeDimensionProjection> getTimeDimensionProjections();
 
     /**
      * Returns all the columns.
      * @return the columns.
      */
-    public Set<ColumnProjection> getColumns();
+    public Set<ColumnProjection> getColumnProjections();
 
     /**
      * Returns the connection name where this queryable is sourced from.

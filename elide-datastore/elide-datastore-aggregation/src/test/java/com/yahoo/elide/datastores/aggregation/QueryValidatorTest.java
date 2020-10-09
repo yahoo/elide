@@ -42,9 +42,9 @@ public class QueryValidatorTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetric("lowScore")))
-                .dimensionProjection(toProjection(playerStatsTable.getDimension("id")))
-                .dimensionProjection(toProjection(playerStatsTable.getDimension("overallRating")))
+                .metricProjection(invoke(playerStatsTable.getMetricProjection("lowScore")))
+                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("id")))
+                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
@@ -62,8 +62,8 @@ public class QueryValidatorTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetric("lowScore")))
-                .dimensionProjection(toProjection(playerStatsTable.getDimension("overallRating")))
+                .metricProjection(invoke(playerStatsTable.getMetricProjection("lowScore")))
+                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
@@ -81,8 +81,8 @@ public class QueryValidatorTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetric("lowScore")))
-                .dimensionProjection(toProjection(playerStatsTable.getDimension("overallRating")))
+                .metricProjection(invoke(playerStatsTable.getMetricProjection("lowScore")))
+                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
@@ -104,7 +104,7 @@ public class QueryValidatorTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetric("lowScore")))
+                .metricProjection(invoke(playerStatsTable.getMetricProjection("lowScore")))
                 .whereFilter(whereFilter)
                 .havingFilter(havingFilter)
                 .build();
@@ -128,7 +128,7 @@ public class QueryValidatorTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetric("highScore")))
+                .metricProjection(invoke(playerStatsTable.getMetricProjection("highScore")))
                 .whereFilter(whereFilter)
                 .havingFilter(havingFilter)
                 .build();
@@ -153,7 +153,7 @@ public class QueryValidatorTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetric("lowScore")))
+                .metricProjection(invoke(playerStatsTable.getMetricProjection("lowScore")))
                 .whereFilter(whereFilter)
                 .havingFilter(havingFilter)
                 .build();

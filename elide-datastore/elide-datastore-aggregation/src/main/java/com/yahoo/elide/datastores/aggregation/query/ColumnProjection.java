@@ -50,6 +50,12 @@ public interface ColumnProjection<T extends Column> extends Serializable {
     String getName();
 
     /**
+     * Returns the query engine specific definition of the column.
+     * @return the definition of the column.
+     */
+    String getExpression();
+
+    /**
      * Returns the value type of the column.
      * @return the value type of the column.
      */

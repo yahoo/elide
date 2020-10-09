@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
@@ -102,7 +103,17 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection<TimeDimen
     }
 
     @Override
+    public String getExpression() {
+        return column.getExpression();
+    }
+
+    @Override
     public ValueType getValueType() {
         return column.getValueType();
+    }
+
+    @Override
+    public ColumnType getColumnType() {
+        return column.getColumnType();
     }
 }

@@ -8,9 +8,6 @@ package com.yahoo.elide.datastores.aggregation.metadata;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 
@@ -35,51 +32,38 @@ public abstract class ColumnVisitor<T> {
         this.dictionary = metaDataStore.getMetadataDictionary();
     }
 
-    public final Column getColumn(Class<?> tableClass, String fieldName) {
-        return metaDataStore.getColumn(tableClass, fieldName);
-    }
-
-    public final Column getColumn(Path path) {
+    public final ColumnProjection getColumn(Path path) {
         return metaDataStore.getColumn(path);
     }
 
     /**
-     * There are 2 types of {@link Metric} and 3 types of {@link Dimension}. Based on different column type, call the
-     * corresponding method to parse it.
+     * Visits a column.
      *
      * @param column meta data column
      * @return output value
      */
     public final T visitColumn(ColumnProjection column)  {
-        switch (column.getColumnType()) {
-            case FIELD:
-                if (column instanceof MetricProjection) {
-                    return visitFieldMetric((MetricProjection) column);
-                } else {
-                    return visitFieldDimension(column);
-                }
-            case FORMULA:
-                if (column instanceof Metric) {
-                    return visitFormulaMetric((MetricProjection) column);
-                } else {
-                    return visitFormulaDimension(column);
-                }
-            default:
-                return null;
+        if (column instanceof MetricProjection) {
+            return visitFormulaMetric((MetricProjection) column);
+        } else {
+            if (column.getColumnType() == ColumnType.FORMULA) {
+                return visitFormulaDimension(column);
+            } else {
+                return visitFieldDimension(column);
+            }
         }
     }
+
 
     protected T visitPhysicalReference(String reference) {
         return null;
     }
 
-    protected abstract T visitFieldMetric(MetricProjection metric);
-
     protected abstract T visitFormulaMetric(MetricProjection metric);
 
-    protected abstract T visitFieldDimension(ColumnProjection dimension);
-
     protected abstract T visitFormulaDimension(ColumnProjection dimension);
+
+    protected abstract T visitFieldDimension(ColumnProjection dimension);
 
     /**
      * Use regex to get all references from a formula expression.

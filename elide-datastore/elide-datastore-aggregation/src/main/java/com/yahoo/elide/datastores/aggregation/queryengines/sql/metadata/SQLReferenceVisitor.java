@@ -11,10 +11,9 @@ import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnVisitor;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
 
 import java.util.Stack;
 
@@ -41,26 +40,8 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
         return getFieldAlias(tableAliases.peek(), reference);
     }
 
-    /**
-     * For a FIELD metric, resolve its expression
-     *
-     * @param metric a FIELD metric
-     * @return <code>FUNCTION(table.columnName)</code>
-     */
     @Override
-    protected String visitFieldMetric(Metric metric) {
-        Table table = metric.getTable();
-        return String.format(
-                metric.getMetricFunction().getExpression(),
-                getFieldAlias(
-                        tableAliases.peek(),
-                        dictionary.getAnnotatedColumnName(
-                                dictionary.getEntityClass(table.getName(), table.getVersion()),
-                                metric.getName())));
-    }
-
-    @Override
-    protected String visitFormulaMetric(Metric metric) {
+    protected String visitFormulaMetric(MetricProjection metric) {
         return visitFormulaColumn(metric);
     }
 
@@ -71,17 +52,17 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
      * @return <code>table.columnName</code>
      */
     @Override
-    protected String visitFieldDimension(Dimension dimension) {
-        Table table = dimension.getTable();
+    protected String visitFieldDimension(ColumnProjection dimension) {
+        Queryable source = dimension.getSource();
         return getFieldAlias(
                 tableAliases.peek(),
                 dictionary.getAnnotatedColumnName(
-                        dictionary.getEntityClass(table.getName(), table.getVersion()),
+                        dictionary.getEntityClass(source.getName(), source.getVersion()),
                         dimension.getName()));
     }
 
     @Override
-    protected String visitFormulaDimension(Dimension dimension) {
+    protected String visitFormulaDimension(ColumnProjection dimension) {
         return visitFormulaColumn(dimension);
     }
 
@@ -91,9 +72,9 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
      * @param column
      * @return
      */
-    private String visitFormulaColumn(Column column) {
-        Table table = column.getTable();
-        Class<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
+    private String visitFormulaColumn(ColumnProjection column) {
+        Queryable source  = column.getSource();
+        Class<?> tableClass = dictionary.getEntityClass(source.getName(), source.getVersion());
 
         String expr = column.getExpression();
 
@@ -105,7 +86,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
             if (reference.contains(".")) {
                 resolvedReference = visitTableJoinToReference(tableClass, reference);
             } else {
-                Column referenceColumn = getColumn(tableClass, reference);
+                ColumnProjection referenceColumn = source.getColumnProjection(reference);
 
                 //There is no logical column with this name, it must be a physical reference
                 if (referenceColumn == null) {

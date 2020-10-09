@@ -142,7 +142,7 @@ public class EntityHydrator {
         }
 
         result.forEach((fieldName, value) -> {
-            ColumnProjection dim = query.getSource().getDimension(fieldName);
+            ColumnProjection dim = query.getSource().getDimensionProjection(fieldName);
 
             if (dim != null && dim.getValueType().equals(ValueType.RELATIONSHIP)) {
                 // We don't hydrate relationships here.

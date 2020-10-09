@@ -11,6 +11,8 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -128,6 +130,21 @@ public class SQLQueryEngine extends QueryEngine {
             @Override
             public String getName() {
                 return dimension.getName();
+            }
+
+            @Override
+            public String getExpression() {
+                return dimension.getExpression();
+            }
+
+            @Override
+            public ValueType getValueType() {
+                return dimension.getValueType();
+            }
+
+            @Override
+            public ColumnType getColumnType() {
+                return dimension.getColumnType();
             }
 
             @Override

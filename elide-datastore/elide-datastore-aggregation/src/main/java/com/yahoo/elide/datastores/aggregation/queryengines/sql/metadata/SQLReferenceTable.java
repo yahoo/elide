@@ -80,7 +80,7 @@ public class SQLReferenceTable {
         FormulaValidator validator = new FormulaValidator(metaDataStore);
         SQLJoinVisitor joinVisitor = new SQLJoinVisitor(metaDataStore);
 
-        queryable.getColumns().forEach(column -> {
+        queryable.getColumnProjections().forEach(column -> {
             // validate that there is no reference loop
             validator.visitColumn(column);
 

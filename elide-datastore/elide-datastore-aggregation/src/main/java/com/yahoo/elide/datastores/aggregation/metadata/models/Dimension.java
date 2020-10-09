@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import lombok.EqualsAndHashCode;
 
 /**
@@ -15,8 +16,13 @@ import lombok.EqualsAndHashCode;
  */
 @Include(rootLevel = false, type = "dimension")
 @EqualsAndHashCode(callSuper = true)
-public class Dimension extends Column {
+public class Dimension extends Column<Dimension> implements ColumnProjection<Dimension> {
     public Dimension(Table table, String fieldName, EntityDictionary dictionary) {
         super(table, fieldName, dictionary);
+    }
+
+    @Override
+    public Dimension getColumn() {
+        return this;
     }
 }

@@ -19,24 +19,30 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueSourceType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.request.Argument;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import javax.persistence.Id;
 
 /**
  * Column is the super class of a field in a table, it can be either dimension or metric.
+ * @param <T> the type of column.
  */
 @Include(rootLevel = false, type = "column")
 @Getter
 @EqualsAndHashCode
 @ToString
-public abstract class Column implements Versioned {
+public abstract class Column<T extends Column> implements Versioned, ColumnProjection<T> {
     @Id
     private final String id;
 
@@ -172,5 +178,20 @@ public abstract class Column implements Versioned {
     @Override
     public String getVersion() {
         return table.getVersion();
+    }
+
+    @Override
+    public Queryable getSource() {
+        return table;
+    }
+
+    @Override
+    public String getAlias() {
+        return getName();
+    }
+
+    @Override
+    public Map<String, Argument> getArguments() {
+        return new HashMap<>();
     }
 }

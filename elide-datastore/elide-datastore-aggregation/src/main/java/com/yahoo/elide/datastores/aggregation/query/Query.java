@@ -10,7 +10,6 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.request.Sorting;
 
-import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 
 import lombok.Builder;
@@ -19,7 +18,6 @@ import lombok.Singular;
 import lombok.Value;
 
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,7 +33,7 @@ public class Query implements Queryable {
 
     @Singular
     @NonNull
-    private List<MetricProjection> metricProjections;
+    private Set<MetricProjection> metricProjections;
 
     @Singular
     @NonNull
@@ -71,7 +69,17 @@ public class Query implements Queryable {
     }
 
     @Override
-    public ColumnProjection getDimension(String name) {
+    public String getName() {
+        return getAlias();
+    }
+
+    @Override
+    public String getVersion() {
+        return "";
+    }
+
+    @Override
+    public ColumnProjection getDimensionProjection(String name) {
         return dimensionProjections.stream()
                 .filter(dim -> dim.getName().equals(name))
                 .findFirst()
@@ -79,20 +87,15 @@ public class Query implements Queryable {
     }
 
     @Override
-    public ColumnProjection getColumn(String name) {
-        return getColumns().stream()
+    public ColumnProjection getColumnProjection(String name) {
+        return getColumnProjections().stream()
                 .filter(dim -> dim.getName().equals(name))
                 .findFirst()
                 .orElse(null);
     }
 
     @Override
-    public Set<ColumnProjection> getDimensions() {
-        return Sets.newHashSet(dimensionProjections);
-    }
-
-    @Override
-    public MetricProjection getMetric(String name) {
+    public MetricProjection getMetricProjection(String name) {
         return metricProjections.stream()
                 .filter(metric -> metric.getName().equals(name))
                 .findFirst()
@@ -100,12 +103,7 @@ public class Query implements Queryable {
     }
 
     @Override
-    public Set<MetricProjection> getMetrics() {
-        return Sets.newHashSet(metricProjections);
-    }
-
-    @Override
-    public TimeDimensionProjection getTimeDimension(String name) {
+    public TimeDimensionProjection getTimeDimensionProjection(String name) {
         return timeDimensionProjections.stream()
                 .filter(dim -> dim.getName().equals(name))
                 .findFirst()
@@ -113,12 +111,7 @@ public class Query implements Queryable {
     }
 
     @Override
-    public Set<TimeDimensionProjection> getTimeDimensions() {
-        return Sets.newHashSet(timeDimensionProjections);
-    }
-
-    @Override
-    public Set<ColumnProjection> getColumns() {
+    public Set<ColumnProjection> getColumnProjections() {
         return Streams.concat(
                 timeDimensionProjections.stream(),
                 dimensionProjections.stream(),

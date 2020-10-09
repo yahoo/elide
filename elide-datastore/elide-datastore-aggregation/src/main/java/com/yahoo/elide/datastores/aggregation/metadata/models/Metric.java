@@ -10,6 +10,7 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 
+import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -25,7 +26,7 @@ import javax.persistence.ManyToOne;
 @Getter
 @EqualsAndHashCode(callSuper = true)
 @ToString
-public class Metric extends Column {
+public class Metric extends Column<Metric> implements MetricProjection {
     @ManyToOne
     @ToString.Exclude
     private final MetricFunction metricFunction;
@@ -71,5 +72,10 @@ public class Metric extends Column {
                                                      String expression,
                                                      Set<FunctionArgument> arguments) {
         return new MetricFunction(id, description, expression, arguments);
+    }
+
+    @Override
+    public Metric getColumn() {
+        return this;
     }
 }

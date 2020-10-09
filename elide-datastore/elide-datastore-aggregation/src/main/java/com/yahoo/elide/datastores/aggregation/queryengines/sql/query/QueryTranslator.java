@@ -66,7 +66,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
         Set<ColumnProjection> groupByDimensions = query.getAllDimensionProjections();
 
         if (!groupByDimensions.isEmpty()) {
-            if (!query.getMetrics().isEmpty()) {
+            if (!query.getMetricProjections().isEmpty()) {
                 builder.groupByClause("GROUP BY " + groupByDimensions.stream()
                         .map(SQLColumnProjection.class::cast)
                         .map((column) -> column.toSQL(query))
@@ -302,7 +302,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
                     Path.PathElement last = path.lastElement().get();
 
                     SQLColumnProjection projection = fieldToColumnProjection(plan, last.getFieldName());
-                    String orderByClause = (plan.getColumns().contains(projection)
+                    String orderByClause = (plan.getColumnProjections().contains(projection)
                             && dialect.useAliasForOrderByClause())
                             ? projection.getAlias()
                             : projection.toSQL(plan);
@@ -470,9 +470,9 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
     }
 
     private SQLColumnProjection fieldToColumnProjection(Query query, String fieldName) {
-        ColumnProjection projection = query.getColumn(fieldName);
+        ColumnProjection projection = query.getColumnProjection(fieldName);
         if (projection == null) {
-            projection = query.getSource().getColumn(fieldName);
+            projection = query.getSource().getColumnProjection(fieldName);
         }
         return (SQLColumnProjection) projection;
     }

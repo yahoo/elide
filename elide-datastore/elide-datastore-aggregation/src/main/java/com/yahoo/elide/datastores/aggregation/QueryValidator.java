@@ -32,7 +32,7 @@ public class QueryValidator {
     private Set<String> allFields;
     private EntityDictionary dictionary;
     private Queryable queriedTable;
-    private List<MetricProjection> metrics;
+    private Set<MetricProjection> metrics;
     private Set<ColumnProjection> dimensionProjections;
 
     public QueryValidator(Query query, Set<String> allFields, EntityDictionary dictionary) {
@@ -76,7 +76,7 @@ public class QueryValidator {
                 throw new InvalidOperationException("Relationship traversal not supported for analytic queries.");
             }
 
-            if (queriedTable.getMetric(fieldName) != null) {
+            if (queriedTable.getMetricProjection(fieldName) != null) {
                 if (metrics.stream().noneMatch(m -> m.getAlias().equals(fieldName))) {
                     throw new InvalidOperationException(
                             String.format(
