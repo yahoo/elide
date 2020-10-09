@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * {@link DimensionFormula} has reference loop. If so, throw out exception.
  */
 public class FormulaValidator extends ColumnVisitor<Void> {
-    private final LinkedHashSet<ColumnProjection> visited = new LinkedHashSet<>();
+    private final LinkedHashSet<String> visited = new LinkedHashSet<>();
 
     public FormulaValidator(MetaDataStore metaDataStore) {
         super(metaDataStore);
@@ -48,14 +48,14 @@ public class FormulaValidator extends ColumnVisitor<Void> {
      * @return null
      */
     private Void visitFormulaColumn(ColumnProjection column) {
-        if (visited.contains(column)) {
+        if (visited.contains(column.getId())) {
             throw new IllegalArgumentException(referenceLoopMessage(visited, column));
         }
 
         Queryable source = column.getSource();
         Class<?> tableClass = dictionary.getEntityClass(source.getName(), source.getVersion());
 
-        visited.add(column);
+        visited.add(column.getId());
         for (String reference : resolveFormulaReferences(column.getExpression())) {
             if (reference.contains(".")) {
                 JoinPath joinToPath = new JoinPath(tableClass, dictionary, reference);
@@ -70,7 +70,7 @@ public class FormulaValidator extends ColumnVisitor<Void> {
                 }
             }
         }
-        visited.remove(column);
+        visited.remove(column.getId());
 
         return null;
     }
@@ -78,10 +78,9 @@ public class FormulaValidator extends ColumnVisitor<Void> {
     /**
      * Construct reference loop message.
      */
-    private static String referenceLoopMessage(LinkedHashSet<ColumnProjection> visited, ColumnProjection conflict) {
+    private static String referenceLoopMessage(LinkedHashSet<String> visited, ColumnProjection conflict) {
         return "Formula reference loop found: "
                 + visited.stream()
-                    .map(ColumnProjection::getId)
                     .collect(Collectors.joining("->"))
                 + "->" + conflict.getId();
     }
