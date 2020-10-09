@@ -23,12 +23,6 @@ public interface ColumnProjection<T extends Column> extends Serializable {
      * @return the query source
      */
     Queryable getSource();
-    /**
-     * Get the projected column.
-     *
-     * @return column
-     */
-    T getColumn();
 
     /**
      * Get the projection alias.

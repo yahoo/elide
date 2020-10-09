@@ -106,7 +106,7 @@ public class EntityProjectionTranslator {
         return entityProjection.getAttributes().stream()
                 .filter(attribute -> queriedTable.getTimeDimensionProjection(attribute.getName()) != null)
                 .map(timeDimAttr -> {
-                    TimeDimension timeDim = queriedTable.getTimeDimensionProjection(timeDimAttr.getName()).getColumn();
+                    TimeDimension timeDim = queriedTable.getTimeDimensionProjection(timeDimAttr.getName());
 
                     return engine.constructTimeDimensionProjection(
                             timeDim,

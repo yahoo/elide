@@ -20,9 +20,4 @@ public class Dimension extends Column<Dimension> implements ColumnProjection<Dim
     public Dimension(Table table, String fieldName, EntityDictionary dictionary) {
         super(table, fieldName, dictionary);
     }
-
-    @Override
-    public Dimension getColumn() {
-        return this;
-    }
 }

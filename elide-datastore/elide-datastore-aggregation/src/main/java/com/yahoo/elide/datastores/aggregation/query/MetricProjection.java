@@ -13,14 +13,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
  */
 public interface MetricProjection extends ColumnProjection<Metric> {
     /**
-     * Get the projected metric.
-     *
-     * @return metric column
-     */
-    @Override
-    Metric getColumn();
-
-    /**
      * Returns the metric function associated with the metric.
      * @return the metric function
      */

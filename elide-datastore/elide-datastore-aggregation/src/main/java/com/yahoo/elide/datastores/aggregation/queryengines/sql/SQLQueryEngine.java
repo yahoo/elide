@@ -13,7 +13,6 @@ import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
@@ -148,11 +147,6 @@ public class SQLQueryEngine extends QueryEngine {
             @Override
             public ColumnType getColumnType() {
                 return dimension.getColumnType();
-            }
-
-            @Override
-            public Column getColumn() {
-                return dimension;
             }
 
             @Override

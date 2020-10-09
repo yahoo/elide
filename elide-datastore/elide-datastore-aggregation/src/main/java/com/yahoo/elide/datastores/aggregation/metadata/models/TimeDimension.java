@@ -53,9 +53,4 @@ public class TimeDimension extends Column<TimeDimension> implements TimeDimensio
     public TimeZone getTimeZone() {
         return timezone;
     }
-
-    @Override
-    public TimeDimension getColumn() {
-        return this;
-    }
 }

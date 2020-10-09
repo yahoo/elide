@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
@@ -55,11 +54,6 @@ public class SQLTable extends Table {
             @Override
             public Queryable getSource() {
                 return SQLTable.this;
-            }
-
-            @Override
-            public Column getColumn() {
-                return projection.getColumn();
             }
 
             @Override

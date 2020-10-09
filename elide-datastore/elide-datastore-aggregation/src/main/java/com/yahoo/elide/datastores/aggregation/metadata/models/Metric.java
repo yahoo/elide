@@ -73,9 +73,4 @@ public class Metric extends Column<Metric> implements MetricProjection {
                                                      Set<FunctionArgument> arguments) {
         return new MetricFunction(id, description, expression, arguments);
     }
-
-    @Override
-    public Metric getColumn() {
-        return this;
-    }
 }
