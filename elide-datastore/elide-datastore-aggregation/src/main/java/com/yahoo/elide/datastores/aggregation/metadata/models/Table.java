@@ -259,6 +259,7 @@ public class Table implements Queryable, Versioned  {
         return columnMap.get(name);
     }
 
+    @Override
     public Dimension getDimensionProjection(String fieldName) {
         return getColumn(Dimension.class, fieldName);
     }
@@ -268,6 +269,7 @@ public class Table implements Queryable, Versioned  {
         return metrics.stream().map(ColumnProjection.class::cast).collect(Collectors.toSet());
     }
 
+    @Override
     public TimeDimension getTimeDimensionProjection(String fieldName) {
         return getColumn(TimeDimension.class, fieldName);
     }

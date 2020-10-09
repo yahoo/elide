@@ -65,7 +65,7 @@ public class FormulaValidator extends ColumnVisitor<Void> {
                 ColumnProjection referenceColumn = source.getColumnProjection(reference);
 
                 // if the reference is to a logical column, check it
-                 if (referenceColumn != null && !reference.equals(column.getName())) {
+                if (referenceColumn != null && !reference.equals(column.getName())) {
                     visitColumn(referenceColumn);
                 }
             }
