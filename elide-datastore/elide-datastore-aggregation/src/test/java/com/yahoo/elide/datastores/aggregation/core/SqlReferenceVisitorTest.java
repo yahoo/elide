@@ -15,8 +15,8 @@ import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceVisitor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
@@ -67,10 +67,10 @@ public class SqlReferenceVisitorTest {
 
     @BeforeAll
     public void init() {
-        SQLReferenceTable mockTable = mock(SQLReferenceTable.class);
+        SQLQueryEngine engine = mock(SQLQueryEngine.class);
         store = new MetaDataStore(Sets.newHashSet(TestModel.class, JoinModel.class));
-        Table table1 = new SQLTable(TestModel.class, store.getMetadataDictionary(), mockTable);
-        Table table2 = new SQLTable(JoinModel.class, store.getMetadataDictionary(), mockTable);
+        Table table1 = new SQLTable(TestModel.class, store.getMetadataDictionary(), engine);
+        Table table2 = new SQLTable(JoinModel.class, store.getMetadataDictionary(), engine);
         store.addTable(table1);
         store.addTable(table2);
     }

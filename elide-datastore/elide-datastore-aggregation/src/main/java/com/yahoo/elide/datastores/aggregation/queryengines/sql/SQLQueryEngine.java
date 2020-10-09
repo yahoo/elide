@@ -40,6 +40,7 @@ import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
@@ -60,13 +61,16 @@ import javax.sql.DataSource;
  */
 @Slf4j
 public class SQLQueryEngine extends QueryEngine {
-    private SQLReferenceTable referenceTable;
+
+    @Getter
+    private final SQLReferenceTable referenceTable;
     private final ConnectionDetails defaultConnectionDetails;
     private final Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
     public SQLQueryEngine(MetaDataStore metaDataStore,
                     com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails defaultConnectionDetails) {
         super(metaDataStore);
+        referenceTable = new SQLReferenceTable(metaDataStore);
         this.defaultConnectionDetails = new ConnectionDetails(defaultConnectionDetails.getDataSource(),
                         SQLDialectFactory.getDialect(defaultConnectionDetails.getDialect()));
     }
@@ -98,7 +102,6 @@ public class SQLQueryEngine extends QueryEngine {
                     }
                 });
 
-        referenceTable = new SQLReferenceTable(metaDataStore);
 
         metaDataStore.getModelsToBind().stream()
                 .map(model -> constructTable(model, metadataDictionary))
@@ -122,7 +125,7 @@ public class SQLQueryEngine extends QueryEngine {
 
     @Override
     protected Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary) {
-        return new SQLTable(entityClass, metaDataDictionary, referenceTable);
+        return new SQLTable(entityClass, metaDataDictionary, this);
     }
 
     @Override

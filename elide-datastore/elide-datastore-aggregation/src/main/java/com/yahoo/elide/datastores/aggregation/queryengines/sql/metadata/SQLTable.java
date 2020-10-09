@@ -13,6 +13,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.yahoo.elide.request.Argument;
 import lombok.EqualsAndHashCode;
@@ -25,11 +26,11 @@ import java.util.Map;
  */
 @EqualsAndHashCode(callSuper = true)
 public class SQLTable extends Table {
-    private SQLReferenceTable referenceTable;
+    private SQLQueryEngine engine;
 
-    public SQLTable(Class<?> cls, EntityDictionary dictionary, SQLReferenceTable referenceTable) {
+    public SQLTable(Class<?> cls, EntityDictionary dictionary, SQLQueryEngine engine) {
         super(cls, dictionary);
-        this.referenceTable = referenceTable;
+        this.engine = engine;
     }
 
     @Override
@@ -48,7 +49,7 @@ public class SQLTable extends Table {
         return new SQLColumnProjection() {
             @Override
             public SQLReferenceTable getReferenceTable() {
-                return referenceTable;
+                return engine.getReferenceTable();
             }
 
             @Override
