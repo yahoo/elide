@@ -203,6 +203,6 @@ public class SQLTable extends Table implements Queryable {
 
     @Override
     public <T> T accept(QueryVisitor<T> visitor) {
-        return visitor.visitTable(this);
+        return visitor.visitQueryable(this);
     }
 }

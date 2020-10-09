@@ -108,7 +108,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
     }
 
     @Override
-    public SQLQuery.SQLQueryBuilder visitTable(Table table) {
+    public SQLQuery.SQLQueryBuilder visitQueryable(Queryable table) {
         SQLQuery.SQLQueryBuilder builder = SQLQuery.builder();
 
         Class<?> tableCls = dictionary.getEntityClass(table.getName(), table.getVersion());
