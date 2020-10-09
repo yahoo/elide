@@ -31,13 +31,9 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
 import com.yahoo.elide.datastores.aggregation.example.SubCountry;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
-import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
-import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
@@ -89,7 +85,7 @@ public abstract class SQLUnitTest {
         WHERE_METRICS_ONLY (() -> {
             return Query.builder()
                     .source(playerStatsTable)
-                    .metricProjection(invoke(playerStatsTable.getMetricProjection("lowScore")))
+                    .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
                     .whereFilter(new FilterPredicate(
                             new Path(PlayerStats.class, dictionary, "lowScore"),
                             Operator.GT,
@@ -99,7 +95,7 @@ public abstract class SQLUnitTest {
         WHERE_DIMS_ONLY (() -> {
             return Query.builder()
                     .source(playerStatsTable)
-                    .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                     .whereFilter(new FilterPredicate(
                             new Path(PlayerStats.class, dictionary, "overallRating"),
                             Operator.NOTNULL,
@@ -116,8 +112,8 @@ public abstract class SQLUnitTest {
                     Arrays.asList(9000));
             return Query.builder()
                     .source(playerStatsTable)
-                    .metricProjection(invoke(playerStatsTable.getMetricProjection("highScore")))
-                    .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
+                    .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                     .whereFilter(new AndFilterExpression(ratingFilter, highScoreFilter))
                     .build();
         }),
@@ -131,16 +127,16 @@ public abstract class SQLUnitTest {
                     Arrays.asList(9000));
             return Query.builder()
                     .source(playerStatsTable)
-                    .metricProjection(invoke(playerStatsTable.getMetricProjection("highScore")))
-                    .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
+                    .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                     .whereFilter(new OrFilterExpression(ratingFilter, highScoreFilter))
                     .build();
         }),
         WHERE_METRICS_AGGREGATION (() -> {
             return Query.builder()
                     .source(playerStatsTable)
-                    .metricProjection(invoke(playerStatsTable.getMetricProjection("highScore")))
-                    .metricProjection(invoke(playerStatsTable.getMetricProjection("lowScore")))
+                    .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                    .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
                     .whereFilter(new FilterPredicate(
                             new Path(PlayerStats.class, dictionary, "highScore"),
                             Operator.GT,
@@ -150,7 +146,7 @@ public abstract class SQLUnitTest {
         HAVING_METRICS_ONLY (() -> {
             return Query.builder()
                     .source(playerStatsTable)
-                    .metricProjection(invoke(playerStatsTable.getMetricProjection("lowScore")))
+                    .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
                     .havingFilter(new FilterPredicate(
                             new Path(PlayerStats.class, dictionary, "lowScore"),
                             Operator.GT,
@@ -160,7 +156,7 @@ public abstract class SQLUnitTest {
         HAVING_DIMS_ONLY (() -> {
             return Query.builder()
                     .source(playerStatsTable)
-                    .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                     .havingFilter(new FilterPredicate(
                             new Path(PlayerStats.class, dictionary, "overallRating"),
                             Operator.NOTNULL,
@@ -177,8 +173,8 @@ public abstract class SQLUnitTest {
                     Arrays.asList(9000));
             return Query.builder()
                     .source(playerStatsTable)
-                    .metricProjection(invoke(playerStatsTable.getMetricProjection("highScore")))
-                    .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
+                    .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                     .havingFilter(new AndFilterExpression(ratingFilter, highScoreFilter))
                     .build();
         }),
@@ -192,17 +188,17 @@ public abstract class SQLUnitTest {
                     Arrays.asList(9000));
             return Query.builder()
                     .source(playerStatsTable)
-                    .metricProjection(invoke(playerStatsTable.getMetricProjection("highScore")))
-                    .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
+                    .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                     .havingFilter(new OrFilterExpression(ratingFilter, highScoreFilter))
                     .build();
         }),
         PAGINATION_TOTAL (() -> {
             return Query.builder()
                     .source(playerStatsTable)
-                    .metricProjection(invoke(playerStatsTable.getMetricProjection("lowScore")))
-                    .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
-                    .timeDimensionProjection(toProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"), TimeGrain.SIMPLEDATE))
+                    .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"))
                     .pagination(new ImmutablePagination(0, 1, false, true))
                     .build();
         }),
@@ -211,7 +207,7 @@ public abstract class SQLUnitTest {
             sortMap.put("lowScore", Sorting.SortOrder.asc);
             return Query.builder()
                     .source(playerStatsTable)
-                    .metricProjection(invoke(playerStatsTable.getMetricProjection("lowScore")))
+                    .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
                     .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                     .build();
         }),
@@ -220,7 +216,7 @@ public abstract class SQLUnitTest {
             sortMap.put("lowScore", Sorting.SortOrder.desc);
             return Query.builder()
                     .source(playerStatsTable)
-                    .metricProjection(invoke(playerStatsTable.getMetricProjection("lowScore")))
+                    .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
                     .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                     .build();
         }),
@@ -229,7 +225,7 @@ public abstract class SQLUnitTest {
             sortMap.put("overallRating", Sorting.SortOrder.desc);
             return Query.builder()
                     .source(playerStatsTable)
-                    .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                     .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                     .build();
         }),
@@ -239,8 +235,8 @@ public abstract class SQLUnitTest {
             sortMap.put("overallRating", Sorting.SortOrder.desc);
             return Query.builder()
                     .source(playerStatsTable)
-                    .metricProjection(invoke(playerStatsTable.getMetricProjection("highScore")))
-                    .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
+                    .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                     .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                     .build();
         }),
@@ -248,7 +244,7 @@ public abstract class SQLUnitTest {
             Table playerStatsViewTable = engine.getTable("playerStatsView");
             return Query.builder()
                     .source(playerStatsViewTable)
-                    .metricProjection(invoke(playerStatsViewTable.getMetricProjection("highScore")))
+                    .metricProjection(playerStatsViewTable.getMetricProjection("highScore"))
                     .build();
         }),
         ORDER_BY_DIMENSION_NOT_IN_SELECT (() -> {
@@ -256,7 +252,7 @@ public abstract class SQLUnitTest {
             sortMap.put("overallRating", Sorting.SortOrder.desc);
             return Query.builder()
                     .source(playerStatsTable)
-                    .metricProjection(invoke(playerStatsTable.getMetricProjection("highScore")))
+                    .metricProjection(playerStatsTable.getMetricProjection("highScore"))
                     .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                     .build();
         }),
@@ -271,9 +267,9 @@ public abstract class SQLUnitTest {
                     Arrays.asList(9000));
             return Query.builder()
                     .source(playerStatsTable)
-                    .metricProjection(invoke(playerStatsTable.getMetricProjection("highScore")))
-                    .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
-                    .timeDimensionProjection(toProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"), TimeGrain.SIMPLEDATE))
+                    .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"))
                     .pagination(new ImmutablePagination(10, 5, false, true))
                     .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                     .whereFilter(predicate)
@@ -348,19 +344,11 @@ public abstract class SQLUnitTest {
         transaction.close();
     }
 
-    public static ColumnProjection toProjection(Dimension dimension) {
-        return engine.constructDimensionProjection(dimension, dimension.getName(), Collections.emptyMap());
-    }
-
     public static TimeDimensionProjection toProjection(TimeDimension dimension, TimeGrain grain) {
         return engine.constructTimeDimensionProjection(
                 dimension,
                 dimension.getName(),
                 Collections.emptyMap());
-    }
-
-    public static MetricProjection invoke(Metric metric) {
-        return engine.constructMetricProjection(metric, metric.getName(), Collections.emptyMap());
     }
 
     protected static List<Object> toList(Iterable<Object> data) {

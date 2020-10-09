@@ -14,7 +14,6 @@ import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -49,9 +48,9 @@ public class QueryEngineTest extends SQLUnitTest {
     public void testFullTableLoad() throws Exception {
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetricProjection("lowScore")))
-                .metricProjection(invoke(playerStatsTable.getMetricProjection("highScore")))
-                .timeDimensionProjection(toProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"), TimeGrain.SIMPLEDATE))
+                .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
+                .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"))
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
@@ -84,7 +83,7 @@ public class QueryEngineTest extends SQLUnitTest {
     public void testFromSubQuery() throws Exception {
         Query query = Query.builder()
                 .source(playerStatsViewTable)
-                .metricProjection(invoke(playerStatsViewTable.getMetricProjection("highScore")))
+                .metricProjection(playerStatsViewTable.getMetricProjection("highScore"))
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
@@ -108,8 +107,8 @@ public class QueryEngineTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(playerStatsViewTable)
-                .metricProjection(invoke(playerStatsViewTable.getMetricProjection("highScore")))
-                .dimensionProjection(toProjection(playerStatsViewTable.getDimensionProjection("countryName")))
+                .metricProjection(playerStatsViewTable.getMetricProjection("highScore"))
+                .dimensionProjection(playerStatsViewTable.getDimensionProjection("countryName"))
                 .whereFilter(filterParser.parseFilterExpression("countryName=='United States'",
                         PlayerStatsView.class, false))
                 .havingFilter(filterParser.parseFilterExpression("highScore > 300",
@@ -136,9 +135,9 @@ public class QueryEngineTest extends SQLUnitTest {
     public void testDegenerateDimensionFilter() throws Exception {
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetricProjection("lowScore")))
-                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
-                .timeDimensionProjection(toProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"), TimeGrain.SIMPLEDATE))
+                .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"))
                 .whereFilter(filterParser.parseFilterExpression("overallRating==Great",
                         PlayerStats.class, false))
                 .build();
@@ -163,7 +162,7 @@ public class QueryEngineTest extends SQLUnitTest {
     public void testNotProjectedFilter() throws Exception {
         Query query = Query.builder()
                 .source(playerStatsViewTable)
-                .metricProjection(invoke(playerStatsViewTable.getMetricProjection("highScore")))
+                .metricProjection(playerStatsViewTable.getMetricProjection("highScore"))
                 .whereFilter(filterParser.parseFilterExpression("countryName=='United States'",
                         PlayerStatsView.class, false))
                 .build();
@@ -184,8 +183,8 @@ public class QueryEngineTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
-                .metricProjection(invoke(playerStatsTable.getMetricProjection("lowScore")))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
@@ -214,9 +213,9 @@ public class QueryEngineTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetricProjection("lowScore")))
-                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
-                .timeDimensionProjection(toProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"), TimeGrain.SIMPLEDATE))
+                .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
@@ -250,9 +249,9 @@ public class QueryEngineTest extends SQLUnitTest {
     public void testPagination() throws Exception {
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetricProjection("lowScore")))
-                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
-                .timeDimensionProjection(toProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"), TimeGrain.SIMPLEDATE))
+                .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"))
                 .pagination(new ImmutablePagination(0, 1, false, true))
                 .build();
 
@@ -279,8 +278,8 @@ public class QueryEngineTest extends SQLUnitTest {
     public void testHavingClause() throws Exception {
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetricProjection("highScore")))
-                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
+                .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                 .havingFilter(filterParser.parseFilterExpression("highScore < 2400",
                         PlayerStats.class, false))
                 .build();
@@ -305,9 +304,9 @@ public class QueryEngineTest extends SQLUnitTest {
     public void testHavingClauseJoin() throws Exception {
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetricProjection("highScore")))
-                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
-                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("countryIsoCode")))
+                .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("countryIsoCode"))
                 .havingFilter(filterParser.parseFilterExpression("countryIsoCode==USA",
                         PlayerStats.class, false))
                 .build();
@@ -340,9 +339,9 @@ public class QueryEngineTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetricProjection("lowScore")))
-                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
-                .timeDimensionProjection(toProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"), TimeGrain.SIMPLEDATE))
+                .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
@@ -376,8 +375,8 @@ public class QueryEngineTest extends SQLUnitTest {
     public void testJoinToGroupBy() throws Exception {
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetricProjection("highScore")))
-                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("countryIsoCode")))
+                .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("countryIsoCode"))
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
@@ -404,8 +403,8 @@ public class QueryEngineTest extends SQLUnitTest {
     public void testJoinToFilter() throws Exception {
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetricProjection("highScore")))
-                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
+                .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                 .whereFilter(filterParser.parseFilterExpression("countryIsoCode==USA",
                         PlayerStats.class, false))
                 .build();
@@ -436,9 +435,9 @@ public class QueryEngineTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetricProjection("highScore")))
-                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("overallRating")))
-                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("countryIsoCode")))
+                .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("countryIsoCode"))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
@@ -472,8 +471,8 @@ public class QueryEngineTest extends SQLUnitTest {
     public void testTotalScoreByMonth() throws Exception {
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetricProjection("highScore")))
-                .timeDimensionProjection(toProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"), TimeGrain.SIMPLEDATE))
+                .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"))
                 .build();
 
         //Change for monthly column
@@ -510,8 +509,8 @@ public class QueryEngineTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetricProjection("highScore")))
-                .timeDimensionProjection(toProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"), TimeGrain.SIMPLEDATE))
+                .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"))
                 .whereFilter(predicate)
                 .build();
 
@@ -532,9 +531,9 @@ public class QueryEngineTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("playerName")))
-                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("player2Name")))
-                .metricProjection(invoke(playerStatsTable.getMetricProjection("lowScore")))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("playerName"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("player2Name"))
+                .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
@@ -565,8 +564,8 @@ public class QueryEngineTest extends SQLUnitTest {
     public void testNullJoinToStringValue() throws Exception {
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetricProjection("highScore")))
-                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("countryNickName")))
+                .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("countryNickName"))
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
@@ -588,8 +587,8 @@ public class QueryEngineTest extends SQLUnitTest {
     public void testNullJoinToIntValue() throws Exception {
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .metricProjection(invoke(playerStatsTable.getMetricProjection("highScore")))
-                .dimensionProjection(toProjection(playerStatsTable.getDimensionProjection("countryUnSeats")))
+                .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("countryUnSeats"))
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());

@@ -240,13 +240,41 @@ public class Table implements Queryable, Versioned  {
      * @param <T> metadata class
      * @return column as requested type if found
      */
-    protected final <T extends ColumnProjection> T getColumn(Class<T> cls, String fieldName) {
+    protected final <T extends Column> T getColumn(Class<T> cls, String fieldName) {
         Column column = columnMap.get(fieldName);
         return column != null && cls.isAssignableFrom(column.getClass()) ? cls.cast(column) : null;
     }
 
-    public Metric getMetricProjection(String fieldName) {
+    /**
+     * Returns the metric associated with the given field name.
+     * @param fieldName The field to lookup.
+     * @return The corresponding metric or null.
+     */
+    public Metric getMetric(String fieldName) {
         return getColumn(Metric.class, fieldName);
+    }
+
+    /**
+     * Returns the dimension associated with the given field name.
+     * @param fieldName The field to lookup.
+     * @return The corresponding dimension or null.
+     */
+    public Dimension getDimension(String fieldName) {
+        return getColumn(Dimension.class, fieldName);
+    }
+
+    /**
+     * Returns the time dimension associated with the given field name.
+     * @param fieldName The field to lookup.
+     * @return The corresponding time dimension or null.
+     */
+    public TimeDimension getTimeDimension(String fieldName) {
+        return getColumn(TimeDimension.class, fieldName);
+    }
+
+    @Override
+    public MetricProjection getMetricProjection(String fieldName) {
+        return getMetric(fieldName);
     }
 
     @Override
@@ -260,8 +288,8 @@ public class Table implements Queryable, Versioned  {
     }
 
     @Override
-    public Dimension getDimensionProjection(String fieldName) {
-        return getColumn(Dimension.class, fieldName);
+    public ColumnProjection getDimensionProjection(String fieldName) {
+        return getDimension(fieldName);
     }
 
     @Override
@@ -270,8 +298,8 @@ public class Table implements Queryable, Versioned  {
     }
 
     @Override
-    public TimeDimension getTimeDimensionProjection(String fieldName) {
-        return getColumn(TimeDimension.class, fieldName);
+    public TimeDimensionProjection getTimeDimensionProjection(String fieldName) {
+        return getTimeDimension(fieldName);
     }
 
     @Override

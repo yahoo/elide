@@ -106,7 +106,7 @@ public class EntityProjectionTranslator {
         return entityProjection.getAttributes().stream()
                 .filter(attribute -> queriedTable.getTimeDimensionProjection(attribute.getName()) != null)
                 .map(timeDimAttr -> {
-                    TimeDimension timeDim = queriedTable.getTimeDimensionProjection(timeDimAttr.getName());
+                    TimeDimension timeDim = queriedTable.getTimeDimension(timeDimAttr.getName());
 
                     return engine.constructTimeDimensionProjection(
                             timeDim,
@@ -124,7 +124,7 @@ public class EntityProjectionTranslator {
         Set<ColumnProjection> attributes = entityProjection.getAttributes().stream()
                 .filter(attribute -> queriedTable.getTimeDimensionProjection(attribute.getName()) == null)
                 .map(dimAttr -> {
-                    Dimension dimension = queriedTable.getDimensionProjection(dimAttr.getName());
+                    Dimension dimension = queriedTable.getDimension(dimAttr.getName());
                     return dimension == null
                             ? null
                             : engine.constructDimensionProjection(
@@ -138,7 +138,7 @@ public class EntityProjectionTranslator {
 
         Set<ColumnProjection> relationships = entityProjection.getRelationships().stream()
                 .map(dimAttr -> {
-                    Dimension dimension = queriedTable.getDimensionProjection(dimAttr.getName());
+                    Dimension dimension = queriedTable.getDimension(dimAttr.getName());
                     return dimension == null
                             ? null
                             : engine.constructDimensionProjection(
@@ -159,7 +159,7 @@ public class EntityProjectionTranslator {
         return entityProjection.getAttributes().stream()
                 .filter(attribute -> queriedTable.isMetric(attribute.getName()))
                 .map(attribute -> engine.constructMetricProjection(
-                        queriedTable.getMetricProjection(attribute.getName()),
+                        queriedTable.getMetric(attribute.getName()),
                         attribute.getAlias(),
                         attribute.getArguments().stream()
                                 .collect(Collectors.toMap(Argument::getName, Function.identity()))))
