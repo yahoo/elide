@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.TimedFunction;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -89,23 +88,6 @@ public class SQLQueryEngine extends QueryEngine {
             this.connectionDetailsMap.put(name, new ConnectionDetails(details.getDataSource(),
                             SQLDialectFactory.getDialect(details.getDialect())));
         });
-    }
-
-    @Override
-    protected void populateMetaData(MetaDataStore metaDataStore) {
-        metaDataStore.getModelsToBind()
-                .forEach(model -> {
-                    if (!metadataDictionary.isJPAEntity(model)
-                            && !metadataDictionary.getRelationships(model).isEmpty()) {
-                        throw new InvalidPredicateException(
-                                "Non-JPA entities " + model.getSimpleName() + " is not allowed to have relationship.");
-                    }
-                });
-
-
-        metaDataStore.getModelsToBind().stream()
-                .map(model -> constructTable(model, metadataDictionary))
-                .forEach(metaDataStore::addTable);
     }
 
     private static final Function<ResultSet, Object> SINGLE_RESULT_MAPPER = new Function<ResultSet, Object>() {

@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -134,7 +135,21 @@ public abstract class QueryEngine {
      *
      * @param metaDataStore metadata store to populate
      */
-    protected abstract void populateMetaData(MetaDataStore metaDataStore);
+    private void populateMetaData(MetaDataStore metaDataStore) {
+        metaDataStore.getModelsToBind()
+                .forEach(model -> {
+                    if (!metadataDictionary.isJPAEntity(model)
+                            && !metadataDictionary.getRelationships(model).isEmpty()) {
+                        throw new InvalidPredicateException(
+                                "Non-JPA entities " + model.getSimpleName() + " is not allowed to have relationship.");
+                    }
+                });
+
+
+        metaDataStore.getModelsToBind().stream()
+                .map(model -> constructTable(model, metadataDictionary))
+                .forEach(metaDataStore::addTable);
+    }
 
     /**
      * Contains state necessary for query execution.
