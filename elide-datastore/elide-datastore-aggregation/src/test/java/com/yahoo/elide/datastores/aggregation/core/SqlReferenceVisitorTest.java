@@ -7,13 +7,15 @@
 package com.yahoo.elide.datastores.aggregation.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceVisitor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
@@ -65,9 +67,10 @@ public class SqlReferenceVisitorTest {
 
     @BeforeAll
     public void init() {
+        SQLQueryEngine engine = mock(SQLQueryEngine.class);
         store = new MetaDataStore(Sets.newHashSet(TestModel.class, JoinModel.class));
-        Table table1 = new SQLTable(TestModel.class, store.getMetadataDictionary());
-        Table table2 = new SQLTable(JoinModel.class, store.getMetadataDictionary());
+        Table table1 = new SQLTable(TestModel.class, store.getMetadataDictionary(), engine);
+        Table table2 = new SQLTable(JoinModel.class, store.getMetadataDictionary(), engine);
         store.addTable(table1);
         store.addTable(table2);
     }
@@ -76,7 +79,8 @@ public class SqlReferenceVisitorTest {
     public void testMatchingPhysicalReference() {
         SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "test_table");
 
-        Column column = store.getColumn(TestModel.class, "dimension1");
+        SQLTable table = (SQLTable) store.getTable(TestModel.class);
+        ColumnProjection column = table.getDimensionProjection("dimension1");
 
         String actual = visitor.visitColumn(column);
 
@@ -87,8 +91,8 @@ public class SqlReferenceVisitorTest {
     public void testMismatchingPhysicalReference() {
         SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "test_table");
 
-        Column column = store.getColumn(TestModel.class, "dimension2");
-
+        SQLTable table = (SQLTable) store.getTable(TestModel.class);
+        ColumnProjection column = table.getDimensionProjection("dimension2");
         String actual = visitor.visitColumn(column);
 
         assertEquals("test_table.someColumn", actual);
@@ -98,7 +102,8 @@ public class SqlReferenceVisitorTest {
     public void testJoinReference() {
         SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "join_table");
 
-        Column column = store.getColumn(TestModel.class, "dimension3");
+        SQLTable table = (SQLTable) store.getTable(TestModel.class);
+        ColumnProjection column = table.getDimensionProjection("dimension3");
 
         String actual = visitor.visitColumn(column);
 

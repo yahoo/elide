@@ -13,9 +13,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
-import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.request.Argument;
@@ -80,18 +78,10 @@ public final class QueryKeyExtractor implements FilterExpressionVisitor<Object> 
         visit(source.getAlias().toString());
     }
 
-    private void visit(MetricProjection metricProjection) {
-        visit(metricProjection.getColumn());
-    }
-
-    private void visit(ColumnProjection<?> columnProjection) {
-        visit(columnProjection.getColumn());
+    private void visit(ColumnProjection columnProjection) {
+        visit(columnProjection.getId());
         visit(columnProjection.getAlias());
         visit(columnProjection.getArguments());
-    }
-
-    private void visit(Column column) {
-        visit(column.getId());
     }
 
     private void visit(Map<String, Argument> arguments) {
