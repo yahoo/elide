@@ -88,6 +88,8 @@ public class SQLReferenceTable {
      * @param queryable meta data table
      */
     public void resolveAndStoreAllReferencesAndJoins(Queryable queryable) {
+
+        //References and joins are stored by their source that produces them (rather than the query that asks for them).
         Queryable key = queryable.getSource();
         if (!resolvedReferences.containsKey(key)) {
             resolvedReferences.put(key, new HashMap<>());
@@ -107,7 +109,7 @@ public class SQLReferenceTable {
 
             resolvedReferences.get(key).put(
                     fieldName,
-                    new SQLReferenceVisitor(metaDataStore, queryable.getAlias(fieldName)).visitColumn(column));
+                    new SQLReferenceVisitor(metaDataStore, key.getAlias(fieldName)).visitColumn(column));
 
             resolvedJoinPaths.get(key).put(fieldName, joinVisitor.visitColumn(column));
         });
