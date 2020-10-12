@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 @Value
 @Builder
 public class Query implements Queryable {
+
     @NonNull
     private Queryable source;
 

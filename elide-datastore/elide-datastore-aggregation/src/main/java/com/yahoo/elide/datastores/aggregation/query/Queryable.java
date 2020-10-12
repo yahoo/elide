@@ -17,6 +17,12 @@ import java.util.Set;
 public interface Queryable {
 
     /**
+     * Returns the source of this queryable's data.  The source could be itself.
+     * @return The data source.
+     */
+    public Queryable getSource();
+
+    /**
      * Every queryable needs an alias which uniquely identifies the queryable in an individual query
      * @return The alias
      */
@@ -108,4 +114,12 @@ public interface Queryable {
      * @return Something that the visitor is constructing.
      */
     public <T> T accept(QueryVisitor<T> visitor);
+
+    /**
+     * Determines if this queryable is nested from another queryable.
+     * @return true if the source is another queryable.  False otherwise.
+     */
+    default public boolean isNested() {
+        return this != getSource();
+    }
 }

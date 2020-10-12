@@ -205,4 +205,9 @@ public class SQLTable extends Table implements Queryable {
     public <T> T accept(QueryVisitor<T> visitor) {
         return visitor.visitQueryable(this);
     }
+
+    @Override
+    public Queryable getSource() {
+        return this;
+    }
 }
