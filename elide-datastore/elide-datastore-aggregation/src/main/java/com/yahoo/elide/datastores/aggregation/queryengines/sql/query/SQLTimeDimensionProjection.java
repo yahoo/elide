@@ -36,7 +36,6 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
 
     private Queryable source;
     private String alias;
-    private String id;
     private String name;
     private String expression;
     private ValueType valueType;
@@ -60,7 +59,6 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
         this.columnType = column.getColumnType();
         this.valueType = column.getValueType();
         this.expression = column.getExpression();
-        this.id = column.getId();
         this.name = column.getName();
         this.source = (SQLTable) column.getTable();
         this.grain = column.getSupportedGrain();

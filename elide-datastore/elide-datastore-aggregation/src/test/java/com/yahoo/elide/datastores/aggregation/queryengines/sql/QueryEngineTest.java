@@ -14,7 +14,6 @@ import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
-import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -31,7 +30,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -623,7 +621,6 @@ public class QueryEngineTest extends SQLUnitTest {
         Query outerQuery = Query.builder()
                 .source(innerQuery)
                 .metricProjection(SQLMetricProjection.builder()
-                    .id(innerMetric.getId() + "_OUTER")
                     .alias("highScore")
                     .name("highScore")
                     .expression("AVG({{highScore}})")

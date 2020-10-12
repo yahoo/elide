@@ -12,9 +12,9 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
 
 import com.google.common.base.Preconditions;
-import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import lombok.AccessLevel;
