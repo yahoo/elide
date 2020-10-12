@@ -28,17 +28,20 @@ public class SQLReferenceTable {
     @Getter
     private final EntityDictionary dictionary;
 
-    //Stores  MAP<table alias, MAP<fieldName, reference>>
-    private final Map<String, Map<String, String>> resolvedReferences = new HashMap<>();
+    //Stores  MAP<Queryable, MAP<fieldName, reference>>
+    private final Map<Queryable, Map<String, String>> resolvedReferences = new HashMap<>();
 
-    //Stores  MAP<table alias, MAP<fieldName, join path>>
-    private final Map<String, Map<String, Set<JoinPath>>> resolvedJoinPaths = new HashMap<>();
+    //Stores  MAP<Queryable, MAP<fieldName, join path>>
+    private final Map<Queryable, Map<String, Set<JoinPath>>> resolvedJoinPaths = new HashMap<>();
 
     public SQLReferenceTable(MetaDataStore metaDataStore) {
         this.metaDataStore = metaDataStore;
         this.dictionary = this.metaDataStore.getMetadataDictionary();
 
-        metaDataStore.getMetaData(Table.class).forEach(this::resolveAndStoreAllReferencesAndJoins);
+        metaDataStore.getMetaData(Table.class)
+                .stream()
+                .map(SQLTable.class::cast)
+                .forEach(this::resolveAndStoreAllReferencesAndJoins);
     }
 
     /**
@@ -49,7 +52,7 @@ public class SQLReferenceTable {
      * @return resolved reference
      */
     public String getResolvedReference(Queryable queryable, String fieldName) {
-        return resolvedReferences.get(queryable.getAlias()).get(fieldName);
+        return resolvedReferences.get(queryable).get(fieldName);
     }
 
     /**
@@ -60,7 +63,7 @@ public class SQLReferenceTable {
      * @return resolved reference
      */
     public Set<JoinPath> getResolvedJoinPaths(Queryable queryable, String fieldName) {
-        return resolvedJoinPaths.get(queryable.getAlias()).get(fieldName);
+        return resolvedJoinPaths.get(queryable).get(fieldName);
     }
 
     /**
@@ -68,29 +71,28 @@ public class SQLReferenceTable {
      *
      * @param queryable meta data table
      */
-    private void resolveAndStoreAllReferencesAndJoins(Queryable queryable) {
-        String id = queryable.getAlias();
-        if (!resolvedReferences.containsKey(id)) {
-            resolvedReferences.put(id, new HashMap<>());
+    public void resolveAndStoreAllReferencesAndJoins(Queryable queryable) {
+        if (!resolvedReferences.containsKey(queryable)) {
+            resolvedReferences.put(queryable, new HashMap<>());
         }
-        if (!resolvedJoinPaths.containsKey(id)) {
-            resolvedJoinPaths.put(id, new HashMap<>());
+        if (!resolvedJoinPaths.containsKey(queryable)) {
+            resolvedJoinPaths.put(queryable, new HashMap<>());
         }
 
         FormulaValidator validator = new FormulaValidator(metaDataStore);
         SQLJoinVisitor joinVisitor = new SQLJoinVisitor(metaDataStore);
 
-        queryable.getColumns().forEach(column -> {
+        queryable.getColumnProjections().forEach(column -> {
             // validate that there is no reference loop
             validator.visitColumn(column);
 
             String fieldName = column.getName();
 
-            resolvedReferences.get(id).put(
+            resolvedReferences.get(queryable).put(
                     fieldName,
                     new SQLReferenceVisitor(metaDataStore, queryable.getAlias(fieldName)).visitColumn(column));
 
-            resolvedJoinPaths.get(id).put(fieldName, joinVisitor.visitColumn(column));
+            resolvedJoinPaths.get(queryable).put(fieldName, joinVisitor.visitColumn(column));
         });
     }
 }

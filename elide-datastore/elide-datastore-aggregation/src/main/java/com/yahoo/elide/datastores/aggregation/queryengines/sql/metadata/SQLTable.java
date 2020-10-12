@@ -6,21 +6,208 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
+import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
+import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
 import lombok.EqualsAndHashCode;
+
+import java.util.HashMap;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * SQL extension of {@link Table} which also contains sql column meta data.
  */
 @EqualsAndHashCode(callSuper = true)
-public class SQLTable extends Table {
-    public SQLTable(Class<?> cls, EntityDictionary dictionary) {
+public class SQLTable extends Table implements Queryable {
+    private SQLQueryEngine engine;
+
+    public SQLTable(Class<?> cls, EntityDictionary dictionary, SQLQueryEngine engine) {
         super(cls, dictionary);
+        this.engine = engine;
     }
 
     @Override
-    protected SQLMetric constructMetric(String fieldName, EntityDictionary dictionary) {
-        return new SQLMetric(this, fieldName, dictionary);
+    protected Metric constructMetric(String fieldName, EntityDictionary dictionary) {
+        return new Metric(this, fieldName, dictionary);
+    }
+
+    @Override
+    public ColumnProjection toProjection(Column column) {
+        ColumnProjection projection;
+        projection = getTimeDimensionProjection(column.getName());
+        if (projection != null) {
+            return projection;
+        }
+        projection = getMetricProjection(column.getName());
+        if (projection != null) {
+            return projection;
+        }
+        return getColumnProjection(column.getName());
+    }
+
+    @Override
+    public Queryable toQueryable() {
+        return this;
+    }
+
+    @Override
+    public MetricProjection getMetricProjection(String fieldName) {
+        Metric metric = super.getMetric(fieldName);
+        if (metric == null) {
+            return null;
+        }
+        return new SQLMetricProjection(metric,
+                engine.getReferenceTable(),
+                metric.getName(),
+                new HashMap<>());
+    }
+
+    @Override
+    public Set<MetricProjection> getMetricProjections() {
+        return super.getMetrics().stream()
+                .map((metric) ->
+                        new SQLMetricProjection(metric,
+                                engine.getReferenceTable(),
+                                metric.getName(),
+                                new HashMap<>()))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public ColumnProjection getDimensionProjection(String fieldName) {
+        Dimension dimension = super.getDimension(fieldName);
+        if (dimension == null) {
+            return null;
+        }
+        return new SQLDimensionProjection(dimension,
+                dimension.getName(),
+                new HashMap<>(),
+                engine.getReferenceTable());
+    }
+
+    @Override
+    public Set<ColumnProjection> getDimensionProjections() {
+        return super.getDimensions()
+                .stream()
+                .map((dimension) -> new SQLDimensionProjection(dimension,
+                        dimension.getName(),
+                        new HashMap<>(),
+                        engine.getReferenceTable()))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public TimeDimensionProjection getTimeDimensionProjection(String fieldName) {
+        TimeDimension dimension = super.getTimeDimension(fieldName);
+        if (dimension == null) {
+            return null;
+        }
+        return new SQLTimeDimensionProjection(dimension,
+                dimension.getTimezone(),
+                engine.getReferenceTable(),
+                dimension.getName(),
+                new HashMap<>());
+    }
+
+    @Override
+    public Set<TimeDimensionProjection> getTimeDimensionProjections() {
+        return super.getTimeDimensions()
+                .stream()
+                .map((dimension) -> new SQLTimeDimensionProjection(dimension,
+                        dimension.getTimezone(),
+                        engine.getReferenceTable(),
+                        dimension.getName(),
+                        new HashMap<>()))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<ColumnProjection> getColumnProjections() {
+        return super.getColumns()
+                .stream()
+                .map((column) -> { return getColumnProjection(column.getName()); })
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public String getAlias(String columnName) {
+        return super.getAlias();
+    }
+
+    @Override
+    public ColumnProjection getColumnProjection(String name) {
+        Column column = super.getColumn(Column.class, name);
+
+        if (column == null) {
+            return null;
+        }
+
+        return new SQLColumnProjection() {
+            @Override
+            public SQLReferenceTable getReferenceTable() {
+                return engine.getReferenceTable();
+            }
+
+            @Override
+            public Queryable getSource() {
+                return SQLTable.this;
+            }
+
+            @Override
+            public String getAlias() {
+                return column.getName();
+            }
+
+            @Override
+            public String getId() {
+                return column.getId();
+            }
+
+            @Override
+            public String getName() {
+                return column.getName();
+            }
+
+            @Override
+            public String getExpression() {
+                return column.getExpression();
+            }
+
+            @Override
+            public ValueType getValueType() {
+                return column.getValueType();
+            }
+
+            @Override
+            public ColumnType getColumnType() {
+                return column.getColumnType();
+            }
+        };
+    }
+
+    @Override
+    public <T> T accept(QueryVisitor<T> visitor) {
+        return visitor.visitQueryable(this);
+    }
+
+    @Override
+    public Queryable getSource() {
+        return this;
     }
 }

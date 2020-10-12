@@ -8,14 +8,11 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
-import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
-import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.request.Argument;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
@@ -23,12 +20,12 @@ import lombok.Value;
 import java.util.Map;
 
 /**
- * Metric projection that can expand the metric into a SQL projection fragment.
+ * Dimension projection that can expand the dimension into a SQL projection fragment.
  */
 @Value
 @Builder
 @AllArgsConstructor
-public class SQLMetricProjection implements MetricProjection, SQLColumnProjection {
+public class SQLDimensionProjection implements SQLColumnProjection {
     private String id;
     private Queryable source;
     private String name;
@@ -38,19 +35,17 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     private SQLReferenceTable referenceTable;
     private String alias;
     private Map<String, Argument> arguments;
-    private MetricFunction metricFunction;
 
-    public SQLMetricProjection(Metric metric,
-                               SQLReferenceTable referenceTable,
-                               String alias,
-                               Map<String, Argument> arguments) {
-        this.id = metric.getId();
-        this.source = (SQLTable) metric.getTable();
-        this.name = metric.getName();
-        this.expression = metric.getExpression();
-        this.valueType = metric.getValueType();
-        this.columnType = metric.getColumnType();
-        this.metricFunction = metric.getMetricFunction();
+    public SQLDimensionProjection(Dimension dimension,
+                                  String alias,
+                                  Map<String, Argument> arguments,
+                                  SQLReferenceTable referenceTable) {
+        this.id = dimension.getId();
+        this.source = (SQLTable) dimension.getTable();
+        this.name = dimension.getName();
+        this.expression = dimension.getExpression();
+        this.valueType = dimension.getValueType();
+        this.columnType = dimension.getColumnType();
         this.referenceTable = referenceTable;
         this.alias = alias;
         this.arguments = arguments;

@@ -5,17 +5,15 @@
  */
 package com.yahoo.elide.datastores.aggregation.query;
 
-import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 
 /**
  * Represents a projected metric column as an alias in a query.
  */
-public interface MetricProjection extends ColumnProjection<Metric> {
+public interface MetricProjection extends ColumnProjection {
     /**
-     * Get the projected metric.
-     *
-     * @return metric column
+     * Returns the metric function associated with the metric.
+     * @return the metric function
      */
-    @Override
-    Metric getColumn();
+    MetricFunction getMetricFunction();
 }

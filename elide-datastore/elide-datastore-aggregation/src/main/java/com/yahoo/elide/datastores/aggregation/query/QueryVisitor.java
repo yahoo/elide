@@ -6,8 +6,6 @@
 
 package com.yahoo.elide.datastores.aggregation.query;
 
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
-
 /**
  * Visits a query object hierarchy to construct a type T.  Useful for building translators, validators, etc.
  * @param <T>
@@ -26,5 +24,5 @@ public interface QueryVisitor<T> {
      * @param table The table.
      * @return The type T.
      */
-    public T visitTable(Table table);
+    public T visitQueryable(Queryable table);
 }

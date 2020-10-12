@@ -18,7 +18,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
-import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
@@ -46,7 +46,7 @@ import javax.persistence.OneToMany;
 @Getter
 @EqualsAndHashCode
 @ToString
-public class Table implements Queryable, Versioned  {
+public abstract class Table implements Versioned  {
 
     @Id
     private final String id;
@@ -222,7 +222,7 @@ public class Table implements Queryable, Versioned  {
      * @param <T> metadata class
      * @return columns as requested type if found
      */
-    public <T extends Column> Set<T> getColumns(Class<T> cls) {
+    public <T extends ColumnProjection> Set<T> getColumns(Class<T> cls) {
         return columns.stream()
                 .filter(col -> cls.isAssignableFrom(col.getClass()))
                 .map(cls::cast)
@@ -242,14 +242,29 @@ public class Table implements Queryable, Versioned  {
         return column != null && cls.isAssignableFrom(column.getClass()) ? cls.cast(column) : null;
     }
 
+    /**
+     * Returns the metric associated with the given field name.
+     * @param fieldName The field to lookup.
+     * @return The corresponding metric or null.
+     */
     public Metric getMetric(String fieldName) {
         return getColumn(Metric.class, fieldName);
     }
 
+    /**
+     * Returns the dimension associated with the given field name.
+     * @param fieldName The field to lookup.
+     * @return The corresponding dimension or null.
+     */
     public Dimension getDimension(String fieldName) {
         return getColumn(Dimension.class, fieldName);
     }
 
+    /**
+     * Returns the time dimension associated with the given field name.
+     * @param fieldName The field to lookup.
+     * @return The corresponding time dimension or null.
+     */
     public TimeDimension getTimeDimension(String fieldName) {
         return getColumn(TimeDimension.class, fieldName);
     }
@@ -272,8 +287,7 @@ public class Table implements Queryable, Versioned  {
         return null;
     }
 
-    @Override
-    public <T> T accept(QueryVisitor<T> visitor) {
-        return visitor.visitTable(this);
-    }
+    public abstract ColumnProjection toProjection(Column column);
+
+    public abstract Queryable toQueryable();
 }
