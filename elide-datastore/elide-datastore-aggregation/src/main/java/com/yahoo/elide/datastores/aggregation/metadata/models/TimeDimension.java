@@ -17,8 +17,8 @@ import java.util.TimeZone;
 import javax.persistence.ManyToMany;
 
 /**
- * TimeDimension is a dimension that represents time value.
- * This type of dimension can be used to support more specific aggregation logic e.g. DAILY/MONTHLY aggregation
+ * TimeDimension is a column that represents time value.
+ * This type of column can be used to support time period (DAILY, MONTHLY, etc) aggregation.
  */
 @EqualsAndHashCode(callSuper = true)
 @Include(rootLevel = false, type = "timeDimension")
