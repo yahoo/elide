@@ -69,10 +69,9 @@ import java.util.stream.Collectors;
  */
 public abstract class QueryEngine {
     @Getter
-    private final MetaDataStore metaDataStore;
+    protected final MetaDataStore metaDataStore;
 
-    @Getter
-    private final EntityDictionary metadataDictionary;
+    protected final EntityDictionary metadataDictionary;
 
     private final Map<String, Table> tables;
 
@@ -144,7 +143,8 @@ public abstract class QueryEngine {
                         throw new InvalidPredicateException(
                                 "Non-JPA entities " + model.getSimpleName() + " is not allowed to have relationship.");
                     }
-        });
+                });
+
 
         metaDataStore.getModelsToBind().stream()
                 .map(model -> constructTable(model, metadataDictionary))

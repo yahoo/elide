@@ -12,8 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.request.Sorting;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -24,12 +24,12 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class ViewTest extends SQLUnitTest {
-    protected static Table playerStatsWithViewSchema;
+    protected static SQLTable playerStatsWithViewSchema;
 
     @BeforeAll
     public static void init() {
         SQLUnitTest.init();
-        playerStatsWithViewSchema = engine.getTable("playerStatsWithView");
+        playerStatsWithViewSchema = (SQLTable) engine.getTable("playerStatsWithView");
     }
 
     @Test
@@ -39,8 +39,8 @@ public class ViewTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(playerStatsWithViewSchema)
-                .metricProjection(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
-                .dimensionProjection(toProjection(playerStatsWithViewSchema.getDimension("countryViewIsoCode")))
+                .metricProjection(playerStatsWithViewSchema.getMetricProjection("lowScore"))
+                .dimensionProjection(playerStatsWithViewSchema.getDimensionProjection("countryViewIsoCode"))
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
@@ -72,8 +72,8 @@ public class ViewTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(playerStatsWithViewSchema)
-                .metricProjection(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
-                .dimensionProjection(toProjection(playerStatsWithViewSchema.getDimension("countryViewViewIsoCode")))
+                .metricProjection(playerStatsWithViewSchema.getMetricProjection("lowScore"))
+                .dimensionProjection(playerStatsWithViewSchema.getDimensionProjection("countryViewViewIsoCode"))
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
@@ -105,9 +105,9 @@ public class ViewTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(playerStatsWithViewSchema)
-                .metricProjection(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
+                .metricProjection(playerStatsWithViewSchema.getMetricProjection("lowScore"))
                 .dimensionProjection(
-                        toProjection(playerStatsWithViewSchema.getDimension("countryViewViewIsoCode")))
+                        playerStatsWithViewSchema.getDimensionProjection("countryViewViewIsoCode"))
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
@@ -139,9 +139,9 @@ public class ViewTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(playerStatsWithViewSchema)
-                .metricProjection(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
+                .metricProjection(playerStatsWithViewSchema.getMetricProjection("lowScore"))
                 .dimensionProjection(
-                        toProjection(playerStatsWithViewSchema.getDimension("countryViewViewIsoCode")))
+                        playerStatsWithViewSchema.getDimensionProjection("countryViewViewIsoCode"))
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
@@ -173,9 +173,9 @@ public class ViewTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(playerStatsWithViewSchema)
-                .metricProjection(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
+                .metricProjection(playerStatsWithViewSchema.getMetricProjection("lowScore"))
                 .dimensionProjection(
-                        toProjection(playerStatsWithViewSchema.getDimension("countryViewViewIsoCode")))
+                        playerStatsWithViewSchema.getDimensionProjection("countryViewViewIsoCode"))
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 
@@ -207,9 +207,9 @@ public class ViewTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(playerStatsWithViewSchema)
-                .metricProjection(invoke(playerStatsWithViewSchema.getMetric("lowScore")))
+                .metricProjection(playerStatsWithViewSchema.getMetricProjection("lowScore"))
                 .dimensionProjection(
-                        toProjection(playerStatsWithViewSchema.getDimension("countryViewViewIsoCode")))
+                        playerStatsWithViewSchema.getDimensionProjection("countryViewViewIsoCode"))
                 .sorting(new SortingImpl(sortMap, PlayerStatsWithView.class, dictionary))
                 .build();
 

@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
@@ -143,7 +142,7 @@ public class EntityHydrator {
         }
 
         result.forEach((fieldName, value) -> {
-            Dimension dim = query.getSource().getDimension(fieldName);
+            ColumnProjection dim = query.getSource().getDimensionProjection(fieldName);
 
             if (dim != null && dim.getValueType().equals(ValueType.RELATIONSHIP)) {
                 // We don't hydrate relationships here.

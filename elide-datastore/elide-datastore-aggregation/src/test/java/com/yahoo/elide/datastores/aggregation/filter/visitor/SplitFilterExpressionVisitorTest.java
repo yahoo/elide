@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
@@ -24,6 +25,8 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.SubCountry;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -51,7 +54,9 @@ public class SplitFilterExpressionVisitorTest {
         entityDictionary.bindEntity(Country.class);
         entityDictionary.bindEntity(SubCountry.class);
         entityDictionary.bindEntity(Player.class);
-        Table table = new Table(PlayerStats.class, entityDictionary);
+
+        SQLQueryEngine engine = mock(SQLQueryEngine.class);
+        Table table = new SQLTable(PlayerStats.class, entityDictionary, engine);
         splitFilterExpressionVisitor = new SplitFilterExpressionVisitor(table);
     }
 

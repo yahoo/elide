@@ -8,10 +8,9 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnVisitor;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -30,19 +29,8 @@ public class SQLJoinVisitor extends ColumnVisitor<Set<JoinPath>> {
         super(metaDataStore);
     }
 
-    /**
-     * FIELD column doesn't need JOINs.
-     *
-     * @param metric a FIELD metric
-     * @return empty set
-     */
     @Override
-    protected Set<JoinPath> visitFieldMetric(Metric metric) {
-        return Collections.emptySet();
-    }
-
-    @Override
-    protected Set<JoinPath> visitFormulaMetric(Metric metric) {
+    protected Set<JoinPath> visitFormulaMetric(MetricProjection metric) {
         return visitFormulaColumn(metric);
     }
 
@@ -53,12 +41,12 @@ public class SQLJoinVisitor extends ColumnVisitor<Set<JoinPath>> {
      * @return empty set
      */
     @Override
-    protected Set<JoinPath> visitFieldDimension(Dimension dimension) {
+    protected Set<JoinPath> visitFieldDimension(ColumnProjection dimension) {
         return Collections.emptySet();
     }
 
     @Override
-    protected Set<JoinPath> visitFormulaDimension(Dimension dimension) {
+    protected Set<JoinPath> visitFormulaDimension(ColumnProjection dimension) {
         return visitFormulaColumn(dimension);
     }
 
@@ -68,7 +56,7 @@ public class SQLJoinVisitor extends ColumnVisitor<Set<JoinPath>> {
      * @param column a FORMULA column
      * @return all JOINs
      */
-    private Set<JoinPath> visitFormulaColumn(Column column) {
+    private Set<JoinPath> visitFormulaColumn(ColumnProjection column) {
         Set<JoinPath> joinPaths = new HashSet<>();
 
         // only need to add joins for references to fields defined in other table
@@ -88,12 +76,12 @@ public class SQLJoinVisitor extends ColumnVisitor<Set<JoinPath>> {
      * @param joinToPath a dot separated path
      * @return resolved JOIN paths
      */
-    private Set<JoinPath> visitJoinToReference(Column column, String joinToPath) {
+    private Set<JoinPath> visitJoinToReference(ColumnProjection column, String joinToPath) {
         Set<JoinPath> joinPaths = new HashSet<>();
 
-        Table table = column.getTable();
+        Queryable source = column.getSource();
         JoinPath joinPath = froms.empty()
-                ? new JoinPath(dictionary.getEntityClass(table.getName(), table.getVersion()), dictionary, joinToPath)
+                ? new JoinPath(dictionary.getEntityClass(source.getName(), source.getVersion()), dictionary, joinToPath)
                 : froms.peek().extend(joinToPath, dictionary);
         joinPaths.add(joinPath);
 

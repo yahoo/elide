@@ -66,7 +66,7 @@ public class EntityProjectionTranslator {
      */
     public Query getQuery() {
         Query query = Query.builder()
-                .source(queriedTable)
+                .source(queriedTable.toQueryable())
                 .metricProjections(metrics)
                 .dimensionProjections(dimensionProjections)
                 .timeDimensionProjections(timeDimensions)

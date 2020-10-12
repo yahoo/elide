@@ -6,11 +6,6 @@
 
 package com.yahoo.elide.datastores.aggregation.query;
 
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
-import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
-
 import java.util.Set;
 
 /**
@@ -22,10 +17,28 @@ import java.util.Set;
 public interface Queryable {
 
     /**
+     * Returns the source of this queryable's data.  The source could be itself.
+     * @return The data source.
+     */
+    public Queryable getSource();
+
+    /**
      * Every queryable needs an alias which uniquely identifies the queryable in an individual query
      * @return The alias
      */
     public String getAlias();
+
+    /**
+     * The name of the queryable
+     * @return The name
+     */
+    public String getName();
+
+    /**
+     * The version of the queryable
+     * @return The version
+     */
+    public String getVersion();
 
     /**
      * Looks up the alias for a particular column.
@@ -37,49 +50,56 @@ public interface Queryable {
     }
 
     /**
+     * Retrieves a column by name.
+     * @param name The name of the column.
+     * @return The column.
+     */
+    public ColumnProjection getColumnProjection(String name);
+
+    /**
      * Retrieves a non-time dimension by name.
      * @param name The name of the dimension.
      * @return The dimension.
      */
-    public Dimension getDimension(String name);
+    public ColumnProjection getDimensionProjection(String name);
 
     /**
      * Retrieves all the non-time dimensions.
      * @return The non-time dimensions.
      */
-    public Set<Dimension> getDimensions();
+    public Set<ColumnProjection> getDimensionProjections();
 
     /**
      * Retrieves a metric by name.
      * @param name The name of the metric.
      * @return The metric.
      */
-    public Metric getMetric(String name);
+    public MetricProjection getMetricProjection(String name);
 
     /**
      * Retrieves all the metrics.
      * @return The metrics.
      */
-    public Set<Metric> getMetrics();
+    public Set<MetricProjection> getMetricProjections();
 
     /**
      * Retrieves a time dimension by name.
      * @param name The name of the time dimension.
      * @return The time dimension.
      */
-    public TimeDimension getTimeDimension(String name);
+    public TimeDimensionProjection getTimeDimensionProjection(String name);
 
     /**
      * Retrieves all the time dimensions.
      * @return The time dimensions.
      */
-    public Set<TimeDimension> getTimeDimensions();
+    public Set<TimeDimensionProjection> getTimeDimensionProjections();
 
     /**
      * Returns all the columns.
      * @return the columns.
      */
-    public Set<Column> getColumns();
+    public Set<ColumnProjection> getColumnProjections();
 
     /**
      * Returns the connection name where this queryable is sourced from.
@@ -94,4 +114,12 @@ public interface Queryable {
      * @return Something that the visitor is constructing.
      */
     public <T> T accept(QueryVisitor<T> visitor);
+
+    /**
+     * Determines if this queryable is nested from another queryable.
+     * @return true if the source is another queryable.  False otherwise.
+     */
+    default public boolean isNested() {
+        return this != getSource();
+    }
 }

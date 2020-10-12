@@ -11,7 +11,6 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
@@ -20,7 +19,6 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
-import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.EntityHydrator;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
@@ -29,7 +27,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryTranslator;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
@@ -37,6 +35,7 @@ import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
@@ -57,6 +56,8 @@ import javax.sql.DataSource;
  */
 @Slf4j
 public class SQLQueryEngine extends QueryEngine {
+
+    @Getter
     private final SQLReferenceTable referenceTable;
     private final ConnectionDetails defaultConnectionDetails;
     private final Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
@@ -64,7 +65,7 @@ public class SQLQueryEngine extends QueryEngine {
     public SQLQueryEngine(MetaDataStore metaDataStore,
                     com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails defaultConnectionDetails) {
         super(metaDataStore);
-        this.referenceTable = new SQLReferenceTable(metaDataStore);
+        referenceTable = new SQLReferenceTable(metaDataStore);
         this.defaultConnectionDetails = new ConnectionDetails(defaultConnectionDetails.getDataSource(),
                         SQLDialectFactory.getDialect(defaultConnectionDetails.getDialect()));
     }
@@ -102,34 +103,14 @@ public class SQLQueryEngine extends QueryEngine {
 
     @Override
     protected Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary) {
-        return new SQLTable(entityClass, metaDataDictionary);
+        return new SQLTable(entityClass, metaDataDictionary, this);
     }
 
     @Override
     public ColumnProjection constructDimensionProjection(Dimension dimension,
                                                          String alias,
                                                          Map<String, Argument> arguments) {
-        return new SQLColumnProjection() {
-            @Override
-            public SQLReferenceTable getReferenceTable() {
-                return referenceTable;
-            }
-
-            @Override
-            public Column getColumn() {
-                return dimension;
-            }
-
-            @Override
-            public String getAlias() {
-                return alias;
-            }
-
-            @Override
-            public Map<String, Argument> getArguments() {
-                return arguments;
-            }
-        };
+        return new SQLDimensionProjection(dimension, alias, arguments, referenceTable);
     }
 
     @Override
@@ -223,7 +204,7 @@ public class SQLQueryEngine extends QueryEngine {
         // Run the primary query and log the time spent.
         ResultSet resultSet = runQuery(stmt, queryString, Function.identity());
 
-        resultBuilder.data(new EntityHydrator(resultSet, query, getMetadataDictionary()).hydrate());
+        resultBuilder.data(new EntityHydrator(resultSet, query, metadataDictionary).hydrate());
         return resultBuilder.build();
     }
 
@@ -247,7 +228,7 @@ public class SQLQueryEngine extends QueryEngine {
     public String getTableVersion(Table table, Transaction transaction) {
 
         String tableVersion = null;
-        Class<?> tableClass = getMetadataDictionary().getEntityClass(table.getName(), table.getVersion());
+        Class<?> tableClass = metadataDictionary.getEntityClass(table.getName(), table.getVersion());
         VersionQuery versionAnnotation = tableClass.getAnnotation(VersionQuery.class);
         if (versionAnnotation != null) {
             String versionQueryString = versionAnnotation.sql();
@@ -314,7 +295,7 @@ public class SQLQueryEngine extends QueryEngine {
 
         //Expand each metric into its own Query.  Merge them all together.
         for (MetricProjection metricProjection : query.getMetricProjections()) {
-            Query metricQuery = metricProjection.getColumn().getMetricFunction().resolve(query, metricProjection);
+            Query metricQuery = metricProjection.getMetricFunction().resolve(query, metricProjection);
             merged = merge(merged, metricQuery);
         }
 
@@ -322,9 +303,7 @@ public class SQLQueryEngine extends QueryEngine {
 
         QueryTranslator translator = new QueryTranslator(referenceTable, sqlDialect);
 
-        return translator.visitQuery(merged)
-                .clientQuery(query)
-                .build();
+        return merged.accept(translator).clientQuery(query).build();
     }
 
 
@@ -370,7 +349,7 @@ public class SQLQueryEngine extends QueryEngine {
     private SQLQuery toPageTotalSQL(SQLQuery sql, SQLDialect sqlDialect) {
         // TODO: refactor this method
         String groupByDimensions =
-                extractSQLDimensions(sql.getClientQuery(), sql.getClientQuery().getSource())
+                sql.getClientQuery().getAllDimensionProjections()
                         .stream()
                         .map(dimension -> referenceTable.getResolvedReference(
                                 sql.getClientQuery().getSource(),
@@ -430,19 +409,6 @@ public class SQLQueryEngine extends QueryEngine {
                 .havingFilter(first.getHavingFilter())
                 .pagination(first.getPagination())
                 .build();
-    }
-
-    /**
-     * Extract dimension projects in a query to sql dimensions.
-     *
-     * @param query requested query
-     * @param source queried table
-     * @return sql dimensions in this query
-     */
-    private List<Dimension> extractSQLDimensions(Query query, Queryable source) {
-        return query.getAllDimensionProjections().stream()
-                .map(projection -> source.getDimension(projection.getColumn().getName()))
-                .collect(Collectors.toList());
     }
 
     private static boolean returnPageTotals(Pagination pagination) {
