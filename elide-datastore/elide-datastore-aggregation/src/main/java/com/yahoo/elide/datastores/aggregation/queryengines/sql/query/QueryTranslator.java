@@ -63,7 +63,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
             SQLQuery innerQuery = builder.build();
 
             builder = SQLQuery.builder().fromClause("(" + innerQuery.toString() + ") AS "
-                    + query.getSource().getAlias());
+                    + query.getAlias());
         }
 
         Set<JoinPath> joinPaths = new HashSet<>();

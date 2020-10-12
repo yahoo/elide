@@ -54,9 +54,9 @@ public class SQLReferenceTable {
         Queryable next = query;
 
         while (next.isNested()) {
-            next = next.getSource();
-
             resolveAndStoreAllReferencesAndJoins(next);
+
+            next = next.getSource();
         }
     }
 
@@ -88,11 +88,12 @@ public class SQLReferenceTable {
      * @param queryable meta data table
      */
     public void resolveAndStoreAllReferencesAndJoins(Queryable queryable) {
-        if (!resolvedReferences.containsKey(queryable)) {
-            resolvedReferences.put(queryable, new HashMap<>());
+        Queryable key = queryable.getSource();
+        if (!resolvedReferences.containsKey(key)) {
+            resolvedReferences.put(key, new HashMap<>());
         }
-        if (!resolvedJoinPaths.containsKey(queryable)) {
-            resolvedJoinPaths.put(queryable, new HashMap<>());
+        if (!resolvedJoinPaths.containsKey(key)) {
+            resolvedJoinPaths.put(key, new HashMap<>());
         }
 
         FormulaValidator validator = new FormulaValidator(metaDataStore);
@@ -104,11 +105,11 @@ public class SQLReferenceTable {
 
             String fieldName = column.getName();
 
-            resolvedReferences.get(queryable).put(
+            resolvedReferences.get(key).put(
                     fieldName,
                     new SQLReferenceVisitor(metaDataStore, queryable.getAlias(fieldName)).visitColumn(column));
 
-            resolvedJoinPaths.get(queryable).put(fieldName, joinVisitor.visitColumn(column));
+            resolvedJoinPaths.get(key).put(fieldName, joinVisitor.visitColumn(column));
         });
     }
 }
