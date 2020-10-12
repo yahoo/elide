@@ -19,7 +19,6 @@ import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
@@ -35,11 +34,8 @@ import java.util.stream.Collectors;
  */
 @EqualsAndHashCode(callSuper = true)
 public class SQLTable extends Table implements Queryable {
-    private SQLQueryEngine engine;
-
-    public SQLTable(Class<?> cls, EntityDictionary dictionary, SQLQueryEngine engine) {
+    public SQLTable(Class<?> cls, EntityDictionary dictionary) {
         super(cls, dictionary);
-        this.engine = engine;
     }
 
     @Override
@@ -73,7 +69,6 @@ public class SQLTable extends Table implements Queryable {
             return null;
         }
         return new SQLMetricProjection(metric,
-                engine.getReferenceTable(),
                 metric.getName(),
                 new HashMap<>());
     }
@@ -83,7 +78,6 @@ public class SQLTable extends Table implements Queryable {
         return super.getMetrics().stream()
                 .map((metric) ->
                         new SQLMetricProjection(metric,
-                                engine.getReferenceTable(),
                                 metric.getName(),
                                 new HashMap<>()))
                 .collect(Collectors.toSet());
@@ -97,8 +91,8 @@ public class SQLTable extends Table implements Queryable {
         }
         return new SQLDimensionProjection(dimension,
                 dimension.getName(),
-                new HashMap<>(),
-                engine.getReferenceTable());
+                new HashMap<>());
+
     }
 
     @Override
@@ -107,8 +101,7 @@ public class SQLTable extends Table implements Queryable {
                 .stream()
                 .map((dimension) -> new SQLDimensionProjection(dimension,
                         dimension.getName(),
-                        new HashMap<>(),
-                        engine.getReferenceTable()))
+                        new HashMap<>()))
                 .collect(Collectors.toSet());
     }
 
@@ -120,7 +113,6 @@ public class SQLTable extends Table implements Queryable {
         }
         return new SQLTimeDimensionProjection(dimension,
                 dimension.getTimezone(),
-                engine.getReferenceTable(),
                 dimension.getName(),
                 new HashMap<>());
     }
@@ -131,7 +123,6 @@ public class SQLTable extends Table implements Queryable {
                 .stream()
                 .map((dimension) -> new SQLTimeDimensionProjection(dimension,
                         dimension.getTimezone(),
-                        engine.getReferenceTable(),
                         dimension.getName(),
                         new HashMap<>()))
                 .collect(Collectors.toSet());
@@ -159,11 +150,6 @@ public class SQLTable extends Table implements Queryable {
         }
 
         return new SQLColumnProjection() {
-            @Override
-            public SQLReferenceTable getReferenceTable() {
-                return engine.getReferenceTable();
-            }
-
             @Override
             public Queryable getSource() {
                 return SQLTable.this;

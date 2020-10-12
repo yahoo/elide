@@ -103,28 +103,28 @@ public class SQLQueryEngine extends QueryEngine {
 
     @Override
     protected Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary) {
-        return new SQLTable(entityClass, metaDataDictionary, this);
+        return new SQLTable(entityClass, metaDataDictionary);
     }
 
     @Override
     public ColumnProjection constructDimensionProjection(Dimension dimension,
                                                          String alias,
                                                          Map<String, Argument> arguments) {
-        return new SQLDimensionProjection(dimension, alias, arguments, referenceTable);
+        return new SQLDimensionProjection(dimension, alias, arguments);
     }
 
     @Override
     public TimeDimensionProjection constructTimeDimensionProjection(TimeDimension dimension,
                                                                     String alias,
                                                                     Map<String, Argument> arguments) {
-        return new SQLTimeDimensionProjection(dimension, dimension.getTimezone(), referenceTable, alias, arguments);
+        return new SQLTimeDimensionProjection(dimension, dimension.getTimezone(), alias, arguments);
     }
 
     @Override
     public MetricProjection constructMetricProjection(Metric metric,
                                                       String alias,
                                                       Map<String, Argument> arguments) {
-        return new SQLMetricProjection(metric, referenceTable, alias, arguments);
+        return new SQLMetricProjection(metric, alias, arguments);
     }
 
     /**
@@ -213,7 +213,7 @@ public class SQLQueryEngine extends QueryEngine {
         ConnectionDetails details = getConnectionDetails(connectionName);
         DataSource dataSource = details.getDataSource();
         SQLDialect dialect = details.getDialect();
-        String paginationSQL = toPageTotalSQL(sql, dialect).toString();
+        String paginationSQL = toPageTotalSQL(query, sql, dialect).toString();
 
         NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(paginationSQL, dataSource);
 
@@ -268,7 +268,7 @@ public class SQLQueryEngine extends QueryEngine {
 
         Pagination pagination = query.getPagination();
         if (returnPageTotals(pagination)) {
-            queries.add(toPageTotalSQL(sql, dialect).toString());
+            queries.add(toPageTotalSQL(query, sql, dialect).toString());
         }
         queries.add(sql.toString());
         return queries;
@@ -295,15 +295,30 @@ public class SQLQueryEngine extends QueryEngine {
 
         //Expand each metric into its own Query.  Merge them all together.
         for (MetricProjection metricProjection : query.getMetricProjections()) {
-            Query metricQuery = metricProjection.getMetricFunction().resolve(query, metricProjection);
+            Query metricQuery = metricProjection.resolve();
             merged = merge(merged, metricQuery);
         }
 
         merged = (merged == null) ? query : merged;
 
-        QueryTranslator translator = new QueryTranslator(referenceTable, sqlDialect);
+        Query finalQuery = Query.builder()
+                .source(merged.getSource())
+                .metricProjections(merged.getMetricProjections())
+                .dimensionProjections(query.getDimensionProjections())
+                .timeDimensionProjections(query.getTimeDimensionProjections())
+                .whereFilter(query.getWhereFilter())
+                .havingFilter(query.getHavingFilter())
+                .sorting(query.getSorting())
+                .pagination(query.getPagination())
+                .scope(query.getScope())
+                .bypassingCache(query.isBypassingCache())
+                .build();
 
-        return merged.accept(translator).clientQuery(query).build();
+        SQLReferenceTable queryReferenceTable = new SQLReferenceTable(referenceTable, finalQuery);
+
+        QueryTranslator translator = new QueryTranslator(queryReferenceTable, sqlDialect);
+
+        return finalQuery.accept(translator).build();
     }
 
 
@@ -342,24 +357,24 @@ public class SQLQueryEngine extends QueryEngine {
      * Takes a SQLQuery and creates a new clone that instead returns the total number of records of the original
      * query.
      *
-     * @param sql The original query
+     * @param query The client query
+     * @param sql The generated SQL query
      * @param sqlDialect the SQL dialect
      * @return A new query that returns the total number of records.
      */
-    private SQLQuery toPageTotalSQL(SQLQuery sql, SQLDialect sqlDialect) {
+    private SQLQuery toPageTotalSQL(Query query, SQLQuery sql, SQLDialect sqlDialect) {
         // TODO: refactor this method
         String groupByDimensions =
-                sql.getClientQuery().getAllDimensionProjections()
+                query.getAllDimensionProjections()
                         .stream()
                         .map(dimension -> referenceTable.getResolvedReference(
-                                sql.getClientQuery().getSource(),
+                                query.getSource(),
                                 dimension.getName()))
                         .collect(Collectors.joining(", "));
 
         String projectionClause = sqlDialect.generateCountDistinctClause(groupByDimensions);
 
         return SQLQuery.builder()
-                .clientQuery(sql.getClientQuery())
                 .projectionClause(projectionClause)
                 .fromClause(sql.getFromClause())
                 .joinClause(sql.getJoinClause())

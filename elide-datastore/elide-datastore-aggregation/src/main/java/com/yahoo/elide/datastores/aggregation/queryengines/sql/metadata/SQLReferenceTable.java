@@ -10,6 +10,7 @@ import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 
 import lombok.Getter;
@@ -42,6 +43,21 @@ public class SQLReferenceTable {
                 .stream()
                 .map(SQLTable.class::cast)
                 .forEach(this::resolveAndStoreAllReferencesAndJoins);
+    }
+
+    public SQLReferenceTable(SQLReferenceTable toCopy, Query query) {
+        this.metaDataStore = toCopy.getMetaDataStore();
+        this.dictionary = toCopy.getDictionary();
+        this.resolvedJoinPaths.putAll(toCopy.resolvedJoinPaths);
+        this.resolvedReferences.putAll(toCopy.resolvedReferences);
+
+        Queryable next = query;
+
+        while (next.isNested()) {
+            next = next.getSource();
+
+            resolveAndStoreAllReferencesAndJoins(next);
+        }
     }
 
     /**

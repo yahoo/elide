@@ -43,20 +43,17 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     private ColumnType columnType;
     private TimeDimensionGrain grain;
     private TimeZone timeZone;
-    private SQLReferenceTable referenceTable;
     private Map<String, Argument> arguments;
 
     /**
      * All argument constructor.
      * @param column The column being projected.
      * @param timeZone The selected time zone.
-     * @param referenceTable The reference table.
      * @param alias The client provided alias.
      * @param arguments List of client provided arguments.
      */
     public SQLTimeDimensionProjection(TimeDimension column,
                                       TimeZone timeZone,
-                                      SQLReferenceTable referenceTable,
                                       String alias,
                                       Map<String, Argument> arguments) {
         //TODO remove arguments
@@ -67,17 +64,16 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
         this.name = column.getName();
         this.source = (SQLTable) column.getTable();
         this.grain = column.getSupportedGrain();
-        this.referenceTable = referenceTable;
         this.arguments = arguments;
         this.alias = alias;
         this.timeZone = timeZone;
     }
 
     @Override
-    public String toSQL(Queryable query) {
+    public String toSQL(SQLReferenceTable table) {
         //TODO - We will likely migrate to a templating language when we support parameterized metrics.
         return grain.getExpression().replaceFirst(TIME_DIMENSION_REPLACEMENT_REGEX,
-                        referenceTable.getResolvedReference(source, name));
+                        table.getResolvedReference(source, name));
     }
 
     @Override

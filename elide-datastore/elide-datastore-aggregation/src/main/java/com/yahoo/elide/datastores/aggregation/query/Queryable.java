@@ -119,7 +119,8 @@ public interface Queryable {
      * Determines if this queryable is nested from another queryable.
      * @return true if the source is another queryable.  False otherwise.
      */
-    default public boolean isNested() {
-        return this != getSource();
+    default boolean isNested() {
+        Queryable source = getSource();
+        return (source != null && source.getSource() != source);
     }
 }

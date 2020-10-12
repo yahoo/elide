@@ -30,8 +30,6 @@ public class MetricFunction {
 
     private String description;
 
-    private String expression;
-
     @OneToMany
     private Set<FunctionArgument> arguments;
 

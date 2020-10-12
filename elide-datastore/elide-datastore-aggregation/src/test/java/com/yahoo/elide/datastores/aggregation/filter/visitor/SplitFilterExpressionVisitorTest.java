@@ -56,7 +56,7 @@ public class SplitFilterExpressionVisitorTest {
         entityDictionary.bindEntity(Player.class);
 
         SQLQueryEngine engine = mock(SQLQueryEngine.class);
-        Table table = new SQLTable(PlayerStats.class, entityDictionary, engine);
+        Table table = new SQLTable(PlayerStats.class, entityDictionary);
         splitFilterExpressionVisitor = new SplitFilterExpressionVisitor(table);
     }
 

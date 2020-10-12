@@ -32,21 +32,18 @@ public class SQLDimensionProjection implements SQLColumnProjection {
     private ValueType valueType;
     private ColumnType columnType;
     private String expression;
-    private SQLReferenceTable referenceTable;
     private String alias;
     private Map<String, Argument> arguments;
 
     public SQLDimensionProjection(Dimension dimension,
                                   String alias,
-                                  Map<String, Argument> arguments,
-                                  SQLReferenceTable referenceTable) {
+                                  Map<String, Argument> arguments) {
         this.id = dimension.getId();
         this.source = (SQLTable) dimension.getTable();
         this.name = dimension.getName();
         this.expression = dimension.getExpression();
         this.valueType = dimension.getValueType();
         this.columnType = dimension.getColumnType();
-        this.referenceTable = referenceTable;
         this.alias = alias;
         this.arguments = arguments;
     }

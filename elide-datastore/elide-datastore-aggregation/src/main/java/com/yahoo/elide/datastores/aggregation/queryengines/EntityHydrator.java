@@ -14,6 +14,7 @@ import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 
 import com.google.common.base.Preconditions;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import lombok.AccessLevel;
@@ -130,7 +131,7 @@ public class EntityHydrator {
      * @return A hydrated entity object.
      */
     protected Object coerceObjectToEntity(Map<String, Object> result, MutableInt counter) {
-        Table table = (Table) query.getSource();
+        Table table = getBaseTable(query);
         Class<?> entityClass = entityDictionary.getEntityClass(table.getName(), table.getVersion());
 
         //Construct the object.
@@ -159,5 +160,14 @@ public class EntityHydrator {
         );
 
         return entityInstance;
+    }
+
+    private Table getBaseTable(Query query) {
+        Queryable next = query;
+        while (next.isNested()) {
+            next = next.getSource();
+        }
+
+        return (Table) next.getSource();
     }
 }
