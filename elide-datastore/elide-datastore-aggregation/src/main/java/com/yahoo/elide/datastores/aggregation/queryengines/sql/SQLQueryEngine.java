@@ -291,19 +291,24 @@ public class SQLQueryEngine extends QueryEngine {
         //TODO - The result of merging the queries can result in multiple incompatible queries that should be split
         //apart, executed in parallel, and then stitched back together.
 
-        Query merged = null;
+        Query mergedPlan = null;
 
-        //Expand each metric into its own Query.  Merge them all together.
+        //Expand each metric into its own query plan.  Merge them all together.
         for (MetricProjection metricProjection : query.getMetricProjections()) {
-            Query metricQuery = metricProjection.resolve();
-            merged = merge(merged, metricQuery);
+            Query queryPlan = metricProjection.resolve();
+            mergedPlan = merge(mergedPlan, queryPlan);
         }
 
-        merged = (merged == null) ? query : merged;
+        mergedPlan = (mergedPlan == null) ? query : mergedPlan;
+
+        //TODO - Nest unnested query plans when merging with a nested query plan.
+        //TODO - Push where clause to inner queries.
+        //TODO - Push sort joins to inner queries.
+        //TODO - Merge dimensions during query plan merge.
 
         Query finalQuery = Query.builder()
-                .source(merged.getSource())
-                .metricProjections(merged.getMetricProjections())
+                .source(mergedPlan.getSource())
+                .metricProjections(mergedPlan.getMetricProjections())
                 .dimensionProjections(query.getDimensionProjections())
                 .timeDimensionProjections(query.getTimeDimensionProjections())
                 .whereFilter(query.getWhereFilter())

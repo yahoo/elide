@@ -11,8 +11,8 @@ package com.yahoo.elide.datastores.aggregation.query;
 public interface MetricProjection extends ColumnProjection {
 
     /**
-     * Resolves the query that would fetch this particular metric.
-     * @return the resolved query.
+     * Resolves the query plan that would fetch this particular metric.
+     * @return the resolved query plan.
      */
     default Query resolve() {
         return Query.builder()

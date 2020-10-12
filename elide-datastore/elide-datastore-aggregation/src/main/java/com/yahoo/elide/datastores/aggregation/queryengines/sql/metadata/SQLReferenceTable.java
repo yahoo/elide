@@ -45,6 +45,11 @@ public class SQLReferenceTable {
                 .forEach(this::resolveAndStoreAllReferencesAndJoins);
     }
 
+    /**
+     * Builds a new SQLReference table by starting from a base table and adding references from a particular query.
+     * @param toCopy The base reference table.
+     * @param query The query from which new references will be populated.
+     */
     public SQLReferenceTable(SQLReferenceTable toCopy, Query query) {
         this.metaDataStore = toCopy.getMetaDataStore();
         this.dictionary = toCopy.getDictionary();
