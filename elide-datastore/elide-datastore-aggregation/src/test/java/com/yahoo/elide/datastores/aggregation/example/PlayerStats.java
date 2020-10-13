@@ -20,6 +20,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 
+import com.yahoo.elide.datastores.aggregation.timegrains.YearMonth;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
@@ -41,6 +42,7 @@ import javax.persistence.Id;
 public class PlayerStats {
 
     public static final String DATE_FORMAT = "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
+    public static final String MONTH_FORMAT = "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')";
 
     /**
      * PK.
@@ -104,6 +106,8 @@ public class PlayerStats {
     private String player2Name;
 
     private Date recordedDate;
+
+    private YearMonth recordedMonth;
 
     private Date updatedDate;
 
@@ -259,12 +263,28 @@ public class PlayerStats {
      * @return the date of the player session.
      */
     @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.SIMPLEDATE, expression = DATE_FORMAT), timeZone = "UTC")
+    @DimensionFormula("{{recordedDate}}")
     public Date getRecordedDate() {
         return recordedDate;
     }
 
     public void setRecordedDate(final Date recordedDate) {
         this.recordedDate = recordedDate;
+    }
+
+    /**
+     * <b>DO NOT put {@link Cardinality} annotation on this field</b>. See
+     *
+     * @return the date of the player session.
+     */
+    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.YEARMONTH, expression = MONTH_FORMAT), timeZone = "UTC")
+    @DimensionFormula("{{recordedDate}}")
+    public YearMonth getRecordedMonth() {
+        return recordedMonth;
+    }
+
+    public void setRecordedMonth(final YearMonth recordedMonth) {
+        this.recordedMonth = recordedMonth;
     }
 
     /**
