@@ -20,6 +20,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 
+import com.yahoo.elide.datastores.aggregation.resolvers.DailyAverageScorePerPeriodResolver;
 import com.yahoo.elide.datastores.aggregation.timegrains.YearMonth;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
@@ -58,6 +59,11 @@ public class PlayerStats {
      * A metric.
      */
     private long lowScore;
+
+    /**
+     * A metric.
+     */
+    private float dailyAverageScorePerPeriod;
 
     /**
      * A degenerate dimension.
@@ -144,6 +150,15 @@ public class PlayerStats {
 
     public void setLowScore(final long lowScore) {
         this.lowScore = lowScore;
+    }
+
+    @MetricFormula(value = "AVG({{highScore}})", queryPlan = DailyAverageScorePerPeriodResolver.class)
+    public float getDailyAverageScorePerPeriod() {
+        return dailyAverageScorePerPeriod;
+    }
+
+    public void setDailyAverageScorePerPeriod(final float dailyAverageScorePerPeriod) {
+        this.dailyAverageScorePerPeriod = dailyAverageScorePerPeriod;
     }
 
     @FriendlyName

@@ -640,4 +640,35 @@ public class QueryEngineTest extends SQLUnitTest {
 
         assertEquals(ImmutableList.of(stats2), results);
     }
+
+    @Test
+    public void testMetricFormulaWithQueryPlan() throws Exception {
+
+        Query query = Query.builder()
+                .source(playerStatsTable)
+                .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
+                .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
+                .build();
+        MetricProjection innerMetric = playerStatsViewTable.getMetricProjection("highScore");
+
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
+
+        PlayerStats stats0 = new PlayerStats();
+        stats0.setId("0");
+        stats0.setLowScore(241);
+        stats0.setHighScore(2412);
+        stats0.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+
+        PlayerStats stats1 = new PlayerStats();
+        stats1.setId("1");
+        stats1.setLowScore(35);
+        stats1.setHighScore(1234);
+        stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
+
+        PlayerStats stats2 = new PlayerStats();
+        stats2.setId("2");
+        stats2.setLowScore(72);
+        stats2.setHighScore(1000);
+        stats2.setRecordedDate(Timestamp.valueOf("2019-07-13 00:00:00"));
+    }
 }

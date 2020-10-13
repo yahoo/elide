@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  */
 @Value
 @Builder
-public class QueryPlan {
+public class QueryPlan implements Queryable {
 
     @NonNull
     private Queryable source;
