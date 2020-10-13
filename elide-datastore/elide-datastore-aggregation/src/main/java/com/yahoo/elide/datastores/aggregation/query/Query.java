@@ -66,7 +66,8 @@ public class Query implements Queryable {
 
     @Override
     public String getAlias() {
-        return source.getAlias() + "_" + this.hashCode();
+        //Eliminate any negative hash codes.
+        return source.getAlias() + "_" + (this.hashCode() & 0x7fffffff);
     }
 
     @Override

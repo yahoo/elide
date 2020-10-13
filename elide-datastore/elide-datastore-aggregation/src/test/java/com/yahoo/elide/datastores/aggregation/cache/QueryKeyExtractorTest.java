@@ -39,7 +39,7 @@ public class QueryKeyExtractorTest {
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(PlayerStats.class);
         SQLQueryEngine engine = mock(SQLQueryEngine.class);
-        playerStatsTable = new SQLTable(PlayerStats.class, dictionary, engine);
+        playerStatsTable = new SQLTable(PlayerStats.class, dictionary);
     }
 
     @Test
