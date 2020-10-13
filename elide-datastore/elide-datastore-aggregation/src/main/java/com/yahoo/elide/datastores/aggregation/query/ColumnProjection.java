@@ -28,13 +28,17 @@ public interface ColumnProjection extends Serializable {
      *
      * @return alias
      */
-    String getAlias();
+    default String getAlias() {
+        return getName();
+    }
 
     /**
      * Returns a unique identifier for the column.
      * @return a unique column ID
      */
-    String getId();
+    default String getId() {
+        return getSource().getName() + "." + getName();
+    }
 
     /**
      * Returns the name of the column.

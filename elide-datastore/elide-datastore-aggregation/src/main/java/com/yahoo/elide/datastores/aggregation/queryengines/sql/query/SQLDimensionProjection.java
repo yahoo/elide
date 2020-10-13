@@ -10,7 +10,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.request.Argument;
 import lombok.AllArgsConstructor;
@@ -26,27 +25,22 @@ import java.util.Map;
 @Builder
 @AllArgsConstructor
 public class SQLDimensionProjection implements SQLColumnProjection {
-    private String id;
     private Queryable source;
     private String name;
     private ValueType valueType;
     private ColumnType columnType;
     private String expression;
-    private SQLReferenceTable referenceTable;
     private String alias;
     private Map<String, Argument> arguments;
 
     public SQLDimensionProjection(Dimension dimension,
                                   String alias,
-                                  Map<String, Argument> arguments,
-                                  SQLReferenceTable referenceTable) {
-        this.id = dimension.getId();
+                                  Map<String, Argument> arguments) {
         this.source = (SQLTable) dimension.getTable();
         this.name = dimension.getName();
         this.expression = dimension.getExpression();
         this.valueType = dimension.getValueType();
         this.columnType = dimension.getColumnType();
-        this.referenceTable = referenceTable;
         this.alias = alias;
         this.arguments = arguments;
     }

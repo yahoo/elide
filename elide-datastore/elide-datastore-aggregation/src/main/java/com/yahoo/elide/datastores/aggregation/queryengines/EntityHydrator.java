@@ -12,6 +12,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -41,44 +42,6 @@ public class EntityHydrator {
 
     @Getter(AccessLevel.PRIVATE)
     private final Query query;
-
-    /**
-     * Constructor.
-     *
-     * @param results The loaded objects from {@link QueryEngine#executeQuery(Query, QueryEngine.Transaction)}
-     * @param query  The query passed to {@link QueryEngine#executeQuery(Query, QueryEngine.Transaction)} to load the
-     *               objects
-     * @param entityDictionary  An object that sets entity instance values and provides entity metadata info
-     */
-    public EntityHydrator(List<Object> results, Query query, EntityDictionary entityDictionary) {
-        this.query = query;
-        this.entityDictionary = entityDictionary;
-
-        //Get all the projections from the client query.
-        List<String> projections = this.query.getMetricProjections().stream()
-                .map(MetricProjection::getAlias)
-                .collect(Collectors.toList());
-
-        projections.addAll(this.query.getAllDimensionProjections().stream()
-                .map(ColumnProjection::getAlias)
-                .collect(Collectors.toList()));
-
-        results.forEach(result -> {
-            Map<String, Object> row = new HashMap<>();
-
-            Object[] resultValues = result instanceof Object[] ? (Object[]) result : new Object[] { result };
-
-            Preconditions.checkArgument(projections.size() == resultValues.length);
-
-            for (int idx = 0; idx < resultValues.length; idx++) {
-                Object value = resultValues[idx];
-                String fieldName = projections.get(idx);
-                row.put(fieldName, value);
-            }
-
-            this.results.add(row);
-        });
-    }
 
     public EntityHydrator(ResultSet rs, Query query, EntityDictionary entityDictionary) {
         this.query = query;
@@ -130,7 +93,7 @@ public class EntityHydrator {
      * @return A hydrated entity object.
      */
     protected Object coerceObjectToEntity(Map<String, Object> result, MutableInt counter) {
-        Table table = (Table) query.getSource();
+        Table table = getBaseTable(query);
         Class<?> entityClass = entityDictionary.getEntityClass(table.getName(), table.getVersion());
 
         //Construct the object.
@@ -159,5 +122,14 @@ public class EntityHydrator {
         );
 
         return entityInstance;
+    }
+
+    private Table getBaseTable(Query query) {
+        Queryable next = query;
+        while (next.isNested()) {
+            next = next.getSource();
+        }
+
+        return (Table) next.getSource();
     }
 }

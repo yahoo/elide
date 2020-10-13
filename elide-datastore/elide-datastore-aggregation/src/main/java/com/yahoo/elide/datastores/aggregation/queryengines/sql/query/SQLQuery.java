@@ -6,8 +6,6 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
-import com.yahoo.elide.datastores.aggregation.query.Query;
-
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
@@ -20,9 +18,6 @@ import lombok.NonNull;
 public class SQLQuery {
 
     private static final String SPACE = " ";
-
-    @NonNull
-    private Query clientQuery;
 
     @NonNull
     private String fromClause;
