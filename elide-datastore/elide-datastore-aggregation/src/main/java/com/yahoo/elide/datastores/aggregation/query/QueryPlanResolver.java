@@ -9,12 +9,12 @@ package com.yahoo.elide.datastores.aggregation.query;
  * Resolves a projected metric into a query plan.
  */
 @FunctionalInterface
-public interface MetricResolver {
+public interface QueryPlanResolver {
 
     /**
      * Resolves a projected metric into a query plan.
      * @param projection The metric being projected.
      * @return A query plan for the particular metric.
      */
-    public Query resolve(MetricProjection projection);
+    public QueryPlan resolve(MetricProjection projection);
 }

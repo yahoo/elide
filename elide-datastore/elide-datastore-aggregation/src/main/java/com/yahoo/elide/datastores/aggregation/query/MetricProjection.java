@@ -14,8 +14,8 @@ public interface MetricProjection extends ColumnProjection {
      * Resolves the query plan that would fetch this particular metric.
      * @return the resolved query plan.
      */
-    default Query resolve() {
-        return Query.builder()
+    default QueryPlan resolve() {
+        return QueryPlan.builder()
                 .metricProjection(this)
                 .source(getSource())
                 .build();

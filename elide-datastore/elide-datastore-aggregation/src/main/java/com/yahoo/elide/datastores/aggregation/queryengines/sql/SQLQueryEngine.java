@@ -18,6 +18,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.EntityHydrator;
@@ -291,15 +292,15 @@ public class SQLQueryEngine extends QueryEngine {
         //TODO - The result of merging the queries can result in multiple incompatible queries that should be split
         //apart, executed in parallel, and then stitched back together.
 
-        Query mergedPlan = null;
+        QueryPlan mergedPlan = null;
 
         //Expand each metric into its own query plan.  Merge them all together.
         for (MetricProjection metricProjection : query.getMetricProjections()) {
-            Query queryPlan = metricProjection.resolve();
-            mergedPlan = merge(mergedPlan, queryPlan);
+            QueryPlan queryPlan = metricProjection.resolve();
+            if (queryPlan != null) {
+                mergedPlan = queryPlan.merge(mergedPlan);
+            }
         }
-
-        mergedPlan = (mergedPlan == null) ? query : mergedPlan;
 
         //TODO - Nest unnested query plans when merging with a nested query plan.
         //TODO - Push where clause to inner queries.
@@ -307,8 +308,12 @@ public class SQLQueryEngine extends QueryEngine {
         //TODO - Merge dimensions during query plan merge.
 
         Query finalQuery = Query.builder()
-                .source(mergedPlan.getSource())
-                .metricProjections(mergedPlan.getMetricProjections())
+                .source(mergedPlan != null
+                        ? mergedPlan.getSource()
+                        : query.getSource())
+                .metricProjections(mergedPlan != null
+                        ? mergedPlan.getMetricProjections()
+                        : query.getMetricProjections())
                 .dimensionProjections(query.getDimensionProjections())
                 .timeDimensionProjections(query.getTimeDimensionProjections())
                 .whereFilter(query.getWhereFilter())
@@ -385,49 +390,6 @@ public class SQLQueryEngine extends QueryEngine {
                 .joinClause(sql.getJoinClause())
                 .whereClause(sql.getWhereClause())
                 .havingClause(sql.getHavingClause())
-                .build();
-    }
-
-    /**
-     * Merges two SQL queries into one (if possible).
-     *
-     * @param second One query to merge
-     * @param second The other query to merge
-     * @return merged query
-     */
-    protected Query merge(Query first, Query second) {
-
-        if (first == null) {
-            return second;
-        } else if (second == null) {
-            return first;
-        }
-
-        assert first.getSource().equals(second.getSource());
-        assert ((first.getWhereFilter() == null && second.getWhereFilter() == null)
-                || first.getWhereFilter().equals(second.getWhereFilter()));
-        assert ((first.getHavingFilter() == null && second.getHavingFilter() == null)
-                || first.getHavingFilter().equals(second.getHavingFilter()));
-        assert first.getTimeDimensionProjections().equals(second.getTimeDimensionProjections());
-        assert first.getDimensionProjections().equals(second.getDimensionProjections());
-        assert ((first.getSorting() == null && second.getSorting() == null)
-                || first.getSorting().equals(second.getSorting()));
-        assert ((first.getPagination() == null && second.getPagination() == null)
-                || first.getPagination().equals(second.getPagination()));
-
-        List<MetricProjection> merged = new ArrayList<>(first.getMetricProjections());
-        merged.addAll(second.getMetricProjections());
-
-        return Query.builder()
-                .source(first.getSource())
-                .metricProjections(merged)
-                .dimensionProjections(first.getDimensionProjections())
-                .timeDimensionProjections(first.getTimeDimensionProjections())
-                .whereFilter(first.getWhereFilter())
-                .havingFilter(first.getHavingFilter())
-                .sorting(first.getSorting())
-                .havingFilter(first.getHavingFilter())
-                .pagination(first.getPagination())
                 .build();
     }
 

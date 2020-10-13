@@ -10,8 +10,8 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
-import com.yahoo.elide.datastores.aggregation.query.MetricResolver;
-import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
+import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.request.Argument;
@@ -36,12 +36,12 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     private String expression;
     private String alias;
     private Map<String, Argument> arguments;
-    private MetricResolver metricResolver;
+    private QueryPlanResolver queryPlanResolver;
 
     @Override
-    public Query resolve() {
-        if (metricResolver != null) {
-            return metricResolver.resolve(this);
+    public QueryPlan resolve() {
+        if (queryPlanResolver != null) {
+            return queryPlanResolver.resolve(this);
         }
         return MetricProjection.super.resolve();
     }
@@ -49,7 +49,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     public SQLMetricProjection(Metric metric,
                                String alias,
                                Map<String, Argument> arguments) {
-        this.metricResolver = null;
+        this.queryPlanResolver = null;
         this.source = (SQLTable) metric.getTable();
         this.name = metric.getName();
         this.expression = metric.getExpression();
