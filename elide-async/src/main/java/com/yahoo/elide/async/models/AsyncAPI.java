@@ -8,6 +8,7 @@ package com.yahoo.elide.async.models;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Exclude;
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.async.service.AsyncAPIUpdateThread;
 import com.yahoo.elide.async.service.AsyncExecutorService;
@@ -38,10 +39,11 @@ import javax.validation.constraints.Pattern;
  * Base Model Class for Async Query.
  */
 @Entity
+@Include(type = "asyncAPI")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn
 @Data
-public abstract class AsyncAPI implements PrincipalOwned {
+public class AsyncAPI implements PrincipalOwned {
     @Id
     @Column(columnDefinition = "varchar(36)")
     @Pattern(regexp = "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
@@ -73,9 +75,6 @@ public abstract class AsyncAPI implements PrincipalOwned {
     @ComputedAttribute
     private Integer asyncAfterSeconds = 10;
 
-    @Exclude
-    protected String naturalKey = UUID.randomUUID().toString();
-
     @Transient
     private AsyncAPIUpdateThread queryUpdateWorker = null;
 
@@ -88,7 +87,9 @@ public abstract class AsyncAPI implements PrincipalOwned {
      * Set Async API Result.
      * @param result Base Result Object to persist.
      */
-    public abstract void setResult(AsyncAPIResult result);
+    public void setResult(AsyncAPIResult result) {
+        // Do Nothing;
+    };
 
     /**
      * Execute Async Request.
@@ -99,8 +100,10 @@ public abstract class AsyncAPI implements PrincipalOwned {
      * @throws URISyntaxException URISyntaxException
      * @throws NoHttpResponseException NoHttpResponseException
      */
-    public abstract AsyncAPIResult executeRequest(AsyncExecutorService service, User user, String apiVersion)
-            throws URISyntaxException, NoHttpResponseException;
+    public AsyncAPIResult executeRequest(AsyncExecutorService service, User user, String apiVersion)
+            throws URISyntaxException, NoHttpResponseException {
+        return null;
+    }
 
     @PreUpdate
     public void preUpdate() {
@@ -109,7 +112,7 @@ public abstract class AsyncAPI implements PrincipalOwned {
 
     @Override
     public int hashCode() {
-        return naturalKey.hashCode();
+        return id.hashCode();
     }
 
     @Override
@@ -118,6 +121,6 @@ public abstract class AsyncAPI implements PrincipalOwned {
             return false;
         }
 
-        return ((AsyncAPI) obj).naturalKey.equals(naturalKey);
+        return ((AsyncAPI) obj).id.equals(id);
     }
 }

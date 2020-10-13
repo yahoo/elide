@@ -77,13 +77,10 @@ public class AsyncQuery extends AsyncAPI {
     /**
      * This method parses the url and gets the query params.
      * And adds them into a MultivaluedMap to be used by underlying Elide.get method
-     * @param query query from the Async request
-     * @throws URISyntaxException URISyntaxException from malformed or incorrect URI
+     * @param uri URIBuilder instance
      * @return MultivaluedMap with query parameters
      */
-    private MultivaluedMap<String, String> getQueryParams(String query) throws URISyntaxException {
-        URIBuilder uri;
-        uri = new URIBuilder(query);
+    private MultivaluedMap<String, String> getQueryParams(URIBuilder uri) {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         for (NameValuePair queryParam : uri.getQueryParams()) {
             queryParams.add(queryParam.getName(), queryParam.getValue());
@@ -94,23 +91,22 @@ public class AsyncQuery extends AsyncAPI {
     /**
      * This method parses the url and gets the query params.
      * And retrieves path to be used by underlying Elide.get method
-     * @param query query from the Async request
+     * @param uri URIBuilder instance
      * @throws URISyntaxException URISyntaxException from malformed or incorrect URI
      * @return Path extracted from URI
      */
-    private String getPath(String query) throws URISyntaxException {
-        URIBuilder uri;
-        uri = new URIBuilder(query);
+    private String getPath(URIBuilder uri) {
         return uri.getPath();
     }
 
     private ElideResponse executeJsonApiRequest(Elide elide, User user, String apiVersion) throws URISyntaxException {
         UUID requestUUId = UUID.fromString(requestId);
-        MultivaluedMap<String, String> queryParams = getQueryParams(query);
+        URIBuilder uri = new URIBuilder(query);
+        MultivaluedMap<String, String> queryParams = getQueryParams(uri);
         log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
 
         //TODO - we need to add the baseUrlEndpoint to the queryObject.
-        ElideResponse response = elide.get("", getPath(query), queryParams, user, apiVersion, requestUUId);
+        ElideResponse response = elide.get("", getPath(uri), queryParams, user, apiVersion, requestUUId);
         log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
                 response.getResponseCode(), response.getBody());
         return response;

@@ -26,6 +26,6 @@ public class DisableAggStoreControllerTest extends ControllerTest {
                 .get("/doc")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body("tags.name", containsInAnyOrder("group", "asyncQuery", "product", "version"));
+                .body("tags.name", containsInAnyOrder("group", "asyncAPI", "asyncQuery", "product", "version"));
     }
 }

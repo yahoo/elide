@@ -40,17 +40,15 @@ import javax.ws.rs.core.MultivaluedMap;
 /**
  * Runnable thread for cancelling AsyncQuery transactions
  * beyond the max run time or if it has status CANCELLED.
- * @param <T> AsyncQueryBase Type Implementation.
  */
 @Slf4j
 @Data
 @AllArgsConstructor
-public class AsyncQueryCancelThread<T extends AsyncAPI> implements Runnable {
+public class AsyncQueryCancelThread implements Runnable {
 
     private int maxRunTimeSeconds;
     private Elide elide;
     private AsyncQueryDAO asyncQueryDao;
-    private Class<T> typeParameterClass;
 
     @Override
     public void run() {
@@ -71,7 +69,7 @@ public class AsyncQueryCancelThread<T extends AsyncAPI> implements Runnable {
             Set<UUID> runningTransactionUUIDs = runningTransactionMap.keySet();
 
             //Construct filter expression
-            PathElement statusPathElement = new PathElement(typeParameterClass, QueryStatus.class, "status");
+            PathElement statusPathElement = new PathElement(AsyncAPI.class, QueryStatus.class, "status");
             List<QueryStatus> statusList = new ArrayList<QueryStatus>();
             statusList.add(QueryStatus.CANCELLED);
             statusList.add(QueryStatus.PROCESSING);
@@ -79,8 +77,8 @@ public class AsyncQueryCancelThread<T extends AsyncAPI> implements Runnable {
             FilterExpression fltStatusExpression =
                     new InPredicate(statusPathElement, statusList);
 
-            Collection<T> asyncQueryCollection =
-                    asyncQueryDao.loadAsyncQueryCollection(fltStatusExpression, typeParameterClass);
+            Collection<AsyncAPI> asyncQueryCollection =
+                    asyncQueryDao.loadAsyncQueryCollection(fltStatusExpression, AsyncAPI.class);
 
             //Active AsyncQuery UUIDs
             Set<UUID> asyncTransactionUUIDs = asyncQueryCollection.stream()
@@ -98,7 +96,7 @@ public class AsyncQueryCancelThread<T extends AsyncAPI> implements Runnable {
             .map(uuid -> {
                 return asyncQueryCollection.stream()
                 .filter(query -> query.getRequestId().equals(uuid.toString()))
-                .map(T::getId)
+                .map(AsyncAPI::getId)
                 .findFirst().orElseThrow(IllegalStateException::new);
             })
             .collect(Collectors.toSet());
@@ -119,11 +117,11 @@ public class AsyncQueryCancelThread<T extends AsyncAPI> implements Runnable {
 
             //Change queryStatus for cancelled queries
             if (!queryIDsToCancel.isEmpty()) {
-                PathElement idPathElement = new PathElement(typeParameterClass, String.class, "id");
+                PathElement idPathElement = new PathElement(AsyncAPI.class, String.class, "id");
                 FilterExpression fltIdExpression =
                         new InPredicate(idPathElement, queryIDsToCancel);
                 asyncQueryDao.updateStatusAsyncQueryCollection(fltIdExpression, QueryStatus.CANCEL_COMPLETE,
-                        typeParameterClass);
+                        AsyncAPI.class);
             }
         } catch (Exception e) {
             log.error("Exception in scheduled cancellation: {}", e);

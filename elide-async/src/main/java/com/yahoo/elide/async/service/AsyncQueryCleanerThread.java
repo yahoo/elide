@@ -29,19 +29,17 @@ import java.util.List;
  * Runnable thread for updating AsyncQueryThread status.
  * beyond the max run time and if not terminated by interrupt process
  * due to app/host crash or restart.
- * @param <T> AsyncQueryBase Type Implementation.
  */
 @Slf4j
 @Data
 @AllArgsConstructor
-public class AsyncQueryCleanerThread<T extends AsyncAPI> implements Runnable {
+public class AsyncQueryCleanerThread implements Runnable {
 
     private int maxRunTimeMinutes;
     private Elide elide;
     private int queryCleanupDays;
     private AsyncQueryDAO asyncQueryDao;
     private DateUtil dateUtil = new DateUtil();
-    private Class<T> typeParameterClass;
 
     @Override
     public void run() {
@@ -56,9 +54,9 @@ public class AsyncQueryCleanerThread<T extends AsyncAPI> implements Runnable {
 
         try {
             Date cleanupDate = dateUtil.calculateFilterDate(Calendar.DATE, queryCleanupDays);
-            PathElement createdOnPathElement = new PathElement(typeParameterClass, Long.class, "createdOn");
+            PathElement createdOnPathElement = new PathElement(AsyncAPI.class, Long.class, "createdOn");
             FilterExpression fltDeleteExp = new LEPredicate(createdOnPathElement, cleanupDate);
-            asyncQueryDao.deleteAsyncQueryAndResultCollection(fltDeleteExp, typeParameterClass);
+            asyncQueryDao.deleteAsyncQueryAndResultCollection(fltDeleteExp, AsyncAPI.class);
         } catch (Exception e) {
             log.error("Exception in scheduled cleanup: {}", e);
         }
@@ -72,15 +70,15 @@ public class AsyncQueryCleanerThread<T extends AsyncAPI> implements Runnable {
 
         try {
             Date filterDate = dateUtil.calculateFilterDate(Calendar.MINUTE, maxRunTimeMinutes);
-            PathElement createdOnPathElement = new PathElement(typeParameterClass, Long.class, "createdOn");
-            PathElement statusPathElement = new PathElement(typeParameterClass, String.class, "status");
+            PathElement createdOnPathElement = new PathElement(AsyncAPI.class, Long.class, "createdOn");
+            PathElement statusPathElement = new PathElement(AsyncAPI.class, String.class, "status");
             List<QueryStatus> statusList = new ArrayList<QueryStatus>();
             statusList.add(QueryStatus.PROCESSING);
             statusList.add(QueryStatus.QUEUED);
             FilterPredicate inPredicate = new InPredicate(statusPathElement, statusList);
             FilterPredicate lePredicate = new LEPredicate(createdOnPathElement, filterDate);
             AndFilterExpression fltTimeoutExp = new AndFilterExpression(inPredicate, lePredicate);
-            asyncQueryDao.updateStatusAsyncQueryCollection(fltTimeoutExp, QueryStatus.TIMEDOUT, typeParameterClass);
+            asyncQueryDao.updateStatusAsyncQueryCollection(fltTimeoutExp, QueryStatus.TIMEDOUT, AsyncAPI.class);
         } catch (Exception e) {
             log.error("Exception in scheduled cleanup: {}", e);
         }

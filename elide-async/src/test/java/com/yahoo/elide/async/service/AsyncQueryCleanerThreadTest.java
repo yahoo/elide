@@ -33,7 +33,7 @@ import java.util.TimeZone;
 
 public class AsyncQueryCleanerThreadTest {
 
-    private AsyncQueryCleanerThread<AsyncQuery> cleanerThread;
+    private AsyncQueryCleanerThread cleanerThread;
     private Elide elide;
     private AsyncQueryDAO asyncQueryDao;
     private DateUtil dateUtil;
@@ -51,7 +51,7 @@ public class AsyncQueryCleanerThreadTest {
                         .build());
         asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
         dateUtil = mock(DateUtil.class);
-        cleanerThread = new AsyncQueryCleanerThread<AsyncQuery>(7, elide, 7, asyncQueryDao, dateUtil, AsyncQuery.class);
+        cleanerThread = new AsyncQueryCleanerThread(7, elide, 7, asyncQueryDao, dateUtil);
     }
 
     @Test
@@ -68,7 +68,7 @@ public class AsyncQueryCleanerThreadTest {
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
         cleanerThread.deleteAsyncQuery();
         verify(asyncQueryDao, times(1)).deleteAsyncQueryAndResultCollection(filterCaptor.capture(), any());
-        assertEquals("asyncQuery.createdOn LE [" + testDate + "]", filterCaptor.getValue().toString());
+        assertEquals("asyncAPI.createdOn LE [" + testDate + "]", filterCaptor.getValue().toString());
     }
 
     @Test
@@ -77,6 +77,6 @@ public class AsyncQueryCleanerThreadTest {
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
         cleanerThread.timeoutAsyncQuery();
         verify(asyncQueryDao, times(1)).updateStatusAsyncQueryCollection(filterCaptor.capture(), any(QueryStatus.class), any());
-        assertEquals("(asyncQuery.status IN [[PROCESSING, QUEUED]] AND asyncQuery.createdOn LE [" + testDate + "])", filterCaptor.getValue().toString());
+        assertEquals("(asyncAPI.status IN [[PROCESSING, QUEUED]] AND asyncAPI.createdOn LE [" + testDate + "])", filterCaptor.getValue().toString());
     }
 }
