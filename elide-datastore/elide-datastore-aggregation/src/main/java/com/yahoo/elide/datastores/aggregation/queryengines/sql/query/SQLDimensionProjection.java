@@ -44,4 +44,16 @@ public class SQLDimensionProjection implements SQLColumnProjection {
         this.alias = alias;
         this.arguments = arguments;
     }
+
+    public SQLDimensionProjection withSource(Queryable source) {
+        return SQLDimensionProjection.builder()
+                .source(source)
+                .name(name)
+                .alias(alias)
+                .valueType(valueType)
+                .columnType(columnType)
+                .expression(expression)
+                .arguments(arguments)
+                .build();
+    }
 }

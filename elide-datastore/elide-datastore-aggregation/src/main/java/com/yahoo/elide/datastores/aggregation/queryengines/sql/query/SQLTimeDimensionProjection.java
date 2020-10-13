@@ -78,4 +78,18 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     public TimeGrain getGrain() {
         return grain.getGrain();
     }
+
+    public SQLTimeDimensionProjection withSource(Queryable source) {
+        return SQLTimeDimensionProjection.builder()
+                .source(source)
+                .name(name)
+                .alias(alias)
+                .valueType(valueType)
+                .columnType(columnType)
+                .expression(expression)
+                .arguments(arguments)
+                .grain(grain)
+                .timeZone(timeZone)
+                .build();
+    }
 }
