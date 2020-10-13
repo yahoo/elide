@@ -55,7 +55,7 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .dimensionProjections(plan.getDimensionProjections())
                 .timeDimensionProjections(plan.getTimeDimensionProjections())
                 .whereFilter(clientQuery.getWhereFilter())
-                //TODO - we only want the dimensions here for their joins - not the metrics.
+                //TODO - we only want the sorting dimensions here for their joins - not the metrics.
                 .sorting(clientQuery.getSorting());
     }
 
@@ -72,6 +72,9 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .map((dim) -> dim.withSource(innerQuery))
                 .collect(Collectors.toSet());
 
+        //TODO - whenever there is a nested query, we need to create an inner query where we project out all
+        //of the where, having, and sort columns - performing the filters and sorts.   This inner query needs
+        //to be wrapped in an outermost query that projects just the final client requested fields.
         return Query.builder()
                 .source(innerQuery)
                 .dimensionProjections(resourcedDimensions)
