@@ -16,7 +16,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
-import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
@@ -185,11 +184,6 @@ public class SQLTable extends Table implements Queryable {
                 return column.getColumnType();
             }
         };
-    }
-
-    @Override
-    public <T> T accept(QueryVisitor<T> visitor) {
-        return visitor.visitQueryable(this);
     }
 
     @Override
