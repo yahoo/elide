@@ -6,6 +6,8 @@
 package com.yahoo.elide.datastores.aggregation.annotation;
 
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanResolver;
+import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -66,4 +68,6 @@ public @interface MetricFormula {
      * @return metric formula
      */
     String value();
+
+    Class<? extends QueryPlanResolver> queryPlan() default DefaultQueryPlanResolver.class;
 }
