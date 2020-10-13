@@ -405,7 +405,7 @@ public class ControllerTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("tags.name", containsInAnyOrder("group", "functionArgument", "metric",
                         "metricFunction", "dimension", "column", "table", "asyncQuery",
-                        "timeDimensionGrain", "timeDimension", "product", "playerCountry", "version", "playerStats",
+                        "timeDimensionGrain", "timeDimension", "product", "playerCountry", "version", "playerStats", "playerStatsChild",
                         "stats"));
     }
 

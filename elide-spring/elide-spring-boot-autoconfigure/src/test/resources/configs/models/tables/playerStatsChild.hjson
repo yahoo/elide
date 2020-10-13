@@ -1,0 +1,51 @@
+{
+    tables: [{
+        name: PlayerStatsChild
+        extend: PlayerStats
+        description:
+        '''
+        This child table extends PlayerStats
+        '''
+        cardinality : large
+        readAccess : Prefab.Role.All
+        filterTemplate : createdYear>={{start}};createdYear<{{end}}
+        measures : [
+            {
+             name : highScore
+             type : INTEGER
+             definition: 'MAX({{highScore}})'
+            }
+        ]
+        dimensions : [
+            {
+                name : name
+                type : TEXT
+                definition : '{{name}}'
+            },
+            {
+                name : createdOn
+                type : TIME
+                definition : '{{createdOn}}'
+                grain:
+                {
+                    type :  SIMPLEDATE
+                    sql :  '''
+                    PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+                    '''
+                }
+            },
+            {
+               name : createdYear
+               type : TIME
+               definition : '{{createdOn}}'
+               grain:
+                {
+                 type :  YEAR
+                 sql :  '''
+                 PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy')
+                 '''
+                }
+             }
+        ]
+    }]
+}

@@ -57,7 +57,7 @@ public class AggregationStoreTest extends IntegrationTest {
 
         // query cache was active and publishing metrics
         assertEquals(
-                3,
+                4,
                 metrics.get("cache.gets").tags("cache", "elideQueryCache", "result", "miss").functionCounter().count()
         );
     }
