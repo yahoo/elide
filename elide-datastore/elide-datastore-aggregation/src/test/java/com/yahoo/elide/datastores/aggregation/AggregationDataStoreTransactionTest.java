@@ -84,7 +84,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         Mockito.reset(queryLogger);
 
         QueryResult queryResult = QueryResult.builder().data(DATA).build();
-        SQLQuery myQuery = SQLQuery.builder().clientQuery(query)
+        SQLQuery myQuery = SQLQuery.builder()
                 .fromClause(playerStatsTable.getName())
                 .projectionClause(" ").build();
         when(queryEngine.getTableVersion(playerStatsTable, qeTransaction)).thenReturn("foo");
@@ -115,7 +115,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
 
         String cacheKey = "foo;" + queryKey;
         QueryResult queryResult = QueryResult.builder().data(DATA).build();
-        SQLQuery myQuery = SQLQuery.builder().clientQuery(query)
+        SQLQuery myQuery = SQLQuery.builder()
                 .fromClause(playerStatsTable.getName())
                 .projectionClause(" ").build();
         when(cache.get(cacheKey)).thenReturn(queryResult);
@@ -144,7 +144,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         Mockito.reset(queryLogger);
 
         QueryResult queryResult = QueryResult.builder().data(DATA).pageTotals(314L).build();
-        SQLQuery myQuery = SQLQuery.builder().clientQuery(query)
+        SQLQuery myQuery = SQLQuery.builder()
                 .fromClause(playerStatsTable.getName())
                 .projectionClause(" ").build();
         when(cache.get(anyString())).thenReturn(queryResult);
@@ -177,7 +177,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
     public void loadObjectsNoTableVersion() {
         Mockito.reset(queryLogger);
 
-        SQLQuery myQuery = SQLQuery.builder().clientQuery(query)
+        SQLQuery myQuery = SQLQuery.builder()
                 .fromClause(playerStatsTable.getName())
                 .projectionClause(" ").build();
 
@@ -209,7 +209,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         Mockito.reset(queryLogger);
 
         query = Query.builder().source(playerStatsTable).bypassingCache(true).build();
-        SQLQuery myQuery = SQLQuery.builder().clientQuery(query)
+        SQLQuery myQuery = SQLQuery.builder()
                 .fromClause(playerStatsTable.getName())
                 .projectionClause(" ").build();
 

@@ -59,6 +59,13 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
     public SQLQuery.SQLQueryBuilder visitQuery(Query query) {
         SQLQuery.SQLQueryBuilder builder = query.getSource().accept(this);
 
+        if (query.isNested()) {
+            SQLQuery innerQuery = builder.build();
+
+            builder = SQLQuery.builder().fromClause("(" + innerQuery.toString() + ") AS "
+                    + query.getSource().getAlias());
+        }
+
         Set<JoinPath> joinPaths = new HashSet<>();
 
         builder.projectionClause(constructProjectionWithReference(query));
@@ -69,7 +76,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
             if (!query.getMetricProjections().isEmpty()) {
                 builder.groupByClause("GROUP BY " + groupByDimensions.stream()
                         .map(SQLColumnProjection.class::cast)
-                        .map((column) -> column.toSQL(query))
+                        .map((column) -> column.toSQL(referenceTable))
                         .collect(Collectors.joining(", ")));
             }
 
@@ -146,7 +153,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
                 .orElse(null);
 
         if (metric != null) {
-            return metric.toSQL(query);
+            return metric.toSQL(referenceTable);
         } else {
             return generatePredicatePathReference(predicate.getPath(), query);
         }
@@ -163,12 +170,12 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
         // TODO: project metric field using table column reference
         List<String> metricProjections = query.getMetricProjections().stream()
                 .map(SQLMetricProjection.class::cast)
-                .map(invocation -> invocation.toSQL(query) + " AS " + invocation.getAlias())
+                .map(invocation -> invocation.toSQL(referenceTable) + " AS " + invocation.getAlias())
                 .collect(Collectors.toList());
 
         List<String> dimensionProjections = query.getAllDimensionProjections().stream()
                 .map(SQLColumnProjection.class::cast)
-                .map(dimension -> dimension.toSQL(query) + " AS " + dimension.getAlias())
+                .map(dimension -> dimension.toSQL(referenceTable) + " AS " + dimension.getAlias())
                 .collect(Collectors.toList());
 
         if (metricProjections.isEmpty()) {
@@ -305,7 +312,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
                     String orderByClause = (plan.getColumnProjections().contains(projection)
                             && dialect.useAliasForOrderByClause())
                             ? projection.getAlias()
-                            : projection.toSQL(plan);
+                            : projection.toSQL(referenceTable);
 
                     return orderByClause + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
                 })
@@ -396,7 +403,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
         Path.PathElement last = path.lastElement().get();
 
         SQLColumnProjection projection = fieldToColumnProjection(query, last.getFieldName());
-        return projection.toSQL(query);
+        return projection.toSQL(referenceTable);
     }
 
     /**

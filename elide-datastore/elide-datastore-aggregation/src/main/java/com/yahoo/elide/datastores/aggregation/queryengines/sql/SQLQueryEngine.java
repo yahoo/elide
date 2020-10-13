@@ -18,6 +18,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.EntityHydrator;
@@ -103,28 +104,28 @@ public class SQLQueryEngine extends QueryEngine {
 
     @Override
     protected Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary) {
-        return new SQLTable(entityClass, metaDataDictionary, this);
+        return new SQLTable(entityClass, metaDataDictionary);
     }
 
     @Override
     public ColumnProjection constructDimensionProjection(Dimension dimension,
                                                          String alias,
                                                          Map<String, Argument> arguments) {
-        return new SQLDimensionProjection(dimension, alias, arguments, referenceTable);
+        return new SQLDimensionProjection(dimension, alias, arguments);
     }
 
     @Override
     public TimeDimensionProjection constructTimeDimensionProjection(TimeDimension dimension,
                                                                     String alias,
                                                                     Map<String, Argument> arguments) {
-        return new SQLTimeDimensionProjection(dimension, dimension.getTimezone(), referenceTable, alias, arguments);
+        return new SQLTimeDimensionProjection(dimension, dimension.getTimezone(), alias, arguments);
     }
 
     @Override
     public MetricProjection constructMetricProjection(Metric metric,
                                                       String alias,
                                                       Map<String, Argument> arguments) {
-        return new SQLMetricProjection(metric, referenceTable, alias, arguments);
+        return new SQLMetricProjection(metric, alias, arguments);
     }
 
     /**
@@ -213,7 +214,7 @@ public class SQLQueryEngine extends QueryEngine {
         ConnectionDetails details = getConnectionDetails(connectionName);
         DataSource dataSource = details.getDataSource();
         SQLDialect dialect = details.getDialect();
-        String paginationSQL = toPageTotalSQL(sql, dialect).toString();
+        String paginationSQL = toPageTotalSQL(query, sql, dialect).toString();
 
         NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(paginationSQL, dataSource);
 
@@ -268,7 +269,7 @@ public class SQLQueryEngine extends QueryEngine {
 
         Pagination pagination = query.getPagination();
         if (returnPageTotals(pagination)) {
-            queries.add(toPageTotalSQL(sql, dialect).toString());
+            queries.add(toPageTotalSQL(query, sql, dialect).toString());
         }
         queries.add(sql.toString());
         return queries;
@@ -291,19 +292,43 @@ public class SQLQueryEngine extends QueryEngine {
         //TODO - The result of merging the queries can result in multiple incompatible queries that should be split
         //apart, executed in parallel, and then stitched back together.
 
-        Query merged = null;
+        QueryPlan mergedPlan = null;
 
-        //Expand each metric into its own Query.  Merge them all together.
+        //Expand each metric into its own query plan.  Merge them all together.
         for (MetricProjection metricProjection : query.getMetricProjections()) {
-            Query metricQuery = metricProjection.getMetricFunction().resolve(query, metricProjection);
-            merged = merge(merged, metricQuery);
+            QueryPlan queryPlan = metricProjection.resolve();
+            if (queryPlan != null) {
+                mergedPlan = queryPlan.merge(mergedPlan);
+            }
         }
 
-        merged = (merged == null) ? query : merged;
+        //TODO - Nest unnested query plans when merging with a nested query plan.
+        //TODO - Push where clause to inner queries.
+        //TODO - Push sort joins to inner queries.
+        //TODO - Merge dimensions during query plan merge.
 
-        QueryTranslator translator = new QueryTranslator(referenceTable, sqlDialect);
+        Query finalQuery = Query.builder()
+                .source(mergedPlan != null
+                        ? mergedPlan.getSource()
+                        : query.getSource())
+                .metricProjections(mergedPlan != null
+                        ? mergedPlan.getMetricProjections()
+                        : query.getMetricProjections())
+                .dimensionProjections(query.getDimensionProjections())
+                .timeDimensionProjections(query.getTimeDimensionProjections())
+                .whereFilter(query.getWhereFilter())
+                .havingFilter(query.getHavingFilter())
+                .sorting(query.getSorting())
+                .pagination(query.getPagination())
+                .scope(query.getScope())
+                .bypassingCache(query.isBypassingCache())
+                .build();
 
-        return merged.accept(translator).clientQuery(query).build();
+        SQLReferenceTable queryReferenceTable = new SQLReferenceTable(referenceTable, finalQuery);
+
+        QueryTranslator translator = new QueryTranslator(queryReferenceTable, sqlDialect);
+
+        return finalQuery.accept(translator).build();
     }
 
 
@@ -342,72 +367,29 @@ public class SQLQueryEngine extends QueryEngine {
      * Takes a SQLQuery and creates a new clone that instead returns the total number of records of the original
      * query.
      *
-     * @param sql The original query
+     * @param query The client query
+     * @param sql The generated SQL query
      * @param sqlDialect the SQL dialect
      * @return A new query that returns the total number of records.
      */
-    private SQLQuery toPageTotalSQL(SQLQuery sql, SQLDialect sqlDialect) {
+    private SQLQuery toPageTotalSQL(Query query, SQLQuery sql, SQLDialect sqlDialect) {
         // TODO: refactor this method
         String groupByDimensions =
-                sql.getClientQuery().getAllDimensionProjections()
+                query.getAllDimensionProjections()
                         .stream()
                         .map(dimension -> referenceTable.getResolvedReference(
-                                sql.getClientQuery().getSource(),
+                                query.getSource(),
                                 dimension.getName()))
                         .collect(Collectors.joining(", "));
 
         String projectionClause = sqlDialect.generateCountDistinctClause(groupByDimensions);
 
         return SQLQuery.builder()
-                .clientQuery(sql.getClientQuery())
                 .projectionClause(projectionClause)
                 .fromClause(sql.getFromClause())
                 .joinClause(sql.getJoinClause())
                 .whereClause(sql.getWhereClause())
                 .havingClause(sql.getHavingClause())
-                .build();
-    }
-
-    /**
-     * Merges two SQL queries into one (if possible).
-     *
-     * @param second One query to merge
-     * @param second The other query to merge
-     * @return merged query
-     */
-    protected Query merge(Query first, Query second) {
-
-        if (first == null) {
-            return second;
-        } else if (second == null) {
-            return first;
-        }
-
-        assert first.getSource().equals(second.getSource());
-        assert ((first.getWhereFilter() == null && second.getWhereFilter() == null)
-                || first.getWhereFilter().equals(second.getWhereFilter()));
-        assert ((first.getHavingFilter() == null && second.getHavingFilter() == null)
-                || first.getHavingFilter().equals(second.getHavingFilter()));
-        assert first.getTimeDimensionProjections().equals(second.getTimeDimensionProjections());
-        assert first.getDimensionProjections().equals(second.getDimensionProjections());
-        assert ((first.getSorting() == null && second.getSorting() == null)
-                || first.getSorting().equals(second.getSorting()));
-        assert ((first.getPagination() == null && second.getPagination() == null)
-                || first.getPagination().equals(second.getPagination()));
-
-        List<MetricProjection> merged = new ArrayList<>(first.getMetricProjections());
-        merged.addAll(second.getMetricProjections());
-
-        return Query.builder()
-                .source(first.getSource())
-                .metricProjections(merged)
-                .dimensionProjections(first.getDimensionProjections())
-                .timeDimensionProjections(first.getTimeDimensionProjections())
-                .whereFilter(first.getWhereFilter())
-                .havingFilter(first.getHavingFilter())
-                .sorting(first.getSorting())
-                .havingFilter(first.getHavingFilter())
-                .pagination(first.getPagination())
                 .build();
     }
 
