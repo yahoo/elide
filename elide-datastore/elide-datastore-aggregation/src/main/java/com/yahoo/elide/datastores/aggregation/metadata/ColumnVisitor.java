@@ -48,14 +48,10 @@ public abstract class ColumnVisitor<T> {
         if (column instanceof MetricProjection) {
             return visitFormulaMetric((MetricProjection) column);
         } else {
-            try {
-                if (column.getColumnType() == ColumnType.FORMULA) {
-                    return visitFormulaDimension(column);
-                } else {
-                    return visitFieldDimension(column);
-                }
-            } catch (NullPointerException e) {
-                throw e;
+            if (column.getColumnType() == ColumnType.FORMULA) {
+                return visitFormulaDimension(column);
+            } else {
+                return visitFieldDimension(column);
             }
         }
     }
