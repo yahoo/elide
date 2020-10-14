@@ -15,13 +15,12 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
-import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.timegrains.SimpleDate;
+import com.yahoo.elide.datastores.aggregation.timegrains.YearMonth;
 import com.yahoo.elide.request.Sorting;
 
 import com.google.common.collect.ImmutableList;
@@ -610,39 +609,6 @@ public class QueryEngineTest extends SQLUnitTest {
     }
 
     @Test
-    public void testNestedQuery() throws Exception {
-        MetricProjection innerMetric = playerStatsViewTable.getMetricProjection("highScore");
-
-        Query innerQuery = Query.builder()
-                .source(playerStatsViewTable)
-                .metricProjection(innerMetric)
-                .dimensionProjection(playerStatsViewTable.getDimensionProjection("countryName"))
-                .build();
-
-        Query outerQuery = Query.builder()
-                .source(innerQuery)
-                .metricProjection(SQLMetricProjection.builder()
-                    .alias("highScore")
-                    .name("highScore")
-                    .expression("AVG({{highScore}})")
-                    .columnType(innerMetric.getColumnType())
-                    .valueType(innerMetric.getValueType())
-                    .source(innerQuery)
-                    .build())
-                .havingFilter(filterParser.parseFilterExpression("highScore > 300",
-                        PlayerStatsView.class, false))
-                .build();
-
-        List<Object> results = toList(engine.executeQuery(outerQuery, transaction).getData());
-
-        PlayerStatsView stats2 = new PlayerStatsView();
-        stats2.setId("0");
-        stats2.setHighScore(2412);
-
-        assertEquals(ImmutableList.of(stats2), results);
-    }
-
-    @Test
     public void testMetricFormulaWithQueryPlan() throws Exception {
 
         Query query = Query.builder()
@@ -650,26 +616,14 @@ public class QueryEngineTest extends SQLUnitTest {
                 .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
                 .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
                 .build();
-        MetricProjection innerMetric = playerStatsViewTable.getMetricProjection("highScore");
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
-        stats0.setLowScore(241);
-        stats0.setHighScore(2412);
-        stats0.setRecordedDate(new SimpleDate(Date.valueOf("2019-07-11")));
+        stats0.setDailyAverageScorePerPeriod(1549);
+        stats0.setRecordedMonth(new YearMonth(Date.valueOf("2019-07-01")));
 
-        PlayerStats stats1 = new PlayerStats();
-        stats1.setId("1");
-        stats1.setLowScore(35);
-        stats1.setHighScore(1234);
-        stats1.setRecordedDate(new SimpleDate(Date.valueOf("2019-07-12")));
-
-        PlayerStats stats2 = new PlayerStats();
-        stats2.setId("2");
-        stats2.setLowScore(72);
-        stats2.setHighScore(1000);
-        stats2.setRecordedDate(new SimpleDate(Date.valueOf("2019-07-13")));
+        assertEquals(ImmutableList.of(stats0), results);
     }
 }
