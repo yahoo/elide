@@ -852,6 +852,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 .accept("application/vnd.api+json")
                 .get("/playerStats")
                 .then()
+                .log().all()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.id", hasItems("0", "1", "2"))
                 .body("data.attributes.highScore", hasItems(1000, 1234, 2412))

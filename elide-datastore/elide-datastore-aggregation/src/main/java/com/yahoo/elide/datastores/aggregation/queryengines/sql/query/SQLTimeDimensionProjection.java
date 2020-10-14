@@ -93,4 +93,19 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
                 .timeZone(timeZone)
                 .build();
     }
+
+    @Override
+    public SQLTimeDimensionProjection withSourceAndExpression(Queryable source, String expression) {
+        return SQLTimeDimensionProjection.builder()
+                .source(source)
+                .name(name)
+                .alias(alias)
+                .valueType(valueType)
+                .columnType(columnType)
+                .expression(expression)
+                .arguments(arguments)
+                .grain(grain)
+                .timeZone(timeZone)
+                .build();
+    }
 }

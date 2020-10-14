@@ -88,7 +88,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
 
             //The column is sourced from a query rather than a table.
             if (column.getSource() != column.getSource().getSource()) {
-                resolvedReference = visitPhysicalReference(column.getName());
+                resolvedReference = visitPhysicalReference(reference);
 
             //The reference is a join to another logical column.
             } else if (reference.contains(".")) {

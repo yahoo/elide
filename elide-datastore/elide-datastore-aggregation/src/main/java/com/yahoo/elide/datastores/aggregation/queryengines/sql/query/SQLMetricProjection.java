@@ -80,4 +80,18 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                 .queryPlanResolver(queryPlanResolver)
                 .build();
     }
+
+    @Override
+    public SQLMetricProjection withSourceAndExpression(Queryable source, String expression) {
+        return SQLMetricProjection.builder()
+                .source(source)
+                .name(name)
+                .alias(alias)
+                .valueType(valueType)
+                .columnType(columnType)
+                .expression(expression)
+                .arguments(arguments)
+                .queryPlanResolver(queryPlanResolver)
+                .build();
+    }
 }

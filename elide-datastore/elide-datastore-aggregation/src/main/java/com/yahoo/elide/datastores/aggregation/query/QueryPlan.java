@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.query;
 
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection.withSource;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection.withSourceAndExpression;
 
 import com.google.common.collect.Streams;
 import lombok.Builder;
@@ -92,8 +93,8 @@ public class QueryPlan implements Queryable {
     public QueryPlan nest() {
         return QueryPlan.builder()
                 .source(this)
-                .metricProjections(withSource(this, metricProjections))
-                .dimensionProjections(withSource(this, dimensionProjections))
+                .metricProjections(withSourceAndExpression(this, metricProjections))
+                .dimensionProjections(withSourceAndExpression(this, dimensionProjections))
                 .timeDimensionProjections(withSource(this, timeDimensionProjections))
                 .build();
     }

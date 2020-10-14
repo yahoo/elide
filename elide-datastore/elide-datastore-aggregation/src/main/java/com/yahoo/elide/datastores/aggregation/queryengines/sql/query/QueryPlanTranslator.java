@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection.withSource;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection.withSourceAndExpression;
 
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -89,8 +90,9 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
         return Query.builder()
                 .source(innerQuery)
                 .metricProjections(withSource(innerQuery, plan.getMetricProjections()))
-                .dimensionProjections(withSource(innerQuery, clientQuery.getDimensionProjections()))
-                .timeDimensionProjections(withSource(innerQuery, clientQuery.getTimeDimensionProjections()))
+                .dimensionProjections(withSourceAndExpression(innerQuery, clientQuery.getDimensionProjections()))
+                .timeDimensionProjections(withSourceAndExpression(innerQuery,
+                        clientQuery.getTimeDimensionProjections()))
                 .havingFilter(clientQuery.getHavingFilter())
                 .sorting(clientQuery.getSorting())
                 .pagination(clientQuery.getPagination())
@@ -102,9 +104,10 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
 
         return Query.builder()
                 .source(innerQuery)
-                .metricProjections(withSource(innerQuery, plan.getMetricProjections()))
-                .dimensionProjections(withSource(innerQuery, clientQuery.getDimensionProjections()))
-                .timeDimensionProjections(withSource(innerQuery, clientQuery.getTimeDimensionProjections()));
+                .metricProjections(withSourceAndExpression(innerQuery, plan.getMetricProjections()))
+                .dimensionProjections(withSourceAndExpression(innerQuery, clientQuery.getDimensionProjections()))
+                .timeDimensionProjections(withSourceAndExpression(innerQuery,
+                        clientQuery.getTimeDimensionProjections()));
     }
 
     private Query.QueryBuilder visitUnnestedQueryPlan(Queryable plan)  {
