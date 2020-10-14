@@ -165,4 +165,18 @@ public interface Queryable {
         //A table with no source is not nested.  Neither is a query with a source table.
         return (source != null && source.getSource() != source);
     }
+
+    /**
+     * Returns the depth of the nesting of this Queryable.
+     * @return 0 for unnested.  Positive integer for nested..
+     */
+    default int nestDepth() {
+        int depth = 0;
+        Queryable current = this;
+        while (current.isNested()) {
+            depth++;
+            current = current.getSource();
+        }
+        return depth;
+    }
 }

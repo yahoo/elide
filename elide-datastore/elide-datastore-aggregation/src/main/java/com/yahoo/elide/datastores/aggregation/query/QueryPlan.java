@@ -46,29 +46,47 @@ public class QueryPlan implements Queryable {
      * @return A new merged query plan.
      */
     public QueryPlan merge(QueryPlan other) {
-        //TODO - Add support for nesting and more complex merges.
+        QueryPlan self = this;
 
         if (other == null) {
             return this;
         }
 
-        assert getSource().equals(other.getSource());
+        while (other.nestDepth() > self.nestDepth()) {
+            self = self.nest();
+        }
 
-        Set<MetricProjection> metrics = Streams.concat(other.metricProjections.stream(), metricProjections.stream())
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+        while (self.nestDepth() > other.nestDepth()) {
+            other = other.nest();
+        }
+
+        assert (self.isNested() || getSource().equals(other.getSource()));
+
+        Set<MetricProjection> metrics = Streams.concat(other.metricProjections.stream(),
+                self.metricProjections.stream()).collect(Collectors.toCollection(LinkedHashSet::new));
 
         Set<TimeDimensionProjection> timeDimensions = Streams.concat(other.timeDimensionProjections.stream(),
-                timeDimensionProjections.stream()).collect(Collectors.toCollection(LinkedHashSet::new));
+                self.timeDimensionProjections.stream()).collect(Collectors.toCollection(LinkedHashSet::new));
 
         Set<ColumnProjection> dimensions = Streams.concat(other.dimensionProjections.stream(),
-                dimensionProjections.stream()).collect(Collectors.toCollection(LinkedHashSet::new));
+                self.dimensionProjections.stream()).collect(Collectors.toCollection(LinkedHashSet::new));
 
-        return QueryPlan.builder()
-                .source(getSource())
-                .metricProjections(withSource(getSource(), metrics))
-                .dimensionProjections(withSource(getSource(), dimensions))
-                .timeDimensionProjections(withSource(getSource(), timeDimensions))
-                .build();
+        if (!self.isNested()) {
+            return QueryPlan.builder()
+                    .source(self.getSource())
+                    .metricProjections(withSource(self.getSource(), metrics))
+                    .dimensionProjections(withSource(self.getSource(), dimensions))
+                    .timeDimensionProjections(withSource(self.getSource(), timeDimensions))
+                    .build();
+        } else {
+            Queryable mergedSource = ((QueryPlan) self.getSource()).merge((QueryPlan) other.getSource());
+            return QueryPlan.builder()
+                    .source(mergedSource)
+                    .metricProjections(withSource(self.getSource(), metrics))
+                    .dimensionProjections(withSource(self.getSource(), dimensions))
+                    .timeDimensionProjections(withSource(self.getSource(), timeDimensions))
+                    .build();
+        }
     }
 
     public QueryPlan nest() {

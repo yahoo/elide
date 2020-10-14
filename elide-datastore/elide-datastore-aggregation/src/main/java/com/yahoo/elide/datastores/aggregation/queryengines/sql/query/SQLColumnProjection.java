@@ -33,7 +33,9 @@ public interface SQLColumnProjection extends ColumnProjection {
      * @param source The new source.
      * @return copy of the column projection.
      */
-    SQLColumnProjection withSource(Queryable source);
+    default SQLColumnProjection withSource(Queryable source) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Makes of a copy of a set of columns all with a new source.
