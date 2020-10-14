@@ -21,12 +21,11 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 
 import com.yahoo.elide.datastores.aggregation.resolvers.DailyAverageScorePerPeriodResolver;
+import com.yahoo.elide.datastores.aggregation.timegrains.SimpleDate;
 import com.yahoo.elide.datastores.aggregation.timegrains.YearMonth;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Id;
@@ -111,11 +110,11 @@ public class PlayerStats {
 
     private String player2Name;
 
-    private Date recordedDate;
+    private SimpleDate recordedDate;
 
     private YearMonth recordedMonth;
 
-    private Date updatedDate;
+    private SimpleDate updatedDate;
 
     @Setter
     private int playerLevel;
@@ -279,11 +278,11 @@ public class PlayerStats {
      */
     @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.SIMPLEDATE, expression = DATE_FORMAT), timeZone = "UTC")
     @DimensionFormula("{{recordedDate}}")
-    public Date getRecordedDate() {
+    public SimpleDate getRecordedDate() {
         return recordedDate;
     }
 
-    public void setRecordedDate(final Date recordedDate) {
+    public void setRecordedDate(final SimpleDate recordedDate) {
         this.recordedDate = recordedDate;
     }
 
@@ -308,11 +307,11 @@ public class PlayerStats {
      * @return the date of the player session.
      */
     @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.SIMPLEDATE, expression = DATE_FORMAT), timeZone = "UTC")
-    public Date getUpdatedDate() {
+    public SimpleDate getUpdatedDate() {
         return updatedDate;
     }
 
-    public void setUpdatedDate(final Date updatedDate) {
+    public void setUpdatedDate(final SimpleDate updatedDate) {
         this.updatedDate = updatedDate;
     }
 

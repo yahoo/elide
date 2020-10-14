@@ -76,6 +76,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                 .columnType(columnType)
                 .expression(expression)
                 .arguments(arguments)
+                .queryPlanResolver(queryPlanResolver)
                 .build();
     }
 }

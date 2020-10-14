@@ -39,8 +39,13 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+import com.yahoo.elide.datastores.aggregation.timegrains.SimpleDate;
+import com.yahoo.elide.datastores.aggregation.timegrains.YearMonth;
+import com.yahoo.elide.datastores.aggregation.timegrains.serde.SimpleDateSerde;
+import com.yahoo.elide.datastores.aggregation.timegrains.serde.YearMonthSerde;
 import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.utils.ClassScanner;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -317,6 +322,9 @@ public abstract class SQLUnitTest {
         dictionary.bindEntity(CountryViewNested.class);
         dictionary.bindEntity(Continent.class);
         filterParser = new RSQLFilterDialect(dictionary);
+
+        CoerceUtil.register(YearMonth.class, new YearMonthSerde());
+        CoerceUtil.register(SimpleDate.class, new SimpleDateSerde());
 
         metaDataStore.populateEntityDictionary(dictionary);
 
