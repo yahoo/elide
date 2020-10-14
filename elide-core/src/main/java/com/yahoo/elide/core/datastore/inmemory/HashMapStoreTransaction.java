@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.persistence.GeneratedValue;
+import javax.persistence.Inheritance;
 
 /**
  * HashMapDataStore transaction handler.
@@ -58,6 +59,7 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
         }
         id = dictionary.getId(object);
         operations.add(new Operation(id, object, object.getClass(), Operation.OpType.UPDATE));
+        replicateOperationToParent(object, Operation.OpType.UPDATE);
     }
 
     @Override
@@ -68,6 +70,7 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
 
         String id = dictionary.getId(object);
         operations.add(new Operation(id, object, object.getClass(), Operation.OpType.DELETE));
+        replicateOperationToParent(object, Operation.OpType.DELETE);
     }
 
     @Override
@@ -108,14 +111,7 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
             // TODO: Id's are not necessarily numeric.
             AtomicLong nextId;
             synchronized (dataStore) {
-                nextId = typeIds.computeIfAbsent(entityClass,
-                        (key) -> {
-                            long maxId = dataStore.get(key).keySet().stream()
-                                    .mapToLong(Long::parseLong)
-                                    .max()
-                                    .orElse(0);
-                            return new AtomicLong(maxId + 1);
-                        });
+                nextId = getId(entityClass);
             }
             id = String.valueOf(nextId.getAndIncrement());
             setId(entity, id);
@@ -123,6 +119,7 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
             id = dictionary.getId(entity);
         }
 
+        replicateOperationToParent(entity, Operation.OpType.CREATE);
         operations.add(new Operation(id, entity, entity.getClass(), Operation.OpType.CREATE));
     }
 
@@ -185,11 +182,49 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
     }
 
     private boolean containsObject(Object obj) {
-        return dataStore.get(obj.getClass()).containsValue(obj);
+        return containsObject(obj.getClass(), obj);
+    }
+
+    private boolean containsObject(Class<?> clazz, Object obj) {
+        return dataStore.get(clazz).containsValue(obj);
     }
 
     @Override
     public void cancel(RequestScope scope) {
         //nothing to cancel in HashMap store transaction
+    }
+
+    private void replicateOperationToParent(Object entity, Operation.OpType opType) {
+        dictionary.getSuperClassEntities(entity.getClass()).stream()
+            .filter(superClass -> dictionary.getAnnotation(superClass, Inheritance.class) != null)
+            .forEach(superClass -> {
+                if (opType.equals(Operation.OpType.CREATE) && containsObject(superClass, entity)) {
+                    throw new TransactionException(new IllegalStateException("Duplicate key in Parent"));
+                }
+                String id = dictionary.getId(entity);
+                operations.add(new Operation(id, entity, superClass, opType));
+            });
+    }
+
+    /**
+     * Get shared ID from Parent for inherited classes.
+     * If not inherited, generate new ID.
+     * @param entityClass Class Type of Entity
+     * @return AtomicLong instance for Id generation.
+     */
+    private AtomicLong getId(Class<?> entityClass) {
+        return dictionary.getSuperClassEntities(entityClass).stream()
+                .filter(superClass -> dictionary.getAnnotation(superClass, Inheritance.class) != null)
+                .findFirst()
+                .map(superClass -> getId(superClass))
+                .orElse(typeIds.computeIfAbsent(entityClass,
+                    (key) -> {
+                        long maxId = dataStore.get(key).keySet().stream()
+                                .mapToLong(Long::parseLong)
+                                .max()
+                                .orElse(0);
+                        return new AtomicLong(maxId + 1);
+                    }
+                ));
     }
 }
