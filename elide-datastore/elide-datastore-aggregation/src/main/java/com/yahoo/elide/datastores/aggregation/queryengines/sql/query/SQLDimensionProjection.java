@@ -45,6 +45,7 @@ public class SQLDimensionProjection implements SQLColumnProjection {
         this.arguments = arguments;
     }
 
+    @Override
     public SQLDimensionProjection withSource(Queryable source) {
         return SQLDimensionProjection.builder()
                 .source(source)

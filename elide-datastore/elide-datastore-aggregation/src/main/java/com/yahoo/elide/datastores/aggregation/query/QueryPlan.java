@@ -5,13 +5,15 @@
  */
 package com.yahoo.elide.datastores.aggregation.query;
 
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection.withSource;
+
 import com.google.common.collect.Streams;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Singular;
 import lombok.Value;
 
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -52,20 +54,29 @@ public class QueryPlan implements Queryable {
 
         assert getSource().equals(other.getSource());
 
-        List<MetricProjection> metrics = Streams.concat(other.metricProjections.stream(), metricProjections.stream())
-                .collect(Collectors.toList());
+        Set<MetricProjection> metrics = Streams.concat(other.metricProjections.stream(), metricProjections.stream())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
-        List<TimeDimensionProjection> timeDimensions = Streams.concat(other.timeDimensionProjections.stream(),
-                timeDimensionProjections.stream()).collect(Collectors.toList());
+        Set<TimeDimensionProjection> timeDimensions = Streams.concat(other.timeDimensionProjections.stream(),
+                timeDimensionProjections.stream()).collect(Collectors.toCollection(LinkedHashSet::new));
 
-        List<ColumnProjection> dimensions = Streams.concat(other.dimensionProjections.stream(),
-                dimensionProjections.stream()).collect(Collectors.toList());
+        Set<ColumnProjection> dimensions = Streams.concat(other.dimensionProjections.stream(),
+                dimensionProjections.stream()).collect(Collectors.toCollection(LinkedHashSet::new));
 
         return QueryPlan.builder()
                 .source(getSource())
-                .metricProjections(metrics)
-                .dimensionProjections(dimensions)
-                .timeDimensionProjections(timeDimensions)
+                .metricProjections(withSource(getSource(), metrics))
+                .dimensionProjections(withSource(getSource(), dimensions))
+                .timeDimensionProjections(withSource(getSource(), timeDimensions))
+                .build();
+    }
+
+    public QueryPlan nest() {
+        return QueryPlan.builder()
+                .source(this)
+                .metricProjections(withSource(this, metricProjections))
+                .dimensionProjections(withSource(this, dimensionProjections))
+                .timeDimensionProjections(withSource(this, timeDimensionProjections))
                 .build();
     }
 }

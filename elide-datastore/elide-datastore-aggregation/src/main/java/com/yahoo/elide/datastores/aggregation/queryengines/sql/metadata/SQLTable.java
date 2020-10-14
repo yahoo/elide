@@ -150,6 +150,11 @@ public class SQLTable extends Table implements Queryable {
 
         return new SQLColumnProjection() {
             @Override
+            public SQLColumnProjection withSource(Queryable source) {
+                return null;
+            }
+
+            @Override
             public Queryable getSource() {
                 return SQLTable.this;
             }

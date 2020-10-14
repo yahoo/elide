@@ -67,6 +67,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                 metric.getColumnType(), metric.getExpression(), alias, arguments, metric.getQueryPlanResolver());
     }
 
+    @Override
     public SQLMetricProjection withSource(Queryable source) {
         return SQLMetricProjection.builder()
                 .source(source)
