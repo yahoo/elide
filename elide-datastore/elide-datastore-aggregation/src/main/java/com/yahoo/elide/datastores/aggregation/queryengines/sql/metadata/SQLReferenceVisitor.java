@@ -54,11 +54,16 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
     @Override
     protected String visitFieldDimension(ColumnProjection dimension) {
         Queryable source = dimension.getSource();
-        return getFieldAlias(
-                tableAliases.peek(),
-                dictionary.getAnnotatedColumnName(
-                        dictionary.getEntityClass(source.getName(), source.getVersion()),
-                        dimension.getName()));
+
+        if (source == source.getSource()) {
+            return getFieldAlias(
+                    tableAliases.peek(),
+                    dictionary.getAnnotatedColumnName(
+                            dictionary.getEntityClass(source.getName(), source.getVersion()),
+                            dimension.getName()));
+        } else {
+            return getFieldAlias(tableAliases.peek(), dimension.getName());
+        }
     }
 
     @Override
@@ -83,7 +88,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
 
             //The column is sourced from a query rather than a table.
             if (column.getSource() != column.getSource().getSource()) {
-                resolvedReference = visitPhysicalReference(reference);
+                resolvedReference = visitPhysicalReference(column.getName());
 
             //The reference is a join to another logical column.
             } else if (reference.contains(".")) {
