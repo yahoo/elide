@@ -310,7 +310,9 @@ public class SQLQueryEngine extends QueryEngine {
 
         QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query);
 
-        Query finalQuery = mergedPlan.accept(queryPlanTranslator).build();
+        Query finalQuery = (mergedPlan == null)
+                ? query
+                : mergedPlan.accept(queryPlanTranslator).build();
 
         SQLReferenceTable queryReferenceTable = new SQLReferenceTable(referenceTable, finalQuery);
 
