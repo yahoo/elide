@@ -14,14 +14,14 @@ import javax.persistence.Entity;
  */
 @Entity
 @Include(rootLevel = false)
-public class ChildNoInheritanceBean extends ParentNoInheritanceBean {
-    private String name;
+public class FirstChildBean extends FirstBean {
+    private String nickname;
 
-    public void setName(String name) {
-        this.name = name;
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
     }
 
-    public String getName() {
-        return this.name;
+    public String getNickname() {
+        return this.nickname;
     }
 }

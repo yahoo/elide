@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.persistence.GeneratedValue;
-import javax.persistence.Inheritance;
 
 /**
  * HashMapDataStore transaction handler.
@@ -196,7 +195,6 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
 
     private void replicateOperationToParent(Object entity, Operation.OpType opType) {
         dictionary.getSuperClassEntities(entity.getClass()).stream()
-            .filter(superClass -> dictionary.getAnnotation(superClass, Inheritance.class) != null)
             .forEach(superClass -> {
                 if (opType.equals(Operation.OpType.CREATE) && containsObject(superClass, entity)) {
                     throw new TransactionException(new IllegalStateException("Duplicate key in Parent"));
@@ -214,7 +212,6 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
      */
     private AtomicLong getId(Class<?> entityClass) {
         return dictionary.getSuperClassEntities(entityClass).stream()
-                .filter(superClass -> dictionary.getAnnotation(superClass, Inheritance.class) != null)
                 .findFirst()
                 .map(superClass -> getId(superClass))
                 .orElse(typeIds.computeIfAbsent(entityClass,
