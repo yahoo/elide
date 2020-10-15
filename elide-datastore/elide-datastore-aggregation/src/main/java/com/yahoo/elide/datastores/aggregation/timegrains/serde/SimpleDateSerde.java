@@ -18,17 +18,17 @@ import java.text.SimpleDateFormat;
  * Serde class for bidirectional conversion from Elide SimpleDate type to java.util.Date.
  */
 @ElideTypeConverter(type = SimpleDate.class, name = "SimpleDate")
-public class SimpleDateSerde implements Serde<Object, Date> {
+public class SimpleDateSerde implements Serde<Object, SimpleDate> {
 
     private static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat(TimeGrain.SIMPLEDATE.getFormat());
 
     @Override
-    public Date deserialize(Object val) {
-        Date date = null;
+    public SimpleDate deserialize(Object val) {
+        SimpleDate date = null;
 
         try {
             if (val instanceof String) {
-                date = new Date(DATE_FORMATTER.parse((String) val).getTime());
+                date = new SimpleDate(new Date(DATE_FORMATTER.parse((String) val).getTime()));
             } else {
                 date = new SimpleDate(DATE_FORMATTER.parse(DATE_FORMATTER.format(val)));
             }
@@ -40,7 +40,7 @@ public class SimpleDateSerde implements Serde<Object, Date> {
     }
 
     @Override
-    public String serialize(Date val) {
+    public String serialize(SimpleDate val) {
         return DATE_FORMATTER.format(val).toString();
     }
 }

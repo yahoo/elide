@@ -15,12 +15,12 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
-import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
+import com.yahoo.elide.datastores.aggregation.timegrains.SimpleDate;
+import com.yahoo.elide.datastores.aggregation.timegrains.YearMonth;
 import com.yahoo.elide.request.Sorting;
 
 import com.google.common.collect.ImmutableList;
@@ -29,7 +29,7 @@ import com.google.common.collect.Lists;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.sql.Timestamp;
+import java.sql.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -61,19 +61,19 @@ public class QueryEngineTest extends SQLUnitTest {
         stats0.setId("0");
         stats0.setLowScore(241);
         stats0.setHighScore(2412);
-        stats0.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+        stats0.setRecordedDate(new SimpleDate(Date.valueOf("2019-07-11")));
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("1");
         stats1.setLowScore(35);
         stats1.setHighScore(1234);
-        stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
+        stats1.setRecordedDate(new SimpleDate(Date.valueOf("2019-07-12")));
 
         PlayerStats stats2 = new PlayerStats();
         stats2.setId("2");
         stats2.setLowScore(72);
         stats2.setHighScore(1000);
-        stats2.setRecordedDate(Timestamp.valueOf("2019-07-13 00:00:00"));
+        stats2.setRecordedDate(new SimpleDate(Date.valueOf("2019-07-13")));
 
         assertEquals(ImmutableList.of(stats0, stats1, stats2), results);
     }
@@ -150,7 +150,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats1.setId("0");
         stats1.setLowScore(241);
         stats1.setOverallRating("Great");
-        stats1.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+        stats1.setRecordedDate(new SimpleDate(Date.valueOf("2019-07-11")));
 
         assertEquals(ImmutableList.of(stats1), results);
     }
@@ -227,19 +227,19 @@ public class QueryEngineTest extends SQLUnitTest {
         stats0.setId("0");
         stats0.setLowScore(72);
         stats0.setOverallRating("Good");
-        stats0.setRecordedDate(Timestamp.valueOf("2019-07-13 00:00:00"));
+        stats0.setRecordedDate(new SimpleDate(Date.valueOf("2019-07-13")));
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("1");
         stats1.setLowScore(241);
         stats1.setOverallRating("Great");
-        stats1.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+        stats1.setRecordedDate(new SimpleDate(Date.valueOf("2019-07-11")));
 
         PlayerStats stats2 = new PlayerStats();
         stats2.setId("2");
         stats2.setLowScore(35);
         stats2.setOverallRating("Good");
-        stats2.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
+        stats2.setRecordedDate(new SimpleDate(Date.valueOf("2019-07-12")));
 
         assertEquals(ImmutableList.of(stats0, stats1, stats2), results);
     }
@@ -265,7 +265,7 @@ public class QueryEngineTest extends SQLUnitTest {
         stats1.setId("0");
         stats1.setLowScore(35);
         stats1.setOverallRating("Good");
-        stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
+        stats1.setRecordedDate(new SimpleDate(Date.valueOf("2019-07-12")));
 
         assertEquals(ImmutableList.of(stats1), data, "Returned record does not match");
         assertEquals(3, result.getPageTotals(), "Page totals does not match");
@@ -353,19 +353,19 @@ public class QueryEngineTest extends SQLUnitTest {
         stats0.setId("0");
         stats0.setLowScore(241);
         stats0.setOverallRating("Great");
-        stats0.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+        stats0.setRecordedDate(new SimpleDate(Date.valueOf("2019-07-11")));
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("1");
         stats1.setLowScore(72);
         stats1.setOverallRating("Good");
-        stats1.setRecordedDate(Timestamp.valueOf("2019-07-13 00:00:00"));
+        stats1.setRecordedDate(new SimpleDate(Date.valueOf("2019-07-13")));
 
         PlayerStats stats2 = new PlayerStats();
         stats2.setId("2");
         stats2.setLowScore(35);
         stats2.setOverallRating("Good");
-        stats2.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
+        stats2.setRecordedDate(new SimpleDate(Date.valueOf("2019-07-12")));
 
         assertEquals(ImmutableList.of(stats0, stats1, stats2), results);
     }
@@ -483,17 +483,17 @@ public class QueryEngineTest extends SQLUnitTest {
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
         stats0.setHighScore(2412);
-        stats0.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+        stats0.setRecordedDate(new SimpleDate(Date.valueOf("2019-07-11")));
 
         PlayerStats stats1 = new PlayerStats();
         stats1.setId("1");
         stats1.setHighScore(1234);
-        stats1.setRecordedDate(Timestamp.valueOf("2019-07-12 00:00:00"));
+        stats1.setRecordedDate(new SimpleDate(Date.valueOf("2019-07-12")));
 
         PlayerStats stats2 = new PlayerStats();
         stats2.setId("2");
         stats2.setHighScore(1000);
-        stats2.setRecordedDate(Timestamp.valueOf("2019-07-13 00:00:00"));
+        stats2.setRecordedDate(new SimpleDate(Date.valueOf("2019-07-13")));
 
         assertEquals(ImmutableList.of(stats0, stats1, stats2), results);
 
@@ -507,7 +507,7 @@ public class QueryEngineTest extends SQLUnitTest {
         FilterPredicate predicate = new FilterPredicate(
                 new Path(PlayerStats.class, dictionary, "recordedDate"),
                 Operator.IN,
-                Lists.newArrayList(Timestamp.valueOf("2019-07-11 00:00:00")));
+                Lists.newArrayList(Date.valueOf("2019-07-11")));
 
         Query query = Query.builder()
                 .source(playerStatsTable)
@@ -521,7 +521,7 @@ public class QueryEngineTest extends SQLUnitTest {
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
         stats0.setHighScore(2412);
-        stats0.setRecordedDate(Timestamp.valueOf("2019-07-11 00:00:00"));
+        stats0.setRecordedDate(new SimpleDate(Date.valueOf("2019-07-11")));
 
         assertEquals(ImmutableList.of(stats0), results);
     }
@@ -609,35 +609,21 @@ public class QueryEngineTest extends SQLUnitTest {
     }
 
     @Test
-    public void testNestedQuery() throws Exception {
-        MetricProjection innerMetric = playerStatsViewTable.getMetricProjection("highScore");
+    public void testMetricFormulaWithQueryPlan() throws Exception {
 
-        Query innerQuery = Query.builder()
-                .source(playerStatsViewTable)
-                .metricProjection(innerMetric)
-                .dimensionProjection(playerStatsViewTable.getDimensionProjection("countryName"))
+        Query query = Query.builder()
+                .source(playerStatsTable)
+                .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
+                .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
                 .build();
 
-        Query outerQuery = Query.builder()
-                .source(innerQuery)
-                .metricProjection(SQLMetricProjection.builder()
-                    .alias("highScore")
-                    .name("highScore")
-                    .expression("AVG({{highScore}})")
-                    .columnType(innerMetric.getColumnType())
-                    .valueType(innerMetric.getValueType())
-                    .source(innerQuery)
-                    .build())
-                .havingFilter(filterParser.parseFilterExpression("highScore > 300",
-                        PlayerStatsView.class, false))
-                .build();
+        List<Object> results = toList(engine.executeQuery(query, transaction).getData());
 
-        List<Object> results = toList(engine.executeQuery(outerQuery, transaction).getData());
+        PlayerStats stats0 = new PlayerStats();
+        stats0.setId("0");
+        stats0.setDailyAverageScorePerPeriod(1549);
+        stats0.setRecordedMonth(new YearMonth(Date.valueOf("2019-07-01")));
 
-        PlayerStatsView stats2 = new PlayerStatsView();
-        stats2.setId("0");
-        stats2.setHighScore(2412);
-
-        assertEquals(ImmutableList.of(stats2), results);
+        assertEquals(ImmutableList.of(stats0), results);
     }
 }

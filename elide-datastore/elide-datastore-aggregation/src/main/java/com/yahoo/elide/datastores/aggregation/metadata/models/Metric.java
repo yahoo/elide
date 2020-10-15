@@ -5,11 +5,13 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 
+import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -29,6 +31,10 @@ public class Metric extends Column {
     @ManyToOne
     @ToString.Exclude
     private final MetricFunction metricFunction;
+
+    @Exclude
+    @ToString.Exclude
+    private final QueryPlanResolver queryPlanResolver;
 
     public Metric(Table table, String fieldName, EntityDictionary dictionary) {
         super(table, fieldName, dictionary);
@@ -50,8 +56,14 @@ public class Metric extends Column {
                     meta == null ? null : meta.description(),
                     new HashSet<>());
 
+            try {
+                this.queryPlanResolver = formula.queryPlan().newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                throw new IllegalStateException("Could not instantiate query plan resolver for metric field: "
+                        + getId());
+            }
         } else {
-            throw new IllegalArgumentException("Trying to construct metric field "
+            throw new IllegalStateException("Trying to construct metric field "
                     + getId() + " without @MetricFormula.");
         }
     }

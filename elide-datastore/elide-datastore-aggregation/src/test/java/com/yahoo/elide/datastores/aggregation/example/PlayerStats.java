@@ -20,11 +20,12 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 
+import com.yahoo.elide.datastores.aggregation.resolvers.DailyAverageScorePerPeriodResolver;
+import com.yahoo.elide.datastores.aggregation.timegrains.SimpleDate;
+import com.yahoo.elide.datastores.aggregation.timegrains.YearMonth;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Id;
@@ -41,6 +42,7 @@ import javax.persistence.Id;
 public class PlayerStats {
 
     public static final String DATE_FORMAT = "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
+    public static final String MONTH_FORMAT = "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')";
 
     /**
      * PK.
@@ -56,6 +58,11 @@ public class PlayerStats {
      * A metric.
      */
     private long lowScore;
+
+    /**
+     * A metric.
+     */
+    private float dailyAverageScorePerPeriod;
 
     /**
      * A degenerate dimension.
@@ -103,9 +110,11 @@ public class PlayerStats {
 
     private String player2Name;
 
-    private Date recordedDate;
+    private SimpleDate recordedDate;
 
-    private Date updatedDate;
+    private YearMonth recordedMonth;
+
+    private SimpleDate updatedDate;
 
     @Setter
     private int playerLevel;
@@ -140,6 +149,15 @@ public class PlayerStats {
 
     public void setLowScore(final long lowScore) {
         this.lowScore = lowScore;
+    }
+
+    @MetricFormula(value = "AVG({{highScore}})", queryPlan = DailyAverageScorePerPeriodResolver.class)
+    public float getDailyAverageScorePerPeriod() {
+        return dailyAverageScorePerPeriod;
+    }
+
+    public void setDailyAverageScorePerPeriod(final float dailyAverageScorePerPeriod) {
+        this.dailyAverageScorePerPeriod = dailyAverageScorePerPeriod;
     }
 
     @FriendlyName
@@ -259,11 +277,12 @@ public class PlayerStats {
      * @return the date of the player session.
      */
     @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.SIMPLEDATE, expression = DATE_FORMAT), timeZone = "UTC")
-    public Date getRecordedDate() {
+    @DimensionFormula("{{recordedDate}}")
+    public SimpleDate getRecordedDate() {
         return recordedDate;
     }
 
-    public void setRecordedDate(final Date recordedDate) {
+    public void setRecordedDate(final SimpleDate recordedDate) {
         this.recordedDate = recordedDate;
     }
 
@@ -272,12 +291,27 @@ public class PlayerStats {
      *
      * @return the date of the player session.
      */
+    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.YEARMONTH, expression = MONTH_FORMAT), timeZone = "UTC")
+    @DimensionFormula("{{recordedDate}}")
+    public YearMonth getRecordedMonth() {
+        return recordedMonth;
+    }
+
+    public void setRecordedMonth(final YearMonth recordedMonth) {
+        this.recordedMonth = recordedMonth;
+    }
+
+    /**
+     * <b>DO NOT put {@link Cardinality} annotation on this field</b>. See
+     *
+     * @return the date of the player session.
+     */
     @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.SIMPLEDATE, expression = DATE_FORMAT), timeZone = "UTC")
-    public Date getUpdatedDate() {
+    public SimpleDate getUpdatedDate() {
         return updatedDate;
     }
 
-    public void setUpdatedDate(final Date updatedDate) {
+    public void setUpdatedDate(final SimpleDate updatedDate) {
         this.updatedDate = updatedDate;
     }
 
