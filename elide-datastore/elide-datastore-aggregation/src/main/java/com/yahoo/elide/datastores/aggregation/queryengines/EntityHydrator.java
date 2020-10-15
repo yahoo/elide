@@ -62,8 +62,8 @@ public class EntityHydrator {
                 Map<String, Object> row = new HashMap<>();
 
                 for (int idx = 0; idx < projections.size(); idx++) {
-                    Object value = rs.getObject(idx + 1);
                     String fieldName = projections.get(idx);
+                    Object value = rs.getObject(fieldName);
                     row.put(fieldName, value);
                 }
 

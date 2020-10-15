@@ -57,7 +57,11 @@ public class FormulaValidator extends ColumnVisitor<Void> {
 
         visited.add(column.getId());
         for (String reference : resolveFormulaReferences(column.getExpression())) {
-            if (reference.contains(".")) {
+
+            //Column is from a query instead of a table.  Nothing to validate.
+            if (column.getSource() != column.getSource().getSource()) {
+                continue;
+            } else if (reference.contains(".")) {
                 JoinPath joinToPath = new JoinPath(tableClass, dictionary, reference);
 
                 visitColumn(getColumn(joinToPath));

@@ -18,17 +18,17 @@ import java.text.SimpleDateFormat;
  * Serde class for bidirectional conversion from Elide YearMonth type to java.util.Date.
  */
 @ElideTypeConverter(type = YearMonth.class, name = "YearMonth")
-public class YearMonthSerde implements Serde<Object, Date> {
+public class YearMonthSerde implements Serde<Object, YearMonth> {
 
     private static final SimpleDateFormat YEARMONTH_FORMATTER = new SimpleDateFormat(TimeGrain.YEARMONTH.getFormat());
 
     @Override
-    public Date deserialize(Object val) {
-        Date date = null;
+    public YearMonth deserialize(Object val) {
+        YearMonth date = null;
 
         try {
             if (val instanceof String) {
-                date = new Date(YEARMONTH_FORMATTER.parse((String) val).getTime());
+                date = new YearMonth(new Date(YEARMONTH_FORMATTER.parse((String) val).getTime()));
             } else {
                 date = new YearMonth(YEARMONTH_FORMATTER.parse(YEARMONTH_FORMATTER.format(val)));
             }
@@ -40,7 +40,7 @@ public class YearMonthSerde implements Serde<Object, Date> {
     }
 
     @Override
-    public String serialize(Date val) {
+    public String serialize(YearMonth val) {
         return YEARMONTH_FORMATTER.format(val).toString();
     }
 }

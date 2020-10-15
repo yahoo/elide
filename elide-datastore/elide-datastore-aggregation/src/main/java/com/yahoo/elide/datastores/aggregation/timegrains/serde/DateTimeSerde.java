@@ -18,18 +18,18 @@ import java.text.SimpleDateFormat;
  * Serde class for bidirectional conversion from Elide DateTime type to java.util.Date.
  */
 @ElideTypeConverter(type = DateTime.class, name = "DateTime")
-public class DateTimeSerde implements Serde<Object, Timestamp> {
+public class DateTimeSerde implements Serde<Object, DateTime> {
 
     private static final SimpleDateFormat DATETIME_FORMATTER = new SimpleDateFormat(TimeGrain.DATETIME.getFormat());
 
     @Override
-    public Timestamp deserialize(Object val) {
+    public DateTime deserialize(Object val) {
 
-        Timestamp timestamp = null;
+        DateTime timestamp = null;
 
         try {
             if (val instanceof String) {
-                timestamp = new Timestamp(DATETIME_FORMATTER.parse((String) val).getTime());
+                timestamp = new DateTime(new Timestamp(DATETIME_FORMATTER.parse((String) val).getTime()));
             } else {
                 timestamp = new DateTime(DATETIME_FORMATTER.parse(DATETIME_FORMATTER.format(val)));
             }
@@ -41,7 +41,7 @@ public class DateTimeSerde implements Serde<Object, Timestamp> {
     }
 
     @Override
-    public String serialize(Timestamp val) {
+    public String serialize(DateTime val) {
         return DATETIME_FORMATTER.format(val).toString();
     }
 }

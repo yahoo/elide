@@ -9,6 +9,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanResolver;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
@@ -16,7 +17,6 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.request.Argument;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
 
@@ -27,7 +27,6 @@ import java.util.Map;
  */
 @Value
 @Builder
-@AllArgsConstructor
 public class SQLMetricProjection implements MetricProjection, SQLColumnProjection {
     private Queryable source;
     private String name;
@@ -40,22 +39,59 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
     @Override
     public QueryPlan resolve() {
-        if (queryPlanResolver != null) {
-            return queryPlanResolver.resolve(this);
-        }
-        return MetricProjection.super.resolve();
+        return queryPlanResolver.resolve(this);
+    }
+
+    public SQLMetricProjection(Queryable source,
+                               String name,
+                               ValueType valueType,
+                               ColumnType columnType,
+                               String expression,
+                               String  alias,
+                               Map<String, Argument> arguments,
+                               QueryPlanResolver queryPlanResolver) {
+        this.source = source;
+        this.name = name;
+        this.valueType = valueType;
+        this.columnType = columnType;
+        this.expression = expression;
+        this.alias = alias;
+        this.arguments = arguments;
+        this.queryPlanResolver = queryPlanResolver == null ? new DefaultQueryPlanResolver() : queryPlanResolver;
     }
 
     public SQLMetricProjection(Metric metric,
                                String alias,
                                Map<String, Argument> arguments) {
-        this.queryPlanResolver = null;
-        this.source = (SQLTable) metric.getTable();
-        this.name = metric.getName();
-        this.expression = metric.getExpression();
-        this.valueType = metric.getValueType();
-        this.columnType = metric.getColumnType();
-        this.alias = alias;
-        this.arguments = arguments;
+        this((SQLTable) metric.getTable(), metric.getName(), metric.getValueType(),
+                metric.getColumnType(), metric.getExpression(), alias, arguments, metric.getQueryPlanResolver());
+    }
+
+    @Override
+    public SQLMetricProjection withSource(Queryable source) {
+        return SQLMetricProjection.builder()
+                .source(source)
+                .name(name)
+                .alias(alias)
+                .valueType(valueType)
+                .columnType(columnType)
+                .expression(expression)
+                .arguments(arguments)
+                .queryPlanResolver(queryPlanResolver)
+                .build();
+    }
+
+    @Override
+    public SQLMetricProjection withSourceAndExpression(Queryable source, String expression) {
+        return SQLMetricProjection.builder()
+                .source(source)
+                .name(name)
+                .alias(alias)
+                .valueType(valueType)
+                .columnType(columnType)
+                .expression(expression)
+                .arguments(arguments)
+                .queryPlanResolver(queryPlanResolver)
+                .build();
     }
 }

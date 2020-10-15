@@ -10,7 +10,6 @@ import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
-import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 
 import lombok.Getter;
@@ -18,51 +17,43 @@ import lombok.Getter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Table stores all resolved physical reference and join paths of all columns.
  */
 public class SQLReferenceTable {
     @Getter
-    private final MetaDataStore metaDataStore;
+    protected final MetaDataStore metaDataStore;
 
     @Getter
-    private final EntityDictionary dictionary;
+    protected final EntityDictionary dictionary;
 
     //Stores  MAP<Queryable, MAP<fieldName, reference>>
-    private final Map<Queryable, Map<String, String>> resolvedReferences = new HashMap<>();
+    protected final Map<Queryable, Map<String, String>> resolvedReferences = new HashMap<>();
 
     //Stores  MAP<Queryable, MAP<fieldName, join path>>
-    private final Map<Queryable, Map<String, Set<JoinPath>>> resolvedJoinPaths = new HashMap<>();
+    protected final Map<Queryable, Map<String, Set<JoinPath>>> resolvedJoinPaths = new HashMap<>();
 
     public SQLReferenceTable(MetaDataStore metaDataStore) {
+        this(metaDataStore,
+             metaDataStore.getMetaData(Table.class)
+                .stream()
+                .map(SQLTable.class::cast)
+                .collect(Collectors.toSet()));
+    }
+
+    protected SQLReferenceTable(MetaDataStore metaDataStore, Set<Queryable> queryables) {
         this.metaDataStore = metaDataStore;
         this.dictionary = this.metaDataStore.getMetadataDictionary();
 
-        metaDataStore.getMetaData(Table.class)
-                .stream()
-                .map(SQLTable.class::cast)
-                .forEach(this::resolveAndStoreAllReferencesAndJoins);
-    }
-
-    /**
-     * Builds a new SQLReference table by starting from a base table and adding references from a particular query.
-     * @param toCopy The base reference table.
-     * @param query The query from which new references will be populated.
-     */
-    public SQLReferenceTable(SQLReferenceTable toCopy, Query query) {
-        this.metaDataStore = toCopy.getMetaDataStore();
-        this.dictionary = toCopy.getDictionary();
-        this.resolvedJoinPaths.putAll(toCopy.resolvedJoinPaths);
-        this.resolvedReferences.putAll(toCopy.resolvedReferences);
-
-        Queryable next = query;
-
-        while (next.isNested()) {
-            resolveAndStoreAllReferencesAndJoins(next);
-
-            next = next.getSource();
-        }
+        queryables.stream().forEach(queryable -> {
+            Queryable next = queryable;
+            do {
+                resolveAndStoreAllReferencesAndJoins(next);
+                next = next.getSource();
+            } while (next.isNested());
+        });
     }
 
     /**

@@ -19,18 +19,18 @@ import java.text.SimpleDateFormat;
  * WeekDate will be date corresponding to the Monday.
  */
 @ElideTypeConverter(type = WeekDate.class, name = "WeekDate")
-public class WeekDateSerde implements Serde<Object, Date> {
+public class WeekDateSerde implements Serde<Object, WeekDate> {
 
     private static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat(TimeGrain.WEEKDATE.getFormat());
     private static final SimpleDateFormat WEEKDATE_FORMATTER = new SimpleDateFormat("u");
 
     @Override
-    public Date deserialize(Object val) {
-        Date date = null;
+    public WeekDate deserialize(Object val) {
+        WeekDate date = null;
 
         try {
             if (val instanceof String) {
-                date = new Date(DATE_FORMATTER.parse((String) val).getTime());
+                date = new WeekDate(new Date(DATE_FORMATTER.parse((String) val).getTime()));
             } else {
                 date = new WeekDate(DATE_FORMATTER.parse(DATE_FORMATTER.format(val)));
             }
@@ -46,7 +46,7 @@ public class WeekDateSerde implements Serde<Object, Date> {
     }
 
     @Override
-    public String serialize(Date val) {
+    public String serialize(WeekDate val) {
         if (!WEEKDATE_FORMATTER.format(val).equals("1")) {
             throw new IllegalArgumentException("Date string not a monday.");
         } else {
