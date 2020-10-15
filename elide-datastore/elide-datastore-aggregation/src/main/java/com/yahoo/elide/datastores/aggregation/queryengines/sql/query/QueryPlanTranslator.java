@@ -6,8 +6,8 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection.withSource;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection.withSourceAndExpression;
+import static com.yahoo.elide.datastores.aggregation.query.QueryPlan.nestColumnProjection;
+import static com.yahoo.elide.datastores.aggregation.query.QueryPlan.withSource;
 
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -90,8 +90,8 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
         return Query.builder()
                 .source(innerQuery)
                 .metricProjections(withSource(innerQuery, plan.getMetricProjections()))
-                .dimensionProjections(withSourceAndExpression(innerQuery, clientQuery.getDimensionProjections()))
-                .timeDimensionProjections(withSourceAndExpression(innerQuery,
+                .dimensionProjections(nestColumnProjection(innerQuery, clientQuery.getDimensionProjections()))
+                .timeDimensionProjections(nestColumnProjection(innerQuery,
                         clientQuery.getTimeDimensionProjections()))
                 .havingFilter(clientQuery.getHavingFilter())
                 .sorting(clientQuery.getSorting())
@@ -104,9 +104,9 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
 
         return Query.builder()
                 .source(innerQuery)
-                .metricProjections(withSourceAndExpression(innerQuery, plan.getMetricProjections()))
-                .dimensionProjections(withSourceAndExpression(innerQuery, clientQuery.getDimensionProjections()))
-                .timeDimensionProjections(withSourceAndExpression(innerQuery,
+                .metricProjections(withSource(innerQuery, plan.getMetricProjections()))
+                .dimensionProjections(nestColumnProjection(innerQuery, clientQuery.getDimensionProjections()))
+                .timeDimensionProjections(nestColumnProjection(innerQuery,
                         clientQuery.getTimeDimensionProjections()));
     }
 

@@ -5,9 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.query;
 
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection.withSource;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection.withSourceAndExpression;
-
 import com.google.common.collect.Streams;
 import lombok.Builder;
 import lombok.NonNull;
@@ -93,9 +90,36 @@ public class QueryPlan implements Queryable {
     public QueryPlan nest() {
         return QueryPlan.builder()
                 .source(this)
-                .metricProjections(withSourceAndExpression(this, metricProjections))
-                .dimensionProjections(withSourceAndExpression(this, dimensionProjections))
-                .timeDimensionProjections(withSource(this, timeDimensionProjections))
+                .metricProjections(nestColumnProjection(this, metricProjections))
+                .dimensionProjections(nestColumnProjection(this, dimensionProjections))
+                .timeDimensionProjections(nestColumnProjection(this, timeDimensionProjections))
                 .build();
+    }
+
+    /**
+     * Makes of a copy of a set of columns all with a new source.
+     * @param source The new source.
+     * @param columns The columns to copy.
+     * @param <T> The column projection type.
+     * @return An ordered set of the column copies.
+     */
+    public static <T extends ColumnProjection> Set<T> withSource(Queryable source, Set<T> columns) {
+        return (Set<T>) columns.stream()
+                .map(column -> column.withSource(source))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    /**
+     * Makes of a copy of a set of columns that are being nested in a new parent.  The column expressions are
+     * changed to reference the columns by name.
+     * @param parentSource The new parent source.
+     * @param columns The columns to copy.
+     * @param <T> The column projection type.
+     * @return An ordered set of the column copies.
+     */
+    public static <T extends ColumnProjection> Set<T> nestColumnProjection(Queryable parentSource, Set<T> columns) {
+        return (Set<T>) columns.stream()
+                .map(column -> column.withSourceAndExpression(parentSource, "{{" + column.getName() + "}}"))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }
