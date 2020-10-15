@@ -44,7 +44,7 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
 
     @Override
     public Query.QueryBuilder visitQueryable(Queryable plan) {
-        if (invoked == false) {
+        if (! invoked) {
             invoked = true;
             if (plan.isNested()) {
                 return visitOuterQueryPlan(plan);
