@@ -39,8 +39,21 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+import com.yahoo.elide.datastores.aggregation.timegrains.DateTime;
+import com.yahoo.elide.datastores.aggregation.timegrains.MonthYear;
+import com.yahoo.elide.datastores.aggregation.timegrains.SimpleDate;
+import com.yahoo.elide.datastores.aggregation.timegrains.WeekDate;
+import com.yahoo.elide.datastores.aggregation.timegrains.Year;
+import com.yahoo.elide.datastores.aggregation.timegrains.YearMonth;
+import com.yahoo.elide.datastores.aggregation.timegrains.serde.DateTimeSerde;
+import com.yahoo.elide.datastores.aggregation.timegrains.serde.MonthYearSerde;
+import com.yahoo.elide.datastores.aggregation.timegrains.serde.SimpleDateSerde;
+import com.yahoo.elide.datastores.aggregation.timegrains.serde.WeekDateSerde;
+import com.yahoo.elide.datastores.aggregation.timegrains.serde.YearMonthSerde;
+import com.yahoo.elide.datastores.aggregation.timegrains.serde.YearSerde;
 import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.utils.ClassScanner;
+import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -317,6 +330,14 @@ public abstract class SQLUnitTest {
         dictionary.bindEntity(CountryViewNested.class);
         dictionary.bindEntity(Continent.class);
         filterParser = new RSQLFilterDialect(dictionary);
+
+        //Manually register the serdes because we are not running a complete Elide service.
+        CoerceUtil.register(YearMonth.class, new YearMonthSerde());
+        CoerceUtil.register(SimpleDate.class, new SimpleDateSerde());
+        CoerceUtil.register(DateTime.class, new DateTimeSerde());
+        CoerceUtil.register(MonthYear.class, new MonthYearSerde());
+        CoerceUtil.register(Year.class, new YearSerde());
+        CoerceUtil.register(WeekDate.class, new WeekDateSerde());
 
         metaDataStore.populateEntityDictionary(dictionary);
 

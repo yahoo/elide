@@ -54,11 +54,19 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
     @Override
     protected String visitFieldDimension(ColumnProjection dimension) {
         Queryable source = dimension.getSource();
-        return getFieldAlias(
-                tableAliases.peek(),
-                dictionary.getAnnotatedColumnName(
-                        dictionary.getEntityClass(source.getName(), source.getVersion()),
-                        dimension.getName()));
+
+        //This is a table.  Check if there is a @Column annotation.
+        if (source == source.getSource()) {
+            return getFieldAlias(
+                    tableAliases.peek(),
+                    dictionary.getAnnotatedColumnName(
+                            dictionary.getEntityClass(source.getName(), source.getVersion()),
+                            dimension.getName()));
+
+        //This is a nested query.  Don't do table lookups.
+        } else {
+            return getFieldAlias(tableAliases.peek(), dimension.getName());
+        }
     }
 
     @Override
@@ -74,7 +82,6 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
      */
     private String visitFormulaColumn(ColumnProjection column) {
         Queryable source  = column.getSource();
-        Class<?> tableClass = dictionary.getEntityClass(source.getName(), source.getVersion());
 
         String expr = column.getExpression();
 
@@ -82,8 +89,13 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
         for (String reference : resolveFormulaReferences(column.getExpression())) {
             String resolvedReference;
 
+            //The column is sourced from a query rather than a table.
+            if (column.getSource() != column.getSource().getSource()) {
+                resolvedReference = visitPhysicalReference(reference);
+
             //The reference is a join to another logical column.
-            if (reference.contains(".")) {
+            } else if (reference.contains(".")) {
+                Class<?> tableClass = dictionary.getEntityClass(source.getName(), source.getVersion());
                 resolvedReference = visitTableJoinToReference(tableClass, reference);
             } else {
                 ColumnProjection referenceColumn = source.getColumnProjection(reference);

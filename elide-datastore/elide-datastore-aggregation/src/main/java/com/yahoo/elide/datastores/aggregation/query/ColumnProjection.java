@@ -76,4 +76,23 @@ public interface ColumnProjection extends Serializable {
     // force implementations to define equals/hashCode
     boolean equals(Object other);
     int hashCode();
+
+    /**
+     * Makes a copy of this column with a new source.
+     * @param source The new source.
+     * @return copy of the column projection.
+     */
+    default ColumnProjection withSource(Queryable source) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Makes a copy of this column with a new source and expression.
+     * @param source The new source.
+     * @param expression The new expression.
+     * @return copy of the column projection.
+     */
+    default ColumnProjection withSourceAndExpression(Queryable source, String expression) {
+        throw new UnsupportedOperationException();
+    }
 }

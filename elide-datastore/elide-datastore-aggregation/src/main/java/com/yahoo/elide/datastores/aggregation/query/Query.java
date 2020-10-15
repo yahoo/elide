@@ -10,8 +10,6 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.request.Sorting;
 
-import com.google.common.collect.Streams;
-
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Singular;
@@ -55,6 +53,11 @@ public class Query implements Queryable {
      */
     private boolean bypassingCache;
 
+    @Override
+    public <T> T accept(QueryVisitor<T> visitor) {
+        return visitor.visitQuery(this);
+    }
+
     /**
      * Returns all the dimensions regardless of type.
      * @return All the dimensions.
@@ -62,72 +65,5 @@ public class Query implements Queryable {
     public Set<ColumnProjection> getAllDimensionProjections() {
         return Stream.concat(getDimensionProjections().stream(), getTimeDimensionProjections().stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    @Override
-    public String getAlias() {
-        //Eliminate any negative hash codes.
-        return source.getAlias() + "_" + (this.hashCode() & 0x7fffffff);
-    }
-
-    @Override
-    public String getName() {
-        return getAlias();
-    }
-
-    @Override
-    public String getVersion() {
-        return "";
-    }
-
-    @Override
-    public ColumnProjection getDimensionProjection(String name) {
-        return dimensionProjections.stream()
-                .filter(dim -> dim.getName().equals(name))
-                .findFirst()
-                .orElse(null);
-    }
-
-    @Override
-    public ColumnProjection getColumnProjection(String name) {
-        return getColumnProjections().stream()
-                .filter(dim -> dim.getName().equals(name))
-                .findFirst()
-                .orElse(null);
-    }
-
-    @Override
-    public MetricProjection getMetricProjection(String name) {
-        return metricProjections.stream()
-                .filter(metric -> metric.getName().equals(name))
-                .findFirst()
-                .orElse(null);
-    }
-
-    @Override
-    public TimeDimensionProjection getTimeDimensionProjection(String name) {
-        return timeDimensionProjections.stream()
-                .filter(dim -> dim.getName().equals(name))
-                .findFirst()
-                .orElse(null);
-    }
-
-    @Override
-    public Set<ColumnProjection> getColumnProjections() {
-        return Streams.concat(
-                timeDimensionProjections.stream(),
-                dimensionProjections.stream(),
-                metricProjections.stream())
-                .collect(Collectors.toSet());
-    }
-
-    @Override
-    public String getDbConnectionName() {
-        return source.getDbConnectionName();
-    }
-
-    @Override
-    public <T> T accept(QueryVisitor<T> visitor) {
-        return visitor.visitQuery(this);
     }
 }

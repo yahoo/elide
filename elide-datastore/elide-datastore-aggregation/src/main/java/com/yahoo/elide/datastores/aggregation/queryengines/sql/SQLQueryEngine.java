@@ -25,8 +25,10 @@ import com.yahoo.elide.datastores.aggregation.queryengines.EntityHydrator;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.DynamicSQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryPlanTranslator;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryTranslator;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
@@ -302,29 +304,13 @@ public class SQLQueryEngine extends QueryEngine {
             }
         }
 
-        //TODO - Nest unnested query plans when merging with a nested query plan.
-        //TODO - Push where clause to inner queries.
-        //TODO - Push sort joins to inner queries.
-        //TODO - Merge dimensions during query plan merge.
+        QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query);
 
-        Query finalQuery = Query.builder()
-                .source(mergedPlan != null
-                        ? mergedPlan.getSource()
-                        : query.getSource())
-                .metricProjections(mergedPlan != null
-                        ? mergedPlan.getMetricProjections()
-                        : query.getMetricProjections())
-                .dimensionProjections(query.getDimensionProjections())
-                .timeDimensionProjections(query.getTimeDimensionProjections())
-                .whereFilter(query.getWhereFilter())
-                .havingFilter(query.getHavingFilter())
-                .sorting(query.getSorting())
-                .pagination(query.getPagination())
-                .scope(query.getScope())
-                .bypassingCache(query.isBypassingCache())
-                .build();
+        Query finalQuery = (mergedPlan == null)
+                ? query
+                : mergedPlan.accept(queryPlanTranslator).build();
 
-        SQLReferenceTable queryReferenceTable = new SQLReferenceTable(referenceTable, finalQuery);
+        SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, finalQuery);
 
         QueryTranslator translator = new QueryTranslator(queryReferenceTable, sqlDialect);
 

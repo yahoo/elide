@@ -6,7 +6,10 @@
 
 package com.yahoo.elide.datastores.aggregation.query;
 
+import com.google.common.collect.Streams;
+
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Represents something that can be queried.  There are generally, three kinds:
@@ -20,32 +23,39 @@ public interface Queryable {
      * Returns the source of this queryable's data.  The source could be itself.
      * @return The data source.
      */
-    public Queryable getSource();
+    Queryable getSource();
 
     /**
      * Every queryable needs an alias which uniquely identifies the queryable in an individual query
      * @return The alias
      */
-    public String getAlias();
+    default String getAlias() {
+        //Eliminate any negative hash codes.
+        return getSource().getAlias() + "_" + (this.hashCode() & 0x7fffffff);
+    }
 
     /**
      * The name of the queryable
      * @return The name
      */
-    public String getName();
+    default String getName() {
+        return getAlias();
+    }
 
     /**
      * The version of the queryable
      * @return The version
      */
-    public String getVersion();
+    default String getVersion() {
+        return "";
+    }
 
     /**
      * Looks up the alias for a particular column.
      * @param columnName The name of the column.
      * @return The alias for the given column.
      */
-    default public String getAlias(String columnName) {
+    default String getAlias(String columnName) {
         return getAlias();
     }
 
@@ -54,58 +64,86 @@ public interface Queryable {
      * @param name The name of the column.
      * @return The column.
      */
-    public ColumnProjection getColumnProjection(String name);
+    default ColumnProjection getColumnProjection(String name) {
+        return getColumnProjections().stream()
+                .filter(dim -> dim.getName().equals(name))
+                .findFirst()
+                .orElse(null);
+    }
 
     /**
      * Retrieves a non-time dimension by name.
      * @param name The name of the dimension.
      * @return The dimension.
      */
-    public ColumnProjection getDimensionProjection(String name);
+    default ColumnProjection getDimensionProjection(String name) {
+        return getDimensionProjections().stream()
+                .filter(dim -> dim.getName().equals(name))
+                .findFirst()
+                .orElse(null);
+    }
 
     /**
      * Retrieves all the non-time dimensions.
      * @return The non-time dimensions.
      */
-    public Set<ColumnProjection> getDimensionProjections();
+    Set<ColumnProjection> getDimensionProjections();
 
     /**
      * Retrieves a metric by name.
      * @param name The name of the metric.
      * @return The metric.
      */
-    public MetricProjection getMetricProjection(String name);
+    default MetricProjection getMetricProjection(String name) {
+        return getMetricProjections().stream()
+                .filter(metric -> metric.getName().equals(name))
+                .findFirst()
+                .orElse(null);
+    }
 
     /**
      * Retrieves all the metrics.
      * @return The metrics.
      */
-    public Set<MetricProjection> getMetricProjections();
+    Set<MetricProjection> getMetricProjections();
 
     /**
      * Retrieves a time dimension by name.
      * @param name The name of the time dimension.
      * @return The time dimension.
      */
-    public TimeDimensionProjection getTimeDimensionProjection(String name);
+    default TimeDimensionProjection getTimeDimensionProjection(String name) {
+        return getTimeDimensionProjections().stream()
+                .filter(dim -> dim.getName().equals(name))
+                .findFirst()
+                .orElse(null);
+    }
 
     /**
      * Retrieves all the time dimensions.
      * @return The time dimensions.
      */
-    public Set<TimeDimensionProjection> getTimeDimensionProjections();
+    Set<TimeDimensionProjection> getTimeDimensionProjections();
 
     /**
      * Returns all the columns.
      * @return the columns.
      */
-    public Set<ColumnProjection> getColumnProjections();
+    default Set<ColumnProjection> getColumnProjections() {
+        return Streams.concat(
+                getTimeDimensionProjections().stream(),
+                getDimensionProjections().stream(),
+                getMetricProjections().stream())
+                .collect(Collectors.toSet());
+    }
 
     /**
      * Returns the connection name where this queryable is sourced from.
      * @return the connectinon name
      */
-    public String getDbConnectionName();
+    default String getDbConnectionName() {
+        return getSource().getDbConnectionName();
+    }
 
     /**
      * Execute a visitor on this query.
@@ -113,7 +151,9 @@ public interface Queryable {
      * @param <T> The return type of the visitor.
      * @return Something that the visitor is constructing.
      */
-    public <T> T accept(QueryVisitor<T> visitor);
+    default <T> T accept(QueryVisitor<T> visitor) {
+        return visitor.visitQueryable(this);
+    }
 
     /**
      * Determines if this queryable is nested from another queryable.
@@ -124,5 +164,19 @@ public interface Queryable {
 
         //A table with no source is not nested.  Neither is a query with a source table.
         return (source != null && source.getSource() != source);
+    }
+
+    /**
+     * Returns the depth of the nesting of this Queryable.
+     * @return 0 for unnested.  Positive integer for nested..
+     */
+    default int nestDepth() {
+        int depth = 0;
+        Queryable current = this;
+        while (current.isNested()) {
+            depth++;
+            current = current.getSource();
+        }
+        return depth;
     }
 }

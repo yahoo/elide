@@ -828,16 +828,16 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                         field(
                                 "playerStats",
                                 selections(
-                                        field("recordedDate", "2019-07-13T00:00Z"),
-                                        field("updatedDate", "2020-01-12T00:00Z")
+                                        field("recordedDate", "2019-07-13"),
+                                        field("updatedDate", "2020-01-12")
                                 ),
                                 selections(
-                                        field("recordedDate", "2019-07-12T00:00Z"),
-                                        field("updatedDate", "2019-10-12T00:00Z")
+                                        field("recordedDate", "2019-07-12"),
+                                        field("updatedDate", "2019-10-12")
                                 ),
                                 selections(
-                                        field("recordedDate", "2019-07-11T00:00Z"),
-                                        field("updatedDate", "2020-07-12T00:00Z")
+                                        field("recordedDate", "2019-07-11"),
+                                        field("updatedDate", "2020-07-12")
                                 )
                         )
                 )
@@ -852,6 +852,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 .accept("application/vnd.api+json")
                 .get("/playerStats")
                 .then()
+                .log().all()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.id", hasItems("0", "1", "2"))
                 .body("data.attributes.highScore", hasItems(1000, 1234, 2412))

@@ -61,7 +61,11 @@ public class SQLJoinVisitor extends ColumnVisitor<Set<JoinPath>> {
 
         // only need to add joins for references to fields defined in other table
         for (String reference : resolveFormulaReferences(column.getExpression())) {
-            if (reference.contains(".")) {
+
+            //Column is from a query instead of a table.  No joins to generate here.
+            if (column.getSource() != column.getSource().getSource()) {
+                continue;
+            } else if (reference.contains(".")) {
                 joinPaths.addAll(visitJoinToReference(column, reference));
             }
         }
