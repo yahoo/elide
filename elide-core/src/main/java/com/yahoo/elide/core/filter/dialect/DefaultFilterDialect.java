@@ -28,10 +28,16 @@ import javax.ws.rs.core.MultivaluedMap;
 /**
  * The default filter dialect supported in Elide 1.0 and 2.0.
  */
-public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDialect {
+public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDialect, FilterDialect {
     private final EntityDictionary dictionary;
     public DefaultFilterDialect(EntityDictionary dictionary) {
         this.dictionary = dictionary;
+    }
+
+    @Override
+    public FilterExpression parse(Class<?> entityClass, Map<String, String> aliasMap, String filterText)
+            throws ParseException {
+        return null;
     }
 
     /**

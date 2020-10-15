@@ -489,6 +489,7 @@ public class GraphQLEntityProjectionMaker {
      */
     private void addFilter(Argument argument, EntityProjectionBuilder projectionBuilder) {
         FilterExpression filter = buildFilter(
+                projectionBuilder,
                 entityDictionary.getJsonAliasFor(projectionBuilder.getType()),
                 variableResolver.resolveValue(argument.getValue()));
 
@@ -507,7 +508,7 @@ public class GraphQLEntityProjectionMaker {
      * @param filterString Elide filter in string format
      * @return constructed filter expression
      */
-    private FilterExpression buildFilter(String typeName, Object filterString) {
+    private FilterExpression buildFilter(EntityProjectionBuilder builder, String typeName, Object filterString) {
         if (!(filterString instanceof String)) {
             throw new BadRequestException("Filter of type " + typeName + " is not StringValue.");
         }

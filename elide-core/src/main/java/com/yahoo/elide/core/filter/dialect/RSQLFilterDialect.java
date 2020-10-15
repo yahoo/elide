@@ -56,7 +56,7 @@ import javax.ws.rs.core.MultivaluedMap;
 /**
  * FilterDialect which implements support for RSQL filter dialect.
  */
-public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDialect {
+public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, JoinFilterDialect {
     private static final String SINGLE_PARAMETER_ONLY = "There can only be a single filter query parameter";
     private static final String INVALID_QUERY_PARAMETER = "Invalid query parameter: ";
     private static final Pattern TYPED_FILTER_PATTERN = Pattern.compile("filter\\[([^\\]]+)\\]");
@@ -103,6 +103,12 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
         operators.add(HASMEMBER_OP);
         operators.add(HASNOMEMBER_OP);
         return operators;
+    }
+
+    @Override
+    public FilterExpression parse(Class<?> entityClass, Map<String, String> aliasMap, String filterText)
+            throws ParseException {
+        return parseFilterExpression(filterText, entityClass, true);
     }
 
     @Override
