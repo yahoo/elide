@@ -25,6 +25,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.EntityHydrator;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.DynamicSQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryPlanTranslator;
@@ -309,7 +310,7 @@ public class SQLQueryEngine extends QueryEngine {
                 ? query
                 : mergedPlan.accept(queryPlanTranslator).build();
 
-        SQLReferenceTable queryReferenceTable = new SQLReferenceTable(referenceTable, finalQuery);
+        SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, finalQuery);
 
         QueryTranslator translator = new QueryTranslator(queryReferenceTable, sqlDialect);
 
