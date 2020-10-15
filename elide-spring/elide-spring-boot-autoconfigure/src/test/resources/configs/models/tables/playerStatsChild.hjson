@@ -20,7 +20,7 @@
             {
                 name : name
                 type : TEXT
-                definition : '{{name}}'
+                definition : 'CONCAT(\'PlayerName: \', {{name}})'
             },
             {
                 name : createdOn

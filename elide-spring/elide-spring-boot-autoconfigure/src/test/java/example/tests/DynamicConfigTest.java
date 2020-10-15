@@ -88,14 +88,14 @@ public class DynamicConfigTest extends IntegrationTest {
                                                 attr("createdOn", "2000-10-10"),
                                                 attr("createdYear", "2000"),
                                                 attr("highScore", null),
-                                                attr("name", "SerenaWilliams"),
+                                                attr("name", "PlayerName: SerenaWilliams"), //overridden dim
                                                 attr("updatedOn", "2001-10")
                                         )
                                 )
                         ).toJSON())
                 )
                 .statusCode(HttpStatus.SC_OK).extract().response().asString();
-        String apiGetViewExpected = "{\"data\":[{\"type\":\"playerStatsChild\",\"id\":\"0\",\"attributes\":{\"countryCode\":\"USA\",\"createdOn\":\"2000-10-10\",\"createdYear\":\"2000\",\"highScore\":null,\"name\":\"SerenaWilliams\",\"updatedOn\":\"2001-10\"}}]}";
+        String apiGetViewExpected = "{\"data\":[{\"type\":\"playerStatsChild\",\"id\":\"0\",\"attributes\":{\"countryCode\":\"USA\",\"createdOn\":\"2000-10-10\",\"createdYear\":\"2000\",\"highScore\":null,\"name\":\"PlayerName: SerenaWilliams\",\"updatedOn\":\"2001-10\"}}]}";
         assertEquals(apiGetViewExpected, apiGetViewRequest);
     }
 
