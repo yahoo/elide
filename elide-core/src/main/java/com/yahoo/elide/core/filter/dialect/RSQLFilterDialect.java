@@ -19,6 +19,9 @@ import com.yahoo.elide.core.filter.IsNullPredicate;
 import com.yahoo.elide.core.filter.NotEmptyPredicate;
 import com.yahoo.elide.core.filter.NotNullPredicate;
 import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.dialect.graphql.FilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.JoinFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.SubqueryFilterDialect;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
@@ -106,7 +109,10 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
     }
 
     @Override
-    public FilterExpression parse(Class<?> entityClass, Map<String, String> aliasMap, String filterText)
+    public FilterExpression parse(Class<?> entityClass,
+                                  Map<String, String> aliasMap,
+                                  String filterText,
+                                  String apiVersion)
             throws ParseException {
         return parseFilterExpression(filterText, entityClass, true);
     }
