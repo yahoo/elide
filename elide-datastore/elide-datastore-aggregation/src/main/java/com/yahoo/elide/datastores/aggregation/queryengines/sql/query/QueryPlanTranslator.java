@@ -22,6 +22,9 @@ import java.util.stream.Collectors;
 
 /**
  * Translates a merged query plan and a client query into query that can be executed.
+ *
+ * Column projection expressions originating from the query plan are left untouched.
+ * Column projection expressions originating from the client query are nested for outer queries.
  */
 public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
 
@@ -77,7 +80,8 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .dimensionProjections(dimensions)
                 .timeDimensionProjections(timeDimensions)
                 .whereFilter(clientQuery.getWhereFilter())
-                //TODO - we only want the sorting dimensions here for their joins - not the metrics.
+                //TODO - we only want the sorting dimensions here for their joins - not the metrics.  Filter
+                //out the metrics.
                 .sorting(clientQuery.getSorting());
     }
 
@@ -98,6 +102,7 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
 
     private Query.QueryBuilder visitMiddleQueryPlan(Queryable plan)  {
         Query innerQuery = plan.getSource().accept(this).build();
+
 
         return Query.builder()
                 .source(innerQuery)
