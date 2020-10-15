@@ -55,12 +55,15 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
     protected String visitFieldDimension(ColumnProjection dimension) {
         Queryable source = dimension.getSource();
 
+        //This is a table.  Check if there is a @Column annotation.
         if (source == source.getSource()) {
             return getFieldAlias(
                     tableAliases.peek(),
                     dictionary.getAnnotatedColumnName(
                             dictionary.getEntityClass(source.getName(), source.getVersion()),
                             dimension.getName()));
+
+        //This is a nested query.  Don't do table lookups.
         } else {
             return getFieldAlias(tableAliases.peek(), dimension.getName());
         }

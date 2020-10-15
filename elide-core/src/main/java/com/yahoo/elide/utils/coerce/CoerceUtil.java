@@ -10,7 +10,6 @@ import static com.yahoo.elide.utils.TypeHelper.isNumberType;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.utils.coerce.converters.FromMapConverter;
-import com.yahoo.elide.utils.coerce.converters.SQLDateConverter;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 import com.yahoo.elide.utils.coerce.converters.ToEnumConverter;
 import com.yahoo.elide.utils.coerce.converters.ToUUIDConverter;
@@ -22,7 +21,6 @@ import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.Converter;
 
 import java.lang.reflect.Array;
-import java.sql.Date;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;

@@ -59,11 +59,11 @@ public class Metric extends Column {
             try {
                 this.queryPlanResolver = formula.queryPlan().newInstance();
             } catch (InstantiationException | IllegalAccessException e) {
-                throw new IllegalArgumentException("Trying to construct metric field "
-                        + getId() + " without @MetricFormula.");
+                throw new IllegalStateException("Could not instantiate query plan resolver for metric field: "
+                        + getId());
             }
         } else {
-            throw new IllegalArgumentException("Trying to construct metric field "
+            throw new IllegalStateException("Trying to construct metric field "
                     + getId() + " without @MetricFormula.");
         }
     }

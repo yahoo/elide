@@ -84,9 +84,6 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
     private Query.QueryBuilder visitOuterQueryPlan(Queryable plan)  {
         Query innerQuery = plan.getSource().accept(this).build();
 
-        //TODO - whenever there is a nested query, we need to create an inner query where we project out all
-        //of the where, having, and sort columns - performing the filters and sorts.   This inner query needs
-        //to be wrapped in an outermost query that projects just the final client requested fields.
         return Query.builder()
                 .source(innerQuery)
                 .metricProjections(withSource(innerQuery, plan.getMetricProjections()))

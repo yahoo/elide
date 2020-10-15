@@ -303,11 +303,6 @@ public class SQLQueryEngine extends QueryEngine {
             }
         }
 
-        //TODO - Nest unnested query plans when merging with a nested query plan.
-        //TODO - Push where clause to inner queries.
-        //TODO - Push sort joins to inner queries.
-        //TODO - Merge dimensions during query plan merge.
-
         QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query);
 
         Query finalQuery = (mergedPlan == null)

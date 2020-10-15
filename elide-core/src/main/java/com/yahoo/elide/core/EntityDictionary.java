@@ -243,11 +243,7 @@ public class EntityDictionary {
     }
 
     public boolean isMappedInterface(Class<?> interfaceClass) {
-        try {
-            return interfaceClass.isInterface() && interfaceClass.isAnnotationPresent(MappedInterface.class);
-        } catch (NullPointerException e) {
-            throw e;
-        }
+        return interfaceClass.isInterface() && interfaceClass.isAnnotationPresent(MappedInterface.class);
     }
 
     /**
