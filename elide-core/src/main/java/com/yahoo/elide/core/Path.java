@@ -9,18 +9,22 @@ import static com.yahoo.elide.core.EntityDictionary.getSimpleName;
 import static com.yahoo.elide.utils.TypeHelper.appendAlias;
 import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
+import com.google.common.collect.Lists;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 
 import com.google.common.collect.ImmutableList;
 
+import com.yahoo.elide.request.Argument;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -39,9 +43,20 @@ public class Path {
     @ToString
     @EqualsAndHashCode
     public static class PathElement {
+
+        public PathElement(Class type, Class fieldType, String fieldName) {
+            this.type = type;
+            this.fieldType = fieldType;
+            this.fieldName = fieldName;
+            this.alias = fieldName;
+            this.arguments = Collections.EMPTY_SET;
+        }
+
         @Getter private Class type;
         @Getter private Class fieldType;
         @Getter private String fieldName;
+        @Getter private String alias;
+        @Getter private Set<Argument> arguments;
     }
 
     public Path(Path copy) {
@@ -54,6 +69,11 @@ public class Path {
 
     public Path(Class<?> entityClass, EntityDictionary dictionary, String dotSeparatedPath) {
         pathElements = resolvePathElements(entityClass, dictionary, dotSeparatedPath);
+    }
+
+    public Path(Class<?> entityClass, EntityDictionary dictionary, String fieldName,
+                String alias, Set<Argument> arguments) {
+        pathElements = Lists.newArrayList(resolvePathAttribute(entityClass, fieldName, alias, arguments, dictionary));
     }
 
     /**
@@ -76,19 +96,29 @@ public class Path {
                 Class<?> joinClass = dictionary.getParameterizedType(currentClass, fieldName);
                 elements.add(new PathElement(currentClass, joinClass, fieldName));
                 currentClass = joinClass;
-            } else if (dictionary.isAttribute(currentClass, fieldName)
-                    || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
-                Class<?> attributeClass = dictionary.getType(currentClass, fieldName);
-                elements.add(new PathElement(currentClass, attributeClass, fieldName));
-            } else if ("this".equals(fieldName)) {
-                elements.add(new PathElement(currentClass, null, fieldName));
             } else {
-                String alias = dictionary.getJsonAliasFor(currentClass);
-                throw new InvalidValueException(alias + " does not contain the field " + fieldName);
+                elements.add(resolvePathAttribute(entityClass, fieldName, fieldName, Collections.EMPTY_SET, dictionary));
             }
         }
 
         return ImmutableList.copyOf(elements);
+    }
+
+    private PathElement resolvePathAttribute(Class<?> entityClass,
+                                             String fieldName,
+                                             String alias,
+                                             Set<Argument> arguments,
+                                             EntityDictionary dictionary) {
+        if (dictionary.isAttribute(entityClass, fieldName)
+                || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
+            Class<?> attributeClass = dictionary.getType(entityClass, fieldName);
+            return new PathElement(entityClass, attributeClass, fieldName, alias, arguments);
+        } else if ("this".equals(fieldName)) {
+            return new PathElement(entityClass, null, fieldName);
+        } else {
+            String entityAlias = dictionary.getJsonAliasFor(entityClass);
+            throw new InvalidValueException(entityAlias + " does not contain the field " + fieldName);
+        }
     }
 
     /**

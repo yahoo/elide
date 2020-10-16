@@ -1,0 +1,10 @@
+{
+  book(filter: "title_alias==\"Libro*\"") {
+    edges {
+      node {
+        id
+        title_alias: title
+      }
+    }
+  }
+}
