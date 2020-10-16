@@ -508,11 +508,9 @@ public class GraphQLEntityProjectionMaker {
         if (!(filterString instanceof String)) {
             throw new BadRequestException("Filter of type " + typeName + " is not StringValue.");
         }
-        Map<String, String> aliasMap = builder.getAttributes().stream()
-                .collect(Collectors.toMap(Attribute::getAlias, Attribute::getName));
 
         try {
-            return filterDialect.parse(builder.getType(), aliasMap, (String) filterString, apiVersion);
+            return filterDialect.parse(builder.getType(), builder.getAttributes(), (String) filterString, apiVersion);
         } catch (ParseException e) {
             throw new BadRequestException(e.getMessage() + "\n" + e.getMessage());
         }

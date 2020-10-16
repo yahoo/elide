@@ -27,6 +27,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.parsers.JsonApiParser;
+import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.google.common.collect.ImmutableMap;
@@ -110,7 +111,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
 
     @Override
     public FilterExpression parse(Class<?> entityClass,
-                                  Map<String, String> aliasMap,
+                                  Set<Attribute> attributes,
                                   String filterText,
                                   String apiVersion)
             throws ParseException {
