@@ -48,6 +48,18 @@
             }
          },
          {
+           name : createdWeekDate
+           type : TIME
+           definition : '{{createdOn}}'
+           grain:
+            {
+             type :  WEEKDATEISO
+             sql :  '''
+             PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+             '''
+            }
+         },
+         {
            name : updatedMonth
            type : TIME
            definition : '{{updated_month}}'

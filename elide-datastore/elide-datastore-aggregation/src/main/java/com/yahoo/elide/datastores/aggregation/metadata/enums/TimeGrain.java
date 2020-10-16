@@ -17,7 +17,7 @@ public enum TimeGrain {
     MONTHYEAR("MMM yyyy"),
     YEARMONTH("yyyy-MM"),
     YEAR("yyyy"),
-    WEEKDATE("yyyy-MM-dd")
+    WEEKDATEISO("yyyy-MM-dd")
     ;
 
     @Getter private final String format;
