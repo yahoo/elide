@@ -312,6 +312,17 @@ public abstract class SQLUnitTest {
                             Operator.GT,
                             Arrays.asList(100)))
                     .build();
+        }),
+        NESTED_METRIC_WITH_WHERE_QUERY (() -> {
+            // Sorting
+            return Query.builder()
+                    .source(playerStatsTable)
+                    .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
+                    .whereFilter(parseFilterExpression("countryIsoCode==USA",
+                            PlayerStats.class, false))
+                    .build();
         });
 
         private Provider<Query> queryProvider;
