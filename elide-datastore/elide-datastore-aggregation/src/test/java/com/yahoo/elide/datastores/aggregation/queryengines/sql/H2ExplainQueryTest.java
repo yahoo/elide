@@ -370,4 +370,43 @@ public class H2ExplainQueryTest extends SQLUnitTest {
 
         compareQueryLists(expectedQueryList, engine.explain(query));
     }
+
+    @Test
+    public void testNestedMetricWithPaginationQuery() {
+        Query query = TestQuery.NESTED_METRIC_WITH_PAGINATION_QUERY.getQuery();
+
+        String exptectedQueryStr1 = "SELECT COUNT(DISTINCT(com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.overallRating, "
+                + "com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.recordedMonth)) "
+                + "FROM (SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
+                + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating,"
+                + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS recordedDate,"
+                + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM'), 'yyyy-MM') AS recordedMonth "
+                + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
+                + "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating, "
+                + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
+                + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM'), 'yyyy-MM') ) "
+                + "AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395\n";
+
+        String exptectedQueryStr2 = "SELECT AVG(com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.highScore) "
+                + "AS dailyAverageScorePerPeriod,com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.overallRating AS overallRating,"
+                + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.recordedMonth, 'yyyy-MM'), 'yyyy-MM') AS recordedMonth "
+                + "FROM (SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
+                + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating,"
+                + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS recordedDate,"
+                + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM'), 'yyyy-MM') AS recordedMonth "
+                + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats GROUP BY "
+                + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating, "
+                + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
+                + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM'), 'yyyy-MM') ) "
+                + "AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395 GROUP BY "
+                + "com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.overallRating, "
+                + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.recordedMonth, 'yyyy-MM'), 'yyyy-MM') "
+                + "LIMIT 1 OFFSET 0\n";
+
+        List<String> expectedQueryList = new ArrayList<String>();
+        expectedQueryList.add(exptectedQueryStr1);
+        expectedQueryList.add(exptectedQueryStr2);
+
+        compareQueryLists(expectedQueryList, engine.explain(query));
+    }
 }

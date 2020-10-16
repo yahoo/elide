@@ -186,8 +186,10 @@ public class SQLQueryEngine extends QueryEngine {
         DataSource dataSource = details.getDataSource();
         SQLDialect dialect = details.getDialect();
 
+        Query expandedQuery = expandMetricQueryPlans(query);
+
         // Translate the query into SQL.
-        SQLQuery sql = toSQL(query, dialect);
+        SQLQuery sql = toSQL(expandedQuery, dialect);
         String queryString = sql.toString();
 
         QueryResult.QueryResultBuilder resultBuilder = QueryResult.builder();
@@ -195,7 +197,7 @@ public class SQLQueryEngine extends QueryEngine {
 
         Pagination pagination = query.getPagination();
         if (returnPageTotals(pagination)) {
-            resultBuilder.pageTotals(getPageTotal(query, sql, sqlTransaction));
+            resultBuilder.pageTotals(getPageTotal(expandedQuery, sql, sqlTransaction));
         }
 
         log.debug("SQL Query: " + queryString);
@@ -267,11 +269,12 @@ public class SQLQueryEngine extends QueryEngine {
      */
     public List<String> explain(Query query, SQLDialect dialect) {
         List<String> queries = new ArrayList<String>();
-        SQLQuery sql = toSQL(query, dialect);
+        Query expandedQuery = expandMetricQueryPlans(query);
+        SQLQuery sql = toSQL(expandedQuery, dialect);
 
         Pagination pagination = query.getPagination();
         if (returnPageTotals(pagination)) {
-            queries.add(toPageTotalSQL(query, sql, dialect).toString());
+            queries.add(toPageTotalSQL(expandedQuery, sql, dialect).toString());
         }
         queries.add(sql.toString());
         return queries;
@@ -286,14 +289,25 @@ public class SQLQueryEngine extends QueryEngine {
     /**
      * Translates the client query into SQL.
      *
-     * @param query the client query.
+     * @param query the transformed client query.
      * @param sqlDialect the SQL dialect.
      * @return the SQL query.
      */
     private SQLQuery toSQL(Query query, SQLDialect sqlDialect) {
-        //TODO - The result of merging the queries can result in multiple incompatible queries that should be split
-        //apart, executed in parallel, and then stitched back together.
+        SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, query);
 
+        QueryTranslator translator = new QueryTranslator(queryReferenceTable, sqlDialect);
+
+        return query.accept(translator).build();
+    }
+
+    /**
+     * Transforms a client query into a potentially nested/complex query by expanding each metric into
+     * its respective query plan - and then merging the plans together into a consolidated query.
+     * @param query The client query.
+     * @return A query that reflects each metric's individual query plan.
+     */
+    private Query expandMetricQueryPlans(Query query) {
         QueryPlan mergedPlan = null;
 
         //Expand each metric into its own query plan.  Merge them all together.
@@ -306,17 +320,10 @@ public class SQLQueryEngine extends QueryEngine {
 
         QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query);
 
-        Query finalQuery = (mergedPlan == null)
+        return (mergedPlan == null)
                 ? query
                 : mergedPlan.accept(queryPlanTranslator).build();
-
-        SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, finalQuery);
-
-        QueryTranslator translator = new QueryTranslator(queryReferenceTable, sqlDialect);
-
-        return finalQuery.accept(translator).build();
     }
-
 
     /**
      * Given a Prepared Statement, replaces any parameters with their values from client query.
@@ -359,11 +366,13 @@ public class SQLQueryEngine extends QueryEngine {
      * @return A new query that returns the total number of records.
      */
     private SQLQuery toPageTotalSQL(Query query, SQLQuery sql, SQLDialect sqlDialect) {
+
+        SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, query);
         // TODO: refactor this method
         String groupByDimensions =
                 query.getAllDimensionProjections()
                         .stream()
-                        .map(dimension -> referenceTable.getResolvedReference(
+                        .map(dimension -> queryReferenceTable.getResolvedReference(
                                 query.getSource(),
                                 dimension.getName()))
                         .collect(Collectors.joining(", "));

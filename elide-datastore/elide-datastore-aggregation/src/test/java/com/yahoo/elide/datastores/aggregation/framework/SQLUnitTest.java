@@ -323,6 +323,16 @@ public abstract class SQLUnitTest {
                     .whereFilter(parseFilterExpression("countryIsoCode==USA",
                             PlayerStats.class, false))
                     .build();
+        }),
+        NESTED_METRIC_WITH_PAGINATION_QUERY (() -> {
+            // Sorting
+            return Query.builder()
+                    .source(playerStatsTable)
+                    .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
+                    .pagination(new ImmutablePagination(0, 1, false, true))
+                    .build();
         });
 
         private Provider<Query> queryProvider;
