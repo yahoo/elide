@@ -11,6 +11,12 @@ package com.yahoo.elide.datastores.aggregation.annotation;
 public enum CardinalitySize {
 
     /**
+     * Size for a tiny dimension table.
+     * <p>
+     * TODO: define size range
+     */
+    TINY,
+    /**
      * Size for a small dimension table.
      * <p>
      * TODO: define size range
@@ -29,6 +35,13 @@ public enum CardinalitySize {
      * <p>
      * TODO: define size range
      */
-    LARGE
+    LARGE,
+
+    /**
+     * Size for a huge dimension table.
+     * <p>
+     * TODO: define size range
+     */
+    HUGE
     ;
 }
