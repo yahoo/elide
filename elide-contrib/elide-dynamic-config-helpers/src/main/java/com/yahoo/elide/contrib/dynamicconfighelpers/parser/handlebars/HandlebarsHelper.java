@@ -28,7 +28,7 @@ public class HandlebarsHelper {
     private static final String MONTHYEAR = "MonthYear";
     private static final String YEARMONTH = "YearMonth";
     private static final String YEAR = "Year";
-    private static final String WEEKDATE = "WeekDate";
+    private static final String WEEKDATEISO = "WeekDateISO";
     private static final String BIGDECIMAL = "BigDecimal";
     private static final String LONG = "Long";
     private static final String BOOLEAN = "Boolean";
@@ -158,8 +158,8 @@ public class HandlebarsHelper {
                 return YEAR;
             case MONTHYEAR:
                 return MONTHYEAR;
-            case WEEKDATE:
-                return WEEKDATE;
+            case WEEKDATEISO:
+                return WEEKDATEISO;
             default:
                 return DATE;
         }
