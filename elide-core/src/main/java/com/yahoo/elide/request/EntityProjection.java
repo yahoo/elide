@@ -135,6 +135,7 @@ public class EntityProjection {
 
         private Set<Relationship> relationships = new LinkedHashSet<>();
 
+        @Getter
         private Set<Attribute> attributes = new LinkedHashSet<>();
 
         @Getter

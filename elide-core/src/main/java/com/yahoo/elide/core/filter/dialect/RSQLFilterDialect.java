@@ -19,6 +19,9 @@ import com.yahoo.elide.core.filter.IsNullPredicate;
 import com.yahoo.elide.core.filter.NotEmptyPredicate;
 import com.yahoo.elide.core.filter.NotNullPredicate;
 import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.dialect.graphql.FilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.JoinFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.SubqueryFilterDialect;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
@@ -56,7 +59,7 @@ import javax.ws.rs.core.MultivaluedMap;
 /**
  * FilterDialect which implements support for RSQL filter dialect.
  */
-public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDialect {
+public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, JoinFilterDialect {
     private static final String SINGLE_PARAMETER_ONLY = "There can only be a single filter query parameter";
     private static final String INVALID_QUERY_PARAMETER = "Invalid query parameter: ";
     private static final Pattern TYPED_FILTER_PATTERN = Pattern.compile("filter\\[([^\\]]+)\\]");
@@ -103,6 +106,15 @@ public class RSQLFilterDialect implements SubqueryFilterDialect, JoinFilterDiale
         operators.add(HASMEMBER_OP);
         operators.add(HASNOMEMBER_OP);
         return operators;
+    }
+
+    @Override
+    public FilterExpression parse(Class<?> entityClass,
+                                  Map<String, String> aliasMap,
+                                  String filterText,
+                                  String apiVersion)
+            throws ParseException {
+        return parseFilterExpression(filterText, entityClass, true);
     }
 
     @Override

@@ -20,8 +20,8 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.ParseException;
+import com.yahoo.elide.core.filter.dialect.graphql.FilterDialect;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.PaginationImpl;
@@ -47,15 +47,12 @@ import graphql.language.SourceLocation;
 import graphql.parser.Parser;
 import lombok.extern.slf4j.Slf4j;
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.BadRequestException;
-import javax.ws.rs.core.MultivaluedHashMap;
 
 /**
  * This class converts a GraphQL query string into an Elide {@link EntityProjection} using
@@ -65,7 +62,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 public class GraphQLEntityProjectionMaker {
     private final ElideSettings elideSettings;
     private final EntityDictionary entityDictionary;
-    private final MultipleFilterDialect filterDialect;
+    private final FilterDialect filterDialect;
 
     private final VariableResolver variableResolver;
     private final FragmentResolver fragmentResolver;
@@ -87,9 +84,7 @@ public class GraphQLEntityProjectionMaker {
     public GraphQLEntityProjectionMaker(ElideSettings elideSettings, Map<String, Object> variables, String apiVersion) {
         this.elideSettings = elideSettings;
         this.entityDictionary = elideSettings.getDictionary();
-        this.filterDialect = new MultipleFilterDialect(
-                elideSettings.getJoinFilterDialects(),
-                elideSettings.getSubqueryFilterDialects());
+        this.filterDialect = elideSettings.getGraphqlDialect();
 
         this.variableResolver = new VariableResolver(variables);
         this.fragmentResolver = new FragmentResolver();
@@ -489,6 +484,7 @@ public class GraphQLEntityProjectionMaker {
      */
     private void addFilter(Argument argument, EntityProjectionBuilder projectionBuilder) {
         FilterExpression filter = buildFilter(
+                projectionBuilder,
                 entityDictionary.getJsonAliasFor(projectionBuilder.getType()),
                 variableResolver.resolveValue(argument.getValue()));
 
@@ -503,49 +499,23 @@ public class GraphQLEntityProjectionMaker {
     /**
      * Construct a filter expression from a string
      *
+     * @param builder entity projection under construction that is being filtered.
      * @param typeName class type name to apply this filter
      * @param filterString Elide filter in string format
      * @return constructed filter expression
      */
-    private FilterExpression buildFilter(String typeName, Object filterString) {
+    private FilterExpression buildFilter(EntityProjectionBuilder builder, String typeName, Object filterString) {
         if (!(filterString instanceof String)) {
             throw new BadRequestException("Filter of type " + typeName + " is not StringValue.");
         }
-
-        String errorMessage = "";
-        try {
-            return filterDialect.parseGlobalExpression(typeName,
-                    toQueryParams(Optional.empty(), filterString.toString()), apiVersion);
-
-        } catch (ParseException e) {
-            errorMessage = e.getMessage();
-        }
+        Map<String, String> aliasMap = builder.getAttributes().stream()
+                .collect(Collectors.toMap(Attribute::getAlias, Attribute::getName));
 
         try {
-            return filterDialect.parseTypedExpression(typeName,
-                    toQueryParams(Optional.of(typeName), filterString.toString()), apiVersion).get(typeName);
+            return filterDialect.parse(builder.getType(), aliasMap, (String) filterString, apiVersion);
         } catch (ParseException e) {
-            throw new BadRequestException(errorMessage + "\n" + e.getMessage());
+            throw new BadRequestException(e.getMessage() + "\n" + e.getMessage());
         }
-    }
-
-    /**
-     * Convert a type name and filter string to a map that mimic query params comes from request.
-     *
-     * @param typeName optional model type name to apply this filter
-     * @param filterStr Elide filter in string format
-     * @return constructed map
-     */
-    private static MultivaluedHashMap<String, String> toQueryParams(Optional<String> typeName, String filterStr) {
-        return new MultivaluedHashMap<String, String>() {
-            {
-                String filterKey = "filter";
-                if (typeName.isPresent()) {
-                    filterKey += "[" + typeName + "]";
-                }
-                put(filterKey, Arrays.asList(filterStr));
-            }
-        };
     }
 
     /**
