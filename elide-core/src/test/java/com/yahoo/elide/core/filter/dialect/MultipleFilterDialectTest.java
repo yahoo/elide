@@ -13,6 +13,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.yahoo.elide.core.filter.dialect.jsonapi.JoinFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.SubqueryFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import org.junit.jupiter.api.Test;
 
