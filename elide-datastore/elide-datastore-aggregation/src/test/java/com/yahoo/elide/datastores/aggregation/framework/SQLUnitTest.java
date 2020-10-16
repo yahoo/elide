@@ -299,6 +299,19 @@ public abstract class SQLUnitTest {
                     .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                     .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
                     .build();
+        }),
+        NESTED_METRIC_WITH_HAVING_QUERY (() -> {
+            // Sorting
+            return Query.builder()
+                    .source(playerStatsTable)
+                    .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
+                    .havingFilter(new FilterPredicate(
+                            new Path(PlayerStats.class, dictionary, "dailyAverageScorePerPeriod"),
+                            Operator.GT,
+                            Arrays.asList(100)))
+                    .build();
         });
 
         private Provider<Query> queryProvider;
