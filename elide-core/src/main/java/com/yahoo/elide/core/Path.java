@@ -43,6 +43,11 @@ public class Path {
     @ToString
     @EqualsAndHashCode
     public static class PathElement {
+        @Getter private Class type;
+        @Getter private Class fieldType;
+        @Getter private String fieldName;
+        @Getter private String alias;
+        @Getter private Set<Argument> arguments;
 
         public PathElement(Class type, Class fieldType, String fieldName) {
             this.type = type;
@@ -51,12 +56,6 @@ public class Path {
             this.alias = fieldName;
             this.arguments = Collections.EMPTY_SET;
         }
-
-        @Getter private Class type;
-        @Getter private Class fieldType;
-        @Getter private String fieldName;
-        @Getter private String alias;
-        @Getter private Set<Argument> arguments;
     }
 
     public Path(Path copy) {
