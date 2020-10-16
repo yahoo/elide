@@ -1,0 +1,10 @@
+{
+  book(sort: "title_alias") {
+    edges {
+      node {
+        id
+        title_alias: title
+      }
+    }
+  }
+}

@@ -9,12 +9,12 @@ import static com.yahoo.elide.core.EntityDictionary.getSimpleName;
 import static com.yahoo.elide.utils.TypeHelper.appendAlias;
 import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
 
-import com.google.common.collect.Lists;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+import com.yahoo.elide.request.Argument;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
-import com.yahoo.elide.request.Argument;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -97,7 +97,8 @@ public class Path {
                 elements.add(new PathElement(currentClass, joinClass, fieldName));
                 currentClass = joinClass;
             } else {
-                elements.add(resolvePathAttribute(entityClass, fieldName, fieldName, Collections.EMPTY_SET, dictionary));
+                elements.add(resolvePathAttribute(currentClass, fieldName,
+                        fieldName, Collections.EMPTY_SET, dictionary));
             }
         }
 

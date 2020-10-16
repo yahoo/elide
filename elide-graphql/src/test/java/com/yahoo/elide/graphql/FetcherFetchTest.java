@@ -114,6 +114,11 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
+    public void sortByAlias() throws Exception {
+        runComparisonTest("sortByAlias");
+    }
+
+    @Test
     public void testRootCollectionFilter() throws Exception {
         runComparisonTest("rootCollectionFilter");
     }

@@ -9,16 +9,19 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 
+import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.Sorting;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -40,28 +43,47 @@ public class SortingImpl implements Sorting {
     @Getter
     private Map<Path, SortOrder> sortingPaths;
 
+    private Set<Attribute> attributes;
+
     /**
      * Constructs a new Sorting instance.
      * @param sortingRules The map of sorting rules
+     * @param type The model being sorted
+     * @param dictionary The entity dictionary
      */
     public SortingImpl(final Map<String, SortOrder> sortingRules, Class<?> type, EntityDictionary dictionary) {
+        this(sortingRules, type, Collections.EMPTY_SET, dictionary);
+    }
+
+    /**
+     * Constructs a new Sorting instance.
+     * @param sortingRules The map of sorting rules
+     * @param type The model being sorted
+     * @param attributes The set of attributes being requested
+     * @param dictionary The entity dictionary
+     */
+    public SortingImpl(final Map<String, SortOrder> sortingRules, Class<?> type,
+                       Set<Attribute> attributes, EntityDictionary dictionary) {
         if (sortingRules != null) {
             sortRules.putAll(sortingRules);
         }
 
+        this.attributes = attributes;
         this.type = type;
-        sortingPaths = getValidSortingRules(type, dictionary);
+        sortingPaths = getValidSortingRules(type, attributes, dictionary);
     }
 
     /**
      * Given the sorting rules validate sorting rules against the entities bound to the entityClass.
      * @param entityClass  The root class for sorting (eg. /book?sort=-title this would be package.Book)
+     * @param attributes  The attributes that are being requested for the sorted model
      * @param dictionary The elide entity dictionary
      * @param <T> The entityClass
      * @return The valid sorting rules - validated through the entity dictionary, or empty dictionary
      * @throws InvalidValueException when sorting values are not valid for the jpa entity
      */
     private <T> Map<Path, SortOrder> getValidSortingRules(final Class<T> entityClass,
+                                                          final Set<Attribute> attributes,
                                                           final EntityDictionary dictionary)
             throws InvalidValueException {
         Map<Path, SortOrder> returnMap = new LinkedHashMap<>();
@@ -69,8 +91,22 @@ public class SortingImpl implements Sorting {
             String dotSeparatedPath = entry.getKey();
             SortOrder order = entry.getValue();
 
-            //Creating a path validates that the dot separated path is valid.
-            Path path = new Path(entityClass, dictionary, dotSeparatedPath);
+            Path path;
+            if (dotSeparatedPath.contains(".")) {
+                //Creating a path validates that the dot separated path is valid.
+                path = new Path(entityClass, dictionary, dotSeparatedPath);
+            } else {
+                Attribute attribute = attributes.stream().filter(attr -> attr.getName().equals(dotSeparatedPath)
+                        || attr.getAlias().equals(dotSeparatedPath))
+                        .findFirst().orElse(null);
+
+                if (attribute == null) {
+                    path = new Path(entityClass, dictionary, dotSeparatedPath);
+                } else {
+                    path = new Path(entityClass, dictionary, attribute.getName(),
+                            attribute.getAlias(), attribute.getArguments());
+                }
+            }
 
             if (! isValidSortRulePath(path, dictionary)) {
                 throw new InvalidValueException("Cannot sort across a to-many relationship: " + path.getFieldPath());
@@ -127,24 +163,45 @@ public class SortingImpl implements Sorting {
                 .filter(entry -> entry.getKey().equals("sort"))
                 .map(entry -> entry.getValue().get(0))
                 .collect(Collectors.toList());
-        return parseSortRules(sortRules, type, dictionary);
+        return parseSortRules(sortRules, type, Collections.EMPTY_SET, dictionary);
     }
 
     /**
      * Parse a raw sort rule.
      * @param sortRule Sorting string to parse
+     * @param type The model to sort
+     * @param dictionary The entity dictionary
      * @return Sorting object.
      */
     public static Sorting parseSortRule(String sortRule, Class<?> type, EntityDictionary dictionary) {
-        return parseSortRules(Arrays.asList(sortRule), type, dictionary);
+        return parseSortRules(Arrays.asList(sortRule), type, Collections.EMPTY_SET, dictionary);
+    }
+
+    /**
+     * Parse a raw sort rule.
+     * @param sortRule Sorting string to parse
+     * @param type The model to sort
+     * @param attributes The requested attributes of the model
+     * @param dictionary The entity dictionary
+     * @return Sorting object.
+     */
+    public static Sorting parseSortRule(String sortRule, Class<?> type,
+                                        Set<Attribute> attributes, EntityDictionary dictionary) {
+        return parseSortRules(Arrays.asList(sortRule), type, attributes, dictionary);
     }
 
     /**
      * Internal helper to parse list of sorting rules.
      * @param sortRules Sorting rules to parse
+     * @param type The model to sort
+     * @param attributes The requested attributes of the model
+     * @param dictionary The entity dictionary
      * @return Sorting object containing parsed sort rules
      */
-    private static SortingImpl parseSortRules(List<String> sortRules, Class<?> type, EntityDictionary dictionary) {
+    private static SortingImpl parseSortRules(List<String> sortRules,
+                                              Class<?> type,
+                                              Set<Attribute> attributes,
+                                              EntityDictionary dictionary) {
         final Map<String, SortOrder> sortingRules = new LinkedHashMap<>();
         for (String sortRule : sortRules) {
             if (sortRule.contains(",")) {
@@ -155,7 +212,9 @@ public class SortingImpl implements Sorting {
                 parseSortRule(sortRule, sortingRules);
             }
         }
-        return sortingRules.isEmpty() ? DEFAULT_EMPTY_INSTANCE : new SortingImpl(sortingRules, type, dictionary);
+        return sortingRules.isEmpty()
+                ? DEFAULT_EMPTY_INSTANCE
+                : new SortingImpl(sortingRules, type, attributes, dictionary);
     }
 
     /**

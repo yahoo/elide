@@ -467,7 +467,8 @@ public class GraphQLEntityProjectionMaker {
         String sortRule = (String) variableResolver.resolveValue(argument.getValue());
 
         try {
-            Sorting sorting = SortingImpl.parseSortRule(sortRule, projectionBuilder.getType(), entityDictionary);
+            Sorting sorting = SortingImpl.parseSortRule(sortRule, projectionBuilder.getType(),
+                    projectionBuilder.getAttributes(), entityDictionary);
             projectionBuilder.sorting(sorting);
         } catch (InvalidValueException e) {
             throw new BadRequestException("Invalid sorting clause " + sortRule
