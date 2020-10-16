@@ -42,7 +42,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable
 import com.yahoo.elide.datastores.aggregation.timegrains.DateTime;
 import com.yahoo.elide.datastores.aggregation.timegrains.MonthYear;
 import com.yahoo.elide.datastores.aggregation.timegrains.SimpleDate;
-import com.yahoo.elide.datastores.aggregation.timegrains.WeekDate;
+import com.yahoo.elide.datastores.aggregation.timegrains.WeekDateISO;
 import com.yahoo.elide.datastores.aggregation.timegrains.Year;
 import com.yahoo.elide.datastores.aggregation.timegrains.YearMonth;
 import com.yahoo.elide.datastores.aggregation.timegrains.serde.DateTimeSerde;
@@ -337,7 +337,7 @@ public abstract class SQLUnitTest {
         CoerceUtil.register(DateTime.class, new DateTimeSerde());
         CoerceUtil.register(MonthYear.class, new MonthYearSerde());
         CoerceUtil.register(Year.class, new YearSerde());
-        CoerceUtil.register(WeekDate.class, new WeekDateSerde());
+        CoerceUtil.register(WeekDateISO.class, new WeekDateSerde());
 
         metaDataStore.populateEntityDictionary(dictionary);
 

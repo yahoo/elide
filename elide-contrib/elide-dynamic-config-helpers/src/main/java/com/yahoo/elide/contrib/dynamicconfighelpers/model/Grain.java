@@ -48,7 +48,7 @@ public class Grain {
         YEARMONTH("YEARMONTH"),
         YEAR("YEAR"),
         MONTHYEAR("MONTHYEAR"),
-        WEEKDATE("WEEKDATE");
+        WEEKDATEISO("WEEKDATEISO");
 
         private final String value;
         private final static Map<String, Grain.GrainType> CONSTANTS = new HashMap<String, Grain.GrainType>();
