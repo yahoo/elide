@@ -18,6 +18,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable
 import com.yahoo.elide.request.Argument;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 import java.util.Map;
@@ -35,6 +36,8 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     private String expression;
     private String alias;
     private Map<String, Argument> arguments;
+
+    @EqualsAndHashCode.Exclude
     private QueryPlanResolver queryPlanResolver;
 
     @Override

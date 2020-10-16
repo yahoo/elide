@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.framework;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
@@ -70,6 +71,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -438,9 +440,13 @@ public abstract class SQLUnitTest {
         } else if (actual == null) {
             fail("Expected a non-null query List, but actual was null");
         }
+
         assertEquals(expected.size(), actual.size(), "Query List sizes do not match");
+
+
         for (int i = 0; i < expected.size(); i++) {
-            assertEquals(combineWhitespace(expected.get(i).trim()), combineWhitespace(actual.get(i).trim()));
+            String actualMadeStatic = replaceDynamicAliases(actual.get(i).trim());
+            assertEquals(combineWhitespace(expected.get(i).trim()), combineWhitespace(actualMadeStatic));
         }
     }
 
@@ -463,5 +469,17 @@ public abstract class SQLUnitTest {
         } catch (ParseException pe) {
             throw new IllegalStateException(pe);
         }
+    }
+
+    public static String replaceDynamicAliases(String queryText) {
+        //Replaces :dailyAverage_12345_0 with :XXX
+        String replaced = queryText.replaceAll(":[a-zA-Z0-9_]+", ":XXX");
+
+        //Replaces Foo_12345.bar with Foo_XXX.bar
+        replaced = replaced.replaceAll("_\\d+\\.", "_XXX\\.");
+
+        //Replaces Foo_12345 with Foo_XXX
+        replaced = replaced.replaceAll("_\\d+\\s+", "_XXX ");
+        return replaced.replaceAll("_\\d+", "_XXX");
     }
 }

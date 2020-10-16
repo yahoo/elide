@@ -31,7 +31,7 @@ public interface Queryable {
      */
     default String getAlias() {
         //Eliminate any negative hash codes.
-        return getSource().getAlias() + "_" + (this.hashCode() & 0x7fffffff);
+        return getSource().getAlias() + "_" + (hashCode() & 0x7fffffff);
     }
 
     /**
