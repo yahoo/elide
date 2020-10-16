@@ -290,6 +290,15 @@ public abstract class SQLUnitTest {
                     .havingFilter(parseFilterExpression("countryIsoCode==USA",
                             PlayerStats.class, false))
                     .build();
+        }),
+        NESTED_METRIC_QUERY (() -> {
+            // Sorting
+            return Query.builder()
+                    .source(playerStatsTable)
+                    .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
+                    .build();
         });
 
         private Provider<Query> queryProvider;
