@@ -8,7 +8,7 @@ package com.yahoo.elide.datastores.aggregation.timegrains.serde;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.yahoo.elide.datastores.aggregation.timegrains.WeekDate;
+import com.yahoo.elide.datastores.aggregation.timegrains.WeekDateISO;
 
 import org.junit.jupiter.api.Test;
 
@@ -24,7 +24,7 @@ public class WeekDateSerdeTest {
     public void testDateSerialize() throws ParseException {
 
         String expected = "2020-01-06";
-        WeekDate expectedDate = new WeekDate(formatter.parse(expected));
+        WeekDateISO expectedDate = new WeekDateISO(formatter.parse(expected));
         WeekDateSerde dateSerde = new WeekDateSerde();
         Object actual = dateSerde.serialize(expectedDate);
         assertEquals(expected, actual);
@@ -34,7 +34,7 @@ public class WeekDateSerdeTest {
     public void testDateSerializeNotMonday() throws ParseException {
 
         String expected = "2020-01-01";
-        WeekDate expectedDate = new WeekDate(formatter.parse(expected));
+        WeekDateISO expectedDate = new WeekDateISO(formatter.parse(expected));
         WeekDateSerde dateSerde = new WeekDateSerde();
         assertThrows(IllegalArgumentException.class, () -> {
             dateSerde.serialize(expectedDate);
@@ -67,7 +67,7 @@ public class WeekDateSerdeTest {
     public void testDeserializeTimestamp() throws ParseException {
 
         String dateInString = "2020-01-06";
-        WeekDate expectedDate = new WeekDate(formatter.parse(dateInString));
+        WeekDateISO expectedDate = new WeekDateISO(formatter.parse(dateInString));
         Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
         WeekDateSerde weekDateSerde = new WeekDateSerde();
         Object actualDate = weekDateSerde.deserialize(timestamp);
