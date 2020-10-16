@@ -28,9 +28,9 @@ import com.yahoo.elide.async.service.FileResultStorageEngine;
 import com.yahoo.elide.async.service.ResultStorageEngine;
 import com.yahoo.elide.audit.InMemoryLogger;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
-import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
 import com.yahoo.elide.security.checks.Check;
 
 import example.TestCheckMappings;

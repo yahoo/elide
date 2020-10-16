@@ -11,9 +11,9 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.AuditLogger;
 import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
-import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
 
 import example.TestCheckMappings;
 import example.models.triggers.services.BillingService;

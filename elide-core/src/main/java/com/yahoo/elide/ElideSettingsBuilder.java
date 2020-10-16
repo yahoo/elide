@@ -12,10 +12,11 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.JSONApiLinks;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
-import com.yahoo.elide.core.filter.dialect.JoinFilterDialect;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.core.filter.dialect.SubqueryFilterDialect;
+import com.yahoo.elide.core.filter.dialect.graphql.FilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.JoinFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.SubqueryFilterDialect;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.security.PermissionExecutor;
@@ -44,6 +45,7 @@ public class ElideSettingsBuilder {
     private Function<RequestScope, PermissionExecutor> permissionExecutorFunction = ActivePermissionExecutor::new;
     private List<JoinFilterDialect> joinFilterDialects;
     private List<SubqueryFilterDialect> subqueryFilterDialects;
+    private FilterDialect graphqlFilterDialect;
     private JSONApiLinks jsonApiLinks;
     private Map<Class, Serde> serdes;
     private int defaultMaxPageSize = PaginationImpl.MAX_PAGE_LIMIT;
@@ -82,6 +84,10 @@ public class ElideSettingsBuilder {
             subqueryFilterDialects.add(new RSQLFilterDialect(entityDictionary));
         }
 
+        if (graphqlFilterDialect == null) {
+            graphqlFilterDialect = new RSQLFilterDialect(entityDictionary);
+        }
+
         return new ElideSettings(
                 auditLogger,
                 dataStore,
@@ -90,6 +96,7 @@ public class ElideSettingsBuilder {
                 permissionExecutorFunction,
                 joinFilterDialects,
                 subqueryFilterDialects,
+                graphqlFilterDialect,
                 jsonApiLinks,
                 defaultMaxPageSize,
                 defaultPageSize,
@@ -140,6 +147,11 @@ public class ElideSettingsBuilder {
 
     public ElideSettingsBuilder withUpdate204Status() {
         updateStatusCode = HttpStatus.SC_NO_CONTENT;
+        return this;
+    }
+
+    public ElideSettingsBuilder withGraphQLDialect(FilterDialect dialect) {
+        graphqlFilterDialect = dialect;
         return this;
     }
 
