@@ -10,7 +10,6 @@ import static com.yahoo.elide.security.permissions.ExpressionResult.FAIL;
 import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
 
 import com.yahoo.elide.security.permissions.ExpressionResult;
-import lombok.EqualsAndHashCode;
 
 /**
  * Representation of an "or" expression.
