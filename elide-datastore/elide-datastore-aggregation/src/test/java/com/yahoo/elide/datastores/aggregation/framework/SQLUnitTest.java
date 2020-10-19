@@ -290,6 +290,62 @@ public abstract class SQLUnitTest {
                     .havingFilter(parseFilterExpression("countryIsoCode==USA",
                             PlayerStats.class, false))
                     .build();
+        }),
+        NESTED_METRIC_QUERY (() -> {
+            // Sorting
+            return Query.builder()
+                    .source(playerStatsTable)
+                    .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
+                    .build();
+        }),
+        NESTED_METRIC_WITH_HAVING_QUERY (() -> {
+            // Sorting
+            return Query.builder()
+                    .source(playerStatsTable)
+                    .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
+                    .havingFilter(new FilterPredicate(
+                            new Path(PlayerStats.class, dictionary, "dailyAverageScorePerPeriod"),
+                            Operator.GT,
+                            Arrays.asList(100)))
+                    .build();
+        }),
+        NESTED_METRIC_WITH_WHERE_QUERY (() -> {
+            // Sorting
+            return Query.builder()
+                    .source(playerStatsTable)
+                    .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
+                    .whereFilter(parseFilterExpression("countryIsoCode==USA",
+                            PlayerStats.class, false))
+                    .build();
+        }),
+        NESTED_METRIC_WITH_PAGINATION_QUERY (() -> {
+            // Sorting
+            return Query.builder()
+                    .source(playerStatsTable)
+                    .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
+                    .pagination(new ImmutablePagination(0, 1, false, true))
+                    .build();
+        }),
+        NESTED_METRIC_WITH_SORTING_QUERY (() -> {
+            Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+            sortMap.put("overallRating", Sorting.SortOrder.desc);
+            sortMap.put("dailyAverageScorePerPeriod", Sorting.SortOrder.desc);
+            // Sorting
+            return Query.builder()
+                    .source(playerStatsTable)
+                    .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
+                    .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
+                    .build();
         });
 
         private Provider<Query> queryProvider;
@@ -395,9 +451,13 @@ public abstract class SQLUnitTest {
         } else if (actual == null) {
             fail("Expected a non-null query List, but actual was null");
         }
+
         assertEquals(expected.size(), actual.size(), "Query List sizes do not match");
+
+
         for (int i = 0; i < expected.size(); i++) {
-            assertEquals(combineWhitespace(expected.get(i).trim()), combineWhitespace(actual.get(i).trim()));
+            String actualMadeStatic = replaceDynamicAliases(actual.get(i).trim());
+            assertEquals(combineWhitespace(expected.get(i).trim()), combineWhitespace(actualMadeStatic));
         }
     }
 
@@ -420,5 +480,17 @@ public abstract class SQLUnitTest {
         } catch (ParseException pe) {
             throw new IllegalStateException(pe);
         }
+    }
+
+    public static String replaceDynamicAliases(String queryText) {
+        //Replaces :dailyAverage_12345_0 with :XXX
+        String replaced = queryText.replaceAll(":[a-zA-Z0-9_]+", ":XXX");
+
+        //Replaces Foo_12345.bar with Foo_XXX.bar
+        replaced = replaced.replaceAll("_\\d+\\.", "_XXX\\.");
+
+        //Replaces Foo_12345 with Foo_XXX
+        replaced = replaced.replaceAll("_\\d+\\s+", "_XXX ");
+        return replaced.replaceAll("_\\d+", "_XXX");
     }
 }
