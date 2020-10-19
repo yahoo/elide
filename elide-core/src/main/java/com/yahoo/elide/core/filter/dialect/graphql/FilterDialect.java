@@ -8,8 +8,9 @@ package com.yahoo.elide.core.filter.dialect.graphql;
 
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.request.Attribute;
 
-import java.util.Map;
+import java.util.Set;
 
 /**
  * GraphQL Dialect for parsing filter API parameters into Filter Expressions.
@@ -19,14 +20,14 @@ public interface FilterDialect {
     /**
      * Parses a graphQL collection filter parameter and converts it into a FilterExpression.
      * @param entityClass The model type of the collection.
-     * @param aliasMap A map of alias to field names from GraphQL.
+     * @param attributes The requested attributes, their aliases, and arguments for the given entity model.
      * @param filterText The filter string to parse.
      * @param apiVersion The API version.
      * @return A filter expression.
      * @throws ParseException If the filter text is invalid.
      */
     FilterExpression parse(Class<?> entityClass,
-                           Map<String, String> aliasMap,
+                           Set<Attribute> attributes,
                            String filterText,
                            String apiVersion) throws ParseException;
 }
