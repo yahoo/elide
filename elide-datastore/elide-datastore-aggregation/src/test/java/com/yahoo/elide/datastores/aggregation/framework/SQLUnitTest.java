@@ -95,16 +95,6 @@ public abstract class SQLUnitTest {
 
     // Standard set of test queries used in dialect tests
     protected enum TestQuery {
-        WHERE_METRICS_ONLY (() -> {
-            return Query.builder()
-                    .source(playerStatsTable)
-                    .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
-                    .whereFilter(new FilterPredicate(
-                            new Path(PlayerStats.class, dictionary, "lowScore"),
-                            Operator.GT,
-                            Arrays.asList(9000)))
-                    .build();
-        }),
         WHERE_DIMS_ONLY (() -> {
             return Query.builder()
                     .source(playerStatsTable)
@@ -115,14 +105,14 @@ public abstract class SQLUnitTest {
                             new ArrayList<Object>()))
                     .build();
         }),
-        WHERE_METRICS_AND_DIMS (() -> {
+        WHERE_AND (() -> {
             FilterPredicate ratingFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "overallRating"),
                     Operator.NOTNULL, new ArrayList<Object>());
             FilterPredicate highScoreFilter = new FilterPredicate(
-                    new Path(PlayerStats.class, dictionary, "highScore"),
-                    Operator.GT,
-                    Arrays.asList(9000));
+                new Path(PlayerStats.class, dictionary, "countryIsoCode"),
+                    Operator.IN,
+                    Arrays.asList("USA"));
             return Query.builder()
                     .source(playerStatsTable)
                     .metricProjection(playerStatsTable.getMetricProjection("highScore"))
@@ -143,17 +133,6 @@ public abstract class SQLUnitTest {
                     .metricProjection(playerStatsTable.getMetricProjection("highScore"))
                     .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                     .whereFilter(new OrFilterExpression(ratingFilter, highScoreFilter))
-                    .build();
-        }),
-        WHERE_METRICS_AGGREGATION (() -> {
-            return Query.builder()
-                    .source(playerStatsTable)
-                    .metricProjection(playerStatsTable.getMetricProjection("highScore"))
-                    .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
-                    .whereFilter(new FilterPredicate(
-                            new Path(PlayerStats.class, dictionary, "highScore"),
-                            Operator.GT,
-                            Arrays.asList(9000)))
                     .build();
         }),
         HAVING_METRICS_ONLY (() -> {

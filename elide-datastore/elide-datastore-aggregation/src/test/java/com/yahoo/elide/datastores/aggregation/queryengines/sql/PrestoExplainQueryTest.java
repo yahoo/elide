@@ -39,16 +39,6 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
     }
 
     @Test
-    public void testExplainWhereMetricsOnly() throws Exception {
-        Query query = TestQuery.WHERE_METRICS_ONLY.getQuery();
-        String expectedQueryStr =
-                "SELECT MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) AS lowScore "
-                        + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
-                        + "WHERE MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) > :XXX";
-        compareQueryLists(expectedQueryStr, engine.explain(query));
-    }
-
-    @Test
     public void testExplainWhereDimsOnly() throws Exception {
         String expectedQueryStr =
                 "SELECT DISTINCT com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating "
@@ -58,15 +48,17 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
     }
 
     @Test
-    public void testExplainWhereMetricsAndDims() throws Exception {
-        Query query = TestQuery.WHERE_METRICS_AND_DIMS.getQuery();
+    public void testExplainWhereAnd() throws Exception {
+        Query query = TestQuery.WHERE_AND.getQuery();
         String expectedQueryStr =
                 "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating "
                         + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
-                        + "WHERE (com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL "
-                        + "AND MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) > :XXX) "
-                        + "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating";
+                        + "LEFT JOIN countries AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_country "
+                        + "ON com_yahoo_elide_datastores_aggregation_example_PlayerStats.country_id = com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.id "
+                        + "WHERE (com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL AND com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.iso_code IN (:XXX)) "
+                        + " GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating\n";
+
         compareQueryLists(expectedQueryStr, engine.explain(query));
     }
 
@@ -82,25 +74,6 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
                         + "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating";
         compareQueryLists(expectedQueryStr, engine.explain(query));
     }
-
-    /*
-     * // TODO: UDFS / Aggregations not allowed in where/groupby clause.
-     @Test
-     public void testExplainWhereMetricsAggregation() throws Exception {
-     Query query = TestQuery.WHERE_METRICS_AGGREGATION);
-     OrFilterExpression orFilter = ((OrFilterExpression) query.getWhereFilter());
-     List<FilterPredicate.FilterParameter> params = ((FilterPredicate) orFilter.getRight()).getParameters();
-     String expectedQueryStr =
-     "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
-     +"com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating "
-     + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
-     + "WHERE (com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL "
-     + "OR MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) > "
-     + params.get(0).getPlaceholder()
-     + ") GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating";
-     compareQueryLists(expectedQueryStr, engine.explain(query));
-     }
-     */
 
     @Test
     public void testExplainHavingMetricsOnly() throws Exception {

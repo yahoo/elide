@@ -38,16 +38,6 @@ public class H2ExplainQueryTest extends SQLUnitTest {
 //    }
 
     @Test
-    public void testExplainWhereMetricsOnly() throws Exception {
-        Query query = TestQuery.WHERE_METRICS_ONLY.getQuery();
-        String expectedQueryStr =
-                "SELECT MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) AS lowScore "
-                        + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
-                        + "WHERE MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) > :XXX";
-        compareQueryLists(expectedQueryStr, engine.explain(query));
-    }
-
-    @Test
     public void testExplainWhereDimsOnly() throws Exception {
         String expectedQueryStr =
                 "SELECT DISTINCT com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating "
@@ -57,15 +47,17 @@ public class H2ExplainQueryTest extends SQLUnitTest {
     }
 
     @Test
-    public void testExplainWhereMetricsAndDims() throws Exception {
-        Query query = TestQuery.WHERE_METRICS_AND_DIMS.getQuery();
+    public void testExplainWhereAnd() throws Exception {
+        Query query = TestQuery.WHERE_AND.getQuery();
         String expectedQueryStr =
                 "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating "
                         + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
-                        + "WHERE (com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL "
-                        + "AND MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) > :XXX"
-                        + ") GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating";
+                        + "LEFT JOIN countries AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_country "
+                        + "ON com_yahoo_elide_datastores_aggregation_example_PlayerStats.country_id = com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.id "
+                        + "WHERE (com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL AND com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.iso_code IN (:XXX)) "
+                        + " GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating\n";
+
         compareQueryLists(expectedQueryStr, engine.explain(query));
     }
 
@@ -79,17 +71,6 @@ public class H2ExplainQueryTest extends SQLUnitTest {
                         + "WHERE (com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL "
                         + "OR MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) > :XXX"
                         + ") GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating";
-        compareQueryLists(expectedQueryStr, engine.explain(query));
-    }
-
-    @Test
-    public void testExplainWhereMetricsAgg() throws Exception {
-        Query query = TestQuery.WHERE_METRICS_AGGREGATION.getQuery();
-        String expectedQueryStr =
-                "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
-                        + "MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) AS lowScore "
-                        + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
-                        + "WHERE MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) > :XXX";
         compareQueryLists(expectedQueryStr, engine.explain(query));
     }
 
