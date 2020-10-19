@@ -333,6 +333,19 @@ public abstract class SQLUnitTest {
                     .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
                     .pagination(new ImmutablePagination(0, 1, false, true))
                     .build();
+        }),
+        NESTED_METRIC_WITH_SORTING_QUERY (() -> {
+            Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+            sortMap.put("overallRating", Sorting.SortOrder.desc);
+            sortMap.put("dailyAverageScorePerPeriod", Sorting.SortOrder.desc);
+            // Sorting
+            return Query.builder()
+                    .source(playerStatsTable)
+                    .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
+                    .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
+                    .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
+                    .build();
         });
 
         private Provider<Query> queryProvider;
