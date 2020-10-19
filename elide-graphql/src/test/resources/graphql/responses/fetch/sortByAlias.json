@@ -1,0 +1,25 @@
+{
+  "book": {
+    "edges": [
+      {
+        "node": {
+          "id": "3",
+          "title_alias": "Doctor Zhivago"
+
+        }
+      },
+      {
+        "node": {
+          "id": "2",
+          "title_alias": "Libro Dos"
+        }
+      },
+      {
+        "node": {
+          "id": "1",
+          "title_alias": "Libro Uno"
+        }
+      }
+    ]
+  }
+}

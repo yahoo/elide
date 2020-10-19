@@ -27,6 +27,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.parsers.JsonApiParser;
+import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.google.common.collect.ImmutableMap;
@@ -110,11 +111,11 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
 
     @Override
     public FilterExpression parse(Class<?> entityClass,
-                                  Map<String, String> aliasMap,
+                                  Set<Attribute> attributes,
                                   String filterText,
                                   String apiVersion)
             throws ParseException {
-        return parseFilterExpression(filterText, entityClass, true);
+        return parseFilterExpression(filterText, entityClass, true, true, attributes);
     }
 
     @Override
@@ -221,10 +222,30 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                                                   Class<?> entityType,
                                                   boolean coerceValues,
                                                   boolean allowNestedToManyAssociations) throws ParseException {
+        return parseFilterExpression(expressionText, entityType, coerceValues,
+                allowNestedToManyAssociations, Collections.EMPTY_SET);
+
+    }
+
+    /**
+     * Parses a RSQL string into an Elide FilterExpression.
+     * @param expressionText the RSQL string
+     * @param entityType The type associated with the predicate
+     * @param coerceValues Convert values into their underlying type.
+     * @param allowNestedToManyAssociations Whether or not to reject nested filter paths.
+     * @param attributes the set of model attributes being requested.
+     * @return An elide FilterExpression abstract syntax tree
+     * @throws ParseException
+     */
+    public FilterExpression parseFilterExpression(String expressionText,
+                                                  Class<?> entityType,
+                                                  boolean coerceValues,
+                                                  boolean allowNestedToManyAssociations,
+                                                  Set<Attribute> attributes) throws ParseException {
         try {
             Node ast = parser.parse(expressionText);
             RSQL2FilterExpressionVisitor visitor = new RSQL2FilterExpressionVisitor(allowNestedToManyAssociations,
-                    coerceValues);
+                    coerceValues, attributes);
             return ast.accept(visitor, entityType);
         } catch (RSQLParserException e) {
             throw new ParseException(e.getMessage());
@@ -254,14 +275,30 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
     public class RSQL2FilterExpressionVisitor implements RSQLVisitor<FilterExpression, Class> {
         private boolean allowNestedToManyAssociations = false;
         private boolean coerceValues = true;
+        private Set<Attribute> attributes;
 
         public RSQL2FilterExpressionVisitor(boolean allowNestedToManyAssociations) {
-            this(allowNestedToManyAssociations, true);
+            this(allowNestedToManyAssociations, true, Collections.EMPTY_SET);
         }
 
-        public RSQL2FilterExpressionVisitor(boolean allowNestedToManyAssociations, boolean coerceValues) {
+        public RSQL2FilterExpressionVisitor(boolean allowNestedToManyAssociations,
+                                            boolean coerceValues, Set<Attribute> attributes) {
             this.allowNestedToManyAssociations = allowNestedToManyAssociations;
             this.coerceValues = coerceValues;
+            this.attributes = attributes;
+        }
+
+        private Path buildAttribute(Class rootEntityType, String attributeName) {
+            Attribute attribute = attributes.stream()
+                    .filter(attr -> attr.getName().equals(attributeName) || attr.getAlias().equals(attributeName))
+                    .findFirst().orElse(null);
+
+            if (attribute != null) {
+                return new Path(rootEntityType, dictionary, attribute.getName(),
+                        attribute.getAlias(), attribute.getArguments());
+            } else {
+                return buildPath(rootEntityType, attributeName);
+            }
         }
 
         private Path buildPath(Class rootEntityType, String selector) {
@@ -337,7 +374,14 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
             ComparisonOperator op = node.getOperator();
             String relationship = node.getSelector();
             List<String> arguments = node.getArguments();
-            Path path = buildPath(entityType, relationship);
+
+            Path path;
+            if (relationship.contains(".")) {
+                path = buildPath(entityType, relationship);
+            } else {
+                path = buildAttribute(entityType, relationship);
+
+            }
 
             //handles '=isempty=' op before coerce arguments
             // ToMany Association is allowed if the operation is IsEmpty
