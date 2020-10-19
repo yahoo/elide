@@ -5,9 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
-import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.expression.AndFilterExpression;
-import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
@@ -17,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * This class tests SQLQueryEngine.explain() with the H2 dialect.

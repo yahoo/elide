@@ -5,9 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
-import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.expression.AndFilterExpression;
-import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
@@ -44,12 +41,10 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
     @Test
     public void testExplainWhereMetricsOnly() throws Exception {
         Query query = TestQuery.WHERE_METRICS_ONLY.getQuery();
-        List<FilterPredicate.FilterParameter> params = ((FilterPredicate) query.getWhereFilter()).getParameters();
         String expectedQueryStr =
                 "SELECT MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) AS lowScore "
                         + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
-                        + "WHERE MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) > "
-                        + params.get(0).getPlaceholder();
+                        + "WHERE MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) > :XXX";
         compareQueryLists(expectedQueryStr, engine.explain(query));
     }
 
@@ -65,32 +60,26 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
     @Test
     public void testExplainWhereMetricsAndDims() throws Exception {
         Query query = TestQuery.WHERE_METRICS_AND_DIMS.getQuery();
-        AndFilterExpression andFilter = ((AndFilterExpression) query.getWhereFilter());
-        List<FilterPredicate.FilterParameter> params = ((FilterPredicate) andFilter.getRight()).getParameters();
         String expectedQueryStr =
                 "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating "
                         + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
                         + "WHERE (com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL "
-                        + "AND MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) > "
-                        + params.get(0).getPlaceholder()
-                        + ") GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating";
+                        + "AND MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) > :XXX) "
+                        + "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating";
         compareQueryLists(expectedQueryStr, engine.explain(query));
     }
 
     @Test
     public void testExplainWhereMetricsOrDims() throws Exception {
         Query query = TestQuery.WHERE_METRICS_OR_DIMS.getQuery();
-        OrFilterExpression orFilter = ((OrFilterExpression) query.getWhereFilter());
-        List<FilterPredicate.FilterParameter> params = ((FilterPredicate) orFilter.getRight()).getParameters();
         String expectedQueryStr =
                 "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating "
                         + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
                         + "WHERE (com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL "
-                        + "OR MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) > "
-                        + params.get(0).getPlaceholder()
-                        + ") GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating";
+                        + "OR MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) > :XXX) "
+                        + "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating";
         compareQueryLists(expectedQueryStr, engine.explain(query));
     }
 
@@ -116,12 +105,10 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
     @Test
     public void testExplainHavingMetricsOnly() throws Exception {
         Query query = TestQuery.HAVING_METRICS_ONLY.getQuery();
-        List<FilterPredicate.FilterParameter> params = ((FilterPredicate) query.getHavingFilter()).getParameters();
         String expectedQueryStr =
                 "SELECT MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) AS lowScore "
                         + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
-                        + "HAVING MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) > "
-                        + params.get(0).getPlaceholder();
+                        + "HAVING MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) > :XXX";
         compareQueryLists(expectedQueryStr, engine.explain(query));
     }
 
@@ -137,32 +124,26 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
     @Test
     public void testExplainHavingMetricsAndDims() throws Exception {
         Query query = TestQuery.HAVING_METRICS_AND_DIMS.getQuery();
-        AndFilterExpression andFilter = ((AndFilterExpression) query.getHavingFilter());
-        List<FilterPredicate.FilterParameter> params = ((FilterPredicate) andFilter.getRight()).getParameters();
         String expectedQueryStr =
                 "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating "
                         + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
                         + "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating "
                         + "HAVING (com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL "
-                        + "AND MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) > "
-                        + params.get(0).getPlaceholder() + ")";
+                        + "AND MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) > :XXX)";
         compareQueryLists(expectedQueryStr, engine.explain(query));
     }
 
     @Test
     public void testExplainHavingMetricsOrDims() throws Exception {
         Query query = TestQuery.HAVING_METRICS_OR_DIMS.getQuery();
-        OrFilterExpression orFilter = ((OrFilterExpression) query.getHavingFilter());
-        List<FilterPredicate.FilterParameter> params = ((FilterPredicate) orFilter.getRight()).getParameters();
         String expectedQueryStr =
                 "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating "
                         + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
                         + "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating "
                         + "HAVING (com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL "
-                        + "OR MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) > "
-                        + params.get(0).getPlaceholder() + ")";
+                        + "OR MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) > :XXX)";
         compareQueryLists(expectedQueryStr, engine.explain(query));
     }
 
@@ -264,8 +245,6 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
     @Test
     public void testExplainComplicated() {
         Query query = TestQuery.COMPLICATED.getQuery();
-        List<FilterPredicate.FilterParameter> whereParams = ((FilterPredicate) query.getWhereFilter()).getParameters();
-        List<FilterPredicate.FilterParameter> havingParams = ((FilterPredicate) query.getHavingFilter()).getParameters();
 
         String expectedQueryStr1 =
                 "SELECT COUNT(DISTINCT(com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating, "
@@ -274,9 +253,9 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
                         + "LEFT JOIN countries AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_country "
                         + "ON com_yahoo_elide_datastores_aggregation_example_PlayerStats.country_id = "
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.id "
-                        + "WHERE MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) > " + whereParams.get(0).getPlaceholder() + " "
+                        + "WHERE MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) > :XXX "
                         + "HAVING com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.iso_code "
-                        + "IN (" + havingParams.get(0).getPlaceholder() + ")";
+                        + "IN (:XXX)";
         String expectedQueryStr2 =
                 "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating,"
@@ -287,13 +266,12 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
                         + "LEFT JOIN countries AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_country "
                         + "ON com_yahoo_elide_datastores_aggregation_example_PlayerStats.country_id = "
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.id "
-                        + "WHERE MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) > " + whereParams.get(0).getPlaceholder() + " "
+                        + "WHERE MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) > :XXX "
                         + "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating, "
                         + "PARSEDATETIME(FORMATDATETIME("
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
                         + "HAVING com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.iso_code "
-                        + "IN (" + havingParams.get(0).getPlaceholder() + ") "
-                        + "ORDER BY MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) DESC LIMIT 5";
+                        + "IN (:XXX) ORDER BY MIN(com_yahoo_elide_datastores_aggregation_example_PlayerStats.lowScore) DESC LIMIT 5";
         List<String> expectedQueryList = new ArrayList<String>();
         expectedQueryList.add(expectedQueryStr1);
         expectedQueryList.add(expectedQueryStr2);
@@ -306,9 +284,9 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
         Query query = TestQuery.NESTED_METRIC_QUERY.getQuery();
 
         String exptectedQueryStr =
-                "SELECT AVG(com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.highScore) "
-                        + "AS dailyAverageScorePerPeriod,com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.overallRating AS overallRating,"
-                        + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.recordedMonth, 'yyyy-MM'), 'yyyy-MM') AS recordedMonth "
+                "SELECT AVG(com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.highScore) "
+                        + "AS dailyAverageScorePerPeriod,com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.overallRating AS overallRating,"
+                        + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.recordedMonth, 'yyyy-MM'), 'yyyy-MM') AS recordedMonth "
                         + "FROM (SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating,"
                         + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS recordedDate,"
@@ -317,9 +295,9 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating, "
                         + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
                         + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM'), 'yyyy-MM') ) "
-                        + "AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395 GROUP BY "
-                        + "com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.overallRating, "
-                        + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.recordedMonth, 'yyyy-MM'), 'yyyy-MM')\n";
+                        + "AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX GROUP BY "
+                        + "com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.overallRating, "
+                        + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.recordedMonth, 'yyyy-MM'), 'yyyy-MM')\n";
 
         List<String> expectedQueryList = new ArrayList<String>();
         expectedQueryList.add(exptectedQueryStr);
@@ -330,12 +308,11 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
     @Test
     public void testNestedMetricWithHavingQuery() {
         Query query = TestQuery.NESTED_METRIC_WITH_HAVING_QUERY.getQuery();
-        List<FilterPredicate.FilterParameter> havingParams = ((FilterPredicate) query.getHavingFilter()).getParameters();
 
         String exptectedQueryStr =
-                "SELECT AVG(com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.highScore) "
-                        + "AS dailyAverageScorePerPeriod,com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.overallRating AS overallRating,"
-                        + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.recordedMonth, 'yyyy-MM'), 'yyyy-MM') AS recordedMonth "
+                "SELECT AVG(com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.highScore) "
+                        + "AS dailyAverageScorePerPeriod,com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.overallRating AS overallRating,"
+                        + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.recordedMonth, 'yyyy-MM'), 'yyyy-MM') AS recordedMonth "
                         + "FROM (SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating,"
                         + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS recordedDate,"
@@ -344,11 +321,10 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating, "
                         + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
                         + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM'), 'yyyy-MM') ) "
-                        + "AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395 GROUP BY "
-                        + "com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.overallRating, "
-                        + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.recordedMonth, 'yyyy-MM'), 'yyyy-MM') "
-                        + "HAVING AVG(com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.highScore) "
-                        + "> " + havingParams.get(0).getPlaceholder() + "\n";
+                        + "AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX GROUP BY "
+                        + "com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.overallRating, "
+                        + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.recordedMonth, 'yyyy-MM'), 'yyyy-MM') "
+                        + "HAVING AVG(com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.highScore) > :XXX\n";
 
         List<String> expectedQueryList = new ArrayList<String>();
         expectedQueryList.add(exptectedQueryStr);
@@ -359,25 +335,24 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
     @Test
     public void testNestedMetricWithWhereQuery() {
         Query query = TestQuery.NESTED_METRIC_WITH_WHERE_QUERY.getQuery();
-        List<FilterPredicate.FilterParameter> whereParams = ((FilterPredicate) query.getWhereFilter()).getParameters();
 
         String exptectedQueryStr =
-                "SELECT AVG(com_yahoo_elide_datastores_aggregation_example_PlayerStats_1797115307.highScore) "
-                        + "AS dailyAverageScorePerPeriod,com_yahoo_elide_datastores_aggregation_example_PlayerStats_1797115307.overallRating AS overallRating,"
-                        + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats_1797115307.recordedMonth, 'yyyy-MM'), 'yyyy-MM') AS recordedMonth "
+                "SELECT AVG(com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.highScore) "
+                        + "AS dailyAverageScorePerPeriod,com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.overallRating AS overallRating,"
+                        + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.recordedMonth, 'yyyy-MM'), 'yyyy-MM') AS recordedMonth "
                         + "FROM (SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating,"
                         + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS recordedDate,"
                         + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM'), 'yyyy-MM') AS recordedMonth "
                         + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
                         + "LEFT JOIN countries AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_country ON com_yahoo_elide_datastores_aggregation_example_PlayerStats.country_id = com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.id "
-                        + "WHERE com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.iso_code IN (" + whereParams.get(0).getPlaceholder() + ") "
+                        + "WHERE com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.iso_code IN (:XXX) "
                         + "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating, "
                         + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
                         + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM'), 'yyyy-MM') ) "
-                        + "AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_1797115307 GROUP BY "
-                        + "com_yahoo_elide_datastores_aggregation_example_PlayerStats_1797115307.overallRating, "
-                        + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats_1797115307.recordedMonth, 'yyyy-MM'), 'yyyy-MM')\n";
+                        + "AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX GROUP BY "
+                        + "com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.overallRating, "
+                        + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.recordedMonth, 'yyyy-MM'), 'yyyy-MM')\n";
 
         List<String> expectedQueryList = new ArrayList<String>();
         expectedQueryList.add(exptectedQueryStr);
@@ -389,8 +364,8 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
     public void testNestedMetricWithPaginationQuery() {
         Query query = TestQuery.NESTED_METRIC_WITH_PAGINATION_QUERY.getQuery();
 
-        String exptectedQueryStr1 = "SELECT COUNT(DISTINCT(com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.overallRating, "
-                + "com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.recordedMonth)) "
+        String exptectedQueryStr1 = "SELECT COUNT(DISTINCT(com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.overallRating, "
+                + "com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.recordedMonth)) "
                 + "FROM (SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
                 + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating,"
                 + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS recordedDate,"
@@ -399,11 +374,11 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
                 + "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating, "
                 + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
                 + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM'), 'yyyy-MM') ) "
-                + "AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395\n";
+                + "AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\n";
 
-        String exptectedQueryStr2 = "SELECT AVG(com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.highScore) "
-                + "AS dailyAverageScorePerPeriod,com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.overallRating AS overallRating,"
-                + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.recordedMonth, 'yyyy-MM'), 'yyyy-MM') AS recordedMonth "
+        String exptectedQueryStr2 = "SELECT AVG(com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.highScore) "
+                + "AS dailyAverageScorePerPeriod,com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.overallRating AS overallRating,"
+                + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.recordedMonth, 'yyyy-MM'), 'yyyy-MM') AS recordedMonth "
                 + "FROM (SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
                 + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating,"
                 + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS recordedDate,"
@@ -412,9 +387,9 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
                 + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating, "
                 + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
                 + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats.recordedDate, 'yyyy-MM'), 'yyyy-MM') ) "
-                + "AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395 GROUP BY "
-                + "com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.overallRating, "
-                + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats_815243395.recordedMonth, 'yyyy-MM'), 'yyyy-MM') "
+                + "AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX GROUP BY "
+                + "com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.overallRating, "
+                + "PARSEDATETIME(FORMATDATETIME(com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX.recordedMonth, 'yyyy-MM'), 'yyyy-MM') "
                 + "LIMIT 1\n";
 
         List<String> expectedQueryList = new ArrayList<String>();
