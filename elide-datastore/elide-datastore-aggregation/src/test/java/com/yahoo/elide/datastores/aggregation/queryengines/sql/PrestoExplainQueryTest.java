@@ -63,15 +63,17 @@ public class PrestoExplainQueryTest extends SQLUnitTest {
     }
 
     @Test
-    public void testExplainWhereMetricsOrDims() throws Exception {
-        Query query = TestQuery.WHERE_METRICS_OR_DIMS.getQuery();
+    public void textExplainWhereOr() throws Exception {
+        Query query = TestQuery.WHERE_OR.getQuery();
         String expectedQueryStr =
                 "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
                         + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating "
                         + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
-                        + "WHERE (com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL "
-                        + "OR MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) > :XXX) "
-                        + "GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating";
+                        + "LEFT JOIN countries AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_country "
+                        + "ON com_yahoo_elide_datastores_aggregation_example_PlayerStats.country_id = com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.id "
+                        + "WHERE (com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL OR com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.iso_code IN (:XXX)) "
+                        + " GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating\n";
+
         compareQueryLists(expectedQueryStr, engine.explain(query));
     }
 

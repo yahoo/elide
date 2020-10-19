@@ -120,14 +120,14 @@ public abstract class SQLUnitTest {
                     .whereFilter(new AndFilterExpression(ratingFilter, highScoreFilter))
                     .build();
         }),
-        WHERE_METRICS_OR_DIMS (() -> {
+        WHERE_OR (() -> {
             FilterPredicate ratingFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "overallRating"),
                     Operator.NOTNULL, new ArrayList<Object>());
             FilterPredicate highScoreFilter = new FilterPredicate(
-                    new Path(PlayerStats.class, dictionary, "highScore"),
-                    Operator.GT,
-                    Arrays.asList(9000));
+                    new Path(PlayerStats.class, dictionary, "countryIsoCode"),
+                    Operator.IN,
+                    Arrays.asList("USA"));
             return Query.builder()
                     .source(playerStatsTable)
                     .metricProjection(playerStatsTable.getMetricProjection("highScore"))

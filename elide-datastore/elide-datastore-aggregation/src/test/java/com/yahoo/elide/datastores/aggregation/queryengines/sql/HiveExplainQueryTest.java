@@ -60,6 +60,21 @@ public class HiveExplainQueryTest extends SQLUnitTest {
         compareQueryLists(expectedQueryStr, engine.explain(query));
     }
 
+    @Test
+    public void textExplainWhereOr() throws Exception {
+        Query query = TestQuery.WHERE_OR.getQuery();
+        String expectedQueryStr =
+                "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore,"
+                        + "com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating AS overallRating "
+                        + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
+                        + "LEFT JOIN countries AS com_yahoo_elide_datastores_aggregation_example_PlayerStats_country "
+                        + "ON com_yahoo_elide_datastores_aggregation_example_PlayerStats.country_id = com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.id "
+                        + "WHERE (com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating IS NOT NULL OR com_yahoo_elide_datastores_aggregation_example_PlayerStats_country.iso_code IN (:XXX)) "
+                        + " GROUP BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating\n";
+
+        compareQueryLists(expectedQueryStr, engine.explain(query));
+    }
+
     /* // TODO Group By is needed before a having clause in Hive
     @Test
     public void testExplainHavingMetricsOnly() throws Exception {
