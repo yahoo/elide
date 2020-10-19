@@ -79,10 +79,7 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .metricProjections(plan.getMetricProjections())
                 .dimensionProjections(dimensions)
                 .timeDimensionProjections(timeDimensions)
-                .whereFilter(clientQuery.getWhereFilter())
-                //TODO - we only want the sorting dimensions here for their joins - not the metrics.  Filter
-                //out the metrics.
-                .sorting(clientQuery.getSorting());
+                .whereFilter(clientQuery.getWhereFilter());
     }
 
     private Query.QueryBuilder visitOuterQueryPlan(Queryable plan)  {

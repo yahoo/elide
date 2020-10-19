@@ -11,6 +11,7 @@ import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.request.Sorting;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.Singular;
 import lombok.Value;
@@ -46,11 +47,14 @@ public class Query implements Queryable {
     private FilterExpression havingFilter;
     private Sorting sorting;
     private ImmutablePagination pagination;
+
+    @EqualsAndHashCode.Exclude
     private RequestScope scope;
 
     /**
      * Whether to bypass the {@link QueryEngine} cache for this query.
      */
+    @EqualsAndHashCode.Exclude
     private boolean bypassingCache;
 
     @Override
