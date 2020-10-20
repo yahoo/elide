@@ -58,7 +58,7 @@ public class Path {
         }
     }
 
-    public Path() {
+    protected Path() {
     }
 
     public Path(Path copy) {

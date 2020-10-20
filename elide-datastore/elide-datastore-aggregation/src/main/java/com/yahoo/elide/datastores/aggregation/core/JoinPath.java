@@ -95,7 +95,7 @@ public class JoinPath extends Path {
     private PathElement resolvePathAttribute(Class<?> entityClass,
                                              EntityDictionary dictionary,
                                              String fieldName) {
-        Class<?> attributeClass = null;
+        Class<?> attributeClass = Object.class;
         if (dictionary.isAttribute(entityClass, fieldName)
                         || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
             attributeClass = dictionary.getType(entityClass, fieldName);
