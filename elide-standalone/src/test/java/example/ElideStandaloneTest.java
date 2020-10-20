@@ -262,7 +262,7 @@ public class ElideStandaloneTest {
                 .then()
                 .statusCode(200)
                 .body("tags.name", containsInAnyOrder("post", "functionArgument", "metric",
-                        "metricFunction", "dimension", "column", "table", "asyncQuery", "asyncAPI",
+                        "metricFunction", "dimension", "column", "table", "asyncQuery",
                         "timeDimensionGrain", "timeDimension", "postView"));
     }
 

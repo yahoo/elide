@@ -8,7 +8,6 @@ package com.yahoo.elide.async.models;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Exclude;
-import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.async.service.AsyncAPIUpdateThread;
 import com.yahoo.elide.async.service.AsyncExecutorService;
@@ -23,13 +22,10 @@ import java.util.Date;
 import java.util.UUID;
 
 import javax.persistence.Column;
-import javax.persistence.DiscriminatorColumn;
-import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
+import javax.persistence.MappedSuperclass;
 import javax.persistence.PreUpdate;
 import javax.persistence.Transient;
 import javax.validation.constraints.Max;
@@ -38,12 +34,9 @@ import javax.validation.constraints.Pattern;
 /**
  * Base Model Class for Async Query.
  */
-@Entity
-@Include(type = "asyncAPI")
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn
+@MappedSuperclass
 @Data
-public class AsyncAPI implements PrincipalOwned {
+public abstract class AsyncAPI implements PrincipalOwned {
     @Id
     @Column(columnDefinition = "varchar(36)")
     @Pattern(regexp = "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
@@ -87,9 +80,7 @@ public class AsyncAPI implements PrincipalOwned {
      * Set Async API Result.
      * @param result Base Result Object to persist.
      */
-    public void setResult(AsyncAPIResult result) {
-        // Do Nothing;
-    };
+    public abstract void setResult(AsyncAPIResult result);
 
     /**
      * Execute Async Request.
@@ -100,10 +91,8 @@ public class AsyncAPI implements PrincipalOwned {
      * @throws URISyntaxException URISyntaxException
      * @throws NoHttpResponseException NoHttpResponseException
      */
-    public AsyncAPIResult executeRequest(AsyncExecutorService service, User user, String apiVersion)
-            throws URISyntaxException, NoHttpResponseException {
-        return null;
-    }
+    public abstract AsyncAPIResult executeRequest(AsyncExecutorService service, User user, String apiVersion)
+            throws URISyntaxException, NoHttpResponseException;
 
     @PreUpdate
     public void preUpdate() {

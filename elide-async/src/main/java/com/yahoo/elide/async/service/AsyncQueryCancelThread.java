@@ -9,6 +9,7 @@ import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncAPI;
+import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.Path.PathElement;
@@ -52,13 +53,14 @@ public class AsyncQueryCancelThread implements Runnable {
 
     @Override
     public void run() {
-        cancelAsyncQuery();
+        cancelAsyncQuery(AsyncQuery.class);
     }
 
     /**
      * This method cancels queries based on threshold.
+     * @param type AsyncAPI Type Implementation.
      */
-    protected void cancelAsyncQuery() {
+    protected <T extends AsyncAPI> void cancelAsyncQuery(Class<T> type) {
 
         try {
             TransactionRegistry transactionRegistry = elide.getTransactionRegistry();
@@ -69,7 +71,7 @@ public class AsyncQueryCancelThread implements Runnable {
             Set<UUID> runningTransactionUUIDs = runningTransactionMap.keySet();
 
             //Construct filter expression
-            PathElement statusPathElement = new PathElement(AsyncAPI.class, QueryStatus.class, "status");
+            PathElement statusPathElement = new PathElement(type, QueryStatus.class, "status");
             List<QueryStatus> statusList = new ArrayList<QueryStatus>();
             statusList.add(QueryStatus.CANCELLED);
             statusList.add(QueryStatus.PROCESSING);
@@ -77,8 +79,8 @@ public class AsyncQueryCancelThread implements Runnable {
             FilterExpression fltStatusExpression =
                     new InPredicate(statusPathElement, statusList);
 
-            Collection<AsyncAPI> asyncQueryCollection =
-                    asyncQueryDao.loadAsyncQueryCollection(fltStatusExpression, AsyncAPI.class);
+            Collection<T> asyncQueryCollection =
+                    asyncQueryDao.loadAsyncQueryCollection(fltStatusExpression, type);
 
             //Active AsyncQuery UUIDs
             Set<UUID> asyncTransactionUUIDs = asyncQueryCollection.stream()
@@ -96,7 +98,7 @@ public class AsyncQueryCancelThread implements Runnable {
             .map(uuid -> {
                 return asyncQueryCollection.stream()
                 .filter(query -> query.getRequestId().equals(uuid.toString()))
-                .map(AsyncAPI::getId)
+                .map(T::getId)
                 .findFirst().orElseThrow(IllegalStateException::new);
             })
             .collect(Collectors.toSet());
@@ -117,11 +119,11 @@ public class AsyncQueryCancelThread implements Runnable {
 
             //Change queryStatus for cancelled queries
             if (!queryIDsToCancel.isEmpty()) {
-                PathElement idPathElement = new PathElement(AsyncAPI.class, String.class, "id");
+                PathElement idPathElement = new PathElement(type, String.class, "id");
                 FilterExpression fltIdExpression =
                         new InPredicate(idPathElement, queryIDsToCancel);
                 asyncQueryDao.updateStatusAsyncQueryCollection(fltIdExpression, QueryStatus.CANCEL_COMPLETE,
-                        AsyncAPI.class);
+                        type);
             }
         } catch (Exception e) {
             log.error("Exception in scheduled cancellation: {}", e);
