@@ -67,6 +67,7 @@ public class DynamicConfigSchemaValidatorTest {
     @ValueSource(strings = {
             "/validator/invalid_schema/table_invalid.hjson",
             "/validator/invalid_schema/invalid_dimension_data_source.hjson",
+            "/validator/invalid_schema/invalid_query_plan_classname.hjson",
             "/validator/invalid_schema/invalid_table_filter.hjson"})
     public void testInvalidTableSchema(String resource) throws Exception {
         String jsonConfig = loadHjsonFromClassPath(resource);

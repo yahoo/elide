@@ -249,7 +249,7 @@ public class HandlebarsHydratorTest {
             + "    \n"
             + "    protected Long highScore;\n"
             + "    \n"
-            + "    @MetricFormula(\"MAX({{score}})\")\n"
+            + "    @MetricFormula(value=\"MAX({{score}})\")\n"
             + "    @ReadPermission(expression = \"Prefab.Role.All\")\n"
             + "    @ColumnMeta(\n"
             + "        description = \"very awesome score\",\n"
@@ -503,7 +503,7 @@ public class HandlebarsHydratorTest {
             + "\n"
             + "    \n"
             + "    \n"
-            + "    @MetricFormula(\"MAX({{score}})\")\n"
+            + "    @MetricFormula(value=\"MAX({{score}})\", queryPlan=com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanResolver.class)\n"
             + "    @ReadPermission(expression = \"Prefab.Role.All\")\n"
             + "    @ColumnMeta(\n"
             + "        description = \"very awesome score\",\n"
@@ -523,7 +523,7 @@ public class HandlebarsHydratorTest {
             + "    \n"
             + "    protected Long AvgScore;\n"
             + "    \n"
-            + "    @MetricFormula(\"Avg({{score}})\")\n"
+            + "    @MetricFormula(value=\"Avg({{score}})\")\n"
             + "    @ReadPermission(expression = \"Prefab.Role.All\")\n"
             + "    @ColumnMeta(\n"
             + "        description = \"Avg score\",\n"
@@ -564,7 +564,6 @@ public class HandlebarsHydratorTest {
 
     @Test
     public void testTableHydration() throws IOException {
-
         Map<String, String> tableClasses = hydrator.hydrateTableTemplate(testClass.getElideTableConfig());
 
         assertTrue(tableClasses.keySet().contains(VALID_TABLE_JAVA_NAME));
@@ -573,7 +572,6 @@ public class HandlebarsHydratorTest {
 
     @Test
     public void testChildTableHydration() throws IOException {
-
         Map<String, String> tableClasses = hydrator.hydrateTableTemplate(testClass.getElideTableConfig());
 
         assertTrue(tableClasses.keySet().contains("PlayerStatsChild"));

@@ -139,7 +139,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
     <%else%>
     protected <%#getJavaType type%><%/getJavaType%> <%name%>;
     <%/if%>
-    @MetricFormula("<%definition%>")
+    @MetricFormula(value="<%definition%>"<%#if queryPlanResolver%>, queryPlan=<%queryPlanResolver%><%/if%>)
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
     @ColumnMeta(
         description = "<%description%>",
