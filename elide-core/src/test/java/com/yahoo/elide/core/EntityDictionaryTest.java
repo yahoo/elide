@@ -606,9 +606,6 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertEquals(SuperclassBinding.class, lookupEntityClass(SubclassBinding.class));
         assertEquals(SuperclassBinding.class, lookupEntityClass(SubsubclassBinding.class));
 
-        assertEquals("superclassBinding", getEntityFor(SubclassBinding.class));
-        assertEquals("superclassBinding", getEntityFor(SuperclassBinding.class));
-
         assertNull(getEntityClass("subclassBinding", NO_VERSION));
         assertEquals(SuperclassBinding.class, getEntityClass("superclassBinding", NO_VERSION));
 

@@ -78,7 +78,6 @@ public class EntityBinding {
     @Getter
     public final Class<?> entityClass;
     public final String jsonApiType;
-    public final String entityName;
     @Getter
     public boolean idGenerated;
     @Getter
@@ -128,7 +127,6 @@ public class EntityBinding {
     private EntityBinding() {
         injected = false;
         jsonApiType = null;
-        entityName = null;
         apiVersion = NO_VERSION;
         apiAttributes = new ArrayList<>();
         apiRelationships = new ArrayList<>();
@@ -147,13 +145,11 @@ public class EntityBinding {
      * @param dictionary Dictionary to use
      * @param cls Entity class
      * @param type Declared Elide type name
-     * @param name Declared Entity name
      */
     public EntityBinding(EntityDictionary dictionary,
                          Class<?> cls,
-                         String type,
-                         String name) {
-        this(dictionary, cls, type, name, NO_VERSION, new HashSet<>());
+                         String type) {
+        this(dictionary, cls, type, NO_VERSION, new HashSet<>());
     }
 
     /**
@@ -162,20 +158,17 @@ public class EntityBinding {
      * @param dictionary Dictionary to use
      * @param cls Entity class
      * @param type Declared Elide type name
-     * @param name Declared Entity name
      * @param hiddenAnnotations Annotations for hiding a field in API
      */
     public EntityBinding(EntityDictionary dictionary,
                          Class<?> cls,
                          String type,
-                         String name,
                          String apiVersion,
                          Set<Class<? extends Annotation>> hiddenAnnotations) {
         this.dictionary = dictionary;
         entityClass = cls;
         jsonApiType = type;
         this.apiVersion = apiVersion;
-        entityName = name;
         inheritedTypes = getInheritedTypes(cls);
 
         // Map id's, attributes, and relationships

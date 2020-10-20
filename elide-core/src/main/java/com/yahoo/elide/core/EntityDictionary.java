@@ -31,6 +31,7 @@ import com.yahoo.elide.utils.ClassScanner;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
@@ -268,7 +269,7 @@ public class EntityDictionary {
             //Elide standard models transcend API versions.
             return entityBindings.values().stream()
                     .filter(binding -> binding.entityClass.getName().startsWith(ELIDE_PACKAGE_PREFIX))
-                    .filter(binding -> binding.entityName.equals(entityName))
+                    .filter(binding -> binding.jsonApiType.equals(entityName))
                     .map(EntityBinding::getEntityClass)
                     .findFirst()
                     .orElse(null);
@@ -285,17 +286,6 @@ public class EntityDictionary {
      */
     public String getJsonAliasFor(Class<?> entityClass) {
         return getEntityBinding(entityClass).jsonApiType;
-    }
-
-    /**
-     * Returns the Entity name for a given binding class.
-     *
-     * @param entityClass the entity class
-     * @return binding class
-     * @see Entity
-     */
-    public String getEntityFor(Class<?> entityClass) {
-        return getEntityBinding(entityClass).entityName;
     }
 
     /**
@@ -859,28 +849,15 @@ public class EntityDictionary {
             return;
         }
 
-        Include include = (Include) getFirstAnnotation(declaredClass, Arrays.asList(Include.class));
-        Entity entity = (Entity) getFirstAnnotation(declaredClass, Arrays.asList(Entity.class));
+        String type = getEntityName(declaredClass);
+        String version = getModelVersion(declaredClass);
 
-        String name;
-        if (entity == null || "".equals(entity.name())) {
-            name = StringUtils.uncapitalize(cls.getSimpleName());
-        } else {
-            name = entity.name();
-        }
-
-        String type;
-        if ("".equals(include.type())) {
-            type = name;
-        } else {
-            type = include.type();
-        }
-
-        String version = getModelVersion(cls);
         bindJsonApiToEntity.put(Pair.of(type, version), declaredClass);
         apiVersions.add(version);
         entityBindings.put(declaredClass, new EntityBinding(this, declaredClass,
-                type, name, version, hiddenAnnotations));
+                type, version, hiddenAnnotations));
+
+        Include include = (Include) getFirstAnnotation(declaredClass, Collections.singletonList(Include.class));
         if (include.rootLevel()) {
             bindEntityRoots.add(declaredClass);
         }
@@ -1706,5 +1683,22 @@ public class EntityDictionary {
                 (ApiVersion) getFirstPackageAnnotation(modelClass, Arrays.asList(ApiVersion.class));
 
         return (apiVersionAnnotation == null) ? NO_VERSION : apiVersionAnnotation.version();
+    }
+
+    public static String getEntityName(Class<?> modelClass) {
+        Include include = (Include) getFirstAnnotation(modelClass, Arrays.asList(Include.class));
+
+        Preconditions.checkNotNull(include);
+
+        if (! "".equals(include.type())) {
+            return include.type();
+        }
+
+        Entity entity = (Entity) getFirstAnnotation(modelClass, Arrays.asList(Entity.class));
+        if (entity == null || "".equals(entity.name())) {
+            return StringUtils.uncapitalize(modelClass.getSimpleName());
+        } else {
+            return entity.name();
+        }
     }
 }
