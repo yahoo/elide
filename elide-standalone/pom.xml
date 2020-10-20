@@ -46,7 +46,7 @@
     <properties>
         <!-- Versions -->
         <logback.version>1.2.3</logback.version>
-        <metrics.version>4.1.12.1</metrics.version>
+        <metrics.version>4.1.13</metrics.version>
 
         <!-- Settings -->
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
