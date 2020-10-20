@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 public abstract class ColumnVisitor<T> {
     private static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
 
-    protected final MetaDataStore metaDataStore;
+    private final MetaDataStore metaDataStore;
     protected final EntityDictionary dictionary;
 
     public ColumnVisitor(MetaDataStore metaDataStore) {

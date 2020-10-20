@@ -12,7 +12,6 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnVisitor;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
@@ -83,16 +82,25 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
      * @return
      */
     private String visitFormulaColumn(ColumnProjection column) {
-        Queryable source  = column.getSource();
+        return resolveReferences(column.getSource(), column.getExpression(), column.getName());
+    }
 
-        String expr = column.getExpression();
+    /**
+     * Resolve references.
+     *
+     * @param source
+     * @param expr expression with unresolved references
+     * @param logicalName logical column name
+     * @return expression with resolved references
+     */
+    public String resolveReferences(Queryable source, String expr, String logicalName) {
 
         // replace references with resolved statements/expressions
-        for (String reference : resolveFormulaReferences(column.getExpression())) {
+        for (String reference : resolveFormulaReferences(expr)) {
             String resolvedReference;
 
             //The column is sourced from a query rather than a table.
-            if (column.getSource() != column.getSource().getSource()) {
+            if (source != source.getSource()) {
                 resolvedReference = visitPhysicalReference(reference);
 
             //The reference is a join to another logical column.
@@ -108,14 +116,13 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
 
                 //If the reference matches the column name - it means the logical and physical
                 //columns have the same name.  Treat it like a physical column.
-                } else if (reference.equals(column.getName())) {
+                } else if (reference.equals(logicalName)) {
                     resolvedReference = visitPhysicalReference(reference);
                 //A reference to another logical column.
                 } else {
                     resolvedReference = visitColumn(referenceColumn);
                 }
             }
-
             expr = expr.replace(toFormulaReference(reference), resolvedReference);
         }
 
