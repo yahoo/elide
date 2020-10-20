@@ -30,6 +30,7 @@ import java.util.Set;
     "hidden",
     "readAccess",
     "definition",
+    "queryPlanResolver",
     "type",
     "tags"
 })
@@ -59,6 +60,9 @@ public class Measure {
 
     @JsonProperty("type")
     private Type type = Type.INTEGER;
+
+    @JsonProperty("queryPlanResolver")
+    private String queryPlanResolver;
 
     @JsonProperty("tags")
     @JsonDeserialize(as = LinkedHashSet.class)
