@@ -857,7 +857,7 @@ public class EntityDictionary {
         entityBindings.put(declaredClass, new EntityBinding(this, declaredClass,
                 type, version, hiddenAnnotations));
 
-        Include include = (Include) getFirstAnnotation(declaredClass, Collections.singletonList(Include.class));
+        Include include = declaredClass.getAnnotation(Include.class);
         if (include.rootLevel()) {
             bindEntityRoots.add(declaredClass);
         }
@@ -1141,7 +1141,8 @@ public class EntityDictionary {
      * @param annotationClass The annotation to search for.
      * @return The class which declares the annotation or null.
      */
-    public Class<?> lookupAnnotationDeclarationClass(Class<?> objClass, Class<? extends Annotation> annotationClass) {
+    public static Class<?> lookupAnnotationDeclarationClass(Class<?> objClass,
+                                                            Class<? extends Annotation> annotationClass) {
         for (Class<?> cls = objClass; cls != null; cls = cls.getSuperclass()) {
             if (cls.getDeclaredAnnotation(annotationClass) != null) {
                 return cls;
@@ -1685,18 +1686,24 @@ public class EntityDictionary {
         return (apiVersionAnnotation == null) ? NO_VERSION : apiVersionAnnotation.version();
     }
 
+    /**
+     * Looks up the API model name for a given class.
+     * @param modelClass The model class to lookup.
+     * @return the API name for the model class.
+     */
     public static String getEntityName(Class<?> modelClass) {
-        Include include = (Include) getFirstAnnotation(modelClass, Arrays.asList(Include.class));
+        Class<?> declaringClass = lookupAnnotationDeclarationClass(modelClass, Include.class);
 
-        Preconditions.checkNotNull(include);
+        Preconditions.checkNotNull(declaringClass);
+        Include include = declaringClass.getAnnotation(Include.class);
 
         if (! "".equals(include.type())) {
             return include.type();
         }
 
-        Entity entity = (Entity) getFirstAnnotation(modelClass, Arrays.asList(Entity.class));
+        Entity entity = (Entity) getFirstAnnotation(declaringClass, Arrays.asList(Entity.class));
         if (entity == null || "".equals(entity.name())) {
-            return StringUtils.uncapitalize(modelClass.getSimpleName());
+            return StringUtils.uncapitalize(declaringClass.getSimpleName());
         } else {
             return entity.name();
         }
