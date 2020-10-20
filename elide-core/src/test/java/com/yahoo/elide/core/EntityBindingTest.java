@@ -29,7 +29,7 @@ public class EntityBindingTest {
 
     @BeforeAll
     public static void init() {
-        entityBinding = new EntityBinding(entityDictionary, ChildClass.class, "child", "childBinding");
+        entityBinding = new EntityBinding(entityDictionary, ChildClass.class, "childBinding");
     }
 
     @Test
@@ -54,19 +54,19 @@ public class EntityBindingTest {
 
     @Test
     public void testIdGeneratedTrueWhenGenerateValue() throws Exception {
-        final EntityBinding eb = new EntityBinding(entityDictionary, GeneratedValueClass.class, "test", "testBinding");
+        final EntityBinding eb = new EntityBinding(entityDictionary, GeneratedValueClass.class, "testBinding");
         assertTrue(eb.isIdGenerated());
     }
 
     @Test
     public void testIdGeneratedTrueWhenMapsId() throws Exception {
-        final EntityBinding eb = new EntityBinding(entityDictionary, MapsIdClass.class, "test", "testBinding");
+        final EntityBinding eb = new EntityBinding(entityDictionary, MapsIdClass.class, "testBinding");
         assertTrue(eb.isIdGenerated());
     }
 
     @Test
     public void testIdGeneratedFalseWhenBadMapsId() throws Exception {
-        final EntityBinding eb = new EntityBinding(entityDictionary, BadMapsIdClass.class, "test", "testBinding");
+        final EntityBinding eb = new EntityBinding(entityDictionary, BadMapsIdClass.class, "testBinding");
         assertFalse(eb.isIdGenerated());
     }
 
