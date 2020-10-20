@@ -123,6 +123,12 @@
           "description": "The definition of the metric",
           "type": "string"
         },
+        "queryPlanResolver": {
+          "title": "query plan resolver class",
+          "description": "The JVM function class which maps a metric to a query plan",
+          "pattern": "^([a-zA-Z]+[a-zA-Z0-9_]*\\.)+class",
+          "type": "string"
+        },
         "type": {
           "oneOf":[
             {"$ref": "#/definitions/enumtype"},

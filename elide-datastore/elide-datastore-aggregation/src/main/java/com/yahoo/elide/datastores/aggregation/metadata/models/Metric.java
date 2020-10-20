@@ -56,12 +56,9 @@ public class Metric extends Column {
                     meta == null ? null : meta.description(),
                     new HashSet<>());
 
-            try {
-                this.queryPlanResolver = formula.queryPlan().newInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new IllegalStateException("Could not instantiate query plan resolver for metric field: "
-                        + getId());
-            }
+            this.queryPlanResolver = dictionary.getInjector().instantiate(formula.queryPlan());
+            dictionary.getInjector().inject(this.queryPlanResolver);
+
         } else {
             throw new IllegalStateException("Trying to construct metric field "
                     + getId() + " without @MetricFormula.");
