@@ -21,7 +21,7 @@
           to: DeliveryDetails
           type: toOne
           // References Logical Columns, multiple join condition
-          definition: "{{ orderId}} = {{delivery.orderId}} AND {{ delivery.deliveryDate }} > '2020-09-01'"
+          definition: "{{ orderId}} = {{delivery.orderId}} AND {{ delivery.delivered_on }} > '1970-01-01'"
         }
       ]
       measures:
@@ -44,7 +44,7 @@
         {
           name: courierName
           type: TEXT
-          definition: '{{delivery.courierName}}'
+          definition: '{{delivery.courier_name}}'
           readAccess: Principal is operator
         }
         {
@@ -66,9 +66,23 @@
           readAccess: Principal is operator
         }
         {
+          name: orderTime
+          type: TIME
+          // Physical Column Reference in same table
+          definition: '{{created_on}}'
+          readAccess: Principal is guest user
+          grain:
+          {
+            type: DATETIME
+            // sql: '{{}}' OR
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd HH:mm:ss'), 'yyyy-MM-dd HH:mm:ss')
+          }
+        }
+        {
           name: orderDate
           type: TIME
-          definition: '{{created_on}}'
+          // Logical Column Reference in same table, which references Physical column in same table
+          definition: '{{orderTime}}'
           readAccess: Principal is guest user
           grain:
           {
@@ -77,9 +91,34 @@
           }
         }
         {
+          name: orderMonth
+          type: TIME
+          // Logical Column Reference in same table, which references another Logical column in same table, which references Physical column in same table
+          definition: '{{orderDate}}'
+          readAccess: Principal is guest user
+          grain:
+          {
+            type: YEARMONTH
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
+          }
+        }
+        {
+          name: deliveryTime
+          type: TIME
+          // Physical Column Reference in referred table
+          definition: '{{delivery.delivered_on}}'
+          readAccess: Principal is guest user
+          grain:
+          {
+            type: DATETIME
+            sql: '{{}}'
+          }
+        }
+        {
           name: deliveryDate
           type: TIME
-          definition: '{{delivery.deliveryDate}}'
+          // Logical Column Reference in referred table, which references Physical column in referred table
+          definition: '{{delivery.time}}'
           readAccess: Principal is guest user
           grain:
           {
@@ -88,9 +127,10 @@
           }
         }
         {
-          name: orderMonth
+          name: deliveryMonth
           type: TIME
-          definition: '{{created_on}}'
+          // Logical Column Reference in referred table, which references another Logical column in referred table, which references another Logical column in referred table, which references Physical column in referred table
+          definition: '{{delivery.month}}'
           readAccess: Principal is guest user
           grain:
           {
@@ -99,15 +139,27 @@
           }
         }
         {
-          name: orderTime
+          name: deliveryMonthYear
           type: TIME
-          definition: '{{created_on}}'
+          // Logical Column Reference in same table, which references Physical column in referred table
+          definition: '{{deliveryTime}}'
           readAccess: Principal is guest user
           grain:
           {
-            type: SECOND
-            // sql: '{{}}' OR
-            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd HH:mm:ss'), 'yyyy-MM-dd HH:mm:ss')
+            type: MONTHYEAR
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'MMM yyyy'), 'MMM yyyy')
+          }
+        }
+        {
+          name: deliveryYear
+          type: TIME
+          // Logical Column Reference in same table, which references another Logical Column in referred table, which references another Logical column in referred table, which references another Logical column in referred table, which references Physical column in referred table
+          definition: '{{deliveryMonth}}'
+          readAccess: Principal is guest user
+          grain:
+          {
+            type: YEAR
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy'), 'yyyy')
           }
         }
       ]
@@ -187,20 +239,36 @@
           readAccess: Principal is operator
         }
         {
-          name: courierName
-          type: TEXT
-          definition: '{{courier_name}}'
-          readAccess: Principal is operator
-        }
-        {
-          name: deliveryDate
+          name: time
           type: TIME
           definition: '{{delivered_on}}'
           readAccess: Principal is guest user
           grain:
           {
+            type: DATETIME
+            sql: '{{}}'
+          }
+        }
+        {
+          name: date
+          type: TIME
+          definition: '{{time}}'
+          readAccess: Principal is guest user
+          grain:
+          {
             type: SIMPLEDATE
             sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+          }
+        }
+        {
+          name: month
+          type: TIME
+          definition: '{{date}}'
+          readAccess: Principal is guest user
+          grain:
+          {
+            type: YEARMONTH
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
           }
         }
       ]

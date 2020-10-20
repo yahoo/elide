@@ -90,7 +90,10 @@ public class SQLJoinVisitor extends ColumnVisitor<Set<JoinPath>> {
         joinPaths.add(joinPath);
 
         froms.add(joinPath);
-        joinPaths.addAll(Objects.requireNonNull(visitColumn(getColumn(joinPath))));
+        ColumnProjection columnProjection = getColumn(joinPath);
+        if (columnProjection != null) {
+            joinPaths.addAll(Objects.requireNonNull(visitColumn(columnProjection)));
+        }
         froms.pop();
 
         return joinPaths;

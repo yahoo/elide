@@ -11,7 +11,6 @@ import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnVisitor;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
@@ -82,16 +81,25 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
      * @return
      */
     private String visitFormulaColumn(ColumnProjection column) {
-        Queryable source  = column.getSource();
+        return resolveReferences(column.getSource(), column.getExpression(), column.getName());
+    }
 
-        String expr = column.getExpression();
+    /**
+     * Resolve references.
+     *
+     * @param source
+     * @param expr expression with unresolved references
+     * @param logicalName logical column name
+     * @return expression with resolved references
+     */
+    public String resolveReferences(Queryable source, String expr, String logicalName) {
 
         // replace references with resolved statements/expressions
-        for (String reference : resolveFormulaReferences(column.getExpression())) {
+        for (String reference : resolveFormulaReferences(expr)) {
             String resolvedReference;
 
             //The column is sourced from a query rather than a table.
-            if (column.getSource() != column.getSource().getSource()) {
+            if (source != source.getSource()) {
                 resolvedReference = visitPhysicalReference(reference);
 
             //The reference is a join to another logical column.
@@ -107,14 +115,13 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
 
                 //If the reference matches the column name - it means the logical and physical
                 //columns have the same name.  Treat it like a physical column.
-                } else if (reference.equals(column.getName())) {
+                } else if (reference.equals(logicalName)) {
                     resolvedReference = visitPhysicalReference(reference);
                 //A reference to another logical column.
                 } else {
                     resolvedReference = visitColumn(referenceColumn);
                 }
             }
-
             expr = expr.replace(toFormulaReference(reference), resolvedReference);
         }
 
@@ -133,62 +140,12 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
         JoinPath joinPath = new JoinPath(tableClass, dictionary, joinToPath);
 
         tableAliases.push(extendTypeAlias(tableAliases.peek(), joinPath));
-        String result = visitColumn(getColumn(joinPath));
-        tableAliases.pop();
-
-        return result;
-    }
-
-    /**
-     * Resolve references in Join value.
-     *
-     * @param fromClass parent class
-     * @param joinClass join class
-     * @param joinAlias join alias
-     * @param expr ON clause with unresolved references
-     * @return ON clause with resolved references
-     */
-    public String resolveReferences(Class<?> fromClass, Class<?> joinClass, String joinAlias, String expr) {
-
-        // replace references with resolved statements/expressions
-        for (String reference : resolveFormulaReferences(expr)) {
-            String resolvedReference;
-            // The reference is a join to another column.
-            if (reference.indexOf('.') != -1) {
-                resolvedReference = resolveJoinReferences(joinAlias, joinClass, reference);
-            } else {
-                Column column = metaDataStore.getColumn(fromClass, reference);
-                // There is no logical column with this name, it must be a physical reference
-                if (column == null) {
-                    resolvedReference = visitPhysicalReference(reference);
-                } else {
-                    resolvedReference = visitColumn(column.getTable().toProjection(column));
-                }
-            }
-            expr = expr.replace(toFormulaReference(reference), resolvedReference);
-        }
-
-        return expr;
-    }
-
-    /**
-     * Resolve Path references in Join value.
-     *
-     * @param joinClass join class
-     * @param joinAlias join alias
-     * @param joinToPath join path
-     * @return resolved Path references
-     */
-    private String resolveJoinReferences(String joinAlias, Class<?> joinClass, String joinToPath) {
-        tableAliases.push(joinAlias);
         String result;
-        String joinField = joinToPath.substring(joinToPath.indexOf('.') + 1);
-        Column column = metaDataStore.getColumn(joinClass, joinField);
-        // There is no logical column with this name, it must be a physical reference
-        if (column == null) {
-            result = visitPhysicalReference(joinField);
+        ColumnProjection columnProjection = getColumn(joinPath);
+        if (columnProjection == null) {
+            result = visitPhysicalReference(getFieldName(joinPath));
         } else {
-            result = visitColumn(column.getTable().toProjection(column));
+            result = visitColumn(columnProjection);
         }
         tableAliases.pop();
 

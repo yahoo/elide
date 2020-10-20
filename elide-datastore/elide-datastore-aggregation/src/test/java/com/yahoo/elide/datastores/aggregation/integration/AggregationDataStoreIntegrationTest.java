@@ -860,7 +860,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     }
 
     /**
-     * This test demonstrates an example test using the aggregation store from dynamic configuration.
+     * Below tests demonstrate using the aggregation store from dynamic configuration.
      */
     @Test
     public void testDynamicAggregationModel() {
@@ -923,6 +923,24 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
+    /**
+     * Tests for below type of column references.
+     *
+     * a) Physical Column Reference in same table.
+     * b) Logical Column Reference in same table, which references Physical column in same table.
+     * c) Logical Column Reference in same table, which references another Logical column in same table, which
+     *  references Physical column in same table.
+     * d) Physical Column Reference in referred table.
+     * e) Logical Column Reference in referred table, which references Physical column in referred table.
+     * f) Logical Column Reference in referred table, which references another Logical column in referred table, which
+     *  references another Logical column in referred table, which references Physical column in referred table.
+     * g) Logical Column Reference in same table, which references Physical column in referred table.
+     * h) Logical Column Reference in same table, which references another Logical Column in referred table, which
+     *  references another Logical column in referred table, which references another Logical column in referred table,
+     *  which references Physical column in referred table
+     *
+     * @throws Exception
+     */
     @Test
     public void testGraphQLDynamicAggregationModelAllFields() throws Exception {
         String graphQLRequest = document(
@@ -931,18 +949,22 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "orderDetails",
                                 arguments(
                                         argument("sort", "\"courierName,deliveryDate,orderTotal\""),
-                                        argument("filter", "\"deliveryDate>='2020-08-01'\"")
+                                        argument("filter", "\"deliveryDate>='2020-09-01'\"")
                                 ),
                                 selections(
                                         field("courierName"),
+                                        field("deliveryTime"),
                                         field("deliveryDate"),
+                                        field("deliveryMonth"),
+                                        field("deliveryMonthYear"),
+                                        field("deliveryYear"),
+                                        field("orderTime"),
                                         field("orderDate"),
+                                        field("orderMonth"),
                                         field("customerRegion"),
                                         field("customerRegionRegion"),
                                         field("orderTotal"),
                                         field("zipCode"),
-                                        field("orderMonth"),
-                                        field("orderTime"),
                                         field("orderId")
                                 )
                         )
@@ -955,50 +977,66 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "orderDetails",
                                 selections(
                                         field("courierName", "FEDEX"),
+                                        field("deliveryTime", "2020-09-11 16:30:11"),
                                         field("deliveryDate", "2020-09-11"),
+                                        field("deliveryMonth", "2020-09"),
+                                        field("deliveryMonthYear", "Sep 2020"),
+                                        field("deliveryYear", "2020"),
+                                        field("orderTime", "2020-09-08 16:30:11"),
                                         field("orderDate", "2020-09-08"),
+                                        field("orderMonth", "2020-09"),
                                         field("customerRegion", "Virginia"),
                                         field("customerRegionRegion", "Virginia"),
                                         field("orderTotal", 84.11F),
                                         field("zipCode", 20166),
-                                        field("orderMonth", "2020-09"),
-                                        field("orderTime", "2020-09-08 16:30:11"),
                                         field("orderId", "order-1b")
                                 ),
                                 selections(
                                         field("courierName", "FEDEX"),
+                                        field("deliveryTime", "2020-09-11 16:30:11"),
                                         field("deliveryDate", "2020-09-11"),
+                                        field("deliveryMonth", "2020-09"),
+                                        field("deliveryMonthYear", "Sep 2020"),
+                                        field("deliveryYear", "2020"),
+                                        field("orderTime", "2020-09-08 16:30:11"),
                                         field("orderDate", "2020-09-08"),
+                                        field("orderMonth", "2020-09"),
                                         field("customerRegion", "Virginia"),
                                         field("customerRegionRegion", "Virginia"),
                                         field("orderTotal", 97.36F),
                                         field("zipCode", 20166),
-                                        field("orderMonth", "2020-09"),
-                                        field("orderTime", "2020-09-08 16:30:11"),
                                         field("orderId", "order-1c")
                                 ),
                                 selections(
                                         field("courierName", "UPS"),
+                                        field("deliveryTime", "2020-09-05 16:30:11"),
                                         field("deliveryDate", "2020-09-05"),
+                                        field("deliveryMonth", "2020-09"),
+                                        field("deliveryMonthYear", "Sep 2020"),
+                                        field("deliveryYear", "2020"),
+                                        field("orderTime", "2020-08-30 16:30:11"),
                                         field("orderDate", "2020-08-30"),
+                                        field("orderMonth", "2020-08"),
                                         field("customerRegion", "Virginia"),
                                         field("customerRegionRegion", "Virginia"),
                                         field("orderTotal", 103.72F),
                                         field("zipCode", 20166),
-                                        field("orderMonth", "2020-08"),
-                                        field("orderTime", "2020-08-30 16:30:11"),
                                         field("orderId", "order-1a")
                                 ),
                                 selections(
                                         field("courierName", "UPS"),
+                                        field("deliveryTime", "2020-09-13 16:30:11"),
                                         field("deliveryDate", "2020-09-13"),
+                                        field("deliveryMonth", "2020-09"),
+                                        field("deliveryMonthYear", "Sep 2020"),
+                                        field("deliveryYear", "2020"),
+                                        field("orderTime", "2020-09-09 16:30:11"),
                                         field("orderDate", "2020-09-09"),
+                                        field("orderMonth", "2020-09"),
                                         field("customerRegion", "Virginia"),
                                         field("customerRegionRegion", "Virginia"),
                                         field("orderTotal", 78.87F),
                                         field("zipCode", 20170),
-                                        field("orderMonth", "2020-09"),
-                                        field("orderTime", "2020-09-09 16:30:11"),
                                         field("orderId", "order-3b")
                                 )
                         )

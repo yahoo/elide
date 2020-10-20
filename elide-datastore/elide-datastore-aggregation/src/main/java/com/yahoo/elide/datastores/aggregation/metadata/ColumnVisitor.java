@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 public abstract class ColumnVisitor<T> {
     private static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
 
-    protected final MetaDataStore metaDataStore;
+    private final MetaDataStore metaDataStore;
     protected final EntityDictionary dictionary;
 
     public ColumnVisitor(MetaDataStore metaDataStore) {
@@ -35,7 +35,20 @@ public abstract class ColumnVisitor<T> {
 
     public final ColumnProjection getColumn(Path path) {
         Column column = metaDataStore.getColumn(path);
-        return column.getTable().toProjection(column);
+        if (column != null) {
+            return column.getTable().toProjection(column);
+        } else {
+            // Assumption: Must be a Physical Column
+            return null;
+        }
+    }
+
+    public final Column getColumn(Class<?> fromClass, String fieldName) {
+        return metaDataStore.getColumn(fromClass, fieldName);
+    }
+
+    public final String getFieldName(Path path) {
+        return metaDataStore.getFieldName(path);
     }
 
     /**

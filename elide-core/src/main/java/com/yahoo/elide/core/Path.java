@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 public class Path {
     private static final String PERIOD = ".";
 
-    @Getter private List<PathElement> pathElements;
+    @Getter protected List<PathElement> pathElements;
     /**
      * The path taken through data model associations to reference a given field.
      * eg. author.books.publisher.name
@@ -56,6 +56,9 @@ public class Path {
             this.alias = fieldName;
             this.arguments = Collections.EMPTY_SET;
         }
+    }
+
+    public Path() {
     }
 
     public Path(Path copy) {

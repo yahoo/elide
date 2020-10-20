@@ -195,7 +195,7 @@ public class PlayerStatsWithView {
         return countryView;
     }
 
-    @DimensionFormula("{{countryView.isoCode}}")
+    @DimensionFormula("{{countryView.iso_code}}")
     public String getCountryViewIsoCode() {
         return countryViewIsoCode;
     }

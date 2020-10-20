@@ -28,6 +28,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceVisitor;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
 import org.hibernate.annotations.Subselect;
@@ -270,7 +271,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
                         dictionary.getAnnotatedColumnName(
                                 joinClass,
                                 dictionary.getIdFieldName(joinClass)))
-                : getJoinClause(fromClass, fromAlias, joinClass, joinAlias, join.value());
+                : getJoinClause(fromClass, fromAlias, join.value());
 
         return String.format("LEFT JOIN %s AS %s ON %s",
                 joinSource,
@@ -283,15 +284,13 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
      *
      * @param fromClass parent class
      * @param fromAlias parent alias
-     * @param joinClass join class
-     * @param joinAlias join alias
      * @param expr unresolved ON clause
      * @return string resolved ON clause
      */
-    private String getJoinClause(Class<?> fromClass, String fromAlias, Class<?> joinClass, String joinAlias,
-                    String expr) {
+    private String getJoinClause(Class<?> fromClass, String fromAlias, String expr) {
+        SQLTable table = new SQLTable(fromClass, dictionary);
         SQLReferenceVisitor visitor = new SQLReferenceVisitor(referenceTable.getMetaDataStore(), fromAlias);
-        return visitor.resolveReferences(fromClass, joinClass, joinAlias, expr);
+        return visitor.resolveReferences(table.getSource(), expr, null);
     }
 
     /**
