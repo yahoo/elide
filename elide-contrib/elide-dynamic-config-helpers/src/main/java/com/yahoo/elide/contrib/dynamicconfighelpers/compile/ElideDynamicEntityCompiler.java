@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers.compile;
 
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.contrib.dynamicconfighelpers.DBPasswordExtractor;
 import com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
@@ -13,6 +14,8 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.HandlebarsHydrator;
 import com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator;
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.utils.ClassScanner;
 import com.google.common.collect.Sets;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -20,10 +23,13 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.mdkt.compiler.InMemoryJavaCompiler;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,7 +48,10 @@ public class ElideDynamicEntityCompiler {
 
     public static ArrayList<String> classNames = new ArrayList<String>();
 
-    public static final String PACKAGE_NAME = "dynamicconfig.models.";
+    private static final String PACKAGE_NAME = "dynamicconfig.models.";
+    private static final String IMPORT = "import ";
+    private static final String SEMI_COLON = ";";
+    private static final String DOT = ".";
     private Map<String, Class<?>> compiledObjects;
 
     private InMemoryJavaCompiler compiler = InMemoryJavaCompiler.newInstance().ignoreWarnings();
@@ -52,6 +61,34 @@ public class ElideDynamicEntityCompiler {
     @Getter
     private final Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
+    @Data
+    private static class ModelMapKey {
+        private final String modelName;
+        private final String modelVersion;
+    }
+
+    @Data
+    private static class ModelMapValue {
+        private final String className;
+        private final String classImport;
+    }
+
+    private static final Map<ModelMapKey, ModelMapValue> STATIC_MODEL_DETAILS = createMapping();
+
+    private static Map<ModelMapKey, ModelMapValue> createMapping() {
+        Map<ModelMapKey, ModelMapValue> map = new HashMap<>();
+        Set<Class<?>> includeClasses = ClassScanner.getAnnotatedClasses(Arrays.asList(Include.class));
+        includeClasses.forEach(cls -> {
+            String modelName = EntityDictionary.getEntityName(cls);
+            String modelVersion = EntityDictionary.getModelVersion(cls);
+            String className = cls.getSimpleName();
+            String pkgName = cls.getPackage().getName();
+            map.put(new ModelMapKey(modelName, modelVersion),
+                            new ModelMapValue(className, prepareImport(pkgName, className)));
+        });
+
+        return Collections.unmodifiableMap(map);
+    }
     /**
      * Parse dynamic config path.
      * @param path : Dynamic config hjsons root location
@@ -200,5 +237,39 @@ public class ElideDynamicEntityCompiler {
                .stream()
                .map(Class::getName)
                .collect(Collectors.toList());
+    }
+
+    /**
+     * Prepare Import statement.
+     * @param pkgName package name.
+     * @param className class name.
+     * @return complete import statement.
+     */
+    private static String prepareImport(String pkgName, String className) {
+        return IMPORT + pkgName + DOT + className + SEMI_COLON;
+    }
+
+    /**
+     * Get Class Name for provided (modelName, modelVersion).
+     * @param modelName model name.
+     * @param modelVersion model version.
+     * @param defaultValue default value.
+     * @return class name for provided (modelName, modelVersion) if available else default value.
+     */
+    public static String getStaticModelClassName(String modelName, String modelVersion, String defaultValue) {
+        ModelMapValue value = STATIC_MODEL_DETAILS.get(new ModelMapKey(modelName, modelVersion));
+        return value != null ? value.getClassName() : defaultValue;
+    }
+
+    /**
+     * Get Class Import for provided (modelName, modelVersion).
+     * @param modelName model name.
+     * @param modelVersion model version.
+     * @param defaultValue default value.
+     * @return import statement for provided (modelName, modelVersion) if available else default value.
+     */
+    public static String getStaticModelClassImport(String modelName, String modelVersion, String defaultValue) {
+        ModelMapValue value = STATIC_MODEL_DETAILS.get(new ModelMapKey(modelName, modelVersion));
+        return value != null ? value.getClassImport() : defaultValue;
     }
 }
