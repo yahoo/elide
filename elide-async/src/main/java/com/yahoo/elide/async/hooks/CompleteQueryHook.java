@@ -17,17 +17,15 @@ import java.util.Optional;
 /**
  * LifeCycle Hook for completion of AsyncQuery.
  */
-public class CompleteQueryHook implements LifeCycleHook<AsyncQuery> {
-
-    private AsyncExecutorService asyncExecutorService;
+public class CompleteQueryHook extends AsyncHook implements LifeCycleHook<AsyncQuery> {
 
     public CompleteQueryHook (AsyncExecutorService asyncExecutorService) {
-        this.asyncExecutorService = asyncExecutorService;
+        super(asyncExecutorService);
     }
 
     @Override
     public void execute(LifeCycleHookBinding.Operation operation, LifeCycleHookBinding.TransactionPhase phase,
                         AsyncQuery query, RequestScope requestScope, Optional<ChangeSpec> changes) {
-        asyncExecutorService.completeQuery(query, requestScope.getUser(), requestScope.getApiVersion());
+        completeAsync(query, requestScope);
     }
 }

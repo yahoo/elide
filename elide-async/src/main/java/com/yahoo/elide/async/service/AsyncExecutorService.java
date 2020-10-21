@@ -9,7 +9,6 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
@@ -19,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -95,17 +95,10 @@ public class AsyncExecutorService {
     /**
      * Execute Query asynchronously.
      * @param queryObj Query Object
-     * @param user User
-     * @param apiVersion api version
+     * @param callable A callable to execute in background
      */
-    public void executeQuery(AsyncAPI queryObj, User user, String apiVersion) {
-
-        QueryRunner runner = runners.get(apiVersion);
-        if (runner == null) {
-            throw new InvalidOperationException("Invalid API Version");
-        }
-        AsyncAPIThread queryWorker = new AsyncAPIThread(queryObj, user, this, apiVersion);
-        Future<AsyncAPIResult> task = executor.submit(queryWorker);
+    public void executeQuery(AsyncAPI queryObj, Callable<AsyncAPIResult> callable) {
+        Future<AsyncAPIResult> task = executor.submit(callable);
         try {
             queryObj.setStatus(QueryStatus.PROCESSING);
             AsyncAPIResult queryResultObj = task.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);

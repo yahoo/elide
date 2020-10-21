@@ -16,7 +16,7 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.hooks.CompleteQueryHook;
 import com.yahoo.elide.async.hooks.ExecuteQueryHook;
-import com.yahoo.elide.async.hooks.UpdatePrincipalNameHook;
+import com.yahoo.elide.async.hooks.UpdateQueryPrincipalNameHook;
 import com.yahoo.elide.async.integration.tests.AsyncIT;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.security.AsyncQueryInlineChecks;
@@ -116,7 +116,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 ExecuteQueryHook executeQueryHook = new ExecuteQueryHook(AsyncExecutorService.getInstance());
                 CompleteQueryHook completeQueryHook = new CompleteQueryHook(AsyncExecutorService.getInstance());
 
-                UpdatePrincipalNameHook updatePrincipalNameHook = new UpdatePrincipalNameHook();
+                UpdateQueryPrincipalNameHook updatePrincipalNameHook = new UpdateQueryPrincipalNameHook();
                 InvoiceCompletionHook invoiceCompletionHook = new InvoiceCompletionHook(billingService);
 
                 dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, executeQueryHook, false);

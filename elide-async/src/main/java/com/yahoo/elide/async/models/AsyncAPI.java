@@ -10,14 +10,9 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.async.service.AsyncAPIUpdateThread;
-import com.yahoo.elide.async.service.AsyncExecutorService;
-import com.yahoo.elide.security.User;
-
-import org.apache.http.NoHttpResponseException;
 
 import lombok.Data;
 
-import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.UUID;
 
@@ -81,18 +76,6 @@ public abstract class AsyncAPI implements PrincipalOwned {
      * @param result Base Result Object to persist.
      */
     public abstract void setResult(AsyncAPIResult result);
-
-    /**
-     * Execute Async Request.
-     * @param service AsyncExecutorService Instance.
-     * @param user Elide User.
-     * @param apiVersion Api Version.
-     * @return Base Result Object.
-     * @throws URISyntaxException URISyntaxException
-     * @throws NoHttpResponseException NoHttpResponseException
-     */
-    public abstract AsyncAPIResult executeRequest(AsyncExecutorService service, User user, String apiVersion)
-            throws URISyntaxException, NoHttpResponseException;
 
     @PreUpdate
     public void preUpdate() {

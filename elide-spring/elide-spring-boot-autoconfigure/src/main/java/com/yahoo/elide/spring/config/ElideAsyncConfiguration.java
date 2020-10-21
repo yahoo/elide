@@ -13,7 +13,7 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.hooks.CompleteQueryHook;
 import com.yahoo.elide.async.hooks.ExecuteQueryHook;
-import com.yahoo.elide.async.hooks.UpdatePrincipalNameHook;
+import com.yahoo.elide.async.hooks.UpdateQueryPrincipalNameHook;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
@@ -61,7 +61,7 @@ public class ElideAsyncConfiguration {
         // Binding AsyncQuery LifeCycleHook
         ExecuteQueryHook executeQueryHook = new ExecuteQueryHook(asyncExecutorService);
         CompleteQueryHook completeQueryHook = new CompleteQueryHook(asyncExecutorService);
-        UpdatePrincipalNameHook updatePrincipalNameHook = new UpdatePrincipalNameHook();
+        UpdateQueryPrincipalNameHook updatePrincipalNameHook = new UpdateQueryPrincipalNameHook();
         dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, executeQueryHook, false);
         dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, completeQueryHook, false);
         dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, updatePrincipalNameHook, false);

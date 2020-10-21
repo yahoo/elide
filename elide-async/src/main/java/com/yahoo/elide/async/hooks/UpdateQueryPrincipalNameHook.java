@@ -11,17 +11,13 @@ import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 
-import java.security.Principal;
 import java.util.Optional;
 
-public class UpdatePrincipalNameHook implements LifeCycleHook<AsyncQuery> {
+public class UpdateQueryPrincipalNameHook extends AsyncHook implements LifeCycleHook<AsyncQuery> {
 
     @Override
     public void execute(LifeCycleHookBinding.Operation operation, LifeCycleHookBinding.TransactionPhase phase,
                         AsyncQuery query, RequestScope requestScope, Optional<ChangeSpec> changes) {
-        Principal principal = requestScope.getUser().getPrincipal();
-        if (principal != null) {
-            query.setPrincipalName(principal.getName());
-        }
+        updatePrincipalName(query, requestScope);
     }
 }

@@ -14,7 +14,7 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.hooks.CompleteQueryHook;
 import com.yahoo.elide.async.hooks.ExecuteQueryHook;
-import com.yahoo.elide.async.hooks.UpdatePrincipalNameHook;
+import com.yahoo.elide.async.hooks.UpdateQueryPrincipalNameHook;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
@@ -152,7 +152,7 @@ public class ElideResourceConfig extends ResourceConfig {
                     // Binding AsyncQuery LifeCycleHook
                     ExecuteQueryHook executeQueryHook = new ExecuteQueryHook(AsyncExecutorService.getInstance());
                     CompleteQueryHook completeQueryHook = new CompleteQueryHook(AsyncExecutorService.getInstance());
-                    UpdatePrincipalNameHook updatePrincipalNameHook = new UpdatePrincipalNameHook();
+                    UpdateQueryPrincipalNameHook updatePrincipalNameHook = new UpdateQueryPrincipalNameHook();
 
                     dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, executeQueryHook, false);
                     dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, completeQueryHook, false);
