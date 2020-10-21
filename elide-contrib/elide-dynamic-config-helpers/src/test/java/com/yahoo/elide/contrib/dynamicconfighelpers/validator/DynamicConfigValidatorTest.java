@@ -147,6 +147,13 @@ public class DynamicConfigValidatorTest {
     }
 
     @Test
+    public void testBadJoinModel() {
+        Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
+                        .main(new String[] {"--configDir", "src/test/resources/validator/bad_join_model"}));
+        assertTrue(e.getMessage().contains(" is neither included in dynamic models nor in static models"));
+    }
+
+    @Test
     public void testBadJoinDefinition() {
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                         .main(new String[] {"--configDir", "src/test/resources/validator/bad_join_def"}));

@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Grain;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Type;
@@ -209,7 +210,7 @@ public class HandlebarsHelper {
      * @return class name.
      */
     public String getJoinClassName(String modelName) {
-        return ElideDynamicEntityCompiler.getStaticModelClassName(modelName, EMPTY_STRING,
+        return ElideDynamicEntityCompiler.getStaticModelClassName(modelName, NO_VERSION,
                         capitalizeFirstLetter(modelName));
     }
 
@@ -219,6 +220,6 @@ public class HandlebarsHelper {
      * @return import statement.
      */
     public String getJoinClassImport(String modelName) {
-        return ElideDynamicEntityCompiler.getStaticModelClassImport(modelName, EMPTY_STRING, EMPTY_STRING);
+        return ElideDynamicEntityCompiler.getStaticModelClassImport(modelName, NO_VERSION, EMPTY_STRING);
     }
 }

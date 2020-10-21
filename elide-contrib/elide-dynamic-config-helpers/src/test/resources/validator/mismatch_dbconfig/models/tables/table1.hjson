@@ -14,13 +14,13 @@
       joins: [
           {
              name: playerCountry
-             to: country
+             to: Country
              type: toOne
              definition: '{{playerCountry.id}} = {{country_id}}'
           },
           {
              name: playerTeam
-             to: team
+             to: Team
              type: toMany
              definition: '{{playerTeam.id}} = {{team_id}}'
           }

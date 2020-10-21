@@ -9,9 +9,9 @@
       joins: [
           {
              name: playerCountry
-             to: Country
+             to: PlayerContinent
              type: toOne
-             definition: '{{id}} = {{country.country_id}}'
+             definition: '{{id}} = {{playerCountry.country_id}}'
           }
       ]
       dimensions : [

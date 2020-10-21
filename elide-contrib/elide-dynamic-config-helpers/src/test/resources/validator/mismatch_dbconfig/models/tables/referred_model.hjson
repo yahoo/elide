@@ -1,0 +1,17 @@
+{
+  tables: [
+    {
+      name: Team
+      table: team
+      cardinality: small
+      dimensions:
+      [
+        {
+          name: region
+          type: TEXT
+          definition: '{{region}}'
+        }
+      ]
+    }
+  ]
+}
