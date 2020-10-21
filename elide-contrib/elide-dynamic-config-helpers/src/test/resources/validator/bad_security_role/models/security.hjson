@@ -1,4 +1,5 @@
 {
+    // comma after admin is wrong, admin should be in quotes if using comma
     roles:  [
         admin,
         guest,

@@ -11,6 +11,7 @@
              name: playerCountry
              to: Country
              type: toOne
+             // referred column should start with field name i.e. playerCountry
              definition: '{{id}} = {{country.country_id}}'
           }
       ]
@@ -21,5 +22,19 @@
            definition : '{{playerCountry.isoCode}}'
          }
       ]
-  }]
+    }
+    {
+      name: Country
+      table: country
+      cardinality: small
+      dimensions:
+      [
+        {
+          name: region
+          type: TEXT
+          definition: '{{region}}'
+        }
+      ]
+    }
+  ]
 }

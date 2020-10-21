@@ -9,6 +9,7 @@
       joins: [
           {
              name: playerCountry
+             // undefined model PlayerContinent
              to: PlayerContinent
              type: toOne
              definition: '{{id}} = {{playerCountry.country_id}}'
