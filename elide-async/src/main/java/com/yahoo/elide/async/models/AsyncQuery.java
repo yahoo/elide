@@ -17,7 +17,7 @@ import javax.persistence.Entity;
 
 /**
  * Model for Async Query.
- * CompleteQueryHook, ExecuteQueryHook and UpdatePrincipalNameHook is binded manually during the elide startup,
+ * AsyncQueryHook is binded manually during the elide startup,
  * after asyncexecutorservice is initialized.
  */
 @Entity

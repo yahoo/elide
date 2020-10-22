@@ -14,16 +14,14 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.async.hooks.CompleteQueryHook;
-import com.yahoo.elide.async.hooks.ExecuteQueryHook;
-import com.yahoo.elide.async.hooks.UpdateQueryPrincipalNameHook;
+import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.integration.tests.AsyncIT;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.security.AsyncQueryInlineChecks;
+import com.yahoo.elide.async.service.AsyncAPIDAO;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
-import com.yahoo.elide.async.service.AsyncQueryDAO;
-import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
+import com.yahoo.elide.async.service.DefaultAsyncAPIDAO;
 import com.yahoo.elide.async.service.FileResultStorageEngine;
 import com.yahoo.elide.async.service.ResultStorageEngine;
 import com.yahoo.elide.audit.InMemoryLogger;
@@ -95,12 +93,12 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                         .build());
                 bind(elide).to(Elide.class).named("elide");
 
-                AsyncQueryDAO asyncQueryDao = new DefaultAsyncQueryDAO(elide.getElideSettings(), elide.getDataStore());
-                bind(asyncQueryDao).to(AsyncQueryDAO.class);
+                AsyncAPIDAO asyncAPIDao = new DefaultAsyncAPIDAO(elide.getElideSettings(), elide.getDataStore());
+                bind(asyncAPIDao).to(AsyncAPIDAO.class);
 
                 ResultStorageEngine resultStorageEngine =
                         new FileResultStorageEngine(System.getProperty("java.io.tmpDir"));
-                AsyncExecutorService.init(elide, 5, 60, asyncQueryDao, resultStorageEngine);
+                AsyncExecutorService.init(elide, 5, 60, asyncAPIDao, resultStorageEngine);
                 bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                 BillingService billingService = new BillingService() {
@@ -113,19 +111,17 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 bind(billingService).to(BillingService.class);
 
                 // Binding AsyncQuery LifeCycleHook
-                ExecuteQueryHook executeQueryHook = new ExecuteQueryHook(AsyncExecutorService.getInstance());
-                CompleteQueryHook completeQueryHook = new CompleteQueryHook(AsyncExecutorService.getInstance());
+                AsyncQueryHook asyncQueryHook = new AsyncQueryHook(AsyncExecutorService.getInstance());
 
-                UpdateQueryPrincipalNameHook updatePrincipalNameHook = new UpdateQueryPrincipalNameHook();
                 InvoiceCompletionHook invoiceCompletionHook = new InvoiceCompletionHook(billingService);
 
-                dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, executeQueryHook, false);
-                dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, completeQueryHook, false);
-                dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, updatePrincipalNameHook, false);
+                dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, asyncQueryHook, false);
+                dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, asyncQueryHook, false);
+                dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, asyncQueryHook, false);
                 dictionary.bindTrigger(Invoice.class, "complete", CREATE, PRECOMMIT, invoiceCompletionHook);
                 dictionary.bindTrigger(Invoice.class, "complete", UPDATE, PRECOMMIT, invoiceCompletionHook);
 
-                AsyncCleanerService.init(elide, 30, 5, 150, asyncQueryDao);
+                AsyncCleanerService.init(elide, 30, 5, 150, asyncAPIDao);
                 bind(AsyncCleanerService.getInstance()).to(AsyncCleanerService.class);
             }
         });

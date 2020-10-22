@@ -27,38 +27,38 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Runnable thread for updating AsyncQueryThread status.
+ * Runnable thread for updating AsyncAPIThread status.
  * beyond the max run time and if not terminated by interrupt process
  * due to app/host crash or restart.
  */
 @Slf4j
 @Data
 @AllArgsConstructor
-public class AsyncQueryCleanerThread implements Runnable {
+public class AsyncAPICleanerThread implements Runnable {
 
     private int maxRunTimeMinutes;
     private Elide elide;
     private int queryCleanupDays;
-    private AsyncQueryDAO asyncQueryDao;
+    private AsyncAPIDAO asyncAPIDao;
     private DateUtil dateUtil = new DateUtil();
 
     @Override
     public void run() {
-        deleteAsyncQuery(AsyncQuery.class);
-        timeoutAsyncQuery(AsyncQuery.class);
+        deleteAsyncAPI(AsyncQuery.class);
+        timeoutAsyncAPI(AsyncQuery.class);
     }
 
     /**
      * This method deletes the historical queries based on threshold.
      * @param type AsyncAPI Type Implementation.
      */
-    protected <T extends AsyncAPI> void deleteAsyncQuery(Class<T> type) {
+    protected <T extends AsyncAPI> void deleteAsyncAPI(Class<T> type) {
 
         try {
             Date cleanupDate = dateUtil.calculateFilterDate(Calendar.DATE, queryCleanupDays);
             PathElement createdOnPathElement = new PathElement(type, Long.class, "createdOn");
             FilterExpression fltDeleteExp = new LEPredicate(createdOnPathElement, cleanupDate);
-            asyncQueryDao.deleteAsyncQueryAndResultCollection(fltDeleteExp, type);
+            asyncAPIDao.deleteAsyncAPIAndResultCollection(fltDeleteExp, type);
         } catch (Exception e) {
             log.error("Exception in scheduled cleanup: {}", e);
         }
@@ -69,7 +69,7 @@ public class AsyncQueryCleanerThread implements Runnable {
      * were interrupted due to host crash/app shutdown to TIMEDOUT.
      * @param type AsyncAPI Type Implementation.
      */
-    protected <T extends AsyncAPI> void timeoutAsyncQuery(Class<T> type) {
+    protected <T extends AsyncAPI> void timeoutAsyncAPI(Class<T> type) {
 
         try {
             Date filterDate = dateUtil.calculateFilterDate(Calendar.MINUTE, maxRunTimeMinutes);
@@ -81,7 +81,7 @@ public class AsyncQueryCleanerThread implements Runnable {
             FilterPredicate inPredicate = new InPredicate(statusPathElement, statusList);
             FilterPredicate lePredicate = new LEPredicate(createdOnPathElement, filterDate);
             AndFilterExpression fltTimeoutExp = new AndFilterExpression(inPredicate, lePredicate);
-            asyncQueryDao.updateStatusAsyncQueryCollection(fltTimeoutExp, QueryStatus.TIMEDOUT, type);
+            asyncAPIDao.updateStatusAsyncAPICollection(fltTimeoutExp, QueryStatus.TIMEDOUT, type);
         } catch (Exception e) {
             log.error("Exception in scheduled cleanup: {}", e);
         }

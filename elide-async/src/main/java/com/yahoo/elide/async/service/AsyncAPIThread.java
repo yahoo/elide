@@ -22,17 +22,13 @@ import java.util.concurrent.Callable;
 @Data
 public abstract class AsyncAPIThread implements Callable<AsyncAPIResult> {
 
-    @Override
-    public AsyncAPIResult call() throws NoHttpResponseException, URISyntaxException {
-         return processQuery();
-    }
-
    /**
-    * This is the main method which processes the Async Query request, executes the query and updates
-    * values for AsyncQuery and AsyncQueryResult models accordingly.
+    * This is the main method which processes the AsyncAPI request.
+    * It executes the query and updates values for AsyncQuery and AsyncQueryResult models accordingly.
     * @return AsyncQueryResultBase AsyncQueryResultBase
     * @throws URISyntaxException URISyntaxException
     * @throws NoHttpResponseException NoHttpResponseException
     */
-    protected abstract AsyncAPIResult processQuery() throws URISyntaxException, NoHttpResponseException;
+    @Override
+    public abstract AsyncAPIResult call() throws NoHttpResponseException, URISyntaxException;
 }

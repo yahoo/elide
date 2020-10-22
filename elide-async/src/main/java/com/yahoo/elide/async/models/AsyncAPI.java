@@ -9,7 +9,6 @@ import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.async.service.AsyncAPIUpdateThread;
 
 import lombok.Data;
 
@@ -63,9 +62,6 @@ public abstract class AsyncAPI implements PrincipalOwned {
     @ComputedAttribute
     private Integer asyncAfterSeconds = 10;
 
-    @Transient
-    private AsyncAPIUpdateThread queryUpdateWorker = null;
-
     @Override
     public String getPrincipalName() {
         return principalName;
@@ -76,6 +72,12 @@ public abstract class AsyncAPI implements PrincipalOwned {
      * @param result Base Result Object to persist.
      */
     public abstract void setResult(AsyncAPIResult result);
+
+    /**
+     * Get Async API Result.
+     * @return AsyncAPIResult object.
+     */
+    public abstract AsyncAPIResult getResult();
 
     @PreUpdate
     public void preUpdate() {

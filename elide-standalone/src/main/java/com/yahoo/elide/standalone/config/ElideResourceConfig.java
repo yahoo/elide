@@ -12,14 +12,12 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.async.hooks.CompleteQueryHook;
-import com.yahoo.elide.async.hooks.ExecuteQueryHook;
-import com.yahoo.elide.async.hooks.UpdateQueryPrincipalNameHook;
+import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.service.AsyncAPIDAO;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
-import com.yahoo.elide.async.service.AsyncQueryDAO;
-import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
+import com.yahoo.elide.async.service.DefaultAsyncAPIDAO;
 import com.yahoo.elide.async.service.ResultStorageEngine;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
@@ -137,32 +135,30 @@ public class ElideResourceConfig extends ResourceConfig {
                 // Binding async service
                 if (asyncProperties.enabled()) {
 
-                    AsyncQueryDAO asyncQueryDao = asyncProperties.getQueryDAO();
-                    if (asyncQueryDao == null) {
-                        asyncQueryDao = new DefaultAsyncQueryDAO(elide.getElideSettings(), elide.getDataStore());
+                    AsyncAPIDAO asyncAPIDao = asyncProperties.getAPIDAO();
+                    if (asyncAPIDao == null) {
+                        asyncAPIDao = new DefaultAsyncAPIDAO(elide.getElideSettings(), elide.getDataStore());
                     }
-                    bind(asyncQueryDao).to(AsyncQueryDAO.class);
+                    bind(asyncAPIDao).to(AsyncAPIDAO.class);
 
                     // TODO: If null, initialize with FileResultStorageEngine
                     ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
                     AsyncExecutorService.init(elide, asyncProperties.getThreadSize(),
-                            asyncProperties.getMaxRunTimeSeconds(), asyncQueryDao, resultStorageEngine);
+                            asyncProperties.getMaxRunTimeSeconds(), asyncAPIDao, resultStorageEngine);
                     bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                     // Binding AsyncQuery LifeCycleHook
-                    ExecuteQueryHook executeQueryHook = new ExecuteQueryHook(AsyncExecutorService.getInstance());
-                    CompleteQueryHook completeQueryHook = new CompleteQueryHook(AsyncExecutorService.getInstance());
-                    UpdateQueryPrincipalNameHook updatePrincipalNameHook = new UpdateQueryPrincipalNameHook();
+                    AsyncQueryHook asyncQueryHook = new AsyncQueryHook(AsyncExecutorService.getInstance());
 
-                    dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, executeQueryHook, false);
-                    dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, completeQueryHook, false);
-                    dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, updatePrincipalNameHook, false);
+                    dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, asyncQueryHook, false);
+                    dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, asyncQueryHook, false);
+                    dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, asyncQueryHook, false);
 
                     // Binding async cleanup service
                     if (asyncProperties.enableCleanup()) {
                         AsyncCleanerService.init(elide, asyncProperties.getMaxRunTimeSeconds(),
                                 asyncProperties.getQueryCleanupDays(),
-                                asyncProperties.getQueryCancelCheckIntervalSeconds(), asyncQueryDao);
+                                asyncProperties.getQueryCancelCheckIntervalSeconds(), asyncAPIDao);
                         bind(AsyncCleanerService.getInstance()).to(AsyncCleanerService.class);
                     }
                 }

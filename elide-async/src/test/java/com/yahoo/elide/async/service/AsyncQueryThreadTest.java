@@ -60,7 +60,7 @@ public class AsyncQueryThreadTest {
 
         when(elide.get(anyString(), anyString(), any(), any(), anyString(), any())).thenReturn(response);
         AsyncAPIThread queryThread = new AsyncQueryThread(queryObj, user, asyncExecutorService, "v1");
-        AsyncQueryResult queryResultObj = (AsyncQueryResult) queryThread.processQuery();
+        AsyncQueryResult queryResultObj = (AsyncQueryResult) queryThread.call();
         assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
         assertEquals(queryResultObj.getHttpStatus(), 200);
     }
@@ -77,7 +77,7 @@ public class AsyncQueryThreadTest {
 
         when(runner.run(anyString(), eq(query), eq(user), any())).thenReturn(response);
         AsyncAPIThread queryThread = new AsyncQueryThread(queryObj, user, asyncExecutorService, "v1");
-        AsyncQueryResult queryResultObj = (AsyncQueryResult) queryThread.processQuery();
+        AsyncQueryResult queryResultObj = (AsyncQueryResult) queryThread.call();
         assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
         assertEquals(queryResultObj.getHttpStatus(), 200);
     }

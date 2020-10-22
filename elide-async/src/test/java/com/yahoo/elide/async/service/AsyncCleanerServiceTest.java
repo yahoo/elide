@@ -22,7 +22,7 @@ public class AsyncCleanerServiceTest {
     @BeforeAll
     public void setupMocks() {
         Elide elide = mock(Elide.class);
-        AsyncQueryDAO dao = mock(DefaultAsyncQueryDAO.class);
+        AsyncAPIDAO dao = mock(DefaultAsyncAPIDAO.class);
         AsyncCleanerService.init(elide, 5, 60, 300, dao);
         service = AsyncCleanerService.getInstance();
     }

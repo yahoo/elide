@@ -38,9 +38,8 @@ public class AsyncExecutorServiceTest {
 
     private AsyncExecutorService service;
     private Elide elide;
-    private AsyncQueryDAO asyncQueryDao;
+    private AsyncAPIDAO asyncAPIDao;
     private User testUser;
-    private AsyncAPIUpdateThread asyncAPIUpdateThread;
     private ResultStorageEngine resultStorageEngine;
 
     @BeforeAll
@@ -51,12 +50,11 @@ public class AsyncExecutorServiceTest {
                 new ElideSettingsBuilder(inMemoryStore)
                         .withEntityDictionary(new EntityDictionary(checkMappings))
                         .build());
-        asyncQueryDao = mock(DefaultAsyncQueryDAO.class);
+        asyncAPIDao = mock(DefaultAsyncAPIDAO.class);
         testUser = mock(User.class);
         resultStorageEngine = mock(FileResultStorageEngine.class);
-        AsyncExecutorService.init(elide, 5, 60, asyncQueryDao, resultStorageEngine);
+        AsyncExecutorService.init(elide, 5, 60, asyncAPIDao, resultStorageEngine);
         service = AsyncExecutorService.getInstance();
-        asyncAPIUpdateThread = mock(AsyncAPIUpdateThread.class);
     }
 
     @Test
@@ -66,7 +64,7 @@ public class AsyncExecutorServiceTest {
         assertEquals(60, service.getMaxRunTime());
         assertNotNull(service.getExecutor());
         assertNotNull(service.getUpdater());
-        assertEquals(asyncQueryDao, service.getAsyncQueryDao());
+        assertEquals(asyncAPIDao, service.getAsyncAPIDao());
         assertEquals(resultStorageEngine, service.getResultStorageEngine());
     }
 
@@ -100,19 +98,5 @@ public class AsyncExecutorServiceTest {
         service.executeQuery(queryObj, queryThread);
         verify(queryObj, times(1)).setStatus(QueryStatus.PROCESSING);
         verify(queryObj, times(1)).setStatus(QueryStatus.COMPLETE);
-    }
-
-    //Test for complete hook execution
-    @Test
-    public void testCompleteQuery() throws InterruptedException {
-
-        AsyncQuery queryObj = mock(AsyncQuery.class);
-        when(queryObj.getAsyncAfterSeconds()).thenReturn(0);
-        when(queryObj.getQueryUpdateWorker()).thenReturn(asyncAPIUpdateThread);
-        AsyncAPIThread queryThread = new AsyncQueryThread(queryObj, testUser, service, NO_VERSION);
-        service.executeQuery(queryObj, queryThread);
-        service.completeQuery(queryObj, testUser, NO_VERSION);
-        verify(queryObj, times(1)).setStatus(QueryStatus.PROCESSING);
-        verify(queryObj, times(2)).getQueryUpdateWorker();
     }
 }

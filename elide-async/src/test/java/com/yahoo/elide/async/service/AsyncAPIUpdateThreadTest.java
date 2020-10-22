@@ -26,7 +26,7 @@ public class AsyncAPIUpdateThreadTest {
     private Elide elide;
     private AsyncAPI queryObj;
     private AsyncAPIResult queryResultObj;
-    private AsyncQueryDAO asyncQueryDao;
+    private AsyncAPIDAO asyncAPIDao;
     private Future<AsyncAPIResult> task;
 
     @BeforeEach
@@ -34,7 +34,7 @@ public class AsyncAPIUpdateThreadTest {
         elide = mock(Elide.class);
         queryObj = mock(AsyncAPI.class);
         queryResultObj = mock(AsyncAPIResult.class);
-        updateThread = new AsyncAPIUpdateThread(elide, task, queryObj, asyncQueryDao);
+        updateThread = new AsyncAPIUpdateThread(elide, task, queryObj, asyncAPIDao);
     }
 
     @Test
@@ -42,14 +42,14 @@ public class AsyncAPIUpdateThreadTest {
         assertEquals(elide, updateThread.getElide());
         assertEquals(task, updateThread.getTask());
         assertEquals(queryObj, updateThread.getQueryObj());
-        assertEquals(asyncQueryDao, updateThread.getAsyncQueryDao());
+        assertEquals(asyncAPIDao, updateThread.getAsyncAPIDao());
     }
 
     public void testUpdateQuery() {
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         when(queryObj.getId()).thenReturn(id);
         updateThread.updateQuery();
-        verify(asyncQueryDao, times(1)).updateAsyncQueryResult(queryResultObj, queryObj.getId(), queryObj.getClass());
+        verify(asyncAPIDao, times(1)).updateAsyncAPIResult(queryResultObj, queryObj.getId(), queryObj.getClass());
 
     }
 }

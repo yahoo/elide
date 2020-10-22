@@ -6,6 +6,7 @@
 package com.yahoo.elide.async.hooks;
 
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
+import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.service.AsyncExecutorService;
@@ -21,22 +22,22 @@ import java.util.Optional;
 /**
  * LifeCycle Hook for execution of AsyncQuery.
  */
-public class ExecuteQueryHook extends AsyncHook implements LifeCycleHook<AsyncQuery> {
+public class AsyncQueryHook extends AsyncAPIHook implements LifeCycleHook<AsyncQuery> {
 
-    public ExecuteQueryHook (AsyncExecutorService asyncExecutorService) {
+    public AsyncQueryHook (AsyncExecutorService asyncExecutorService) {
         super(asyncExecutorService);
     }
 
     @Override
     public void execute(LifeCycleHookBinding.Operation operation, LifeCycleHookBinding.TransactionPhase phase,
                         AsyncQuery query, RequestScope requestScope, Optional<ChangeSpec> changes) {
-        validateOptions(query, requestScope);
         AsyncQueryThread queryWorker = new AsyncQueryThread(query, requestScope.getUser(), getAsyncExecutorService(),
                 requestScope.getApiVersion());
-        executeAsync(query, queryWorker);
+        executeHook(operation, phase, query, requestScope, queryWorker);
     }
 
-    protected void validateOptions(AsyncQuery query, RequestScope requestScope) {
+    @Override
+    public void validateOptions(AsyncAPI query, RequestScope requestScope) {
         if (query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
             QueryRunner runner = getAsyncExecutorService().getRunners().get(requestScope.getApiVersion());
             if (runner == null) {

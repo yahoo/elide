@@ -45,12 +45,13 @@ public class AsyncExecutorService {
     private ExecutorService executor;
     private ExecutorService updater;
     private int maxRunTime;
-    private AsyncQueryDAO asyncQueryDao;
+    private AsyncAPIDAO asyncAPIDao;
     private static AsyncExecutorService asyncExecutorService = null;
     private ResultStorageEngine resultStorageEngine;
+    private ThreadLocal<AsyncAPIUpdateThread> futureTask = new ThreadLocal<>().withInitial(() -> { return null; });
 
     @Inject
-    private AsyncExecutorService(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncQueryDAO asyncQueryDao,
+    private AsyncExecutorService(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncAPIDAO asyncAPIDao,
             ResultStorageEngine resultStorageEngine) {
         this.elide = elide;
         runners = new HashMap();
@@ -62,7 +63,7 @@ public class AsyncExecutorService {
         this.maxRunTime = maxRunTime;
         executor = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
         updater = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
-        this.asyncQueryDao = asyncQueryDao;
+        this.asyncAPIDao = asyncAPIDao;
         this.resultStorageEngine = resultStorageEngine;
     }
 
@@ -72,12 +73,12 @@ public class AsyncExecutorService {
      * @param elide Elide Instance
      * @param threadPoolSize thread pool size
      * @param maxRunTime max run times in minutes
-     * @param asyncQueryDao DAO Object
+     * @param asyncAPIDao DAO Object
      */
-    public static void init(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncQueryDAO asyncQueryDao,
+    public static void init(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncAPIDAO asyncAPIDao,
             ResultStorageEngine resultStorageEngine) {
         if (asyncExecutorService == null) {
-            asyncExecutorService = new AsyncExecutorService(elide, threadPoolSize, maxRunTime, asyncQueryDao,
+            asyncExecutorService = new AsyncExecutorService(elide, threadPoolSize, maxRunTime, asyncAPIDao,
                     resultStorageEngine);
         } else {
             log.debug("asyncExecutorService is already initialized.");
@@ -113,7 +114,7 @@ public class AsyncExecutorService {
             queryObj.setStatus(QueryStatus.FAILURE);
         } catch (TimeoutException e) {
             log.error("TimeoutException: {}", e);
-            queryObj.setQueryUpdateWorker(new AsyncAPIUpdateThread(elide, task, queryObj, asyncQueryDao));
+            futureTask.set(new AsyncAPIUpdateThread(elide, task, queryObj, asyncAPIDao));
         } catch (Exception e) {
             log.error("Exception: {}", e);
             queryObj.setStatus(QueryStatus.FAILURE);
@@ -127,9 +128,11 @@ public class AsyncExecutorService {
      * @param apiVersion API Version
      */
     public void completeQuery(AsyncAPI query, User user, String apiVersion) {
-        if (query.getQueryUpdateWorker() != null) {
+        AsyncAPIUpdateThread queryUpdateWorker = futureTask.get();
+        if (queryUpdateWorker != null) {
             log.debug("Task has not completed");
-            updater.execute(query.getQueryUpdateWorker());
+            updater.execute(queryUpdateWorker);
+            futureTask.remove();
         } else {
             log.debug("Task has completed");
         }
