@@ -27,8 +27,8 @@ public class InvoiceCompletionHook implements LifeCycleHook<Invoice> {
     }
 
     @Override
-    public void execute(LifeCycleHookBinding.Operation operation, Invoice invoice,
-                        RequestScope requestScope, Optional<ChangeSpec> changes) {
+    public void execute(LifeCycleHookBinding.Operation operation, LifeCycleHookBinding.TransactionPhase phase,
+                        Invoice invoice, RequestScope requestScope, Optional<ChangeSpec> changes) {
         boolean completeNow = (Boolean) changes.get().getModified();
         boolean completeBefore = (Boolean) changes.get().getOriginal();
 
