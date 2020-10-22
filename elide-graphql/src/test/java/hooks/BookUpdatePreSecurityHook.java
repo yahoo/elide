@@ -20,8 +20,8 @@ import java.util.Optional;
  */
 public class BookUpdatePreSecurityHook implements LifeCycleHook<Book> {
     @Override
-    public void execute(LifeCycleHookBinding.Operation operation, Book elideEntity,
-                        RequestScope requestScope, Optional<ChangeSpec> changes) {
+    public void execute(LifeCycleHookBinding.Operation operation, LifeCycleHookBinding.TransactionPhase phase,
+                        Book elideEntity, RequestScope requestScope, Optional<ChangeSpec> changes) {
         GraphQLEndpointTest.User user = (GraphQLEndpointTest.User) requestScope.getUser().getPrincipal();
         user.appendLog("On Title Update Pre Security\n");
     }

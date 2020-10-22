@@ -20,11 +20,13 @@ public interface LifeCycleHook<T> {
     /**
      * Run for a lifecycle event.
      * @param operation CREATE, READ, UPDATE, or DELETE
+     * @param phase PRESECURITY, PRECOMMIT or POSTCOMMIT
      * @param elideEntity The entity that triggered the event
      * @param requestScope The request scope
      * @param changes Optionally, the changes that were made to the entity
      */
     public abstract void execute(LifeCycleHookBinding.Operation operation,
+                                 LifeCycleHookBinding.TransactionPhase phase,
                                  T elideEntity,
                                  RequestScope requestScope,
                                  Optional<ChangeSpec> changes);
