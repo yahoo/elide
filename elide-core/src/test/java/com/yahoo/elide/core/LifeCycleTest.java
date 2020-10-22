@@ -124,6 +124,7 @@ class FieldTestModel {
     static class ClassPreSecurityHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
                             FieldTestModel elideEntity,
                             com.yahoo.elide.security.RequestScope requestScope,
                             Optional<ChangeSpec> changes) {
@@ -134,6 +135,7 @@ class FieldTestModel {
     static class ClassPreCommitHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
                             FieldTestModel elideEntity,
                             com.yahoo.elide.security.RequestScope requestScope,
                             Optional<ChangeSpec> changes) {
@@ -144,6 +146,7 @@ class FieldTestModel {
     static class ClassPreCommitHookEverything implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
                             FieldTestModel elideEntity,
                             com.yahoo.elide.security.RequestScope requestScope,
                             Optional<ChangeSpec> changes) {
@@ -154,6 +157,7 @@ class FieldTestModel {
     static class ClassPostCommitHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
                             FieldTestModel elideEntity,
                             com.yahoo.elide.security.RequestScope requestScope,
                             Optional<ChangeSpec> changes) {
@@ -164,6 +168,7 @@ class FieldTestModel {
     static class AttributePreSecurityHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
                             FieldTestModel elideEntity,
                             com.yahoo.elide.security.RequestScope requestScope,
                             Optional<ChangeSpec> changes) {
@@ -174,6 +179,7 @@ class FieldTestModel {
     static class AttributePreCommitHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
                             FieldTestModel elideEntity,
                             com.yahoo.elide.security.RequestScope requestScope,
                             Optional<ChangeSpec> changes) {
@@ -184,6 +190,7 @@ class FieldTestModel {
     static class AttributePostCommitHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
                             FieldTestModel elideEntity,
                             com.yahoo.elide.security.RequestScope requestScope,
                             Optional<ChangeSpec> changes) {
@@ -194,6 +201,7 @@ class FieldTestModel {
     static class RelationPreSecurityHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
                             FieldTestModel elideEntity,
                             com.yahoo.elide.security.RequestScope requestScope,
                             Optional<ChangeSpec> changes) {
@@ -204,6 +212,7 @@ class FieldTestModel {
     static class RelationPreCommitHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
                             FieldTestModel elideEntity,
                             com.yahoo.elide.security.RequestScope requestScope,
                             Optional<ChangeSpec> changes) {
@@ -214,6 +223,7 @@ class FieldTestModel {
     static class RelationPostCommitHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
                             FieldTestModel elideEntity,
                             com.yahoo.elide.security.RequestScope requestScope,
                             Optional<ChangeSpec> changes) {
@@ -256,6 +266,7 @@ class PropertyTestModel {
     static class RelationPostCommitHook implements LifeCycleHook<PropertyTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
                             PropertyTestModel elideEntity,
                             com.yahoo.elide.security.RequestScope requestScope,
                             Optional<ChangeSpec> changes) {

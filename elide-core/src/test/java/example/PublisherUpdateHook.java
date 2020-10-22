@@ -19,8 +19,8 @@ import java.util.Optional;
 public class PublisherUpdateHook implements LifeCycleHook<Publisher> {
 
     @Override
-    public void execute(LifeCycleHookBinding.Operation operation, Publisher elideEntity,
-                        RequestScope requestScope, Optional<ChangeSpec> changes) {
+    public void execute(LifeCycleHookBinding.Operation operation, LifeCycleHookBinding.TransactionPhase phase,
+                        Publisher elideEntity, RequestScope requestScope, Optional<ChangeSpec> changes) {
         elideEntity.setUpdateHookInvoked(true);
     }
 }
