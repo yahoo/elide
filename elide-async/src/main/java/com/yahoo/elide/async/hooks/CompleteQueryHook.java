@@ -26,8 +26,8 @@ public class CompleteQueryHook implements LifeCycleHook<AsyncQuery> {
     }
 
     @Override
-    public void execute(LifeCycleHookBinding.Operation operation, AsyncQuery query,
-                        RequestScope requestScope, Optional<ChangeSpec> changes) {
+    public void execute(LifeCycleHookBinding.Operation operation, LifeCycleHookBinding.TransactionPhase phase,
+                        AsyncQuery query, RequestScope requestScope, Optional<ChangeSpec> changes) {
         asyncExecutorService.completeQuery(query, requestScope.getUser(), requestScope.getApiVersion());
     }
 }
