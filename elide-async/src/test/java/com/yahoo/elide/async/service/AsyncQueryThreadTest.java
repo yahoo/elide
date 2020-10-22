@@ -59,7 +59,7 @@ public class AsyncQueryThreadTest {
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
 
         when(elide.get(anyString(), anyString(), any(), any(), anyString(), any())).thenReturn(response);
-        AsyncAPIThread queryThread = new AsyncQueryThread(queryObj, user, asyncExecutorService, "v1");
+        AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, asyncExecutorService, "v1");
         AsyncQueryResult queryResultObj = (AsyncQueryResult) queryThread.call();
         assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
         assertEquals(queryResultObj.getHttpStatus(), 200);
@@ -76,7 +76,7 @@ public class AsyncQueryThreadTest {
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
 
         when(runner.run(anyString(), eq(query), eq(user), any())).thenReturn(response);
-        AsyncAPIThread queryThread = new AsyncQueryThread(queryObj, user, asyncExecutorService, "v1");
+        AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, asyncExecutorService, "v1");
         AsyncQueryResult queryResultObj = (AsyncQueryResult) queryThread.call();
         assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
         assertEquals(queryResultObj.getHttpStatus(), 200);

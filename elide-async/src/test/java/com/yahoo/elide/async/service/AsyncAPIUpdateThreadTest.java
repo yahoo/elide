@@ -48,7 +48,7 @@ public class AsyncAPIUpdateThreadTest {
     public void testUpdateQuery() {
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         when(queryObj.getId()).thenReturn(id);
-        updateThread.updateQuery();
+        updateThread.run();
         verify(asyncAPIDao, times(1)).updateAsyncAPIResult(queryResultObj, queryObj.getId(), queryObj.getClass());
 
     }

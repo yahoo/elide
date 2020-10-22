@@ -12,6 +12,8 @@ import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
+import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,7 +50,17 @@ public class AsyncExecutorService {
     private AsyncAPIDAO asyncAPIDao;
     private static AsyncExecutorService asyncExecutorService = null;
     private ResultStorageEngine resultStorageEngine;
-    private ThreadLocal<AsyncAPIUpdateThread> futureTask = new ThreadLocal<>().withInitial(() -> { return null; });
+    private ThreadLocal<AsyncAPIResultFuture> asyncResultFutureThreadLocal = new ThreadLocal<>();
+
+    /**
+     * A Future with Synchronous Execution Complete Flag.
+     */
+    @Data
+    @Builder
+    public static class AsyncAPIResultFuture {
+        private Future<AsyncAPIResult> asyncFuture;
+        @Builder.Default private boolean synchronousTimeout = false;
+    }
 
     @Inject
     private AsyncExecutorService(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncAPIDAO asyncAPIDao,
@@ -96,13 +108,15 @@ public class AsyncExecutorService {
     /**
      * Execute Query asynchronously.
      * @param queryObj Query Object
-     * @param callable A callable to execute in background
+     * @param callable A Callabale implementation to execute in background.
      */
     public void executeQuery(AsyncAPI queryObj, Callable<AsyncAPIResult> callable) {
-        Future<AsyncAPIResult> task = executor.submit(callable);
+        AsyncAPIResultFuture resultFuture = AsyncAPIResultFuture.builder().build();
         try {
+            Future<AsyncAPIResult> asyncExecuteFuture = executor.submit(callable);
+            resultFuture.setAsyncFuture(asyncExecuteFuture);
             queryObj.setStatus(QueryStatus.PROCESSING);
-            AsyncAPIResult queryResultObj = task.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);
+            AsyncAPIResult queryResultObj = asyncExecuteFuture.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);
             queryObj.setResult(queryResultObj);
             queryObj.setStatus(QueryStatus.COMPLETE);
             queryObj.setUpdatedOn(new Date());
@@ -114,10 +128,12 @@ public class AsyncExecutorService {
             queryObj.setStatus(QueryStatus.FAILURE);
         } catch (TimeoutException e) {
             log.error("TimeoutException: {}", e);
-            futureTask.set(new AsyncAPIUpdateThread(elide, task, queryObj, asyncAPIDao));
+            resultFuture.setSynchronousTimeout(true);
         } catch (Exception e) {
             log.error("Exception: {}", e);
             queryObj.setStatus(QueryStatus.FAILURE);
+        } finally {
+            asyncResultFutureThreadLocal.set(resultFuture);
         }
 
     }
@@ -128,11 +144,12 @@ public class AsyncExecutorService {
      * @param apiVersion API Version
      */
     public void completeQuery(AsyncAPI query, User user, String apiVersion) {
-        AsyncAPIUpdateThread queryUpdateWorker = futureTask.get();
-        if (queryUpdateWorker != null) {
+        AsyncAPIResultFuture asyncAPIResultFuture = asyncResultFutureThreadLocal.get();
+        if (asyncAPIResultFuture.isSynchronousTimeout()) {
             log.debug("Task has not completed");
-            updater.execute(queryUpdateWorker);
-            futureTask.remove();
+            updater.execute(new AsyncAPIUpdateThread(elide, asyncAPIResultFuture.getAsyncFuture(), query,
+                    asyncAPIDao));
+            asyncResultFutureThreadLocal.remove();
         } else {
             log.debug("Task has completed");
         }

@@ -24,15 +24,17 @@ import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * AsyncQuery implementation of AsyncAPIThread.
+ * AsyncQuery implementation of Callable for executing the query provided in AsyncQuery.
+ * It will also update the query status and result object at different stages of execution.
  */
 @Slf4j
-public class AsyncQueryThread extends AsyncAPIThread {
+public class AsyncQueryThread implements Callable<AsyncAPIResult> {
     private AsyncAPI queryObj;
     private User user;
     private AsyncExecutorService service;

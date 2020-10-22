@@ -94,7 +94,7 @@ public class AsyncExecutorServiceTest {
         when(queryObj.getRequestId()).thenReturn(id);
         when(queryObj.getQueryType()).thenReturn(QueryType.JSONAPI_V1_0);
         when(queryObj.getAsyncAfterSeconds()).thenReturn(10);
-        AsyncAPIThread queryThread = new AsyncQueryThread(queryObj, testUser, service, NO_VERSION);
+        AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, testUser, service, NO_VERSION);
         service.executeQuery(queryObj, queryThread);
         verify(queryObj, times(1)).setStatus(QueryStatus.PROCESSING);
         verify(queryObj, times(1)).setStatus(QueryStatus.COMPLETE);

@@ -34,7 +34,7 @@ public class AsyncAPIUpdateThread implements Runnable {
      */
     @Override
     public void run() {
-    	try {
+        try {
             AsyncAPIResult queryResultObj = task.get();
             // add queryResult object to query object
             asyncAPIDao.updateAsyncAPIResult(queryResultObj, queryObj.getId(), queryObj.getClass());

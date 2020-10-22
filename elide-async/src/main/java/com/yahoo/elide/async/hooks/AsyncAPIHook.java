@@ -14,9 +14,9 @@ import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.async.service.AsyncAPIThread;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
+import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.security.RequestScope;
 
 import lombok.Data;
@@ -26,12 +26,11 @@ import java.util.concurrent.Callable;
 
 /**
  * AsyncAPI Base Hook methods.
+ * @param <T> Type of AsyncAPI.
  */
 @Data
-public abstract class AsyncAPIHook {
-    private AsyncExecutorService asyncExecutorService;
-
-    public AsyncAPIHook() { };
+public abstract class AsyncAPIHook<T extends AsyncAPI> implements LifeCycleHook<T> {
+    private final AsyncExecutorService asyncExecutorService;
 
     public AsyncAPIHook(AsyncExecutorService asyncExecutorService) {
         this.asyncExecutorService = asyncExecutorService;
@@ -52,19 +51,26 @@ public abstract class AsyncAPIHook {
      * @throws InvalidOperationException InvalidOperationException
      */
     protected void executeHook(LifeCycleHookBinding.Operation operation, LifeCycleHookBinding.TransactionPhase phase,
-            AsyncAPI query, RequestScope requestScope, AsyncAPIThread queryWorker) {
+            AsyncAPI query, RequestScope requestScope, Callable<AsyncAPIResult> queryWorker) {
         if (operation.equals(READ) && phase.equals(PRESECURITY)) {
             validateOptions(query, requestScope);
+            //We populate the result object when the initial mutation is executed, and then even after executing
+            //the hooks we return the same object back. QueryRunner.java#L190.
+            //In GraphQL, the only part of the body that is lazily returned is the ID.
+            //ReadPreSecurityHook - Those hooks get evaluated in line with the request processing.
             executeAsync(query, queryWorker);
+            return;
         } else if (operation.equals(CREATE)) {
             if (phase.equals(POSTCOMMIT)) {
                 completeAsync(query, requestScope);
+                return;
             } else if (phase.equals(PRESECURITY)) {
                 updatePrincipalName(query, requestScope);
+                return;
             }
-        } else {
-            throw new InvalidOperationException("Invalid LifeCycle Hook Invocation");
         }
+
+        throw new InvalidOperationException("Invalid LifeCycle Hook Invocation");
     }
 
     /**

@@ -53,19 +53,18 @@ public abstract class AsyncAPI implements PrincipalOwned {
     @Enumerated(EnumType.STRING)
     private QueryStatus status = QueryStatus.QUEUED;
 
+    @CreatePermission(expression = "Prefab.Role.None")
+    @UpdatePermission(expression = "Prefab.Role.None")
     private Date createdOn = new Date();
 
+    @CreatePermission(expression = "Prefab.Role.None")
+    @UpdatePermission(expression = "Prefab.Role.None")
     private Date updatedOn = new Date();
 
     @Transient
     @Max(10)
     @ComputedAttribute
     private Integer asyncAfterSeconds = 10;
-
-    @Override
-    public String getPrincipalName() {
-        return principalName;
-    }
 
     /**
      * Set Async API Result.
