@@ -22,13 +22,15 @@ public class HandlebarsHelper {
 
     private static final String EMPTY_STRING = "";
     private static final String STRING = "String";
-    private static final String DATE = "Date";
-    private static final String SIMPLEDATE = "SimpleDate";
-    private static final String DATETIME = "DateTime";
-    private static final String MONTHYEAR = "MonthYear";
-    private static final String YEARMONTH = "YearMonth";
+    private static final String DAY = "Day";
+    private static final String HOUR = "Hour";
+    private static final String ISOWEEK = "ISOWeek";
+    private static final String MINUTE = "Minute";
+    private static final String MONTH = "Month";
+    private static final String QUARTER = "Quarter";
+    private static final String SECOND = "Second";
+    private static final String WEEK = "Week";
     private static final String YEAR = "Year";
-    private static final String WEEKDATEISO = "WeekDateISO";
     private static final String BIGDECIMAL = "BigDecimal";
     private static final String LONG = "Long";
     private static final String BOOLEAN = "Boolean";
@@ -148,20 +150,26 @@ public class HandlebarsHelper {
     public String getGrainType(Grain grain) {
 
         switch (grain.getType()) {
-            case DATETIME:
-                return DATETIME;
-            case SIMPLEDATE:
-                return SIMPLEDATE;
-            case YEARMONTH:
-                return YEARMONTH;
+            case DAY:
+                return DAY;
+            case HOUR:
+                return HOUR;
+            case ISOWEEK:
+                return ISOWEEK;
+            case MINUTE:
+                return MINUTE;
+            case MONTH:
+                return MONTH;
+            case QUARTER:
+                return QUARTER;
+            case SECOND:
+                return SECOND;
+            case WEEK:
+                return WEEK;
             case YEAR:
                 return YEAR;
-            case MONTHYEAR:
-                return MONTHYEAR;
-            case WEEKDATEISO:
-                return WEEKDATEISO;
             default:
-                return DATE;
+                return DAY;
         }
     }
 

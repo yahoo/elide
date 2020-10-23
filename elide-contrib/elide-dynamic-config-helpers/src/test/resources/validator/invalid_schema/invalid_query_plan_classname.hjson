@@ -53,7 +53,7 @@
            definition : '{{create_on}}'
            grain:
             {
-             type :  SIMPLEDATE
+             type : DAY
              sql :  '''
              PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
              '''

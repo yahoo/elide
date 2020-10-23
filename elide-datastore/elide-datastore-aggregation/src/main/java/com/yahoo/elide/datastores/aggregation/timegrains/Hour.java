@@ -8,35 +8,34 @@ package com.yahoo.elide.datastores.aggregation.timegrains;
 import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 /**
- * Time Grain class for Year.
+ * Time Grain class for Hour.
  */
-public class Year extends Date {
+public class Hour extends Timestamp {
 
-    public static final String FORMAT = "yyyy";
+    public static final String FORMAT = "yyyy-MM-dd HH";
     private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
 
-    public Year(java.util.Date date) {
+    public Hour(java.util.Date date) {
         super(date.getTime());
     }
 
-    @ElideTypeConverter(type = Year.class, name = "Year")
-    static public class YearSerde implements Serde<Object, Year> {
+    @ElideTypeConverter(type = Hour.class, name = "Hour")
+    static public class HourSerde implements Serde<Object, Hour> {
         @Override
-        public Year deserialize(Object val) {
+        public Hour deserialize(Object val) {
 
-            Year date = null;
+            Hour date = null;
 
             try {
                 if (val instanceof String) {
-                    date = new Year(new Timestamp(FORMATTER.parse((String) val).getTime()));
+                    date = new Hour(new Timestamp(FORMATTER.parse((String) val).getTime()));
                 } else {
-                    date = new Year(FORMATTER.parse(FORMATTER.format(val)));
+                    date = new Hour(FORMATTER.parse(FORMATTER.format(val)));
                 }
             } catch (ParseException e) {
                 throw new IllegalArgumentException("String must be formatted as " + FORMAT);
@@ -46,7 +45,7 @@ public class Year extends Date {
         }
 
         @Override
-        public String serialize(Year val) {
+        public String serialize(Hour val) {
             return FORMATTER.format(val);
         }
     }

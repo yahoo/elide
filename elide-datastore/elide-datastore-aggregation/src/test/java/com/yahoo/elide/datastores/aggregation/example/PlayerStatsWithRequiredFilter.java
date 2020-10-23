@@ -266,7 +266,7 @@ public class PlayerStatsWithRequiredFilter {
      *
      * @return the date of the player session.
      */
-    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.SIMPLEDATE, expression = DATE_FORMAT), timeZone = "UTC")
+    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DATE_FORMAT), timeZone = "UTC")
     public Date getRecordedDate() {
         return recordedDate;
     }
@@ -280,7 +280,7 @@ public class PlayerStatsWithRequiredFilter {
      *
      * @return the date of the player session.
      */
-    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.SIMPLEDATE, expression = DATE_FORMAT), timeZone = "UTC")
+    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DATE_FORMAT), timeZone = "UTC")
     public Date getUpdatedDate() {
         return updatedDate;
     }
