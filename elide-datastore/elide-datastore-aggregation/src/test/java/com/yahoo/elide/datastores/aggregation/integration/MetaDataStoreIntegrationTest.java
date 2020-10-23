@@ -176,9 +176,9 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.expression",  equalTo("{{recordedDate}}"))
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
-                .body("data.relationships.supportedGrain.data.id", hasItem("playerStats.recordedDate.simpledate"))
-                .body("included.id", hasItem("playerStats.recordedDate.simpledate"))
-                .body("included.attributes.grain", hasItem("SIMPLEDATE"))
+                .body("data.relationships.supportedGrain.data.id", hasItem("playerStats.recordedDate.day"))
+                .body("included.id", hasItem("playerStats.recordedDate.day"))
+                .body("included.attributes.grain", hasItem("DAY"))
                 .body("included.attributes.expression",
                         hasItem("PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')"));
     }

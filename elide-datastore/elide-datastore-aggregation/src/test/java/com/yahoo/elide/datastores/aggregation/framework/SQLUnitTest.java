@@ -39,18 +39,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
-import com.yahoo.elide.datastores.aggregation.timegrains.DateTime;
-import com.yahoo.elide.datastores.aggregation.timegrains.MonthYear;
-import com.yahoo.elide.datastores.aggregation.timegrains.SimpleDate;
-import com.yahoo.elide.datastores.aggregation.timegrains.WeekDateISO;
-import com.yahoo.elide.datastores.aggregation.timegrains.Year;
-import com.yahoo.elide.datastores.aggregation.timegrains.YearMonth;
-import com.yahoo.elide.datastores.aggregation.timegrains.serde.DateTimeSerde;
-import com.yahoo.elide.datastores.aggregation.timegrains.serde.MonthYearSerde;
-import com.yahoo.elide.datastores.aggregation.timegrains.serde.SimpleDateSerde;
-import com.yahoo.elide.datastores.aggregation.timegrains.serde.WeekDateSerde;
-import com.yahoo.elide.datastores.aggregation.timegrains.serde.YearMonthSerde;
-import com.yahoo.elide.datastores.aggregation.timegrains.serde.YearSerde;
+import com.yahoo.elide.datastores.aggregation.timegrains.*;
 import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.utils.ClassScanner;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
@@ -367,12 +356,15 @@ public abstract class SQLUnitTest {
         filterParser = new RSQLFilterDialect(dictionary);
 
         //Manually register the serdes because we are not running a complete Elide service.
-        CoerceUtil.register(YearMonth.class, new YearMonthSerde());
-        CoerceUtil.register(SimpleDate.class, new SimpleDateSerde());
-        CoerceUtil.register(DateTime.class, new DateTimeSerde());
-        CoerceUtil.register(MonthYear.class, new MonthYearSerde());
-        CoerceUtil.register(Year.class, new YearSerde());
-        CoerceUtil.register(WeekDateISO.class, new WeekDateSerde());
+        CoerceUtil.register(Day.class, new Day.DaySerde());
+        CoerceUtil.register(Hour.class, new Hour.HourSerde());
+        CoerceUtil.register(ISOWeek.class, new ISOWeek.ISOWeekSerde());
+        CoerceUtil.register(Minute.class, new Minute.MinuteSerde());
+        CoerceUtil.register(Month.class, new Month.MonthSerde());
+        CoerceUtil.register(Quarter.class, new Quarter.QuarterSerde());
+        CoerceUtil.register(Second.class, new Second.SecondSerde());
+        CoerceUtil.register(Week.class, new Week.WeekSerde());
+        CoerceUtil.register(Year.class, new Year.YearSerde());
 
         metaDataStore.populateEntityDictionary(dictionary);
 

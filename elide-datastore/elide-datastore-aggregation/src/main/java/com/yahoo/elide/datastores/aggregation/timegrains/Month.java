@@ -14,29 +14,29 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 /**
- * Time Grain class for Year.
+ * Time Grain class for Month.
  */
-public class Year extends Date {
+public class Month extends Date {
 
-    public static final String FORMAT = "yyyy";
+    public static final String FORMAT = "yyyy-MM";
     private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
 
-    public Year(java.util.Date date) {
+    public Month(java.util.Date date) {
         super(date.getTime());
     }
 
-    @ElideTypeConverter(type = Year.class, name = "Year")
-    static public class YearSerde implements Serde<Object, Year> {
+    @ElideTypeConverter(type = Month.class, name = "Month")
+    static public class MonthSerde implements Serde<Object, Month> {
         @Override
-        public Year deserialize(Object val) {
+        public Month deserialize(Object val) {
 
-            Year date = null;
+            Month date = null;
 
             try {
                 if (val instanceof String) {
-                    date = new Year(new Timestamp(FORMATTER.parse((String) val).getTime()));
+                    date = new Month(new Timestamp(FORMATTER.parse((String) val).getTime()));
                 } else {
-                    date = new Year(FORMATTER.parse(FORMATTER.format(val)));
+                    date = new Month(FORMATTER.parse(FORMATTER.format(val)));
                 }
             } catch (ParseException e) {
                 throw new IllegalArgumentException("String must be formatted as " + FORMAT);
@@ -46,7 +46,7 @@ public class Year extends Date {
         }
 
         @Override
-        public String serialize(Year val) {
+        public String serialize(Month val) {
             return FORMATTER.format(val);
         }
     }

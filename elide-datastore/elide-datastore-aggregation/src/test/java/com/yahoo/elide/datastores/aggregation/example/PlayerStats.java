@@ -21,8 +21,8 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 
 import com.yahoo.elide.datastores.aggregation.resolvers.DailyAverageScorePerPeriodResolver;
-import com.yahoo.elide.datastores.aggregation.timegrains.SimpleDate;
-import com.yahoo.elide.datastores.aggregation.timegrains.YearMonth;
+import com.yahoo.elide.datastores.aggregation.timegrains.Day;
+import com.yahoo.elide.datastores.aggregation.timegrains.Month;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
@@ -110,11 +110,11 @@ public class PlayerStats {
 
     private String player2Name;
 
-    private SimpleDate recordedDate;
+    private Day recordedDate;
 
-    private YearMonth recordedMonth;
+    private Month recordedMonth;
 
-    private SimpleDate updatedDate;
+    private Day updatedDate;
 
     @Setter
     private int playerLevel;
@@ -276,13 +276,13 @@ public class PlayerStats {
      *
      * @return the date of the player session.
      */
-    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.SIMPLEDATE, expression = DATE_FORMAT), timeZone = "UTC")
+    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DATE_FORMAT), timeZone = "UTC")
     @DimensionFormula("{{recordedDate}}")
-    public SimpleDate getRecordedDate() {
+    public Day getRecordedDate() {
         return recordedDate;
     }
 
-    public void setRecordedDate(final SimpleDate recordedDate) {
+    public void setRecordedDate(final Day recordedDate) {
         this.recordedDate = recordedDate;
     }
 
@@ -291,13 +291,13 @@ public class PlayerStats {
      *
      * @return the date of the player session.
      */
-    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.YEARMONTH, expression = MONTH_FORMAT), timeZone = "UTC")
+    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT), timeZone = "UTC")
     @DimensionFormula("{{recordedDate}}")
-    public YearMonth getRecordedMonth() {
+    public Month getRecordedMonth() {
         return recordedMonth;
     }
 
-    public void setRecordedMonth(final YearMonth recordedMonth) {
+    public void setRecordedMonth(final Month recordedMonth) {
         this.recordedMonth = recordedMonth;
     }
 
@@ -306,12 +306,12 @@ public class PlayerStats {
      *
      * @return the date of the player session.
      */
-    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.SIMPLEDATE, expression = DATE_FORMAT), timeZone = "UTC")
-    public SimpleDate getUpdatedDate() {
+    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DATE_FORMAT), timeZone = "UTC")
+    public Day getUpdatedDate() {
         return updatedDate;
     }
 
-    public void setUpdatedDate(final SimpleDate updatedDate) {
+    public void setUpdatedDate(final Day updatedDate) {
         this.updatedDate = updatedDate;
     }
 

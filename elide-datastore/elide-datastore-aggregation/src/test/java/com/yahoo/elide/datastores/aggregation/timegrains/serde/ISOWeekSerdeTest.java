@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Yahoo Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -8,8 +8,9 @@ package com.yahoo.elide.datastores.aggregation.timegrains.serde;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.yahoo.elide.datastores.aggregation.timegrains.WeekDateISO;
+import com.yahoo.elide.datastores.aggregation.timegrains.ISOWeek;
 
+import com.yahoo.elide.utils.coerce.converters.Serde;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
@@ -17,16 +18,16 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class WeekDateSerdeTest {
+public class ISOWeekSerdeTest {
     private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
     @Test
     public void testDateSerialize() throws ParseException {
 
         String expected = "2020-01-06";
-        WeekDateISO expectedDate = new WeekDateISO(formatter.parse(expected));
-        WeekDateSerde dateSerde = new WeekDateSerde();
-        Object actual = dateSerde.serialize(expectedDate);
+        ISOWeek expectedDate = new ISOWeek(formatter.parse(expected));
+        Serde serde = new ISOWeek.ISOWeekSerde();
+        Object actual = serde.serialize(expectedDate);
         assertEquals(expected, actual);
     }
 
@@ -34,10 +35,10 @@ public class WeekDateSerdeTest {
     public void testDateSerializeNotMonday() throws ParseException {
 
         String expected = "2020-01-01";
-        WeekDateISO expectedDate = new WeekDateISO(formatter.parse(expected));
-        WeekDateSerde dateSerde = new WeekDateSerde();
+        ISOWeek expectedDate = new ISOWeek(formatter.parse(expected));
+        Serde serde = new ISOWeek.ISOWeekSerde();
         assertThrows(IllegalArgumentException.class, () -> {
-            dateSerde.serialize(expectedDate);
+            serde.serialize(expectedDate);
         });
     }
 
@@ -47,8 +48,8 @@ public class WeekDateSerdeTest {
         String dateInString = "2020-01-06";
         Date expectedDate = new Date(formatter.parse(dateInString).getTime());
         String actual = "2020-01-06";
-        WeekDateSerde weekDateSerde = new WeekDateSerde();
-        Object actualDate = weekDateSerde.deserialize(actual);
+        Serde serde = new ISOWeek.ISOWeekSerde();
+        Object actualDate = serde.deserialize(actual);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -57,9 +58,9 @@ public class WeekDateSerdeTest {
 
         String dateInString = "2020-01-01";
         Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
-        WeekDateSerde weekDateSerde = new WeekDateSerde();
+        Serde serde = new ISOWeek.ISOWeekSerde();
         assertThrows(IllegalArgumentException.class, () -> {
-            weekDateSerde.deserialize(timestamp);
+            serde.deserialize(timestamp);
         });
     }
 
@@ -67,10 +68,10 @@ public class WeekDateSerdeTest {
     public void testDeserializeTimestamp() throws ParseException {
 
         String dateInString = "2020-01-06";
-        WeekDateISO expectedDate = new WeekDateISO(formatter.parse(dateInString));
+        ISOWeek expectedDate = new ISOWeek(formatter.parse(dateInString));
         Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
-        WeekDateSerde weekDateSerde = new WeekDateSerde();
-        Object actualDate = weekDateSerde.deserialize(timestamp);
+        Serde serde = new ISOWeek.ISOWeekSerde();
+        Object actualDate = serde.deserialize(timestamp);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -78,9 +79,9 @@ public class WeekDateSerdeTest {
     public void testDeserializeDateInvalidFormat() throws ParseException {
 
         String dateInString = "January-2020-01";
-        WeekDateSerde weekDateSerde = new WeekDateSerde();
+        Serde serde = new ISOWeek.ISOWeekSerde();
         assertThrows(IllegalArgumentException.class, () -> {
-            weekDateSerde.deserialize(dateInString);
+            serde.deserialize(dateInString);
         });
     }
 }
