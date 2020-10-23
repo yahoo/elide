@@ -41,8 +41,8 @@
                 definition : '{{createdOn}}'
                 grain:
                 {
-                    type :  SIMPLEDATE
-                    sql :  '''
+                    type : DAY
+                    sql : '''
                     PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
                     '''
                 }
@@ -53,8 +53,8 @@
                 definition : '{{updatedOn}}'
                 grain:
                 {
-                    type :  YEARMONTH
-                    sql :  '''
+                    type : MONTH
+                    sql : '''
                     PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
                     '''
                 }

@@ -46,7 +46,7 @@
           readAccess: Principal is guest user
           grain:
           {
-            type: SIMPLEDATE
+            type: DAY
             sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
           }
         }
@@ -57,7 +57,7 @@
           readAccess: Principal is guest user
           grain:
           {
-            type: YEARMONTH
+            type: MONTH
             sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
           }
         }
@@ -68,7 +68,7 @@
           readAccess: Principal is guest user
           grain:
           {
-            type: DATETIME
+            type: SECOND
             // sql: '{{}}' OR
             sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd HH:mm:ss'), 'yyyy-MM-dd HH:mm:ss')
           }

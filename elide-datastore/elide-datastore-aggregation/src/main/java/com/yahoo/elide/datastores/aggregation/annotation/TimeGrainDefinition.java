@@ -17,7 +17,7 @@ public @interface TimeGrainDefinition {
      *
      * @return One of the supported time grains of a persistent storage column
      */
-    TimeGrain grain() default TimeGrain.SIMPLEDATE;
+    TimeGrain grain() default TimeGrain.DAY;
 
     /**
      * Optional expression used by the QueryEngine to represent the grain natively.

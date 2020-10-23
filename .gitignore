@@ -17,3 +17,4 @@ dependency-reduced-pom.xml
 */*/.project
 *.factorypath
 *.vscode
+.DS_Store
