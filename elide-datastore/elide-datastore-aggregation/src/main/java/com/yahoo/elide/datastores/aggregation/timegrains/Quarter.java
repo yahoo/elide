@@ -57,9 +57,6 @@ public class Quarter extends Date {
 
         @Override
         public String serialize(Quarter val) {
-            if (!QUARTER_MONTHS.contains(MONTH_FORMATTER.format(val))) {
-                throw new IllegalArgumentException("Date string not a quarter month");
-            }
             return FORMATTER.format(val);
         }
     }

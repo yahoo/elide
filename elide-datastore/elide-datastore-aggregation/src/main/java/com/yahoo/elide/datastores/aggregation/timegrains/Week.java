@@ -53,9 +53,6 @@ public class Week extends Date {
 
         @Override
         public String serialize(Week val) {
-            if (!WEEKDATE_FORMATTER.format(val).equals("7")) {
-                throw new IllegalArgumentException("Date string not a Sunday");
-            }
             return FORMATTER.format(val);
         }
     }

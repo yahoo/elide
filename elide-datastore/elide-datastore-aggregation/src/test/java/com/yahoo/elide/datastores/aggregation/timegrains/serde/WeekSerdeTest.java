@@ -32,17 +32,6 @@ public class WeekSerdeTest {
     }
 
     @Test
-    public void testDateSerializeNotSunday() throws ParseException {
-
-        String expected = "2020-01-06";
-        Week expectedDate = new Week(formatter.parse(expected));
-        Serde serde = new Week.WeekSerde();
-        assertThrows(IllegalArgumentException.class, () -> {
-            serde.serialize(expectedDate);
-        });
-    }
-
-    @Test
     public void testDateDeserializeString() throws ParseException {
 
         String dateInString = "2020-01-05";

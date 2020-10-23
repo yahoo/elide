@@ -31,17 +31,6 @@ public class QuarterSerdeTest {
     }
 
     @Test
-    public void testDateSerializeNotQuarterMonth() throws ParseException {
-
-        String expected = "2020-02";
-        Quarter expectedDate = new Quarter(formatter.parse(expected));
-        Serde serde = new Quarter.QuarterSerde();
-        assertThrows(IllegalArgumentException.class, () -> {
-            serde.serialize(expectedDate);
-        });
-    }
-
-    @Test
     public void testDateDeserialize() throws ParseException {
 
         String dateInString = "2020-01";

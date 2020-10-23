@@ -53,9 +53,6 @@ public class ISOWeek extends Date {
 
         @Override
         public String serialize(ISOWeek val) {
-            if (!WEEKDATE_FORMATTER.format(val).equals("1")) {
-                throw new IllegalArgumentException("Date string not a Monday");
-            }
             return FORMATTER.format(val);
         }
     }
