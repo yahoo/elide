@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Yahoo Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -8,24 +8,25 @@ package com.yahoo.elide.datastores.aggregation.timegrains.serde;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.yahoo.elide.datastores.aggregation.timegrains.SimpleDate;
+import com.yahoo.elide.datastores.aggregation.timegrains.Day;
 
+import com.yahoo.elide.utils.coerce.converters.Serde;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-public class SimpleDateSerdeTest {
+public class DaySerdeTest {
     private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
     @Test
     public void testDateSerialize() throws ParseException {
 
         String expected = "2020-01-01";
-        SimpleDate expectedDate = new SimpleDate(formatter.parse(expected));
-        SimpleDateSerde dateSerde = new SimpleDateSerde();
-        Object actual = dateSerde.serialize(expectedDate);
+        Day expectedDate = new Day(formatter.parse(expected));
+        Serde serde = new Day.DaySerde();
+        Object actual = serde.serialize(expectedDate);
         assertEquals(expected, actual);
     }
 
@@ -33,10 +34,10 @@ public class SimpleDateSerdeTest {
     public void testDateDeserialize() throws ParseException {
 
         String dateInString = "2020-01-01";
-        SimpleDate expectedDate = new SimpleDate(formatter.parse(dateInString));
+        Day expectedDate = new Day(formatter.parse(dateInString));
         String actual = "2020-01-01";
-        SimpleDateSerde dateSerde = new SimpleDateSerde();
-        Object actualDate = dateSerde.deserialize(actual);
+        Serde serde = new Day.DaySerde();
+        Object actualDate = serde.deserialize(actual);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -44,10 +45,10 @@ public class SimpleDateSerdeTest {
     public void testDeserializeTimestamp() throws ParseException {
 
         String dateInString = "2020-01-01";
-        SimpleDate expectedDate = new SimpleDate(formatter.parse(dateInString));
+        Day expectedDate = new Day(formatter.parse(dateInString));
         Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
-        SimpleDateSerde dateSerde = new SimpleDateSerde();
-        Object actualDate = dateSerde.deserialize(timestamp);
+        Serde serde = new Day.DaySerde();
+        Object actualDate = serde.deserialize(timestamp);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -55,9 +56,9 @@ public class SimpleDateSerdeTest {
     public void testDeserializeDateInvalidFormat() throws ParseException {
 
         String dateInString = "January-01-2020";
-        SimpleDateSerde dateSerde = new SimpleDateSerde();
+        Serde serde = new Day.DaySerde();
         assertThrows(IllegalArgumentException.class, () -> {
-            dateSerde.deserialize(dateInString);
+            serde.deserialize(dateInString);
         });
     }
 }

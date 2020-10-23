@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Yahoo Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -8,7 +8,8 @@ package com.yahoo.elide.datastores.aggregation.timegrains.serde;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.yahoo.elide.datastores.aggregation.timegrains.DateTime;
+import com.yahoo.elide.datastores.aggregation.timegrains.Hour;
+import com.yahoo.elide.utils.coerce.converters.Serde;
 
 import org.junit.jupiter.api.Test;
 
@@ -17,48 +18,48 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class DateTimeSerdeTest {
-    private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+public class HourSerdeTest {
+    private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH");
 
     @Test
     public void testDateSerialize() throws ParseException {
 
-        String expected = "2020-01-01 01:18:19";
-        DateTime expectedDate = new DateTime(formatter.parse(expected));
-        DateTimeSerde dateSerde = new DateTimeSerde();
-        Object actual = dateSerde.serialize(expectedDate);
+        String expected = "2020-01-01 01";
+        Hour expectedDate = new Hour(formatter.parse(expected));
+        Serde serde = new Hour.HourSerde();
+        Object actual = serde.serialize(expectedDate);
         assertEquals(expected, actual);
     }
 
     @Test
     public void testDateDeserializeString() throws ParseException {
 
-        String dateInString = "2020-01-01 01:18:19";
+        String dateInString = "2020-01-01 01";
         Date expectedDate = new Date(formatter.parse(dateInString).getTime());
-        String actual = "2020-01-01 01:18:19";
-        DateTimeSerde dateTimeSerde = new DateTimeSerde();
-        Object actualDate = dateTimeSerde.deserialize(actual);
+        String actual = "2020-01-01 01:18";
+        Serde serde = new Hour.HourSerde();
+        Object actualDate = serde.deserialize(actual);
         assertEquals(expectedDate, actualDate);
     }
 
     @Test
     public void testDeserializeTimestamp() throws ParseException {
 
-        String dateInString = "2020-01-01 01:18:19";
-        DateTime expectedDate = new DateTime(formatter.parse(dateInString));
+        String dateInString = "2020-01-01 01";
+        Hour expectedDate = new Hour(formatter.parse(dateInString));
         Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
-        DateTimeSerde dateTimeSerde = new DateTimeSerde();
-        Object actualDate = dateTimeSerde.deserialize(timestamp);
+        Serde serde = new Hour.HourSerde();
+        Object actualDate = serde.deserialize(timestamp);
         assertEquals(expectedDate, actualDate);
     }
 
     @Test
     public void testDeserializeDateInvalidFormat() throws ParseException {
 
-        String dateInString = "00:18:19 2020-01-01";
-        DateTimeSerde dateTimeSerde = new DateTimeSerde();
+        String dateInString = "00 2020-01-01";
+        Serde serde = new Hour.HourSerde();
         assertThrows(IllegalArgumentException.class, () -> {
-            dateTimeSerde.deserialize(dateInString);
+            serde.deserialize(dateInString);
         });
     }
 }

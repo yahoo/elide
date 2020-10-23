@@ -8,35 +8,40 @@ package com.yahoo.elide.datastores.aggregation.timegrains;
 import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 /**
- * Time Grain class for Year.
+ * Time Grain class for Second.
  */
-public class Year extends Date {
+public class Second extends Timestamp {
 
-    public static final String FORMAT = "yyyy";
+    public static final String FORMAT = "yyyy-MM-dd HH:mm:ss";
     private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
 
-    public Year(java.util.Date date) {
+
+    public Second(java.util.Date date) {
         super(date.getTime());
     }
 
-    @ElideTypeConverter(type = Year.class, name = "Year")
-    static public class YearSerde implements Serde<Object, Year> {
-        @Override
-        public Year deserialize(Object val) {
+    @Override
+    public String toString() {
+        return FORMATTER.format(this);
+    }
 
-            Year date = null;
+    @ElideTypeConverter(type = Second.class, name = "Second")
+    static public class SecondSerde implements Serde<Object, Second> {
+        @Override
+        public Second deserialize(Object val) {
+
+            Second date = null;
 
             try {
                 if (val instanceof String) {
-                    date = new Year(new Timestamp(FORMATTER.parse((String) val).getTime()));
+                    date = new Second(new Timestamp(FORMATTER.parse((String) val).getTime()));
                 } else {
-                    date = new Year(FORMATTER.parse(FORMATTER.format(val)));
+                    date = new Second(FORMATTER.parse(FORMATTER.format(val)));
                 }
             } catch (ParseException e) {
                 throw new IllegalArgumentException("String must be formatted as " + FORMAT);
@@ -46,7 +51,7 @@ public class Year extends Date {
         }
 
         @Override
-        public String serialize(Year val) {
+        public String serialize(Second val) {
             return FORMATTER.format(val);
         }
     }

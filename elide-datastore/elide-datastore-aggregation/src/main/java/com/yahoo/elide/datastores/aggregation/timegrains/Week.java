@@ -14,39 +14,45 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 /**
- * Time Grain class for Year.
+ * Time Grain class for Week.
  */
-public class Year extends Date {
+public class Week extends Date {
 
-    public static final String FORMAT = "yyyy";
+    public static final String FORMAT = "yyyy-MM-dd";
     private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
 
-    public Year(java.util.Date date) {
+    public Week(java.util.Date date) {
         super(date.getTime());
     }
 
-    @ElideTypeConverter(type = Year.class, name = "Year")
-    static public class YearSerde implements Serde<Object, Year> {
-        @Override
-        public Year deserialize(Object val) {
+    @ElideTypeConverter(type = Week.class, name = "Week")
+    static public class WeekSerde implements Serde<Object, Week> {
+        private static final SimpleDateFormat WEEKDATE_FORMATTER = new SimpleDateFormat("u");
 
-            Year date = null;
+        @Override
+        public Week deserialize(Object val) {
+
+            Week date = null;
 
             try {
                 if (val instanceof String) {
-                    date = new Year(new Timestamp(FORMATTER.parse((String) val).getTime()));
+                    date = new Week(new Timestamp(FORMATTER.parse((String) val).getTime()));
                 } else {
-                    date = new Year(FORMATTER.parse(FORMATTER.format(val)));
+                    date = new Week(FORMATTER.parse(FORMATTER.format(val)));
                 }
             } catch (ParseException e) {
                 throw new IllegalArgumentException("String must be formatted as " + FORMAT);
+            }
+
+            if (!WEEKDATE_FORMATTER.format(date).equals("7")) {
+                throw new IllegalArgumentException("Date string not a Sunday");
             }
 
             return date;
         }
 
         @Override
-        public String serialize(Year val) {
+        public String serialize(Week val) {
             return FORMATTER.format(val);
         }
     }

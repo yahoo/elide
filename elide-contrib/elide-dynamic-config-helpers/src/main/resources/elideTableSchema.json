@@ -13,12 +13,15 @@
           "description": "Indicates grain time granularity",
           "type": "string",
           "enum": [
-            "DATETIME",
-            "SIMPLEDATE",
-            "YEARMONTH",
-            "YEAR",
-            "MONTHYEAR",
-            "WEEKDATEISO"
+            "SECOND",
+            "MINUTE",
+            "HOUR",
+            "DAY",
+            "ISOWEEK",
+            "WEEK",
+            "MONTH",
+            "QUARTER",
+            "YEAR"
           ]
         },
         "sql": {
