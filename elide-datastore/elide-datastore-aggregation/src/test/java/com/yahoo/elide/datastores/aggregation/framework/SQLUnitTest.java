@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Yahoo Inc.
+ * Copyright 2020, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -39,7 +39,15 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
-import com.yahoo.elide.datastores.aggregation.timegrains.*;
+import com.yahoo.elide.datastores.aggregation.timegrains.Day;
+import com.yahoo.elide.datastores.aggregation.timegrains.Hour;
+import com.yahoo.elide.datastores.aggregation.timegrains.ISOWeek;
+import com.yahoo.elide.datastores.aggregation.timegrains.Minute;
+import com.yahoo.elide.datastores.aggregation.timegrains.Month;
+import com.yahoo.elide.datastores.aggregation.timegrains.Quarter;
+import com.yahoo.elide.datastores.aggregation.timegrains.Second;
+import com.yahoo.elide.datastores.aggregation.timegrains.Week;
+import com.yahoo.elide.datastores.aggregation.timegrains.Year;
 import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.utils.ClassScanner;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
