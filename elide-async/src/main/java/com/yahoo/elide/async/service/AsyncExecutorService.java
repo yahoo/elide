@@ -12,7 +12,6 @@ import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -56,10 +55,9 @@ public class AsyncExecutorService {
      * A Future with Synchronous Execution Complete Flag.
      */
     @Data
-    @Builder
-    public static class AsyncAPIResultFuture {
+    private class AsyncAPIResultFuture {
         private Future<AsyncAPIResult> asyncFuture;
-        @Builder.Default private boolean synchronousTimeout = false;
+        private boolean synchronousTimeout = false;
     }
 
     @Inject
@@ -111,7 +109,7 @@ public class AsyncExecutorService {
      * @param callable A Callabale implementation to execute in background.
      */
     public void executeQuery(AsyncAPI queryObj, Callable<AsyncAPIResult> callable) {
-        AsyncAPIResultFuture resultFuture = AsyncAPIResultFuture.builder().build();
+        AsyncAPIResultFuture resultFuture = new AsyncAPIResultFuture();
         try {
             Future<AsyncAPIResult> asyncExecuteFuture = executor.submit(callable);
             resultFuture.setAsyncFuture(asyncExecuteFuture);
