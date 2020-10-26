@@ -18,7 +18,7 @@ elide:
     maxRunTimeMinutes: 65
     cleanupEnabled: true
     queryCleanupDays: 7
-    defaultAsyncQueryDAO: true
+    defaultAsyncAPIDAO: true
   dynamic-config:
     path: src/test/resources/configs
     enabled: true

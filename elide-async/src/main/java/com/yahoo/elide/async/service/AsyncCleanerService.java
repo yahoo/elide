@@ -30,15 +30,15 @@ public class AsyncCleanerService {
 
     @Inject
     private AsyncCleanerService(Elide elide, Integer maxRunTimeSeconds, Integer queryCleanupDays,
-            Integer cancelDelaySeconds, AsyncQueryDAO asyncQueryDao) {
+            Integer cancelDelaySeconds, AsyncAPIDAO asyncQueryDao) {
 
         //If query is still running for twice than maxRunTime, then interrupt did not work due to host/app crash.
         int queryRunTimeThresholdMinutes = Math.round((maxRunTimeSeconds * 2) / 60);
 
         // Setting up query cleaner that marks long running query as TIMEDOUT.
         ScheduledExecutorService cleaner = Executors.newSingleThreadScheduledExecutor();
-        AsyncQueryCleanerThread cleanUpTask = new AsyncQueryCleanerThread(queryRunTimeThresholdMinutes, elide,
-            queryCleanupDays, asyncQueryDao, new DateUtil());
+        AsyncAPICleanerThread cleanUpTask = new AsyncAPICleanerThread(
+                queryRunTimeThresholdMinutes, elide, queryCleanupDays, asyncQueryDao, new DateUtil());
 
         // Since there will be multiple hosts running the elide service,
         // setting up random delays to avoid all of them trying to cleanup at the same time.
@@ -56,7 +56,8 @@ public class AsyncCleanerService {
         //Setting up query cancel service that cancels long running queries based on status or runtime
         ScheduledExecutorService cancellation = Executors.newSingleThreadScheduledExecutor();
 
-        AsyncQueryCancelThread cancelTask = new AsyncQueryCancelThread(maxRunTimeSeconds, elide, asyncQueryDao);
+        AsyncAPICancelThread cancelTask = new AsyncAPICancelThread(maxRunTimeSeconds,
+                elide, asyncQueryDao);
 
         cancellation.scheduleWithFixedDelay(cancelTask, 0, cancelDelaySeconds, TimeUnit.SECONDS);
     }
@@ -71,7 +72,7 @@ public class AsyncCleanerService {
      * @param asyncQueryDao DAO Object
      */
     public static void init(Elide elide, Integer maxRunTimeSeconds, Integer queryCleanupDays,
-            Integer cancelDelaySeconds, AsyncQueryDAO asyncQueryDao) {
+            Integer cancelDelaySeconds, AsyncAPIDAO asyncQueryDao) {
         if (asyncCleanerService == null) {
             asyncCleanerService = new AsyncCleanerService(elide, maxRunTimeSeconds, queryCleanupDays,
                     cancelDelaySeconds, asyncQueryDao);

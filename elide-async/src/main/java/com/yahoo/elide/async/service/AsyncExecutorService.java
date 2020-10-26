@@ -6,19 +6,20 @@
 package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.AsyncQueryResult;
+import com.yahoo.elide.async.models.AsyncAPI;
+import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,12 +46,22 @@ public class AsyncExecutorService {
     private ExecutorService executor;
     private ExecutorService updater;
     private int maxRunTime;
-    private AsyncQueryDAO asyncQueryDao;
+    private AsyncAPIDAO asyncAPIDao;
     private static AsyncExecutorService asyncExecutorService = null;
     private ResultStorageEngine resultStorageEngine;
+    private ThreadLocal<AsyncAPIResultFuture> asyncResultFutureThreadLocal = new ThreadLocal<>();
+
+    /**
+     * A Future with Synchronous Execution Complete Flag.
+     */
+    @Data
+    private class AsyncAPIResultFuture {
+        private Future<AsyncAPIResult> asyncFuture;
+        private boolean synchronousTimeout = false;
+    }
 
     @Inject
-    private AsyncExecutorService(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncQueryDAO asyncQueryDao,
+    private AsyncExecutorService(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncAPIDAO asyncAPIDao,
             ResultStorageEngine resultStorageEngine) {
         this.elide = elide;
         runners = new HashMap();
@@ -62,7 +73,7 @@ public class AsyncExecutorService {
         this.maxRunTime = maxRunTime;
         executor = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
         updater = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
-        this.asyncQueryDao = asyncQueryDao;
+        this.asyncAPIDao = asyncAPIDao;
         this.resultStorageEngine = resultStorageEngine;
     }
 
@@ -72,12 +83,12 @@ public class AsyncExecutorService {
      * @param elide Elide Instance
      * @param threadPoolSize thread pool size
      * @param maxRunTime max run times in minutes
-     * @param asyncQueryDao DAO Object
+     * @param asyncAPIDao DAO Object
      */
-    public static void init(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncQueryDAO asyncQueryDao,
+    public static void init(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncAPIDAO asyncAPIDao,
             ResultStorageEngine resultStorageEngine) {
         if (asyncExecutorService == null) {
-            asyncExecutorService = new AsyncExecutorService(elide, threadPoolSize, maxRunTime, asyncQueryDao,
+            asyncExecutorService = new AsyncExecutorService(elide, threadPoolSize, maxRunTime, asyncAPIDao,
                     resultStorageEngine);
         } else {
             log.debug("asyncExecutorService is already initialized.");
@@ -95,20 +106,15 @@ public class AsyncExecutorService {
     /**
      * Execute Query asynchronously.
      * @param queryObj Query Object
-     * @param user User
-     * @param apiVersion api version
+     * @param callable A Callabale implementation to execute in background.
      */
-    public void executeQuery(AsyncQuery queryObj, User user, String apiVersion) {
-
-        QueryRunner runner = runners.get(apiVersion);
-        if (runner == null) {
-            throw new InvalidOperationException("Invalid API Version");
-        }
-        AsyncQueryThread queryWorker = new AsyncQueryThread(queryObj, user, elide, runner, asyncQueryDao, apiVersion);
-        Future<AsyncQueryResult> task = executor.submit(queryWorker);
+    public void executeQuery(AsyncAPI queryObj, Callable<AsyncAPIResult> callable) {
+        AsyncAPIResultFuture resultFuture = new AsyncAPIResultFuture();
         try {
+            Future<AsyncAPIResult> asyncExecuteFuture = executor.submit(callable);
+            resultFuture.setAsyncFuture(asyncExecuteFuture);
             queryObj.setStatus(QueryStatus.PROCESSING);
-            AsyncQueryResult queryResultObj = task.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);
+            AsyncAPIResult queryResultObj = asyncExecuteFuture.get(queryObj.getAsyncAfterSeconds(), TimeUnit.SECONDS);
             queryObj.setResult(queryResultObj);
             queryObj.setStatus(QueryStatus.COMPLETE);
             queryObj.setUpdatedOn(new Date());
@@ -120,10 +126,12 @@ public class AsyncExecutorService {
             queryObj.setStatus(QueryStatus.FAILURE);
         } catch (TimeoutException e) {
             log.error("TimeoutException: {}", e);
-            queryObj.setQueryUpdateWorker(new AsyncQueryUpdateThread(elide, task, queryObj, asyncQueryDao));
+            resultFuture.setSynchronousTimeout(true);
         } catch (Exception e) {
             log.error("Exception: {}", e);
             queryObj.setStatus(QueryStatus.FAILURE);
+        } finally {
+            asyncResultFutureThreadLocal.set(resultFuture);
         }
 
     }
@@ -133,10 +141,13 @@ public class AsyncExecutorService {
      * @param user User
      * @param apiVersion API Version
      */
-    public void completeQuery(AsyncQuery query, User user, String apiVersion) {
-        if (query.getQueryUpdateWorker() != null) {
+    public void completeQuery(AsyncAPI query, User user, String apiVersion) {
+        AsyncAPIResultFuture asyncAPIResultFuture = asyncResultFutureThreadLocal.get();
+        if (asyncAPIResultFuture.isSynchronousTimeout()) {
             log.debug("Task has not completed");
-            updater.execute(query.getQueryUpdateWorker());
+            updater.execute(new AsyncAPIUpdateThread(elide, asyncAPIResultFuture.getAsyncFuture(), query,
+                    asyncAPIDao));
+            asyncResultFutureThreadLocal.remove();
         } else {
             log.debug("Task has completed");
         }

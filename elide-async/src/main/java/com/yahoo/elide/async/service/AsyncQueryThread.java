@@ -7,7 +7,8 @@ package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.AsyncAPI;
+import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.graphql.QueryRunner;
@@ -17,11 +18,11 @@ import org.apache.http.NameValuePair;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -29,79 +30,51 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * Callable thread for executing the query provided in Async Query.
- * It will also update the query status and result object at different
- * stages of execution.
+ * AsyncQuery implementation of Callable for executing the query provided in AsyncQuery.
+ * It will also update the query status and result object at different stages of execution.
  */
 @Slf4j
-@Data
-
-public class AsyncQueryThread implements Callable<AsyncQueryResult> {
-
-    private AsyncQuery queryObj;
-    private AsyncQueryResult queryResultObj;
+public class AsyncQueryThread implements Callable<AsyncAPIResult> {
+    private AsyncAPI queryObj;
     private User user;
-    private Elide elide;
-    private final QueryRunner runner;
-    private AsyncQueryDAO asyncQueryDao;
+    private AsyncExecutorService service;
     private String apiVersion;
 
-    @Override
-    public AsyncQueryResult call() throws NoHttpResponseException, URISyntaxException {
-         return processQuery();
-    }
-
-    public AsyncQueryThread(AsyncQuery queryObj, User user, Elide elide, QueryRunner runner,
-            AsyncQueryDAO asyncQueryDao, String apiVersion) {
+    public AsyncQueryThread(AsyncAPI queryObj, User user, AsyncExecutorService service, String apiVersion) {
         this.queryObj = queryObj;
         this.user = user;
-        this.elide = elide;
-        this.runner = runner;
-        this.asyncQueryDao = asyncQueryDao;
+        this.service = service;
         this.apiVersion = apiVersion;
     }
 
-   /**
-    * This is the main method which processes the Async Query request, executes the query and updates
-    * values for AsyncQuery and AsyncQueryResult models accordingly.
-    * @return AsyncQueryResult AsyncQueryResult
-    * @throws URISyntaxException URISyntaxException
-    * @throws NoHttpResponseException NoHttpResponseException
-    */
-    protected AsyncQueryResult processQuery() throws URISyntaxException, NoHttpResponseException {
-        UUID requestId = UUID.fromString(queryObj.getRequestId());
-
+    @Override
+    public AsyncAPIResult call() throws URISyntaxException, NoHttpResponseException {
         ElideResponse response = null;
-        log.debug("AsyncQuery Object from request: {}", queryObj);
+        log.debug("AsyncQuery Object from request: {}", this);
+        UUID requestUUID = UUID.fromString(queryObj.getRequestId());
         if (queryObj.getQueryType().equals(QueryType.JSONAPI_V1_0)) {
-            response = executeJsonApiRequest(queryObj, requestId);
+            response = executeJsonApiRequest(service.getElide(), user, apiVersion, requestUUID);
+        } else if (queryObj.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
+            response = executeGraphqlRequest(service.getRunners(), user, apiVersion, requestUUID);
         }
-        else if (queryObj.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
-            response = executeGraphqlRequest(queryObj, requestId);
-        }
-
         nullResponseCheck(response);
 
-        // Create AsyncQueryResult entry for AsyncQuery
-        queryResultObj = new AsyncQueryResult();
-        queryResultObj.setHttpStatus(response.getResponseCode());
-        queryResultObj.setResponseBody(response.getBody());
-        queryResultObj.setContentLength(response.getBody().length());
-        queryResultObj.setCompletedOn(new Date());
-
-        return queryResultObj;
+        AsyncQueryResult queryResult = new AsyncQueryResult();
+        queryResult.setHttpStatus(response.getResponseCode());
+        queryResult.setCompletedOn(new Date());
+        queryResult.setResponseBody(response.getBody());
+        queryResult.setContentLength(response.getBody().length());
+        //TODO Add recordcount to queryResultObj
+        return queryResult;
     }
 
     /**
      * This method parses the url and gets the query params.
      * And adds them into a MultivaluedMap to be used by underlying Elide.get method
-     * @param query query from the Async request
-     * @throws URISyntaxException URISyntaxException from malformed or incorrect URI
+     * @param uri URIBuilder instance
      * @return MultivaluedMap with query parameters
      */
-    protected MultivaluedMap<String, String> getQueryParams(String query) throws URISyntaxException {
-        URIBuilder uri;
-        uri = new URIBuilder(query);
+    private MultivaluedMap<String, String> getQueryParams(URIBuilder uri) {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         for (NameValuePair queryParam : uri.getQueryParams()) {
             queryParams.add(queryParam.getName(), queryParam.getValue());
@@ -112,30 +85,32 @@ public class AsyncQueryThread implements Callable<AsyncQueryResult> {
     /**
      * This method parses the url and gets the query params.
      * And retrieves path to be used by underlying Elide.get method
-     * @param query query from the Async request
+     * @param uri URIBuilder instance
      * @throws URISyntaxException URISyntaxException from malformed or incorrect URI
      * @return Path extracted from URI
      */
-    protected String getPath(String query) throws URISyntaxException {
-        URIBuilder uri;
-        uri = new URIBuilder(query);
+    private String getPath(URIBuilder uri) {
         return uri.getPath();
     }
 
-    private ElideResponse executeJsonApiRequest(AsyncQuery queryObj, UUID requestId) throws URISyntaxException {
-        MultivaluedMap<String, String> queryParams = getQueryParams(queryObj.getQuery());
+    private ElideResponse executeJsonApiRequest(Elide elide, User user, String apiVersion, UUID requestUUID)
+            throws URISyntaxException {
+        URIBuilder uri = new URIBuilder(queryObj.getQuery());
+        MultivaluedMap<String, String> queryParams = getQueryParams(uri);
         log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
 
         //TODO - we need to add the baseUrlEndpoint to the queryObject.
-        ElideResponse response = elide.get("", getPath(queryObj.getQuery()), queryParams, user, apiVersion, requestId);
+        ElideResponse response = elide.get("", getPath(uri), queryParams, user, apiVersion, requestUUID);
         log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
                 response.getResponseCode(), response.getBody());
         return response;
     }
 
-    private ElideResponse executeGraphqlRequest(AsyncQuery queryObj, UUID requestId) throws URISyntaxException {
+    private ElideResponse executeGraphqlRequest(Map<String, QueryRunner> runners, User user, String apiVersion,
+            UUID requestUUID) throws URISyntaxException {
+        QueryRunner runner = runners.get(apiVersion);
         //TODO - we need to add the baseUrlEndpoint to the queryObject.
-        ElideResponse response = runner.run("", queryObj.getQuery(), user, requestId);
+        ElideResponse response = runner.run("", queryObj.getQuery(), user, requestUUID);
         log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
                 response.getResponseCode(), response.getBody());
         return response;

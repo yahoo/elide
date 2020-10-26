@@ -11,14 +11,12 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.hooks.CompleteQueryHook;
-import com.yahoo.elide.async.hooks.ExecuteQueryHook;
-import com.yahoo.elide.async.hooks.UpdatePrincipalNameHook;
+import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.service.AsyncAPIDAO;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
-import com.yahoo.elide.async.service.AsyncQueryDAO;
-import com.yahoo.elide.async.service.DefaultAsyncQueryDAO;
+import com.yahoo.elide.async.service.DefaultAsyncAPIDAO;
 import com.yahoo.elide.async.service.ResultStorageEngine;
 import com.yahoo.elide.core.EntityDictionary;
 
@@ -52,19 +50,17 @@ public class ElideAsyncConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public AsyncExecutorService buildAsyncExecutorService(Elide elide, ElideConfigProperties settings,
-            AsyncQueryDAO asyncQueryDao, EntityDictionary dictionary,
+            AsyncAPIDAO asyncQueryDao, EntityDictionary dictionary,
             @Autowired(required = false) ResultStorageEngine resultStorageEngine) {
         AsyncExecutorService.init(elide, settings.getAsync().getThreadPoolSize(),
                 settings.getAsync().getMaxRunTimeSeconds(), asyncQueryDao, resultStorageEngine);
         AsyncExecutorService asyncExecutorService = AsyncExecutorService.getInstance();
 
         // Binding AsyncQuery LifeCycleHook
-        ExecuteQueryHook executeQueryHook = new ExecuteQueryHook(asyncExecutorService);
-        CompleteQueryHook completeQueryHook = new CompleteQueryHook(asyncExecutorService);
-        UpdatePrincipalNameHook updatePrincipalNameHook = new UpdatePrincipalNameHook();
-        dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, executeQueryHook, false);
-        dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, completeQueryHook, false);
-        dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, updatePrincipalNameHook, false);
+        AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService);
+        dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, asyncQueryHook, false);
+        dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, asyncQueryHook, false);
+        dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, asyncQueryHook, false);
 
         return AsyncExecutorService.getInstance();
     }
@@ -80,7 +76,7 @@ public class ElideAsyncConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async", name = "cleanupEnabled", matchIfMissing = false)
     public AsyncCleanerService buildAsyncCleanerService(Elide elide, ElideConfigProperties settings,
-            AsyncQueryDAO asyncQueryDao) {
+            AsyncAPIDAO asyncQueryDao) {
         AsyncCleanerService.init(elide, settings.getAsync().getMaxRunTimeSeconds(),
                 settings.getAsync().getQueryCleanupDays(),
                 settings.getAsync().getQueryCancellationIntervalSeconds(), asyncQueryDao);
@@ -94,9 +90,9 @@ public class ElideAsyncConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "elide.async", name = "defaultAsyncQueryDAO", matchIfMissing = true)
-    public AsyncQueryDAO buildAsyncQueryDAO(Elide elide) {
-        return new DefaultAsyncQueryDAO(elide.getElideSettings(), elide.getDataStore());
+    @ConditionalOnProperty(prefix = "elide.async", name = "defaultAsyncAPIDAO", matchIfMissing = true)
+    public AsyncAPIDAO buildAsyncAPIDAO(Elide elide) {
+        return new DefaultAsyncAPIDAO(elide.getElideSettings(), elide.getDataStore());
     }
 
     /**
@@ -108,7 +104,7 @@ public class ElideAsyncConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "elide.async.download", name = "enabled", matchIfMissing = false)
     public ResultStorageEngine buildResultStorageEngine(Elide elide, ElideConfigProperties settings,
-            AsyncQueryDAO asyncQueryDAO) {
+            AsyncAPIDAO asyncQueryDAO) {
         // TODO: Initialize with FileResultStorageEngine
         return null;
     }

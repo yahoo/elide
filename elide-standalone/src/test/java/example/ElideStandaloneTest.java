@@ -279,8 +279,7 @@ public class ElideStandaloneTest {
                                         attributes(
                                                 attr("query", "/post"),
                                                 attr("queryType", "JSONAPI_V1_0"),
-                                                attr("status", "QUEUED"),
-                                                attr("resultType", "EMBEDDED")
+                                                attr("status", "QUEUED")
                                         )
                                 )
                         ).toJSON())
@@ -317,13 +316,13 @@ public class ElideStandaloneTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .body("{\"query\":\"{ asyncQuery(ids: [\\\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\\\"]) "
-                                + "{ edges { node { id queryType status resultType result "
+                                + "{ edges { node { id queryType status result "
                                 + "{ responseBody httpStatus  contentLength } } } } }\","
                                 + "\"variables\":null}")
                         .post("/graphql/api/v1/")
                         .asString();
 
-                String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\",\"queryType\":\"JSONAPI_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"EMBEDDED\",\"result\":{\"responseBody\":\"{\\\"data\\\":[{\\\"type\\\":\\\"post\\\",\\\"id\\\":\\\"2\\\",\\\"attributes\\\":{\\\"abusiveContent\\\":false,\\\"content\\\":\\\"This is my first post. woot.\\\",\\\"date\\\":\\\"2019-01-01T00:00Z\\\"}}]}\",\"httpStatus\":200,\"contentLength\":141}}}]}}}";
+                String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\",\"queryType\":\"JSONAPI_V1_0\",\"status\":\"COMPLETE\",\"result\":{\"responseBody\":\"{\\\"data\\\":[{\\\"type\\\":\\\"post\\\",\\\"id\\\":\\\"2\\\",\\\"attributes\\\":{\\\"abusiveContent\\\":false,\\\"content\\\":\\\"This is my first post. woot.\\\",\\\"date\\\":\\\"2019-01-01T00:00Z\\\"}}]}\",\"httpStatus\":200,\"contentLength\":141}}}]}}}";
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
             } else if (!(outputResponse.equals("PROCESSING"))) {

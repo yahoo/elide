@@ -39,10 +39,10 @@ public class AsyncProperties {
     private int queryCancellationIntervalSeconds = 10;
 
     /**
-     * Whether or not to use the default implementation of AsyncQueryDAO.
-     * If false, the user will provide custom implementation of AsyncQueryDAO.
+     * Whether or not to use the default implementation of AsyncAPIDAO.
+     * If false, the user will provide custom implementation of AsyncAPIDAO.
      */
-    private boolean defaultAsyncQueryDAO = true;
+    private boolean defaultAsyncAPIDAO = true;
 
     /**
      * Whether or not the async feature is enabled.
