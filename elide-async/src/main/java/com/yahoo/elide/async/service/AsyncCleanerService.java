@@ -6,6 +6,9 @@
 package com.yahoo.elide.async.service;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
+import com.yahoo.elide.async.service.thread.AsyncAPICancelThread;
+import com.yahoo.elide.async.service.thread.AsyncAPICleanerThread;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,7 +21,7 @@ import javax.inject.Inject;
 /**
  * Service to execute Async queries.
  * It will schedule task to track long running queries and kills them.
- * It will also schedule task to update orphan query statuses
+ * It will also schedule task to update orphan queries status
  * after host/app crash or restart.
  */
 @Slf4j
