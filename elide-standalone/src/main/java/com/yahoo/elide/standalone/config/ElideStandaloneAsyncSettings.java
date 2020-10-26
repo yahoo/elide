@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.standalone.config;
 
-import com.yahoo.elide.async.service.AsyncQueryDAO;
+import com.yahoo.elide.async.service.AsyncAPIDAO;
 import com.yahoo.elide.async.service.ResultStorageEngine;
 
 /**
@@ -69,11 +69,11 @@ public interface ElideStandaloneAsyncSettings {
     }
 
     /**
-     * Implementation of AsyncQueryDAO to use.
+     * Implementation of AsyncAPIDAO to use.
      *
-     * @return AsyncQueryDAO type object.
+     * @return AsyncAPIDAO type object.
      */
-    default AsyncQueryDAO getQueryDAO() {
+    default AsyncAPIDAO getAPIDAO() {
         return null;
     }
 
