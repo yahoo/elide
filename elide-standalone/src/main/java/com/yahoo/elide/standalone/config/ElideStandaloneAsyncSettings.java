@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.standalone.config;
 
-import com.yahoo.elide.async.service.AsyncAPIDAO;
-import com.yahoo.elide.async.service.ResultStorageEngine;
+import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
+import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 
 /**
  * interface for configuring the Async configuration of standalone application.

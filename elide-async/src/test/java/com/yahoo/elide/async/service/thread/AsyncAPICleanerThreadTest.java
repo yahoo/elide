@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.async.service;
+package com.yahoo.elide.async.service.thread;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -16,6 +16,9 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
+import com.yahoo.elide.async.service.DateUtil;
+import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
+import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
