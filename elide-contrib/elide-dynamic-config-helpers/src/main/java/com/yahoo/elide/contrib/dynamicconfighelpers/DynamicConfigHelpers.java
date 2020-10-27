@@ -17,6 +17,7 @@ import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import org.hjson.JsonValue;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hjson.ParseException;
 
 import java.io.File;
 import java.io.IOException;
@@ -155,7 +156,11 @@ public class DynamicConfigHelpers {
     }
 
     private static String hjsonToJson(String hjson) {
-        return JsonValue.readHjson(hjson).toString();
+        try {
+            return JsonValue.readHjson(hjson).toString();
+        } catch (ParseException e) {
+            throw new IllegalStateException("Invalid HJSON Syntax: " + e.getMessage());
+        }
     }
 
     private static <T> T getModelPojo(String jsonConfig, final Class<T> configPojo) throws JsonProcessingException {
