@@ -15,9 +15,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 
 import org.hjson.JsonValue;
-
-import lombok.extern.slf4j.Slf4j;
 import org.hjson.ParseException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
