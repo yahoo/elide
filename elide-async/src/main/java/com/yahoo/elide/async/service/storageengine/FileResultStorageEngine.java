@@ -4,7 +4,7 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.async.service;
+package com.yahoo.elide.async.service.storageengine;
 
 import com.yahoo.elide.async.models.AsyncQuery;
 

@@ -9,6 +9,9 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.QueryStatus;
+import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
+import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
+import com.yahoo.elide.async.service.thread.AsyncAPIUpdateThread;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 
