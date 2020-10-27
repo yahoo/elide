@@ -129,7 +129,7 @@ public class PlayerStatsWithView {
         this.overallRating = overallRating;
     }
 
-    @Join("%from.country_id = %join.id")
+    @Join("{{country_id}} = {{country.id}}")
     public Country getCountry() {
         return country;
     }
@@ -138,7 +138,7 @@ public class PlayerStatsWithView {
         this.country = country;
     }
 
-    @Join("%from.sub_country_id = %join.id")
+    @Join("{{sub_country_id}} = {{subCountry.id}}")
     public SubCountry getSubCountry() {
         return subCountry;
     }
@@ -147,7 +147,7 @@ public class PlayerStatsWithView {
         this.subCountry = subCountry;
     }
 
-    @Join("%from.player_id = %join.id")
+    @Join("{{player_id}} = {{player.id}}")
     public Player getPlayer() {
         return player;
     }
@@ -190,12 +190,12 @@ public class PlayerStatsWithView {
         this.subCountryIsoCode = isoCode;
     }
 
-    @Join("%from.country_id = %join.id")
+    @Join("{{country_id}} = {{countryView.id}}")
     public CountryView getCountryView() {
         return countryView;
     }
 
-    @DimensionFormula("{{countryView.isoCode}}")
+    @DimensionFormula("{{countryView.iso_code}}")
     public String getCountryViewIsoCode() {
         return countryViewIsoCode;
     }

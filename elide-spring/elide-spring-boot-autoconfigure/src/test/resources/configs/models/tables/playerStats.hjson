@@ -14,7 +14,7 @@
                 name: playerCountry
                 to: PlayerCountry
                 type: toOne
-                definition: '%join.id = %from.countryId'
+                definition: '{{playerCountry.id}} = {{countryId}}'
             }
         ]
         measures : [
