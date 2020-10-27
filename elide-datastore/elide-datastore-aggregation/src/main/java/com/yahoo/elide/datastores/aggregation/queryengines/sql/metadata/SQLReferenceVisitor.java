@@ -92,7 +92,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
      * @param logicalName logical column name
      * @return expression with resolved references
      */
-    public String resolveReferences(Queryable source, String expr, String logicalName) {
+    private String resolveReferences(Queryable source, String expr, String logicalName) {
 
         // replace references with resolved statements/expressions
         for (String reference : resolveFormulaReferences(expr)) {

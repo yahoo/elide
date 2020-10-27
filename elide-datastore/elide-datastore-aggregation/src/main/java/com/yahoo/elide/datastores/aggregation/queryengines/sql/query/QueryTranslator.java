@@ -5,10 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
-import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isTableJoin;
-import static com.yahoo.elide.utils.TypeHelper.appendAlias;
-import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
-
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
@@ -16,8 +12,6 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
-import com.yahoo.elide.datastores.aggregation.annotation.Join;
-import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -27,14 +21,10 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSu
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceVisitor;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
-import org.hibernate.annotations.Subselect;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +59,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
                     + query.getSource().getAlias());
         }
 
-        Set<JoinPath> joinPaths = new HashSet<>();
+        Set<String> joinExpressions = new LinkedHashSet<>();
 
         builder.projectionClause(constructProjectionWithReference(query));
 
@@ -83,7 +73,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
                         .collect(Collectors.joining(", ")));
             }
 
-            joinPaths.addAll(extractJoinPaths(groupByDimensions, query.getSource()));
+            joinExpressions.addAll(extractJoinExpressions(groupByDimensions, query.getSource()));
         }
 
         if (query.getWhereFilter() != null) {
@@ -91,7 +81,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
                     query.getWhereFilter(),
                     filterPredicate -> generatePredicatePathReference(filterPredicate.getPath(), query)));
 
-            joinPaths.addAll(extractJoinPaths(query.getSource(), query.getWhereFilter()));
+            joinExpressions.addAll(extractJoinExpressions(query.getSource(), query.getWhereFilter()));
         }
 
         if (query.getHavingFilter() != null) {
@@ -99,14 +89,14 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
                     query.getHavingFilter(),
                     (predicate) -> constructHavingClauseWithReference(predicate, query)));
 
-            joinPaths.addAll(extractJoinPaths(query.getSource(), query.getHavingFilter()));
+            joinExpressions.addAll(extractJoinExpressions(query.getSource(), query.getHavingFilter()));
         }
 
         if (query.getSorting() != null) {
             Map<Path, Sorting.SortOrder> sortClauses = query.getSorting().getSortingPaths();
             builder.orderByClause(extractOrderBy(sortClauses, query));
 
-            joinPaths.addAll(extractJoinPaths(query.getSource(), sortClauses));
+            joinExpressions.addAll(extractJoinExpressions(query.getSource(), sortClauses));
         }
 
         Pagination pagination = query.getPagination();
@@ -114,7 +104,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
             builder.offsetLimitClause(dialect.generateOffsetLimitClause(pagination.getOffset(), pagination.getLimit()));
         }
 
-        return builder.joinClause(extractJoin(joinPaths));
+        return builder.joinClause(String.join(" ", joinExpressions));
     }
 
     @Override
@@ -190,122 +180,6 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
     }
 
     /**
-     * Build full join clause for all join paths.
-     *
-     * @param joinPaths paths that require joins
-     * @return built join clause that contains all needed relationship dimension joins for this query.
-     */
-    private String extractJoin(Set<JoinPath> joinPaths) {
-        Set<String> joinClauses = new LinkedHashSet<>();
-
-        joinPaths.forEach(path -> addJoinClauses(path, joinClauses));
-
-        return String.join(" ", joinClauses);
-    }
-
-    /**
-     * Add a join clause to a set of join clauses.
-     *
-     * @param joinPath join path
-     * @param alreadyJoined A set of joins that have already been computed.
-     */
-    private void addJoinClauses(JoinPath joinPath, Set<String> alreadyJoined) {
-        String parentAlias = getTypeAlias(joinPath.getPathElements().get(0).getType());
-
-        for (Path.PathElement pathElement : joinPath.getPathElements()) {
-            String fieldName = pathElement.getFieldName();
-            Class<?> parentClass = pathElement.getType();
-
-            // Nothing left to join.
-            if (!dictionary.isRelation(parentClass, fieldName) && !isTableJoin(parentClass, fieldName, dictionary)) {
-                return;
-            }
-
-            String joinFragment = extractJoinClause(
-                    parentClass,
-                    parentAlias,
-                    pathElement.getFieldType(),
-                    fieldName);
-
-            alreadyJoined.add(joinFragment);
-
-            parentAlias = appendAlias(parentAlias, fieldName);
-        }
-    }
-
-    /**
-     * Build a single dimension join clause for joining a relationship/join table to the parent table.
-     *
-     * @param fromClass parent class
-     * @param fromAlias parent table alias
-     * @param joinClass relationship/join class
-     * @param joinField relationship/join field name
-     * @return built join clause i.e. <code>LEFT JOIN table1 AS dimension1 ON table0.dim_id = dimension1.id</code>
-     */
-    private String extractJoinClause(Class<?> fromClass,
-                                     String fromAlias,
-                                     Class<?> joinClass,
-                                     String joinField) {
-        //TODO - support composite join keys.
-        //TODO - support joins where either side owns the relationship.
-        //TODO - Support INNER and RIGHT joins.
-        //TODO - Support toMany joins.
-
-        String joinAlias = appendAlias(fromAlias, joinField);
-        String joinColumnName = dictionary.getAnnotatedColumnName(fromClass, joinField);
-
-        // resolve the right hand side of JOIN
-        String joinSource = constructTableOrSubselect(joinClass);
-
-        Join join = dictionary.getAttributeOrRelationAnnotation(
-                fromClass,
-                Join.class,
-                joinField);
-
-        String joinClause = join == null
-                ? String.format(
-                        "%s.%s = %s.%s",
-                        fromAlias,
-                        joinColumnName,
-                        joinAlias,
-                        dictionary.getAnnotatedColumnName(
-                                joinClass,
-                                dictionary.getIdFieldName(joinClass)))
-                : getJoinClause(fromClass, fromAlias, join.value());
-
-        return String.format("LEFT JOIN %s AS %s ON %s",
-                joinSource,
-                joinAlias,
-                joinClause);
-    }
-
-    /**
-     * Resolve references to construct a join ON clause.
-     *
-     * @param fromClass parent class
-     * @param fromAlias parent alias
-     * @param expr unresolved ON clause
-     * @return string resolved ON clause
-     */
-    private String getJoinClause(Class<?> fromClass, String fromAlias, String expr) {
-        SQLTable table = new SQLTable(fromClass, dictionary);
-        SQLReferenceVisitor visitor = new SQLReferenceVisitor(referenceTable.getMetaDataStore(), fromAlias);
-        return visitor.resolveReferences(table.getSource(), expr, null);
-    }
-
-    /**
-     * Make a select statement for a table a sub select query.
-     *
-     * @param cls entity class
-     * @return <code>tableName</code> or <code>(subselect query)</code>
-     */
-    private String constructTableOrSubselect(Class<?> cls) {
-        return isSubselect(cls)
-                ? "(" + resolveTableOrSubselect(dictionary, cls) + ")"
-                : resolveTableOrSubselect(dictionary, cls);
-    }
-
-    /**
      * Given a list of columns to sort on, constructs an ORDER BY clause in SQL.
      * @param sortClauses The list of sort columns and their sort order (ascending or descending).
      * @return A SQL expression
@@ -341,10 +215,9 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
      * @param path The path object from the table that may contain a join.
      * @return
      */
-    private Set<JoinPath> extractJoinPaths(Queryable source, Path path) {
+    private Set<String> extractJoinExpressions(Queryable source, Path path) {
         Path.PathElement last = path.lastElement().get();
-
-        return referenceTable.getResolvedJoinPaths(source, last.getFieldName());
+        return referenceTable.getResolvedJoinExpressions(source, last.getFieldName());
     }
 
     /**
@@ -352,14 +225,14 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
      *
      * @param source The table that is being queried.
      * @param expression The filter expression
-     * @return A set of path elements that capture a relationship traversal.
+     * @return A set of Join expressions that capture a relationship traversal.
      */
-    private Set<JoinPath> extractJoinPaths(Queryable source, FilterExpression expression) {
+    private Set<String> extractJoinExpressions(Queryable source, FilterExpression expression) {
         Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
 
         return predicates.stream()
                 .map(FilterPredicate::getPath)
-                .map(path -> extractJoinPaths(source, path))
+                .map(path -> extractJoinExpressions(source, path))
                 .flatMap(Set::stream)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -369,11 +242,11 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
      *
      * @param source The table that is being queried.
      * @param sortClauses The list of sort columns and their sort order (ascending or descending).
-     * @return A set of path elements that capture a relationship traversal.
+     * @return A set of Join expressions that capture a relationship traversal.
      */
-    private Set<JoinPath> extractJoinPaths(Queryable source, Map<Path, Sorting.SortOrder> sortClauses) {
+    private Set<String> extractJoinExpressions(Queryable source, Map<Path, Sorting.SortOrder> sortClauses) {
         return sortClauses.keySet().stream()
-                .map(path -> extractJoinPaths(source, path))
+                .map(path -> extractJoinExpressions(source, path))
                 .flatMap(Set::stream)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -384,12 +257,12 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
      *
      * @param groupByDimensions The list of dimensions we are grouping on.
      * @param source queried table
-     * @return A set of path elements that capture a relationship traversal.
+     * @return A set of Join expressions that capture a relationship traversal.
      */
-    private Set<JoinPath> extractJoinPaths(Set<ColumnProjection> groupByDimensions,
+    private Set<String> extractJoinExpressions(Set<ColumnProjection> groupByDimensions,
                                            Queryable source) {
         return groupByDimensions.stream()
-                .map(column -> referenceTable.getResolvedJoinPaths(source, column.getName()))
+                .map(column -> referenceTable.getResolvedJoinExpressions(source, column.getName()))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -420,63 +293,6 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
 
         SQLColumnProjection projection = fieldToColumnProjection(query, last.getFieldName());
         return projection.toSQL(referenceTable);
-    }
-
-    /**
-     * Maps an entity class to a physical table of subselect query, if neither {@link javax.persistence.Table}
-     * nor {@link Subselect} annotation is present on this class, try {@link FromTable} and {@link FromSubquery}.
-     *
-     * @param cls The entity class.
-     * @return The physical SQL table or subselect query.
-     */
-    private static String resolveTableOrSubselect(EntityDictionary dictionary, Class<?> cls) {
-        if (isSubselect(cls)) {
-            if (cls.isAnnotationPresent(FromSubquery.class)) {
-                return dictionary.getAnnotation(cls, FromSubquery.class).sql();
-            } else {
-                return dictionary.getAnnotation(cls, Subselect.class).value();
-            }
-        } else {
-            javax.persistence.Table table = dictionary.getAnnotation(cls, javax.persistence.Table.class);
-
-            if (table != null) {
-                return resolveTableAnnotation(table);
-            } else {
-                FromTable fromTable = dictionary.getAnnotation(cls, FromTable.class);
-
-                return fromTable != null ? fromTable.name() : dictionary.getJsonAliasFor(cls);
-            }
-        }
-    }
-
-    /**
-     * Get the full table name from JPA {@link javax.persistence.Table} annotation.
-     *
-     * @param table table annotation
-     * @return <code>catalog.schema.name</code>
-     */
-    private static String resolveTableAnnotation(javax.persistence.Table table) {
-        StringBuilder fullTableName = new StringBuilder();
-
-        if (!"".equals(table.catalog())) {
-            fullTableName.append(table.catalog()).append(".");
-        }
-        if (!"".equals(table.schema())) {
-            fullTableName.append(table.schema()).append(".");
-        }
-        fullTableName.append(table.name());
-
-        return fullTableName.toString();
-    }
-
-    /**
-     * Check whether a class is mapped to a subselect query instead of a physical table.
-     *
-     * @param cls The entity class
-     * @return True if the class has {@link Subselect} annotation
-     */
-    private static boolean isSubselect(Class<?> cls) {
-        return cls.isAnnotationPresent(Subselect.class) || cls.isAnnotationPresent(FromSubquery.class);
     }
 
     private SQLColumnProjection fieldToColumnProjection(Query query, String fieldName) {
