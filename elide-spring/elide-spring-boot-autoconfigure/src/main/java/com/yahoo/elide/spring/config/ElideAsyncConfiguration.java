@@ -13,11 +13,11 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.service.AsyncAPIDAO;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
-import com.yahoo.elide.async.service.DefaultAsyncAPIDAO;
-import com.yahoo.elide.async.service.ResultStorageEngine;
+import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
+import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
+import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.EntityDictionary;
 
 import org.springframework.beans.factory.annotation.Autowired;
