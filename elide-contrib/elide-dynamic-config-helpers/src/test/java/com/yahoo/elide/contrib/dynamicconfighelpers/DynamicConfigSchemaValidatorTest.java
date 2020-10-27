@@ -8,8 +8,6 @@ package com.yahoo.elide.contrib.dynamicconfighelpers;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-
 import org.hjson.JsonValue;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,9 +30,9 @@ public class DynamicConfigSchemaValidatorTest {
     @Test
     public void testInvalidSecuritySchema() throws Exception {
         String jsonConfig = loadHjsonFromClassPath("/validator/invalid_schema/security_invalid.hjson");
-        Exception e = assertThrows(ProcessingException.class,
+        Exception e = assertThrows(IllegalStateException.class,
                 () -> testClass.verifySchema(Config.SECURITY, jsonConfig));
-        assertTrue(e.getMessage().startsWith("fatal: Schema validation failed"));
+        assertTrue(e.getMessage().startsWith("Schema validation failed"));
     }
 
     @Test
@@ -46,9 +44,9 @@ public class DynamicConfigSchemaValidatorTest {
     @Test
     public void testInvalidVariableSchema() throws Exception {
         String jsonConfig = loadHjsonFromClassPath("/validator/invalid_schema/variables_invalid.hjson");
-        Exception e = assertThrows(ProcessingException.class,
+        Exception e = assertThrows(IllegalStateException.class,
                 () -> testClass.verifySchema(Config.MODELVARIABLE, jsonConfig));
-        assertTrue(e.getMessage().startsWith("fatal: Schema validation failed"));
+        assertTrue(e.getMessage().startsWith("Schema validation failed"));
     }
 
     // Table config test
@@ -71,9 +69,9 @@ public class DynamicConfigSchemaValidatorTest {
             "/validator/invalid_schema/invalid_table_filter.hjson"})
     public void testInvalidTableSchema(String resource) throws Exception {
         String jsonConfig = loadHjsonFromClassPath(resource);
-        Exception e = assertThrows(ProcessingException.class,
+        Exception e = assertThrows(IllegalStateException.class,
                 () -> testClass.verifySchema(Config.TABLE, jsonConfig));
-        assertTrue(e.getMessage().startsWith("fatal: Schema validation failed"));
+        assertTrue(e.getMessage().startsWith("Schema validation failed"));
     }
 
     // DB config test
@@ -90,9 +88,9 @@ public class DynamicConfigSchemaValidatorTest {
     @Test
     public void testInvalidDbSchema() throws Exception {
         String jsonConfig = loadHjsonFromClassPath("/validator/invalid_schema/db_invalid.hjson");
-        Exception e = assertThrows(ProcessingException.class,
+        Exception e = assertThrows(IllegalStateException.class,
                 () -> testClass.verifySchema(Config.SQLDBConfig, jsonConfig));
-        assertTrue(e.getMessage().startsWith("fatal: Schema validation failed"));
+        assertTrue(e.getMessage().startsWith("Schema validation failed"));
     }
 
     private String loadHjsonFromClassPath(String resource) throws Exception {

@@ -17,7 +17,6 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 
 import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.MissingOptionException;
-import org.hjson.ParseException;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -115,27 +114,37 @@ public class DynamicConfigValidatorTest {
 
     @Test
     public void testBadVariableConfig() {
-        assertThrows(ParseException.class, () -> DynamicConfigValidator
+        Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/bad_variable" }));
+
+        assertEquals("Invalid HJSON Syntax: Found '[' where a key name was "
+                + "expected (check your syntax or use quotes if the key name includes {}[],: or whitespace) at 3:7",
+                e.getMessage());
     }
 
     @Test
     public void testBadSecurityConfig() {
-        assertThrows(ParseException.class, () -> DynamicConfigValidator
+        Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/bad_security" }));
+
+        assertEquals("Invalid HJSON Syntax: Found '[' where a key name was expected "
+                + "(check your syntax or use quotes if the key name includes {}[],: or whitespace) at 3:11",
+                e.getMessage());
     }
 
     @Test
     public void testBadSecurityRoleConfig() {
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/bad_security_role" }));
-        assertEquals(e.getMessage(), "ROLE provided in security config contain one of these words: [,]");
+        assertEquals("ROLE provided in security config contain one of these words: [,]", e.getMessage());
     }
 
     @Test
     public void testBadTableConfigJoinType() {
-        assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
+        Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/bad_table_join_type" }));
+        assertEquals("Schema validation failed: [instance value (\"toAll\") not found "
+                + "in enum (possible values: [\"toOne\",\"toMany\"]) ]", e.getMessage());
     }
 
     @Test
@@ -164,15 +173,15 @@ public class DynamicConfigValidatorTest {
     public void testUndefinedVariable() {
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/undefined_handlebar" }));
-        assertEquals(e.getMessage(),
-                "foobar is used as a variable in either table or security config files but is not defined in variables config file.");
+        assertEquals("foobar is used as a variable in either table or security config files "
+                        + "but is not defined in variables config file.", e.getMessage());
     }
 
     @Test
     public void testDuplicateDBConfigName() {
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/duplicate_dbconfigname" }));
-        assertEquals(e.getMessage(), "Duplicate!! Either Table or DB configs found with the same name.");
+        assertEquals("Duplicate!! Either Table or DB configs found with the same name.", e.getMessage());
     }
 
     @Test
