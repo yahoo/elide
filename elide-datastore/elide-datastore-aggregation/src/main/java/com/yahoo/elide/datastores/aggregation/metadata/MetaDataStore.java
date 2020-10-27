@@ -173,18 +173,6 @@ public class MetaDataStore implements DataStore {
     }
 
     /**
-     * Get name for the last field in a {@link Path}
-     *
-     * @param path path to a field
-     * @return field name
-     */
-    public final String getFieldName(Path path) {
-        Path.PathElement last = path.lastElement().get();
-
-        return last.getFieldName();
-    }
-
-    /**
      * Add a column metadata object.
      *
      * @param column column metadata
