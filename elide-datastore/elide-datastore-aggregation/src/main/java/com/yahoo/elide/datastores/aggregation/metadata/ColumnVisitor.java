@@ -43,14 +43,6 @@ public abstract class ColumnVisitor<T> {
         }
     }
 
-    public final Column getColumn(Class<?> fromClass, String fieldName) {
-        return metaDataStore.getColumn(fromClass, fieldName);
-    }
-
-    public final String getFieldName(Path path) {
-        return metaDataStore.getFieldName(path);
-    }
-
     /**
      * Visits a column.
      *
