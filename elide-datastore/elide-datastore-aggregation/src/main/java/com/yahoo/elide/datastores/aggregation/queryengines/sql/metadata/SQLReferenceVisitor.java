@@ -81,25 +81,16 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
      * @return
      */
     private String visitFormulaColumn(ColumnProjection column) {
-        return resolveReferences(column.getSource(), column.getExpression(), column.getName());
-    }
+        Queryable source  = column.getSource();
 
-    /**
-     * Resolve references.
-     *
-     * @param source
-     * @param expr expression with unresolved references
-     * @param logicalName logical column name
-     * @return expression with resolved references
-     */
-    private String resolveReferences(Queryable source, String expr, String logicalName) {
+        String expr = column.getExpression();
 
         // replace references with resolved statements/expressions
-        for (String reference : resolveFormulaReferences(expr)) {
+        for (String reference : resolveFormulaReferences(column.getExpression())) {
             String resolvedReference;
 
             //The column is sourced from a query rather than a table.
-            if (source != source.getSource()) {
+            if (column.getSource() != column.getSource().getSource()) {
                 resolvedReference = visitPhysicalReference(reference);
 
             //The reference is a join to another logical column.
@@ -115,13 +106,14 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
 
                 //If the reference matches the column name - it means the logical and physical
                 //columns have the same name.  Treat it like a physical column.
-                } else if (reference.equals(logicalName)) {
+                } else if (reference.equals(column.getName())) {
                     resolvedReference = visitPhysicalReference(reference);
                 //A reference to another logical column.
                 } else {
                     resolvedReference = visitColumn(referenceColumn);
                 }
             }
+
             expr = expr.replace(toFormulaReference(reference), resolvedReference);
         }
 
