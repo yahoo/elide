@@ -10,6 +10,8 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 
+import com.google.common.collect.ImmutableList;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +28,7 @@ public class JoinPath extends Path {
     }
 
     public JoinPath(Class<?> entityClass, EntityDictionary dictionary, String dotSeparatedPath) {
-        super(entityClass, dictionary, dotSeparatedPath);
+        pathElements = resolvePathElements(entityClass, dictionary, dotSeparatedPath);
     }
 
     @Override
@@ -60,5 +62,44 @@ public class JoinPath extends Path {
         toExtend.remove(toExtend.size() - 1);
         toExtend.addAll(extension.getPathElements());
         return new JoinPath(toExtend);
+    }
+
+    /**
+     * Resolve a dot separated path into list of path elements.
+     *
+     * @param entityClass root class e.g. "foo"
+     * @param dictionary dictionary
+     * @param dotSeparatedPath path e.g. "bar.baz"
+     * @return list of path elements e.g. ["foo.bar", "bar.baz"]
+     */
+    private List<PathElement> resolvePathElements(Class<?> entityClass,
+                                                  EntityDictionary dictionary,
+                                                  String dotSeparatedPath) {
+        List<PathElement> elements = new ArrayList<>();
+        String[] fieldNames = dotSeparatedPath.split("\\.");
+
+        Class<?> currentClass = entityClass;
+        for (String fieldName : fieldNames) {
+            if (needNavigation(currentClass, fieldName, dictionary)) {
+                Class<?> joinClass = dictionary.getParameterizedType(currentClass, fieldName);
+                elements.add(new PathElement(currentClass, joinClass, fieldName));
+                currentClass = joinClass;
+            } else {
+                elements.add(resolvePathAttribute(currentClass, dictionary, fieldName));
+            }
+        }
+
+        return ImmutableList.copyOf(elements);
+    }
+
+    private PathElement resolvePathAttribute(Class<?> entityClass,
+                                             EntityDictionary dictionary,
+                                             String fieldName) {
+        Class<?> attributeClass = Object.class;
+        if (dictionary.isAttribute(entityClass, fieldName)
+                        || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
+            attributeClass = dictionary.getType(entityClass, fieldName);
+        }
+        return new PathElement(entityClass, attributeClass, fieldName);
     }
 }

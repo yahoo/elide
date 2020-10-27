@@ -88,7 +88,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
     )
     <%#if hidden%>@Exclude<%/if%>
     <%#if override%>@Override<%/if%>
-    @DimensionFormula("<%definition%>")
+    @DimensionFormula("<%#trimColumnReferences definition%><%/trimColumnReferences%>")
 <%#ifTypeMatches type "TIME"%>
     public com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
         return <%name%>;
@@ -112,7 +112,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
 <%#ifTypeMatches type "toMany"%>
     private Set<<%#capitalizeFirstLetter to%><%/capitalizeFirstLetter%>> <%name%>;
 
-    @Join("<% definition %>")
+    @Join("<%#trimColumnReferences definition%><%/trimColumnReferences%>")
     public Set<<%#capitalizeFirstLetter to%><%/capitalizeFirstLetter%>> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
         return <%name%>;
     }
@@ -123,7 +123,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
 <%else%>
     private <%#capitalizeFirstLetter to%><%/capitalizeFirstLetter%> <%name%>;
 
-    @Join("<% definition %>")
+    @Join("<%#trimColumnReferences definition%><%/trimColumnReferences%>")
     public <%#capitalizeFirstLetter to%><%/capitalizeFirstLetter%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
         return <%name%>;
     }
@@ -139,7 +139,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
     <%else%>
     protected <%#getJavaType type%><%/getJavaType%> <%name%>;
     <%/if%>
-    @MetricFormula(value="<%definition%>"<%#if queryPlanResolver%>, queryPlan=<%queryPlanResolver%><%/if%>)
+    @MetricFormula(value="<%#trimColumnReferences definition%><%/trimColumnReferences%>"<%#if queryPlanResolver%>, queryPlan=<%queryPlanResolver%><%/if%>)
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
     @ColumnMeta(
         description = "<%description%>",

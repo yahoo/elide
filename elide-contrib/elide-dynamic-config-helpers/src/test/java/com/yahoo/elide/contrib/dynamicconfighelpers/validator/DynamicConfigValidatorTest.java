@@ -147,6 +147,13 @@ public class DynamicConfigValidatorTest {
     }
 
     @Test
+    public void testBadJoinDefinition() {
+        Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
+                        .main(new String[] {"--configDir", "src/test/resources/validator/bad_join_def"}));
+        assertTrue(e.getMessage().startsWith("Join name must be used before '.' in join definition."));
+    }
+
+    @Test
     public void testUndefinedVariable() {
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/undefined_handlebar" }));
