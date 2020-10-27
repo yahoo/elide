@@ -7,6 +7,8 @@ package com.yahoo.elide.contrib.dynamicconfighelpers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import com.github.fge.jsonschema.core.report.LogLevel;
+import com.github.fge.jsonschema.core.report.ProcessingMessage;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
@@ -16,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Dynamic Model Schema validation.
@@ -68,9 +72,24 @@ public class DynamicConfigSchemaValidator {
         isSuccess = (results == null ? false : results.isSuccess());
 
         if (!isSuccess) {
-            throw new ProcessingException("Schema validation failed");
+            throw new IllegalStateException("Schema validation failed: " + getErrorMessage(results));
         }
         return isSuccess;
+    }
+
+    private static String getErrorMessage(ProcessingReport report) {
+        StringBuilder errorBuilder = new StringBuilder();
+        errorBuilder.append("[");
+
+        errorBuilder.append(
+                StreamSupport.stream(report.spliterator(), false)
+                .filter(message -> (message.getLogLevel() == LogLevel.ERROR || message.getLogLevel() == LogLevel.FATAL))
+                .map(ProcessingMessage::getMessage)
+                .collect(Collectors.joining(", ")));
+
+        errorBuilder.append(" ]");
+
+        return errorBuilder.toString();
     }
 
     private JsonSchema loadSchema(String resource) {
