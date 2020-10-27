@@ -60,6 +60,7 @@ public class ElideDynamicEntityCompiler {
     private Map<String, String> securityClasses = new HashMap<String, String>();
     @Getter
     private final Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
+    private static final Map<ModelMapKey, ModelMapValue> STATIC_MODEL_DETAILS = createMapping();
 
     @Data
     private static class ModelMapKey {
@@ -72,8 +73,6 @@ public class ElideDynamicEntityCompiler {
         private final String className;
         private final String classImport;
     }
-
-    private static final Map<ModelMapKey, ModelMapValue> STATIC_MODEL_DETAILS = createMapping();
 
     private static Map<ModelMapKey, ModelMapValue> createMapping() {
         Map<ModelMapKey, ModelMapValue> map = new HashMap<>();

@@ -34,6 +34,7 @@ import javax.persistence.Id;
 public class RegionDetails {
 
     private String id;
+    private String region;
 
     @Id
     public String getId() {
@@ -43,8 +44,6 @@ public class RegionDetails {
     public void setId(String id) {
         this.id = id;
     }
-
-    protected String region;
 
     @ReadPermission(expression = "Principal is guest user")
     @ColumnMeta(description = "region", category = "", values = {}, tags = {}, tableSource = "")
