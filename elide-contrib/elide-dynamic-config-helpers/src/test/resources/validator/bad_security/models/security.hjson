@@ -1,4 +1,5 @@
 {
+    // colon missing after roles
     roles  [
         admin
         guest

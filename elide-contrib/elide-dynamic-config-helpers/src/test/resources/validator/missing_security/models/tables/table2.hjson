@@ -1,4 +1,5 @@
 {
+    // should work fine if missing security.hjson not provided.
     tables: [{
         name: Player
         table: player
@@ -9,14 +10,6 @@
         '''
         cardinality : large
         readAccess : A user is admin or is a player in the game
-        joins: [
-            {
-                name: playerCountry
-                to: country
-                type: toOne
-                definition: '{{playerCountry.id}} = {{country_id}}'
-            }
-        ]
         measures : [
             {
             name : highScore
@@ -25,11 +18,6 @@
             }
         ]
         dimensions : [
-            {
-                name : countryCode
-                type : TEXT
-                definition : '{{playerCountry.isoCode}}'
-            },
             {
                 name : createdOn
                 type : TIME

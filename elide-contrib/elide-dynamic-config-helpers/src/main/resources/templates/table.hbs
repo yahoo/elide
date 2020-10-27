@@ -5,7 +5,6 @@
  */
 package dynamicconfig.models;
 
-import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -28,10 +27,10 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.Set;
-import javax.persistence.Column;
 import javax.persistence.Id;
+
+<%#each joins%><%#getJoinClassImport to%><%/getJoinClassImport%><%/each%>
 
 /**
  * A root level entity for testing AggregationDataStore.
@@ -109,26 +108,27 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
 <%/each%>
 
 <%#each joins%>
+<%#assign "joinClassName"%> <%#getJoinClassName to%><%/getJoinClassName%> <%/assign%>
 <%#ifTypeMatches type "toMany"%>
-    private Set<<%#capitalizeFirstLetter to%><%/capitalizeFirstLetter%>> <%name%>;
+    private Set<<%joinClassName%>> <%name%>;
 
     @Join("<%#trimColumnReferences definition%><%/trimColumnReferences%>")
-    public Set<<%#capitalizeFirstLetter to%><%/capitalizeFirstLetter%>> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
+    public Set<<%joinClassName%>> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
         return <%name%>;
     }
 
-    public void set<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(Set<<%#capitalizeFirstLetter to%><%/capitalizeFirstLetter%>> <%name%>) {
+    public void set<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(Set<<%joinClassName%>> <%name%>) {
         this.<%name%> = <%name%>;
     }
 <%else%>
-    private <%#capitalizeFirstLetter to%><%/capitalizeFirstLetter%> <%name%>;
+    private <%joinClassName%> <%name%>;
 
     @Join("<%#trimColumnReferences definition%><%/trimColumnReferences%>")
-    public <%#capitalizeFirstLetter to%><%/capitalizeFirstLetter%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
+    public <%joinClassName%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
         return <%name%>;
     }
 
-    public void set<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(<%#capitalizeFirstLetter to%><%/capitalizeFirstLetter%> <%name%>) {
+    public void set<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(<%joinClassName%> <%name%>) {
         this.<%name%> = <%name%>;
     }
 <%/ifTypeMatches%>

@@ -6,18 +6,18 @@
 package com.yahoo.elide.contrib.dynamicconfighelpers.validator;
 
 import static com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.HandlebarsHelper.REFERENCE_PARENTHESES;
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.Config;
 import com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers;
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.Dimension;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideDBConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSQLDBConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Join;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.Measure;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Named;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 
@@ -330,13 +330,9 @@ public class DynamicConfigValidator {
     private static boolean validateTableConfig(ElideTableConfig elideTableConfig) {
         for (Table table : elideTableConfig.getTables()) {
             validateSql(table.getSql());
-            for (Dimension dim : table.getDimensions()) {
-                validateSql(dim.getDefinition());
-            }
-            for (Measure measure : table.getMeasures()) {
-                validateSql(measure.getDefinition());
-            }
-            table.getJoins().forEach(DynamicConfigValidator::validateJoin);
+            table.getDimensions().forEach(dim -> validateSql(dim.getDefinition()));
+            table.getMeasures().forEach(measure -> validateSql(measure.getDefinition()));
+            table.getJoins().forEach(join -> validateJoin(join, elideTableConfig));
         }
         return true;
     }
@@ -399,8 +395,20 @@ public class DynamicConfigValidator {
     /**
      * Check if input join definition is valid.
      */
-    private static void validateJoin(Join join) {
+    private static void validateJoin(Join join, ElideTableConfig elideTableConfig) {
         validateSql(join.getDefinition());
+
+        String joinModelName = join.getTo();
+        Set<String> dynamicModels = elideTableConfig.getTables()
+                        .stream()
+                        .map(t -> t.getName())
+                        .collect(Collectors.toSet());
+
+        if (!(dynamicModels.contains(joinModelName) || ElideDynamicEntityCompiler.getStaticModelClassName(joinModelName,
+                        NO_VERSION, null) != null)) {
+            throw new IllegalStateException(
+                            "Model: " + joinModelName + " is neither included in dynamic models nor in static models");
+        }
 
         Matcher matcher = REFERENCE_PARENTHESES.matcher(join.getDefinition());
         Set<String> references = new HashSet<>();
