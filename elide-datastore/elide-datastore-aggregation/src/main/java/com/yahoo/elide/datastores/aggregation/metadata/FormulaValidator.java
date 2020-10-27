@@ -63,8 +63,10 @@ public class FormulaValidator extends ColumnVisitor<Void> {
                 continue;
             } else if (reference.contains(".")) {
                 JoinPath joinToPath = new JoinPath(tableClass, dictionary, reference);
-
-                visitColumn(getColumn(joinToPath));
+                ColumnProjection columnProjection = getColumn(joinToPath);
+                if (columnProjection != null) {
+                    visitColumn(columnProjection);
+                }
             } else {
                 ColumnProjection referenceColumn = source.getColumnProjection(reference);
 

@@ -35,7 +35,12 @@ public abstract class ColumnVisitor<T> {
 
     public final ColumnProjection getColumn(Path path) {
         Column column = metaDataStore.getColumn(path);
-        return column.getTable().toProjection(column);
+        if (column != null) {
+            return column.getTable().toProjection(column);
+        } else {
+            // Assumption: Must be a Physical Column
+            return null;
+        }
     }
 
     /**

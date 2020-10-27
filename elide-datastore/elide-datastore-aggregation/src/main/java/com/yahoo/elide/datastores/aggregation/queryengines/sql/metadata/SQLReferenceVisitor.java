@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 import static com.yahoo.elide.utils.TypeHelper.extendTypeAlias;
 import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
 
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnVisitor;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
@@ -132,9 +133,26 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
         JoinPath joinPath = new JoinPath(tableClass, dictionary, joinToPath);
 
         tableAliases.push(extendTypeAlias(tableAliases.peek(), joinPath));
-        String result = visitColumn(getColumn(joinPath));
+        String result;
+        ColumnProjection columnProjection = getColumn(joinPath);
+        if (columnProjection == null) {
+            result = visitPhysicalReference(getFieldName(joinPath));
+        } else {
+            result = visitColumn(columnProjection);
+        }
         tableAliases.pop();
 
         return result;
+    }
+
+    /**
+     * Get name for the last field in a {@link Path}
+     *
+     * @param path path to a field
+     * @return field name
+     */
+    private static String getFieldName(Path path) {
+        Path.PathElement last = path.lastElement().get();
+        return last.getFieldName();
     }
 }

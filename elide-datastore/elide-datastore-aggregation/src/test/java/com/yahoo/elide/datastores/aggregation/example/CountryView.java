@@ -31,7 +31,7 @@ public class CountryView {
 
     private CountryViewNested nestedView;
 
-    @Join("%from.id = %join.id")
+    @Join("{{id}} = {{nestedView.id}}")
     public CountryViewNested getNestedView() {
         return nestedView;
     }
