@@ -9,10 +9,10 @@
       joins: [
           {
              name: playerCountry
-             to: Country
+             // undefined model PlayerContinent
+             to: PlayerContinent
              type: toOne
-             // referred column should start with field name i.e. playerCountry
-             definition: '{{id}} = {{country.country_id}}'
+             definition: '{{id}} = {{playerCountry.country_id}}'
           }
       ]
       dimensions : [
@@ -22,19 +22,5 @@
            definition : '{{playerCountry.isoCode}}'
          }
       ]
-    }
-    {
-      name: Country
-      table: country
-      cardinality: small
-      dimensions:
-      [
-        {
-          name: region
-          type: TEXT
-          definition: '{{region}}'
-        }
-      ]
-    }
-  ]
+  }]
 }

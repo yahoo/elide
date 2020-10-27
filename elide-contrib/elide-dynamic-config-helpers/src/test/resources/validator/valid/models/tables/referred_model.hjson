@@ -1,0 +1,30 @@
+{
+  tables: [
+    {
+      name: Country
+      table: country
+      cardinality: small
+      dimensions:
+      [
+        {
+          name: region
+          type: TEXT
+          definition: '{{region}}'
+        }
+      ]
+    }
+    {
+      name: Team
+      table: team
+      cardinality: small
+      dimensions:
+      [
+        {
+          name: region
+          type: TEXT
+          definition: '{{region}}'
+        }
+      ]
+    }
+  ]
+}

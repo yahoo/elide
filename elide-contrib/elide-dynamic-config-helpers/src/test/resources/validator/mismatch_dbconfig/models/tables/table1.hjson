@@ -14,15 +14,9 @@
       joins: [
           {
              name: playerCountry
-             to: country
+             to: Country
              type: toOne
              definition: '{{playerCountry.id}} = {{country_id}}'
-          },
-          {
-             name: playerTeam
-             to: team
-             type: toMany
-             definition: '{{playerTeam.id}} = {{team_id}}'
           }
       ]
 
@@ -56,6 +50,7 @@
   {
       name: Country
       table: country
+      // connection name not same as parent table
       dbConnectionName: OracleConnection
       dimensions:
       [
