@@ -194,11 +194,11 @@ public class HandlebarsHelper {
      */
     public String trimColumnReferences(String str) {
         Matcher matcher = REFERENCE_PARENTHESES.matcher(str);
-
+        String expr = str;
         while (matcher.find()) {
             String reference = matcher.group(1);
-            str = str.replace(reference, reference.trim());
+            expr = expr.replace(reference, reference.trim());
         }
-        return str;
+        return expr;
     }
 }
