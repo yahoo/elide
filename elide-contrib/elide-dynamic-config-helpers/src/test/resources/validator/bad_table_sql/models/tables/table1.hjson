@@ -1,6 +1,7 @@
 {
   tables: [{
       name: PlayerStats
+      // Sql has disallowed words
       sql: Truncate Table PlayerStats
       schema: gamedb
       description:

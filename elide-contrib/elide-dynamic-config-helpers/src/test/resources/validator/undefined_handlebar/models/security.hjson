@@ -2,6 +2,7 @@
     roles : [
         admin
         guest
+        // foobar is undefined
         <% foobar %>
         ]
     rules: [

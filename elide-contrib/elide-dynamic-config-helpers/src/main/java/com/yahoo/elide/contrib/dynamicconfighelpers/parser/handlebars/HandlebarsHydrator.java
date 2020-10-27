@@ -50,6 +50,7 @@ public class HandlebarsHydrator {
         Handlebars handlebars = new Handlebars(loader).with(MY_ESCAPING_STRATEGY);
         HandlebarsHelper helper = new HandlebarsHelper();
         handlebars.registerHelpers(ConditionalHelpers.class);
+        handlebars.registerHelper(AssignHelper.NAME, AssignHelper.INSTANCE);
         handlebars.registerHelpers(helper);
         Template template = handlebars.compile("table", HANDLEBAR_START_DELIMITER, HANDLEBAR_END_DELIMITER);
 

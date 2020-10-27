@@ -174,7 +174,7 @@
       [
         {
           name: region
-          to: RegionDetails
+          to: regionDetails
           type: toOne
           // References Physical & Logical Columns
           definition: '{{zipCode}} = {{region.zip_code}}'
@@ -198,22 +198,6 @@
           name: customerRegion
           type: TEXT
           definition: '{{region.region}}'
-          readAccess: Principal is guest user
-        }
-      ]
-    }
-    {
-      name: RegionDetails
-      table: region_details
-      dbConnectionName: SalesDBConnection
-      cardinality: small
-      readAccess: Principal is guest user
-      dimensions:
-      [
-        {
-          name: region
-          type: TEXT
-          definition: '{{region}}'
           readAccess: Principal is guest user
         }
       ]
