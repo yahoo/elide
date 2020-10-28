@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.graphql.parser;
 
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 
 import graphql.language.Document;
@@ -23,7 +24,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.ws.rs.BadRequestException;
 
 /**
  * Class that fetch {@link FragmentDefinition}s from graphQL {@link Document} and store them for future reference.

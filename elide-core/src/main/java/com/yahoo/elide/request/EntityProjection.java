@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.request;
 
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
@@ -18,8 +19,6 @@ import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.ws.rs.BadRequestException;
 
 /**
  * Represents a client data request against a subgraph of the entity relationship graph.
