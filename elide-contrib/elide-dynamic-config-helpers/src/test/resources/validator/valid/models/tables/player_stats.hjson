@@ -12,7 +12,10 @@
       hidden : false
       readAccess : A user is admin or is a player in the game
       filterTemplate : countryIsoCode=={{code}}
-      tags: ['GAME', 'PLAYER']
+      tags: ['GAME', 'PLAYER',  '''
+      A tag
+      with newline
+      ''']
       joins: [
           {
              name: playerCountry
