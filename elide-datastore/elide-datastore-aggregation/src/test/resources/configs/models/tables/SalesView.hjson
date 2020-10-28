@@ -21,7 +21,10 @@
           to: DeliveryDetails
           type: toOne
           // References Logical Columns, multiple join condition
-          definition: "{{ orderId}} = {{delivery.orderId}} AND {{ delivery.delivered_on }} > '1970-01-01'"
+          definition: '''
+          {{ orderId}} = {{delivery.orderId}} AND
+          {{ delivery.delivered_on }} > '1970-01-01'
+          '''
         }
       ]
       measures:
