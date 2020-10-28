@@ -39,8 +39,9 @@ public class HandlebarsHelper {
     private static final String LONG = "Long";
     private static final String BOOLEAN = "Boolean";
     private static final String WHITESPACE_REGEX = "\\s+";
-    private static final char SPACE = ' ';
-    private static final char UNDERSCORE = '_';
+    private static final String SPACE = " ";
+    private static final String UNDERSCORE = "_";
+    private static final String NEWLINE = System.getProperty("line.separator");
     public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
 
     /**
@@ -185,6 +186,7 @@ public class HandlebarsHelper {
      */
     public String collectionToString(Collection<String> collection) {
         return collection.stream()
+                .map(HandlebarsHelper::replaceNewlineWithSpace)
                 .map(item -> "\"" + item + "\"")
                 .collect(Collectors.joining(","));
     }
@@ -195,8 +197,8 @@ public class HandlebarsHelper {
      * @return String without whitespace around column references eg: {{playerCountry.id}} = {{country_id}}
      */
     public String trimColumnReferences(String str) {
-        Matcher matcher = REFERENCE_PARENTHESES.matcher(str);
-        String expr = str;
+        String expr = replaceNewlineWithSpace(str);
+        Matcher matcher = REFERENCE_PARENTHESES.matcher(expr);
         while (matcher.find()) {
             String reference = matcher.group(1);
             expr = expr.replace(reference, reference.trim());
@@ -221,5 +223,9 @@ public class HandlebarsHelper {
      */
     public String getJoinClassImport(String modelName) {
         return ElideDynamicEntityCompiler.getStaticModelClassImport(modelName, NO_VERSION, EMPTY_STRING);
+    }
+
+    private static String replaceNewlineWithSpace(String str) {
+        return (str == null) ? str : str.replace(NEWLINE, SPACE);
     }
 }
