@@ -18,6 +18,7 @@ import static com.yahoo.elide.graphql.KeyWord.TYPENAME;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.dialect.ParseException;
@@ -51,8 +52,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import javax.ws.rs.BadRequestException;
 
 /**
  * This class converts a GraphQL query string into an Elide {@link EntityProjection} using

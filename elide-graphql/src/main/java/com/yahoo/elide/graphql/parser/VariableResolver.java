@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.graphql.parser;
 
+import com.yahoo.elide.core.exceptions.BadRequestException;
+
 import graphql.language.ArrayValue;
 import graphql.language.BooleanValue;
 import graphql.language.EnumValue;
@@ -25,8 +27,6 @@ import graphql.language.VariableReference;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import javax.ws.rs.BadRequestException;
 
 /**
  * Class that contains variables provided in graphql request and can resolve variables based on
