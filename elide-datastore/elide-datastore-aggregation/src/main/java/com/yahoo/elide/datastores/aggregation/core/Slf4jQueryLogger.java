@@ -5,12 +5,13 @@
  */
 package com.yahoo.elide.datastores.aggregation.core;
 
+import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.security.User;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.yahoo.elide.datastores.aggregation.query.Query;
-import com.yahoo.elide.security.User;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
