@@ -6,7 +6,7 @@
 
 package com.yahoo.elide.async.service.storageengine;
 
-import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.TableExport;
 
 import io.reactivex.Observable;
 import lombok.Getter;
@@ -45,10 +45,10 @@ public class FileResultStorageEngine implements ResultStorageEngine {
     }
 
     @Override
-    public AsyncQuery storeResults(AsyncQuery asyncQuery, Observable<String> result) {
+    public TableExport storeResults(TableExport tableExport, Observable<String> result) {
         log.debug("store AsyncResults for Download");
 
-        try (BufferedWriter writer = getWriter(asyncQuery.getId())) {
+        try (BufferedWriter writer = getWriter(tableExport.getId())) {
             result
                 .map(record -> record.concat(System.getProperty("line.separator")))
                 .subscribe(
@@ -67,15 +67,15 @@ public class FileResultStorageEngine implements ResultStorageEngine {
             throw new IllegalStateException(e);
         }
 
-        return asyncQuery;
+        return tableExport;
     }
 
     @Override
-    public Observable<String> getResultsByID(String asyncQueryID) {
+    public Observable<String> getResultsByID(String tableExportID) {
         log.debug("getAsyncResultsByID");
 
         return Observable.using(
-                () -> getReader(asyncQueryID),
+                () -> getReader(tableExportID),
                 reader -> {
                     return Observable.fromIterable(() -> {
                         return new Iterator<String>() {
@@ -103,18 +103,18 @@ public class FileResultStorageEngine implements ResultStorageEngine {
                 }, BufferedReader::close);
     }
 
-    private BufferedReader getReader(String asyncQueryID) {
+    private BufferedReader getReader(String tableExportID) {
         try {
-            return Files.newBufferedReader(Paths.get(basePath + File.separator + asyncQueryID));
+            return Files.newBufferedReader(Paths.get(basePath + File.separator + tableExportID));
         } catch (IOException e) {
             log.debug(e.getMessage());
             throw new IllegalStateException("Unable to retrieve results.");
         }
     }
 
-    private BufferedWriter getWriter(String asyncQueryID) {
+    private BufferedWriter getWriter(String tableExportID) {
         try {
-            return Files.newBufferedWriter(Paths.get(basePath + File.separator + asyncQueryID));
+            return Files.newBufferedWriter(Paths.get(basePath + File.separator + tableExportID));
         } catch (IOException e) {
             log.debug(e.getMessage());
             throw new IllegalStateException("Unable to store results.");

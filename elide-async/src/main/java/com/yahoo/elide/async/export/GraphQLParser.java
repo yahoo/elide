@@ -7,7 +7,7 @@ package com.yahoo.elide.async.export;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.export.validator.Validator;
-import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
@@ -39,7 +39,7 @@ public class GraphQLParser implements TableExportParser {
     }
 
     @Override
-    public EntityProjection parse(AsyncQuery query) throws BadRequestException {
+    public EntityProjection parse(TableExport query) throws BadRequestException {
         EntityProjection projection;
         try {
             String graphQLDocument = query.getQuery();

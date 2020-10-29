@@ -6,8 +6,8 @@
 package com.yahoo.elide.async.export;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryType;
+import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -51,7 +51,7 @@ public class TableExporter {
      * @param query AsyncQuery object.
      * @return Observable of PersistentResource.
      */
-    public Observable<PersistentResource> export(AsyncQuery query) {
+    public Observable<PersistentResource> export(TableExport query) {
         Observable<PersistentResource> results = Observable.empty();
 
         UUID requestId = UUID.fromString(query.getRequestId());

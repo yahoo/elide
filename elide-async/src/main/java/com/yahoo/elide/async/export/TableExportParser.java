@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.async.export;
 
-import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.request.EntityProjection;
 
@@ -16,9 +16,9 @@ public interface TableExportParser {
 
     /**
      * Parses the AsyncQuery to generate EntityProjection.
-     * @param query AsyncQuery Object.
+     * @param query TableExport Object.
      * @return EntityProjection parsed.
      * @throws BadRequestException Exception thrown.
      */
-    public EntityProjection parse(AsyncQuery query) throws BadRequestException;
+    public EntityProjection parse(TableExport query) throws BadRequestException;
 }
