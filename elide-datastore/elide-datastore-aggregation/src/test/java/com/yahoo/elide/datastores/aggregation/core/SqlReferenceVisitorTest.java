@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.datastores.aggregation.core;
 
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory.getDefaultDialect;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
@@ -77,36 +79,36 @@ public class SqlReferenceVisitorTest {
 
     @Test
     public void testMatchingPhysicalReference() {
-        SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "test_table");
+        SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "test_table", getDefaultDialect());
 
         SQLTable table = (SQLTable) store.getTable(TestModel.class);
         ColumnProjection column = table.getDimensionProjection("dimension1");
 
         String actual = visitor.visitColumn(column);
 
-        assertEquals("test_table.dimension1", actual);
+        assertEquals(applyQuotes("test_table.dimension1", getDefaultDialect()), actual);
     }
 
     @Test
     public void testMismatchingPhysicalReference() {
-        SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "test_table");
+        SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "test_table", getDefaultDialect());
 
         SQLTable table = (SQLTable) store.getTable(TestModel.class);
         ColumnProjection column = table.getDimensionProjection("dimension2");
         String actual = visitor.visitColumn(column);
 
-        assertEquals("test_table.someColumn", actual);
+        assertEquals(applyQuotes("test_table.someColumn", getDefaultDialect()), actual);
     }
 
     @Test
     public void testJoinReference() {
-        SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "join_table");
+        SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "join_table", getDefaultDialect());
 
         SQLTable table = (SQLTable) store.getTable(TestModel.class);
         ColumnProjection column = table.getDimensionProjection("dimension3");
 
         String actual = visitor.visitColumn(column);
 
-        assertEquals("join_table_joinModel.dimension3", actual);
+        assertEquals(applyQuotes("join_table_joinModel.dimension3", getDefaultDialect()), actual);
     }
 }

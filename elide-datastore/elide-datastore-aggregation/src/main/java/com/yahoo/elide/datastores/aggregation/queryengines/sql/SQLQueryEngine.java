@@ -57,6 +57,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
@@ -135,7 +136,9 @@ public class SQLQueryEngine extends QueryEngine {
         if (dbConnectionName == null || dbConnectionName.trim().isEmpty()) {
             connectionDetails = defaultConnectionDetails;
         } else {
-            connectionDetails = connectionDetailsMap.get(dbConnectionName);
+            connectionDetails = Optional.ofNullable(connectionDetailsMap.get(dbConnectionName))
+                            .orElseThrow(() -> new IllegalStateException("ConnectionDetails undefined for model: "
+                                            + metaDataDictionary.getJsonAliasFor(entityClass)));
         }
 
         return new SQLTable(entityClass, metaDataDictionary, connectionDetails);

@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.integration;
 
+import static com.yahoo.elide.datastores.aggregation.integration.AggregationDataStoreIntegrationTest.COMPILER;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
@@ -26,6 +27,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.persistence.EntityManagerFactory;
@@ -47,7 +50,14 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
         prop.put("javax.persistence.jdbc.url", config.getJdbcUrl());
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("aggregationStore", prop);
 
-        return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails);
+        Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
+
+        // Add an entry for "mycon" connection which is not from hjson
+        connectionDetailsMap.put("mycon", defaultConnectionDetails);
+        // Add connection details fetched from hjson
+        connectionDetailsMap.putAll(COMPILER.getConnectionDetailsMap());
+
+        return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, COMPILER);
     }
 
     @Test

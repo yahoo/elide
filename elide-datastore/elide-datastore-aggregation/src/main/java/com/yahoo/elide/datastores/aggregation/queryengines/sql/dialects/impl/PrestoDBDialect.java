@@ -26,4 +26,14 @@ public class PrestoDBDialect extends AbstractSqlDialect {
         // offset is supported in prestosql but not in prestodb
         return LIMIT + limit;
     }
+
+    @Override
+    public char getBeginQuote() {
+        return DOUBLE_QUOTE;
+    }
+
+    @Override
+    public char getEndQuote() {
+        return DOUBLE_QUOTE;
+    }
 }

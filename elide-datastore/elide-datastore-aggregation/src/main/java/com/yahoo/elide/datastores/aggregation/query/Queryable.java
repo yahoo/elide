@@ -144,11 +144,7 @@ public interface Queryable {
      * @return the connectinon details
      */
     default ConnectionDetails getConnectionDetails() {
-        ConnectionDetails connectionDetails = getSource().getConnectionDetails();
-        if (connectionDetails == null) {
-            throw new IllegalStateException("ConnectionDetails undefined for: " + getSource().getName());
-        }
-        return connectionDetails;
+        return getSource().getConnectionDetails();
     }
 
     /**

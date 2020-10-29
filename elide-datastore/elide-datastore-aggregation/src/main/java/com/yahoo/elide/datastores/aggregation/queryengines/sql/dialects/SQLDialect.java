@@ -36,4 +36,16 @@ public interface SQLDialect {
      * @return the offset and limit clause.
      */
     String generateOffsetLimitClause(int offset, int limit);
+
+    /**
+     * Provides begin quote required for SQL identifiers.
+     * @return begin quote for SQL identifiers.
+     */
+    char getBeginQuote();
+
+    /**
+     * Provides end quote required for SQL identifiers.
+     * @return end quote for SQL identifiers.
+     */
+    char getEndQuote();
 }

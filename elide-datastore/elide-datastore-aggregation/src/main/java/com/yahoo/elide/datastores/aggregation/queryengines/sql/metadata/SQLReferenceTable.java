@@ -21,6 +21,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 
 import org.hibernate.annotations.Subselect;
@@ -37,6 +38,8 @@ import java.util.stream.Collectors;
  * Table stores all resolved physical reference and join paths of all columns.
  */
 public class SQLReferenceTable {
+    public static final String PERIOD = ".";
+
     @Getter
     protected final MetaDataStore metaDataStore;
 
@@ -101,6 +104,7 @@ public class SQLReferenceTable {
 
         //References and joins are stored by their source that produces them (rather than the query that asks for them).
         Queryable key = queryable.getSource();
+        SQLDialect dialect = queryable.getSource().getConnectionDetails().getDialect();
         if (!resolvedReferences.containsKey(key)) {
             resolvedReferences.put(key, new HashMap<>());
         }
@@ -119,10 +123,10 @@ public class SQLReferenceTable {
 
             resolvedReferences.get(key).put(
                     fieldName,
-                    new SQLReferenceVisitor(metaDataStore, key.getAlias(fieldName)).visitColumn(column));
+                    new SQLReferenceVisitor(metaDataStore, key.getAlias(fieldName), dialect).visitColumn(column));
 
             Set<JoinPath> joinPaths = joinVisitor.visitColumn(column);
-            resolvedJoinExpressions.get(key).put(fieldName, getJoinClauses(joinPaths));
+            resolvedJoinExpressions.get(key).put(fieldName, getJoinClauses(joinPaths, dialect));
         });
     }
 
@@ -132,9 +136,9 @@ public class SQLReferenceTable {
      * @param joinPaths paths that require joins
      * @return A set of join expressions
      */
-    private Set<String> getJoinClauses(Set<JoinPath> joinPaths) {
+    private Set<String> getJoinClauses(Set<JoinPath> joinPaths, SQLDialect dialect) {
         Set<String> joinExpressions = new LinkedHashSet<>();
-        joinPaths.forEach(path -> addJoinClauses(path, joinExpressions));
+        joinPaths.forEach(path -> addJoinClauses(path, joinExpressions, dialect));
         return joinExpressions;
     }
 
@@ -144,7 +148,7 @@ public class SQLReferenceTable {
      * @param joinPath join path
      * @param alreadyJoined A set of joins that have already been computed.
      */
-    private void addJoinClauses(JoinPath joinPath, Set<String> alreadyJoined) {
+    private void addJoinClauses(JoinPath joinPath, Set<String> alreadyJoined, SQLDialect dialect) {
         String parentAlias = getTypeAlias(joinPath.getPathElements().get(0).getType());
 
         for (Path.PathElement pathElement : joinPath.getPathElements()) {
@@ -156,7 +160,8 @@ public class SQLReferenceTable {
                 return;
             }
 
-            String joinFragment = extractJoinClause(parentClass, parentAlias, pathElement.getFieldType(), fieldName);
+            String joinFragment =
+                            extractJoinClause(parentClass, parentAlias, pathElement.getFieldType(), fieldName, dialect);
 
             alreadyJoined.add(joinFragment);
 
@@ -176,7 +181,8 @@ public class SQLReferenceTable {
     private String extractJoinClause(Class<?> fromClass,
                                      String fromAlias,
                                      Class<?> joinClass,
-                                     String joinField) {
+                                     String joinField,
+                                     SQLDialect dialect) {
         //TODO - support composite join keys.
         //TODO - support joins where either side owns the relationship.
         //TODO - Support INNER and RIGHT joins.
@@ -186,7 +192,7 @@ public class SQLReferenceTable {
         String joinColumnName = dictionary.getAnnotatedColumnName(fromClass, joinField);
 
         // resolve the right hand side of JOIN
-        String joinSource = constructTableOrSubselect(joinClass);
+        String joinSource = constructTableOrSubselect(joinClass, dialect);
 
         Join join = dictionary.getAttributeOrRelationAnnotation(
                 fromClass,
@@ -202,11 +208,11 @@ public class SQLReferenceTable {
                         dictionary.getAnnotatedColumnName(
                                 joinClass,
                                 dictionary.getIdFieldName(joinClass)))
-                : getJoinClause(fromClass, fromAlias, join.value());
+                : getJoinClause(fromClass, fromAlias, join.value(), dialect);
 
         return String.format("LEFT JOIN %s AS %s ON %s",
                 joinSource,
-                joinAlias,
+                applyQuotes(joinAlias, dialect),
                 joinClause);
     }
 
@@ -218,9 +224,10 @@ public class SQLReferenceTable {
      * @param expr unresolved ON clause
      * @return string resolved ON clause
      */
-    private String getJoinClause(Class<?> fromClass, String fromAlias, String expr) {
+    private String getJoinClause(Class<?> fromClass, String fromAlias, String expr, SQLDialect dialect) {
         SQLTable table = new SQLTable(fromClass, dictionary);
-        SQLReferenceVisitor visitor = new SQLReferenceVisitor(metaDataStore, fromAlias);
+        SQLReferenceVisitor visitor =
+                        new SQLReferenceVisitor(metaDataStore, fromAlias, dialect);
 
         return visitor.visitFormulaDimension(new SQLColumnProjection() {
             @Override
@@ -252,10 +259,10 @@ public class SQLReferenceTable {
      * @param cls entity class
      * @return <code>tableName</code> or <code>(subselect query)</code>
      */
-    private String constructTableOrSubselect(Class<?> cls) {
+    private String constructTableOrSubselect(Class<?> cls, SQLDialect dialect) {
         return isSubselect(cls)
                 ? "(" + resolveTableOrSubselect(dictionary, cls) + ")"
-                : resolveTableOrSubselect(dictionary, cls);
+                : applyQuotes(resolveTableOrSubselect(dictionary, cls), dialect);
     }
 
     /**
@@ -313,5 +320,36 @@ public class SQLReferenceTable {
         fullTableName.append(table.name());
 
         return fullTableName.toString();
+    }
+
+    /**
+     * Split a string on ".", append quotes around each split and join it back.
+     * eg: game.order_details to `game`.`order_details` .
+     *
+     * @param str column name / alias
+     * @param beginQuote prefix char
+     * @param endQuote suffix char
+     * @return quoted string
+     */
+    private static String applyQuotes(String str, char beginQuote, char endQuote) {
+        if (str == null || str.trim().isEmpty()) {
+            return str;
+        } else if (str.contains(PERIOD)) {
+            return beginQuote + str.trim().replace(PERIOD, endQuote + PERIOD + beginQuote) + endQuote;
+        } else {
+            return beginQuote + str.trim() + endQuote;
+        }
+    }
+
+    /**
+     * Split a string on ".", append quotes around each split and join it back.
+     * eg: game.order_details to `game`.`order_details` .
+     *
+     * @param str column name / alias
+     * @param dialect Elide SQL dialect
+     * @return quoted string
+     */
+    public static String applyQuotes(String str, SQLDialect dialect) {
+        return applyQuotes(str, dialect.getBeginQuote(), dialect.getEndQuote());
     }
 }
