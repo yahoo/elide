@@ -19,7 +19,7 @@ public class User {
     }
 
     public String getName() {
-        return principal.getName();
+        return principal != null ? principal.getName() : null;
     }
 
     public boolean isInRole(String role) {

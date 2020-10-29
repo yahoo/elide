@@ -14,6 +14,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public class QueryResponse {
     @Getter private final int responseCode;
+
     @Getter private final Iterable<Object> data;
+
     @Getter private final String errorMessage;
 }
