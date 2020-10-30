@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.datastores.aggregation.query;
 
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
+
 import com.google.common.collect.Streams;
 
 import java.util.Set;
@@ -138,11 +140,15 @@ public interface Queryable {
     }
 
     /**
-     * Returns the connection name where this queryable is sourced from.
-     * @return the connectinon name
+     * Returns the connection details where this queryable is sourced from.
+     * @return the connectinon details
      */
-    default String getDbConnectionName() {
-        return getSource().getDbConnectionName();
+    default ConnectionDetails getConnectionDetails() {
+        ConnectionDetails connectionDetails = getSource().getConnectionDetails();
+        if (connectionDetails == null) {
+            throw new IllegalStateException("ConnectionDetails undefined for: " + getSource().getName());
+        }
+        return connectionDetails;
     }
 
     /**

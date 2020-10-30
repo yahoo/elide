@@ -22,6 +22,8 @@ import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.EntityHydrator;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
@@ -38,18 +40,23 @@ import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
+import com.google.common.base.Functions;
+import com.google.common.base.Preconditions;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.annotation.Annotation;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
@@ -67,10 +74,7 @@ public class SQLQueryEngine extends QueryEngine {
 
     public SQLQueryEngine(MetaDataStore metaDataStore,
                     com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails defaultConnectionDetails) {
-        super(metaDataStore);
-        referenceTable = new SQLReferenceTable(metaDataStore);
-        this.defaultConnectionDetails = new ConnectionDetails(defaultConnectionDetails.getDataSource(),
-                        SQLDialectFactory.getDialect(defaultConnectionDetails.getDialect()));
+        this(metaDataStore, defaultConnectionDetails, Collections.emptyMap());
     }
 
     /**
@@ -82,11 +86,22 @@ public class SQLQueryEngine extends QueryEngine {
     public SQLQueryEngine(MetaDataStore metaDataStore,
                     com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails defaultConnectionDetails,
                     Map<String, com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails> detailsMap) {
-        this(metaDataStore, defaultConnectionDetails);
+
+        Preconditions.checkNotNull(defaultConnectionDetails);
+        Preconditions.checkNotNull(detailsMap);
+
+        this.defaultConnectionDetails = new ConnectionDetails(defaultConnectionDetails.getDataSource(),
+                        SQLDialectFactory.getDialect(defaultConnectionDetails.getDialect()));
         detailsMap.forEach((name, details) -> {
             this.connectionDetailsMap.put(name, new ConnectionDetails(details.getDataSource(),
                             SQLDialectFactory.getDialect(details.getDialect())));
         });
+        this.metaDataStore = metaDataStore;
+        this.metadataDictionary = metaDataStore.getMetadataDictionary();
+        populateMetaData(metaDataStore);
+        this.tables = metaDataStore.getMetaData(Table.class).stream()
+                        .collect(Collectors.toMap(Table::getId, Functions.identity()));
+        this.referenceTable = new SQLReferenceTable(metaDataStore);
     }
 
     private static final Function<ResultSet, Object> SINGLE_RESULT_MAPPER = new Function<ResultSet, Object>() {
@@ -106,7 +121,24 @@ public class SQLQueryEngine extends QueryEngine {
 
     @Override
     protected Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary) {
-        return new SQLTable(entityClass, metaDataDictionary);
+
+        String dbConnectionName = null;
+        Annotation annotation = EntityDictionary.getFirstAnnotation(entityClass,
+                        Arrays.asList(FromTable.class, FromSubquery.class));
+        if (annotation instanceof FromTable) {
+            dbConnectionName = ((FromTable) annotation).dbConnectionName();
+        } else if (annotation instanceof FromSubquery) {
+            dbConnectionName = ((FromSubquery) annotation).dbConnectionName();
+        }
+
+        ConnectionDetails connectionDetails;
+        if (dbConnectionName == null || dbConnectionName.trim().isEmpty()) {
+            connectionDetails = defaultConnectionDetails;
+        } else {
+            connectionDetails = connectionDetailsMap.get(dbConnectionName);
+        }
+
+        return new SQLTable(entityClass, metaDataDictionary, connectionDetails);
     }
 
     @Override
@@ -180,9 +212,7 @@ public class SQLQueryEngine extends QueryEngine {
     @Override
     public QueryResult executeQuery(Query query, Transaction transaction) {
         SqlTransaction sqlTransaction = (SqlTransaction) transaction;
-
-        String connectionName = query.getDbConnectionName();
-        ConnectionDetails details = getConnectionDetails(connectionName);
+        ConnectionDetails details = query.getConnectionDetails();
         DataSource dataSource = details.getDataSource();
         SQLDialect dialect = details.getDialect();
 
@@ -214,8 +244,7 @@ public class SQLQueryEngine extends QueryEngine {
     }
 
     private long getPageTotal(Query query, SQLQuery sql, SqlTransaction sqlTransaction) {
-        String connectionName = query.getDbConnectionName();
-        ConnectionDetails details = getConnectionDetails(connectionName);
+        ConnectionDetails details = query.getConnectionDetails();
         DataSource dataSource = details.getDataSource();
         SQLDialect dialect = details.getDialect();
         String paginationSQL = toPageTotalSQL(query, sql, dialect).toString();
@@ -233,12 +262,13 @@ public class SQLQueryEngine extends QueryEngine {
     public String getTableVersion(Table table, Transaction transaction) {
 
         String tableVersion = null;
+        SQLTable sqlTable = (SQLTable) table;
         Class<?> tableClass = metadataDictionary.getEntityClass(table.getName(), table.getVersion());
         VersionQuery versionAnnotation = tableClass.getAnnotation(VersionQuery.class);
         if (versionAnnotation != null) {
             String versionQueryString = versionAnnotation.sql();
             SqlTransaction sqlTransaction = (SqlTransaction) transaction;
-            ConnectionDetails details = getConnectionDetails(table.getDbConnectionName());
+            ConnectionDetails details = sqlTable.getConnectionDetails();
             DataSource dataSource = details.getDataSource();
             NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(versionQueryString, dataSource);
             tableVersion = CoerceUtil.coerce(runQuery(stmt, versionQueryString, SINGLE_RESULT_MAPPER), String.class);
@@ -282,8 +312,7 @@ public class SQLQueryEngine extends QueryEngine {
 
     @Override
     public List<String> explain(Query query) {
-        String connectionName = query.getDbConnectionName();
-        return explain(query, getConnectionDetails(connectionName).getDialect());
+        return explain(query, query.getConnectionDetails().getDialect());
     }
 
     /**
@@ -390,21 +419,6 @@ public class SQLQueryEngine extends QueryEngine {
 
     private static boolean returnPageTotals(Pagination pagination) {
         return pagination != null && pagination.returnPageTotals();
-    }
-
-    /**
-     * Gets required ConnectionDetails.
-     * @param connectionName Connection Name.
-     * @return ConnectionDetails ConnectionDetails Object for this connection.
-     */
-    private ConnectionDetails getConnectionDetails(String connectionName) {
-        if (connectionName == null || connectionName.trim().isEmpty()) {
-            return defaultConnectionDetails;
-        } else {
-            return Optional.ofNullable(connectionDetailsMap.get(connectionName))
-                            .orElseThrow(() -> new IllegalStateException(
-                                            "ConnectionDetails undefined for DB Connection Name: " + connectionName));
-        }
     }
 
     /**

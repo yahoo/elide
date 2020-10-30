@@ -20,15 +20,12 @@ import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 
 import com.yahoo.elide.utils.TypeHelper;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -52,8 +49,6 @@ public abstract class Table implements Versioned  {
     private final String id;
 
     private final String name;
-
-    private final String dbConnectionName;
 
     private final String category;
 
@@ -102,18 +97,7 @@ public abstract class Table implements Versioned  {
         this.version = EntityDictionary.getModelVersion(cls);
 
         this.alias = TypeHelper.getTypeAlias(cls);
-
-        String dbConnectionName = "";
-        Annotation annotation =
-                        EntityDictionary.getFirstAnnotation(cls, Arrays.asList(FromTable.class, FromSubquery.class));
-        if (annotation instanceof FromTable) {
-            dbConnectionName = ((FromTable) annotation).dbConnectionName();
-        } else if (annotation instanceof FromSubquery) {
-            dbConnectionName = ((FromSubquery) annotation).dbConnectionName();
-        }
-
         this.id = this.name;
-        this.dbConnectionName = dbConnectionName;
 
         this.columns = constructColumns(cls, dictionary);
         this.columnMap = this.columns.stream().collect(Collectors.toMap(Column::getName, Function.identity()));
