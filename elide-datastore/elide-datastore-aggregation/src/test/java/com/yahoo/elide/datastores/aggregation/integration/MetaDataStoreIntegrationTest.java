@@ -241,8 +241,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data", hasSize(1))
-                .body("data.attributes.name", hasItem("book"))
-                .body("data.attributes.dbConnectionName", hasItem(""));
+                .body("data.attributes.name", hasItem("book"));
 
         given()
                 .header("ApiVersion", "2.0")
