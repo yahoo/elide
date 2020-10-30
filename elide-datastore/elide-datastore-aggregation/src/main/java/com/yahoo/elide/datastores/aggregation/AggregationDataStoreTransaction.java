@@ -16,6 +16,7 @@ import com.yahoo.elide.datastores.aggregation.cache.QueryKeyExtractor;
 import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
 import com.yahoo.elide.datastores.aggregation.core.QueryResponse;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.MatchesTemplateVisitor;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
@@ -37,7 +38,7 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     private final Cache cache;
     private final QueryEngine.Transaction queryEngineTransaction;
     private final QueryLogger queryLogger;
-    private final
+    private final MetaDataStore metaDataStore;
 
     public AggregationDataStoreTransaction(QueryEngine queryEngine, Cache cache,
                                            QueryLogger queryLogger) {
@@ -45,6 +46,7 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
         this.cache = cache;
         this.queryEngineTransaction = queryEngine.beginTransaction();
         this.queryLogger = queryLogger;
+        this.metaDataStore = queryEngine.metaDataStore;
     }
 
     @Override
@@ -122,7 +124,10 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
 
     @VisibleForTesting
     Query buildQuery(EntityProjection entityProjection, RequestScope scope) {
-        Table table = queryEngine.getTable(scope.getDictionary().getJsonAliasFor(entityProjection.getType()));
+        Table table = metaDataStore.getTable(
+                scope.getDictionary().getJsonAliasFor(entityProjection.getType()),
+                scope.getApiVersion());
+
         EntityProjectionTranslator translator = new EntityProjectionTranslator(
                 queryEngine,
                 table,
