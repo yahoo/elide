@@ -65,17 +65,31 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
     public void tableMetaDataTest() {
 
         given()
+               .accept("application/vnd.api+json")
+               .get("/table/continent")
+               .then()
+               .statusCode(HttpStatus.SC_OK)
+               .body("data.attributes.isFact", equalTo(false)); //TableMeta Present, isFact false
+        given()
                 .accept("application/vnd.api+json")
                 .get("/table/country")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.isFact", equalTo(false)) //TableMeta Present, isFact default true
                 .body("data.attributes.cardinality", equalTo("SMALL"))
                 .body("data.relationships.columns.data.id", hasItems("country.id", "country.name", "country.isoCode"));
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/playerStatsView")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.isFact", equalTo(true)); //FromSubquery
         given()
                 .accept("application/vnd.api+json")
                 .get("/table/playerStats")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.isFact", equalTo(true)) //FromTable
                 .body("data.attributes.cardinality", equalTo("LARGE"))
                 .body("data.attributes.category", equalTo("Sports Category"))
                 .body("data.attributes.tags", hasItems("Statistics", "Game"))
