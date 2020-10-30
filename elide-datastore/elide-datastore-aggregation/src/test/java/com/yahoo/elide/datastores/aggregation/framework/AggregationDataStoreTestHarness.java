@@ -10,7 +10,7 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCo
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
-import com.yahoo.elide.datastores.aggregation.core.NoopQueryLogger;
+import com.yahoo.elide.datastores.aggregation.core.Slf4jQueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -73,7 +73,7 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
 
         AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder
                 .queryEngine(new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap))
-                .queryLogger(new NoopQueryLogger())
+                .queryLogger(new Slf4jQueryLogger())
                 .build();
 
         Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
