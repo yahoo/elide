@@ -8,22 +8,28 @@ package com.yahoo.elide.datastores.aggregation.annotation.dimensionformula;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
-
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.google.common.collect.Sets;
+import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
 public class DimensionFormulaTest {
+
+    public static final ConnectionDetails DUMMY_CONNECTION = new ConnectionDetails(new HikariDataSource(),
+                    SQLDialectFactory.getDefaultDialect().getDialectType());
+
     @Test
     public void testReferenceLoop() {
         MetaDataStore metaDataStore = new MetaDataStore(Sets.newHashSet(Loop.class));
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> new SQLQueryEngine(metaDataStore, null, null));
+                () -> new SQLQueryEngine(metaDataStore, DUMMY_CONNECTION));
         assertTrue(exception.getMessage().startsWith("Formula reference loop found:"));
     }
 
@@ -34,7 +40,7 @@ public class DimensionFormulaTest {
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> new SQLQueryEngine(metaDataStore, null, null));
+                () -> new SQLQueryEngine(metaDataStore, DUMMY_CONNECTION));
 
         String exception1 = "Formula reference loop found: loopCountryA.inUsa->loopCountryB.inUsa->loopCountryA.inUsa";
 

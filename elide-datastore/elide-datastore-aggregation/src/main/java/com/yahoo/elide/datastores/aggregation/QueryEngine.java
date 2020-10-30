@@ -69,12 +69,14 @@ import java.util.stream.Collectors;
  */
 public abstract class QueryEngine {
     @Getter
-    protected final MetaDataStore metaDataStore;
+    protected MetaDataStore metaDataStore;
 
-    protected final EntityDictionary metadataDictionary;
+    protected EntityDictionary metadataDictionary;
 
-    private final Map<String, Table> tables;
+    protected Map<String, Table> tables;
 
+    protected QueryEngine() {
+    }
     /**
      * QueryEngine is constructed with a metadata store and is responsible for constructing all Tables and Entities
      * metadata in this metadata store.
@@ -135,7 +137,7 @@ public abstract class QueryEngine {
      *
      * @param metaDataStore metadata store to populate
      */
-    private void populateMetaData(MetaDataStore metaDataStore) {
+    protected void populateMetaData(MetaDataStore metaDataStore) {
         metaDataStore.getModelsToBind()
                 .forEach(model -> {
                     if (!metadataDictionary.isJPAEntity(model)
