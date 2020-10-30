@@ -22,6 +22,8 @@ import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.EntityHydrator;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
@@ -39,15 +41,19 @@ import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
 import com.google.common.base.Functions;
+import com.google.common.base.Preconditions;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.annotation.Annotation;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +74,7 @@ public class SQLQueryEngine extends QueryEngine {
 
     public SQLQueryEngine(MetaDataStore metaDataStore,
                     com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails defaultConnectionDetails) {
-        this(metaDataStore, defaultConnectionDetails, null);
+        this(metaDataStore, defaultConnectionDetails, Collections.emptyMap());
     }
 
     /**
@@ -80,18 +86,16 @@ public class SQLQueryEngine extends QueryEngine {
     public SQLQueryEngine(MetaDataStore metaDataStore,
                     com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails defaultConnectionDetails,
                     Map<String, com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails> detailsMap) {
-        if (defaultConnectionDetails == null) {
-            this.defaultConnectionDetails = null;
-        } else {
-            this.defaultConnectionDetails = new ConnectionDetails(defaultConnectionDetails.getDataSource(),
-                            SQLDialectFactory.getDialect(defaultConnectionDetails.getDialect()));
-        }
-        if (!(detailsMap == null || detailsMap.size() == 0)) {
-            detailsMap.forEach((name, details) -> {
-                this.connectionDetailsMap.put(name, new ConnectionDetails(details.getDataSource(),
-                                SQLDialectFactory.getDialect(details.getDialect())));
-            });
-        }
+
+        Preconditions.checkNotNull(defaultConnectionDetails);
+        Preconditions.checkNotNull(detailsMap);
+
+        this.defaultConnectionDetails = new ConnectionDetails(defaultConnectionDetails.getDataSource(),
+                        SQLDialectFactory.getDialect(defaultConnectionDetails.getDialect()));
+        detailsMap.forEach((name, details) -> {
+            this.connectionDetailsMap.put(name, new ConnectionDetails(details.getDataSource(),
+                            SQLDialectFactory.getDialect(details.getDialect())));
+        });
         this.metaDataStore = metaDataStore;
         this.metadataDictionary = metaDataStore.getMetadataDictionary();
         populateMetaData(metaDataStore);
@@ -117,7 +121,24 @@ public class SQLQueryEngine extends QueryEngine {
 
     @Override
     protected Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary) {
-        return new SQLTable(entityClass, metaDataDictionary, defaultConnectionDetails, connectionDetailsMap);
+
+        String dbConnectionName = null;
+        Annotation annotation = EntityDictionary.getFirstAnnotation(entityClass,
+                        Arrays.asList(FromTable.class, FromSubquery.class));
+        if (annotation instanceof FromTable) {
+            dbConnectionName = ((FromTable) annotation).dbConnectionName();
+        } else if (annotation instanceof FromSubquery) {
+            dbConnectionName = ((FromSubquery) annotation).dbConnectionName();
+        }
+
+        ConnectionDetails connectionDetails;
+        if (dbConnectionName == null || dbConnectionName.trim().isEmpty()) {
+            connectionDetails = defaultConnectionDetails;
+        } else {
+            connectionDetails = connectionDetailsMap.get(dbConnectionName);
+        }
+
+        return new SQLTable(entityClass, metaDataDictionary, connectionDetails);
     }
 
     @Override

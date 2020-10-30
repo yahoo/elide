@@ -148,7 +148,7 @@ public interface Queryable {
         if (connectionDetails == null) {
             throw new IllegalStateException("ConnectionDetails undefined for: " + getSource().getName());
         }
-        return getSource().getConnectionDetails();
+        return connectionDetails;
     }
 
     /**

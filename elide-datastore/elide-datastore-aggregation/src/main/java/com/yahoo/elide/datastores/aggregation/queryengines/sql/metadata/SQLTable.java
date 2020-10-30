@@ -19,8 +19,6 @@ import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
@@ -28,10 +26,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDime
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import java.lang.annotation.Annotation;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,24 +41,9 @@ public class SQLTable extends Table implements Queryable {
 
     public SQLTable(Class<?> cls,
                     EntityDictionary dictionary,
-                    ConnectionDetails defaultConnectionDetails,
-                    Map<String, ConnectionDetails> connectionDetailsMap) {
+                    ConnectionDetails connectionDetails) {
         super(cls, dictionary);
-
-        String dbConnectionName = null;
-        Annotation annotation =
-                        EntityDictionary.getFirstAnnotation(cls, Arrays.asList(FromTable.class, FromSubquery.class));
-        if (annotation instanceof FromTable) {
-            dbConnectionName = ((FromTable) annotation).dbConnectionName();
-        } else if (annotation instanceof FromSubquery) {
-            dbConnectionName = ((FromSubquery) annotation).dbConnectionName();
-        }
-
-        if (dbConnectionName == null || dbConnectionName.trim().isEmpty()) {
-            this.connectionDetails = defaultConnectionDetails;
-        } else {
-            this.connectionDetails = connectionDetailsMap.get(dbConnectionName);
-        }
+        this.connectionDetails = connectionDetails;
     }
 
     public SQLTable(Class<?> cls, EntityDictionary dictionary) {
