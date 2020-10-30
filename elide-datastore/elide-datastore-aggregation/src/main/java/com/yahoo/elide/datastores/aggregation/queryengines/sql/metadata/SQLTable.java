@@ -18,11 +18,13 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Set;
@@ -33,6 +35,17 @@ import java.util.stream.Collectors;
  */
 @EqualsAndHashCode(callSuper = true)
 public class SQLTable extends Table implements Queryable {
+
+    @Getter
+    private ConnectionDetails connectionDetails;
+
+    public SQLTable(Class<?> cls,
+                    EntityDictionary dictionary,
+                    ConnectionDetails connectionDetails) {
+        super(cls, dictionary);
+        this.connectionDetails = connectionDetails;
+    }
+
     public SQLTable(Class<?> cls, EntityDictionary dictionary) {
         super(cls, dictionary);
     }

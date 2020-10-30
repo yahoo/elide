@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.annotation.metricformula;
 
+import static com.yahoo.elide.datastores.aggregation.annotation.dimensionformula.DimensionFormulaTest.DUMMY_CONNECTION;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -21,7 +22,7 @@ public class MetricFormulaTest {
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> new SQLQueryEngine(metaDataStore, null, null));
+                () -> new SQLQueryEngine(metaDataStore, DUMMY_CONNECTION));
         assertTrue(exception.getMessage().startsWith("Formula reference loop found:"));
     }
 }
