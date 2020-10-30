@@ -40,7 +40,6 @@ import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 
-import com.google.common.base.Functions;
 import com.google.common.base.Preconditions;
 
 import lombok.Getter;
@@ -99,8 +98,6 @@ public class SQLQueryEngine extends QueryEngine {
         this.metaDataStore = metaDataStore;
         this.metadataDictionary = metaDataStore.getMetadataDictionary();
         populateMetaData(metaDataStore);
-        this.tables = metaDataStore.getMetaData(Table.class).stream()
-                        .collect(Collectors.toMap(Table::getId, Functions.identity()));
         this.referenceTable = new SQLReferenceTable(metaDataStore);
     }
 
