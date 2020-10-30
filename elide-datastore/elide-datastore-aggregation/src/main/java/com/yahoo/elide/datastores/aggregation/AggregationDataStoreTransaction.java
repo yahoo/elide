@@ -37,6 +37,7 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     private final Cache cache;
     private final QueryEngine.Transaction queryEngineTransaction;
     private final QueryLogger queryLogger;
+    private final
 
     public AggregationDataStoreTransaction(QueryEngine queryEngine, Cache cache,
                                            QueryLogger queryLogger) {
