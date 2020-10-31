@@ -46,7 +46,6 @@
     <modules>
         <module>elide-swagger</module>
         <module>elide-test-helpers</module>
-        <module>elide-dynamic-config-helpers</module>
     </modules>
 
     <dependencyManagement>

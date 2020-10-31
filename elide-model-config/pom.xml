@@ -6,13 +6,13 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>elide-dynamic-config-helpers</artifactId>
+    <artifactId>elide-model-config</artifactId>
     <packaging>jar</packaging>
-    <name>Elide Dynamic Config Helpers</name>
-    <description>Dynamic config helpers</description>
+    <name>Elide Dynamic Model Config</name>
+    <description>Elide Dynamic Model Config</description>
     <url>https://github.com/yahoo/elide</url>
     <parent>
-        <artifactId>elide-contrib-parent-pom</artifactId>
+        <artifactId>elide-parent-pom</artifactId>
         <groupId>com.yahoo.elide</groupId>
         <version>5.0.0-pr24-SNAPSHOT</version>
     </parent>
