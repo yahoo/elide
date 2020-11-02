@@ -12,8 +12,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.Abstract
  */
 public class MySQLDialect extends AbstractSqlDialect {
 
-    private static final char COMMA = ',';
-
     @Override
     public String getDialectType() {
         return "MySQL";
