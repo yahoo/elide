@@ -46,7 +46,7 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
         this.cache = cache;
         this.queryEngineTransaction = queryEngine.beginTransaction();
         this.queryLogger = queryLogger;
-        this.metaDataStore = queryEngine.metaDataStore;
+        this.metaDataStore = queryEngine.getMetaDataStore();
     }
 
     @Override
