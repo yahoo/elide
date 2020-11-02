@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -29,7 +30,8 @@ public class ViewTest extends SQLUnitTest {
     @BeforeAll
     public static void init() {
         SQLUnitTest.init();
-        playerStatsWithViewSchema = (SQLTable) engine.getTable("playerStatsWithView");
+        playerStatsWithViewSchema =
+                (SQLTable) engine.getMetaDataStore().getTable("playerStatsWithView", NO_VERSION);
     }
 
     @Test

@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.framework;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -230,7 +231,7 @@ public abstract class SQLUnitTest {
                     .build();
         }),
         SUBQUERY (() -> {
-            SQLTable playerStatsViewTable = (SQLTable) engine.getTable("playerStatsView");
+            SQLTable playerStatsViewTable = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
             return Query.builder()
                     .source(playerStatsViewTable)
                     .metricProjection(playerStatsViewTable.getMetricProjection("highScore"))
@@ -378,7 +379,7 @@ public abstract class SQLUnitTest {
 
         engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect));
 
-        playerStatsTable = (SQLTable) engine.getTable("playerStats");
+        playerStatsTable = (SQLTable) metaDataStore.getTable("playerStats", NO_VERSION);
 
     }
 
