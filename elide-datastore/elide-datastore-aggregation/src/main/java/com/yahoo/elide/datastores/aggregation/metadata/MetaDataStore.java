@@ -150,6 +150,19 @@ public class MetaDataStore implements DataStore {
     }
 
     /**
+     * Returns the table for a given name and version.
+     * @param name The name of the table
+     * @param version The version of the table.
+     * @return The table that matches or null.
+     */
+    public Table getTable(String name, String version) {
+        return tables.values().stream()
+                .filter(table -> table.getName().equals(name) && table.getVersion().equals(version))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
      * Get a {@link Column} from a table.
      *
      * @param tableClass table class
