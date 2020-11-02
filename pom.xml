@@ -19,6 +19,7 @@
         <module>elide-graphql</module>
         <module>elide-datastore</module>
         <module>elide-integration-tests</module>
+        <module>elide-model-config</module>
         <module>elide-contrib</module>
         <module>elide-async</module>
         <module>elide-standalone</module>
