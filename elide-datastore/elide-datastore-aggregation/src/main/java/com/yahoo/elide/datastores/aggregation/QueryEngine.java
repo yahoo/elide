@@ -21,13 +21,10 @@ import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.request.Argument;
 
-import com.google.common.base.Functions;
-
 import lombok.Getter;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 /**
  * A {@link QueryEngine} is an abstraction that an AggregationDataStore leverages to run analytic queries (OLAP style)
  * against an underlying persistence layer.
@@ -73,8 +70,6 @@ public abstract class QueryEngine {
 
     protected EntityDictionary metadataDictionary;
 
-    protected Map<String, Table> tables;
-
     protected QueryEngine() {
     }
     /**
@@ -87,8 +82,6 @@ public abstract class QueryEngine {
         this.metaDataStore = metaDataStore;
         this.metadataDictionary = metaDataStore.getMetadataDictionary();
         populateMetaData(metaDataStore);
-        this.tables = metaDataStore.getMetaData(Table.class).stream()
-                .collect(Collectors.toMap(Table::getId, Functions.identity()));
     }
 
     /**
@@ -187,15 +180,6 @@ public abstract class QueryEngine {
      * @return a version token, or null if not available.
      */
     public abstract String getTableVersion(Table table, Transaction transaction);
-
-    /**
-     * Returns the schema for a given entity class.
-     * @param classAlias json type alias for that class
-     * @return The schema that represents the provided entity.
-     */
-    public Table getTable(String classAlias) {
-        return tables.get(classAlias);
-    }
 
     /**
      * Returns the actual query string(s) that would be executed for the input {@link Query}.
