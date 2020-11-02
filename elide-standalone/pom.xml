@@ -85,7 +85,7 @@
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
-            <artifactId>elide-dynamic-config-helpers</artifactId>
+            <artifactId>elide-model-config</artifactId>
             <version>5.0.0-pr24-SNAPSHOT</version>
         </dependency>
 
