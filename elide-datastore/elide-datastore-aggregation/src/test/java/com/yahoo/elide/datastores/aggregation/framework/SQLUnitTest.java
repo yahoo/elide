@@ -82,11 +82,7 @@ public abstract class SQLUnitTest {
     protected static RSQLFilterDialect filterParser;
     protected static MetaDataStore metaDataStore;
 
-    protected static final Country HONG_KONG = new Country();
-    protected static final Country USA = new Country();
-    protected static final Continent ASIA = new Continent();
-    protected static final Continent NA = new Continent();
-
+    private static final DataSource DUMMY_DATASOURCE = new HikariDataSource();
     protected static QueryEngine engine;
 
     protected QueryEngine.Transaction transaction;
@@ -377,7 +373,12 @@ public abstract class SQLUnitTest {
 
         metaDataStore.populateEntityDictionary(dictionary);
 
-        engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect));
+        // Need to provide details for connections used by all available models.
+        Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
+        connectionDetailsMap.put("mycon", new ConnectionDetails(DUMMY_DATASOURCE, sqlDialect));
+        connectionDetailsMap.put("SalesDBConnection", new ConnectionDetails(DUMMY_DATASOURCE, sqlDialect));
+
+        engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect), connectionDetailsMap);
 
         playerStatsTable = (SQLTable) metaDataStore.getTable("playerStats", NO_VERSION);
 

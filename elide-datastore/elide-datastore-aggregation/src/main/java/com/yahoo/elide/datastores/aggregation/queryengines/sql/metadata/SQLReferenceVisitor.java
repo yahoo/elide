@@ -15,6 +15,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 
 import java.util.Stack;
 
@@ -24,10 +25,12 @@ import java.util.Stack;
 public class SQLReferenceVisitor extends ColumnVisitor<String> {
     // this visitor is using DFS pattern when traversing columns, use Stack as state tracker
     private final Stack<String> tableAliases = new Stack<>();
+    private final SQLDialect dialect;
 
-    public SQLReferenceVisitor(MetaDataStore metaDataStore, String tableAlias) {
+    public SQLReferenceVisitor(MetaDataStore metaDataStore, String tableAlias, SQLDialect dialect) {
         super(metaDataStore);
         tableAliases.push(tableAlias);
+        this.dialect = dialect;
     }
 
     /**
@@ -38,7 +41,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
      */
     @Override
     protected String visitPhysicalReference(String reference) {
-        return getFieldAlias(tableAliases.peek(), reference);
+        return getFieldAlias(applyQuotes(tableAliases.peek()), applyQuotes(reference));
     }
 
     @Override
@@ -59,14 +62,14 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
         //This is a table.  Check if there is a @Column annotation.
         if (source == source.getSource()) {
             return getFieldAlias(
-                    tableAliases.peek(),
-                    dictionary.getAnnotatedColumnName(
+                    applyQuotes(tableAliases.peek()),
+                    applyQuotes(dictionary.getAnnotatedColumnName(
                             dictionary.getEntityClass(source.getName(), source.getVersion()),
-                            dimension.getName()));
+                            dimension.getName())));
 
         //This is a nested query.  Don't do table lookups.
         } else {
-            return getFieldAlias(tableAliases.peek(), dimension.getName());
+            return getFieldAlias(applyQuotes(tableAliases.peek()), applyQuotes(dimension.getName()));
         }
     }
 
@@ -154,5 +157,15 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
     private static String getFieldName(Path path) {
         Path.PathElement last = path.lastElement().get();
         return last.getFieldName();
+    }
+
+    /**
+     * Quote column / table aliases using dialect specific quote characters.
+     *
+     * @param str alias
+     * @return quoted alias
+     */
+    private String applyQuotes(String str) {
+        return SQLReferenceTable.applyQuotes(str, dialect);
     }
 }
