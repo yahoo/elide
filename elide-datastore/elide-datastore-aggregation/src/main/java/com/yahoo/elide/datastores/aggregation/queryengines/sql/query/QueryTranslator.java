@@ -56,7 +56,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
             SQLQuery innerQuery = builder.build();
 
             builder = SQLQuery.builder().fromClause("(" + innerQuery.toString() + ") AS "
-                    + query.getSource().getAlias());
+                    + applyQuotes(query.getSource().getAlias()));
         }
 
         Set<String> joinExpressions = new LinkedHashSet<>();
@@ -112,13 +112,13 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
         SQLQuery.SQLQueryBuilder builder = SQLQuery.builder();
 
         Class<?> tableCls = dictionary.getEntityClass(table.getName(), table.getVersion());
-        String tableAlias = table.getAlias();
+        String tableAlias = applyQuotes(table.getAlias());
 
         String tableStatement = tableCls.isAnnotationPresent(FromSubquery.class)
                 ? "(" + tableCls.getAnnotation(FromSubquery.class).sql() + ")"
                 : tableCls.isAnnotationPresent(FromTable.class)
-                ? tableCls.getAnnotation(FromTable.class).name()
-                : table.getName();
+                ? applyQuotes(tableCls.getAnnotation(FromTable.class).name())
+                : applyQuotes(table.getName());
 
         return builder.fromClause(String.format("%s AS %s", tableStatement, tableAlias));
     }
@@ -163,12 +163,14 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
         // TODO: project metric field using table column reference
         List<String> metricProjections = query.getMetricProjections().stream()
                 .map(SQLMetricProjection.class::cast)
-                .map(invocation -> invocation.toSQL(referenceTable) + " AS " + invocation.getAlias())
+                .map(invocation -> invocation.toSQL(referenceTable) + " AS "
+                                + applyQuotes(invocation.getAlias()))
                 .collect(Collectors.toList());
 
         List<String> dimensionProjections = query.getAllDimensionProjections().stream()
                 .map(SQLColumnProjection.class::cast)
-                .map(dimension -> dimension.toSQL(referenceTable) + " AS " + dimension.getAlias())
+                .map(dimension -> dimension.toSQL(referenceTable) + " AS "
+                                + applyQuotes(dimension.getAlias()))
                 .collect(Collectors.toList());
 
         if (metricProjections.isEmpty()) {
@@ -201,7 +203,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
                     SQLColumnProjection projection = fieldToColumnProjection(plan, last.getFieldName());
                     String orderByClause = (plan.getColumnProjections().contains(projection)
                             && dialect.useAliasForOrderByClause())
-                            ? projection.getAlias()
+                            ? applyQuotes(projection.getAlias())
                             : projection.toSQL(referenceTable);
 
                     return orderByClause + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
@@ -301,5 +303,15 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
             projection = query.getSource().getColumnProjection(fieldName);
         }
         return (SQLColumnProjection) projection;
+    }
+
+    /**
+     * Quote column / table aliases using dialect specific quote characters.
+     *
+     * @param str alias
+     * @return quoted alias
+     */
+    private String applyQuotes(String str) {
+        return SQLReferenceTable.applyQuotes(str, dialect);
     }
 }

@@ -4,8 +4,11 @@
       table: player_stats
       schema: gamedb
       description:
+      // newlines are replaced by single space in handlebar if no helper function is applied
       '''
       A long description
+      with newline
+       and additional space at start of this line.
       '''
       category: Table Category
       cardinality : large

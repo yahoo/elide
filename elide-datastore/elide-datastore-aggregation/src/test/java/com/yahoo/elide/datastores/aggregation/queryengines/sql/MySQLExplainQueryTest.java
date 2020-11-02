@@ -16,26 +16,14 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * This class tests SQLQueryEngine.explain() with the H2 dialect.
+ * This class tests SQLQueryEngine.explain() with the MySQL dialect.
  */
-public class H2ExplainQueryTest extends SQLUnitTest {
+public class MySQLExplainQueryTest extends SQLUnitTest {
 
     @BeforeAll
     public static void init() {
-        SQLUnitTest.init(SQLDialectFactory.getH2Dialect());
+        SQLUnitTest.init(SQLDialectFactory.getMySQLDialect());
     }
-
-//    TODO - Should this generate an error from the engine level?
-//    @Test
-//    public void testExplainNoMetricsOrDimensions() {
-//        Query query = Query.builder()
-//                .table(playerStatsTable)
-//                .build();
-//        String expectedQueryStr = "SELECT DISTINCT  " +
-//                "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats";
-//
-//        compareQueryLists(expectedQueryStr, engine.explain(query));
-//    }
 
     @Test
     public void testExplainWhereDimsOnly() throws Exception {
@@ -139,7 +127,7 @@ public class H2ExplainQueryTest extends SQLUnitTest {
                         + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
                         + "PARSEDATETIME(FORMATDATETIME("
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), "
-                        + "'yyyy-MM-dd') LIMIT 1 OFFSET 0";
+                        + "'yyyy-MM-dd') LIMIT 0,1";
         List<String> expectedQueryList = new ArrayList<String>();
         expectedQueryList.add(expectedQueryStr1);
         expectedQueryList.add(expectedQueryStr2);
@@ -241,7 +229,7 @@ public class H2ExplainQueryTest extends SQLUnitTest {
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
                         + "HAVING `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`iso_code` "
                         + "IN (:XXX) "
-                        + "ORDER BY MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) DESC LIMIT 5 OFFSET 10";
+                        + "ORDER BY MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) DESC LIMIT 10,5";
         List<String> expectedQueryList = new ArrayList<String>();
         expectedQueryList.add(expectedQueryStr1);
         expectedQueryList.add(expectedQueryStr2);
@@ -361,7 +349,7 @@ public class H2ExplainQueryTest extends SQLUnitTest {
                 + "AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX` GROUP BY "
                 + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
                 + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedMonth`, 'yyyy-MM'), 'yyyy-MM') "
-                + "LIMIT 1 OFFSET 0\n";
+                + "LIMIT 0,1\n";
 
         List<String> expectedQueryList = new ArrayList<String>();
         expectedQueryList.add(exptectedQueryStr1);
