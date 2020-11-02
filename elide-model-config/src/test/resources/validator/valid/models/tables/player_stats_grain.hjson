@@ -1,0 +1,62 @@
+{
+  tables: [{
+      name: PlayerStatsGrain
+      table: player_stats_grain
+      schema: gamedb
+      description:
+      '''
+      A long description
+      '''
+      category: Table Category
+      cardinality : large
+      hidden : false
+      readAccess : A user is admin or is a player in the game
+      filterTemplate : countryIsoCode=={{code}}
+      tags: ['GAME', 'PLAYER',  '''
+      A tag
+      with newline
+      ''']
+      joins: [
+          {
+             name: playerCountry
+             to: Country
+             type: toOne
+             definition: '{{ playerCountry.id}} = {{country_id}}'
+          },
+          {
+             name: playerTeam
+             to: Team
+             type: toMany
+             definition: '{{playerTeam.id}} = {{ team_id}}'
+          }
+      ]
+
+      measures : [
+          {
+          name : highScore
+          type : INTEGER
+          description : very awesome score
+          definition: 'MAX({{score}})'
+          tags: ['PUBLIC']
+          }
+      ]
+      dimensions : [
+         {
+           name : countryIsoCode
+           type : TEXT
+           category : country detail
+           definition : '{{playerCountry.isoCode}}'
+           values : ['US', 'HK']
+           tags: ['PRIVATE']
+         },
+         {
+           name : createdOn
+           type : TIME
+           definition : '{{create_on}}'
+           grain:
+            {
+            }
+         }
+      ]
+  }]
+}

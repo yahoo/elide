@@ -74,7 +74,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
 <%/if%>
 <%#ifTypeMatches type "TIME"%>
 <%#with grain%>
-    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.<%type%>, expression = "<%sql%>"), timeZone = "UTC")
+    @Temporal(grain = @TimeGrainDefinition(<%#if type%>grain = TimeGrain.<%type%><%/if%><%#if type%><%#if sql%>, <%/if%><%/if%><%#if sql%>expression = "<%sql%>"<%/if%>), timeZone = "UTC")
 <%/with%>
 <%/ifTypeMatches%>
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>

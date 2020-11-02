@@ -114,7 +114,6 @@
           grain:
           {
             type: SECOND
-            sql: '{{}}'
           }
         }
         {
@@ -125,7 +124,6 @@
           readAccess: Principal is guest user
           grain:
           {
-            type: DAY
             sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
           }
         }
@@ -163,6 +161,16 @@
           {
             type: YEAR
             sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy'), 'yyyy')
+          }
+        }
+        {
+          name: deliveryDefault
+          type: TIME
+          // Logical Column Reference in same table, which references another Logical Column in referred table, which references another Logical column in referred table, which references another Logical column in referred table, which references Physical column in referred table
+          definition: '{{delivery.time}}'
+          readAccess: Principal is guest user
+          grain:
+          {
           }
         }
       ]
