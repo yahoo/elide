@@ -78,7 +78,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
     @Mock private static SecurityContext securityContextMock;
 
-    private static final ElideDynamicEntityCompiler COMPILER = getCompiler("src/test/resources/configs");
+    public static final ElideDynamicEntityCompiler COMPILER = getCompiler("src/test/resources/configs");
     private static final class SecurityHjsonIntegrationTestResourceConfig extends ResourceConfig {
 
         @Inject
@@ -949,7 +949,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "orderDetails",
                                 arguments(
                                         argument("sort", "\"courierName,deliveryDate,orderTotal\""),
-                                        argument("filter", "\"deliveryDate>='2020-09-01'\"")
+                                        argument("filter", "\"deliveryDate>='2020-09-01',orderTotal>50\"")
                                 ),
                                 selections(
                                         field("courierName"),
