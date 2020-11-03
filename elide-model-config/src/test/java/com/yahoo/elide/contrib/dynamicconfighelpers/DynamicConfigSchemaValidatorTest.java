@@ -53,7 +53,6 @@ public class DynamicConfigSchemaValidatorTest {
     @DisplayName("Valid Table config")
     @ParameterizedTest
     @ValueSource(strings = {
-            "/validator/valid/models/tables/player_stats_grain.hjson",
             "/validator/valid/models/tables/player_stats.hjson",
             "/validator/valid/models/tables/player_stats_extends.hjson"})
     public void testValidTableSchema(String resource) throws Exception {

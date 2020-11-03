@@ -294,8 +294,7 @@
       "required": [
         "name",
         "type",
-        "definition",
-        "grain"
+        "definition"
       ]
     }
   },
