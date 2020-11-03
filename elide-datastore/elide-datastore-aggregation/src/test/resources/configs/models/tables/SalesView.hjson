@@ -169,9 +169,6 @@
           // Logical Column Reference in same table, which references another Logical Column in referred table, which references another Logical column in referred table, which references another Logical column in referred table, which references Physical column in referred table
           definition: '{{delivery.time}}'
           readAccess: Principal is guest user
-          grain:
-          {
-          }
         }
       ]
     }
