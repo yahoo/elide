@@ -1,0 +1,14 @@
+jobs:
+  build:
+    image: maven:3.6.3-jdk-8-openj9
+    requires: [~pr, ~commit]
+    steps:
+      - build: mvn -B clean verify coveralls:report
+  release:
+    secrets:
+        - BINTRAY_USER
+        - BINTRAY_API_KEY
+    image: maven:3.6.3-jdk-8-openj9
+    requires: [~tag, ~release]
+    steps:
+      - release: mvn -B -DskipTests deploy --settings ./settings.xml
