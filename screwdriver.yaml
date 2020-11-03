@@ -1,17 +1,26 @@
 jobs:
   master-commit:
+    annotations:
+        screwdriver.cd/disk: HIGH
+        screwdriver.cd/ram: HIGH
     image: maven:3.6.3-jdk-8
     requires: [~pr, ~commit]
     steps:
       - build: mvn -B clean verify coveralls:report
 
   elide-5-build:
+    annotations:
+        screwdriver.cd/disk: HIGH
+        screwdriver.cd/ram: HIGH
     image: maven:3.6.3-jdk-8
     requires: [~pr:elide-5.x, ~commit:elide-5.x]
     steps:
       - build: mvn -B clean verify coveralls:report
 
   release:
+    annotations:
+        screwdriver.cd/disk: HIGH
+        screwdriver.cd/ram: HIGH
     secrets:
         - BINTRAY_USER
         - BINTRAY_API_KEY
