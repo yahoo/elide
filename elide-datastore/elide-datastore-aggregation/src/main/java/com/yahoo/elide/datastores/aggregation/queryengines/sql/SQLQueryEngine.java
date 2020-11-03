@@ -255,7 +255,9 @@ public class SQLQueryEngine extends QueryEngine {
         supplyFilterQueryParameters(query, stmt);
 
         // Run the Pagination query and log the time spent.
-        return CoerceUtil.coerce(runQuery(stmt, paginationSQL, SINGLE_RESULT_MAPPER), Long.class);
+        Long result = CoerceUtil.coerce(runQuery(stmt, paginationSQL, SINGLE_RESULT_MAPPER), Long.class);
+
+        return (result != null) ? result : 0;
     }
 
     @Override

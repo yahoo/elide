@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.framework;
 
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -58,7 +59,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -67,6 +67,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -258,9 +259,9 @@ public abstract class SQLUnitTest {
                     .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"))
                     .pagination(new ImmutablePagination(10, 5, false, true))
                     .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
-                    .whereFilter(predicate)
+                    .havingFilter(predicate)
                     // force a join to look up countryIsoCode
-                    .havingFilter(parseFilterExpression("countryIsoCode==USA",
+                    .whereFilter(parseFilterExpression("countryIsoCode==USA",
                             PlayerStats.class, false))
                     .build();
         }),
@@ -335,8 +336,12 @@ public abstract class SQLUnitTest {
     protected Pattern repeatedWhitespacePattern = Pattern.compile("\\s\\s*");
 
     public static void init(String sqlDialect) {
+        Properties properties = new Properties();
+        properties.put("driverClassName", "org.h2.Driver");
 
-        HikariConfig config = new HikariConfig(File.separator + "jpah2db.properties");
+        String jdbcUrl = "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;" + getCompatabilityMode(sqlDialect);
+        properties.put("jdbcUrl", jdbcUrl);
+        HikariConfig config = new HikariConfig(properties);
         DataSource dataSource = new HikariDataSource(config);
 
         try (Connection h2Conn = dataSource.getConnection()) {
@@ -381,7 +386,14 @@ public abstract class SQLUnitTest {
         engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect), connectionDetailsMap);
 
         playerStatsTable = (SQLTable) metaDataStore.getTable("playerStats", NO_VERSION);
+    }
 
+    private static String getCompatabilityMode(String dialect) {
+        if (dialect.equals(SQLDialectFactory.getMySQLDialect().getDialectType())) {
+            return "MODE=MySQL;DATABASE_TO_LOWER=TRUE";
+        }
+
+        return "";
     }
 
     public static void init() {
@@ -473,5 +485,11 @@ public abstract class SQLUnitTest {
         //Replaces Foo_12345 with Foo_XXX
         replaced = replaced.replaceAll("_\\d+\\s+", "_XXX ");
         return replaced.replaceAll("_\\d+", "_XXX");
+    }
+
+    protected void testQueryExecution(Query query) {
+        try (QueryEngine.Transaction transaction = engine.beginTransaction()) {
+            assertDoesNotThrow(() -> engine.executeQuery(query, transaction));
+        }
     }
 }
