@@ -42,6 +42,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.persistence.Entity;
+
 /**
  * MetaDataStore is a in-memory data store that manage data models for an {@link AggregationDataStore}.
  */
@@ -49,10 +51,8 @@ public class MetaDataStore implements DataStore {
     private static final Package META_DATA_PACKAGE = Table.class.getPackage();
 
     private static final List<Class<? extends Annotation>> METADATA_STORE_ANNOTATIONS =
-            Arrays.asList(FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class);
-
-    private static final List<Class<? extends Annotation>> METADATA_STORE_ENTITY_ANNOTATION =
-            Arrays.asList(javax.persistence.Entity.class);
+            Arrays.asList(FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class,
+                    javax.persistence.Entity.class);
 
     private static final Function<String, HashMapDataStore> SERVER_ERROR = new Function<String, HashMapDataStore>() {
         @Override
@@ -92,14 +92,16 @@ public class MetaDataStore implements DataStore {
      * @return Set of Class with specific annotations.
      */
     private static Set<Class<?>> getAllAnnotatedClasses() {
-        Set<Class<?>> metadataStoreResult = ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS);
+        Set<Class<?>> metadataStoreResult = ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS, (clazz) -> {
+            if (clazz.getAnnotation(Entity.class) != null) {
+                if (clazz.getAnnotation(Include.class) != null) {
+                    return true;
+                }
+                return false;
+             }
+             return true;
+       });
 
-        Set<Class<?>> entityResult = ClassScanner.getAnnotatedClasses(METADATA_STORE_ENTITY_ANNOTATION);
-        Set<Class<?>> includeResult = ClassScanner.getAnnotatedClasses(Include.class);
-        // Only entities which have Include annotation.
-        entityResult.retainAll(includeResult);
-
-        metadataStoreResult.addAll(entityResult);
         return metadataStoreResult;
     }
 
