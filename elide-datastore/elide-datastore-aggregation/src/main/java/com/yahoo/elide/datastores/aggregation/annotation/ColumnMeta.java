@@ -24,4 +24,9 @@ public @interface ColumnMeta {
     String tableSource() default "";
     String [] tags() default {};
     String [] values() default {};
+
+    /**
+     * Indicates the cardinality for the column.
+     */
+    CardinalitySize size() default CardinalitySize.UNKNOWN;
 }

@@ -84,6 +84,18 @@
         "BOOLEAN"
       ]
     },
+    "enumCardinality": {
+      "title": "Table/Dimension cardinality",
+      "description": "Table/Dimension cardinality: (tiny, small, medium, large, huge). The relative sizes are decided by the table designer(s).",
+      "type": "string",
+      "enum": [
+        "tiny",
+        "small",
+        "medium",
+        "large",
+        "huge"
+      ]
+    },
     "measure": {
       "title": "Measure",
       "description": "Metric definitions are extensible objects that contain a type field and one or more additional attributes. Each type is tied to logic in Elide that generates a metric function.",
@@ -192,6 +204,9 @@
           "description": "The definition of the dimension",
           "type": "string",
           "default": ""
+        },
+        "cardinality": {
+          "$ref": "#/definitions/enumCardinality"
         },
         "tags": {
           "title": "Dimension tags",
@@ -349,17 +364,7 @@
             "type": "string"
           },
           "cardinality": {
-            "title": "Model cardinality",
-            "description": "The number of rows in the table: (tiny, small, medium, large, huge). The relative sizes are decided by the table designer(s).",
-            "type": "string",
-            "enum": [
-              "tiny",
-              "small",
-              "medium",
-              "large",
-              "huge"
-            ],
-            "default": "tiny"
+            "$ref": "#/definitions/enumCardinality"
           },
           "readAccess": {
             "title": "Table read access",

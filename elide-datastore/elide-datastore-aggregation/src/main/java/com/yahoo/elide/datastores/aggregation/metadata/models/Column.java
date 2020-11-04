@@ -11,6 +11,7 @@ import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.F
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
@@ -45,6 +46,8 @@ public abstract class Column implements Versioned {
     private final String category;
 
     private final String description;
+
+    private final CardinalitySize cardinality;
 
     @ToOne
     @ToString.Exclude
@@ -81,6 +84,7 @@ public abstract class Column implements Versioned {
             this.tags = new HashSet<>(Arrays.asList(meta.tags()));
             this.tableSource = (meta.tableSource().trim().isEmpty()) ? null : meta.tableSource();
             this.valueSourceType = getValueSourceType();
+            this.cardinality = (meta.size().equals(CardinalitySize.UNKNOWN)) ? null : meta.size();
         } else {
             this.description = null;
             this.category = null;
@@ -88,6 +92,7 @@ public abstract class Column implements Versioned {
             this.tags = new HashSet<>();
             this.tableSource = null;
             this.valueSourceType = ValueSourceType.NONE;
+            this.cardinality = null;
         }
 
         if (dictionary.attributeOrRelationAnnotationExists(tableClass, fieldName, MetricFormula.class)) {

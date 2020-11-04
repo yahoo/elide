@@ -14,7 +14,6 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
@@ -126,17 +125,12 @@ public abstract class Table implements Versioned  {
             this.category = meta.category();
             this.requiredFilter = meta.filterTemplate();
             this.tags = new HashSet<>(Arrays.asList(meta.tags()));
+            this.cardinality = (meta.size().equals(CardinalitySize.UNKNOWN)) ? null : meta.size();
         } else {
             this.description = null;
             this.category = null;
             this.requiredFilter = null;
             this.tags = new HashSet<>();
-        }
-
-        Cardinality cardinality = dictionary.getAnnotation(cls, Cardinality.class);
-        if (cardinality != null) {
-            this.cardinality = cardinality.size();
-        } else {
             this.cardinality = null;
         }
 
