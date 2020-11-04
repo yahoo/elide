@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
+import static com.yahoo.elide.datastores.aggregation.metadata.ColumnVisitor.resolveFormulaReferences;
 import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.FIELD;
 import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.FORMULA;
-import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.REFERENCE;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ToOne;
@@ -153,11 +153,20 @@ public abstract class Column implements Versioned {
             }
         }
 
-        if (column.getColumnType() == REFERENCE) {
+        if (referencesAnotherModel(column.getExpression())) {
             return column.getExpression();
         }
 
         return null;
+    }
+
+    private static boolean referencesAnotherModel(String expr) {
+        for (String reference : resolveFormulaReferences(expr)) {
+            if (reference.contains(".")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private ValueSourceType getValueSourceType() {
