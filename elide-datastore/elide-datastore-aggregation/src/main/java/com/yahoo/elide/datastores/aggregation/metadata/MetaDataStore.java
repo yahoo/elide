@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata;
 
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
@@ -50,6 +51,9 @@ public class MetaDataStore implements DataStore {
     private static final List<Class<? extends Annotation>> METADATA_STORE_ANNOTATIONS =
             Arrays.asList(FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class);
 
+    private static final List<Class<? extends Annotation>> METADATA_STORE_ENTITY_ANNOTATION =
+            Arrays.asList(javax.persistence.Entity.class);
+
     private static final Function<String, HashMapDataStore> SERVER_ERROR = new Function<String, HashMapDataStore>() {
         @Override
         public HashMapDataStore apply(String key) {
@@ -80,12 +84,29 @@ public class MetaDataStore implements DataStore {
     private Map<String, HashMapDataStore> hashMapDataStores = new HashMap<>();
 
     public MetaDataStore() {
-        this(ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS));
+        this(getAllAnnotatedClasses());
+    }
+
+    /**
+     * get all MetaDataStore supported annotated classes.
+     * @return Set of Class with specific annotations.
+     */
+    private static Set<Class<?>> getAllAnnotatedClasses() {
+        Set<Class<?>> metadataStoreResult = ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS);
+
+        Set<Class<?>> entityResult = ClassScanner.getAnnotatedClasses(METADATA_STORE_ENTITY_ANNOTATION);
+        Set<Class<?>> includeResult = ClassScanner.getAnnotatedClasses(Include.class);
+        // Only entities which have Include annotation.
+        entityResult.retainAll(includeResult);
+
+        metadataStoreResult.addAll(entityResult);
+        return metadataStoreResult;
     }
 
     public MetaDataStore(ElideDynamicEntityCompiler compiler) throws ClassNotFoundException {
         this();
 
+        //TODO add Entity Annotation classes when supported by dynamic config.
         Set<Class<?>> dynamicCompiledClasses = compiler.findAnnotatedClasses(FromTable.class);
         dynamicCompiledClasses.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
 

@@ -27,6 +27,12 @@ CREATE TABLE IF NOT EXISTS players
       name VARCHAR(255)
     ) AS SELECT * FROM CSVREAD('classpath:player.csv');
 
+CREATE TABLE IF NOT EXISTS playerRanking
+    (
+      id BIGINT,
+      ranking BIGINT
+    );
+
 CREATE TABLE IF NOT EXISTS videoGames
     (
       game_rounds BIGINT,

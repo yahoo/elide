@@ -212,7 +212,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 selections(
                                         field("highScore"),
                                         field("overallRating"),
-                                        field("countryIsoCode")
+                                        field("countryIsoCode"),
+                                        field("playerRank")
                                 )
                         )
                 )
@@ -225,17 +226,20 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 selections(
                                         field("highScore", 1000),
                                         field("overallRating", "Good"),
-                                        field("countryIsoCode", "HKG")
+                                        field("countryIsoCode", "HKG"),
+                                        field("playerRank", 3)
                                 ),
                                 selections(
                                         field("highScore", 1234),
                                         field("overallRating", "Good"),
-                                        field("countryIsoCode", "USA")
+                                        field("countryIsoCode", "USA"),
+                                        field("playerRank", 1)
                                 ),
                                 selections(
                                         field("highScore", 2412),
                                         field("overallRating", "Great"),
-                                        field("countryIsoCode", "USA")
+                                        field("countryIsoCode", "USA"),
+                                        field("playerRank", 2)
                                 )
                         )
                 )

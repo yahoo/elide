@@ -82,6 +82,12 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                .body("data.attributes.isFact", equalTo(false)); //TableMeta Present, isFact false
         given()
                 .accept("application/vnd.api+json")
+                .get("/table/playerRanking") //Entity Annotated
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.cardinality", equalTo("MEDIUM"));
+        given()
+                .accept("application/vnd.api+json")
                 .get("/table/country")
                 .then()
                 .statusCode(HttpStatus.SC_OK)

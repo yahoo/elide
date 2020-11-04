@@ -106,6 +106,13 @@ public class PlayerStats {
      */
     private Player player2;
 
+    /**
+     * A table dimension.
+     */
+    private PlayerRanking playerRanking;
+
+    private Integer playerRank;
+
     private String playerName;
 
     private String player2Name;
@@ -230,6 +237,15 @@ public class PlayerStats {
         this.subCountryIsoCode = isoCode;
     }
 
+    @Join("{{player_id}} = {{playerRanking.id}}")
+    public PlayerRanking getPlayerRanking() {
+        return playerRanking;
+    }
+
+    public void setPlayerRanking(final PlayerRanking playerRanking) {
+        this.playerRanking = playerRanking;
+    }
+
     @Join("{{player_id}} = {{player.id}}")
     public Player getPlayer() {
         return player;
@@ -246,6 +262,15 @@ public class PlayerStats {
 
     public void setPlayer2(Player player2) {
         this.player2 = player2;
+    }
+
+    @DimensionFormula("{{playerRanking.ranking}}")
+    public Integer getPlayerRank() {
+        return playerRank;
+    }
+
+    public void setPlayerRank(Integer playerRank) {
+        this.playerRank = playerRank;
     }
 
     @DimensionFormula("{{player.name}}")
