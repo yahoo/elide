@@ -78,7 +78,7 @@ public abstract class ColumnVisitor<T> {
      * @param formula formula expression
      * @return references appear in the formula.
      */
-    public static final List<String> resolveFormulaReferences(String formula) {
+    protected static List<String> resolveFormulaReferences(String formula) {
         Matcher matcher = REFERENCE_PARENTHESES.matcher(formula);
         List<String> references = new ArrayList<>();
 

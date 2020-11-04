@@ -11,7 +11,6 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.hasItems;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 
@@ -133,9 +132,9 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.name", equalTo("playerName"))
                 .body("data.attributes.valueType",  equalTo("TEXT"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
-                .body("data.attributes.valueSourceType",  equalTo("TABLE"))
+                .body("data.attributes.valueSourceType",  equalTo("NONE"))
                 .body("data.attributes.expression",  equalTo("{{player.name}}"))
-                .body("data.attributes.tableSource",  equalTo("{{player.name}}"))
+                .body("data.attributes.tableSource",  equalTo("NONE"))
                 .body("data.relationships.table.data.id", equalTo("playerStats"));
     }
 
@@ -148,7 +147,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .body("data.attributes.values", hasItems("US", "HK"))
                 .body("data.attributes.valueSourceType", equalTo("ENUM"))
-                .body("data.attributes.tableSource", nullValue())
+                .body("data.attributes.tableSource", equalTo("NONE"))
                 .body("data.attributes.columnType", equalTo("FORMULA"))
                 .statusCode(HttpStatus.SC_OK);
     }
@@ -162,7 +161,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .body("data.attributes.values", hasItems("GOOD", "OK", "TERRIBLE"))
                 .body("data.attributes.valueSourceType", equalTo("ENUM"))
-                .body("data.attributes.tableSource", nullValue())
+                .body("data.attributes.tableSource", equalTo("NONE"))
                 .body("data.attributes.columnType", equalTo("FIELD"))
                 .statusCode(HttpStatus.SC_OK);
     }
