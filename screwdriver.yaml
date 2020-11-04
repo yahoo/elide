@@ -10,11 +10,15 @@ shared:
 jobs:
   master-commit:
     requires: [~pr, ~commit]
+    secrets:
+        - COVERALLS_API_TOKEN
     steps:
       - build: mvn -B clean verify coveralls:report
 
   elide-5-build:
     requires: [~pr:elide-5.x, ~commit:elide-5.x]
+    secrets:
+        - COVERALLS_API_TOKEN
     steps:
       - build: mvn -B clean verify coveralls:report
 
