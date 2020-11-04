@@ -3,8 +3,8 @@ cache:
 
 shared:
    annotations:
-       screwdriver.cd/disk: HIGH
-       screwdriver.cd/ram: HIGH
+       screwdriver.cd/cpu: TURBO
+       screwdriver.cd/ram: TURBO
    image: maven:3.6.3-jdk-8
 
 jobs:
