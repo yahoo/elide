@@ -37,8 +37,6 @@ import javax.persistence.Id;
 @ToString
 public abstract class Column implements Versioned {
 
-    private static final String NONE = "NONE";
-
     @Id
     private final String id;
 
@@ -81,14 +79,14 @@ public abstract class Column implements Versioned {
             this.category = meta.category();
             this.values = new HashSet<>(Arrays.asList(meta.values()));
             this.tags = new HashSet<>(Arrays.asList(meta.tags()));
-            this.tableSource = (meta.tableSource().trim().isEmpty()) ? NONE : meta.tableSource();
+            this.tableSource = (meta.tableSource().trim().isEmpty()) ? null : meta.tableSource();
             this.valueSourceType = getValueSourceType();
         } else {
             this.description = null;
             this.category = null;
             this.values = null;
             this.tags = new HashSet<>();
-            this.tableSource = NONE;
+            this.tableSource = null;
             this.valueSourceType = ValueSourceType.NONE;
         }
 
@@ -151,7 +149,7 @@ public abstract class Column implements Versioned {
     private ValueSourceType getValueSourceType() {
         if (values != null && !values.isEmpty()) {
             return ValueSourceType.ENUM;
-        } else if (tableSource != null && !tableSource.equals(NONE)) {
+        } else if (tableSource != null) {
             return ValueSourceType.TABLE;
         }
         return ValueSourceType.NONE;
