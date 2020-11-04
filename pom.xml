@@ -79,7 +79,7 @@
         <!-- dependency versions -->
         <version.antlr4>4.8-1</version.antlr4>
         <version.logback>1.2.3</version.logback>
-        <version.jetty>9.4.32.v20200930</version.jetty>
+        <version.jetty>9.4.33.v20201020</version.jetty>
         <version.restassured>4.3.1</version.restassured>
         <version.jackson>2.11.3</version.jackson>
         <version.jersey>2.32</version.jersey>
@@ -463,7 +463,7 @@
                 <artifactId>coveralls-maven-plugin</artifactId>
                 <version>4.3.0</version>
                 <configuration>
-                    <repoToken>${env.COVERALLS_API_TOKEN}</repoToken>
+                    <repoToken>${env.COVERALLS_REPO_TOKEN}</repoToken>
                 </configuration>
             </plugin>
             <plugin>
