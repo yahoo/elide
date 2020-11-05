@@ -63,6 +63,11 @@
              PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
              '''
             }
+         },
+         {
+           name : updatedOn
+           type : TIME
+           definition : '{{updated_on}}'
          }
       ]
   }]
