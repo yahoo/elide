@@ -12,7 +12,6 @@ import com.yahoo.elide.core.datastore.JPQLDataStore;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.jpa.HibernateEntityManagerFactory;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.metamodel.EntityType;

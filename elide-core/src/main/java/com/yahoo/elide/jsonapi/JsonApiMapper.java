@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.jsonapi;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Patch;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
