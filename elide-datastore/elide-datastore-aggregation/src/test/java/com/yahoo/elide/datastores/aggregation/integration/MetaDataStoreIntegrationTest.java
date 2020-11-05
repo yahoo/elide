@@ -91,7 +91,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .get("/table/country")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body("data.attributes.isFact", equalTo(false)) //TableMeta Present, isFact default true
+                .body("data.attributes.isFact", equalTo(true)) //TableMeta Present, isFact default true
                 .body("data.attributes.cardinality", nullValue())
                 .body("data.relationships.columns.data.id", hasItems("country.id", "country.name", "country.isoCode"));
         given()
