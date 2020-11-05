@@ -240,6 +240,7 @@ public class HandlebarsHydratorTest {
             + "\n"
             + "    @ReadPermission(expression = \"Prefab.Role.All\")\n"
             + "    @ColumnMeta(\n"
+            + "        \n"
             + "        description = \"updatedOn\",\n"
             + "        category=\"\",\n"
             + "        values={},\n"
