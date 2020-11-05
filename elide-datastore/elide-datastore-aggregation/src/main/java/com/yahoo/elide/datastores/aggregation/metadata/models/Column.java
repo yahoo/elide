@@ -84,7 +84,7 @@ public abstract class Column implements Versioned {
             this.tags = new HashSet<>(Arrays.asList(meta.tags()));
             this.tableSource = (meta.tableSource().trim().isEmpty()) ? null : meta.tableSource();
             this.valueSourceType = getValueSourceType();
-            this.cardinality = (meta.size().equals(CardinalitySize.UNKNOWN)) ? null : meta.size();
+            this.cardinality = meta.size();
         } else {
             this.description = null;
             this.category = null;
@@ -92,7 +92,7 @@ public abstract class Column implements Versioned {
             this.tags = new HashSet<>();
             this.tableSource = null;
             this.valueSourceType = ValueSourceType.NONE;
-            this.cardinality = null;
+            this.cardinality = CardinalitySize.UNKNOWN;
         }
 
         if (dictionary.attributeOrRelationAnnotationExists(tableClass, fieldName, MetricFormula.class)) {

@@ -92,7 +92,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.isFact", equalTo(true)) //TableMeta Present, isFact default true
-                .body("data.attributes.cardinality", nullValue())
+                .body("data.attributes.cardinality", equalTo("UNKNOWN"))
                 .body("data.relationships.columns.data.id", hasItems("country.id", "country.name", "country.isoCode"));
         given()
                 .accept("application/vnd.api+json")
@@ -191,7 +191,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.tableSource",  equalTo("subcountry.nickName"))
                 .body("data.attributes.expression",  equalTo("{{country.nickName}}"))
                 .body("data.attributes.values", equalTo(Collections.emptyList()))
-                .body("data.attributes.cardinality", nullValue())
+                .body("data.attributes.cardinality", equalTo("UNKNOWN"))
                 .statusCode(HttpStatus.SC_OK);
     }
 
@@ -293,8 +293,8 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("customerRegion"))
-                .body("data.attributes.cardinality",  equalTo("SMALL"))
-                .body("data.attributes.expression",  equalTo("{{customer.customerRegion}}"));
+                .body("data.attributes.cardinality", equalTo("SMALL"))
+                .body("data.attributes.expression", equalTo("{{customer.customerRegion}}"));
 
         given()
                 .accept("application/vnd.api+json")
@@ -302,7 +302,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("customerRegionRegion"))
-                .body("data.attributes.cardinality",  nullValue())
-                .body("data.attributes.expression",  equalTo("{{customer.region.region}}"));
+                .body("data.attributes.cardinality", equalTo("UNKNOWN"))
+                .body("data.attributes.expression", equalTo("{{customer.region.region}}"));
     }
 }

@@ -125,13 +125,13 @@ public abstract class Table implements Versioned  {
             this.category = meta.category();
             this.requiredFilter = meta.filterTemplate();
             this.tags = new HashSet<>(Arrays.asList(meta.tags()));
-            this.cardinality = (meta.size().equals(CardinalitySize.UNKNOWN)) ? null : meta.size();
+            this.cardinality = meta.size();
         } else {
             this.description = null;
             this.category = null;
             this.requiredFilter = null;
             this.tags = new HashSet<>();
-            this.cardinality = null;
+            this.cardinality = CardinalitySize.UNKNOWN;
         }
 
         this.isFact = isFact(cls, meta);
