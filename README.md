@@ -52,7 +52,7 @@ Filtering, sorting, pagination, and text search are supported out of the box.
 Elide supports multiple data model mutations in a single request in either JSON-API or GraphQL. Create objects, add them to relationships, modify or delete together in a single atomic request.
 
 ## Analytic Query Support
-Elide supports analytic queries against models crafits with its powerful semantic layer.  Elide APIs work natively with [Yavin](https://github.com/yahoo/navi) to visualize, explore, and report on your data.
+Elide supports analytic queries against models crafted with its powerful semantic layer.  Elide APIs work natively with [Yavin](https://github.com/yahoo/navi) to visualize, explore, and report on your data.
 
 ### Schema Introspection
 Explore, understand, and compose queries against your Elide API through generated Swagger documentation or GraphQL schema.
@@ -81,7 +81,7 @@ Alternatively, use [elide-standalone](https://github.com/yahoo/elide/tree/master
 
 ### For CRUD APIs
 
-The simplest way to use Elide is by leveraging [JPA]([JPA annotated data model](https://en.wikipedia.org/wiki/Java_Persistence_API) to map your Elide models to persistence:
+The simplest way to use Elide is by leveraging [JPA](https://en.wikipedia.org/wiki/Java_Persistence_API) to map your Elide models to persistence:
 
 The models should represent the domain model of your web service:
 
