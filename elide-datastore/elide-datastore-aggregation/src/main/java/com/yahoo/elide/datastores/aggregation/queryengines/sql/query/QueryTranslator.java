@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.FilterTranslator;
@@ -135,7 +136,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
         String fieldName = last.getFieldName();
 
         if (predicate.getPath().getPathElements().size() > 1) {
-            throw new InvalidPredicateException("The having clause can only reference fact table aggregations.");
+            throw new BadRequestException("The having clause can only reference fact table aggregations.");
         }
 
         SQLMetricProjection metric = query.getMetricProjections().stream()

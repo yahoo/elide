@@ -67,27 +67,6 @@ public class JsonApiMapper {
     }
 
     /**
-     * Instantiates a new JSON API OBJECT_MAPPER.
-     *
-     * @param dictionary Not Used
-     */
-    @Deprecated
-    public JsonApiMapper(EntityDictionary dictionary) {
-        this();
-    }
-
-    /**
-     * Instantiates a new Json Api Mapper.
-     *
-     * @param dictionary the dictionary
-     * @param mapper Custom object mapper to use internally for serializing/deserializing
-     */
-    @Deprecated
-    public JsonApiMapper(EntityDictionary dictionary, ObjectMapper mapper) {
-        this(mapper);
-    }
-
-    /**
      * Write out JSON API Document as a string.
      *
      * @param jsonApiDocument the json api document

@@ -81,14 +81,6 @@ public abstract class AbstractHibernateStore implements JPQLDataStore {
             this.emf = entityManagerFactory;
         }
 
-        @Deprecated
-        public Builder(final HibernateEntityManagerFactory entityManagerFactory) {
-            this.sessionFactory = null;
-            this.isScrollEnabled = true;
-            this.scrollMode = ScrollMode.FORWARD_ONLY;
-            this.emf = entityManagerFactory;
-        }
-
         public Builder withScrollEnabled(final boolean isScrollEnabled) {
             this.isScrollEnabled = isScrollEnabled;
             return this;

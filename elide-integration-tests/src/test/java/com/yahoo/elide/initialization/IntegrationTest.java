@@ -58,7 +58,7 @@ public abstract class IntegrationTest {
      * The Json api mapper.
      * Empty dictionary is OK provided the OBJECT_MAPPER is used for reading only
      */
-    protected final JsonApiMapper jsonApiMapper = new JsonApiMapper(new EntityDictionary(new HashMap<>()));
+    protected final JsonApiMapper jsonApiMapper = new JsonApiMapper();
 
     protected IntegrationTest() {
         this(IntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
