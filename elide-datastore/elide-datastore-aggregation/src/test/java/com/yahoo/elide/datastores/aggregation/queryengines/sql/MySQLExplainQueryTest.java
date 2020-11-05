@@ -32,6 +32,8 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
                         + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` "
                         + "WHERE `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` IS NOT NULL";
         compareQueryLists(expectedQueryStr, engine.explain(TestQuery.WHERE_DIMS_ONLY.getQuery()));
+
+        testQueryExecution(TestQuery.WHERE_DIMS_ONLY.getQuery());
     }
 
     @Test
@@ -47,6 +49,8 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
                         + " GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`\n";
 
         compareQueryLists(expectedQueryStr, engine.explain(query));
+
+        testQueryExecution(TestQuery.WHERE_AND.getQuery());
     }
 
     @Test
@@ -62,6 +66,8 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
                         + " GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`\n";
 
         compareQueryLists(expectedQueryStr, engine.explain(query));
+
+        testQueryExecution(TestQuery.WHERE_OR.getQuery());
     }
 
     @Test
@@ -72,6 +78,8 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
                         + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` "
                         + "HAVING MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) > :XXX";
         compareQueryLists(expectedQueryStr, engine.explain(query));
+
+        testQueryExecution(TestQuery.HAVING_METRICS_ONLY.getQuery());
     }
 
     @Test
@@ -81,6 +89,9 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
                         + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` "
                         + "HAVING `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` IS NOT NULL";
         compareQueryLists(expectedQueryStr, engine.explain(TestQuery.HAVING_DIMS_ONLY.getQuery()));
+
+        //H2 does not allow HAVING on a column not in the GROUP BY list.
+        //testQueryExecution(TestQuery.HAVING_DIMS_ONLY.getQuery());
     }
 
     @Test
@@ -95,6 +106,8 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
                         + "HAVING (`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` IS NOT NULL "
                         + "AND MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) > :XXX)";
         compareQueryLists(expectedQueryStr, engine.explain(query));
+
+        testQueryExecution(TestQuery.HAVING_METRICS_AND_DIMS.getQuery());
     }
 
     @Test
@@ -109,6 +122,8 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
                         + "HAVING (`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` IS NOT NULL "
                         + "OR MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) > :XXX)";
         compareQueryLists(expectedQueryStr, engine.explain(query));
+
+        testQueryExecution(TestQuery.HAVING_METRICS_OR_DIMS.getQuery());
     }
 
     @Test
@@ -132,6 +147,8 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
         expectedQueryList.add(expectedQueryStr1);
         expectedQueryList.add(expectedQueryStr2);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.PAGINATION_TOTAL.getQuery()));
+
+        testQueryExecution(TestQuery.PAGINATION_TOTAL.getQuery());
     }
 
     @Test
@@ -142,6 +159,8 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
                         + "ORDER BY MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) ASC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.SORT_METRIC_ASC.getQuery()));
+
+        testQueryExecution(TestQuery.SORT_METRIC_ASC.getQuery());
     }
 
     @Test
@@ -152,6 +171,8 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
                         + "ORDER BY MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) DESC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.SORT_METRIC_DESC.getQuery()));
+
+        testQueryExecution(TestQuery.SORT_METRIC_DESC.getQuery());
     }
 
     @Test
@@ -162,6 +183,8 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
                         + "ORDER BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` DESC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.SORT_DIM_DESC.getQuery()));
+
+        testQueryExecution(TestQuery.SORT_DIM_DESC.getQuery());
     }
 
     @Test
@@ -175,6 +198,8 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` DESC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.SORT_METRIC_AND_DIM_DESC.getQuery()));
+
+        testQueryExecution(TestQuery.SORT_METRIC_AND_DIM_DESC.getQuery());
     }
 
     @Test
@@ -187,6 +212,8 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStatsView`";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.SUBQUERY.getQuery()));
+
+        testQueryExecution(TestQuery.SUBQUERY.getQuery());
     }
 
     @Test
@@ -197,6 +224,9 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
                         + "ORDER BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` DESC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.ORDER_BY_DIMENSION_NOT_IN_SELECT.getQuery()));
+
+        //H2 does not allow ORDER BY on a column not in the GROUP BY list.
+        //testQueryExecution(TestQuery.ORDER_BY_DIMENSION_NOT_IN_SELECT.getQuery());
     }
 
     @Test
@@ -210,9 +240,9 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
                         + "LEFT JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country` "
                         + "ON `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` = "
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`id` "
-                        + "WHERE MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) > :XXX "
-                        + "HAVING `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`iso_code` "
-                        + "IN (:XXX)";
+                        + "WHERE `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`iso_code` "
+                        + "IN (:XXX) "
+                        + "HAVING MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) > :XXX";
         String expectedQueryStr2 =
                 "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
@@ -223,18 +253,20 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
                         + "LEFT JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country` "
                         + "ON `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` = "
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`id` "
-                        + "WHERE MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) > :XXX "
+                        + "WHERE `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`iso_code` "
+                        + "IN (:XXX) "
                         + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
                         + "PARSEDATETIME(FORMATDATETIME("
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
-                        + "HAVING `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`iso_code` "
-                        + "IN (:XXX) "
+                        + "HAVING MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) > :XXX "
                         + "ORDER BY MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) DESC LIMIT 10,5";
         List<String> expectedQueryList = new ArrayList<String>();
         expectedQueryList.add(expectedQueryStr1);
         expectedQueryList.add(expectedQueryStr2);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
+
+        testQueryExecution(TestQuery.COMPLICATED.getQuery());
     }
 
     @Test
@@ -261,6 +293,8 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
         expectedQueryList.add(exptectedQueryStr);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
+
+        testQueryExecution(TestQuery.NESTED_METRIC_QUERY.getQuery());
     }
 
     @Test
@@ -289,6 +323,8 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
         expectedQueryList.add(exptectedQueryStr);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
+
+        testQueryExecution(TestQuery.NESTED_METRIC_WITH_HAVING_QUERY.getQuery());
     }
 
     @Test
@@ -317,6 +353,8 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
         expectedQueryList.add(exptectedQueryStr);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
+
+        testQueryExecution(TestQuery.NESTED_METRIC_WITH_WHERE_QUERY.getQuery());
     }
 
     @Test
@@ -356,6 +394,8 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
         expectedQueryList.add(exptectedQueryStr2);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
+
+        testQueryExecution(TestQuery.NESTED_METRIC_WITH_PAGINATION_QUERY.getQuery());
     }
 
     @Test
@@ -384,5 +424,7 @@ public class MySQLExplainQueryTest extends SQLUnitTest {
         expectedQueryList.add(exptectedQueryStr);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
+
+        testQueryExecution(TestQuery.NESTED_METRIC_WITH_SORTING_QUERY.getQuery());
     }
 }
