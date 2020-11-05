@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata;
 
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
@@ -41,6 +42,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.persistence.Entity;
+
 /**
  * MetaDataStore is a in-memory data store that manage data models for an {@link AggregationDataStore}.
  */
@@ -48,7 +51,8 @@ public class MetaDataStore implements DataStore {
     private static final Package META_DATA_PACKAGE = Table.class.getPackage();
 
     private static final List<Class<? extends Annotation>> METADATA_STORE_ANNOTATIONS =
-            Arrays.asList(FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class);
+            Arrays.asList(FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class,
+                    javax.persistence.Entity.class);
 
     private static final Function<String, HashMapDataStore> SERVER_ERROR = new Function<String, HashMapDataStore>() {
         @Override
@@ -80,12 +84,31 @@ public class MetaDataStore implements DataStore {
     private Map<String, HashMapDataStore> hashMapDataStores = new HashMap<>();
 
     public MetaDataStore() {
-        this(ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS));
+        this(getAllAnnotatedClasses());
+    }
+
+    /**
+     * get all MetaDataStore supported annotated classes.
+     * @return Set of Class with specific annotations.
+     */
+    private static Set<Class<?>> getAllAnnotatedClasses() {
+        Set<Class<?>> metadataStoreResult = ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS, (clazz) -> {
+            if (clazz.getAnnotation(Entity.class) != null) {
+                if (clazz.getAnnotation(Include.class) != null) {
+                    return true;
+                }
+                return false;
+             }
+             return true;
+       });
+
+        return metadataStoreResult;
     }
 
     public MetaDataStore(ElideDynamicEntityCompiler compiler) throws ClassNotFoundException {
         this();
 
+        //TODO add Entity Annotation classes when supported by dynamic config.
         Set<Class<?>> dynamicCompiledClasses = compiler.findAnnotatedClasses(FromTable.class);
         dynamicCompiledClasses.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
 

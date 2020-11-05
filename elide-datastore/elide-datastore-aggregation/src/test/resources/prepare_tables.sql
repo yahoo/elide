@@ -40,6 +40,16 @@ INSERT INTO players VALUES (1, 'Jon Doe');
 INSERT INTO players VALUES (2, 'Jane Doe');
 INSERT INTO players VALUES (3, 'Han');
 
+CREATE TABLE IF NOT EXISTS playerRanking
+    (
+      id BIGINT,
+      ranking BIGINT
+    );
+TRUNCATE TABLE playerRanking;
+INSERT INTO playerRanking VALUES (1, 1);
+INSERT INTO playerRanking VALUES (2, 2);
+INSERT INTO playerRanking VALUES (3, 3);
+
 
 CREATE TABLE IF NOT EXISTS videoGames
     (

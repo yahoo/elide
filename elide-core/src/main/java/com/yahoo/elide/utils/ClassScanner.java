@@ -49,20 +49,33 @@ public class ClassScanner {
 
     /**
      * Scans all classes accessible from the context class loader which belong to the current class loader.
-     *
+     * Filters the final output based on expression.
      * @param annotations  One or more annotation to search for
+     * @param filter  filter expression to include the final results in the output.
      * @return The classes
      */
-    static public Set<Class<?>> getAnnotatedClasses(List<Class<? extends Annotation>> annotations) {
+    static public Set<Class<?>> getAnnotatedClasses(List<Class<? extends Annotation>> annotations,
+            FilterExpression filter) {
         Set<Class<?>> result = new HashSet<>();
         try (ScanResult scanResult = new ClassGraph().enableClassInfo().enableAnnotationInfo().scan()) {
             for (Class<? extends Annotation> annotation : annotations) {
                 result.addAll(scanResult.getClassesWithAnnotation(annotation.getCanonicalName()).stream()
                         .map((ClassInfo::loadClass))
+                        .filter(clazz -> filter.include(clazz))
                         .collect(Collectors.toSet()));
             }
         }
         return result;
+    }
+
+    /**
+     * Scans all classes accessible from the context class loader which belong to the current class loader.
+     *
+     * @param annotations  One or more annotation to search for
+     * @return The classes
+     */
+    static public Set<Class<?>> getAnnotatedClasses(List<Class<? extends Annotation>> annotations) {
+        return getAnnotatedClasses(annotations, (clazz) -> { return true; });
     }
 
     @SafeVarargs
@@ -82,5 +95,13 @@ public class ClassScanner {
                     .map((ClassInfo::loadClass))
                     .collect(Collectors.toSet());
         }
+    }
+
+    /**
+     * Function which will be invoked for deciding to include the class in final results.
+     */
+    @FunctionalInterface
+    public interface FilterExpression {
+        public boolean include(Class clazz);
     }
 }
