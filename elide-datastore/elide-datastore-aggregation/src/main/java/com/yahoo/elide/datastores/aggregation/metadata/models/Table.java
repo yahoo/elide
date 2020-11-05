@@ -22,6 +22,7 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 
 import com.yahoo.elide.utils.TypeHelper;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -60,6 +61,8 @@ public abstract class Table implements Versioned  {
     private final CardinalitySize cardinality;
 
     private final String requiredFilter;
+
+    private final boolean isFact;
 
     @OneToMany
     @ToString.Exclude
@@ -135,6 +138,20 @@ public abstract class Table implements Versioned  {
         } else {
             this.cardinality = null;
         }
+
+        this.isFact = isFact(cls, meta);
+    }
+
+    private boolean isFact(Class<?> cls, TableMeta meta) {
+        if (meta != null && meta.isFact()) {
+            return true;
+        }
+
+        // If FromTable or FromSubquery Annotation exists then assume its fact table.
+        boolean existsAggAnnotations = (cls.getAnnotation(FromTable.class) != null
+                || cls.getAnnotation(FromSubquery.class) != null);
+
+        return existsAggAnnotations;
     }
 
     /**
