@@ -17,7 +17,7 @@ import java.text.SimpleDateFormat;
  */
 public class Minute extends Timestamp {
 
-    public static final String FORMAT = "yyyy-MM-dd HH:mm";
+    public static final String FORMAT = "yyyy-MM-dd'T'HH:mm";
     private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
 
     public Minute(java.util.Date date) {

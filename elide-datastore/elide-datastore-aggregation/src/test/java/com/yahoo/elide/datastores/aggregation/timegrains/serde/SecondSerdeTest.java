@@ -19,12 +19,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class SecondSerdeTest {
-    private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
     @Test
     public void testDateSerialize() throws ParseException {
 
-        String expected = "2020-01-01 01:18:19";
+        String expected = "2020-01-01T01:18:19";
         Second expectedDate = new Second(formatter.parse(expected));
         Serde serde = new Second.SecondSerde();
         Object actual = serde.serialize(expectedDate);
@@ -34,9 +34,9 @@ public class SecondSerdeTest {
     @Test
     public void testDateDeserializeString() throws ParseException {
 
-        String dateInString = "2020-01-01 01:18:19";
+        String dateInString = "2020-01-01T01:18:19";
         Date expectedDate = new Date(formatter.parse(dateInString).getTime());
-        String actual = "2020-01-01 01:18:19";
+        String actual = "2020-01-01T01:18:19";
         Serde serde = new Second.SecondSerde();
         Object actualDate = serde.deserialize(actual);
         assertEquals(expectedDate, actualDate);
@@ -45,7 +45,7 @@ public class SecondSerdeTest {
     @Test
     public void testDeserializeTimestamp() throws ParseException {
 
-        String dateInString = "2020-01-01 01:18:19";
+        String dateInString = "2020-01-01T01:18:19";
         Second expectedDate = new Second(formatter.parse(dateInString));
         Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
         Serde serde = new Second.SecondSerde();
