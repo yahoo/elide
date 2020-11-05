@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.FIELD;
 import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.FORMULA;
-import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.REFERENCE;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ToOne;
@@ -37,6 +36,7 @@ import javax.persistence.Id;
 @EqualsAndHashCode
 @ToString
 public abstract class Column implements Versioned {
+
     @Id
     private final String id;
 
@@ -79,11 +79,15 @@ public abstract class Column implements Versioned {
             this.category = meta.category();
             this.values = new HashSet<>(Arrays.asList(meta.values()));
             this.tags = new HashSet<>(Arrays.asList(meta.tags()));
+            this.tableSource = (meta.tableSource().trim().isEmpty()) ? null : meta.tableSource();
+            this.valueSourceType = getValueSourceType();
         } else {
             this.description = null;
             this.category = null;
             this.values = null;
             this.tags = new HashSet<>();
+            this.tableSource = null;
+            this.valueSourceType = ValueSourceType.NONE;
         }
 
         if (dictionary.attributeOrRelationAnnotationExists(tableClass, fieldName, MetricFormula.class)) {
@@ -99,9 +103,7 @@ public abstract class Column implements Versioned {
             expression = dictionary.getAnnotatedColumnName(tableClass, fieldName);
         }
 
-        this.tableSource = getTableSource(meta, this);
         this.valueType = getValueType(tableClass, fieldName, dictionary);
-        this.valueSourceType = getValueSourceType();
 
         if (valueType == null) {
             throw new IllegalArgumentException("Unknown data type for " + this.id);
@@ -144,26 +146,10 @@ public abstract class Column implements Versioned {
         }
     }
 
-    private static String getTableSource(ColumnMeta meta, Column column) {
-        if (meta != null) {
-            if (meta.tableSource() != null && !meta.tableSource().isEmpty()) {
-                return meta.tableSource();
-            } else if (meta.values() != null && meta.values().length > 0) {
-                return null;
-            }
-        }
-
-        if (column.getColumnType() == REFERENCE) {
-            return column.getExpression();
-        }
-
-        return null;
-    }
-
     private ValueSourceType getValueSourceType() {
         if (values != null && !values.isEmpty()) {
             return ValueSourceType.ENUM;
-        } else if (tableSource != null && !tableSource.isEmpty()) {
+        } else if (tableSource != null) {
             return ValueSourceType.TABLE;
         }
         return ValueSourceType.NONE;
