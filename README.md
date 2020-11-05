@@ -27,8 +27,10 @@
 
 ## Background
 
-[Elide](http://elide.io/) is a Java library that lets you set up a [GraphQL](http://graphql.org) or [JSON API](http://jsonapi.org) web service with minimal effort starting from
-a [JPA annotated data model](https://en.wikipedia.org/wiki/Java_Persistence_API).
+[Elide](http://elide.io/) is a Java library that lets you setup model driven [GraphQL](http://graphql.org) or [JSON API](http://jsonapi.org) web service with minimal effort.  Elide supports two variants of APIs:
+
+1. A CRUD (Create, Read, Update, Delete) API for reading and manipulating models.
+2. An analytic API for aggregating measures over zero or more model attributes.
 
 Elide supports a number of features:
 
@@ -44,13 +46,13 @@ Our opinionated approach for mutations addresses common application scenarios:
 * Change the composition of a relationship to something different.
 * Reference a newly created object inside other mutation operations.
 
-Filtering, sorting, and pagination are supported out of the box.
+Filtering, sorting, pagination, and text search are supported out of the box.
 
 ### Atomicity For Complex Writes
 Elide supports multiple data model mutations in a single request in either JSON-API or GraphQL. Create objects, add them to relationships, modify or delete together in a single atomic request.
 
-### Persistence Layer Agnostic
-Elide is agnostic to your particular persistence strategy. Use an ORM or provide your own implementation of a data store.
+## Analytic Query Support
+Elide supports analytic queries against models crafits with its powerful semantic layer.  Elide APIs work natively with [Yavin](https://github.com/yahoo/navi) to visualize, explore, and report on your data.
 
 ### Schema Introspection
 Explore, understand, and compose queries against your Elide API through generated Swagger documentation or GraphQL schema.
@@ -58,37 +60,28 @@ Explore, understand, and compose queries against your Elide API through generate
 ### Customize
 Customize the behavior of data model operations with computed attributes, data validation annotations, and request lifecycle hooks.
 
+### Storage Agnostic
+Elide is agnostic to your particular persistence strategy. Use an ORM or provide your own implementation of a data store.
+
 ## Documentation
 
 More information about Elide can be found at [elide.io](http://elide.io/).
-
-### Tutorials
-[Create a JSON API REST Service With Spring Boot and Elide](https://dzone.com/articles/create-a-json-api-rest-service-with-spring-boot-an)
-
-[Custom Security With a Spring Boot/Elide Json API Server](https://dzone.com/articles/custom-security-with-a-spring-bootelide-json-api-s)
-
-[Logging Into a Spring Boot/Elide JSON API Server](https://dzone.com/articles/logging-into-a-spring-bootelide-json-api-server)
-
-[Securing a JSON API REST Service With Spring Boot and Elide](https://dzone.com/articles/securing-a-json-api-rest-service-with-spring-boot)
-
-[Creating Entities in a Spring Boot/Elide JSON API Server](https://dzone.com/articles/creating-entities-in-a-spring-bootelide-json-api-s)
-
-[Updating and Deleting with a Spring Boot/Elide JSON API Server](https://dzone.com/articles/updating-and-deleting-with-a-spring-bootelide-json)
 
 ## Install
 
 To try out an Elide example service (with a Postgres database), you can deploy via Heroku.
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/yahoo/elide)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/yahoo/elide-spring-boot-example)
 
-The code that generates this example can be found [here](https://github.com/yahoo/elide/tree/master/elide-example/elide-blog-example)
+The code that generates this example can be found [here](https://github.com/yahoo/elide-spring-boot-example).
 
-Alternatively, use [elide-standalone](https://github.com/yahoo/elide/tree/master/elide-standalone) which allows you to quickly setup a local instance
-of Elide running inside an embedded Jetty application.
+Alternatively, use [elide-standalone](https://github.com/yahoo/elide/tree/master/elide-standalone) which allows you to quickly setup a local instance of Elide running inside an embedded Jetty application.
 
-## Usage
+## Usage (CRUD APIs)
 
-To use Elide, create a set of JPA annotated data models that represent the domain model of your web service:
+The simplest way to use Elide is by leveraging [JPA]([JPA annotated data model](https://en.wikipedia.org/wiki/Java_Persistence_API) to map your Elide models to persistence:
+
+The models should represent the domain model of your web service:
 
 ```java
 @Entity
@@ -150,18 +143,22 @@ public class Book {
 }
 
 public class BookCreationHook implements LifeCycleHook<Book> {
-
     @Override
-    public void execute(LifeCycleHookBinding.Operation operation, Book book,
-                        RequestScope requestScope, Optional<ChangeSpec> changes) {
+    public void execute(LifeCycleHookBinding.Operation operation,
+                        LifeCycleHookBinding.TransactionPhase phase,
+                        Book book,
+                        RequestScope requestScope,
+                        Optional<ChangeSpec> changes) {
        //Do something
     }
 }
+
 ```
 
 Map expressions to security functions or predicates that get pushed to the persistence layer:
 
 ```java
+    @SecurityCheck("Admin")
     public static class IsAdminUser extends UserCheck {
         @Override
         public boolean ok(User user) {
@@ -170,43 +167,15 @@ Map expressions to security functions or predicates that get pushed to the persi
     }
 ```
 
-To expose these models, follow the steps documented in [elide-standalone](https://github.com/yahoo/elide/tree/master/elide-standalone):
-
-```java
-public class YourMain {
-    public static void main(String[] args) {
-
-        ElideStandaloneSettings settings = new ElideStandaloneSettings() {
-
-            @Override
-            public String getModelPackageName() {
-                //This needs to be changed to the package where your models live.
-                return "your.model.package";
-            }
-
-            @Override
-            public Map<String, Class<? extends Check>> getCheckMappings() {
-                //Maps expression clauses to your security check functions & predicates
-                return new HashMap<String, Class<? extends Check>>() { {
-                    put("Admin", IsAdminUser.class);
-                } };
-            }
-        };
-
-        ElideStandalone elide = new ElideStandalone(settings);
-
-        elide.start();
-    }
-}
-```
+To expose and query these models, follow the steps documented in [the getting started guide](https://elide.io/pages/guide/v5/01-start.html).
 
 For example API calls, look at:
-1. [*JSON-API*](http://elide.io/pages/guide/10-jsonapi.html)
-2. [*GraphQL*](http://elide.io/pages/guide/11-graphql.html)
+1. [*JSON-API*](https://elide.io/pages/guide/v5/10-jsonapi.html) 
+2. [*GraphQL*](https://elide.io/pages/guide/v5/11-graphql.html)
 
 ## Security
 
-Security is documented in depth [here](http://elide.io/pages/guide/03-security.html).
+Security is documented in depth [here](http://elide.io/pages/guide/v5/03-security.html).
 
 ## Contribute
 Please refer to [the contributing.md file](CONTRIBUTING.md) for information about how to get involved. We welcome issues, questions, and pull requests.
@@ -218,3 +187,16 @@ Discussion is on [spectrum](https://spectrum.chat/elide) or through filing issue
 ## License
 This project is licensed under the terms of the [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0.html) open source license.
 Please refer to [LICENSE](LICENSE.txt) for the full terms.
+
+## Articles
+[Create a JSON API REST Service With Spring Boot and Elide](https://dzone.com/articles/create-a-json-api-rest-service-with-spring-boot-an)
+
+[Custom Security With a Spring Boot/Elide Json API Server](https://dzone.com/articles/custom-security-with-a-spring-bootelide-json-api-s)
+
+[Logging Into a Spring Boot/Elide JSON API Server](https://dzone.com/articles/logging-into-a-spring-bootelide-json-api-server)
+
+[Securing a JSON API REST Service With Spring Boot and Elide](https://dzone.com/articles/securing-a-json-api-rest-service-with-spring-boot)
+
+[Creating Entities in a Spring Boot/Elide JSON API Server](https://dzone.com/articles/creating-entities-in-a-spring-bootelide-json-api-s)
+
+[Updating and Deleting with a Spring Boot/Elide JSON API Server](https://dzone.com/articles/updating-and-deleting-with-a-spring-bootelide-json)
