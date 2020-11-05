@@ -27,7 +27,7 @@
 
 ## Background
 
-[Elide](http://elide.io/) is a Java library that lets you setup model driven [GraphQL](http://graphql.org) or [JSON API](http://jsonapi.org) web service with minimal effort.  Elide supports two variants of APIs:
+[Elide](https://elide.io/) is a Java library that lets you setup model driven [GraphQL](http://graphql.org) or [JSON API](http://jsonapi.org) web service with minimal effort.  Elide supports two variants of APIs:
 
 1. A CRUD (Create, Read, Update, Delete) API for reading and manipulating models.
 2. An analytic API for aggregating measures over zero or more model attributes.
@@ -65,7 +65,7 @@ Elide is agnostic to your particular persistence strategy. Use an ORM or provide
 
 ## Documentation
 
-More information about Elide can be found at [elide.io](http://elide.io/).
+More information about Elide can be found at [elide.io](https://elide.io/).
 
 ## Install
 
@@ -77,7 +77,9 @@ The code that generates this example can be found [here](https://github.com/yaho
 
 Alternatively, use [elide-standalone](https://github.com/yahoo/elide/tree/master/elide-standalone) which allows you to quickly setup a local instance of Elide running inside an embedded Jetty application.
 
-## Usage (CRUD APIs)
+## Usage 
+
+### For CRUD APIs
 
 The simplest way to use Elide is by leveraging [JPA]([JPA annotated data model](https://en.wikipedia.org/wiki/Java_Persistence_API) to map your Elide models to persistence:
 
@@ -173,9 +175,40 @@ For example API calls, look at:
 1. [*JSON-API*](https://elide.io/pages/guide/v5/10-jsonapi.html) 
 2. [*GraphQL*](https://elide.io/pages/guide/v5/11-graphql.html)
 
+### For Analytic APIs
+
+Analytic models including tables, measures, dimensions, and joins can be created with a friendly HJSON configuration language:
+
+```hjson
+{
+  tables: [
+    {
+      name: Orders
+      table: order_details
+      measures: [
+        {
+          name: orderTotal
+          type: DECIMAL
+          definition: 'SUM({{order_total}})'
+        }
+      ]
+      dimensions: [
+        {
+          name: orderId
+          type: TEXT
+          definition: '{{order_id}}'
+        }
+      ]
+    }
+  ]
+}
+```
+
+More information on configuring or querying analytic models can be found [here](https://elide.io/pages/guide/v5/04-analytics.html).
+
 ## Security
 
-Security is documented in depth [here](http://elide.io/pages/guide/v5/03-security.html).
+Security is documented in depth [here](https://elide.io/pages/guide/v5/03-security.html).
 
 ## Contribute
 Please refer to [the contributing.md file](CONTRIBUTING.md) for information about how to get involved. We welcome issues, questions, and pull requests.
