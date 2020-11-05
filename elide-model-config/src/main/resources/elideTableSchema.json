@@ -30,10 +30,6 @@
           "type": "string"
         }
       },
-      "required": [
-        "type",
-        "sql"
-      ],
       "additionalProperties": false
     },
     "join": {
@@ -298,8 +294,7 @@
       "required": [
         "name",
         "type",
-        "definition",
-        "grain"
+        "definition"
       ]
     }
   },
