@@ -67,21 +67,35 @@ public class DynamicConfigValidator {
     private static final String FILEPATH_PATTERN = "file:";
     private static final String HJSON_EXTN = "**/*.hjson";
 
-    private ElideTableConfig elideTableConfig = new ElideTableConfig();
+    private final ElideTableConfig elideTableConfig = new ElideTableConfig();
     private ElideSecurityConfig elideSecurityConfig;
     private Map<String, Object> modelVariables;
     private Map<String, Object> dbVariables;
-    private ElideDBConfig elideSQLDBConfig = new ElideSQLDBConfig();
-    private String configDir;
-    private Map<String, Resource> resourceMap = new HashMap<>();
+    private final ElideDBConfig elideSQLDBConfig = new ElideSQLDBConfig();
+    private final String configDir;
+    private final Map<String, Resource> resourceMap = new HashMap<>();
+    private final PathMatchingResourcePatternResolver resolver;
 
     public DynamicConfigValidator(String configDir) {
-        File config = new File(configDir);
+        resolver = new PathMatchingResourcePatternResolver(this.getClass().getClassLoader());
 
-        if (config.exists()) {
-            this.setConfigDir(FILEPATH_PATTERN + DynamicConfigHelpers.formatFilePath(config.getAbsolutePath()));
+        String pattern = CLASSPATH_PATTERN + DynamicConfigHelpers.formatFilePath(formatClassPath(configDir));
+
+        boolean classPathExists = false;
+        try {
+            classPathExists = (resolver.getResources(pattern).length != 0);
+        } catch (IOException e) {
+            //NOOP
+        }
+
+        if (classPathExists) {
+            this.configDir = pattern;
         } else {
-            this.setConfigDir(CLASSPATH_PATTERN + DynamicConfigHelpers.formatFilePath(formatClassPath(configDir)));
+            File config = new File(configDir);
+            if (! config.exists()) {
+                throw new IllegalStateException(configDir + " : config path does not exist");
+            }
+            this.configDir = FILEPATH_PATTERN + DynamicConfigHelpers.formatFilePath(config.getAbsolutePath());
         }
     }
 
@@ -193,11 +207,6 @@ public class DynamicConfigValidator {
      * @throws IOException
      */
     private void loadConfigMap() throws IOException {
-        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(
-                this.getClass().getClassLoader());
-        if (resolver.getResources(this.configDir).length == 0) {
-            throw new IllegalStateException(this.configDir + " : config path does not exist");
-        }
         int configDirURILength = resolver.getResources(this.configDir)[0].getURI().toString().length();
 
         Resource[] hjsonResources = resolver.getResources(this.configDir + HJSON_EXTN);
