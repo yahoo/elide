@@ -248,9 +248,10 @@ public class HiveExplainQueryTest extends SQLUnitTest {
                         + "LEFT JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country` "
                         + "ON `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` = "
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`id` "
-                        + "WHERE MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) > :XXX "
-                        + "HAVING `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`iso_code` "
-                        + "IN (:XXX)";
+                        + "WHERE `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`iso_code` "
+                        + "IN (:XXX) "
+                        + "HAVING MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) > :XXX";
+
         String expectedQueryStr2 =
                 "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
@@ -261,12 +262,12 @@ public class HiveExplainQueryTest extends SQLUnitTest {
                         + "LEFT JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country` "
                         + "ON `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` = "
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`id` "
-                        + "WHERE MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) > :XXX "
+                        + "WHERE `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`iso_code` "
+                        + "IN (:XXX) "
                         + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
                         + "PARSEDATETIME(FORMATDATETIME("
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
-                        + "HAVING `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`iso_code` "
-                        + "IN (:XXX) "
+                        + "HAVING MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) > :XXX "
                         + "ORDER BY MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) DESC LIMIT 10,5";
         List<String> expectedQueryList = new ArrayList<String>();
         expectedQueryList.add(expectedQueryStr1);
