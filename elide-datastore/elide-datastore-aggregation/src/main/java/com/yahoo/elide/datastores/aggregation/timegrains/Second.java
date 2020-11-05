@@ -17,7 +17,7 @@ import java.text.SimpleDateFormat;
  */
 public class Second extends Timestamp {
 
-    public static final String FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static final String FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
     private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
 
 
