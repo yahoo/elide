@@ -51,6 +51,7 @@
            definition : '{{playerCountry.isoCode}}'
            values : ['US', 'HK']
            tags: ['PRIVATE']
+           cardinality: small
          },
          {
            name : createdOn

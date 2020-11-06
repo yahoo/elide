@@ -55,6 +55,7 @@
           type: TEXT
           definition: '{{customer.customerRegion}}'
           readAccess: Principal is operator
+          cardinality: small
         }
         {
           name: customerRegionRegion

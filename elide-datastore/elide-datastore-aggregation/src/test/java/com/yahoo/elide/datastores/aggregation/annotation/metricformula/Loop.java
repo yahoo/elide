@@ -6,8 +6,6 @@
 package com.yahoo.elide.datastores.aggregation.annotation.metricformula;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
-import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 
 import lombok.EqualsAndHashCode;
@@ -15,7 +13,6 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Include
-@Cardinality(size = CardinalitySize.LARGE)
 @EqualsAndHashCode
 @ToString
 public class Loop {

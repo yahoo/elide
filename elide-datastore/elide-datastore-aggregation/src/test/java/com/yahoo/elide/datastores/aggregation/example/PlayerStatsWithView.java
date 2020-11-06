@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
@@ -30,7 +29,6 @@ import javax.persistence.Id;
  * A root level entity for testing AggregationDataStore.
  */
 @Include
-@Cardinality(size = CardinalitySize.LARGE)
 @EqualsAndHashCode
 @ToString
 @FromTable(name = "playerStats")
@@ -120,7 +118,7 @@ public class PlayerStatsWithView {
     }
 
     @FriendlyName
-    @Cardinality(size = CardinalitySize.MEDIUM)
+    @ColumnMeta(size = CardinalitySize.MEDIUM)
     public String getOverallRating() {
         return overallRating;
     }
