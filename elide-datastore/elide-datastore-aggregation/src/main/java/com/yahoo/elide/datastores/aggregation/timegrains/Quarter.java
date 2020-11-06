@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.timegrains;
 import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -19,13 +18,13 @@ import java.util.Set;
 /**
  * Time Grain class for Quarter.
  */
-public class Quarter extends Date {
+public class Quarter extends Day {
 
     public static final String FORMAT = "yyyy-MM";
     private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
 
     public Quarter(java.util.Date date) {
-        super(date.getTime());
+        super(date);
     }
 
     @ElideTypeConverter(type = Quarter.class, name = "Quarter")

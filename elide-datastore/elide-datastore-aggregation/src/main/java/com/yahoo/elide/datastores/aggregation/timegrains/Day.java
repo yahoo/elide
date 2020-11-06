@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.timegrains;
 import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -16,13 +15,13 @@ import java.text.SimpleDateFormat;
 /**
  * Time Grain class for Day.
  */
-public class Day extends Date {
+public class Day extends Hour {
 
     public static final String FORMAT = "yyyy-MM-dd";
     private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
 
     public Day(java.util.Date date) {
-        super(date.getTime());
+        super(date);
     }
 
     @ElideTypeConverter(type = Day.class, name = "Day")
