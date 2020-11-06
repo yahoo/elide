@@ -76,6 +76,12 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                .accept("application/vnd.api+json")
+               .get("/table/planet")
+               .then()
+               .statusCode(HttpStatus.SC_OK)
+               .body("data.attributes.isFact", equalTo(false)); //FromTable, TableMeta Present, isFact false
+        given()
+               .accept("application/vnd.api+json")
                .get("/table/continent")
                .then()
                .statusCode(HttpStatus.SC_OK)
@@ -91,7 +97,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .get("/table/country")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body("data.attributes.isFact", equalTo(false)) //TableMeta Present, isFact default true
+                .body("data.attributes.isFact", equalTo(false)) //TableMeta not Present
                 .body("data.attributes.cardinality", equalTo("SMALL"))
                 .body("data.relationships.columns.data.id", hasItems("country.id", "country.name", "country.isoCode"));
         given()
