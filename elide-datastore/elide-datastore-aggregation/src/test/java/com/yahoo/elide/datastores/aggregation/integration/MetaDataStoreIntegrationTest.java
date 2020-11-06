@@ -76,6 +76,12 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                .accept("application/vnd.api+json")
+               .get("/table/planet")
+               .then()
+               .statusCode(HttpStatus.SC_OK)
+               .body("data.attributes.isFact", equalTo(false)); //FromTable, TableMeta Present, isFact false
+        given()
+               .accept("application/vnd.api+json")
                .get("/table/continent")
                .then()
                .statusCode(HttpStatus.SC_OK)

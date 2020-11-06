@@ -27,6 +27,7 @@ import java.util.Set;
 @JsonPropertyOrder({
     "name",
     "schema",
+    "isFact",
     "hidden",
     "description",
     "cardinality",
@@ -55,6 +56,9 @@ public class Table implements Named {
 
     @JsonProperty("dbConnectionName")
     private String dbConnectionName = "";
+
+    @JsonProperty("isFact")
+    private Boolean isFact = true;
 
     @JsonProperty("hidden")
     private Boolean hidden = false;
