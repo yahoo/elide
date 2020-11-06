@@ -10,8 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
-import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
-import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
@@ -68,7 +66,6 @@ public class DimensionFormulaTest {
 @Data
 @Entity
 @Include
-@Cardinality(size = CardinalitySize.SMALL)
 class LoopCountryA {
     @Setter
     private String id;
@@ -100,7 +97,6 @@ class LoopCountryA {
 @Data
 @Entity
 @Include
-@Cardinality(size = CardinalitySize.SMALL)
 class LoopCountryB {
     @Setter
     private String id;
