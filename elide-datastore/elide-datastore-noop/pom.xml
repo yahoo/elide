@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>5.0.0-pr24</version>
+        <version>5.0.0-pr25-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -27,7 +27,7 @@
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
         <url>https://github.com/yahoo/elide.git</url>
-        <tag>5.0.0-pr24</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <dependencies>
