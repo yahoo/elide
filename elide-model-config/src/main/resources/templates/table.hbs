@@ -47,7 +47,8 @@ import javax.persistence.Id;
     description = "<%description%>",
     category="<%category%>",
     tags={<%#collectionToString tags%><%/collectionToString%>},
-    filterTemplate="<%filterTemplate%>"
+    filterTemplate="<%filterTemplate%>",
+    isFact=<%isFact%>
 )
 <%#if hidden%>@Exclude<%else%>@Include(type = "<%#lowerCaseFirstLetter name%><%/lowerCaseFirstLetter%>")<%/if%>
 public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if extend%>extends <%#capitalizeFirstLetter extend%><%/capitalizeFirstLetter%><%/if%>{
