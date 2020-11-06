@@ -62,7 +62,7 @@ public class ElideSettingsBuilder {
     public ElideSettingsBuilder(DataStore dataStore) {
         this.dataStore = dataStore;
         this.auditLogger = new Slf4jLogger();
-        this.jsonApiMapper = new JsonApiMapper(entityDictionary);
+        this.jsonApiMapper = new JsonApiMapper();
         this.joinFilterDialects = new ArrayList<>();
         this.subqueryFilterDialects = new ArrayList<>();
         updateStatusCode = HttpStatus.SC_NO_CONTENT;

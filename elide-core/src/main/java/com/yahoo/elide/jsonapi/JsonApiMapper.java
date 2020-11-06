@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.jsonapi;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Patch;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
@@ -64,27 +63,6 @@ public class JsonApiMapper {
     public JsonApiMapper(ObjectMapper mapper) {
         this.mapper = mapper;
         mapper.registerModule(JsonApiSerializer.getModule());
-    }
-
-    /**
-     * Instantiates a new JSON API OBJECT_MAPPER.
-     *
-     * @param dictionary Not Used
-     */
-    @Deprecated
-    public JsonApiMapper(EntityDictionary dictionary) {
-        this();
-    }
-
-    /**
-     * Instantiates a new Json Api Mapper.
-     *
-     * @param dictionary the dictionary
-     * @param mapper Custom object mapper to use internally for serializing/deserializing
-     */
-    @Deprecated
-    public JsonApiMapper(EntityDictionary dictionary, ObjectMapper mapper) {
-        this(mapper);
     }
 
     /**
