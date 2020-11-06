@@ -53,6 +53,17 @@ public class YearSerdeTest {
     }
 
     @Test
+    public void testDeserializeISOTimestamp() throws ParseException {
+
+        String dateInString = "2020-10-20T11:10:00+01:00";
+        Year expectedDate = new Year(formatter.parse(dateInString));
+        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        Serde serde = new Year.YearSerde();
+        Object actualDate = serde.deserialize(timestamp);
+        assertEquals(expectedDate, actualDate);
+    }
+
+    @Test
     public void testDeserializeDateInvalidFormat() throws ParseException {
 
         String dateInString = "January";

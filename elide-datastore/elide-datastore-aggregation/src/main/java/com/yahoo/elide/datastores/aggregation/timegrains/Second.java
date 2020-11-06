@@ -20,7 +20,6 @@ public class Second extends Timestamp {
     public static final String FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
     private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
 
-
     public Second(java.util.Date date) {
         super(date.getTime());
     }
@@ -39,12 +38,13 @@ public class Second extends Timestamp {
 
             try {
                 if (val instanceof String) {
-                    date = new Second(new Timestamp(FORMATTER.parse((String) val).getTime()));
+                    date = new Second(ISOFormatUtil.formatDateString((String) val, FORMATTER));
                 } else {
                     date = new Second(FORMATTER.parse(FORMATTER.format(val)));
                 }
             } catch (ParseException e) {
-                throw new IllegalArgumentException("String must be formatted as " + FORMAT);
+                throw new IllegalArgumentException("String must be formatted as " + FORMAT + " or "
+                + ISOFormatUtil.ISO_FORMAT);
             }
 
             return date;

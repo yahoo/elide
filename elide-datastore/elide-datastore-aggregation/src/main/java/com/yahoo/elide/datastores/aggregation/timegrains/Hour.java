@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.timegrains;
 import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 
-import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -33,7 +32,7 @@ public class Hour extends Minute {
 
             try {
                 if (val instanceof String) {
-                    date = new Hour(new Timestamp(FORMATTER.parse((String) val).getTime()));
+                    date = new Hour(ISOFormatUtil.formatDateString((String) val, FORMATTER));
                 } else {
                     date = new Hour(FORMATTER.parse(FORMATTER.format(val)));
                 }

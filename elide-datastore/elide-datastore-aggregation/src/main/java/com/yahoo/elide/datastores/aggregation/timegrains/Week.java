@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.timegrains;
 import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 
-import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -35,12 +34,13 @@ public class Week extends Day {
 
             try {
                 if (val instanceof String) {
-                    date = new Week(new Timestamp(FORMATTER.parse((String) val).getTime()));
+                    date = new Week(ISOFormatUtil.formatDateString((String) val, FORMATTER));
                 } else {
                     date = new Week(FORMATTER.parse(FORMATTER.format(val)));
                 }
             } catch (ParseException e) {
-                throw new IllegalArgumentException("String must be formatted as " + FORMAT);
+                throw new IllegalArgumentException("String must be formatted as " + FORMAT + " or "
+                        + ISOFormatUtil.ISO_FORMAT);
             }
 
             if (!WEEKDATE_FORMATTER.format(date).equals("7")) {

@@ -8,14 +8,13 @@ package com.yahoo.elide.datastores.aggregation.timegrains;
 import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.utils.coerce.converters.Serde;
 
-import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 /**
  * Time Grain class for Month.
  */
-public class Month extends Quarter {
+public class Month extends Day {
 
     public static final String FORMAT = "yyyy-MM";
     private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
@@ -33,12 +32,13 @@ public class Month extends Quarter {
 
             try {
                 if (val instanceof String) {
-                    date = new Month(new Timestamp(FORMATTER.parse((String) val).getTime()));
+                    date = new Month(ISOFormatUtil.formatDateString((String) val, FORMATTER));
                 } else {
                     date = new Month(FORMATTER.parse(FORMATTER.format(val)));
                 }
             } catch (ParseException e) {
-                throw new IllegalArgumentException("String must be formatted as " + FORMAT);
+                throw new IllegalArgumentException("String must be formatted as " + FORMAT + " or "
+                        + ISOFormatUtil.ISO_FORMAT);
             }
 
             return date;
