@@ -144,8 +144,8 @@ public abstract class Table implements Versioned  {
     }
 
     private boolean isFact(Class<?> cls, TableMeta meta) {
-        if (meta != null && meta.isFact()) {
-            return true;
+        if (meta != null) {
+            return meta.isFact();
         }
 
         // If FromTable or FromSubquery Annotation exists then assume its fact table.

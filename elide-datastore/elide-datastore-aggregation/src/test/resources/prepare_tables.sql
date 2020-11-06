@@ -72,3 +72,13 @@ CREATE TABLE IF NOT EXISTS continents
 TRUNCATE TABLE continents;
 INSERT INTO continents VALUES (1, 'Asia');
 INSERT INTO continents VALUES (2, 'North America');
+
+CREATE TABLE IF NOT EXISTS planets
+    (
+      id BIGINT,
+      name VARCHAR(255)
+    );
+TRUNCATE TABLE planets;
+INSERT INTO planets VALUES (1, 'Mercury');
+INSERT INTO planets VALUES (2, 'Venus');
+INSERT INTO planets VALUES (3, 'Earth');
