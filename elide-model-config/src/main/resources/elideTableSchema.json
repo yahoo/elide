@@ -337,6 +337,12 @@
             "pattern": "^[A-Za-z][0-9A-Za-z_]*(==|!=|>=|>|<|<=|=[a-z]+=)(.*)",
             "default": ""
           },
+          "isFact": {
+            "title": "Is Fact Table",
+            "description": "Whether this table is a fact",
+            "type": "boolean",
+            "default": true
+          },
           "hidden": {
             "title": "Hide/Show Table",
             "description": "Whether this table is exposed via API metadata",
