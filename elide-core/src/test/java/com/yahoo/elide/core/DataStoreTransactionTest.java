@@ -126,37 +126,31 @@ public class DataStoreTransactionTest implements DataStoreTransaction {
     }
 
     @Override
-    @Deprecated
     public void close() throws IOException {
         // nothing
     }
 
     @Override
-    @Deprecated
     public void save(Object entity, RequestScope scope) {
         // nothing
     }
 
     @Override
-    @Deprecated
     public void delete(Object entity, RequestScope scope) {
         // nothing
     }
 
     @Override
-    @Deprecated
     public void flush(RequestScope scope) {
         // nothing
     }
 
     @Override
-    @Deprecated
     public void commit(RequestScope scope) {
         // nothing
     }
 
     @Override
-    @Deprecated
     public void createObject(Object entity, RequestScope scope) {
         // nothing
     }

@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
@@ -18,7 +17,6 @@ import org.junit.jupiter.api.BeforeAll;
 import lombok.NoArgsConstructor;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.function.Supplier;
 
 @NoArgsConstructor
@@ -26,7 +24,7 @@ public abstract class AbstractHibernateTestService {
     public static DataStore dataStore = null;
 
     /* Empty dictionary is OK provided the OBJECT_MAPPER is used for reading only */
-    protected final JsonApiMapper jsonApiMapper = new JsonApiMapper(new EntityDictionary(new HashMap<>()));
+    protected final JsonApiMapper jsonApiMapper = new JsonApiMapper();
 
     public static DataStore getDatabaseManager() {
         if (dataStore == null) {

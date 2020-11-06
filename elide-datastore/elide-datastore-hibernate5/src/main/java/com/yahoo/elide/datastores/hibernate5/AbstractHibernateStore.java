@@ -12,7 +12,6 @@ import com.yahoo.elide.core.datastore.JPQLDataStore;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.jpa.HibernateEntityManagerFactory;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.metamodel.EntityType;
@@ -75,14 +74,6 @@ public abstract class AbstractHibernateStore implements JPQLDataStore {
         }
 
         public Builder(final EntityManagerFactory entityManagerFactory) {
-            this.sessionFactory = null;
-            this.isScrollEnabled = true;
-            this.scrollMode = ScrollMode.FORWARD_ONLY;
-            this.emf = entityManagerFactory;
-        }
-
-        @Deprecated
-        public Builder(final HibernateEntityManagerFactory entityManagerFactory) {
             this.sessionFactory = null;
             this.isScrollEnabled = true;
             this.scrollMode = ScrollMode.FORWARD_ONLY;
