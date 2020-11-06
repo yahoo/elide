@@ -6,10 +6,9 @@
 package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
-import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
+import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 
 import org.hibernate.annotations.Formula;
 
@@ -30,7 +29,7 @@ import javax.persistence.Table;
 @Entity
 @Include
 @Table(name = "countries")
-@Cardinality(size = CardinalitySize.SMALL)
+@TableMeta
 public class Country {
 
     private String id;

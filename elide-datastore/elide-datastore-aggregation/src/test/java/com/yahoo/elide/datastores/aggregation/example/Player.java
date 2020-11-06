@@ -6,8 +6,6 @@
 package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
-import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 
 import lombok.Data;
@@ -22,7 +20,6 @@ import javax.persistence.Table;
 @Entity
 @Include
 @Table(name = "players")
-@Cardinality(size = CardinalitySize.MEDIUM)
 @Data
 public class Player {
 

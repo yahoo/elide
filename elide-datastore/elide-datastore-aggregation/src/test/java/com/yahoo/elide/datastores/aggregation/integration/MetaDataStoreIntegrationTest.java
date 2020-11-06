@@ -97,8 +97,8 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .get("/table/country")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body("data.attributes.isFact", equalTo(false)) //TableMeta not Present
-                .body("data.attributes.cardinality", equalTo("SMALL"))
+                .body("data.attributes.isFact", equalTo(true)) //TableMeta Present, isFact default true
+                .body("data.attributes.cardinality", equalTo("UNKNOWN"))
                 .body("data.relationships.columns.data.id", hasItems("country.id", "country.name", "country.isoCode"));
         given()
                 .accept("application/vnd.api+json")
@@ -170,6 +170,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.valueSourceType", equalTo("ENUM"))
                 .body("data.attributes.tableSource", nullValue())
                 .body("data.attributes.columnType", equalTo("FIELD"))
+                .body("data.attributes.cardinality", equalTo("MEDIUM"))
                 .statusCode(HttpStatus.SC_OK);
     }
 
@@ -196,6 +197,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.tableSource",  equalTo("subcountry.nickName"))
                 .body("data.attributes.expression",  equalTo("{{country.nickName}}"))
                 .body("data.attributes.values", equalTo(Collections.emptyList()))
+                .body("data.attributes.cardinality", equalTo("UNKNOWN"))
                 .statusCode(HttpStatus.SC_OK);
     }
 
@@ -286,5 +288,27 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body("errors.detail", hasItem("API version 2.0 not found"));
+    }
+
+    @Test
+    public void dynamicConfigCardinalityMetaDataTest() {
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/orderDetails/dimensions/orderDetails.customerRegion")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("customerRegion"))
+                .body("data.attributes.cardinality", equalTo("SMALL"))
+                .body("data.attributes.expression", equalTo("{{customer.customerRegion}}"));
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/orderDetails/dimensions/orderDetails.customerRegionRegion")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("customerRegionRegion"))
+                .body("data.attributes.cardinality", equalTo("UNKNOWN"))
+                .body("data.attributes.expression", equalTo("{{customer.region.region}}"));
     }
 }

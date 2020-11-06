@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 
@@ -20,8 +19,7 @@ import javax.persistence.Table;
 @Entity
 @Include
 @Table(name = "continents")
-@TableMeta(isFact = false)
-@Cardinality(size = CardinalitySize.SMALL)
+@TableMeta(isFact = false, size = CardinalitySize.SMALL)
 public class Continent {
 
     @Id
