@@ -22,11 +22,6 @@ public class InMemoryDataStore implements DataStore {
         this.wrappedStore = wrappedStore;
     }
 
-    @Deprecated
-    public InMemoryDataStore(Package beanPackage) {
-        this(new HashMapDataStore(beanPackage));
-    }
-
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
         wrappedStore.populateEntityDictionary(dictionary);
