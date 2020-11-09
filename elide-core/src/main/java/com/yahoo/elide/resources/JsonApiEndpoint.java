@@ -26,6 +26,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -62,14 +63,17 @@ public class JsonApiEndpoint {
     public Response post(
         @PathParam("path") String path,
         @Context UriInfo uriInfo,
-        @HeaderParam("ApiVersion") String apiVersion,
+        //@HeaderParam("ApiVersion") String apiVersion,
+        @Context HttpHeaders headers,
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
+        String apiVersion = headers.getRequestHeader("ApiVersion").get(0);
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         User user = new SecurityContextUser(securityContext);
         return build(elide.post(uriInfo.getBaseUri().toString(), path, jsonapiDocument,
-                queryParams, user, safeApiVersion, UUID.randomUUID()));
+                queryParams, requestHeaders, user, safeApiVersion, UUID.randomUUID()));
     }
 
     /**
@@ -85,13 +89,16 @@ public class JsonApiEndpoint {
     @Path("{path:.*}")
     public Response get(
         @PathParam("path") String path,
-        @HeaderParam("ApiVersion") String apiVersion,
+        //@HeaderParam("ApiVersion") String apiVersion,
         @Context UriInfo uriInfo,
+        @Context HttpHeaders headers,
         @Context SecurityContext securityContext) {
+    	String apiVersion = headers.getRequestHeader("ApiVersion").get(0);
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
         User user = new SecurityContextUser(securityContext);
-        return build(elide.get(uriInfo.getBaseUri().toString(), path, queryParams, user, safeApiVersion));
+        return build(elide.get(uriInfo.getBaseUri().toString(), path, queryParams, requestHeaders, user, safeApiVersion, UUID.randomUUID()));
     }
 
     /**

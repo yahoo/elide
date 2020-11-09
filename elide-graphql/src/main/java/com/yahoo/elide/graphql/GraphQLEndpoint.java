@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -27,6 +28,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -65,6 +67,7 @@ public class GraphQLEndpoint {
     public Response post(
             @Context UriInfo uriInfo,
             @HeaderParam("ApiVersion") String apiVersion,
+            @Context HttpHeaders headers,
             @Context SecurityContext securityContext,
             String graphQLDocument) {
 
@@ -76,7 +79,7 @@ public class GraphQLEndpoint {
         if (runner == null) {
             response = buildErrorResponse(elide, new InvalidOperationException("Invalid API Version"), false);
         } else {
-            response = runner.run(uriInfo.getBaseUri().toString(), graphQLDocument, user);
+            response = runner.run(uriInfo.getBaseUri().toString(), graphQLDocument, user, UUID.randomUUID(), headers.getRequestHeaders());
         }
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
     }

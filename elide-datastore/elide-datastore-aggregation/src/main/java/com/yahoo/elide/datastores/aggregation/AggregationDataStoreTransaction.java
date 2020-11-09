@@ -127,12 +127,13 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
         Table table = metaDataStore.getTable(
                 scope.getDictionary().getJsonAliasFor(entityProjection.getType()),
                 scope.getApiVersion());
-
+//CARBON-371
         EntityProjectionTranslator translator = new EntityProjectionTranslator(
                 queryEngine,
                 table,
                 entityProjection,
                 scope.getDictionary());
+      //CARBON-371
         Query query = translator.getQuery();
 
         FilterExpression filterTemplate = table.getRequiredFilter(scope.getDictionary());

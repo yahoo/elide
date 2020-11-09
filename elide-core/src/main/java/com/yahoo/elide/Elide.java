@@ -55,6 +55,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -184,7 +185,32 @@ public class Elide {
             return visit(path, requestScope, visitor);
         });
     }
-
+ //CARBON-371
+    /**
+     * Handle GET.
+     *
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param path the path
+     * @param queryParams the query params
+     * @param requestHeaders the request headers
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @param requestId the request ID
+     * @return Elide response object
+     */
+    public ElideResponse get(String baseUrlEndPoint, String path, MultivaluedMap<String, String> queryParams, MultivaluedMap<String, String> requestHeaders,
+                             User opaqueUser, String apiVersion, UUID requestId) {
+        return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, requestId, (tx, user) -> {
+            JsonApiDocument jsonApiDoc = new JsonApiDocument();
+            RequestScope requestScope = new RequestScope(baseUrlEndPoint, path, apiVersion, jsonApiDoc,
+                    tx, user, queryParams, requestHeaders, requestId, elideSettings);
+            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+                    requestScope).parsePath(path));
+            BaseVisitor visitor = new GetVisitor(requestScope);
+            return visit(path, requestScope, visitor);
+        });
+    }
+    
     /**
      * Handle POST.
      *
@@ -226,6 +252,33 @@ public class Elide {
         });
     }
 
+    /**
+     * Handle POST.
+     *
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param path the path
+     * @param jsonApiDocument the json api document
+     * @param queryParams the query params
+     * @param requestHeaders the request headers
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @param requestId the request ID
+     * @return Elide response object
+     */
+    public ElideResponse post(String baseUrlEndPoint, String path, String jsonApiDocument,
+                              MultivaluedMap<String, String> queryParams, MultivaluedMap<String, String> requestHeaders,
+                              User opaqueUser, String apiVersion, UUID requestId) {
+        return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestId, (tx, user) -> {
+            JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
+            RequestScope requestScope = new RequestScope(baseUrlEndPoint, path, apiVersion,
+                    jsonApiDoc, tx, user, queryParams, requestHeaders, requestId, elideSettings);
+            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+                    requestScope).parsePath(path));
+            BaseVisitor visitor = new PostVisitor(requestScope);
+            return visit(path, requestScope, visitor);
+        });
+    }
+    //CARBON-371
     /**
      * Handle PATCH.
      *
