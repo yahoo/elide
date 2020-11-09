@@ -117,7 +117,7 @@ public class DynamicConfigValidatorTest {
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/bad_variable" }));
 
-        assertEquals("Invalid HJSON Syntax: Found '[' where a key name was "
+        assertEquals("Invalid Hjson Syntax: Found '[' where a key name was "
                 + "expected (check your syntax or use quotes if the key name includes {}[],: or whitespace) at 3:7",
                 e.getMessage());
     }
@@ -127,7 +127,7 @@ public class DynamicConfigValidatorTest {
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
                 .main(new String[] { "--configDir", "src/test/resources/validator/bad_security" }));
 
-        assertEquals("Invalid HJSON Syntax: Found '[' where a key name was expected "
+        assertEquals("Invalid Hjson Syntax: Found '[' where a key name was expected "
                 + "(check your syntax or use quotes if the key name includes {}[],: or whitespace) at 3:11",
                 e.getMessage());
     }
