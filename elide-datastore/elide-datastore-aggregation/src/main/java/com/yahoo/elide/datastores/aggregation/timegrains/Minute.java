@@ -15,13 +15,13 @@ import java.text.SimpleDateFormat;
 /**
  * Time Grain class for Minute.
  */
-public class Minute extends Timestamp {
+public class Minute extends Second {
 
     public static final String FORMAT = "yyyy-MM-dd'T'HH:mm";
     private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
 
     public Minute(java.util.Date date) {
-        super(date.getTime());
+        super(date);
     }
 
     @ElideTypeConverter(type = Minute.class, name = "Minute")
