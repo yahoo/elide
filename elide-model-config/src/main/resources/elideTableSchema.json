@@ -235,7 +235,9 @@
             "tableSource": {
               "title": "Table stores dimension values",
               "description": "Table and column name where to find the values : tableName.columnName",
-              "type": "string"
+              "type": "string",
+              "pattern": "^[A-Za-z][0-9A-Za-z_]*[.][A-Za-z][0-9A-Za-z_]*$",
+              "examples": [ "RegionDetails.region" ]
             }
           }
         }

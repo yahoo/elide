@@ -27,6 +27,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -72,6 +73,7 @@ public class ElideDynamicEntityCompiler {
     private static class ModelMapValue {
         private final String className;
         private final String classImport;
+        private final Set<String> fieldNames;
     }
 
     private static Map<ModelMapKey, ModelMapValue> createMapping() {
@@ -83,11 +85,35 @@ public class ElideDynamicEntityCompiler {
             String className = cls.getSimpleName();
             String pkgName = cls.getPackage().getName();
             map.put(new ModelMapKey(modelName, modelVersion),
-                            new ModelMapValue(className, prepareImport(pkgName, className)));
+                    new ModelMapValue(className, prepareImport(pkgName, className), getFieldNames(cls)));
         });
 
         return Collections.unmodifiableMap(map);
     }
+
+    private static Set<String> getFieldNames(Class<?> cls) {
+        Set<String> fieldNames = new HashSet<String>();
+        getAllFieldNames(cls, fieldNames);
+        return fieldNames;
+    }
+
+    private static void getAllFieldNames(Class<?> cls, Set<String> fieldNames) {
+
+        if (cls == Object.class) {
+            return;
+        }
+
+        getAllFieldNames(cls.getSuperclass(), fieldNames);
+
+        fieldNames.addAll(
+            Arrays.stream(cls.getDeclaredFields())
+                .filter(field -> !field.isSynthetic() && !Modifier.isStatic(field.getModifiers()))
+                .map(field -> field.getName())
+                .collect(Collectors.toList()
+            )
+        );
+    }
+
     /**
      * Parse dynamic config path.
      * @param path : Dynamic config hjsons root location
@@ -270,5 +296,17 @@ public class ElideDynamicEntityCompiler {
     public static String getStaticModelClassImport(String modelName, String modelVersion, String defaultValue) {
         ModelMapValue value = STATIC_MODEL_DETAILS.get(new ModelMapKey(modelName, modelVersion));
         return value != null ? value.getClassImport() : defaultValue;
+    }
+
+    /**
+     * Checks if field exists in referenced static model.
+     * @param modelName model name.
+     * @param modelVersion model version.
+     * @param fieldName field name to check.
+     * @return true if model has the field defined else false
+     */
+    public static boolean staticModelContainsField(String modelName, String modelVersion, String fieldName) {
+        ModelMapValue value = STATIC_MODEL_DETAILS.get(new ModelMapKey(modelName, modelVersion));
+        return value != null ? value.getFieldNames().contains(fieldName) : false;
     }
 }

@@ -29,7 +29,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode()
 @AllArgsConstructor
 @NoArgsConstructor
-public class Join {
+public class Join implements Named {
 
     @JsonProperty("name")
     private String name;

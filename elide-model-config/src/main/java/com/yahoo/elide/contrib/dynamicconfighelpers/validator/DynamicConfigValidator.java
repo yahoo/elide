@@ -5,13 +5,15 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers.validator;
 
+import static com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers.isNullOrEmpty;
+import static com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler.getStaticModelClassName;
+import static com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler.staticModelContainsField;
 import static com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.HandlebarsHelper.REFERENCE_PARENTHESES;
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.Config;
 import com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers;
-import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideDBConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSQLDBConfig;
@@ -36,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -156,11 +159,7 @@ public class DynamicConfigValidator {
 
     private void flagMeasuresToOverride(Table table, Set<Table> parentTables) {
         Set<String> parentClassMeasures = new HashSet<>();
-        parentTables.forEach(obj -> {
-            obj.getMeasures().forEach(measure -> {
-                parentClassMeasures.add(measure.getName());
-            });
-        });
+        parentTables.forEach(obj -> parentClassMeasures.addAll(getNames(obj.getMeasures())));
 
         table.getMeasures().forEach(measure -> {
             if (parentClassMeasures.contains(measure.getName())) {
@@ -171,11 +170,7 @@ public class DynamicConfigValidator {
 
     private void flagDimensionsToOverride(Table table, Set<Table> parentTables) {
         Set<String> parentClassDimensions = new HashSet<>();
-        parentTables.forEach(obj -> {
-            obj.getDimensions().forEach(dimension -> {
-                parentClassDimensions.add(dimension.getName());
-            });
-        });
+        parentTables.forEach(obj -> parentClassDimensions.addAll(getNames(obj.getDimensions())));
 
         table.getDimensions().forEach(dimension -> {
             if (parentClassDimensions.contains(dimension.getName())) {
@@ -189,21 +184,20 @@ public class DynamicConfigValidator {
         Table current = table;
 
         while (current != null && current.getExtend() != null && !current.getExtend().equals("")) {
-            Table parent = getTableByName(current.getExtend().trim());
+            Table parent = getTableByName(this.elideTableConfig, current.getExtend().trim());
             parentTables.add(parent);
             current = parent;
         }
         return parentTables;
     }
 
-    private Table getTableByName(String tableName) {
-        Table tableByName = this.elideTableConfig.getTables().stream().filter(
-                table -> table.getName().equals(tableName)).findFirst().orElse(null);
-
-        if (tableByName != null) {
-            return tableByName;
-        }
-        throw new IllegalStateException("Table " + tableName + " is not defined in Dynamic Config.");
+    private static Table getTableByName(ElideTableConfig elideTableConfig, String tableName) {
+        return elideTableConfig.getTables()
+                        .stream()
+                        .filter(t -> t.getName().equals(tableName))
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalStateException(
+                                        "Undefined model: " + tableName + " in Dynamic Config."));
     }
 
     /**
@@ -347,16 +341,77 @@ public class DynamicConfigValidator {
     private static boolean validateTableConfig(ElideTableConfig elideTableConfig) {
         for (Table table : elideTableConfig.getTables()) {
             validateSql(table.getSql());
-            table.getDimensions().forEach(dim -> validateSql(dim.getDefinition()));
+            table.getDimensions().forEach(dim -> {
+                validateSql(dim.getDefinition());
+                validateTableSource(elideTableConfig, dim.getTableSource());
+            });
             table.getMeasures().forEach(measure -> validateSql(measure.getDefinition()));
             table.getJoins().forEach(join -> validateJoin(join, elideTableConfig));
         }
+
         return true;
     }
 
+    private static void validateTableSource(ElideTableConfig elideTableConfig, String tableSource) {
+        if (isNullOrEmpty(tableSource)) {
+            return; // Nothing to validate
+        }
+
+        String[] split = tableSource.split("\\.");
+        if (split.length != 2) {
+            throw new IllegalStateException("Invalid tableSource: " + tableSource
+                            + ". tableSource must be in format: modelName.columnName");
+        }
+        String modelName = split[0];
+        String fieldName = split[1];
+
+        if (!staticModelContainsField(modelName, NO_VERSION, fieldName)
+                        && !dynamicModelContainsField(elideTableConfig, modelName, fieldName)) {
+            throw new IllegalStateException("Invalid tableSource : " + tableSource + " . Either model : " + modelName
+                            + " is undefined or field : " + fieldName + " is undefined for this model.");
+        }
+    }
+
+    private static boolean dynamicModelContainsField(ElideTableConfig elideTableConfig, String modelName,
+                    String fieldName) {
+        if (getNames(elideTableConfig.getTables()).contains(modelName)
+                        && getFieldNames(elideTableConfig, modelName).contains(fieldName)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static Set<String> getFieldNames(ElideTableConfig elideTableConfig, String modelName) {
+        Set<String> fieldNames = new HashSet<String>();
+        getAllFieldNames(elideTableConfig, modelName, fieldNames);
+
+        return fieldNames;
+    }
+
+    private static void getAllFieldNames(ElideTableConfig elideTableConfig, String modelName, Set<String> fieldNames) {
+
+        Table table = getTableByName(elideTableConfig, modelName);
+        fieldNames.addAll(getNames(table.getDimensions()));
+        fieldNames.addAll(getNames(table.getMeasures()));
+
+        String superClass = table.getExtend();
+        if (!isNullOrEmpty(superClass)) {
+            // Assumption: Dynamic Model must extend another Dynamic Model only.
+            getAllFieldNames(elideTableConfig, superClass, fieldNames);
+        }
+    }
+
+    private static Set<String> getNames(Collection<? extends Named> collection) {
+        return collection
+                        .stream()
+                        .map(t -> t.getName())
+                        .collect(Collectors.toSet());
+    }
+
     /**
-     * Validates join clause does not refer to a Table which is not in the same DBConnection.
-     * If joined table is not part of dynamic configuration, then ignore
+     * Validates join clause does not refer to a Table which is not in the same DBConnection. If joined table is not
+     * part of dynamic configuration, then ignore
      */
     private static void validateJoinedTablesDBConnectionName(ElideTableConfig elideTableConfig) {
 
@@ -416,12 +471,9 @@ public class DynamicConfigValidator {
         validateSql(join.getDefinition());
 
         String joinModelName = join.getTo();
-        Set<String> dynamicModels = elideTableConfig.getTables()
-                        .stream()
-                        .map(t -> t.getName())
-                        .collect(Collectors.toSet());
+        Set<String> dynamicModelNames = getNames(elideTableConfig.getTables());
 
-        if (!(dynamicModels.contains(joinModelName) || ElideDynamicEntityCompiler.getStaticModelClassName(joinModelName,
+        if (!(dynamicModelNames.contains(joinModelName) || getStaticModelClassName(joinModelName,
                         NO_VERSION, null) != null)) {
             throw new IllegalStateException(
                             "Model: " + joinModelName + " is neither included in dynamic models nor in static models");

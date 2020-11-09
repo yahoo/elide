@@ -62,6 +62,7 @@
           type: TEXT
           definition: '{{customer.region.region}}'
           readAccess: Principal is operator
+          tableSource: regionDetails.region
         }
         {
           name: zipCode

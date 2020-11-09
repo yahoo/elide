@@ -246,9 +246,15 @@ public class DynamicConfigValidatorTest {
 
             assertEquals(2, exitStatus);
         });
-
         assertEquals("foobar is used as a variable in either table or security config files "
                         + "but is not defined in variables config file.\n", error);
+    }
+
+    public void testBadTableSource() {
+        Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
+                        .main(new String[] {"--configDir", "src/test/resources/validator/bad_tablesource"}));
+        assertEquals("Invalid tableSource : Team.teamRegion . Either model : Team is undefined or field : teamRegion is undefined for this model.",
+                        e.getMessage());
     }
 
     @Test
