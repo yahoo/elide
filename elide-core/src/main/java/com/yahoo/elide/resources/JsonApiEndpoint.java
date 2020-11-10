@@ -71,6 +71,8 @@ public class JsonApiEndpoint {
         MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
         String apiVersion = headers.getRequestHeader("ApiVersion").get(0);
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
+        requestHeaders.remove("Authorization");
+        requestHeaders.remove("Proxy-Authorization");
         User user = new SecurityContextUser(securityContext);
         return build(elide.post(uriInfo.getBaseUri().toString(), path, jsonapiDocument,
                 queryParams, requestHeaders, user, safeApiVersion, UUID.randomUUID()));
@@ -97,6 +99,8 @@ public class JsonApiEndpoint {
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
+        requestHeaders.remove("Authorization");
+        requestHeaders.remove("Proxy-Authorization");
         User user = new SecurityContextUser(securityContext);
         return build(elide.get(uriInfo.getBaseUri().toString(), path, queryParams, requestHeaders, user, safeApiVersion, UUID.randomUUID()));
     }

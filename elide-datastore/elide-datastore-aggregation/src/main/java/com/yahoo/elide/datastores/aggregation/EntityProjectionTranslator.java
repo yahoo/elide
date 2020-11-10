@@ -25,13 +25,18 @@ import com.yahoo.elide.request.Relationship;
 
 import com.google.common.collect.Sets;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Helper for Aggregation Data Store which does the work associated with extracting {@link Query}.
@@ -47,13 +52,18 @@ public class EntityProjectionTranslator {
     private FilterExpression whereFilter;
     private FilterExpression havingFilter;
     private EntityDictionary dictionary;
+    private Boolean bypassCache;
+
 
     public EntityProjectionTranslator(QueryEngine engine, Table table,
-                                      EntityProjection entityProjection, EntityDictionary dictionary) {
+                                      EntityProjection entityProjection, EntityDictionary dictionary, Optional<MultivaluedMap<String, String>> optional) {
         this.engine = engine;
         this.queriedTable = table;
         this.entityProjection = entityProjection;
         this.dictionary = dictionary;
+        String bypassCache = optional.isPresent()? optional.get().get("byPassCache").get(0): null;
+        String safebypassCache = bypassCache == null ? "true" : bypassCache;
+        this.bypassCache = Boolean.parseBoolean(safebypassCache);
         dimensionProjections = resolveNonTimeDimensions();
         timeDimensions = resolveTimeDimensions();
         metrics = resolveMetrics();
@@ -74,6 +84,7 @@ public class EntityProjectionTranslator {
                 .havingFilter(havingFilter)
                 .sorting(entityProjection.getSorting())
                 .pagination(ImmutablePagination.from(entityProjection.getPagination()))
+                .bypassingCache(bypassCache)
                 .build();
         QueryValidator validator = new QueryValidator(query, getAllFields(), dictionary);
         validator.validate();

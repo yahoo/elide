@@ -52,7 +52,8 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
                 engine,
                 playerStatsTable,
                 basicProjection,
-                dictionary
+                dictionary,
+                null
         );
 
         Query query = translator.getQuery();
@@ -84,7 +85,8 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
                 engine,
                 playerStatsTable,
                 projection,
-                dictionary
+                dictionary,
+                null
         );
 
         Query query = translator.getQuery();
@@ -110,7 +112,8 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
                 engine,
                 playerStatsTable,
                 projection,
-                dictionary
+                dictionary,
+                null
         );
 
         Query query = translator.getQuery();

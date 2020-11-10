@@ -30,6 +30,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
@@ -66,12 +67,16 @@ public class GraphQLEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response post(
             @Context UriInfo uriInfo,
-            @HeaderParam("ApiVersion") String apiVersion,
+            //@HeaderParam("ApiVersion") String apiVersion,
             @Context HttpHeaders headers,
             @Context SecurityContext securityContext,
             String graphQLDocument) {
 
+    	String apiVersion = headers.getRequestHeader("ApiVersion").get(0);
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
+        MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
+        requestHeaders.remove("Authorization");
+        requestHeaders.remove("Proxy-Authorization");
         User user = new SecurityContextUser(securityContext);
         QueryRunner runner = runners.getOrDefault(safeApiVersion, null);
 
@@ -79,7 +84,7 @@ public class GraphQLEndpoint {
         if (runner == null) {
             response = buildErrorResponse(elide, new InvalidOperationException("Invalid API Version"), false);
         } else {
-            response = runner.run(uriInfo.getBaseUri().toString(), graphQLDocument, user, UUID.randomUUID(), headers.getRequestHeaders());
+            response = runner.run(uriInfo.getBaseUri().toString(), graphQLDocument, user, UUID.randomUUID(), requestHeaders);
         }
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
     }
