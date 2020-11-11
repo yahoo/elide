@@ -229,7 +229,8 @@ public class DynamicConfigValidator {
                         .map(entry -> {
                             try {
                                 String content = IOUtils.toString(entry.getValue().getInputStream(), UTF_8);
-                                return DynamicConfigHelpers.stringToVariablesPojo(content);
+                                return DynamicConfigHelpers.stringToVariablesPojo
+                                                (entry.getValue().getFilename(), content);
                             } catch (IOException e) {
                                 throw new IllegalStateException(e);
                             }
@@ -251,7 +252,8 @@ public class DynamicConfigValidator {
                             try {
                                 String content = IOUtils.toString(entry.getValue().getInputStream(), UTF_8);
                                 validateConfigForMissingVariables(content, this.modelVariables);
-                                return DynamicConfigHelpers.stringToElideSecurityPojo(content, this.modelVariables);
+                                return DynamicConfigHelpers.stringToElideSecurityPojo
+                                                (entry.getValue().getFilename(), content, this.modelVariables);
                             } catch (IOException e) {
                                 throw new IllegalStateException(e);
                             }
@@ -274,7 +276,8 @@ public class DynamicConfigValidator {
                             try {
                                 String content = IOUtils.toString(entry.getValue().getInputStream(), UTF_8);
                                 validateConfigForMissingVariables(content, this.dbVariables);
-                                return DynamicConfigHelpers.stringToElideDBConfigPojo(content, this.dbVariables);
+                                return DynamicConfigHelpers.stringToElideDBConfigPojo
+                                                (entry.getValue().getFilename(), content, this.dbVariables);
                             } catch (IOException e) {
                                 throw new IllegalStateException(e);
                             }
@@ -296,7 +299,8 @@ public class DynamicConfigValidator {
                             try {
                                 String content = IOUtils.toString(entry.getValue().getInputStream(), UTF_8);
                                 validateConfigForMissingVariables(content, this.modelVariables);
-                                return DynamicConfigHelpers.stringToElideTablePojo(content, this.modelVariables);
+                                return DynamicConfigHelpers.stringToElideTablePojo
+                                                (entry.getValue().getFilename(), content, this.modelVariables);
                             } catch (IOException e) {
                                 throw new IllegalStateException(e);
                             }

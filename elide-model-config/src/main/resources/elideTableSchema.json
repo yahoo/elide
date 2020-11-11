@@ -12,16 +12,16 @@
           "title": "Time granularity",
           "description": "Indicates grain time granularity",
           "type": "string",
-          "enum": [
-            "SECOND",
-            "MINUTE",
-            "HOUR",
-            "DAY",
-            "ISOWEEK",
-            "WEEK",
-            "MONTH",
-            "QUARTER",
-            "YEAR"
+          "anyOf": [
+            { "pattern": "^[Ss][Ee][Cc][Oo][Nn][Dd]$" },
+            { "pattern": "^[Mm][Ii][Nn][Uu][Tt][Ee]$" },
+            { "pattern": "^[Hh][Oo][Uu][Rr]$" },
+            { "pattern": "^[Dd][Aa][Yy]$" },
+            { "pattern": "^[Ii][Ss][Oo][Ww][Ee][Ee][Kk]$" },
+            { "pattern": "^[Ww][Ee][Ee][Kk]$" },
+            { "pattern": "^[Mm][Oo][Nn][Tt][Hh]$" },
+            { "pattern": "^[Qq][Uu][Aa][Rr][Tt][Ee][Rr]$" },
+            { "pattern": "^[Yy][Ee][Aa][Rr]$" }
           ]
         },
         "sql": {
@@ -52,9 +52,9 @@
           "title": "Type of Join",
           "description": "Type of the join - toOne or toMany",
           "type": "string",
-          "enum": [
-            "toOne",
-            "toMany"
+          "anyOf": [
+            { "pattern": "^[Tt][Oo][Oo][Nn][Ee]$" },
+            { "pattern": "^[Tt][Oo][Mm][Aa][Nn][Yy]$" }
           ]
         },
         "definition": {
@@ -71,29 +71,29 @@
       ],
       "additionalProperties": false
     },
-    "enumtype": {
+    "columnTypes": {
       "title": "Dimension field type",
       "description": "The data type of the dimension field",
       "type": "string",
-      "enum": [
-        "INTEGER",
-        "DECIMAL",
-        "MONEY",
-        "TEXT",
-        "COORDINATE",
-        "BOOLEAN"
+      "anyOf": [
+        { "pattern": "^[Ii][Nn][Tt][Ee][Gg][Ee][Rr]$" },
+        { "pattern": "^[Dd][Ee][Cc][Ii][Mm][Aa][Ll]$" },
+        { "pattern": "^[Mm][Oo][Nn][Ee][Yy]$" },
+        { "pattern": "^[Tt][Ee][Xx][Tt]$" },
+        { "pattern": "^[Cc][Oo][Oo][Rr][Dd][Ii][Nn][Aa][Tt][Ee]$" },
+        { "pattern": "^[Bb][Oo][Oo][Ll][Ee][Aa][Nn]$" }
       ]
     },
-    "enumCardinality": {
+    "cardinalityTypes": {
       "title": "Table/Dimension cardinality",
       "description": "Table/Dimension cardinality: (tiny, small, medium, large, huge). The relative sizes are decided by the table designer(s).",
       "type": "string",
-      "enum": [
-        "tiny",
-        "small",
-        "medium",
-        "large",
-        "huge"
+      "anyOf": [
+        { "pattern": "^[Tt][Ii][Nn][Yy]$" },
+        { "pattern": "^[Ss][Mm][Aa][Ll][Ll]$" },
+        { "pattern": "^[Mm][Ee][Dd][Ii][Uu][Mm]$" },
+        { "pattern": "^[Ll][Aa][Rr][Gg][Ee]$" },
+        { "pattern": "^[Hh][Uu][Gg][Ee]$" }
       ]
     },
     "measure": {
@@ -140,15 +140,7 @@
           "pattern": "^([a-zA-Z]+[a-zA-Z0-9_]*\\.)+class",
           "type": "string"
         },
-        "type": {
-          "oneOf":[
-            {"$ref": "#/definitions/enumtype"},
-            {"enum": [
-              "TIME"
-            ]}
-          ],
-          "default": "INTEGER"
-        },
+        "type": { "$ref": "#/definitions/columnTypes" },
         "tags": {
           "title": "Measure tags",
           "description": "An array of string based tags for measures",
@@ -206,7 +198,7 @@
           "default": ""
         },
         "cardinality": {
-          "$ref": "#/definitions/enumCardinality"
+          "$ref": "#/definitions/cardinalityTypes"
         },
         "tags": {
           "title": "Dimension tags",
@@ -229,20 +221,7 @@
         { "$ref": "#/definitions/dimensionRef" },
         {
           "properties": {
-            "type": {
-              "oneOf": [
-                {
-                  "$ref": "#/definitions/enumtype"
-                },
-                {
-                  "enum": [
-                    "RELATIONSHIP",
-                    "ID"
-                  ]
-                }
-              ],
-              "default": "TEXT"
-            },
+            "type": { "$ref": "#/definitions/columnTypes" },
             "values": {
               "title": "Dimension values",
               "description": "An array of valid string values for this dimension",
@@ -295,10 +274,7 @@
               "title": "Dimension field type",
               "description": "The data type of the dimension field",
               "type": "string",
-              "enum": [
-                "TIME"
-              ],
-              "default": "TIME"
+              "pattern": "^[Tt][Ii][Mm][Ee]$"
             },
             "grain": {
               "$ref":"#/definitions/grain"
@@ -370,7 +346,7 @@
             "type": "string"
           },
           "cardinality": {
-            "$ref": "#/definitions/enumCardinality"
+            "$ref": "#/definitions/cardinalityTypes"
           },
           "readAccess": {
             "title": "Table read access",

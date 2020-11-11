@@ -5,10 +5,14 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers;
 
+import static com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers.isNullOrEmpty;
+import static com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.HandlebarsHelper.NEWLINE;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.LogLevel;
-import com.github.fge.jsonschema.core.report.ProcessingMessage;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
@@ -18,8 +22,10 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
 
 /**
  * Dynamic Model Schema validation.
@@ -43,11 +49,13 @@ public class DynamicConfigSchemaValidator {
      *  Verify config against schema.
      * @param configType
      * @param jsonConfig
+     * @param fileName
      * @return whether config is valid
      * @throws IOException
      * @throws ProcessingException
      */
-    public boolean verifySchema(Config configType, String jsonConfig) throws IOException, ProcessingException {
+    public boolean verifySchema(Config configType, String jsonConfig, String fileName)
+                    throws IOException, ProcessingException {
         ProcessingReport results = null;
         boolean isSuccess = false;
 
@@ -72,24 +80,46 @@ public class DynamicConfigSchemaValidator {
         isSuccess = (results == null ? false : results.isSuccess());
 
         if (!isSuccess) {
-            throw new IllegalStateException("Schema validation failed: " + getErrorMessage(results));
+            throw new IllegalStateException("Schema validation failed for: " + fileName + getErrorMessages(results));
         }
         return isSuccess;
     }
 
-    private static String getErrorMessage(ProcessingReport report) {
-        StringBuilder errorBuilder = new StringBuilder();
-        errorBuilder.append("[");
+    private static String getErrorMessages(ProcessingReport report) {
+        List<String> list = new ArrayList<String>();
+        report.forEach(msg -> addEmbeddedMessages(msg.asJson(), list, 0));
 
-        errorBuilder.append(
-                StreamSupport.stream(report.spliterator(), false)
-                .filter(message -> (message.getLogLevel() == LogLevel.ERROR || message.getLogLevel() == LogLevel.FATAL))
-                .map(ProcessingMessage::getMessage)
-                .collect(Collectors.joining(", ")));
+        return NEWLINE + String.join(NEWLINE, list);
+    }
 
-        errorBuilder.append(" ]");
+    private static void addEmbeddedMessages(JsonNode root, List<String> list, int depth) {
 
-        return errorBuilder.toString();
+        if (root.has("level") && root.has("message")) {
+            String level = root.get("level").asText();
+
+            if (level.equalsIgnoreCase(LogLevel.ERROR.name()) || level.equalsIgnoreCase(LogLevel.FATAL.name())) {
+                String msg = root.get("message").asText();
+                String pointer = null;
+                if (root.has("instance")) {
+                    JsonNode instanceNode = root.get("instance");
+                    if (instanceNode.has("pointer")) {
+                        pointer = instanceNode.get("pointer").asText();
+                    }
+                }
+                msg = (isNullOrEmpty(pointer)) ? msg : msg + " at node: " + pointer;
+                list.add(String.format("%" + (4 * depth + msg.length()) + "s", msg));
+
+                if (root.has("reports")) {
+                    Iterator<Entry<String, JsonNode>> fields = root.get("reports").fields();
+                    while (fields.hasNext()) {
+                        ArrayNode arrayNode = (ArrayNode) fields.next().getValue();
+                        for (int i = 0; i < arrayNode.size(); i++) {
+                            addEmbeddedMessages(arrayNode.get(i), list, depth + 1);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private JsonSchema loadSchema(String resource) {

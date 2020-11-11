@@ -42,7 +42,7 @@ public class HandlebarsHelper {
     private static final String WHITESPACE_REGEX = "\\s+";
     private static final String SPACE = " ";
     private static final String UNDERSCORE = "_";
-    private static final String NEWLINE = System.getProperty("line.separator");
+    public static final String NEWLINE = System.getProperty("line.separator");
     public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
 
     /**
