@@ -79,13 +79,15 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                .get("/table/planet")
                .then()
                .statusCode(HttpStatus.SC_OK)
-               .body("data.attributes.isFact", equalTo(false)); //FromTable, TableMeta Present, isFact false
+               .body("data.attributes.isFact", equalTo(false)) //FromTable, TableMeta Present, isFact false
+               .body("data.relationships.columns.data.id", hasItems("planet.id", "planet.name"));
         given()
                .accept("application/vnd.api+json")
                .get("/table/continent")
                .then()
                .statusCode(HttpStatus.SC_OK)
-               .body("data.attributes.isFact", equalTo(false)); //TableMeta Present, isFact false
+               .body("data.attributes.isFact", equalTo(false)) //TableMeta Present, isFact false
+               .body("data.relationships.columns.data.id", hasItems("continent.id", "continent.name"));
         given()
                 .accept("application/vnd.api+json")
                 .get("/table/playerRanking") //Entity Annotated
@@ -99,7 +101,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.isFact", equalTo(true)) //TableMeta Present, isFact default true
                 .body("data.attributes.cardinality", equalTo("UNKNOWN"))
-                .body("data.relationships.columns.data.id", hasItems("country.id", "country.name", "country.isoCode"));
+                .body("data.relationships.columns.data.id", hasItems("country.name", "country.isoCode"));
         given()
                 .accept("application/vnd.api+json")
                 .get("/table/playerStatsView")
@@ -118,7 +120,6 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body(
                         "data.relationships.dimensions.data.id",
                         hasItems(
-                                "playerStats.id",
                                 "playerStats.playerName",
                                 "playerStats.player2Name",
                                 "playerStats.countryIsoCode",

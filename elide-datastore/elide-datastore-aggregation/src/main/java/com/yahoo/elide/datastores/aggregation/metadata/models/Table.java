@@ -102,6 +102,9 @@ public abstract class Table implements Versioned  {
         this.alias = TypeHelper.getTypeAlias(cls);
         this.id = this.name;
 
+        TableMeta meta = cls.getAnnotation(TableMeta.class);
+        this.isFact = isFact(cls, meta);
+
         this.columns = constructColumns(cls, dictionary);
         this.columnMap = this.columns.stream().collect(Collectors.toMap(Column::getName, Function.identity()));
 
@@ -118,8 +121,6 @@ public abstract class Table implements Versioned  {
                 .map(TimeDimension.class::cast)
                 .collect(Collectors.toSet());
 
-        TableMeta meta = cls.getAnnotation(TableMeta.class);
-
         if (meta != null) {
             this.description = meta.description();
             this.category = meta.category();
@@ -133,8 +134,6 @@ public abstract class Table implements Versioned  {
             this.tags = new HashSet<>();
             this.cardinality = CardinalitySize.UNKNOWN;
         }
-
-        this.isFact = isFact(cls, meta);
     }
 
     private boolean isFact(Class<?> cls, TableMeta meta) {
@@ -170,8 +169,8 @@ public abstract class Table implements Versioned  {
                 })
                 .collect(Collectors.toSet());
 
-        // add id field if exists
-        if (dictionary.getIdFieldName(cls) != null) {
+        // add id field if exists and this is not a fact model
+        if (!this.isFact() && dictionary.getIdFieldName(cls) != null) {
             columns.add(constructDimension(dictionary.getIdFieldName(cls), dictionary));
         }
 
