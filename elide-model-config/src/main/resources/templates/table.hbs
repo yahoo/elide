@@ -91,7 +91,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
     @DimensionFormula("<%#trimColumnReferences definition%><%/trimColumnReferences%>")
 <%#ifTypeMatches type "TIME"%>
     public com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
-        return <%name%>;
+        return <%#if override%>(com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%>)<%/if%> <%name%>;
     }
 
     public void set<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%> <%name%>) {

@@ -30,7 +30,7 @@
            definition : '{{create_on}}'
            grain:
             {
-             type : DAY
+             type : MONTH
              sql :  '''
              PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
              '''
