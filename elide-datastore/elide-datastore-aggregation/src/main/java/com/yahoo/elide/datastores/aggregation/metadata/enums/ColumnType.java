@@ -10,6 +10,5 @@ package com.yahoo.elide.datastores.aggregation.metadata.enums;
  */
 public enum ColumnType {
     FIELD, // reference to a physical field
-    REFERENCE, // reference to another logical field
     FORMULA // reference to a logical formula expression
 }

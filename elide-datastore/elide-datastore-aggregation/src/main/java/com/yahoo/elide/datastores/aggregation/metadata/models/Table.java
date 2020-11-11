@@ -14,14 +14,15 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.utils.TypeHelper;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -60,6 +61,8 @@ public abstract class Table implements Versioned  {
     private final CardinalitySize cardinality;
 
     private final String requiredFilter;
+
+    private final boolean isFact;
 
     @OneToMany
     @ToString.Exclude
@@ -122,19 +125,28 @@ public abstract class Table implements Versioned  {
             this.category = meta.category();
             this.requiredFilter = meta.filterTemplate();
             this.tags = new HashSet<>(Arrays.asList(meta.tags()));
+            this.cardinality = meta.size();
         } else {
             this.description = null;
             this.category = null;
             this.requiredFilter = null;
             this.tags = new HashSet<>();
+            this.cardinality = CardinalitySize.UNKNOWN;
         }
 
-        Cardinality cardinality = dictionary.getAnnotation(cls, Cardinality.class);
-        if (cardinality != null) {
-            this.cardinality = cardinality.size();
-        } else {
-            this.cardinality = null;
+        this.isFact = isFact(cls, meta);
+    }
+
+    private boolean isFact(Class<?> cls, TableMeta meta) {
+        if (meta != null) {
+            return meta.isFact();
         }
+
+        // If FromTable or FromSubquery Annotation exists then assume its fact table.
+        boolean existsAggAnnotations = (cls.getAnnotation(FromTable.class) != null
+                || cls.getAnnotation(FromSubquery.class) != null);
+
+        return existsAggAnnotations;
     }
 
     /**

@@ -59,7 +59,7 @@ public class JsonApiTest {
         dictionary = TestDictionary.getTestDictionary();
         dictionary.bindEntity(Parent.class);
         dictionary.bindEntity(Child.class);
-        mapper = new JsonApiMapper(dictionary);
+        mapper = new JsonApiMapper();
     }
 
     @Test

@@ -17,7 +17,7 @@ import java.text.SimpleDateFormat;
  */
 public class Hour extends Timestamp {
 
-    public static final String FORMAT = "yyyy-MM-dd HH";
+    public static final String FORMAT = "yyyy-MM-dd'T'HH";
     private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
 
     public Hour(java.util.Date date) {

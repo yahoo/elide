@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
@@ -32,7 +31,6 @@ import javax.persistence.Id;
  * A root level entity for testing AggregationDataStore.
  */
 @Include(type = "playerStatsFiltered")
-@Cardinality(size = CardinalitySize.LARGE)
 @VersionQuery(sql = "SELECT COUNT(*) from playerStats")
 @EqualsAndHashCode
 @ToString
@@ -40,7 +38,8 @@ import javax.persistence.Id;
 @TableMeta(
         description = "Player Statistics",
         category = "Sports Category",
-        filterTemplate = PlayerStatsWithRequiredFilter.FILTER_TEMPLATE
+        filterTemplate = PlayerStatsWithRequiredFilter.FILTER_TEMPLATE,
+        size = CardinalitySize.LARGE
 )
 public class PlayerStatsWithRequiredFilter {
     public static final String FILTER_TEMPLATE = "recordedDate>={{start}};recordedDate<{{end}}";
@@ -156,7 +155,7 @@ public class PlayerStatsWithRequiredFilter {
     }
 
     @FriendlyName
-    @Cardinality(size = CardinalitySize.MEDIUM)
+    @ColumnMeta(size = CardinalitySize.MEDIUM)
     public String getOverallRating() {
         return overallRating;
     }
@@ -180,7 +179,7 @@ public class PlayerStatsWithRequiredFilter {
     }
 
     public void setCountryNickName(String nickName) {
-        this.countryNickName = countryNickName;
+        this.countryNickName = nickName;
     }
 
     @DimensionFormula("{{country.unSeats}}")

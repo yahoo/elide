@@ -31,6 +31,7 @@ import java.util.Set;
     "hidden",
     "readAccess",
     "definition",
+    "cardinality",
     "type",
     "grain",
     "tags",
@@ -52,7 +53,6 @@ public class Dimension {
     @JsonProperty("category")
     private String category;
 
-
     @JsonProperty("hidden")
     private Boolean hidden = false;
 
@@ -61,6 +61,9 @@ public class Dimension {
 
     @JsonProperty("definition")
     private String definition = "";
+
+    @JsonProperty("cardinality")
+    private String cardinality;
 
     @JsonProperty("type")
     private Type type = Type.TEXT;

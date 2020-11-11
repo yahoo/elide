@@ -30,10 +30,6 @@
           "type": "string"
         }
       },
-      "required": [
-        "type",
-        "sql"
-      ],
       "additionalProperties": false
     },
     "join": {
@@ -86,6 +82,18 @@
         "TEXT",
         "COORDINATE",
         "BOOLEAN"
+      ]
+    },
+    "enumCardinality": {
+      "title": "Table/Dimension cardinality",
+      "description": "Table/Dimension cardinality: (tiny, small, medium, large, huge). The relative sizes are decided by the table designer(s).",
+      "type": "string",
+      "enum": [
+        "tiny",
+        "small",
+        "medium",
+        "large",
+        "huge"
       ]
     },
     "measure": {
@@ -197,6 +205,9 @@
           "type": "string",
           "default": ""
         },
+        "cardinality": {
+          "$ref": "#/definitions/enumCardinality"
+        },
         "tags": {
           "title": "Dimension tags",
           "description": "An array of string based tags for dimensions",
@@ -298,8 +309,7 @@
       "required": [
         "name",
         "type",
-        "definition",
-        "grain"
+        "definition"
       ]
     }
   },
@@ -342,6 +352,12 @@
             "pattern": "^[A-Za-z][0-9A-Za-z_]*(==|!=|>=|>|<|<=|=[a-z]+=)(.*)",
             "default": ""
           },
+          "isFact": {
+            "title": "Is Fact Table",
+            "description": "Whether this table is a fact",
+            "type": "boolean",
+            "default": true
+          },
           "hidden": {
             "title": "Hide/Show Table",
             "description": "Whether this table is exposed via API metadata",
@@ -354,17 +370,7 @@
             "type": "string"
           },
           "cardinality": {
-            "title": "Model cardinality",
-            "description": "The number of rows in the table: (tiny, small, medium, large, huge). The relative sizes are decided by the table designer(s).",
-            "type": "string",
-            "enum": [
-              "tiny",
-              "small",
-              "medium",
-              "large",
-              "huge"
-            ],
-            "default": "tiny"
+            "$ref": "#/definitions/enumCardinality"
           },
           "readAccess": {
             "title": "Table read access",

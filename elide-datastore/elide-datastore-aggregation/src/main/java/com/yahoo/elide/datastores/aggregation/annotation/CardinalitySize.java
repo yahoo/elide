@@ -42,6 +42,11 @@ public enum CardinalitySize {
      * <p>
      * TODO: define size range
      */
-    HUGE
+    HUGE,
+
+    /**
+     * If size indicator is not provided.
+     */
+    UNKNOWN
     ;
 }

@@ -13,17 +13,18 @@ import lombok.Data;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Table;
 
-@Data
+/**
+ * A root level entity for testing AggregationDataStore.
+ */
 @Entity
 @Include
-@Table(name = "continents")
-@TableMeta(isFact = false, size = CardinalitySize.SMALL)
-public class Continent {
+@Data
+@TableMeta(size = CardinalitySize.MEDIUM)
+public class PlayerRanking {
 
     @Id
-    private String id;
+    private long id;
 
-    private String name;
+    private Integer ranking;
 }

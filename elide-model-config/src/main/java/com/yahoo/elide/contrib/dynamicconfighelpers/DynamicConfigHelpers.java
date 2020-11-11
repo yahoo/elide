@@ -158,7 +158,7 @@ public class DynamicConfigHelpers {
         try {
             return JsonValue.readHjson(hjson).toString();
         } catch (ParseException e) {
-            throw new IllegalStateException("Invalid HJSON Syntax: " + e.getMessage());
+            throw new IllegalStateException("Invalid Hjson Syntax: " + e.getMessage());
         }
     }
 

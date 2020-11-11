@@ -29,4 +29,15 @@ public @interface TableMeta {
      * @return The required filter template.
      */
     String filterTemplate() default "";
+
+    /**
+     * Whether or not this table is a fact table.
+     * @return true or false.
+     */
+    boolean isFact() default true;
+
+    /**
+     * Indicates the size of the table.
+     */
+    CardinalitySize size() default CardinalitySize.UNKNOWN;
 }

@@ -8,6 +8,7 @@ package com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars;
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Grain;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Grain.GrainType;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Type;
 import com.github.jknack.handlebars.Options;
 
@@ -155,7 +156,8 @@ public class HandlebarsHelper {
      */
     public String getGrainType(Grain grain) {
 
-        switch (grain.getType()) {
+        GrainType switchGrain = (grain.getType() == null) ? GrainType.DAY : grain.getType();
+        switch (switchGrain) {
             case DAY:
                 return DAY;
             case HOUR:

@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
@@ -33,12 +32,16 @@ import javax.persistence.Id;
  * A root level entity for testing AggregationDataStore.
  */
 @Include
-@Cardinality(size = CardinalitySize.LARGE)
 @VersionQuery(sql = "SELECT COUNT(*) from playerStats")
 @EqualsAndHashCode
 @ToString
 @FromTable(name = "playerStats")
-@TableMeta(description = "Player Statistics", category = "Sports Category", tags = {"Game", "Statistics"})
+@TableMeta(
+        description = "Player Statistics",
+        category = "Sports Category",
+        tags = {"Game", "Statistics"},
+        size = CardinalitySize.LARGE
+)
 public class PlayerStats {
 
     public static final String DATE_FORMAT = "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
@@ -106,6 +109,13 @@ public class PlayerStats {
      */
     private Player player2;
 
+    /**
+     * A table dimension.
+     */
+    private PlayerRanking playerRanking;
+
+    private Integer playerRank;
+
     private String playerName;
 
     private String player2Name;
@@ -161,8 +171,7 @@ public class PlayerStats {
     }
 
     @FriendlyName
-    @Cardinality(size = CardinalitySize.MEDIUM)
-    @ColumnMeta(values = {"GOOD", "OK", "TERRIBLE"}, tags = {"PUBLIC"})
+    @ColumnMeta(values = {"GOOD", "OK", "TERRIBLE"}, tags = {"PUBLIC"}, size = CardinalitySize.MEDIUM)
     public String getOverallRating() {
         return overallRating;
     }
@@ -189,7 +198,7 @@ public class PlayerStats {
     }
 
     public void setCountryNickName(String nickName) {
-        this.countryNickName = countryNickName;
+        this.countryNickName = nickName;
     }
 
     @DimensionFormula("{{country.unSeats}}")
@@ -230,6 +239,15 @@ public class PlayerStats {
         this.subCountryIsoCode = isoCode;
     }
 
+    @Join("{{player_id}} = {{playerRanking.id}}")
+    public PlayerRanking getPlayerRanking() {
+        return playerRanking;
+    }
+
+    public void setPlayerRanking(final PlayerRanking playerRanking) {
+        this.playerRanking = playerRanking;
+    }
+
     @Join("{{player_id}} = {{player.id}}")
     public Player getPlayer() {
         return player;
@@ -246,6 +264,15 @@ public class PlayerStats {
 
     public void setPlayer2(Player player2) {
         this.player2 = player2;
+    }
+
+    @DimensionFormula("{{playerRanking.ranking}}")
+    public Integer getPlayerRank() {
+        return playerRank;
+    }
+
+    public void setPlayerRank(Integer playerRank) {
+        this.playerRank = playerRank;
     }
 
     @DimensionFormula("{{player.name}}")

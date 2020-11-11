@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
@@ -23,13 +22,12 @@ import javax.persistence.Id;
 /**
  * A root level entity for testing AggregationDataStore.
  */
-@Cardinality(size = CardinalitySize.SMALL)
 @EqualsAndHashCode
 @ToString
 @Data
 @FromTable(name = "region_details", dbConnectionName = "SalesDBConnection")
 @ReadPermission(expression = "Principal is guest user")
-@TableMeta(description = "RegionDetails", category = "", tags = {}, filterTemplate = "")
+@TableMeta(description = "RegionDetails", category = "", tags = {}, filterTemplate = "", size = CardinalitySize.SMALL)
 @Include(type = "regionDetails")
 public class RegionDetails {
 

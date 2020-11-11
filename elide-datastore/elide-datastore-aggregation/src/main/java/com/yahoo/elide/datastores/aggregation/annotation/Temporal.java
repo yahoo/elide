@@ -28,7 +28,7 @@ public @interface Temporal {
      *
      * @return time grain.
      */
-    TimeGrainDefinition grain() default @TimeGrainDefinition(grain = TimeGrain.DAY, expression = "");
+    TimeGrainDefinition grain() default @TimeGrainDefinition(grain = TimeGrain.DAY, expression = "{{}}");
 
     /**
      * The timezone in {@link String} of the column.

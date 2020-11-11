@@ -9,7 +9,6 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.datastores.aggregation.annotation.Cardinality;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
@@ -35,7 +34,6 @@ import javax.persistence.Id;
 /**
  * A root level entity for testing AggregationDataStore.
  */
-@Cardinality(size = CardinalitySize.<%#toUpperCase cardinality%><%/toUpperCase%>)
 @EqualsAndHashCode
 @ToString
 @Data
@@ -44,10 +42,12 @@ import javax.persistence.Id;
 <%/if%>
 <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
 @TableMeta(
+    <%#if cardinality%>size = CardinalitySize.<%#toUpperCase cardinality%><%/toUpperCase%>,<%/if%>
     description = "<%description%>",
     category="<%category%>",
     tags={<%#collectionToString tags%><%/collectionToString%>},
-    filterTemplate="<%filterTemplate%>"
+    filterTemplate="<%filterTemplate%>",
+    isFact=<%isFact%>
 )
 <%#if hidden%>@Exclude<%else%>@Include(type = "<%#lowerCaseFirstLetter name%><%/lowerCaseFirstLetter%>")<%/if%>
 public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if extend%>extends <%#capitalizeFirstLetter extend%><%/capitalizeFirstLetter%><%/if%>{
@@ -74,11 +74,12 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
 <%/if%>
 <%#ifTypeMatches type "TIME"%>
 <%#with grain%>
-    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.<%type%>, expression = "<%sql%>"), timeZone = "UTC")
+    @Temporal(grain = @TimeGrainDefinition(<%#if type%>grain = TimeGrain.<%type%><%#if sql%>, <%/if%><%/if%><%#if sql%>expression = "<%sql%>"<%/if%>), timeZone = "UTC")
 <%/with%>
 <%/ifTypeMatches%>
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
     @ColumnMeta(
+        <%#if cardinality%>size = CardinalitySize.<%#toUpperCase cardinality%><%/toUpperCase%>,<%/if%>
         description = "<%description%>",
         category="<%category%>",
         values={<%#collectionToString values%><%/collectionToString%>},

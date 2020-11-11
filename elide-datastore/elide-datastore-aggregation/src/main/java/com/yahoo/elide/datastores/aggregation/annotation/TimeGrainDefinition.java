@@ -25,5 +25,5 @@ public @interface TimeGrainDefinition {
      *
      * @return An expression which defines the grain and is meaningful to the Query Engine.
      */
-    String expression() default "";
+    String expression() default "{{}}";
 }

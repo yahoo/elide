@@ -40,6 +40,16 @@ INSERT INTO players VALUES (1, 'Jon Doe');
 INSERT INTO players VALUES (2, 'Jane Doe');
 INSERT INTO players VALUES (3, 'Han');
 
+CREATE TABLE IF NOT EXISTS playerRanking
+    (
+      id BIGINT,
+      ranking BIGINT
+    );
+TRUNCATE TABLE playerRanking;
+INSERT INTO playerRanking VALUES (1, 1);
+INSERT INTO playerRanking VALUES (2, 2);
+INSERT INTO playerRanking VALUES (3, 3);
+
 
 CREATE TABLE IF NOT EXISTS videoGames
     (
@@ -62,3 +72,13 @@ CREATE TABLE IF NOT EXISTS continents
 TRUNCATE TABLE continents;
 INSERT INTO continents VALUES (1, 'Asia');
 INSERT INTO continents VALUES (2, 'North America');
+
+CREATE TABLE IF NOT EXISTS planets
+    (
+      id BIGINT,
+      name VARCHAR(255)
+    );
+TRUNCATE TABLE planets;
+INSERT INTO planets VALUES (1, 'Mercury');
+INSERT INTO planets VALUES (2, 'Venus');
+INSERT INTO planets VALUES (3, 'Earth');

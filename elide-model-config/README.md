@@ -6,8 +6,10 @@ To build and run:
 ```text
 1. mvn clean install
 2. Execute Jar File :
-   a) java -cp elide-contrib/elide-dynamic-config-helpers/target/elide-dynamic-config-*-jar-with-dependencies.jar com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator --configDir <Path for Config Directory>
-   b) java -cp elide-contrib/elide-dynamic-config-helpers/target/elide-dynamic-config-*-jar-with-dependencies.jar com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator --help
+   a) java -cp elide-spring/elide-spring-boot-autoconfigure/target/elide-spring-boot-autoconfigure-*.jar com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator --configDir <Path for Config Directory>
+      java -cp elide-standalone/target/elide-standalone-*.jar com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator --configDir <Path for Config Directory>
+   b) java -cp elide-spring/elide-spring-boot-autoconfigure/target/elide-spring-boot-autoconfigure-*.jar       com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator --help
+      java -cp elide-standalone/target/elide-standalone-*.jar com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator --help
 ```
 Expected Configs Directory Structure:
 ```text

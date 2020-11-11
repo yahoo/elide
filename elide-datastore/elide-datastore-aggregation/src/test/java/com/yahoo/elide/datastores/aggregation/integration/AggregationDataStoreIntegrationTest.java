@@ -212,7 +212,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 selections(
                                         field("highScore"),
                                         field("overallRating"),
-                                        field("countryIsoCode")
+                                        field("countryIsoCode"),
+                                        field("playerRank")
                                 )
                         )
                 )
@@ -225,17 +226,20 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 selections(
                                         field("highScore", 1000),
                                         field("overallRating", "Good"),
-                                        field("countryIsoCode", "HKG")
+                                        field("countryIsoCode", "HKG"),
+                                        field("playerRank", 3)
                                 ),
                                 selections(
                                         field("highScore", 1234),
                                         field("overallRating", "Good"),
-                                        field("countryIsoCode", "USA")
+                                        field("countryIsoCode", "USA"),
+                                        field("playerRank", 1)
                                 ),
                                 selections(
                                         field("highScore", 2412),
                                         field("overallRating", "Great"),
-                                        field("countryIsoCode", "USA")
+                                        field("countryIsoCode", "USA"),
+                                        field("playerRank", 2)
                                 )
                         )
                 )
@@ -958,6 +962,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("deliveryDate"),
                                         field("deliveryMonth"),
                                         field("deliveryYear"),
+                                        field("deliveryDefault"),
                                         field("orderTime"),
                                         field("orderDate"),
                                         field("orderMonth"),
@@ -977,12 +982,13 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "orderDetails",
                                 selections(
                                         field("courierName", "FEDEX"),
-                                        field("deliveryTime", "2020-09-11 16:30:11"),
-                                        field("deliveryHour", "2020-09-11 16"),
+                                        field("deliveryTime", "2020-09-11T16:30:11"),
+                                        field("deliveryHour", "2020-09-11T16"),
                                         field("deliveryDate", "2020-09-11"),
                                         field("deliveryMonth", "2020-09"),
                                         field("deliveryYear", "2020"),
-                                        field("orderTime", "2020-09-08 16:30:11"),
+                                        field("orderTime", "2020-09-08T16:30:11"),
+                                        field("deliveryDefault", "2020-09-11"),
                                         field("orderDate", "2020-09-08"),
                                         field("orderMonth", "2020-09"),
                                         field("customerRegion", "Virginia"),
@@ -993,12 +999,13 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 ),
                                 selections(
                                         field("courierName", "FEDEX"),
-                                        field("deliveryTime", "2020-09-11 16:30:11"),
-                                        field("deliveryHour", "2020-09-11 16"),
+                                        field("deliveryTime", "2020-09-11T16:30:11"),
+                                        field("deliveryHour", "2020-09-11T16"),
                                         field("deliveryDate", "2020-09-11"),
                                         field("deliveryMonth", "2020-09"),
                                         field("deliveryYear", "2020"),
-                                        field("orderTime", "2020-09-08 16:30:11"),
+                                        field("orderTime", "2020-09-08T16:30:11"),
+                                        field("deliveryDefault", "2020-09-11"),
                                         field("orderDate", "2020-09-08"),
                                         field("orderMonth", "2020-09"),
                                         field("customerRegion", "Virginia"),
@@ -1009,12 +1016,13 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 ),
                                 selections(
                                         field("courierName", "UPS"),
-                                        field("deliveryTime", "2020-09-05 16:30:11"),
-                                        field("deliveryHour", "2020-09-05 16"),
+                                        field("deliveryTime", "2020-09-05T16:30:11"),
+                                        field("deliveryHour", "2020-09-05T16"),
                                         field("deliveryDate", "2020-09-05"),
                                         field("deliveryMonth", "2020-09"),
                                         field("deliveryYear", "2020"),
-                                        field("orderTime", "2020-08-30 16:30:11"),
+                                        field("orderTime", "2020-08-30T16:30:11"),
+                                        field("deliveryDefault", "2020-09-05"),
                                         field("orderDate", "2020-08-30"),
                                         field("orderMonth", "2020-08"),
                                         field("customerRegion", "Virginia"),
@@ -1025,12 +1033,13 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 ),
                                 selections(
                                         field("courierName", "UPS"),
-                                        field("deliveryTime", "2020-09-13 16:30:11"),
-                                        field("deliveryHour", "2020-09-13 16"),
+                                        field("deliveryTime", "2020-09-13T16:30:11"),
+                                        field("deliveryHour", "2020-09-13T16"),
                                         field("deliveryDate", "2020-09-13"),
                                         field("deliveryMonth", "2020-09"),
                                         field("deliveryYear", "2020"),
-                                        field("orderTime", "2020-09-09 16:30:11"),
+                                        field("orderTime", "2020-09-09T16:30:11"),
+                                        field("deliveryDefault", "2020-09-13"),
                                         field("orderDate", "2020-09-09"),
                                         field("orderMonth", "2020-09"),
                                         field("customerRegion", "Virginia"),
@@ -1054,7 +1063,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
-                                        argument("filter", "\"orderTime=='2020-09-08 16:30:11'\"")
+                                        argument("filter", "\"orderTime=='2020-09-08T16:30:11'\"")
                                 ),
                                 selections(
                                         field("orderTotal"),
@@ -1074,7 +1083,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("orderTotal", 181.47F),
                                         field("customerRegion", "Virginia"),
                                         field("orderMonth", "2020-09"),
-                                        field("orderTime", "2020-09-08 16:30:11")
+                                        field("orderTime", "2020-09-08T16:30:11")
                                 )
                         )
                 )

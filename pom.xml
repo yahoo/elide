@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-parent-pom</artifactId>
-    <version>5.0.0-pr24-SNAPSHOT</version>
+    <version>5.0.0-pr25-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Elide: Parent Pom</name>
     <description>Parent pom for Elide project</description>
@@ -78,7 +78,7 @@
         <!-- dependency versions -->
         <version.antlr4>4.8-1</version.antlr4>
         <version.logback>1.2.3</version.logback>
-        <version.jetty>9.4.31.v20200723</version.jetty>
+        <version.jetty>9.4.33.v20201020</version.jetty>
         <version.restassured>4.3.1</version.restassured>
         <version.jackson>2.11.2</version.jackson>
         <version.jersey>2.31</version.jersey>
@@ -466,7 +466,7 @@
                 <artifactId>coveralls-maven-plugin</artifactId>
                 <version>4.3.0</version>
                 <configuration>
-                    <repoToken>${env.COVERALLS_API_TOKEN}</repoToken>
+                    <repoToken>${env.COVERALLS_REPO_TOKEN}</repoToken>
                 </configuration>
             </plugin>
             <plugin>
