@@ -141,10 +141,29 @@ public class DynamicConfigValidatorTest {
 
     @Test
     public void testBadTableConfigJoinType() {
+        String expectedMessage = "Schema validation failed for: table1.hjson\n"
+                        + "instance failed to match at least one required schema among 2 at node: /tables/0/joins/0/type\n"
+                        + "    ECMA 262 regex \"^[Tt][Oo][Oo][Nn][Ee]$\" does not match input string \"toAll\" at node: /tables/0/joins/0/type\n"
+                        + "    ECMA 262 regex \"^[Tt][Oo][Mm][Aa][Nn][Yy]$\" does not match input string \"toAll\" at node: /tables/0/joins/0/type";
+
         Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
-                .main(new String[] { "--configDir", "src/test/resources/validator/bad_table_join_type" }));
-        assertEquals("Schema validation failed: [instance value (\"toAll\") not found "
-                + "in enum (possible values: [\"toOne\",\"toMany\"]) ]", e.getMessage());
+                        .main(new String[] {"--configDir", "src/test/resources/validator/bad_table_join_type"}));
+        assertEquals(expectedMessage, e.getMessage());
+    }
+
+    @Test
+    public void testBadDimName() {
+        String expectedMessage = "Schema validation failed for: table1.hjson\n"
+                        + "instance failed to match at least one required schema among 2 at node: /tables/0/dimensions/1\n"
+                        + "    instance failed to match all required schemas (matched only 1 out of 2) at node: /tables/0/dimensions/1\n"
+                        + "        ECMA 262 regex \"^[A-Za-z]([0-9A-Za-z]*_?[0-9A-Za-z]*)*$\" does not match input string \"_region\" at node: /tables/0/dimensions/1/name\n"
+                        + "    instance failed to match all required schemas (matched only 0 out of 2) at node: /tables/0/dimensions/1\n"
+                        + "        ECMA 262 regex \"^[A-Za-z]([0-9A-Za-z]*_?[0-9A-Za-z]*)*$\" does not match input string \"_region\" at node: /tables/0/dimensions/1/name\n"
+                        + "        ECMA 262 regex \"^[Tt][Ii][Mm][Ee]$\" does not match input string \"Text\" at node: /tables/0/dimensions/1/type";
+
+        Exception e = assertThrows(IllegalStateException.class, () -> DynamicConfigValidator
+                        .main(new String[] {"--configDir", "src/test/resources/validator/bad_dim_name"}));
+        assertEquals(expectedMessage, e.getMessage());
     }
 
     @Test

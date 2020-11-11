@@ -11,7 +11,7 @@
        and additional space at start of this line.
       '''
       category: Table Category
-      cardinality : large
+      cardinality : lARge
       hidden : false
       readAccess : A user is admin or is a player in the game
       filterTemplate : countryIsoCode=={{code}}
@@ -23,13 +23,13 @@
           {
              name: playerCountry
              to: Country
-             type: toOne
+             type: toOnE
              definition: '{{ playerCountry.id}} = {{country_id}}'
           },
           {
              name: playerTeam
              to: Team
-             type: toMany
+             type: Tomany
              definition: '{{playerTeam.id}} = {{ team_id}}'
           }
       ]
@@ -37,7 +37,7 @@
       measures : [
           {
           name : highScore
-          type : INTEGER
+          type : INteGER
           description : very awesome score
           definition: 'MAX({{score}})'
           tags: ['PUBLIC']
@@ -51,7 +51,7 @@
            definition : '{{playerCountry.isoCode}}'
            values : ['US', 'HK']
            tags: ['PRIVATE']
-           cardinality: small
+           cardinality: Small
          },
          {
            name : createdOn
@@ -59,7 +59,7 @@
            definition : '{{create_on}}'
            grain:
             {
-             type : DAY
+             type : DaY
              sql :  '''
              PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
              '''
@@ -67,7 +67,7 @@
          },
          {
            name : updatedOn
-           type : TIME
+           type : TIme
            definition : '{{updated_on}}'
          }
       ]
