@@ -305,7 +305,7 @@
             "title": "Table Model Name",
             "description": "The name of the model. This will be the same as the POJO class name.",
             "type": "string",
-            "pattern": "^[A-Z][0-9A-Za-z]*$"
+            "pattern": "^[A-Za-z][0-9A-Za-z]*$"
           },
           "schema": {
             "title": "Table Schema",

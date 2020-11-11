@@ -2,7 +2,7 @@
   tables:
   [
     {
-      name: OrderDetails
+      name: orderDetails
       table: order_details
       dbConnectionName: SalesDBConnection
       cardinality: large
@@ -11,14 +11,14 @@
       [
         {
           name: customer
-          to: CustomerDetails
+          to: customerDetails
           type: toOne
           // References Physical Columns
           definition: '{{customer_id}} = {{ customer.id}}'
         }
         {
           name: delivery
-          to: DeliveryDetails
+          to: deliveryDetails
           type: toOne
           // References Logical Columns, multiple join condition
           definition: '''
@@ -174,7 +174,7 @@
       ]
     }
     {
-      name: CustomerDetails
+      name: customerDetails
       table: customer_details
       dbConnectionName: SalesDBConnection
       cardinality: small
@@ -212,7 +212,7 @@
       ]
     }
     {
-      name: DeliveryDetails
+      name: deliveryDetails
       table: delivery_details
       dbConnectionName: SalesDBConnection
       cardinality: large
