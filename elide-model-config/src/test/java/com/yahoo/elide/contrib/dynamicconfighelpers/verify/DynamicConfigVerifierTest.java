@@ -5,13 +5,13 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers.verify;
 
+import static com.github.stefanbirkner.systemlambda.SystemLambda.catchSystemExit;
+import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemErr;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.apache.commons.cli.MissingArgumentException;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
@@ -72,25 +72,40 @@ public class DynamicConfigVerifierTest {
     }
 
     @Test
-    public void testNoArguments() {
-        Exception e = assertThrows(MissingOptionException.class, () -> DynamicConfigVerifier.main(null));
-        assertTrue(e.getMessage().startsWith("Missing required option"));
+    public void testNoArguments() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() -> DynamicConfigVerifier.main(null));
+            assertEquals(1, exitStatus);
+        });
+
+        assertTrue(error.startsWith("Missing required option"));
     }
 
     @Test
-    public void testOneEmptyArguments() {
-        Exception e = assertThrows(MissingOptionException.class,
-                () -> DynamicConfigVerifier.main(new String[] { "" }));
-        assertTrue(e.getMessage().startsWith("Missing required option"));
+    public void testOneEmptyArguments() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() -> DynamicConfigVerifier.main(new String[] { "" }));
+            assertEquals(1, exitStatus);
+        });
+
+        assertTrue(error.startsWith("Missing required option"));
     }
 
     @Test
-    public void testMissingArgumentValue() {
-        Exception e = assertThrows(MissingArgumentException.class,
-                () -> DynamicConfigVerifier.main(new String[] { "--tarFile" }));
-        assertTrue(e.getMessage().startsWith("Missing argument for option"));
-        e = assertThrows(MissingArgumentException.class, () -> DynamicConfigVerifier.main(new String[] { "-t" }));
-        assertTrue(e.getMessage().startsWith("Missing argument for option"));
+    public void testMissingArgumentValue() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() -> DynamicConfigVerifier.main(new String[] { "--tarFile" }));
+            assertEquals(3, exitStatus);
+        });
+
+        assertTrue(error.startsWith("Missing argument for option"));
+
+        error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() -> DynamicConfigVerifier.main(new String[] { "-t" }));
+            assertEquals(3, exitStatus);
+        });
+
+        assertTrue(error.startsWith("Missing argument for option"));
     }
 
     private static KeyPair generateKeyPair() throws Exception {
