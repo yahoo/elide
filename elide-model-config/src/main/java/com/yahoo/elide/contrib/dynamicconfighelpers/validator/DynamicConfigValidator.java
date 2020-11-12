@@ -361,12 +361,12 @@ public class DynamicConfigValidator {
 
                 Set<String> joinedTables = table.getJoins()
                         .stream()
-                        .map(join -> join.getTo().toLowerCase(Locale.ENGLISH))
+                        .map(join -> join.getTo())
                         .collect(Collectors.toSet());
 
                 Set<String> connections = elideTableConfig.getTables()
                         .stream()
-                        .filter(t -> joinedTables.contains(t.getName().toLowerCase(Locale.ENGLISH)))
+                        .filter(t -> joinedTables.contains(t.getName()))
                         .map(t -> t.getDbConnectionName())
                         .collect(Collectors.toSet());
 

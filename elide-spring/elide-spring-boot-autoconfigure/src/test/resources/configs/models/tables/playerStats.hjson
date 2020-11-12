@@ -1,6 +1,6 @@
 {
     tables: [{
-        name: PlayerStats
+        name: playerStats
         table: PlayerStats
         description:
         '''
@@ -12,7 +12,7 @@
         joins: [
             {
                 name: playerCountry
-                to: PlayerCountry
+                to: playerCountry
                 type: toOne
                 definition: '{{playerCountry.id}} = {{countryId}}'
             }
