@@ -8,10 +8,8 @@ package com.yahoo.elide.contrib.dynamicconfighelpers.verify;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
@@ -44,40 +42,37 @@ public class DynamicConfigVerifier {
     /**
      * Main Method to Verify Signature of Model Tar file.
      * @param args : expects 3 arguments.
-     * @throws ParseException
-     * @throws IOException
-     * @throws KeyStoreException
-     * @throws FileNotFoundException
-     * @throws SignatureException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeyException
-     * @throws MissingOptionException
      */
-    public static void main(String[] args) throws ParseException, InvalidKeyException, NoSuchAlgorithmException,
-    SignatureException, FileNotFoundException, KeyStoreException, IOException {
+    public static void main(String[] args) {
 
         Options options = prepareOptions();
-        CommandLine cli = new DefaultParser().parse(options, args);
 
-        if (cli.hasOption("help")) {
-            printHelp(options);
-            return;
-        }
-        if (!cli.hasOption("tarFile") || !cli.hasOption("signatureFile") || !cli.hasOption("publicKeyName")) {
-            printHelp(options);
-            throw new MissingOptionException("Missing required option");
-        }
+        try {
+            CommandLine cli = new DefaultParser().parse(options, args);
 
-        String modelTarFile = cli.getOptionValue("tarFile");
-        String signatureFile = cli.getOptionValue("signatureFile");
-        String publicKeyName = cli.getOptionValue("publicKeyName");
+            if (cli.hasOption("help")) {
+                printHelp(options);
+                return;
+            }
+            if (!cli.hasOption("tarFile") || !cli.hasOption("signatureFile") || !cli.hasOption("publicKeyName")) {
+                printHelp(options);
+                System.err.println("Missing required option");
+                System.exit(1);
+            }
 
-        if (verify(readTarContents(modelTarFile), signatureFile, getPublicKey(publicKeyName))) {
-            log.info("Successfully Validated " + modelTarFile);
-        }
-        else {
-            log.error("Could not verify " + modelTarFile + " with details provided");
-            System.exit(-1);
+            String modelTarFile = cli.getOptionValue("tarFile");
+            String signatureFile = cli.getOptionValue("signatureFile");
+            String publicKeyName = cli.getOptionValue("publicKeyName");
+
+            if (verify(readTarContents(modelTarFile), signatureFile, getPublicKey(publicKeyName))) {
+                System.out.println("Successfully Validated " + modelTarFile);
+            } else {
+                System.err.println("Could not verify " + modelTarFile + " with details provided");
+                System.exit(2);
+            }
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            System.exit(3);
         }
     }
 
