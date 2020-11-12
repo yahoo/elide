@@ -49,7 +49,7 @@ import javax.persistence.Id;
     filterTemplate="<%filterTemplate%>",
     isFact=<%isFact%>
 )
-<%#if hidden%>@Exclude<%else%>@Include(type = "<%#lowerCaseFirstLetter name%><%/lowerCaseFirstLetter%>")<%/if%>
+<%#if hidden%>@Exclude<%else%>@Include(type = "<%name%>")<%/if%>
 public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if extend%>extends <%#capitalizeFirstLetter extend%><%/capitalizeFirstLetter%><%/if%>{
 
     private String id;
