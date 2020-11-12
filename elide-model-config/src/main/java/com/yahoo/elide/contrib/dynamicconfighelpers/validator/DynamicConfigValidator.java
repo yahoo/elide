@@ -24,10 +24,8 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -99,25 +97,31 @@ public class DynamicConfigValidator {
         }
     }
 
-    public static void main(String[] args) throws IOException, ParseException {
-
+    public static void main(String[] args) {
         Options options = prepareOptions();
-        CommandLine cli = new DefaultParser().parse(options, args);
 
-        if (cli.hasOption("help")) {
-            printHelp(options);
-            return;
+        try {
+            CommandLine cli = new DefaultParser().parse(options, args);
+
+            if (cli.hasOption("help")) {
+                printHelp(options);
+                return;
+            }
+            if (!cli.hasOption("configDir")) {
+                printHelp(options);
+                System.err.println("Missing required option");
+                System.exit(1);
+            }
+            String configDir = cli.getOptionValue("configDir");
+
+            DynamicConfigValidator dynamicConfigValidator = new DynamicConfigValidator(configDir);
+            dynamicConfigValidator.readAndValidateConfigs();
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            System.exit(2);
         }
-        if (!cli.hasOption("configDir")) {
-            printHelp(options);
-            throw new MissingOptionException("Missing required option");
-        }
-        String configDir = cli.getOptionValue("configDir");
 
-        DynamicConfigValidator dynamicConfigValidator = new DynamicConfigValidator(configDir);
-        dynamicConfigValidator.readAndValidateConfigs();
-
-        log.info("Configs Validation Passed!");
+        System.out.println("Configs Validation Passed!");
     }
 
     /**
