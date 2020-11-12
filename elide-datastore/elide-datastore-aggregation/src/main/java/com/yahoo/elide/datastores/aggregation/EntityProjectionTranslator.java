@@ -25,8 +25,6 @@ import com.yahoo.elide.request.Relationship;
 
 import com.google.common.collect.Sets;
 
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
-
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -56,12 +54,12 @@ public class EntityProjectionTranslator {
 
 
     public EntityProjectionTranslator(QueryEngine engine, Table table,
-                                      EntityProjection entityProjection, EntityDictionary dictionary, Optional<MultivaluedMap<String, String>> optional) {
+                                      EntityProjection entityProjection, EntityDictionary dictionary, Optional<MultivaluedMap<String, String>> optionalHeader) {
         this.engine = engine;
         this.queriedTable = table;
         this.entityProjection = entityProjection;
         this.dictionary = dictionary;
-        String bypassCache = optional.isPresent()? optional.get().get("byPassCache").get(0): null;
+        String bypassCache = optionalHeader.isPresent()? optionalHeader.get().get("byPassCache").get(0): null;
         String safebypassCache = bypassCache == null ? "true" : bypassCache;
         this.bypassCache = Boolean.parseBoolean(safebypassCache);
         dimensionProjections = resolveNonTimeDimensions();

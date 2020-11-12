@@ -54,7 +54,7 @@ public class GraphQLRequestScope extends RequestScope {
             String apiVersion,
             ElideSettings elideSettings,
             GraphQLProjectionInfo projectionInfo,
-            UUID requestId, 
+            UUID requestId,
             MultivaluedMap<String, String> requestHeaders
     ) {
         // TODO: We're going to break out the two request scopes. `RequestScope` should become an interface and
@@ -69,5 +69,4 @@ public class GraphQLRequestScope extends RequestScope {
         this.setEntityProjection(null);
     }
     //CARBON-371
-    
 }

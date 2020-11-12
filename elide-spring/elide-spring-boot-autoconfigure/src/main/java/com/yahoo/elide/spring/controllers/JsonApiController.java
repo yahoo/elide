@@ -74,7 +74,7 @@ public class JsonApiController {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide.get(baseUrl, pathname,
-                        new MultivaluedHashMap<>(allRequestParams), user, apiVersion);
+                        new MultivaluedHashMap<>(allRequestParams), new MultivaluedHashMap<>(requestHeaders), user, apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
@@ -94,7 +94,7 @@ public class JsonApiController {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide.post(baseUrl, pathname, body, new MultivaluedHashMap<>(allRequestParams),
-                        user, apiVersion, UUID.randomUUID());
+                		new MultivaluedHashMap<>(requestHeaders), user, apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
@@ -115,7 +115,7 @@ public class JsonApiController {
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide
                         .patch(baseUrl, request.getContentType(), request.getContentType(), pathname, body,
-                               new MultivaluedHashMap<>(allRequestParams), user, apiVersion, UUID.randomUUID());
+                               new MultivaluedHashMap<>(allRequestParams), new MultivaluedHashMap<>(requestHeaders), user, apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
@@ -156,7 +156,7 @@ public class JsonApiController {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide
-                        .delete(baseUrl, pathname, body, new MultivaluedHashMap<>(allRequestParams), user,
+                        .delete(baseUrl, pathname, body, new MultivaluedHashMap<>(allRequestParams), new MultivaluedHashMap<>(requestHeaders), user,
                                 apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }

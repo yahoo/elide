@@ -182,9 +182,11 @@ public class QueryRunner {
      * @param graphQLDocument The graphQL document (wrapped in JSON payload).
      * @param user The user who issued the query.
      * @param requestId the Request ID.
+     * @param requestHeaders the request headers
      * @return The response.
      */
-    public ElideResponse run(String baseUrlEndPoint, String graphQLDocument, User user, UUID requestId, MultivaluedMap<String, String> requestHeaders) {
+    public ElideResponse run(String baseUrlEndPoint, String graphQLDocument, User user,
+                             UUID requestId, MultivaluedMap<String, String> requestHeaders) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
 
         JsonNode topLevel;
@@ -199,7 +201,8 @@ public class QueryRunner {
         }
 
         Function<JsonNode, ElideResponse> executeRequest =
-                (node) -> executeGraphQLRequest(baseUrlEndPoint, mapper, user, graphQLDocument, node, requestId, requestHeaders);
+                (node) -> executeGraphQLRequest(baseUrlEndPoint, mapper, user,
+                        graphQLDocument, node, requestId, requestHeaders);
 
         if (topLevel.isArray()) {
             Iterator<JsonNode> nodeIterator = topLevel.iterator();
@@ -236,7 +239,7 @@ public class QueryRunner {
 
         return executeRequest.apply(topLevel);
     }
-    
+
     /**
      * Extracts the executable query from Json Node.
      * @param jsonDocument The JsonNode object.
@@ -275,7 +278,7 @@ public class QueryRunner {
         return null;
     }
 
-    
+
     private ElideResponse executeGraphQLRequest(String baseUrlEndPoint, ObjectMapper mapper, User principal,
                                                 String graphQLDocument, JsonNode jsonDocument, UUID requestId) {
         boolean isVerbose = false;
@@ -411,7 +414,8 @@ public class QueryRunner {
     }
 
     private ElideResponse executeGraphQLRequest(String baseUrlEndPoint, ObjectMapper mapper, User principal,
-            String graphQLDocument, JsonNode jsonDocument, UUID requestId, MultivaluedMap<String, String> requestHeaders) {
+            String graphQLDocument, JsonNode jsonDocument, UUID requestId,
+            MultivaluedMap<String, String> requestHeaders) {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);

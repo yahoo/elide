@@ -32,7 +32,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Callable;
+
+import javax.ws.rs.core.MultivaluedHashMap;
 
 /**
  * Spring rest controller for Elide GraphQL.
@@ -87,7 +90,7 @@ public class GraphqlController {
                 if (runner == null) {
                     response = buildErrorResponse(elide, new InvalidOperationException("Invalid API Version"), false);
                 } else {
-                    response = runner.run(baseUrl, graphQLDocument, user);
+                    response = runner.run(baseUrl, graphQLDocument, user, UUID.randomUUID(), new MultivaluedHashMap<>(requestHeaders));
                 }
 
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());

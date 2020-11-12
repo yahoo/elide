@@ -17,7 +17,6 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.toJson;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -61,6 +60,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
@@ -77,6 +77,7 @@ public class GraphQLEndpointTest {
     private final SecurityContext user3 = Mockito.mock(SecurityContext.class);
     private final AuditLogger audit = Mockito.mock(AuditLogger.class);
     private final UriInfo uriInfo = Mockito.mock(UriInfo.class);
+    private final HttpHeaders requestHeaders = Mockito.mock(HttpHeaders.class);
 
     public static class User implements Principal {
         String log = "";
@@ -213,7 +214,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        Response response = endpoint.post(uriInfo, null, user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, graphQLResponse);
     }
 
@@ -266,7 +267,7 @@ public class GraphQLEndpointTest {
 
         Map<String, String> variables = new HashMap<>();
         variables.put("bookId", "1");
-        Response response = endpoint.post(uriInfo, null, user1, graphQLRequestToJSON(graphQLRequest, variables));
+        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest, variables));
         assert200EqualBody(response, graphQLResponse);
     }
 
@@ -294,7 +295,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        Response response = endpoint.post(uriInfo, null, user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, graphQLResponse);
     }
 
@@ -311,7 +312,7 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        Response response = endpoint.post(uriInfo, null, user2, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
     }
 
@@ -336,7 +337,7 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        Response response = endpoint.post(uriInfo, null, user2, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
     }
 
@@ -360,7 +361,7 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        Response response = endpoint.post(uriInfo, null, user2, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));
         JsonNode node = extract200Response(response);
         Iterator<JsonNode> errors = node.get("errors").elements();
         assertTrue(errors.hasNext());
@@ -393,7 +394,7 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        Response response = endpoint.post(uriInfo, null, user2, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
 
         graphQLRequest = document(
@@ -420,7 +421,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        response = endpoint.post(uriInfo, null, user2, graphQLRequestToJSON(graphQLRequest));
+        response = endpoint.post(uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
     }
 
@@ -464,7 +465,7 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        Response response = endpoint.post(uriInfo, null, user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
 
         assertHasErrors(response);
 
@@ -511,7 +512,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        response = endpoint.post(uriInfo, null, user1, graphQLRequestToJSON(graphQLRequest));
+        response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
     }
 
@@ -556,7 +557,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        Response response = endpoint.post(uriInfo, null, user, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(uriInfo, requestHeaders, user, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
 
         String expectedLog = "On Title Update Pre Security\nOn Title Update Pre Commit\nOn Title Update Post Commit\n";
@@ -589,7 +590,7 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        endpoint.post(uriInfo, null, user1, graphQLRequestToJSON(graphQLRequest));
+        endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
 
         Mockito.verify(audit, Mockito.times(1)).log(Mockito.any());
         Mockito.verify(audit, Mockito.times(1)).commit();
@@ -638,7 +639,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        Response response = endpoint.post(uriInfo, null, user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
 
         graphQLRequest = document(
@@ -691,7 +692,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        response = endpoint.post(uriInfo, null, user1, graphQLRequestToJSON(graphQLRequest));
+        response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
     }
 
@@ -720,7 +721,7 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        Response response = endpoint.post(uriInfo, null, user3, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(uriInfo, requestHeaders, user3, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
     }
 
@@ -774,7 +775,7 @@ public class GraphQLEndpointTest {
                 )
         ).toResponse();
 
-        Response response = endpoint.post(uriInfo, null, user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, expected);
     }
 
@@ -799,7 +800,7 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
-        Response response = endpoint.post(uriInfo, null, user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
     }
 
@@ -876,7 +877,7 @@ public class GraphQLEndpointTest {
         ).toResponse();
 
 
-        Response response = endpoint.post(uriInfo, null, user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, graphQLResponse);
     }
 
@@ -942,7 +943,7 @@ public class GraphQLEndpointTest {
         ).toResponse();
 
 
-        Response response = endpoint.post(uriInfo, null, user1, graphQLRequestToJSON(graphQLRequest));
+        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
         assert200EqualBody(response, graphQLResponse);
     }
 
@@ -1026,7 +1027,7 @@ public class GraphQLEndpointTest {
         variables.put("author1", "1");
         variables.put("author2", "2");
 
-        Response response = endpoint.post(uriInfo, null, user1, graphQLRequestToJSON(graphQLRequest, variables));
+        Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest, variables));
         assert200EqualBody(response, graphQLResponse);
     }
 

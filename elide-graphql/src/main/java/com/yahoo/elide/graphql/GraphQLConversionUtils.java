@@ -450,7 +450,7 @@ public class GraphQLConversionUtils {
     }
 
     /**
-     * Build an Argument list object for the given attribute
+     * Build an Argument list object for the given attribute.
      * @param entityClass The Entity class to which this attribute belongs to.
      * @param attribute The name of the attribute.
      * @param fetcher The data fetcher to associated with the newly created GraphQL Query Type

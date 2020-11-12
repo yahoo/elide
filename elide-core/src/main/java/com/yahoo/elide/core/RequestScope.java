@@ -243,9 +243,10 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 ? Optional.empty()
                 : Optional.of(queryParams);
 
-                this.requestHeaders = (requestHeaders == null || requestHeaders.size() == 0)
-                        ? Optional.empty()
-                        : Optional.of(requestHeaders);
+                System.out.println(requestHeaders);
+        this.requestHeaders = (requestHeaders == null || requestHeaders.size() == 0)
+                ? Optional.empty()
+                : Optional.of(requestHeaders);
 
         registerPreSecurityObservers();
 
@@ -291,7 +292,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         }
     }
 
-    
+
     /**
      * Special copy constructor for use by PatchRequestScope.
      *
@@ -451,7 +452,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                 });
         return returnMap;
     }
-    
+
     /**
      * Run queued pre-security lifecycle triggers.
      */

@@ -231,6 +231,7 @@ public class SQLQueryEngine extends QueryEngine {
         }
 
         log.debug("SQL Query: " + queryString);
+        System.out.println("SQL Query: " + queryString);
         stmt = sqlTransaction.initializeStatement(queryString, dataSource);
 
         // Supply the query parameters to the query

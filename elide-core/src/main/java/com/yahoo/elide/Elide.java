@@ -55,7 +55,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -198,8 +197,9 @@ public class Elide {
      * @param requestId the request ID
      * @return Elide response object
      */
-    public ElideResponse get(String baseUrlEndPoint, String path, MultivaluedMap<String, String> queryParams, MultivaluedMap<String, String> requestHeaders,
-                             User opaqueUser, String apiVersion, UUID requestId) {
+    public ElideResponse get(String baseUrlEndPoint, String path, MultivaluedMap<String, String> queryParams,
+                             MultivaluedMap<String, String> requestHeaders, User opaqueUser, String apiVersion,
+                             UUID requestId) {
         return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, requestId, (tx, user) -> {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             RequestScope requestScope = new RequestScope(baseUrlEndPoint, path, apiVersion, jsonApiDoc,
@@ -210,7 +210,7 @@ public class Elide {
             return visit(path, requestScope, visitor);
         });
     }
-    
+
     /**
      * Handle POST.
      *
@@ -346,6 +346,55 @@ public class Elide {
     }
 
     /**
+     * Handle PATCH.
+     *
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param contentType the content type
+     * @param accept the accept
+     * @param path the path
+     * @param jsonApiDocument the json api document
+     * @param queryParams the query params
+     * @param requestHeaders the request headers
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @param requestId the request ID
+     * @return Elide response object
+     */
+    public ElideResponse patch(String baseUrlEndPoint, String contentType, String accept,
+                               String path, String jsonApiDocument, MultivaluedMap<String, String> queryParams,
+                               MultivaluedMap<String, String> requestHeaders, User opaqueUser,
+                               String apiVersion, UUID requestId) {
+
+        Handler<DataStoreTransaction, User, HandlerResult> handler;
+        if (JsonApiPatch.isPatchExtension(contentType) && JsonApiPatch.isPatchExtension(accept)) {
+            handler = (tx, user) -> {
+                PatchRequestScope requestScope = new PatchRequestScope(baseUrlEndPoint, path, apiVersion, tx,
+                        user, requestId, elideSettings);
+                try {
+                    Supplier<Pair<Integer, JsonNode>> responder =
+                            JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, requestScope);
+                    return new HandlerResult(requestScope, responder);
+                } catch (RuntimeException e) {
+                    return new HandlerResult(requestScope, e);
+                }
+            };
+        } else {
+            handler = (tx, user) -> {
+                JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
+
+                RequestScope requestScope = new RequestScope(baseUrlEndPoint, path, apiVersion, jsonApiDoc,
+                        tx, user, queryParams, requestHeaders, requestId, elideSettings);
+                requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+                        requestScope).parsePath(path));
+                BaseVisitor visitor = new PatchVisitor(requestScope);
+                return visit(path, requestScope, visitor);
+            };
+        }
+
+        return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestId, handler);
+    }
+
+    /**
      * Handle DELETE.
      *
      * @param baseUrlEndPoint base URL with prefix endpoint
@@ -381,6 +430,36 @@ public class Elide {
                     : mapper.readJsonApiDocument(jsonApiDocument);
             RequestScope requestScope = new RequestScope(baseUrlEndPoint, path, apiVersion, jsonApiDoc,
                     tx, user, queryParams, requestId, elideSettings);
+            requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
+                    requestScope).parsePath(path));
+            BaseVisitor visitor = new DeleteVisitor(requestScope);
+            return visit(path, requestScope, visitor);
+        });
+    }
+
+    /**
+     * Handle DELETE.
+     *
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param path the path
+     * @param jsonApiDocument the json api document
+     * @param queryParams the query params
+     * @param requestHeaders the request headers
+     * @param opaqueUser the opaque user
+     * @param apiVersion the API version
+     * @param requestId the request ID
+     * @return Elide response object
+     */
+    public ElideResponse delete(String baseUrlEndPoint, String path, String jsonApiDocument,
+                                MultivaluedMap<String, String> queryParams,
+                                MultivaluedMap<String, String> requestHeaders,
+                                User opaqueUser, String apiVersion, UUID requestId) {
+        return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestId, (tx, user) -> {
+            JsonApiDocument jsonApiDoc = StringUtils.isEmpty(jsonApiDocument)
+                    ? new JsonApiDocument()
+                    : mapper.readJsonApiDocument(jsonApiDocument);
+            RequestScope requestScope = new RequestScope(baseUrlEndPoint, path, apiVersion, jsonApiDoc,
+                    tx, user, queryParams, requestHeaders, requestId, elideSettings);
             requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
                     requestScope).parsePath(path));
             BaseVisitor visitor = new DeleteVisitor(requestScope);
@@ -520,7 +599,9 @@ public class Elide {
         protected RuntimeException cause;
 
         protected HandlerResult(RequestScope requestScope, Supplier<Pair<Integer, JsonNode>> result) {
+            System.out.println(requestScope.getRequestHeaders());
             this.requestScope = requestScope;
+            System.out.println(result);
             this.result = result;
         }
 
