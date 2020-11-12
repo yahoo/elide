@@ -44,14 +44,6 @@ public class DynamicConfigVerifier {
     /**
      * Main Method to Verify Signature of Model Tar file.
      * @param args : expects 3 arguments.
-     * @throws ParseException
-     * @throws IOException
-     * @throws KeyStoreException
-     * @throws FileNotFoundException
-     * @throws SignatureException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeyException
-     * @throws MissingOptionException
      */
     public static void main(String[] args) {
 
