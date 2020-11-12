@@ -27,7 +27,6 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -79,39 +78,20 @@ public class ElideDynamicEntityCompiler {
     private static Map<ModelMapKey, ModelMapValue> createMapping() {
         Map<ModelMapKey, ModelMapValue> map = new HashMap<>();
         Set<Class<?>> includeClasses = ClassScanner.getAnnotatedClasses(Arrays.asList(Include.class));
+        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        includeClasses.forEach(dictionary::bindEntity);
         includeClasses.forEach(cls -> {
-            String modelName = EntityDictionary.getEntityName(cls);
+            String modelName = dictionary.getJsonAliasFor(cls);
             String modelVersion = EntityDictionary.getModelVersion(cls);
             String className = cls.getSimpleName();
             String pkgName = cls.getPackage().getName();
+            Set<String> fieldNames = new HashSet<String>(dictionary.getAllFields(cls));
+
             map.put(new ModelMapKey(modelName, modelVersion),
-                    new ModelMapValue(className, prepareImport(pkgName, className), getFieldNames(cls)));
+                    new ModelMapValue(className, prepareImport(pkgName, className), fieldNames));
         });
 
         return Collections.unmodifiableMap(map);
-    }
-
-    private static Set<String> getFieldNames(Class<?> cls) {
-        Set<String> fieldNames = new HashSet<String>();
-        getAllFieldNames(cls, fieldNames);
-        return fieldNames;
-    }
-
-    private static void getAllFieldNames(Class<?> cls, Set<String> fieldNames) {
-
-        if (cls == Object.class) {
-            return;
-        }
-
-        getAllFieldNames(cls.getSuperclass(), fieldNames);
-
-        fieldNames.addAll(
-            Arrays.stream(cls.getDeclaredFields())
-                .filter(field -> !field.isSynthetic() && !Modifier.isStatic(field.getModifiers()))
-                .map(field -> field.getName())
-                .collect(Collectors.toList()
-            )
-        );
     }
 
     /**
