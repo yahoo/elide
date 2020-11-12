@@ -1,6 +1,6 @@
 {
     tables: [{
-        name: PlayerCountry
+        name: playerCountry
         table: PlayerCountry
         description:
         '''
