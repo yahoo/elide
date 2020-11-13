@@ -452,7 +452,7 @@ data to help our users is just as easy as it is to add new data. Let’s update 
 
 ### Running Analytic Queries
 
-Analytic queries leverage the same API as reading any other Elide model.  Note that Elide will aggregate the measures selected by the dimensions requested.  Learn more about analytic queries [here](/pages/guide/v{{ page.version }}/04-analytics.html).
+Analytic queries leverage the same API as reading any other Elide model.  Note that Elide will aggregate the measures selected by the dimensions requested.  Learn more about analytic queries [here](https://elide.io/pages/guide/v5/04-analytics.html).
 
 #### JSON-API
 
