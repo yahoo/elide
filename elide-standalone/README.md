@@ -278,7 +278,7 @@ Your log4j config should go in `src/main/resources` so log4j can find it.
 With these new classes, you have two options for running your project.  You can either run the `Main` class using your
 favorite IDE, or you can run the service from the command line:
 
-```mvn exec:java -Dexec.mainClass="example.Main"```
+```java -jar target/elide-heroku-example.jar```
 
 Our example requires the following environment variables to be set to work correctly with Heroku and Postgres.  
 
@@ -548,7 +548,3 @@ New health checks can be exposed through the servlet path `/stats/healthcheck` b
 You can add additional configuration by specifying the `applicationConfigurator` method. The class (i.e. the `Consumer`) is fully injectable and will take in the root Jersey `ResourceConfig` for your application.
 
 This method accepts a `ResourceConfig` object so you can continue to modify it as necessary.
-
-## <a name="moredetail"></a>Looking for More?
-
-For a more detailed example containing information about using security and additional features, see our [blog example](https://github.com/DennisMcWherter/elide-example-blog-kotlin).
