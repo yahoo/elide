@@ -34,4 +34,29 @@ public class ElideTableConfig {
     @JsonProperty("tables")
     @JsonDeserialize(as = LinkedHashSet.class)
     private Set<Table> tables = new LinkedHashSet<Table>();
+
+    /**
+     * Checks if a dynamic model exists with the given name.
+     * @param name Model Name
+     * @return true if a dynamic model exists with the given name.
+     */
+    public boolean hasTable(String name) {
+        return tables
+                   .stream()
+                   .map(t -> t.getName())
+                   .anyMatch(name::equals);
+    }
+
+    /**
+     * Provides the dynamic model with the given name.
+     * @param name Model Name
+     * @return dynamic model with the given name.
+     */
+    public Table getTable(String name) {
+        return tables
+                   .stream()
+                   .filter(t -> t.getName().equals(name))
+                   .findFirst()
+                   .orElse(null);
+    }
 }

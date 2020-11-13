@@ -282,11 +282,33 @@ public class ElideDynamicEntityCompiler {
      * Checks if field exists in referenced static model.
      * @param modelName model name.
      * @param modelVersion model version.
-     * @param fieldName field name to check.
-     * @return true if model has the field defined else false
+     * @return set of fields 
      */
-    public static boolean staticModelContainsField(String modelName, String modelVersion, String fieldName) {
+    public static Set<String> staticModelFields(String modelName, String modelVersion) {
+        ModelMapValue value = STATIC_MODEL_DETAILS.get(new ModelMapKey(modelName, modelVersion));
+        return value != null ? value.getFieldNames() : null;
+    }
+
+    /**
+     * Check if provided (modelName, modelVersion) is defined.
+     * @param modelName model name.
+     * @param modelVersion model version.
+     * @return true is provided (modelName, modelVersion) exists.
+     */
+    public static boolean isStaticModel(String modelName, String modelVersion) {
+        return STATIC_MODEL_DETAILS.containsKey(new ModelMapKey(modelName, modelVersion));
+    }
+
+    /**
+     * Check if provided (modelName, modelVersion) has provided field.
+     * @param modelName model name.
+     * @param modelVersion model version.
+     * @param fieldName field name.
+     * @return true is provided (modelName, modelVersion) has provided field.
+     */
+    public static boolean staticModelHasField(String modelName, String modelVersion, String fieldName) {
         ModelMapValue value = STATIC_MODEL_DETAILS.get(new ModelMapKey(modelName, modelVersion));
         return value != null ? value.getFieldNames().contains(fieldName) : false;
     }
+    
 }
