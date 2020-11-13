@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -396,7 +397,7 @@ public class DynamicConfigValidator {
                         .collect(Collectors.toSet());
 
                 if (connections.size() > 1 || (connections.size() == 1
-                                && !table.getDbConnectionName().equals(connections.iterator().next()))) {
+                                && !Objects.equals(table.getDbConnectionName(), connections.iterator().next()))) {
                     throw new IllegalStateException("DBConnection name mismatch between table: " + table.getName()
                                     + " and tables in its Join Clause.");
                 }

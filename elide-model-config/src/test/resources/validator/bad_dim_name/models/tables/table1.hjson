@@ -7,9 +7,9 @@
       dimensions:
       [
         {
-          name: name
+          name: id
           type: Text
-          definition: '{{name}}'
+          definition: '{{id}}'
         }
         {
           // unsupported: name starts with '_'
