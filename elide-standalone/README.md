@@ -49,6 +49,7 @@ There will two kinds of models:
 
   ```java
   @Include(rootLevel = true, type = "group")
+  @Table(name="ArtifactGroup")
   @Entity
   public class ArtifactGroup {
       @Id
@@ -67,6 +68,7 @@ There will two kinds of models:
 
   ```java
   @Include(type = "product")
+  @Table(name="ArtifactProduct")
   @Entity
   public class ArtifactProduct {
       @Id
@@ -88,6 +90,7 @@ There will two kinds of models:
 
   ```java
   @Include(type = "version")
+  @Table(name="ArtifactVersion")
   @Entity
   public class ArtifactVersion {
       @Id
@@ -208,6 +211,57 @@ Bringing life to our API is trivially easy. We need two new classes: Main and Se
           options.put("javax.persistence.jdbc.password", "");
              
           return options;
+      }
+
+      /**
+       * Enables elide's asynchronous API for analytic queries.
+       */
+      @Override
+      public ElideStandaloneAsyncSettings getAsyncProperties() {
+          return new ElideStandaloneAsyncSettings() {
+  
+              @Override
+              public boolean enabled() {
+                  return true;
+              }
+  
+              @Override
+              public boolean enableCleanup() {
+                  return true;
+              }
+          };
+      }
+
+      /**
+       * Enable HJSON configuration files for analytic models.
+       */
+      @Override
+      public boolean enableDynamicModelConfig() {
+          return true;
+      }
+
+      /**
+       * Enable analytic queries.
+       */
+      @Override
+      public boolean enableAggregationDataStore() {
+          return true;
+      }
+
+      /**
+       * Configure the SQL dialect for analytic queries.
+       */
+      @Override
+      public String getDefaultDialect() {
+          return "h2";
+      }
+
+      /**
+       * Configure the location of HJSON models.
+       */
+      @Override
+      public String getDynamicConfigPath() {
+          return "src/main/resources/analytics";
       }
   } 
   ```
