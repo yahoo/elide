@@ -165,7 +165,7 @@ There will two kinds of models:
 
 So now we have some models, but without an API it is not very useful. Before we add the API component, we need to create the schema in the database that our models will use.   Our example uses liquibase to manage the schema.  When Heroku releases the application, our example will execute the [database migrations](https://github.com/yahoo/elide-standalone-example/blob/master/src/main/resources/db/changelog/changelog.xml) to configure the database with some test data automatically.  This demo uses Postgres.  Feel free to modify the migration script if you are using a different database provider.
 
-You may notice the example liquibase migration script adds an extra table, `AsyncQuery`.  This is only required if leveraging Elide's [asynchronous API]() to manage long running analytic queries.
+You may notice the example liquibase migration script adds an extra table, `AsyncQuery`.  This is only required if leveraging Elide's [asynchronous API](https://elide.io/pages/guide/v5/11.5-asyncapi.html) to manage long running analytic queries.
 
 There may be more tables in your database than models in your project or vice versa.  Similarly, there may be more columns in a table than in a particular model or vice versa.  Not only will our models work just fine, but we expect that models will normally expose only a subset of the fields present in the database. Elide is an ideal tool for building micro-services - each service in your system can expose only the slice of the database that it requires.
 
