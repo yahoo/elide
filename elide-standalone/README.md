@@ -40,13 +40,16 @@ To include `elide-standalone` into your project, add the single dependency:
 ### Create Models
 
 Elide models are some of the most important code in any Elide project. Your models are the view of your data that you wish to expose. In this example we will be modeling a software artifact repository since most developers have a high-level familiarity with artifact repositories such as Maven, Artifactory, npm, and the like.
- 
-The first models we’ll need are `ArtifactGroup`, `ArtifactProduct`, and `ArtifactVersion`.  For brevity we will omit package names and import statements. 
+
+There will two kinds of models:
+ - Models that we intend to both read & write.  These models are created by definining Java classes.  For this example, that includes `ArtifactGroup`, `ArtifactProduct`, and `ArtifactVersion`.  For brevity we will omit package names and import statements. 
+ - Read-only models that we intend to run analytic queries against.  These models can be created with Java classes or with a HJSON configuration language.  For this example, we will use the latter to create a `Downloads` model.
 
 #### ArtifactGroup.java
 
   ```java
   @Include(rootLevel = true, type = "group")
+  @Table(name="ArtifactGroup")
   @Entity
   public class ArtifactGroup {
       @Id
@@ -65,6 +68,7 @@ The first models we’ll need are `ArtifactGroup`, `ArtifactProduct`, and `Artif
 
   ```java
   @Include(type = "product")
+  @Table(name="ArtifactProduct")
   @Entity
   public class ArtifactProduct {
       @Id
@@ -86,6 +90,7 @@ The first models we’ll need are `ArtifactGroup`, `ArtifactProduct`, and `Artif
 
   ```java
   @Include(type = "version")
+  @Table(name="ArtifactVersion")
   @Entity
   public class ArtifactVersion {
       @Id
@@ -98,9 +103,69 @@ The first models we’ll need are `ArtifactGroup`, `ArtifactProduct`, and `Artif
   }
   ```
 
+#### artifactDownloads.hjson
+
+  ```hjson
+  {
+    tables: [
+      {
+        name: Downloads
+        table: downloads
+        description:
+        '''
+        Analytics for artifact downloads.
+        '''
+        joins: [
+          {
+            name: artifactGroup
+            to: group
+            type: toOne
+            definition: '{{group_id}} = {{artifactGroup.name}}'
+          },
+          {
+            name: artifactProduct
+            to: product
+            type: toOne
+            definition: '{{product_id}} = {{artifactProduct.name}}'
+          }
+        ]
+        dimensions: [
+          {
+            name: group
+            type: TEXT
+            definition: '{{artifactGroup.name}}'
+          }
+          {
+            name: product
+            type: TEXT
+            definition: '{{artifactProduct.name}}'
+          }
+          {
+            name: date
+            type: TIME
+            definition: '{{date}}'
+            grain: {
+              type: DAY
+            }
+          }
+        ]
+        measures: [
+          {
+            name: downloads
+            type: INTEGER
+            definition: 'SUM({{downloads}})'
+          }
+        ]
+      }
+    ]
+  } 
+  ```
+
 ### Spin up the API
 
 So now we have some models, but without an API it is not very useful. Before we add the API component, we need to create the schema in the database that our models will use.   Our example uses liquibase to manage the schema.  When Heroku releases the application, our example will execute the [database migrations](https://github.com/yahoo/elide-standalone-example/blob/master/src/main/resources/db/changelog/changelog.xml) to configure the database with some test data automatically.  This demo uses Postgres.  Feel free to modify the migration script if you are using a different database provider.
+
+You may notice the example liquibase migration script adds an extra table, `AsyncQuery`.  This is only required if leveraging Elide's [asynchronous API]() to manage long running analytic queries.
 
 There may be more tables in your database than models in your project or vice versa.  Similarly, there may be more columns in a table than in a particular model or vice versa.  Not only will our models work just fine, but we expect that models will normally expose only a subset of the fields present in the database. Elide is an ideal tool for building micro-services - each service in your system can expose only the slice of the database that it requires.
 
@@ -147,6 +212,57 @@ Bringing life to our API is trivially easy. We need two new classes: Main and Se
              
           return options;
       }
+
+      /**
+       * Enables elide's asynchronous API for analytic queries.
+       */
+      @Override
+      public ElideStandaloneAsyncSettings getAsyncProperties() {
+          return new ElideStandaloneAsyncSettings() {
+  
+              @Override
+              public boolean enabled() {
+                  return true;
+              }
+  
+              @Override
+              public boolean enableCleanup() {
+                  return true;
+              }
+          };
+      }
+
+      /**
+       * Enable HJSON configuration files for analytic models.
+       */
+      @Override
+      public boolean enableDynamicModelConfig() {
+          return true;
+      }
+
+      /**
+       * Enable analytic queries.
+       */
+      @Override
+      public boolean enableAggregationDataStore() {
+          return true;
+      }
+
+      /**
+       * Configure the SQL dialect for analytic queries.
+       */
+      @Override
+      public String getDefaultDialect() {
+          return "h2";
+      }
+
+      /**
+       * Configure the location of HJSON models.
+       */
+      @Override
+      public String getDynamicConfigPath() {
+          return "src/main/resources/analytics";
+      }
   } 
   ```
 
@@ -162,7 +278,7 @@ Your log4j config should go in `src/main/resources` so log4j can find it.
 With these new classes, you have two options for running your project.  You can either run the `Main` class using your
 favorite IDE, or you can run the service from the command line:
 
-```mvn exec:java -Dexec.mainClass="example.Main"```
+```java -jar target/elide-heroku-example.jar```
 
 Our example requires the following environment variables to be set to work correctly with Heroku and Postgres.  
 
@@ -334,7 +450,65 @@ data to help our users is just as easy as it is to add new data. Let’s update 
          }'
   ```
 
-It’s just that easy to create and update data using Elide.
+### Running Analytic Queries
+
+Analytic queries leverage the same API as reading any other Elide model.  Note that Elide will aggregate the measures selected by the dimensions requested.  Learn more about analytic queries [here](https://elide.io/pages/guide/v5/04-analytics.html).
+
+#### JSON-API
+
+  ```curl 
+  curl http://localhost:8080/api/v1/Downloads?fields[Downloads]=downloads,group,product
+  ```
+
+#### GraphQL
+
+  ```curl 
+  curl -g -X POST -H"Content-Type: application/json" -H"Accept: application/json" \
+      "http://localhost:8080/graphql/api/v1" \
+      -d'{ 
+             "query" : "{ Downloads { edges { node { downloads group product } } } }"
+         }'
+  ```
+
+Here are the respective responses:
+
+#### JSON-API
+
+  ```json 
+  {
+    "data": [
+      {
+        "attributes": {
+          "downloads": 35,
+          "group": "com.example.repository",
+          "product": "elide-core"
+        },
+        "id": "0",
+        "type": "Downloads"
+      }
+    ]
+  }
+  ```
+
+#### GraphQL
+
+  ```json
+  {
+    "data": {
+      "Downloads": {
+        "edges": [
+          {
+            "node": {
+              "downloads": 35,
+              "group": "com.example.repository",
+              "product": "elide-core"
+            }
+          }
+        ]
+      }
+    }
+  }
+  ```
 
 ### <a name="filters"></a>Filters
 
@@ -374,7 +548,3 @@ New health checks can be exposed through the servlet path `/stats/healthcheck` b
 You can add additional configuration by specifying the `applicationConfigurator` method. The class (i.e. the `Consumer`) is fully injectable and will take in the root Jersey `ResourceConfig` for your application.
 
 This method accepts a `ResourceConfig` object so you can continue to modify it as necessary.
-
-## <a name="moredetail"></a>Looking for More?
-
-For a more detailed example containing information about using security and additional features, see our [blog example](https://github.com/DennisMcWherter/elide-example-blog-kotlin).
