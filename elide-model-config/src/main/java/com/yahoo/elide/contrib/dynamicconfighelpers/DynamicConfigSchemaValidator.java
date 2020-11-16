@@ -40,10 +40,24 @@ public class DynamicConfigSchemaValidator {
     private JsonSchema dbConfigSchema;
 
     public DynamicConfigSchemaValidator() {
-        tableSchema = loadSchema(Config.TABLE.getConfigSchema());
-        securitySchema = loadSchema(Config.SECURITY.getConfigSchema());
-        variableSchema = loadSchema(Config.MODELVARIABLE.getConfigSchema());
-        dbConfigSchema = loadSchema(Config.SQLDBConfig.getConfigSchema());
+
+        Library library = DraftV4LibraryWithElideFormatAttr.getInstance();
+
+        MessageBundle bundle = MessageBundleWithElideMessages.getInstance();
+
+        ValidationConfiguration cfg = ValidationConfiguration.newBuilder()
+                        .setDefaultLibrary("http://my.site/myschema#", library)
+                        .setValidationMessages(bundle)
+                        .freeze();
+
+        JsonSchemaFactory factory = JsonSchemaFactory.newBuilder()
+                        .setValidationConfiguration(cfg)
+                        .freeze();
+
+        tableSchema = loadSchema(factory, Config.TABLE.getConfigSchema());
+        securitySchema = loadSchema(factory, Config.SECURITY.getConfigSchema());
+        variableSchema = loadSchema(factory, Config.MODELVARIABLE.getConfigSchema());
+        dbConfigSchema = loadSchema(factory, Config.SQLDBConfig.getConfigSchema());
     }
 
     /**
@@ -135,20 +149,7 @@ public class DynamicConfigSchemaValidator {
         return pointer;
     }
 
-    private JsonSchema loadSchema(String resource) {
-
-        Library library = DraftV4LibraryWithElideFormatAttr.getInstance();
-
-        MessageBundle bundle = MessageBundleWithElideMessages.getInstance();
-
-        ValidationConfiguration cfg = ValidationConfiguration.newBuilder()
-                        .setDefaultLibrary("http://my.site/myschema#", library)
-                        .setValidationMessages(bundle)
-                        .freeze();
-
-        JsonSchemaFactory factory = JsonSchemaFactory.newBuilder()
-                        .setValidationConfiguration(cfg)
-                        .freeze();
+    private static JsonSchema loadSchema(JsonSchemaFactory factory, String resource) {
 
         try {
             return factory.getJsonSchema(

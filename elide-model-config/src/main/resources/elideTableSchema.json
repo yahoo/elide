@@ -1,4 +1,5 @@
 {
+    "$schema": "https://json-schema.org/draft-04/schema#",
     "definitions": {
         "join": {
             "title": "Join",
@@ -8,7 +9,8 @@
                 "name": {
                     "title": "Join name",
                     "description": "The name of the join relationship.",
-                    "type": "string"
+                    "type": "string",
+                    "format": "elideFieldName"
                 },
                 "to": {
                     "title": "Join table name",
