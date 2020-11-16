@@ -251,6 +251,17 @@ public class DynamicConfigValidatorTest {
                         + "but is not defined in variables config file.\n", error);
     }
 
+    public void testBadTableSource() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() -> DynamicConfigValidator
+                    .main(new String[]{"--configDir", "src/test/resources/validator/bad_tablesource"}));
+
+            assertEquals(2, exitStatus);
+        });
+        assertEquals("Invalid tableSource : Team.teamRegion . Field : teamRegion is undefined for hjson model: Team",
+                        error);
+    }
+
     @Test
     public void testDuplicateDBConfigName() throws Exception {
         String error = tapSystemErr(() -> {

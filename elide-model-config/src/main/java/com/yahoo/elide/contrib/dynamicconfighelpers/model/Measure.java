@@ -38,7 +38,7 @@ import java.util.Set;
 @EqualsAndHashCode()
 @AllArgsConstructor
 @NoArgsConstructor
-public class Measure {
+public class Measure implements Named {
 
     @JsonProperty("name")
     private String name;

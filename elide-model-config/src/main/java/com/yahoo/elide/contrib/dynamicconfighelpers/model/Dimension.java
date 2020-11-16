@@ -42,7 +42,7 @@ import java.util.Set;
 @EqualsAndHashCode()
 @AllArgsConstructor
 @NoArgsConstructor
-public class Dimension {
+public class Dimension implements Named {
 
     @JsonProperty("name")
     private String name;

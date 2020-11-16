@@ -72,22 +72,28 @@ public class ElideDynamicEntityCompiler {
     private static class ModelMapValue {
         private final String className;
         private final String classImport;
+        private final Set<String> fieldNames;
     }
 
     private static Map<ModelMapKey, ModelMapValue> createMapping() {
         Map<ModelMapKey, ModelMapValue> map = new HashMap<>();
         Set<Class<?>> includeClasses = ClassScanner.getAnnotatedClasses(Arrays.asList(Include.class));
+        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        includeClasses.forEach(dictionary::bindEntity);
         includeClasses.forEach(cls -> {
-            String modelName = EntityDictionary.getEntityName(cls);
+            String modelName = dictionary.getJsonAliasFor(cls);
             String modelVersion = EntityDictionary.getModelVersion(cls);
             String className = cls.getSimpleName();
             String pkgName = cls.getPackage().getName();
+            Set<String> fieldNames = new HashSet<String>(dictionary.getAllFields(cls));
+
             map.put(new ModelMapKey(modelName, modelVersion),
-                            new ModelMapValue(className, prepareImport(pkgName, className)));
+                    new ModelMapValue(className, prepareImport(pkgName, className), fieldNames));
         });
 
         return Collections.unmodifiableMap(map);
     }
+
     /**
      * Parse dynamic config path.
      * @param path : Dynamic config hjsons root location
@@ -270,5 +276,27 @@ public class ElideDynamicEntityCompiler {
     public static String getStaticModelClassImport(String modelName, String modelVersion, String defaultValue) {
         ModelMapValue value = STATIC_MODEL_DETAILS.get(new ModelMapKey(modelName, modelVersion));
         return value != null ? value.getClassImport() : defaultValue;
+    }
+
+    /**
+     * Check if provided (modelName, modelVersion) is defined.
+     * @param modelName model name.
+     * @param modelVersion model version.
+     * @return true is provided (modelName, modelVersion) exists.
+     */
+    public static boolean isStaticModel(String modelName, String modelVersion) {
+        return STATIC_MODEL_DETAILS.containsKey(new ModelMapKey(modelName, modelVersion));
+    }
+
+    /**
+     * Check if provided (modelName, modelVersion) has provided field.
+     * @param modelName model name.
+     * @param modelVersion model version.
+     * @param fieldName field name.
+     * @return true is provided (modelName, modelVersion) has provided field.
+     */
+    public static boolean staticModelHasField(String modelName, String modelVersion, String fieldName) {
+        ModelMapValue value = STATIC_MODEL_DETAILS.get(new ModelMapKey(modelName, modelVersion));
+        return value != null ? value.getFieldNames().contains(fieldName) : false;
     }
 }

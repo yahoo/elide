@@ -54,6 +54,12 @@
            cardinality: Small
          },
          {
+           name : teamRegion
+           type : TEXT
+           definition : '{{playerTeam.region}}'
+           tableSource: PlayerStatsChild.teamRegion
+         },
+         {
            name : createdOn
            type : TIME
            definition : '{{create_on}}'
