@@ -108,4 +108,40 @@ public class Table implements Named {
     public String getDescription() {
         return (this.description == null ? getName() : this.description);
     }
+
+    /**
+     * Checks recursively if this model or any of its parent models has provided field.
+     * @param elideTableConfig
+     * @param fieldName
+     * @return true if this model has provided field
+     */
+    public boolean hasField(ElideTableConfig elideTableConfig, String fieldName) {
+
+        if (hasName(this.dimensions, fieldName) || hasName(this.measures, fieldName)) {
+            return true;
+        }
+        if (hasParent()) {
+            Table parent = elideTableConfig.getTable(this.getExtend());
+            return parent.hasField(elideTableConfig, fieldName);
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if this model has a parent model.
+     * @return true if this model extends another model
+     */
+    public boolean hasParent() {
+        return !this.extend.trim().isEmpty();
+    }
+
+    /**
+     * Provides the parent model for this model.
+     * @param elideTableConfig
+     * @return Parent model for this model
+     */
+    public Table getParent(ElideTableConfig elideTableConfig) {
+        return elideTableConfig.getTable(this.extend);
+    }
 }

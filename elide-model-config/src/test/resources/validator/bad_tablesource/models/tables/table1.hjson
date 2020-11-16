@@ -1,0 +1,35 @@
+{
+  tables: [{
+      name: PlayerStats
+      table: player_stats
+      joins: [
+          {
+             name: playerTeam
+             to: Team
+             type: toMany
+             definition: '{{playerTeam.id}} = {{ team_id}}'
+          }
+      ]
+      dimensions : [
+         {
+           name : teamRegion
+           type : TEXT
+           definition : '{{playerTeam.region}}'
+           // undefined column teamRegion
+           tableSource: Team.teamRegion
+         }
+      ]
+  }
+  {
+      name: Team
+      table: team
+      cardinality: small
+      dimensions: [
+         {
+           name: region
+           type: TEXT
+           definition: '{{region}}'
+         }
+      ]
+  }]
+}

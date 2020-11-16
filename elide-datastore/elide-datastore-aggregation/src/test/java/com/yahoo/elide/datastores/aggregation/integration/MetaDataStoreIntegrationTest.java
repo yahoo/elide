@@ -292,7 +292,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
-    public void dynamicConfigCardinalityMetaDataTest() {
+    public void dynamicConfigMetaDataTest() {
 
         given()
                 .accept("application/vnd.api+json")
@@ -301,7 +301,9 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("customerRegion"))
                 .body("data.attributes.cardinality", equalTo("SMALL"))
-                .body("data.attributes.expression", equalTo("{{customer.customerRegion}}"));
+                .body("data.attributes.expression", equalTo("{{customer.customerRegion}}"))
+                .body("data.attributes.tableSource", nullValue())
+                .body("data.attributes.valueSourceType", equalTo("NONE"));
 
         given()
                 .accept("application/vnd.api+json")
@@ -310,6 +312,8 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("customerRegionRegion"))
                 .body("data.attributes.cardinality", equalTo("UNKNOWN"))
-                .body("data.attributes.expression", equalTo("{{customer.region.region}}"));
+                .body("data.attributes.expression", equalTo("{{customer.region.region}}"))
+                .body("data.attributes.tableSource", equalTo("regionDetails.region"))
+                .body("data.attributes.valueSourceType", equalTo("TABLE"));
     }
 }
