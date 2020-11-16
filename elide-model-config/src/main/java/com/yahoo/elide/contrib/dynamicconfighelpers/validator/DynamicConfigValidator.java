@@ -350,8 +350,8 @@ public class DynamicConfigValidator {
 
         String[] split = tableSource.split("\\.");
         if (split.length != 2) {
-            throw new IllegalStateException("Invalid tableSource : " + tableSource
-                            + " . More than one dot(.) found, tableSource must be in format: modelName.logicalColumnName");
+            throw new IllegalStateException("Invalid tableSource : " + tableSource + " . "
+                            + "More than one dot(.) found, tableSource must be in format: modelName.logicalColumnName");
         }
         String modelName = split[0];
         String fieldName = split[1];
@@ -372,7 +372,7 @@ public class DynamicConfigValidator {
             }
             return;
         }
-        
+
         throw new IllegalStateException("Invalid tableSource : " + tableSource + " . Undefined model: " + modelName);
     }
 
@@ -419,7 +419,7 @@ public class DynamicConfigValidator {
     }
 
     /**
-     * 
+     * Ensure model extends another logical model.
      */
     private static void validateExtend(ElideTableConfig elideTableConfig, String modelName) {
         if (!(isNullOrEmpty(modelName) || elideTableConfig.hasTable(modelName))) {
@@ -427,7 +427,7 @@ public class DynamicConfigValidator {
                             "Undefined model: " + modelName + " is used as a Parent(extend) for another model.");
         }
     }
-    
+
     /**
      * Check if input sql definition contains either semicolon or any of disallowed
      * keywords. Throw exception if check fails.
