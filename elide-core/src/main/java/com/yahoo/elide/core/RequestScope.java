@@ -53,6 +53,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
     @Getter private final JsonApiMapper mapper;
     @Getter private final AuditLogger auditLogger;
     @Getter private final Optional<MultivaluedMap<String, String>> queryParams;
+    @Getter private final Optional<MultivaluedMap<String, String>> requestHeaders;
     @Getter private final Map<String, Set<String>> sparseFields;
     @Getter private final PermissionExecutor permissionExecutor;
     @Getter private final ObjectEntityCache objectEntityCache;
@@ -127,6 +128,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.deletedResources = new LinkedHashSet<>();
         this.requestId = requestId;
         this.headers = new HashMap<>();
+        this.requestHeaders = Optional.empty();
 
         Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
         this.permissionExecutor = (permissionExecutorGenerator == null)
@@ -136,6 +138,114 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.queryParams = (queryParams == null || queryParams.size() == 0)
                 ? Optional.empty()
                 : Optional.of(queryParams);
+
+        registerPreSecurityObservers();
+
+        if (this.queryParams.isPresent()) {
+
+            /* Extract any query param that starts with 'filter' */
+            MultivaluedMap<String, String> filterParams = getFilterParams(queryParams);
+
+            String errorMessage = "";
+            if (! filterParams.isEmpty()) {
+
+                /* First check to see if there is a global, cross-type filter */
+                try {
+                    globalFilterExpression = filterDialect.parseGlobalExpression(path, filterParams, apiVersion);
+                } catch (ParseException e) {
+                    errorMessage = e.getMessage();
+                }
+
+                /* Next check to see if there is are type specific filters */
+                try {
+                    expressionsByType.putAll(filterDialect.parseTypedExpression(path, filterParams, apiVersion));
+                } catch (ParseException e) {
+
+                    /* If neither dialect parsed, report the last error found */
+                    if (globalFilterExpression == null) {
+
+                        if (errorMessage.isEmpty()) {
+                            errorMessage = e.getMessage();
+                        } else if (! errorMessage.equals(e.getMessage())) {
+
+                            /* Combine the two different messages together */
+                            errorMessage = errorMessage + "\n" + e.getMessage();
+                        }
+
+                        throw new BadRequestException(errorMessage, e);
+                    }
+                }
+            }
+
+            this.sparseFields = parseSparseFields(queryParams);
+        } else {
+            this.sparseFields = Collections.emptyMap();
+        }
+    }
+
+    /**
+     * Create a new RequestScope with specified update status code.
+     *
+     * @param baseUrlEndPoint base URL with prefix endpoint
+     * @param path the URL path
+     * @param apiVersion the API version.
+     * @param jsonApiDocument the document for this request
+     * @param transaction the transaction for this request
+     * @param user the user making this request
+     * @param queryParams the query parameters
+     * @param requestHeaders the requestHeaders
+     * @param elideSettings Elide settings object
+     */
+    public RequestScope(String baseUrlEndPoint,
+                        String path,
+                        String apiVersion,
+                        JsonApiDocument jsonApiDocument,
+                        DataStoreTransaction transaction,
+                        User user,
+                        MultivaluedMap<String, String> queryParams,
+                        MultivaluedMap<String, String> requestHeaders,
+                        UUID requestId,
+                        ElideSettings elideSettings) {
+        this.apiVersion = apiVersion;
+        this.lifecycleEvents = PublishSubject.create();
+        this.distinctLifecycleEvents = lifecycleEvents.distinct();
+        this.queuedLifecycleEvents = ReplaySubject.create();
+        this.distinctLifecycleEvents.subscribe(queuedLifecycleEvents);
+
+        this.path = path;
+        this.baseUrlEndPoint = baseUrlEndPoint;
+        this.jsonApiDocument = jsonApiDocument;
+        this.transaction = transaction;
+        this.user = user;
+        this.dictionary = elideSettings.getDictionary();
+        this.mapper = elideSettings.getMapper();
+        this.auditLogger = elideSettings.getAuditLogger();
+        this.filterDialect = new MultipleFilterDialect(elideSettings.getJoinFilterDialects(),
+                elideSettings.getSubqueryFilterDialects());
+        this.elideSettings = elideSettings;
+        this.updateStatusCode = elideSettings.getUpdateStatusCode();
+
+        this.globalFilterExpression = null;
+        this.expressionsByType = new HashMap<>();
+        this.objectEntityCache = new ObjectEntityCache();
+        this.newPersistentResources = new LinkedHashSet<>();
+        this.dirtyResources = new LinkedHashSet<>();
+        this.deletedResources = new LinkedHashSet<>();
+        this.requestId = requestId;
+        this.headers = new HashMap<>();
+
+        Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
+        this.permissionExecutor = (permissionExecutorGenerator == null)
+                ? new ActivePermissionExecutor(this)
+                : permissionExecutorGenerator.apply(this);
+
+        this.queryParams = (queryParams == null || queryParams.size() == 0)
+                ? Optional.empty()
+                : Optional.of(queryParams);
+
+        this.requestHeaders = (requestHeaders == null || requestHeaders.size() == 0)
+                ? Optional.empty()
+                : Optional.of(requestHeaders);
 
         registerPreSecurityObservers();
 
@@ -201,6 +311,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.mapper = outerRequestScope.mapper;
         this.auditLogger = outerRequestScope.auditLogger;
         this.queryParams = Optional.empty();
+        this.requestHeaders = Optional.empty();
         this.sparseFields = Collections.emptyMap();
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.newPersistentResources = outerRequestScope.newPersistentResources;

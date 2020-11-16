@@ -27,6 +27,10 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 
 public class EntityProjectionTranslatorTest extends SQLUnitTest {
     private static EntityProjection basicProjection = EntityProjection.builder()
@@ -40,10 +44,13 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
                     .name("overallRating")
                     .build())
             .build();
+    protected static MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<String, String>();
+    protected static Optional<MultivaluedMap<String, String>> requestHeaderOptional = Optional.ofNullable(requestHeaders);
 
     @BeforeAll
     public static void init() {
         SQLUnitTest.init();
+        requestHeaders.add("bypassCache", "true");
     }
 
     @Test
@@ -52,7 +59,8 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
                 engine,
                 playerStatsTable,
                 basicProjection,
-                dictionary
+                dictionary,
+                requestHeaderOptional
         );
 
         Query query = translator.getQuery();
@@ -84,7 +92,8 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
                 engine,
                 playerStatsTable,
                 projection,
-                dictionary
+                dictionary,
+                requestHeaderOptional
         );
 
         Query query = translator.getQuery();
@@ -110,7 +119,8 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
                 engine,
                 playerStatsTable,
                 projection,
-                dictionary
+                dictionary,
+                requestHeaderOptional
         );
 
         Query query = translator.getQuery();

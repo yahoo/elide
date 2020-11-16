@@ -12,7 +12,7 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.when;
-import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.assertFalse;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.core.HttpStatus;
@@ -54,9 +54,8 @@ public class AggregationStoreTest extends IntegrationTest {
                         ).toJSON())
                 )
                 .statusCode(HttpStatus.SC_OK);
-
-        // query cache was active and publishing metrics
-        assertTrue(metrics
+        // query cache inactive by default
+        assertFalse(metrics
                 .get("cache.gets")
                 .tags("cache", "elideQueryCache", "result", "miss")
                 .functionCounter().count() > 0);

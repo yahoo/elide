@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.graphql;
 
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.graphql.QueryRunner.buildErrorResponse;
 
 import com.yahoo.elide.Elide;
@@ -16,18 +15,21 @@ import com.yahoo.elide.security.User;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
@@ -55,7 +57,8 @@ public class GraphQLEndpoint {
 
     /**
      * Create handler.
-     *
+     * @param uriInfo URI info
+     * @param headers the request headers
      * @param securityContext security context
      * @param graphQLDocument post data as jsonapi document
      * @return response
@@ -64,19 +67,38 @@ public class GraphQLEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response post(
             @Context UriInfo uriInfo,
-            @HeaderParam("ApiVersion") String apiVersion,
+            @Context HttpHeaders headers,
             @Context SecurityContext securityContext,
             String graphQLDocument) {
 
-        String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
+        //System.out.println("apiversion "+apiversion);
+        MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
+        System.out.println("requestHeaders  " + requestHeaders);
+        System.out.println(headers.getRequestHeader(HttpHeaders.AUTHORIZATION));
+        List<String> apiVersionList = headers.getRequestHeader("ApiVersion");
+        System.out.println(apiVersionList);
+        String apiVersion = "";
+        if (apiVersionList != null && apiVersionList.size() == 1) {
+            apiVersion = apiVersionList.get(0);
+        }
+        System.out.println("apiVersion " + apiVersion);
+        if (headers.getRequestHeader(HttpHeaders.AUTHORIZATION) != null
+                && !headers.getRequestHeader(HttpHeaders.AUTHORIZATION).isEmpty()) {
+            requestHeaders.remove(HttpHeaders.AUTHORIZATION);
+        }
+        if (headers.getRequestHeader("Proxy-Authorization") != null
+                && !headers.getRequestHeader("Proxy-Authorization").isEmpty()) {
+            requestHeaders.remove("Proxy-Authorization");
+        }
         User user = new SecurityContextUser(securityContext);
-        QueryRunner runner = runners.getOrDefault(safeApiVersion, null);
+        QueryRunner runner = runners.getOrDefault(apiVersion, null);
 
         ElideResponse response;
         if (runner == null) {
             response = buildErrorResponse(elide, new InvalidOperationException("Invalid API Version"), false);
         } else {
-            response = runner.run(uriInfo.getBaseUri().toString(), graphQLDocument, user);
+            response = runner.run(uriInfo.getBaseUri().toString(),
+                                  graphQLDocument, user, UUID.randomUUID(), requestHeaders);
         }
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
     }

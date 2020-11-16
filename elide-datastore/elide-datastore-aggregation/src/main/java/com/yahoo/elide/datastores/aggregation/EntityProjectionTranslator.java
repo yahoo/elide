@@ -29,9 +29,12 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Helper for Aggregation Data Store which does the work associated with extracting {@link Query}.
@@ -47,13 +50,23 @@ public class EntityProjectionTranslator {
     private FilterExpression whereFilter;
     private FilterExpression havingFilter;
     private EntityDictionary dictionary;
+    private Boolean bypassCache;
+
 
     public EntityProjectionTranslator(QueryEngine engine, Table table,
-                                      EntityProjection entityProjection, EntityDictionary dictionary) {
+                                      EntityProjection entityProjection, EntityDictionary dictionary,
+                                      Optional<MultivaluedMap<String, String>> optional) {
         this.engine = engine;
         this.queriedTable = table;
         this.entityProjection = entityProjection;
         this.dictionary = dictionary;
+        System.out.println(optional);
+        System.out.println(optional.isPresent());
+        String bypassCache = (optional.isPresent() && optional.get().get("bypassCache") != null)
+                             ? optional.get().get("bypassCache").get(0) : null;
+        System.out.println("bypassCache " + bypassCache);
+        String safebypassCache = bypassCache == null ? "true" : bypassCache;
+        this.bypassCache = Boolean.parseBoolean(safebypassCache);
         dimensionProjections = resolveNonTimeDimensions();
         timeDimensions = resolveTimeDimensions();
         metrics = resolveMetrics();
@@ -74,6 +87,7 @@ public class EntityProjectionTranslator {
                 .havingFilter(havingFilter)
                 .sorting(entityProjection.getSorting())
                 .pagination(ImmutablePagination.from(entityProjection.getPagination()))
+                .bypassingCache(bypassCache)
                 .build();
         QueryValidator validator = new QueryValidator(query, getAllFields(), dictionary);
         validator.validate();

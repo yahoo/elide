@@ -83,6 +83,8 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
             queryLogger.acceptQuery(scope.getRequestId(), scope.getUser(), scope.getHeaders(),
                     scope.getApiVersion(), scope.getQueryParams(), scope.getPath());
             Query query = buildQuery(entityProjection, scope);
+            System.out.println("query " + query);
+            System.out.println("cacheboo " + query.isBypassingCache());
             Table table = (Table) query.getSource();
             if (cache != null && !query.isBypassingCache()) {
                 String tableVersion = queryEngine.getTableVersion(table, queryEngineTransaction);
@@ -127,12 +129,15 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
         Table table = metaDataStore.getTable(
                 scope.getDictionary().getJsonAliasFor(entityProjection.getType()),
                 scope.getApiVersion());
-
+//CARBON-371
+        System.out.println("scope.getRequestHeaders() " + scope.getRequestHeaders());
         EntityProjectionTranslator translator = new EntityProjectionTranslator(
                 queryEngine,
                 table,
                 entityProjection,
-                scope.getDictionary());
+                scope.getDictionary(),
+                scope.getRequestHeaders());
+      //CARBON-371
         Query query = translator.getQuery();
 
         FilterExpression filterTemplate = table.getRequiredFilter(scope.getDictionary());
