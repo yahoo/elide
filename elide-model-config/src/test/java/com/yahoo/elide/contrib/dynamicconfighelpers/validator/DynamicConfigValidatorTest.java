@@ -246,6 +246,7 @@ public class DynamicConfigValidatorTest {
 
             assertEquals(2, exitStatus);
         });
+
         assertEquals("foobar is used as a variable in either table or security config files "
                         + "but is not defined in variables config file.\n", error);
     }

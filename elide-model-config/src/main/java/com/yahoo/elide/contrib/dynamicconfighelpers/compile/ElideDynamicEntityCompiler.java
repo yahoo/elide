@@ -279,17 +279,6 @@ public class ElideDynamicEntityCompiler {
     }
 
     /**
-     * Checks if field exists in referenced static model.
-     * @param modelName model name.
-     * @param modelVersion model version.
-     * @return set of fields
-     */
-    public static Set<String> staticModelFields(String modelName, String modelVersion) {
-        ModelMapValue value = STATIC_MODEL_DETAILS.get(new ModelMapKey(modelName, modelVersion));
-        return value != null ? value.getFieldNames() : null;
-    }
-
-    /**
      * Check if provided (modelName, modelVersion) is defined.
      * @param modelName model name.
      * @param modelVersion model version.

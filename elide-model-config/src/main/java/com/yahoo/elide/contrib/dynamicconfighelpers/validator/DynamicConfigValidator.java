@@ -6,7 +6,6 @@
 package com.yahoo.elide.contrib.dynamicconfighelpers.validator;
 
 import static com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers.isNullOrEmpty;
-import static com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler.getStaticModelClassName;
 import static com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler.isStaticModel;
 import static com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler.staticModelHasField;
 import static com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.HandlebarsHelper.REFERENCE_PARENTHESES;
@@ -448,8 +447,7 @@ public class DynamicConfigValidator {
 
         String joinModelName = join.getTo();
 
-        if (!(elideTableConfig.hasTable(joinModelName) || getStaticModelClassName(joinModelName,
-                        NO_VERSION, null) != null)) {
+        if (!(elideTableConfig.hasTable(joinModelName) || isStaticModel(joinModelName, NO_VERSION))) {
             throw new IllegalStateException(
                             "Model: " + joinModelName + " is neither included in dynamic models nor in static models");
         }
