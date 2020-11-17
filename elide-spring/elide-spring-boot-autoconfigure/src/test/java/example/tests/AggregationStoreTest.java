@@ -11,8 +11,9 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
-import static io.restassured.RestAssured.when;
+import static io.restassured.RestAssured.given;
 import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.yahoo.elide.core.HttpStatus;
@@ -38,24 +39,64 @@ public class AggregationStoreTest extends IntegrationTest {
                     + "\t\t(1,100,'Foo'),"
                     + "\t\t(2,150,'Bar');"
     })
-    public void jsonApiGetTest(@Autowired MeterRegistry metrics) {
-        when()
-                .get("/json/stats?fields[stats]=measure")
-                .then()
-                .body(equalTo(
-                        data(
-                                resource(
-                                        type("stats"),
-                                        id("0"),
-                                        attributes(
-                                                attr("measure", 250)
-                                        )
+    public void jsonApiGetTestNoCache(@Autowired MeterRegistry metrics) {
+
+        given()
+        .headers("bypassingCache", "true")
+        .get("/json/stats?fields[stats]=measure")
+        .then()
+        .body(equalTo(
+                data(
+                        resource(
+                                type("stats"),
+                                id("0"),
+                                attributes(
+                                        attr("measure", 250)
                                 )
-                        ).toJSON())
-                )
-                .statusCode(HttpStatus.SC_OK);
+                        )
+                ).toJSON())
+        )
+        .statusCode(HttpStatus.SC_OK);
+
         // query cache inactive by default
+        System.out.println(metrics.toString());
+        System.out.println(metrics.get("cache.gets").toString());
+        System.out.println(" ************* " + metrics
+                .get("cache.gets")
+                .tags("cache", "elideQueryCache", "result", "miss")
+                .functionCounter().count());
         assertFalse(metrics
+                .get("cache.gets")
+                .tags("cache", "elideQueryCache", "result", "miss")
+                .functionCounter().count() > 0);
+    }
+    public void jsonApiGetTestCache(@Autowired MeterRegistry metrics) {
+
+        given()
+        .headers("bypassingCache", "true")
+        .get("/json/stats?fields[stats]=measure")
+        .then()
+        .body(equalTo(
+                data(
+                        resource(
+                                type("stats"),
+                                id("0"),
+                                attributes(
+                                        attr("measure", 250)
+                                )
+                        )
+                ).toJSON())
+        )
+        .statusCode(HttpStatus.SC_OK);
+
+        // query cache inactive by default
+        System.out.println(metrics.toString());
+        System.out.println(metrics.get("cache.gets").toString());
+        System.out.println(" ************* " + metrics
+                .get("cache.gets")
+                .tags("cache", "elideQueryCache", "result", "miss")
+                .functionCounter().count());
+        assertTrue(metrics
                 .get("cache.gets")
                 .tags("cache", "elideQueryCache", "result", "miss")
                 .functionCounter().count() > 0);
