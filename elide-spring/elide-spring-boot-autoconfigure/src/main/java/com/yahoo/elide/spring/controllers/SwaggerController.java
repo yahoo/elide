@@ -7,7 +7,7 @@ package com.yahoo.elide.spring.controllers;
 
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 
-import com.yahoo.elide.contrib.swagger.SwaggerBuilder;
+import com.yahoo.elide.swagger.SwaggerBuilder;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;

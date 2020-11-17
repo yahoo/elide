@@ -20,7 +20,8 @@
         <module>elide-datastore</module>
         <module>elide-integration-tests</module>
         <module>elide-model-config</module>
-        <module>elide-contrib</module>
+        <module>elide-swagger</module>
+        <module>elide-test</module>
         <module>elide-async</module>
         <module>elide-standalone</module>
         <module>elide-spring</module>

@@ -18,7 +18,7 @@
   <property name="severity" value="warning"/>
   <module name="TreeWalker">
     <module name="AvoidStarImport">
-      <property name="excludes" value="com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL"/>
+      <property name="excludes" value="JsonApiDSL"/>
       <metadata name="net.sf.eclipsecs.core.comment" value="Removes wildcard imports."/>
       <property name="allowClassImports" value="false"/>
       <property name="allowStaticMemberImports" value="false"/>
