@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata;
 
-import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.BadRequestException;

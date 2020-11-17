@@ -6,8 +6,8 @@
 
 package com.yahoo.elide.datastores.search;
 
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 
 import org.hibernate.search.annotations.Indexed;

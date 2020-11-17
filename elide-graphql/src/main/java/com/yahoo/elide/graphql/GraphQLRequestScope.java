@@ -6,8 +6,8 @@
 package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.security.User;
 
