@@ -6,14 +6,12 @@
 package com.yahoo.elide.spring.controllers;
 
 import static com.yahoo.elide.graphql.QueryRunner.buildErrorResponse;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
-
 import com.yahoo.elide.spring.security.AuthenticationUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -27,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;

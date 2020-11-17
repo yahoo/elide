@@ -13,10 +13,8 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.mutable.MutableInt;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 

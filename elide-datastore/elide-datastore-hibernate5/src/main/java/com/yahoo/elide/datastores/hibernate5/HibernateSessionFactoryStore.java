@@ -6,9 +6,7 @@
 package com.yahoo.elide.datastores.hibernate5;
 
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
-
 import com.google.common.base.Preconditions;
-
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;

@@ -7,7 +7,6 @@ package com.yahoo.elide.core.hibernate.hql;
 
 import static com.yahoo.elide.utils.TypeHelper.appendAlias;
 import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
-
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RelationshipType;
@@ -19,7 +18,6 @@ import com.yahoo.elide.core.hibernate.Session;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Sorting;
-
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;

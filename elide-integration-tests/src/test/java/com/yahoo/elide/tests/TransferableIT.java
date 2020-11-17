@@ -18,20 +18,15 @@ import static com.yahoo.elide.test.jsonapi.elements.Relation.TO_ONE;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.initialization.IntegrationTest;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import example.Left;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import io.restassured.response.Response;
 
 import java.util.HashMap;

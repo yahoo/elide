@@ -7,7 +7,6 @@
 package com.yahoo.elide.async.service.storageengine;
 
 import com.yahoo.elide.async.models.AsyncQuery;
-
 import io.reactivex.Observable;
 
 /**

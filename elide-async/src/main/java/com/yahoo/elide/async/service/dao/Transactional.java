@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.async.service.dao;
 
-import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 
 /**
  * Function which will be invoked for executing elide async transactions.

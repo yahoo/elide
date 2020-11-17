@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import static com.yahoo.elide.datastores.aggregation.query.QueryPlan.nestColumnProjection;
 import static com.yahoo.elide.datastores.aggregation.query.QueryPlan.withSource;
-
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;

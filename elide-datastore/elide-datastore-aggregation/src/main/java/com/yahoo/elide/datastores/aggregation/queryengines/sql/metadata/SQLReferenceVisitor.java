@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static com.yahoo.elide.utils.TypeHelper.extendTypeAlias;
 import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
-
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnVisitor;

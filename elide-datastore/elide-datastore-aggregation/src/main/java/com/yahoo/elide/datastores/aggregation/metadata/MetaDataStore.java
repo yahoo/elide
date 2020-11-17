@@ -7,10 +7,10 @@ package com.yahoo.elide.datastores.aggregation.metadata;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
-import com.yahoo.elide.core.datastore.DataStore;
-import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
@@ -27,9 +27,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.utils.ClassScanner;
-
 import org.hibernate.annotations.Subselect;
-
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;
@@ -41,7 +39,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.persistence.Entity;
 
 /**

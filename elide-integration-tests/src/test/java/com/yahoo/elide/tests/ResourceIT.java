@@ -31,15 +31,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.TestAuditLogger;
-import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.InfixPredicate;
 import com.yahoo.elide.core.filter.PostfixPredicate;
@@ -51,9 +50,7 @@ import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.test.jsonapi.elements.Data;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
 import com.yahoo.elide.utils.JsonParser;
-
 import com.google.common.collect.Sets;
-
 import example.Book;
 import example.Child;
 import example.ExceptionThrowingBean;
@@ -63,7 +60,6 @@ import example.LineItem;
 import example.Parent;
 import example.TestCheckMappings;
 import example.User;
-
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -80,7 +76,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response.Status;
 

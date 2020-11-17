@@ -6,7 +6,6 @@
 package com.yahoo.elide.standalone.config;
 
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
-
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.Injector;
@@ -17,8 +16,8 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.DBPasswordExtractor;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
-import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -36,13 +35,11 @@ import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
-
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.hibernate.Session;
-
 import io.swagger.models.Info;
 import io.swagger.models.Swagger;
 

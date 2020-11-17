@@ -15,11 +15,9 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
-
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
-
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;

@@ -6,7 +6,6 @@
 package com.yahoo.elide.core.filter;
 
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;

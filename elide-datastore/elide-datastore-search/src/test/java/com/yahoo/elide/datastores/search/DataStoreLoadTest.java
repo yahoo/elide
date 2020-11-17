@@ -14,11 +14,10 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
-
-import com.yahoo.elide.core.datastore.DataStore;
-import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryStoreTransaction;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -29,7 +28,6 @@ import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Sorting;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
-
 import com.google.common.collect.Lists;
 import org.h2.store.fs.FileUtils;
 import org.junit.jupiter.api.AfterAll;
@@ -44,7 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 

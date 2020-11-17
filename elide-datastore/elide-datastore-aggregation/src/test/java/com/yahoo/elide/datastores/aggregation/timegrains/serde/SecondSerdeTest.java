@@ -7,9 +7,7 @@ package com.yahoo.elide.datastores.aggregation.timegrains.serde;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import com.yahoo.elide.datastores.aggregation.timegrains.Second;
-
 import com.yahoo.elide.utils.coerce.converters.Serde;
 import org.junit.jupiter.api.Test;
 

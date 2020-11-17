@@ -9,7 +9,6 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.request.Sorting;
-
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
