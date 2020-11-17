@@ -101,8 +101,6 @@ public class EmbeddedIT extends IntegrationTest {
                 .extract()
                 .body().asString();
 
-        System.out.println(datum(resource).toJSON());
-
         JSONAssert.assertEquals(datum(resource).toJSON(), actual, true);
     }
 }

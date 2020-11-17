@@ -80,12 +80,9 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
         QueryResponse response = null;
         String cacheKey = null;
         try {
-            System.out.println("load objects ***");
             queryLogger.acceptQuery(scope.getRequestId(), scope.getUser(), scope.getHeaders(),
                     scope.getApiVersion(), scope.getQueryParams(), scope.getPath());
             Query query = buildQuery(entityProjection, scope);
-            System.out.println("query " + query);
-            System.out.println("cacheboo " + query.isBypassingCache());
             Table table = (Table) query.getSource();
             if (cache != null && !query.isBypassingCache()) {
                 String tableVersion = queryEngine.getTableVersion(table, queryEngineTransaction);
@@ -96,7 +93,6 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
             }
 
             boolean isCached = result == null ? false : true;
-            System.out.println("isCached " + isCached);
             List<String> queryText = queryEngine.explain(query);
             queryLogger.processQuery(scope.getRequestId(), query, queryText, isCached);
             if (result == null) {
@@ -128,13 +124,9 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
 
     @VisibleForTesting
     Query buildQuery(EntityProjection entityProjection, RequestScope scope) {
-        System.out.println("buildQuery*****");
-        System.out.println(scope);
         Table table = metaDataStore.getTable(
                 scope.getDictionary().getJsonAliasFor(entityProjection.getType()),
                 scope.getApiVersion());
-//CARBON-371
-        System.out.println("scope.getRequestHeaders() " + scope.getRequestHeaders());
         EntityProjectionTranslator translator = new EntityProjectionTranslator(
                 queryEngine,
                 table,

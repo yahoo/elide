@@ -62,7 +62,6 @@ public abstract class GraphQLIntegrationTest extends IntegrationTest {
             String expected,
             String apiVersion
     ) throws IOException {
-        System.out.println("runQueryWithExpectedResult " + apiVersion);
         compareJsonObject(runQuery(graphQLQuery, variables, apiVersion), expected);
     }
 
@@ -103,7 +102,6 @@ public abstract class GraphQLIntegrationTest extends IntegrationTest {
     }
 
     protected ValidatableResponse runQuery(String query, String apiVersion) {
-        System.out.println("runQuery " + apiVersion);
         return given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)

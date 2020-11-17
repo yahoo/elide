@@ -57,14 +57,6 @@ public class AggregationStoreTest extends IntegrationTest {
                 ).toJSON())
         )
         .statusCode(HttpStatus.SC_OK);
-
-        // query cache inactive by default
-        System.out.println(metrics.toString());
-        System.out.println(metrics.get("cache.gets").toString());
-        System.out.println(" ************* " + metrics
-                .get("cache.gets")
-                .tags("cache", "elideQueryCache", "result", "miss")
-                .functionCounter().count());
         assertFalse(metrics
                 .get("cache.gets")
                 .tags("cache", "elideQueryCache", "result", "miss")
@@ -88,14 +80,6 @@ public class AggregationStoreTest extends IntegrationTest {
                 ).toJSON())
         )
         .statusCode(HttpStatus.SC_OK);
-
-        // query cache inactive by default
-        System.out.println(metrics.toString());
-        System.out.println(metrics.get("cache.gets").toString());
-        System.out.println(" ************* " + metrics
-                .get("cache.gets")
-                .tags("cache", "elideQueryCache", "result", "miss")
-                .functionCounter().count());
         assertTrue(metrics
                 .get("cache.gets")
                 .tags("cache", "elideQueryCache", "result", "miss")

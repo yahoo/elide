@@ -65,7 +65,6 @@ public class JsonApiController {
     public Callable<ResponseEntity<String>> elideGet(@RequestHeader Map<String, String> requestHeaders,
                                                      @RequestParam Map<String, String> allRequestParams,
                                                      HttpServletRequest request, Authentication authentication) {
-        System.out.println("elide get in spring");
         final String apiVersion = Utils.getApiVersion(requestHeaders);
         final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
         final User user = new AuthenticationUser(authentication);

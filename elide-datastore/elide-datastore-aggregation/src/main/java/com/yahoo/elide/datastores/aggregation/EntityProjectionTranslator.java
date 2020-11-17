@@ -60,15 +60,11 @@ public class EntityProjectionTranslator {
         this.queriedTable = table;
         this.entityProjection = entityProjection;
         this.dictionary = dictionary;
-        System.out.println(optional);
-        System.out.println(optional.isPresent());
         String bypassingCache = (optional.isPresent() && optional.get().get("bypassingcache") != null)
                              ? optional.get().get("bypassingcache").get(0) : null;
 
         String safebypassCache = bypassingCache == null ? "true" : bypassingCache;
         this.bypassingCache = Boolean.parseBoolean(safebypassCache);
-        //this.bypassingCache = false;
-        System.out.println("bypassingCache " + bypassingCache);
         dimensionProjections = resolveNonTimeDimensions();
         timeDimensions = resolveTimeDimensions();
         metrics = resolveMetrics();
