@@ -5,23 +5,23 @@
  */
 package com.yahoo.elide.tests;
 
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.linkage;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.TestAuditLogger;
-import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Data;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
+import com.yahoo.elide.test.jsonapi.elements.Data;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

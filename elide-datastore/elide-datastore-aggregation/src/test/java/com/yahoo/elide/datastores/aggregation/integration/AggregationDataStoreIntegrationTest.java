@@ -5,12 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation.integration;
 
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.argument;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.arguments;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.document;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.field;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.selection;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasEntry;

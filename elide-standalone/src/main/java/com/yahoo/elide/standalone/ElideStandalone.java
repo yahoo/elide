@@ -122,7 +122,7 @@ public class ElideStandalone {
                     elideStandaloneSettings.getSwaggerPathSpec());
             jerseyServlet.setInitOrder(0);
             jerseyServlet.setInitParameter("jersey.config.server.provider.packages",
-                    "com.yahoo.elide.contrib.swagger.resources");
+                    "com.yahoo.elide.swagger.resources");
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
         }
 
