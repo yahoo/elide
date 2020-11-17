@@ -48,7 +48,7 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
     @BeforeAll
     public static void init() {
         SQLUnitTest.init();
-        requestHeaders.add("bypassCache", "true");
+        requestHeaders.add("bypassingCache", "true");
     }
 
     @Test
