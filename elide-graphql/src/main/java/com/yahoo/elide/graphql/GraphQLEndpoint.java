@@ -71,17 +71,12 @@ public class GraphQLEndpoint {
             @Context SecurityContext securityContext,
             String graphQLDocument) {
 
-        //System.out.println("apiversion "+apiversion);
         MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
-        System.out.println("requestHeaders  " + requestHeaders);
-        System.out.println(headers.getRequestHeader(HttpHeaders.AUTHORIZATION));
         List<String> apiVersionList = headers.getRequestHeader("ApiVersion");
-        System.out.println(apiVersionList);
         String apiVersion = "";
         if (apiVersionList != null && apiVersionList.size() == 1) {
             apiVersion = apiVersionList.get(0);
         }
-        System.out.println("apiVersion " + apiVersion);
         if (headers.getRequestHeader(HttpHeaders.AUTHORIZATION) != null
                 && !headers.getRequestHeader(HttpHeaders.AUTHORIZATION).isEmpty()) {
             requestHeaders.remove(HttpHeaders.AUTHORIZATION);

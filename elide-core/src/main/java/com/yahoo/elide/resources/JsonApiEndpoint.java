@@ -45,7 +45,6 @@ public class JsonApiEndpoint {
     public JsonApiEndpoint(
             @Named("elide") Elide elide) {
         this.elide = elide;
-        System.out.println("********** jsonapiendpoint");
     }
 
     /**
@@ -104,7 +103,6 @@ public class JsonApiEndpoint {
         @Context UriInfo uriInfo,
         @Context HttpHeaders headers,
         @Context SecurityContext securityContext) {
-        System.out.println("********** jsonapiendpoint get call ");
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
         List<String> apiVersionList = headers.getRequestHeader("ApiVersion");

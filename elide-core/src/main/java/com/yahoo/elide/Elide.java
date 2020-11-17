@@ -158,7 +158,6 @@ public class Elide {
      */
     public ElideResponse get(String baseUrlEndPoint, String path, MultivaluedMap<String, String> queryParams,
                              User opaqueUser, String apiVersion) {
-        System.out.println("**** Get Elide simple");
         return get(baseUrlEndPoint, path, queryParams, opaqueUser, apiVersion, UUID.randomUUID());
     }
 
@@ -175,7 +174,6 @@ public class Elide {
      */
     public ElideResponse get(String baseUrlEndPoint, String path, MultivaluedMap<String, String> queryParams,
                              User opaqueUser, String apiVersion, UUID requestId) {
-        System.out.println("**** Get Elide");
         return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, requestId, (tx, user) -> {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             RequestScope requestScope = new RequestScope(baseUrlEndPoint, path, apiVersion, jsonApiDoc,
@@ -202,12 +200,10 @@ public class Elide {
     public ElideResponse get(String baseUrlEndPoint, String path, MultivaluedMap<String, String> queryParams,
                              MultivaluedMap<String, String> requestHeaders, User opaqueUser, String apiVersion,
                              UUID requestId) {
-        System.out.println("**** Get Elide requestHeaders");
         return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, requestId, (tx, user) -> {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             RequestScope requestScope = new RequestScope(baseUrlEndPoint, path, apiVersion, jsonApiDoc,
                     tx, user, queryParams, requestHeaders, requestId, elideSettings);
-            System.out.println(requestScope);
             requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
                     requestScope).parsePath(path));
             BaseVisitor visitor = new GetVisitor(requestScope);
@@ -603,9 +599,7 @@ public class Elide {
         protected RuntimeException cause;
 
         protected HandlerResult(RequestScope requestScope, Supplier<Pair<Integer, JsonNode>> result) {
-            System.out.println(requestScope.getRequestHeaders());
             this.requestScope = requestScope;
-            System.out.println(result);
             this.result = result;
         }
 
