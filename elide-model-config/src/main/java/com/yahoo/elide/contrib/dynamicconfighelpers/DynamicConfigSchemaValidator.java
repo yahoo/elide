@@ -11,17 +11,18 @@ import static com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.Han
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.github.fge.jsonschema.cfg.ValidationConfiguration;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.LogLevel;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
+import com.github.fge.jsonschema.library.Library;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
+import com.github.fge.msgsimple.bundle.MessageBundle;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -33,20 +34,34 @@ import java.util.Map.Entry;
 @Slf4j
 public class DynamicConfigSchemaValidator {
 
-    private static final JsonSchemaFactory FACTORY = JsonSchemaFactory.byDefault();
     private JsonSchema tableSchema;
     private JsonSchema securitySchema;
     private JsonSchema variableSchema;
     private JsonSchema dbConfigSchema;
 
     public DynamicConfigSchemaValidator() {
-        tableSchema = loadSchema(Config.TABLE.getConfigSchema());
-        securitySchema = loadSchema(Config.SECURITY.getConfigSchema());
-        variableSchema = loadSchema(Config.MODELVARIABLE.getConfigSchema());
-        dbConfigSchema = loadSchema(Config.SQLDBConfig.getConfigSchema());
+
+        Library library = DraftV4LibraryWithElideFormatAttr.getInstance();
+
+        MessageBundle bundle = MessageBundleWithElideMessages.getInstance();
+
+        ValidationConfiguration cfg = ValidationConfiguration.newBuilder()
+                        .setDefaultLibrary("http://my.site/myschema#", library)
+                        .setValidationMessages(bundle)
+                        .freeze();
+
+        JsonSchemaFactory factory = JsonSchemaFactory.newBuilder()
+                        .setValidationConfiguration(cfg)
+                        .freeze();
+
+        tableSchema = loadSchema(factory, Config.TABLE.getConfigSchema());
+        securitySchema = loadSchema(factory, Config.SECURITY.getConfigSchema());
+        variableSchema = loadSchema(factory, Config.MODELVARIABLE.getConfigSchema());
+        dbConfigSchema = loadSchema(factory, Config.SQLDBConfig.getConfigSchema());
     }
+
     /**
-     *  Verify config against schema.
+     * Verify config against schema.
      * @param configType
      * @param jsonConfig
      * @param fileName
@@ -61,17 +76,17 @@ public class DynamicConfigSchemaValidator {
 
         switch (configType) {
         case TABLE :
-            results = this.tableSchema.validate(new ObjectMapper().readTree(jsonConfig));
+            results = this.tableSchema.validate(new ObjectMapper().readTree(jsonConfig), true);
             break;
         case SECURITY :
-            results = this.securitySchema.validate(new ObjectMapper().readTree(jsonConfig));
+            results = this.securitySchema.validate(new ObjectMapper().readTree(jsonConfig), true);
             break;
         case MODELVARIABLE :
         case DBVARIABLE :
-            results = this.variableSchema.validate(new ObjectMapper().readTree(jsonConfig));
+            results = this.variableSchema.validate(new ObjectMapper().readTree(jsonConfig), true);
             break;
         case SQLDBConfig :
-            results = this.dbConfigSchema.validate(new ObjectMapper().readTree(jsonConfig));
+            results = this.dbConfigSchema.validate(new ObjectMapper().readTree(jsonConfig), true);
             break;
         default :
             log.error("Not a valid config type :" + configType);
@@ -99,15 +114,15 @@ public class DynamicConfigSchemaValidator {
 
             if (level.equalsIgnoreCase(LogLevel.ERROR.name()) || level.equalsIgnoreCase(LogLevel.FATAL.name())) {
                 String msg = root.get("message").asText();
-                String pointer = null;
-                if (root.has("instance")) {
-                    JsonNode instanceNode = root.get("instance");
-                    if (instanceNode.has("pointer")) {
-                        pointer = instanceNode.get("pointer").asText();
-                    }
+                String instancePointer = extractPointer(root, "instance");
+                String schemaPointer = extractPointer(root, "schema");
+
+                if (!(isNullOrEmpty(instancePointer) || isNullOrEmpty(schemaPointer))) {
+                    msg = "Instance[" + instancePointer + "] failed to validate against schema[" + schemaPointer + "]. "
+                                    + msg;
                 }
-                msg = (isNullOrEmpty(pointer)) ? msg : msg + " at node: " + pointer;
-                list.add(String.format("%" + (4 * depth + msg.length()) + "s", msg));
+                list.add((depth == 0) ? "[ERROR]" + NEWLINE + msg
+                                : String.format("%" + (4 * depth + msg.length()) + "s", msg));
 
                 if (root.has("reports")) {
                     Iterator<Entry<String, JsonNode>> fields = root.get("reports").fields();
@@ -122,11 +137,23 @@ public class DynamicConfigSchemaValidator {
         }
     }
 
-    private JsonSchema loadSchema(String resource) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        Reader reader = new InputStreamReader(DynamicConfigHelpers.class.getResourceAsStream(resource));
+    private static String extractPointer(JsonNode root, String fieldName) {
+        String pointer = null;
+        if (root.has(fieldName)) {
+            JsonNode node = root.get(fieldName);
+            if (node.has("pointer")) {
+                pointer = node.get("pointer").asText();
+            }
+        }
+
+        return pointer;
+    }
+
+    private static JsonSchema loadSchema(JsonSchemaFactory factory, String resource) {
+
         try {
-            return FACTORY.getJsonSchema(objectMapper.readTree(reader));
+            return factory.getJsonSchema(
+                            new ObjectMapper().readTree(DynamicConfigHelpers.class.getResourceAsStream(resource)));
         } catch (IOException | ProcessingException e) {
             log.error("Error loading schema file " + resource + " to verify");
             throw new IllegalStateException(e.getMessage());

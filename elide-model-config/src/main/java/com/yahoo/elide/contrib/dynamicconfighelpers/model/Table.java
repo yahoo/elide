@@ -52,10 +52,10 @@ public class Table implements Named {
     private String name;
 
     @JsonProperty("schema")
-    private String schema = "";
+    private String schema;
 
     @JsonProperty("dbConnectionName")
-    private String dbConnectionName = "";
+    private String dbConnectionName;
 
     @JsonProperty("isFact")
     private Boolean isFact = true;
@@ -92,13 +92,13 @@ public class Table implements Named {
     private Set<String> tags = new LinkedHashSet<String>();
 
     @JsonProperty("extend")
-    private String extend = "";
+    private String extend;
 
     @JsonProperty("sql")
-    private String sql = "";
+    private String sql;
 
     @JsonProperty("table")
-    private String table = "";
+    private String table;
 
     /**
      * Returns description of the table object.
@@ -133,7 +133,7 @@ public class Table implements Named {
      * @return true if this model extends another model
      */
     public boolean hasParent() {
-        return !this.extend.trim().isEmpty();
+        return !(this.extend == null || this.extend.trim().isEmpty());
     }
 
     /**

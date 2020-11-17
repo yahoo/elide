@@ -59,7 +59,7 @@ public class Measure implements Named {
     private String definition;
 
     @JsonProperty("type")
-    private Type type = Type.INTEGER;
+    private Type type;
 
     @JsonProperty("queryPlanResolver")
     private String queryPlanResolver;
