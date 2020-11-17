@@ -79,8 +79,8 @@
                 "queryPlanResolver": {
                     "title": "query plan resolver class",
                     "description": "The JVM function class which maps a metric to a query plan",
-                    "pattern": "^([a-zA-Z]+[a-zA-Z0-9_]*\\.)+class",
-                    "type": "string"
+                    "type": "string",
+                    "format": "elideClassName"
                 },
                 "type": {
                     "title": "Measure field type",
@@ -191,22 +191,7 @@
                             "type": "string"
                         }
                     },
-                    "dependencies": {
-                        "values": {
-                            "not": {
-                                "required": [
-                                    "tableSource"
-                                ]
-                            }
-                        },
-                        "tableSource": {
-                            "not": {
-                                "required": [
-                                    "values"
-                                ]
-                            }
-                        }
-                    }
+                    "eitherTableSourceOrValues": {}
                 }
             ],
             "required": [
@@ -285,7 +270,7 @@
                         "title": "Required RSQL Filter Template",
                         "description": "Client queries must include a filter conforming to this RSQL template.",
                         "type": "string",
-                        "pattern": "^[A-Za-z][0-9A-Za-z_]*(==|!=|>=|>|<|<=|=[a-z]+=)(.*)"
+                        "format": "elideRSQLFilter"
                     },
                     "isFact": {
                         "title": "Is Fact Table",

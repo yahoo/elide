@@ -5,46 +5,41 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers;
 
+import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.EitherTableSourceOrValuesKeyword;
 import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideCardinalityFormatAttr;
+import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideClassNameFormatAttr;
 import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideFieldNameFormatAttr;
 import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideFieldTypeFormatAttr;
 import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideGrainTypeFormatAttr;
 import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideJoinTypeFormatAttr;
 import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideNameFormatAttr;
+import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideRSQLFilterFormatAttr;
 import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideTimeFieldTypeFormatAttr;
-
 import com.github.fge.jsonschema.library.DraftV4Library;
 import com.github.fge.jsonschema.library.Library;
 import com.github.fge.jsonschema.library.LibraryBuilder;
 
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
-@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class DraftV4LibraryWithElideFormatAttr {
-    private static Library LIBRARY = null;
+    @Getter
+    private Library library;
 
-    public static Library getInstance() {
-        if (LIBRARY == null) {
-            LibraryBuilder builder = DraftV4Library.get().thaw();
+    public DraftV4LibraryWithElideFormatAttr() {
+        LibraryBuilder builder = DraftV4Library.get().thaw();
 
-            builder.addFormatAttribute(ElideFieldNameFormatAttr.FORMAT_NAME,
-                            ElideFieldNameFormatAttr.getInstance());
-            builder.addFormatAttribute(ElideCardinalityFormatAttr.FORMAT_NAME,
-                            ElideCardinalityFormatAttr.getInstance());
-            builder.addFormatAttribute(ElideFieldTypeFormatAttr.FORMAT_NAME,
-                            ElideFieldTypeFormatAttr.getInstance());
-            builder.addFormatAttribute(ElideGrainTypeFormatAttr.FORMAT_NAME,
-                            ElideGrainTypeFormatAttr.getInstance());
-            builder.addFormatAttribute(ElideJoinTypeFormatAttr.FORMAT_NAME,
-                            ElideJoinTypeFormatAttr.getInstance());
-            builder.addFormatAttribute(ElideTimeFieldTypeFormatAttr.FORMAT_NAME,
-                            ElideTimeFieldTypeFormatAttr.getInstance());
-            builder.addFormatAttribute(ElideNameFormatAttr.FORMAT_NAME,
-                            ElideNameFormatAttr.getInstance());
+        builder.addFormatAttribute(ElideFieldNameFormatAttr.FORMAT_NAME, new ElideFieldNameFormatAttr());
+        builder.addFormatAttribute(ElideCardinalityFormatAttr.FORMAT_NAME, new ElideCardinalityFormatAttr());
+        builder.addFormatAttribute(ElideFieldTypeFormatAttr.FORMAT_NAME, new ElideFieldTypeFormatAttr());
+        builder.addFormatAttribute(ElideGrainTypeFormatAttr.FORMAT_NAME, new ElideGrainTypeFormatAttr());
+        builder.addFormatAttribute(ElideJoinTypeFormatAttr.FORMAT_NAME, new ElideJoinTypeFormatAttr());
+        builder.addFormatAttribute(ElideTimeFieldTypeFormatAttr.FORMAT_NAME, new ElideTimeFieldTypeFormatAttr());
+        builder.addFormatAttribute(ElideNameFormatAttr.FORMAT_NAME, new ElideNameFormatAttr());
+        builder.addFormatAttribute(ElideRSQLFilterFormatAttr.FORMAT_NAME, new ElideRSQLFilterFormatAttr());
+        builder.addFormatAttribute(ElideClassNameFormatAttr.FORMAT_NAME, new ElideClassNameFormatAttr());
 
-            LIBRARY = builder.freeze();
-        }
+        builder.addKeyword(new EitherTableSourceOrValuesKeyword().getKeyword());
 
-        return LIBRARY;
+        library = builder.freeze();
     }
 }

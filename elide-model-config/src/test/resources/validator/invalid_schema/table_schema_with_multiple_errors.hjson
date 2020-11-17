@@ -9,6 +9,19 @@
       table: country
       // unsupported: cardinality value
       cardinality: Extra Large
+      filterTemplate: countryIsoCode={{code}};startTime=={{start}}
+      measures:
+      [
+        {
+          name : highScore
+          type : INTEGER
+          description : very awesome score
+          definition: 'MAX({{score}})'
+          // unsupported: class name ($ is not allowed)
+          queryPlanResolver: 'com.yahoo.elide.datastores.aggregation.query$DefaultQueryPlanResolver.class'
+          tags: ['PUBLIC']
+        }
+      ]
       dimensions:
       [
         {

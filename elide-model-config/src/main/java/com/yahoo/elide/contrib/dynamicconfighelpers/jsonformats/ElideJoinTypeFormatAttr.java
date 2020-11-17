@@ -9,24 +9,18 @@ import com.github.fge.jackson.NodeType;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.format.AbstractFormatAttribute;
-import com.github.fge.jsonschema.format.FormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
 public class ElideJoinTypeFormatAttr extends AbstractFormatAttribute {
-    private static final FormatAttribute INSTANCE = new ElideJoinTypeFormatAttr();
     private static final String JOIN_TYPE_REGEX = "^(?i)(ToOne|ToMany)$";
 
     public static final String FORMAT_NAME = "elideJoinType";
     public static final String TYPE_KEY = "elideJoinType.error.enum";
     public static final String TYPE_MSG = "Join type [%s] is not allowed. Supported value is one of [ToOne, ToMany].";
 
-    private ElideJoinTypeFormatAttr() {
+    public ElideJoinTypeFormatAttr() {
         super(FORMAT_NAME, NodeType.STRING);
-    }
-
-    public static FormatAttribute getInstance() {
-        return INSTANCE;
     }
 
     @Override

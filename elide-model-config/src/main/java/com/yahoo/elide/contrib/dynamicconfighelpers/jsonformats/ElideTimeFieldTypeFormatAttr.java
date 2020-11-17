@@ -9,12 +9,10 @@ import com.github.fge.jackson.NodeType;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.format.AbstractFormatAttribute;
-import com.github.fge.jsonschema.format.FormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
 public class ElideTimeFieldTypeFormatAttr extends AbstractFormatAttribute {
-    private static final FormatAttribute INSTANCE = new ElideTimeFieldTypeFormatAttr();
     private static final String TIME_FIELD_TYPE_REGEX = "^(?i)(Time)$";
 
     public static final String FORMAT_NAME = "elideTimeFieldType";
@@ -22,12 +20,8 @@ public class ElideTimeFieldTypeFormatAttr extends AbstractFormatAttribute {
     public static final String TYPE_MSG = "Field type [%s] is not allowed. Field type must be "
                     + "[Time] for any time dimension.";
 
-    private ElideTimeFieldTypeFormatAttr() {
+    public ElideTimeFieldTypeFormatAttr() {
         super(FORMAT_NAME, NodeType.STRING);
-    }
-
-    public static FormatAttribute getInstance() {
-        return INSTANCE;
     }
 
     @Override

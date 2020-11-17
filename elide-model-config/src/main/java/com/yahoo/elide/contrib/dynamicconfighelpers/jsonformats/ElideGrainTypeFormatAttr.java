@@ -9,12 +9,10 @@ import com.github.fge.jackson.NodeType;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.format.AbstractFormatAttribute;
-import com.github.fge.jsonschema.format.FormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
 public class ElideGrainTypeFormatAttr extends AbstractFormatAttribute {
-    private static final FormatAttribute INSTANCE = new ElideGrainTypeFormatAttr();
     private static final String GRAIN_TYPE_REGEX = "^(?i)(Second|Minute|Hour|Day|IsoWeek|Week|Month|Quarter|Year)$";
 
     public static final String FORMAT_NAME = "elideGrainType";
@@ -22,12 +20,8 @@ public class ElideGrainTypeFormatAttr extends AbstractFormatAttribute {
     public static final String TYPE_MSG = "Grain type [%s] is not allowed. Supported value is one of "
                     + "[Second, Minute, Hour, Day, IsoWeek, Week, Month, Quarter, Year].";
 
-    private ElideGrainTypeFormatAttr() {
+    public ElideGrainTypeFormatAttr() {
         super(FORMAT_NAME, NodeType.STRING);
-    }
-
-    public static FormatAttribute getInstance() {
-        return INSTANCE;
     }
 
     @Override
