@@ -16,20 +16,21 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.Handlebars
 import com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.utils.ClassScanner;
-import com.google.common.collect.Sets;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import org.apache.commons.lang3.StringUtils;
-import org.mdkt.compiler.InMemoryJavaCompiler;
 
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -54,7 +55,7 @@ public class ElideDynamicEntityCompiler {
     private static final String DOT = ".";
     private Map<String, Class<?>> compiledObjects;
 
-    private InMemoryJavaCompiler compiler = InMemoryJavaCompiler.newInstance().ignoreWarnings();
+    private ElideDynamicInMemoryCompiler compiler = ElideDynamicInMemoryCompiler.newInstance().ignoreWarnings();
 
     private Map<String, String> tableClasses = new HashMap<String, String>();
     private Map<String, String> securityClasses = new HashMap<String, String>();
@@ -93,7 +94,6 @@ public class ElideDynamicEntityCompiler {
 
         return Collections.unmodifiableMap(map);
     }
-
     /**
      * Parse dynamic config path.
      * @param path : Dynamic config hjsons root location
@@ -125,9 +125,24 @@ public class ElideDynamicEntityCompiler {
             classNames.add(PACKAGE_NAME + entry.getKey());
         }
 
-        compiler.useParentClassLoader(
-                new ElideDynamicInMemoryClassLoader(ClassLoader.getSystemClassLoader(),
-                        Sets.newHashSet(classNames)));
+        // Prepare classpath
+        StringBuilder sb = new StringBuilder();
+        Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources("/");
+        while (resources.hasMoreElements()) {
+            URL url = resources.nextElement();
+            String fileName = url.getFile();
+            sb.append(fileName.substring(0, fileName.lastIndexOf("!"))).append(File.pathSeparator);
+        }
+
+        String classpath = sb.toString();
+
+        if (classpath != null && !classpath.equals("")) {
+            log.debug("Classpath = " + classpath);
+            compiler.useOptions("-classpath", sb.toString());
+        }
+
+        compiler.useParentClassLoader(Thread.currentThread().getContextClassLoader());
+
         compile();
 
         elideSQLDBConfig.getDbconfigs().forEach(config -> {
