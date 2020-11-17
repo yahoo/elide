@@ -6,26 +6,25 @@
 package com.yahoo.elide.async.integration.tests;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.UNQUOTED_VALUE;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.mutation;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
-
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
-
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
-
-
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.UNQUOTED_VALUE;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.argument;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.arguments;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.document;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.field;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.mutation;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.selection;
+
+import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
+
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
+
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -39,8 +38,6 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.integration.tests.framework.AsyncIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.audit.TestAuditLogger;
-import com.yahoo.elide.contrib.testhelpers.graphql.EnumFieldSerializer;
-import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
@@ -50,6 +47,8 @@ import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.resources.JsonApiEndpoint;
 import com.yahoo.elide.resources.SecurityContextUser;
 import com.yahoo.elide.security.User;
+import com.yahoo.elide.test.graphql.EnumFieldSerializer;
+import com.yahoo.elide.test.jsonapi.elements.Resource;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;

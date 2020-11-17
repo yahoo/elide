@@ -5,19 +5,19 @@
  */
 package com.yahoo.elide.graphql;
 
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.UNQUOTED_VALUE;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.mutation;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.query;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.toJson;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.UNQUOTED_VALUE;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.argument;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.arguments;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.document;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.field;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.mutation;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.query;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.selection;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.toJson;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.variableDefinition;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.variableDefinitions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

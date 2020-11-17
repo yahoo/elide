@@ -5,26 +5,26 @@
  */
 package com.yahoo.elide.tests;
 
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.UNQUOTED_VALUE;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.mutation;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.query;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinition;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.variableDefinitions;
-
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.UNQUOTED_VALUE;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.argument;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.arguments;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.document;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.field;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.mutation;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.query;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.selection;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.variableDefinition;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.variableDefinitions;
+
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 
-import com.yahoo.elide.contrib.testhelpers.graphql.VariableFieldSerializer;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
+import com.yahoo.elide.test.graphql.VariableFieldSerializer;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
