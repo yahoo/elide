@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.standalone.ElideStandalone;
+import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import example.models.Post;
@@ -116,23 +117,29 @@ public class ElideStandaloneTest {
             }
 
             @Override
-            public boolean enableDynamicModelConfig() {
-                return true;
-            }
+            public ElideStandaloneAnalyticSettings getAnalyticProperties() {
+                ElideStandaloneAnalyticSettings analyticPropeties = new ElideStandaloneAnalyticSettings() {
+                    @Override
+                    public boolean enableDynamicModelConfig() {
+                        return true;
+                    }
 
-            @Override
-            public boolean enableAggregationDataStore() {
-                return true;
-            }
+                    @Override
+                    public boolean enableAggregationDataStore() {
+                        return true;
+                    }
 
-            @Override
-            public String getDefaultDialect() {
-                return SQLDialectFactory.getDefaultDialect().getDialectType();
-            }
+                    @Override
+                    public String getDefaultDialect() {
+                        return SQLDialectFactory.getDefaultDialect().getDialectType();
+                    }
 
-            @Override
-            public String getDynamicConfigPath() {
-                return "src/test/resources/configs/";
+                    @Override
+                    public String getDynamicConfigPath() {
+                        return "src/test/resources/configs/";
+                    }
+                };
+                return analyticPropeties;
             }
         });
         elide.start(false);

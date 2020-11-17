@@ -16,6 +16,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import com.yahoo.elide.standalone.ElideStandalone;
+import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import example.models.Post;
@@ -105,18 +106,24 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
             }
 
             @Override
-            public boolean enableDynamicModelConfig() {
-                return true;
-            }
+            public ElideStandaloneAnalyticSettings getAnalyticProperties() {
+                ElideStandaloneAnalyticSettings analyticPropeties = new ElideStandaloneAnalyticSettings() {
+                    @Override
+                    public boolean enableDynamicModelConfig() {
+                        return true;
+                    }
 
-            @Override
-            public boolean enableAggregationDataStore() {
-                return false;
-            }
+                    @Override
+                    public boolean enableAggregationDataStore() {
+                        return false;
+                    }
 
-            @Override
-            public String getDynamicConfigPath() {
-                return "src/test/resources/configs/";
+                    @Override
+                    public String getDynamicConfigPath() {
+                        return "src/test/resources/configs/";
+                    }
+                };
+                return analyticPropeties;
             }
         });
         elide.start(false);
