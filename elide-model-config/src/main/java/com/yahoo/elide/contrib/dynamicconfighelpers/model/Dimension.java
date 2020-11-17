@@ -60,13 +60,13 @@ public class Dimension implements Named {
     private String readAccess = "Prefab.Role.All";
 
     @JsonProperty("definition")
-    private String definition = "";
+    private String definition;
 
     @JsonProperty("cardinality")
     private String cardinality;
 
     @JsonProperty("type")
-    private Type type = Type.TEXT;
+    private Type type;
 
     @JsonProperty("grain")
     private Grain grain = new Grain();
@@ -80,7 +80,7 @@ public class Dimension implements Named {
     private Set<String> values = new LinkedHashSet<String>();
 
     @JsonProperty("tableSource")
-    private String tableSource = "";
+    private String tableSource;
 
     @JsonIgnore
     private boolean override = false;

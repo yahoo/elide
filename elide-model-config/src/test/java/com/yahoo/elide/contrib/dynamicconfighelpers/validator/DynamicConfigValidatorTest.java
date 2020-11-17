@@ -179,9 +179,8 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
         String expected = "Schema validation failed for: table1.hjson\n"
-                + "instance failed to match at least one required schema among 2 at node: /tables/0/joins/0/type\n"
-                + "    ECMA 262 regex \"^[Tt][Oo][Oo][Nn][Ee]$\" does not match input string \"toAll\" at node: /tables/0/joins/0/type\n"
-                + "    ECMA 262 regex \"^[Tt][Oo][Mm][Aa][Nn][Yy]$\" does not match input string \"toAll\" at node: /tables/0/joins/0/type\n";
+                        + "[ERROR]\n"
+                        + "Instance[/tables/0/joins/0/type] failed to validate against schema[/definitions/join/properties/type]. Join type [toAll] is not allowed. Supported value is one of [ToOne, ToMany].\n";
 
         assertEquals(expected, error);
     }
@@ -189,12 +188,20 @@ public class DynamicConfigValidatorTest {
     @Test
     public void testBadDimName() throws Exception {
         String expectedMessage = "Schema validation failed for: table1.hjson\n"
-                        + "instance failed to match at least one required schema among 2 at node: /tables/0/dimensions/1\n"
-                        + "    instance failed to match all required schemas (matched only 1 out of 2) at node: /tables/0/dimensions/1\n"
-                        + "        ECMA 262 regex \"^[A-Za-z]([0-9A-Za-z]*_?[0-9A-Za-z]*)*$\" does not match input string \"_region\" at node: /tables/0/dimensions/1/name\n"
-                        + "    instance failed to match all required schemas (matched only 0 out of 2) at node: /tables/0/dimensions/1\n"
-                        + "        ECMA 262 regex \"^[A-Za-z]([0-9A-Za-z]*_?[0-9A-Za-z]*)*$\" does not match input string \"_region\" at node: /tables/0/dimensions/1/name\n"
-                        + "        ECMA 262 regex \"^[Tt][Ii][Mm][Ee]$\" does not match input string \"Text\" at node: /tables/0/dimensions/1/type\n";
+                        + "[ERROR]\n"
+                        + "Instance[/tables/0/dimensions/0] failed to validate against schema[/properties/tables/items/properties/dimensions/items]. instance failed to match exactly one schema (matched 0 out of 2)\n"
+                        + "    Instance[/tables/0/dimensions/0] failed to validate against schema[/definitions/dimension]. instance failed to match all required schemas (matched only 1 out of 2)\n"
+                        + "        Instance[/tables/0/dimensions/0/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [id] is not allowed. Field name cannot be 'id'\n"
+                        + "    Instance[/tables/0/dimensions/0] failed to validate against schema[/definitions/timeDimension]. instance failed to match all required schemas (matched only 0 out of 2)\n"
+                        + "        Instance[/tables/0/dimensions/0/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [id] is not allowed. Field name cannot be 'id'\n"
+                        + "        Instance[/tables/0/dimensions/0/type] failed to validate against schema[/definitions/timeDimension/allOf/1/properties/type]. Field type [Text] is not allowed. Field type must be [Time] for any time dimension.\n"
+                        + "[ERROR]\n"
+                        + "Instance[/tables/0/dimensions/1] failed to validate against schema[/properties/tables/items/properties/dimensions/items]. instance failed to match exactly one schema (matched 0 out of 2)\n"
+                        + "    Instance[/tables/0/dimensions/1] failed to validate against schema[/definitions/dimension]. instance failed to match all required schemas (matched only 1 out of 2)\n"
+                        + "        Instance[/tables/0/dimensions/1/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [_region] is not allowed. Field name must start with an alphabet and can include alaphabets, numbers and '_' only.\n"
+                        + "    Instance[/tables/0/dimensions/1] failed to validate against schema[/definitions/timeDimension]. instance failed to match all required schemas (matched only 0 out of 2)\n"
+                        + "        Instance[/tables/0/dimensions/1/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [_region] is not allowed. Field name must start with an alphabet and can include alaphabets, numbers and '_' only.\n"
+                        + "        Instance[/tables/0/dimensions/1/type] failed to validate against schema[/definitions/timeDimension/allOf/1/properties/type]. Field type [Text] is not allowed. Field type must be [Time] for any time dimension.\n";
 
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
