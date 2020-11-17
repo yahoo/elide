@@ -54,13 +54,13 @@ public class EntityProjectionTranslator {
 
     public EntityProjectionTranslator(QueryEngine engine, Table table,
                                       EntityProjection entityProjection, EntityDictionary dictionary,
-                                      Optional<MultivaluedMap<String, String>> optional) {
+                                      Optional<MultivaluedMap<String, String>> requestHeaders) {
         this.engine = engine;
         this.queriedTable = table;
         this.entityProjection = entityProjection;
         this.dictionary = dictionary;
-        String bypassingCache = (optional.isPresent() && optional.get().get("bypassingcache") != null)
-                             ? optional.get().get("bypassingcache").get(0) : null;
+        String bypassingCache = (requestHeaders.isPresent() && requestHeaders.get().get("bypassingcache") != null)
+                             ? requestHeaders.get().get("bypassingcache").get(0) : null;
 
         String safebypassCache = bypassingCache == null ? "true" : bypassingCache;
         this.bypassingCache = Boolean.parseBoolean(safebypassCache);
