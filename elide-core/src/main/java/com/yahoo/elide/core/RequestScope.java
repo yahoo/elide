@@ -7,22 +7,24 @@ package com.yahoo.elide.core;
 
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
-import com.yahoo.elide.audit.AuditLogger;
+import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.lifecycle.CRUDEvent;
+import com.yahoo.elide.core.lifecycle.LifecycleHookInvoker;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.PermissionExecutor;
+import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.PermissionExecutor;
-import com.yahoo.elide.security.User;
-import com.yahoo.elide.security.executors.ActivePermissionExecutor;
-
 import io.reactivex.Observable;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.ReplaySubject;
@@ -39,14 +41,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Request scope object for relaying request-related data to various subsystems.
  */
-public class RequestScope implements com.yahoo.elide.security.RequestScope {
+public class RequestScope implements com.yahoo.elide.core.security.RequestScope {
     @Getter private final JsonApiDocument jsonApiDocument;
     @Getter private final DataStoreTransaction transaction;
     @Getter private final User user;
@@ -219,7 +220,7 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
         this.headers = outerRequestScope.headers;
     }
 
-    public Set<com.yahoo.elide.security.PersistentResource> getNewResources() {
+    public Set<com.yahoo.elide.core.security.PersistentResource> getNewResources() {
         return (Set) newPersistentResources;
     }
 

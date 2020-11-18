@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.annotation;
 
-import com.yahoo.elide.functions.LifeCycleHook;
+import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Repeatable;

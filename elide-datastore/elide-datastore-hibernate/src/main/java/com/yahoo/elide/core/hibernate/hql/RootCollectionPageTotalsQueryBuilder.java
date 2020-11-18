@@ -5,15 +5,15 @@
  */
 package com.yahoo.elide.core.hibernate.hql;
 
-import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.FilterPredicate;
+import static com.yahoo.elide.core.utils.TypeHelper.getTypeAlias;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
-import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.core.request.EntityProjection;
 
 import java.util.Collection;
 import java.util.HashSet;

@@ -5,19 +5,17 @@
  */
 package com.yahoo.elide.graphql;
 
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.graphql.QueryRunner.buildErrorResponse;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
-import com.yahoo.elide.resources.SecurityContextUser;
-import com.yahoo.elide.security.User;
+import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.jsonapi.resources.SecurityContextUser;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;

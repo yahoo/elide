@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core.filter;
 
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+
 /**
  * Interface for filter operations.
  * @param <T> the return type for apply

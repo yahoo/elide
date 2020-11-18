@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.initialization;
 
-import com.yahoo.elide.audit.TestAuditLogger;
+import com.yahoo.elide.core.audit.TestAuditLogger;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 

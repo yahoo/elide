@@ -6,8 +6,8 @@
 package example.embeddedid;
 
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
-import com.yahoo.elide.utils.coerce.converters.Serde;
+import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
+import com.yahoo.elide.core.utils.coerce.converters.Serde;
 
 import java.util.Base64;
 import java.util.regex.Matcher;

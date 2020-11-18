@@ -6,12 +6,11 @@
 package example;
 
 import com.yahoo.elide.core.PersistentResourceTest;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.PermissionExecutorTest;
-import com.yahoo.elide.security.checks.Check;
-import com.yahoo.elide.security.checks.OperationCheck;
-import com.yahoo.elide.security.checks.prefab.Role;
-
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.PermissionExecutorTest;
+import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Optional;
@@ -46,7 +45,7 @@ public class TestCheckMappings {
 
     private static final class PrivatePermission extends OperationCheck<Object> {
         @Override
-        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+        public boolean ok(Object object, com.yahoo.elide.core.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return false;
         }
     }

@@ -6,7 +6,7 @@
 package com.yahoo.elide.core.filter.expression;
 
 import com.yahoo.elide.core.Path.PathElement;
-import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 
 /**
  * A Visitor which deep clones an entire filter expression.

@@ -5,10 +5,8 @@
  */
 package com.yahoo.elide.core.exceptions;
 
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.security.permissions.expressions.Expression;
-
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.security.permissions.expressions.Expression;
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;
@@ -17,7 +15,7 @@ import java.util.Optional;
 /**
  * Access to the requested resource is.
  *
- * {@link com.yahoo.elide.core.HttpStatus#SC_FORBIDDEN forbidden}
+ * {@link HttpStatus#SC_FORBIDDEN forbidden}
  */
 public class ForbiddenAccessException extends HttpStatusException {
     private static final long serialVersionUID = 1L;

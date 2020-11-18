@@ -5,19 +5,11 @@
  */
 package com.yahoo.elide.core.filter.dialect;
 
-import static com.yahoo.elide.core.EntityDictionary.REGULAR_ID_NAME;
-import static com.yahoo.elide.utils.TypeHelper.isPrimitiveNumberType;
-
-import com.yahoo.elide.core.EntityDictionary;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.REGULAR_ID_NAME;
+import static com.yahoo.elide.core.utils.TypeHelper.isPrimitiveNumberType;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.InInsensitivePredicate;
-import com.yahoo.elide.core.filter.InPredicate;
-import com.yahoo.elide.core.filter.IsEmptyPredicate;
-import com.yahoo.elide.core.filter.IsNullPredicate;
-import com.yahoo.elide.core.filter.NotEmptyPredicate;
-import com.yahoo.elide.core.filter.NotNullPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.dialect.graphql.FilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.JoinFilterDialect;
@@ -26,14 +18,18 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.parsers.JsonApiParser;
-import com.yahoo.elide.request.Attribute;
-import com.yahoo.elide.utils.coerce.CoerceUtil;
-
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.filter.predicates.InInsensitivePredicate;
+import com.yahoo.elide.core.filter.predicates.InPredicate;
+import com.yahoo.elide.core.filter.predicates.IsEmptyPredicate;
+import com.yahoo.elide.core.filter.predicates.IsNullPredicate;
+import com.yahoo.elide.core.filter.predicates.NotEmptyPredicate;
+import com.yahoo.elide.core.filter.predicates.NotNullPredicate;
+import com.yahoo.elide.core.request.Attribute;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.google.common.collect.ImmutableMap;
-
 import org.apache.commons.collections4.CollectionUtils;
-
 import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.RSQLParserException;
 import cz.jirutka.rsql.parser.ast.AndNode;
@@ -54,7 +50,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
