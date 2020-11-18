@@ -139,12 +139,13 @@ public class ElideResourceConfig extends ResourceConfig {
 
                     // TODO: If null, initialize with FileResultStorageEngine
                     ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
-                    AsyncExecutorService.init(elide, asyncProperties.getThreadSize(),
-                            asyncProperties.getMaxRunTimeSeconds(), asyncAPIDao, resultStorageEngine);
+                    AsyncExecutorService.init(elide, asyncProperties.getThreadSize(), asyncAPIDao,
+                            resultStorageEngine);
                     bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                     // Binding AsyncQuery LifeCycleHook
-                    AsyncQueryHook asyncQueryHook = new AsyncQueryHook(AsyncExecutorService.getInstance());
+                    AsyncQueryHook asyncQueryHook = new AsyncQueryHook(AsyncExecutorService.getInstance(),
+                            asyncProperties.getMaxAsyncAfterSeconds());
 
                     dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, asyncQueryHook, false);
                     dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, asyncQueryHook, false);

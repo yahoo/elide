@@ -46,7 +46,6 @@ public class AsyncExecutorService {
     private Map<String, QueryRunner> runners;
     private ExecutorService executor;
     private ExecutorService updater;
-    private int maxRunTime;
     private AsyncAPIDAO asyncAPIDao;
     private static AsyncExecutorService asyncExecutorService = null;
     private ResultStorageEngine resultStorageEngine;
@@ -62,7 +61,7 @@ public class AsyncExecutorService {
     }
 
     @Inject
-    private AsyncExecutorService(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncAPIDAO asyncAPIDao,
+    private AsyncExecutorService(Elide elide, Integer threadPoolSize, AsyncAPIDAO asyncAPIDao,
             ResultStorageEngine resultStorageEngine) {
         this.elide = elide;
         runners = new HashMap();
@@ -71,7 +70,6 @@ public class AsyncExecutorService {
             runners.put(apiVersion, new QueryRunner(elide, apiVersion));
         }
 
-        this.maxRunTime = maxRunTime;
         executor = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
         updater = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
         this.asyncAPIDao = asyncAPIDao;
@@ -83,13 +81,12 @@ public class AsyncExecutorService {
      * If already initialized earlier, no new object is created.
      * @param elide Elide Instance
      * @param threadPoolSize thread pool size
-     * @param maxRunTime max run times in minutes
      * @param asyncAPIDao DAO Object
      */
-    public static void init(Elide elide, Integer threadPoolSize, Integer maxRunTime, AsyncAPIDAO asyncAPIDao,
+    public static void init(Elide elide, Integer threadPoolSize, AsyncAPIDAO asyncAPIDao,
             ResultStorageEngine resultStorageEngine) {
         if (asyncExecutorService == null) {
-            asyncExecutorService = new AsyncExecutorService(elide, threadPoolSize, maxRunTime, asyncAPIDao,
+            asyncExecutorService = new AsyncExecutorService(elide, threadPoolSize, asyncAPIDao,
                     resultStorageEngine);
         } else {
             log.debug("asyncExecutorService is already initialized.");
