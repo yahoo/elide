@@ -15,6 +15,7 @@ import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.security.RequestScope;
 import lombok.Data;
@@ -29,17 +30,24 @@ import java.util.concurrent.Callable;
 @Data
 public abstract class AsyncAPIHook<T extends AsyncAPI> implements LifeCycleHook<T> {
     private final AsyncExecutorService asyncExecutorService;
+    private final Integer maxAsyncAfterSeconds;
 
-    public AsyncAPIHook(AsyncExecutorService asyncExecutorService) {
+    public AsyncAPIHook(AsyncExecutorService asyncExecutorService, Integer maxAsyncAfterSeconds) {
         this.asyncExecutorService = asyncExecutorService;
+        this.maxAsyncAfterSeconds = maxAsyncAfterSeconds;
     }
 
     /**
      * Validate the Query Options before executing.
      * @param query AsyncAPI type object.
      * @param requestScope RequestScope object.
+     * @throws InvalidValueException InvalidValueException
      */
-    public abstract void validateOptions(AsyncAPI query, RequestScope requestScope);
+    protected void validateOptions(AsyncAPI query, RequestScope requestScope) {
+        if (query.getAsyncAfterSeconds() > maxAsyncAfterSeconds) {
+            throw new InvalidValueException("Invalid Async After Seconds");
+        }
+    }
 
     /**
      * Execute the Hook.
