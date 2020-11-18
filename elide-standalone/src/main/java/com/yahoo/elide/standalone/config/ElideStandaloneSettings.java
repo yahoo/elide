@@ -12,7 +12,6 @@ import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.contrib.dynamicconfighelpers.DBPasswordExtractor;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
@@ -29,13 +28,12 @@ import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
-import org.apache.commons.lang3.StringUtils;
+
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -43,7 +41,6 @@ import org.hibernate.Session;
 import io.swagger.models.Info;
 import io.swagger.models.Swagger;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -175,32 +172,6 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Enable the support for Dynamic Model Configuration. If false, the feature will be disabled.
-     * If enabled, ensure that Aggregation Data Store is also  enabled
-     * @return Default: False
-     */
-    default boolean enableDynamicModelConfig() {
-        return false;
-    }
-
-    /**
-     * Enable the support for Aggregation Data Store. If false, the feature will be disabled.
-     *
-     * @return Default: False
-     */
-    default boolean enableAggregationDataStore() {
-        return false;
-    }
-
-    /**
-     * Base path to Hjson dynamic model configurations.
-     * @return Default: /configs/
-     */
-    default String getDynamicConfigPath() {
-        return File.separator + "configs" + File.separator;
-    }
-
-    /**
      * Async Properties.
      *
      * @return AsyncProperties type object.
@@ -208,6 +179,16 @@ public interface ElideStandaloneSettings {
     default ElideStandaloneAsyncSettings getAsyncProperties() {
         //Default Properties
         return new ElideStandaloneAsyncSettings() { };
+    }
+
+    /**
+     * Analytic Properties.
+     *
+     * @return AnalyticProperties type object.
+     */
+    default ElideStandaloneAnalyticSettings getAnalyticProperties() {
+        //Default Properties
+        return new ElideStandaloneAnalyticSettings() { };
     }
 
     /**
@@ -323,31 +304,14 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Limit on number of query cache entries. Non-positive values disable the query cache.
-     *
-     * @return Default: 1024
-     */
-    default Integer getQueryCacheMaximumEntries() {
-        return CaffeineCache.DEFAULT_MAXIMUM_ENTRIES;
-    }
-
-    /**
-     * Returns the default expiration in minutes of items in the AggregationDataStore query cache.
-     *
-     * @return Default: 10
-     */
-    default Long getDefaultCacheExpirationMinutes() {
-        return 10L;
-    }
-
-    /**
      * Get the query cache implementation. If null, query cache is disabled.
      *
      * @return Default: {@code new CaffeineCache(getQueryCacheSize())}
      */
     default Cache getQueryCache() {
-        return getQueryCacheMaximumEntries() > 0
-                ? new CaffeineCache(getQueryCacheMaximumEntries(), getDefaultCacheExpirationMinutes())
+        return getAnalyticProperties().getQueryCacheMaximumEntries() > 0
+                ? new CaffeineCache(getAnalyticProperties().getQueryCacheMaximumEntries(),
+                                    getAnalyticProperties().getDefaultCacheExpirationMinutes())
                 : null;
     }
 
@@ -359,38 +323,17 @@ public interface ElideStandaloneSettings {
     default Optional<ElideDynamicEntityCompiler> getDynamicCompiler(DBPasswordExtractor dbPasswordExtractor) {
         ElideDynamicEntityCompiler dynamicEntityCompiler = null;
 
-        if (enableAggregationDataStore() && enableDynamicModelConfig()) {
+        if (getAnalyticProperties().enableAggregationDataStore()
+                        && getAnalyticProperties().enableDynamicModelConfig()) {
             try {
-                dynamicEntityCompiler = new ElideDynamicEntityCompiler(getDynamicConfigPath(), dbPasswordExtractor);
+                dynamicEntityCompiler = new ElideDynamicEntityCompiler(getAnalyticProperties().getDynamicConfigPath(),
+                                dbPasswordExtractor);
             } catch (Exception e) { // thrown by in memory compiler
                 throw new IllegalStateException(e);
             }
         }
 
         return Optional.ofNullable(dynamicEntityCompiler);
-    }
-
-    /**
-     * Creates the default Password Extractor Implementation.
-     *
-     * @return An instance of DBPasswordExtractor.
-     */
-    default DBPasswordExtractor getDBPasswordExtractor() {
-        return new DBPasswordExtractor() {
-            @Override
-            public String getDBPassword(DBConfig config) {
-                return StringUtils.EMPTY;
-            }
-        };
-    }
-
-    /**
-     * Provides the default SQLDialect type.
-     *
-     * @return {@link SQLDialect} type for default DataSource Object.
-     */
-    default String getDefaultDialect() {
-        return "Hive";
     }
 
     /**
@@ -435,7 +378,7 @@ public interface ElideStandaloneSettings {
         AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder()
                 .queryEngine(queryEngine).queryLogger(new Slf4jQueryLogger());
 
-        if (enableDynamicModelConfig()) {
+        if (getAnalyticProperties().enableDynamicModelConfig()) {
             Set<Class<?>> annotatedClasses = getDynamicClassesIfAvailable(optionalCompiler, FromTable.class);
             annotatedClasses.addAll(getDynamicClassesIfAvailable(optionalCompiler, FromSubquery.class));
             aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClasses);
