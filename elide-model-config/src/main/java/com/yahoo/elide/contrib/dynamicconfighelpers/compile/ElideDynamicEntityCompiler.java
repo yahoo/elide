@@ -16,7 +16,6 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.Handlebars
 import com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.utils.ClassScanner;
-import com.google.common.collect.Sets;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
