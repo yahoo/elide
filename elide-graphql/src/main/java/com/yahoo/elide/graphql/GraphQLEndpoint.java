@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.graphql;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.graphql.QueryRunner.buildErrorResponse;
 
 import com.yahoo.elide.Elide;
@@ -71,20 +72,8 @@ public class GraphQLEndpoint {
             @Context SecurityContext securityContext,
             String graphQLDocument) {
 
-        MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
-        List<String> apiVersionList = headers.getRequestHeader("ApiVersion");
-        String apiVersion = "";
-        if (apiVersionList != null && apiVersionList.size() == 1) {
-            apiVersion = apiVersionList.get(0);
-        }
-        if (headers.getRequestHeader(HttpHeaders.AUTHORIZATION) != null
-                && !headers.getRequestHeader(HttpHeaders.AUTHORIZATION).isEmpty()) {
-            requestHeaders.remove(HttpHeaders.AUTHORIZATION);
-        }
-        if (headers.getRequestHeader("Proxy-Authorization") != null
-                && !headers.getRequestHeader("Proxy-Authorization").isEmpty()) {
-            requestHeaders.remove("Proxy-Authorization");
-        }
+        String apiVersion = resolveApiVersion(headers);
+        MultivaluedMap<String, String> requestHeaders = removeAuthHeaders(headers);
         User user = new SecurityContextUser(securityContext);
         QueryRunner runner = runners.getOrDefault(apiVersion, null);
 
@@ -96,5 +85,26 @@ public class GraphQLEndpoint {
                                   graphQLDocument, user, UUID.randomUUID(), requestHeaders);
         }
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
+    }
+
+    private String resolveApiVersion(HttpHeaders headers) {
+        List<String> apiVersionList = headers.getRequestHeader("ApiVersion");
+        String apiVersion = NO_VERSION;
+        if (apiVersionList != null && apiVersionList.size() == 1) {
+            apiVersion = apiVersionList.get(0);
+        }
+        return apiVersion;
+    }
+
+    private MultivaluedMap<String, String> removeAuthHeaders(HttpHeaders headers) {
+
+        MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
+        if (requestHeaders != null && headers.getRequestHeader(HttpHeaders.AUTHORIZATION) != null) {
+            requestHeaders.remove(HttpHeaders.AUTHORIZATION);
+        }
+        if (requestHeaders != null && headers.getRequestHeader("Proxy-Authorization") != null) {
+            requestHeaders.remove("Proxy-Authorization");
+        }
+        return requestHeaders;
     }
 }

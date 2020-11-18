@@ -49,7 +49,7 @@ public class EntityProjectionTranslator {
     private FilterExpression whereFilter;
     private FilterExpression havingFilter;
     private EntityDictionary dictionary;
-    private Boolean bypassingCache;
+    private Boolean bypassCache;
 
 
     public EntityProjectionTranslator(QueryEngine engine, Table table,
@@ -59,11 +59,10 @@ public class EntityProjectionTranslator {
         this.queriedTable = table;
         this.entityProjection = entityProjection;
         this.dictionary = dictionary;
-        String bypassingCache = (requestHeaders.isPresent() && requestHeaders.get().get("bypassingcache") != null)
-                             ? requestHeaders.get().get("bypassingcache").get(0) : null;
-
-        String safebypassCache = bypassingCache == null ? "true" : bypassingCache;
-        this.bypassingCache = Boolean.parseBoolean(safebypassCache);
+        String bypassCache = (requestHeaders.isPresent() && requestHeaders.get().get("bypasscache") != null)
+                             ? requestHeaders.get().get("bypasscache").get(0) : null;
+        String safebypassCache = bypassCache == null ? "true" : bypassCache;
+        this.bypassCache = Boolean.parseBoolean(safebypassCache);
         dimensionProjections = resolveNonTimeDimensions();
         timeDimensions = resolveTimeDimensions();
         metrics = resolveMetrics();
@@ -84,7 +83,7 @@ public class EntityProjectionTranslator {
                 .havingFilter(havingFilter)
                 .sorting(entityProjection.getSorting())
                 .pagination(ImmutablePagination.from(entityProjection.getPagination()))
-                .bypassingCache(bypassingCache)
+                .bypassingCache(bypassCache)
                 .build();
         QueryValidator validator = new QueryValidator(query, getAllFields(), dictionary);
         validator.validate();
