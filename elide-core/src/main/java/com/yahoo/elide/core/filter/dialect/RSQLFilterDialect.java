@@ -93,7 +93,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
     }
 
     //add rsql isnull op to the default ops
-    private static Set<ComparisonOperator> getDefaultOperatorsWithIsnull() {
+    public static final Set<ComparisonOperator> getDefaultOperatorsWithIsnull() {
         Set<ComparisonOperator> operators = RSQLOperators.defaultOperators();
         operators.add(INI);
         operators.add(NOT_INI);
