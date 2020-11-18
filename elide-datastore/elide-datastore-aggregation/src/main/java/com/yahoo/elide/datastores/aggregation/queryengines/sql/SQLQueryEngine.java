@@ -39,9 +39,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDime
 import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
-
 import com.google.common.base.Preconditions;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

@@ -6,9 +6,7 @@
 package com.yahoo.elide.spring.config;
 
 import static com.yahoo.elide.datastores.aggregation.cache.CaffeineCache.DEFAULT_MAXIMUM_ENTRIES;
-
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
-
 import lombok.Data;
 
 /**

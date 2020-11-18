@@ -13,7 +13,6 @@ import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.OperationCheck;
 
 import java.util.Optional;
-
 import javax.persistence.Entity;
 import javax.persistence.Transient;
 

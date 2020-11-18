@@ -9,7 +9,6 @@ import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
-
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
@@ -55,7 +54,6 @@ import com.yahoo.elide.utils.ClassScanner;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -72,7 +70,6 @@ import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
 import javax.inject.Provider;
 import javax.sql.DataSource;
 

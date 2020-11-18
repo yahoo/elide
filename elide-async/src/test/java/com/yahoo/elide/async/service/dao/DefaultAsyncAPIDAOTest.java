@@ -11,21 +11,19 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.security.checks.Check;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

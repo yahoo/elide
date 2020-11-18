@@ -8,7 +8,6 @@ package example;
 import com.yahoo.elide.annotation.Include;
 
 import java.util.Set;
-
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 

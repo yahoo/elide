@@ -8,18 +8,15 @@ package com.yahoo.elide.initialization;
 import static io.restassured.RestAssured.get;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
-
-import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.resources.JsonApiEndpoint;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -29,7 +26,6 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.TestInstance;
-
 import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 

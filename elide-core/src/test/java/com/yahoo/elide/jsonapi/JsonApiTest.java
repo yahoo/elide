@@ -9,12 +9,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.TestDictionary;
 import com.yahoo.elide.core.TestRequestScope;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Meta;

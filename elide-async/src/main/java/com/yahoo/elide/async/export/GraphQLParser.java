@@ -13,7 +13,6 @@ import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.request.EntityProjection;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

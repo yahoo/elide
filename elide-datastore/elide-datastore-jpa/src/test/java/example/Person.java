@@ -6,9 +6,7 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
-
 import org.hibernate.envers.Audited;
-
 import lombok.Getter;
 import lombok.Setter;
 

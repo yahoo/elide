@@ -6,8 +6,8 @@
 package com.yahoo.elide.extensions;
 
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.security.User;

@@ -7,7 +7,6 @@
 package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
-
 import com.google.common.collect.Streams;
 
 import java.util.Set;

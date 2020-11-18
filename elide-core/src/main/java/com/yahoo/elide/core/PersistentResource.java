@@ -20,6 +20,7 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.InvalidSyntaxException;
 import com.yahoo.elide.audit.LogMessage;
 import com.yahoo.elide.audit.LogMessageImpl;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;

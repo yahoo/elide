@@ -16,7 +16,6 @@ import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.request.Argument;
-
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;

@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import lombok.Getter;
 
 import java.util.HashMap;

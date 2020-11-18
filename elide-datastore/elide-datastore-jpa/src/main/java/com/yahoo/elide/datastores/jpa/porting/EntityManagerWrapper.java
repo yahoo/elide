@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.jpa.porting;
 
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
-
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.EntityManager;

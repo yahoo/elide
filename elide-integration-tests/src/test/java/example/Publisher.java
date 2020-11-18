@@ -11,7 +11,6 @@ import com.yahoo.elide.annotation.ReadPermission;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;

@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.annotation.dimensionformula;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
@@ -16,15 +15,12 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.google.common.collect.Sets;
 import com.zaxxer.hikari.HikariDataSource;
-
 import org.hibernate.annotations.Formula;
 import org.junit.jupiter.api.Test;
-
 import lombok.Data;
 import lombok.Setter;
 
 import java.util.Arrays;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;

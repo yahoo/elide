@@ -22,7 +22,6 @@ import com.yahoo.elide.request.Argument;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Relationship;
-
 import com.google.common.collect.Sets;
 
 import java.util.Collections;

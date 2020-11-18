@@ -7,11 +7,9 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ToOne;
-
 import org.hibernate.annotations.Any;
 import org.hibernate.annotations.AnyMetaDef;
 import org.hibernate.annotations.MetaValue;
-
 import lombok.Setter;
 
 import javax.persistence.Column;

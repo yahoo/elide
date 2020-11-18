@@ -8,7 +8,6 @@ package com.yahoo.elide.async.models;
 import lombok.Data;
 
 import java.util.Date;
-
 import javax.persistence.MappedSuperclass;
 
 /**

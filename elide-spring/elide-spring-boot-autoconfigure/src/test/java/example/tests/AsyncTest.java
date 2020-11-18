@@ -12,20 +12,15 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
-
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
-
 import com.yahoo.elide.core.HttpStatus;
-
 import org.junit.jupiter.api.Test;
-
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
-
 import io.restassured.response.Response;
 
 import javax.ws.rs.core.MediaType;

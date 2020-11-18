@@ -6,7 +6,6 @@
 package com.yahoo.elide.audit;
 
 import com.yahoo.elide.security.ChangeSpec;
-
 import com.google.common.collect.Sets;
 
 import java.io.IOException;

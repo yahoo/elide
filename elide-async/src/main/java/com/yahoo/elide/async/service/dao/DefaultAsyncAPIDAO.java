@@ -6,18 +6,16 @@
 package com.yahoo.elide.async.service.dao;
 
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
-
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.request.EntityProjection;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +24,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.UUID;
-
 import javax.inject.Singleton;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;

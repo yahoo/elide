@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-
 import lombok.Data;
 
 import javax.persistence.Column;

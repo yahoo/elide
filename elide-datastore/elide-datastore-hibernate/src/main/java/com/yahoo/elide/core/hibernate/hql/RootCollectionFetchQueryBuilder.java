@@ -6,7 +6,6 @@
 package com.yahoo.elide.core.hibernate.hql;
 
 import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
-
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.FilterPredicate;

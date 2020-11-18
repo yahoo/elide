@@ -7,7 +7,6 @@ package com.yahoo.elide.spring.controllers;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.security.User;
@@ -29,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;

@@ -6,12 +6,10 @@
 package com.yahoo.elide.datastores.aggregation.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.example.CountryView;
 import com.yahoo.elide.datastores.aggregation.example.CountryViewNested;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

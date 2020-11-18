@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -21,9 +21,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.request.EntityProjection;
-
 import com.google.common.annotations.VisibleForTesting;
-
 import lombok.ToString;
 
 import java.io.IOException;

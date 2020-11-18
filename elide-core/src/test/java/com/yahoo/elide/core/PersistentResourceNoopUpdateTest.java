@@ -14,6 +14,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.security.TestUser;
 import com.yahoo.elide.security.User;
 import example.Child;
