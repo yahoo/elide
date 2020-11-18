@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers;
 
-import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.EitherTableSourceOrValuesValidator;
 import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideCardinalityFormatAttr;
 import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideClassNameFormatAttr;
 import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideFieldNameFormatAttr;
@@ -15,7 +14,8 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideJoinTypeFor
 import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideNameFormatAttr;
 import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideRSQLFilterFormatAttr;
 import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideTimeFieldTypeFormatAttr;
-
+import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ValidateDimPropertiesValidator;
+import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ValidateTimeDimPropertiesValidator;
 import com.github.fge.jsonschema.messages.JsonSchemaValidationBundle;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 import com.github.fge.msgsimple.load.MessageBundles;
@@ -24,6 +24,9 @@ import com.github.fge.msgsimple.source.MapMessageSource.Builder;
 
 import lombok.Getter;
 
+/**
+ * Augment the {@link MessageBundle} with error messages for custom format attributes and keywords.
+ */
 public class MessageBundleWithElideMessages {
     @Getter
     private MessageBundle msgBundle;
@@ -44,8 +47,12 @@ public class MessageBundleWithElideMessages {
         msgSourceBuilder.put(ElideClassNameFormatAttr.FORMAT_KEY, ElideClassNameFormatAttr.FORMAT_MSG);
 
         // for Keyword errors
-        msgSourceBuilder.put(EitherTableSourceOrValuesValidator.ERROR_KEY,
-                        EitherTableSourceOrValuesValidator.ERROR_MSG);
+        msgSourceBuilder.put(ValidateDimPropertiesValidator.ATMOST_ONE_KEY,
+                        ValidateDimPropertiesValidator.ATMOST_ONE_MSG);
+        msgSourceBuilder.put(ValidateDimPropertiesValidator.ADDITIONAL_KEY,
+                        ValidateDimPropertiesValidator.ADDITIONAL_MSG);
+        msgSourceBuilder.put(ValidateTimeDimPropertiesValidator.ADDITIONAL_KEY,
+                        ValidateTimeDimPropertiesValidator.ADDITIONAL_MSG);
 
         this.msgBundle = MessageBundles.getBundle(JsonSchemaValidationBundle.class).thaw()
                         .appendSource(msgSourceBuilder.build())

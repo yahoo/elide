@@ -12,6 +12,12 @@ import com.github.fge.jsonschema.format.AbstractFormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
+/**
+ * Format specifier for {@code elideCardiality} format attribute.
+ * <p>
+ * This specifier will check if a string instance is one of {@code Tiny, Small, Medium, Large, Huge}.
+ * </p>
+ */
 public class ElideCardinalityFormatAttr extends AbstractFormatAttribute {
     private static final String CARDINALITY_REGEX = "^(?i)(Tiny|Small|Medium|Large|Huge)$";
 

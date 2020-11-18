@@ -12,6 +12,12 @@ import com.github.fge.jsonschema.format.AbstractFormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
+/**
+ * Format specifier for {@code elideFieldType} format attribute.
+ * <p>
+ * This specifier will check if a string instance is one of {@code Integer, Decimal, Money, Text, Coordinate, Boolean}.
+ * </p>
+ */
 public class ElideFieldTypeFormatAttr extends AbstractFormatAttribute {
     private static final String FIELD_TYPE_REGEX = "^(?i)(Integer|Decimal|Money|Text|Coordinate|Boolean)$";
 

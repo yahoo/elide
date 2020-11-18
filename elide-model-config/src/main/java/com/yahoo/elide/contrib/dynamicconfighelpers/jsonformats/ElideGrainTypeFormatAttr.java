@@ -12,6 +12,13 @@ import com.github.fge.jsonschema.format.AbstractFormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
+/**
+ * Format specifier for {@code elideGrainType} format attribute.
+ * <p>
+ * This specifier will check if a string instance is one of
+ * {@code Second, Minute, Hour, Day, IsoWeek, Week, Month, Quarter, Year}.
+ * </p>
+ */
 public class ElideGrainTypeFormatAttr extends AbstractFormatAttribute {
     private static final String GRAIN_TYPE_REGEX = "^(?i)(Second|Minute|Hour|Day|IsoWeek|Week|Month|Quarter|Year)$";
 

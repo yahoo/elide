@@ -12,6 +12,12 @@ import com.github.fge.jsonschema.format.AbstractFormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
+/**
+ * Format specifier for {@code elideJoinType} format attribute.
+ * <p>
+ * This specifier will check if a string instance is one of {@code ToOne, ToMany}.
+ * </p>
+ */
 public class ElideJoinTypeFormatAttr extends AbstractFormatAttribute {
     private static final String JOIN_TYPE_REGEX = "^(?i)(ToOne|ToMany)$";
 

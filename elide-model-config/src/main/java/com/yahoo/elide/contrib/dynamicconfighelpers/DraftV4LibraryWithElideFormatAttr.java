@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.contrib.dynamicconfighelpers;
 
-import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.EitherTableSourceOrValuesKeyword;
 import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideCardinalityFormatAttr;
 import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideClassNameFormatAttr;
 import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideFieldNameFormatAttr;
@@ -15,12 +14,17 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideJoinTypeFor
 import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideNameFormatAttr;
 import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideRSQLFilterFormatAttr;
 import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ElideTimeFieldTypeFormatAttr;
+import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ValidateDimPropertiesKeyword;
+import com.yahoo.elide.contrib.dynamicconfighelpers.jsonformats.ValidateTimeDimPropertiesKeyword;
 import com.github.fge.jsonschema.library.DraftV4Library;
 import com.github.fge.jsonschema.library.Library;
 import com.github.fge.jsonschema.library.LibraryBuilder;
 
 import lombok.Getter;
 
+/**
+ * Augment the {@link DraftV4Library} with custom format attributes and keywords.
+ */
 public class DraftV4LibraryWithElideFormatAttr {
     @Getter
     private Library library;
@@ -38,7 +42,8 @@ public class DraftV4LibraryWithElideFormatAttr {
         builder.addFormatAttribute(ElideRSQLFilterFormatAttr.FORMAT_NAME, new ElideRSQLFilterFormatAttr());
         builder.addFormatAttribute(ElideClassNameFormatAttr.FORMAT_NAME, new ElideClassNameFormatAttr());
 
-        builder.addKeyword(new EitherTableSourceOrValuesKeyword().getKeyword());
+        builder.addKeyword(new ValidateDimPropertiesKeyword().getKeyword());
+        builder.addKeyword(new ValidateTimeDimPropertiesKeyword().getKeyword());
 
         library = builder.freeze();
     }

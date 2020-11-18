@@ -190,10 +190,10 @@
                             "description": "Table and column name where to find the values : tableName.columnName",
                             "type": "string"
                         }
-                    },
-                    "eitherTableSourceOrValues": {}
+                    }
                 }
             ],
+            "validateDimensionProperties": true,
             "required": [
                 "name",
                 "type",
@@ -238,6 +238,7 @@
                     }
                 }
             ],
+            "validateTimeDimensionProperties": true,
             "required": [
                 "name",
                 "type",

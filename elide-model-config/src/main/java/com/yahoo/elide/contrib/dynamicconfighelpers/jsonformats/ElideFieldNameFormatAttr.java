@@ -12,6 +12,12 @@ import com.github.fge.jsonschema.format.AbstractFormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
+/**
+ * Format specifier for {@code elideFieldName} format attribute.
+ * <p>
+ * This specifier will check if a string instance is a valid Elide Field Name.
+ * </p>
+ */
 public class ElideFieldNameFormatAttr extends AbstractFormatAttribute {
     private static final String FIELD_NAME_FORMAT_REGEX = "^[A-Za-z][0-9A-Za-z_]*$";
 

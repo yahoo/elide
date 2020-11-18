@@ -12,6 +12,12 @@ import com.github.fge.jsonschema.format.AbstractFormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
+/**
+ * Format specifier for {@code elideTimeFieldType} format attribute.
+ * <p>
+ * This specifier will check if a string instance is {@code Time}.
+ * </p>
+ */
 public class ElideTimeFieldTypeFormatAttr extends AbstractFormatAttribute {
     private static final String TIME_FIELD_TYPE_REGEX = "^(?i)(Time)$";
 
