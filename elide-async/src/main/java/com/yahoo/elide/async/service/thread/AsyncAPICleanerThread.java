@@ -17,7 +17,6 @@ import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.LEPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;

@@ -16,6 +16,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.audit.AuditLogger;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.security.ChangeSpec;

@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.annotation.dimensionformula;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
-
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;

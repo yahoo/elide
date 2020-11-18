@@ -9,7 +9,6 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-
 import com.google.common.collect.ImmutableList;
 
 import java.util.ArrayList;

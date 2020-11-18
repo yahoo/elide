@@ -6,10 +6,10 @@
 package com.yahoo.elide;
 
 import com.yahoo.elide.audit.AuditLogger;
-import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.JSONApiLinks;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.filter.dialect.graphql.FilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.JoinFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.SubqueryFilterDialect;

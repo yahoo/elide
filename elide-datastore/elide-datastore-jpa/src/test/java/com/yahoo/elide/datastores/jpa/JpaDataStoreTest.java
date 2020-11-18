@@ -9,7 +9,6 @@ package com.yahoo.elide.datastores.jpa;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.annotations.JPQLFilterFragment;
@@ -17,13 +16,11 @@ import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.JPQLPredicateGenerator;
 import com.yahoo.elide.core.filter.Operator;
-
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.List;
-
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.Id;

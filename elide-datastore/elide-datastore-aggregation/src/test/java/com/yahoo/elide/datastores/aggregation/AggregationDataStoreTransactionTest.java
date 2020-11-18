@@ -16,7 +16,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
-
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
@@ -31,7 +30,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Pagination;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

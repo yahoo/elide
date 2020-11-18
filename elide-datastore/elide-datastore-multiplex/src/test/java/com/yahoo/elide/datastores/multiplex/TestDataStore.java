@@ -5,17 +5,16 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.utils.ClassScanner;
 
 import java.io.IOException;
 import java.io.Serializable;
-
 import javax.persistence.Entity;
 
 class TestDataStore implements DataStore, DataStoreTransaction {

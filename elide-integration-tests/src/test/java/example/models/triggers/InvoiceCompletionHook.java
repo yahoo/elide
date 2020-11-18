@@ -10,7 +10,6 @@ import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
-
 import example.models.triggers.services.BillingService;
 
 import java.util.Optional;

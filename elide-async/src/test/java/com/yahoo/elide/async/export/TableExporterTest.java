@@ -10,26 +10,23 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.security.AsyncQueryInlineChecks;
 import com.yahoo.elide.audit.Slf4jLogger;
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import io.reactivex.Observable;
 
 import java.io.IOException;

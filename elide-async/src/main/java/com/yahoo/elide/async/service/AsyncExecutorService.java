@@ -14,7 +14,6 @@ import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.async.service.thread.AsyncAPIUpdateThread;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.security.User;
-
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +28,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import javax.inject.Inject;
 
 /**

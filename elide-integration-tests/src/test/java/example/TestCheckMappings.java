@@ -7,7 +7,6 @@ package example;
 
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.prefab.Role;
-
 import com.google.common.collect.ImmutableMap;
 
 import java.util.HashMap;

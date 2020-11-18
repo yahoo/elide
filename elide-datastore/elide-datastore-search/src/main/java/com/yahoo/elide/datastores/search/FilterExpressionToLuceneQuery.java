@@ -12,9 +12,7 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-
 import com.google.common.base.Preconditions;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.queryparser.classic.ParseException;

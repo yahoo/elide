@@ -6,11 +6,11 @@
 package com.yahoo.elide;
 
 import com.yahoo.elide.audit.AuditLogger;
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.TransactionRegistry;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;

@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.hibernate3.usertypes;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.hibernate.HibernateException;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;

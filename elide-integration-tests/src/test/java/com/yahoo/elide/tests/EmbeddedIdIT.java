@@ -25,13 +25,11 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
-
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
 import com.yahoo.elide.utils.coerce.CoerceUtil;
-
 import com.google.common.collect.Sets;
 import example.embeddedid.Address;
 import example.embeddedid.AddressSerde;
@@ -39,7 +37,6 @@ import example.embeddedid.Building;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import lombok.Data;
 
 import java.io.IOException;

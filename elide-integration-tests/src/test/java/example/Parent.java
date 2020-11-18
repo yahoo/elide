@@ -14,12 +14,10 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.OperationCheck;
-
 import lombok.ToString;
 
 import java.util.Optional;
 import java.util.Set;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;

@@ -7,7 +7,6 @@ package example;
 
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Include;
-
 import lombok.Getter;
 import lombok.Setter;
 

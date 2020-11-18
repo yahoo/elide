@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
-
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -24,7 +23,6 @@ import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.SubCountry;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
-
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import org.junit.jupiter.api.BeforeAll;

@@ -10,7 +10,6 @@ import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-
 import lombok.Data;
 
 import javax.persistence.Column;

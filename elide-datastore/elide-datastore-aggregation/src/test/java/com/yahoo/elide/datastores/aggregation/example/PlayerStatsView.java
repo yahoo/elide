@@ -9,7 +9,6 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
-
 import lombok.Data;
 
 import javax.persistence.Id;

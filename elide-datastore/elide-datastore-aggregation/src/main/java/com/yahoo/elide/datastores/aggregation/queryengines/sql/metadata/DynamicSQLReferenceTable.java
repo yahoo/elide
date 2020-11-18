@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.google.common.collect.Sets;
+
 import java.util.Set;
 
 /**

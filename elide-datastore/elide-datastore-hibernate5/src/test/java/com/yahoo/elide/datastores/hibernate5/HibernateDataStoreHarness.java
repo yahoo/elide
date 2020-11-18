@@ -6,7 +6,7 @@
 package com.yahoo.elide.datastores.hibernate5;
 
 import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.core.DataStore;
+import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.utils.ClassScanner;
 import example.Parent;

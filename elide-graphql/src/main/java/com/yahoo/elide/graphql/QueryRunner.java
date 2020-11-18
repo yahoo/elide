@@ -7,9 +7,9 @@ package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.ErrorObjects;
 import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.CustomErrorException;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;

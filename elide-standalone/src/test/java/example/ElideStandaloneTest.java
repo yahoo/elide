@@ -22,23 +22,19 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
-
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
-
 import example.models.Post;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-
 import io.restassured.response.Response;
 
 import java.util.Properties;
-
 import javax.ws.rs.core.MediaType;
 
 /**

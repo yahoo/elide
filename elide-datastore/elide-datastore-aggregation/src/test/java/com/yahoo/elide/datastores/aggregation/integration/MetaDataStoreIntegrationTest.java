@@ -14,7 +14,6 @@ import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
-
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
@@ -22,7 +21,6 @@ import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTest
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -30,7 +28,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;

@@ -9,7 +9,6 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.NonTransferable;
 
 import java.util.Collection;
-
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;

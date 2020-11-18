@@ -11,12 +11,10 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.security.ChangeSpec;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.OperationCheck;
-
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Optional;
-
 import javax.persistence.Entity;
 import javax.persistence.Table;
 

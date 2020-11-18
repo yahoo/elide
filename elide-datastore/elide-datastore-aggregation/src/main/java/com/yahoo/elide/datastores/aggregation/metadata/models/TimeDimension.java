@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
-
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;

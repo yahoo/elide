@@ -18,6 +18,7 @@ import static org.mockito.Mockito.when;
 
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.Path.PathElement;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.InPredicate;

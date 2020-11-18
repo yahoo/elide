@@ -7,7 +7,6 @@
 package com.yahoo.elide.async.service.storageengine;
 
 import com.yahoo.elide.async.models.AsyncQuery;
-
 import io.reactivex.Observable;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,7 +19,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Iterator;
-
 import javax.inject.Singleton;
 
 /**

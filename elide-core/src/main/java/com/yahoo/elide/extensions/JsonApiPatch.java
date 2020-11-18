@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.extensions;
 
-import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;

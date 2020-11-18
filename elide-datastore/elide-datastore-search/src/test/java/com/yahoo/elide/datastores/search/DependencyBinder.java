@@ -9,14 +9,13 @@ package com.yahoo.elide.datastores.search;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.Slf4jLogger;
-import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
-
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.hibernate.Session;
@@ -25,7 +24,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.TimeZone;
 import java.util.function.Consumer;
-
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;

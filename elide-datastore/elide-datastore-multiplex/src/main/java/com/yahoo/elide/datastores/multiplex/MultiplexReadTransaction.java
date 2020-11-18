@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 
 /**
  * Multiplex transaction handler.

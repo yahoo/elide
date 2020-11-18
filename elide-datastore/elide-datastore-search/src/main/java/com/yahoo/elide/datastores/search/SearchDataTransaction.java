@@ -6,13 +6,12 @@
 
 package com.yahoo.elide.datastores.search;
 
-import static com.yahoo.elide.core.DataStoreTransaction.FeatureSupport.FULL;
-import static com.yahoo.elide.core.DataStoreTransaction.FeatureSupport.NONE;
-
-import com.yahoo.elide.core.DataStoreTransaction;
+import static com.yahoo.elide.core.datastore.DataStoreTransaction.FeatureSupport.FULL;
+import static com.yahoo.elide.core.datastore.DataStoreTransaction.FeatureSupport.NONE;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.wrapped.TransactionWrapper;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;

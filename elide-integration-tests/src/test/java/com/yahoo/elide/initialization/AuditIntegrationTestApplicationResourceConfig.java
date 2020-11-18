@@ -6,7 +6,6 @@
 package com.yahoo.elide.initialization;
 
 import com.yahoo.elide.audit.InMemoryLogger;
-
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 

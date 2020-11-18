@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
@@ -20,7 +19,6 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

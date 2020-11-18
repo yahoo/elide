@@ -11,27 +11,23 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.linkage;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.audit.TestAuditLogger;
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.security.User;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.test.jsonapi.elements.Data;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import example.Author;
 import example.Book;
 import example.Chapter;
 import example.Filtered;
 import example.TestCheckMappings;
-
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +38,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 
 public class DataStoreIT extends IntegrationTest {

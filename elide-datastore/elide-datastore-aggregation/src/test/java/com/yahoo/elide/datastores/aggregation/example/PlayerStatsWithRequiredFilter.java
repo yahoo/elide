@@ -23,7 +23,6 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Id;
 

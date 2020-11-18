@@ -8,7 +8,6 @@ package com.yahoo.elide.spring.config;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.datastores.jpa.PersistenceUnitInfoImpl;
 import com.yahoo.elide.utils.ClassScanner;
-
 import org.hibernate.cfg.AvailableSettings;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -22,7 +21,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.persistenceunit.PersistenceUnitManager;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -30,7 +28,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
 import javax.persistence.Entity;
 import javax.persistence.spi.PersistenceUnitInfo;
 import javax.sql.DataSource;
