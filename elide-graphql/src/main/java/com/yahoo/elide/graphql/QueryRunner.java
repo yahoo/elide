@@ -298,7 +298,7 @@ public class QueryRunner {
                     new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables, apiVersion).make(query);
             GraphQLRequestScope requestScope =
                     new GraphQLRequestScope(baseUrlEndPoint, tx, principal, apiVersion,
-                            elide.getElideSettings(), projectionInfo, requestId);
+                            elide.getElideSettings(), projectionInfo, requestId, null);
 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
 

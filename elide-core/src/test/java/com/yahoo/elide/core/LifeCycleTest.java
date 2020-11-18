@@ -1390,7 +1390,7 @@ public class LifeCycleTest {
     private RequestScope buildRequestScope(EntityDictionary dict, DataStoreTransaction tx) {
         User user = new TestUser("1");
 
-        return new RequestScope(null, null, NO_VERSION, null, tx, user, null, UUID.randomUUID(),
+        return new RequestScope(null, null, NO_VERSION, null, tx, user, null, null, UUID.randomUUID(),
                 getElideSettings(null, dict, MOCK_AUDIT_LOGGER));
     }
 }

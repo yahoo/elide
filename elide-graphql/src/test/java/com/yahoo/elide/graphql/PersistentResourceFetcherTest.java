@@ -193,7 +193,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
         GraphQLProjectionInfo projectionInfo =
                 new GraphQLEntityProjectionMaker(settings, variables, NO_VERSION).make(graphQLRequest);
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, NO_VERSION, settings, projectionInfo, UUID.randomUUID());
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, NO_VERSION, settings, projectionInfo, UUID.randomUUID(), null);
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope, variables);
         // NOTE: We're forcing commit even in case of failures. GraphQLEndpoint tests should ensure we do not commit on
@@ -219,7 +219,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
         GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(settings).make(graphQLRequest);
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, NO_VERSION, settings, projectionInfo, UUID.randomUUID());
+        GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, NO_VERSION, settings, projectionInfo, UUID.randomUUID(), null);
 
         ExecutionResult result = api.execute(graphQLRequest, requestScope);
         if (isMutation) {
@@ -253,7 +253,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
         GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(settings).make(graphQLRequest);
         GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, NO_VERSION, settings,
-                projectionInfo, UUID.randomUUID());
+                projectionInfo, UUID.randomUUID(), null);
 
         return api.execute(graphQLRequest, requestScope, variables);
     }

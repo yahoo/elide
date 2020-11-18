@@ -170,7 +170,7 @@ public class DefaultAsyncAPIDAO implements AsyncAPIDAO {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
             RequestScope scope = new RequestScope("", "query", NO_VERSION, jsonApiDoc,
-                    tx, null, queryParams, UUID.randomUUID(), elideSettings);
+                    tx, null, queryParams, null, UUID.randomUUID(), elideSettings);
             result = action.execute(tx, scope);
             tx.flush(scope);
             tx.commit(scope);
