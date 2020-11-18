@@ -6,12 +6,11 @@
 package com.yahoo.elide.core.datastore.inmemory;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import com.yahoo.elide.utils.ClassScanner;
-
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.utils.ClassScanner;
 import com.google.common.collect.Sets;
 import lombok.Getter;
 

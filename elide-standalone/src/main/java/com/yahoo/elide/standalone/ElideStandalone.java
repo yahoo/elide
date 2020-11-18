@@ -6,7 +6,7 @@
 package com.yahoo.elide.standalone;
 
 import static com.yahoo.elide.standalone.config.ElideResourceConfig.ELIDE_STANDALONE_SETTINGS_ATTR;
-import com.yahoo.elide.security.checks.Check;
+import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.standalone.config.ElideResourceConfig;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import com.codahale.metrics.servlet.InstrumentedFilter;
@@ -84,7 +84,8 @@ public class ElideStandalone {
             ServletHolder jerseyServlet = context.addServlet(ServletContainer.class,
                     elideStandaloneSettings.getJsonApiPathSpec());
             jerseyServlet.setInitOrder(0);
-            jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.resources");
+            jerseyServlet.setInitParameter("jersey.config.server.provider.packages",
+                    "com.yahoo.elide.jsonapi.resources");
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
         }
 

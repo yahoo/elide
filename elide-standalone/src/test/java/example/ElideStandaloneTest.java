@@ -297,7 +297,7 @@ public class ElideStandaloneTest {
                 // Validate AsyncQuery Response
                 response
                         .then()
-                        .statusCode(com.yahoo.elide.core.HttpStatus.SC_OK)
+                        .statusCode(com.yahoo.elide.core.exceptions.HttpStatus.SC_OK)
                         .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263d"))
                         .body("data.type", equalTo("asyncQuery"))
                         .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))

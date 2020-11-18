@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.core.datastore;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.annotations.JPQLFilterFragment;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterTranslator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

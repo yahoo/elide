@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.timegrains;
 
-import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
-import com.yahoo.elide.utils.coerce.converters.Serde;
+import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
+import com.yahoo.elide.core.utils.coerce.converters.Serde;
 
 import java.sql.Timestamp;
 import java.text.ParseException;

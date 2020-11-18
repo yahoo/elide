@@ -6,7 +6,7 @@
 package dynamicconfig.models;
 
 import com.yahoo.elide.annotation.SecurityCheck;
-import com.yahoo.elide.security.checks.prefab.Role.RoleMemberCheck;
+import com.yahoo.elide.core.security.checks.prefab.Role.RoleMemberCheck;
 <%#assign "upperCaseName"%> <%#toUpperCaseReplaceSpace this%><%/toUpperCaseReplaceSpace%> <%/assign%>
 <%#assign "titleCaseName"%> <%#titleCaseRemoveSpaces this%><%/titleCaseRemoveSpaces%> <%/assign%>
 @SecurityCheck(DynamicConfigOperationChecksPrincipalIs<%titleCaseName%>.PRINCIPAL_IS_<%upperCaseName%>)

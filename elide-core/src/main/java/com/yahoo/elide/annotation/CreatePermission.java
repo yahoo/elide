@@ -28,7 +28,7 @@ public @interface CreatePermission {
      * {@code @CreatePermission(expression="Prefab.Role.All")} or
      * {@code @CreatePermission(expression="Prefab.Role.All and Prefab.Role.UpdateOnCreate")}
      *
-     * All of {@linkplain com.yahoo.elide.security.checks.prefab the built-in checks} are name-spaced as
+     * All of {@linkplain com.yahoo.elide.core.security.checks.prefab the built-in checks} are name-spaced as
      * {@code Prefab.CHECK} without the {@code Check} suffix
      *
      * @return the expression string to be parsed

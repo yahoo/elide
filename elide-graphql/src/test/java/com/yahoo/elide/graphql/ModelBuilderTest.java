@@ -6,7 +6,7 @@
 
 package com.yahoo.elide.graphql;
 
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static graphql.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -14,17 +14,13 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
-
-import com.yahoo.elide.core.ArgumentType;
-import com.yahoo.elide.core.EntityDictionary;
-
-import com.yahoo.elide.request.Sorting;
+import com.yahoo.elide.core.dictionary.ArgumentType;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.Sorting;
 import example.Author;
 import example.Book;
 import example.Publisher;
-
 import org.junit.jupiter.api.Test;
-
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLEnumType;

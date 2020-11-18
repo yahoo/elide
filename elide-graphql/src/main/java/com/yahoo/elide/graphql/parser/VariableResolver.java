@@ -7,7 +7,6 @@
 package com.yahoo.elide.graphql.parser;
 
 import com.yahoo.elide.core.exceptions.BadRequestException;
-
 import graphql.language.ArrayValue;
 import graphql.language.BooleanValue;
 import graphql.language.EnumValue;

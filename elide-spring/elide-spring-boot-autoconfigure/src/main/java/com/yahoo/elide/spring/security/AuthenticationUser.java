@@ -6,7 +6,7 @@
 
 package com.yahoo.elide.spring.security;
 
-import com.yahoo.elide.security.User;
+import com.yahoo.elide.core.security.User;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 

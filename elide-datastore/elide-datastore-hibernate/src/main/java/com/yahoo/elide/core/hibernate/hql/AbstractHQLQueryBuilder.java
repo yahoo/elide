@@ -5,19 +5,19 @@
  */
 package com.yahoo.elide.core.hibernate.hql;
 
-import static com.yahoo.elide.utils.TypeHelper.appendAlias;
-import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
-import com.yahoo.elide.core.EntityDictionary;
+import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.core.utils.TypeHelper.getTypeAlias;
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.RelationshipType;
-import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.request.Pagination;
-import com.yahoo.elide.request.Sorting;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.request.Sorting;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -57,7 +57,7 @@ public abstract class AbstractHQLQueryBuilder {
      */
     public interface Relationship {
 
-        com.yahoo.elide.request.Relationship getRelationship();
+        com.yahoo.elide.core.request.Relationship getRelationship();
 
         Class<?> getParentType();
 

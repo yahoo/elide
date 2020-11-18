@@ -9,7 +9,7 @@ import static com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers.
 import static com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler.isStaticModel;
 import static com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler.staticModelHasField;
 import static com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.HandlebarsHelper.REFERENCE_PARENTHESES;
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.Config;

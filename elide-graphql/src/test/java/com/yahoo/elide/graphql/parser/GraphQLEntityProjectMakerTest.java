@@ -6,10 +6,8 @@
 package com.yahoo.elide.graphql.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.graphql.PersistentResourceFetcherTest;
-import com.yahoo.elide.request.Pagination;
-
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
