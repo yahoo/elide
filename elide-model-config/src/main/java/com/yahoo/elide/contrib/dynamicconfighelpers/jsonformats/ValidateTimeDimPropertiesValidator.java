@@ -30,8 +30,8 @@ public class ValidateTimeDimPropertiesValidator extends AbstractKeywordValidator
                     "hidden", "readAccess", "definition", "cardinality", "tags", "type", "grain"));
 
     public static final String KEYWORD = "validateTimeDimensionProperties";
-    public static final String ADDITIONAL_KEY = "validateDimensionProperties.error.addtional";
-    public static final String ADDITIONAL_MSG = "Properties: %s are not allowed for dimensions.";
+    public static final String ADDITIONAL_KEY = "validateTimeDimensionProperties.error.addtional";
+    public static final String ADDITIONAL_MSG = "Properties: %s are not allowed for time dimensions.";
 
     private boolean validate;
 
