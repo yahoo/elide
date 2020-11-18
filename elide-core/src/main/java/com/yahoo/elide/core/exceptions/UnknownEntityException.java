@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.core.exceptions;
 
-import com.yahoo.elide.core.HttpStatus;
-
 /**
  * Unknown entity exception.
  */

@@ -8,7 +8,7 @@ package com.yahoo.elide.core.filter.dialect.graphql;
 
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.request.Attribute;
+import com.yahoo.elide.core.request.Attribute;
 
 import java.util.Set;
 

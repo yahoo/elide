@@ -6,25 +6,23 @@
 
 package com.yahoo.elide.jsonapi;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.PaginationImpl;
+import com.yahoo.elide.core.request.Attribute;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.generated.parsers.CoreBaseVisitor;
 import com.yahoo.elide.generated.parsers.CoreParser;
-import com.yahoo.elide.parsers.JsonApiParser;
-import com.yahoo.elide.request.Attribute;
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.request.Pagination;
-import com.yahoo.elide.request.Relationship;
-import com.yahoo.elide.request.Sorting;
-
+import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
-
 import lombok.Builder;
 import lombok.Data;
 
@@ -35,7 +33,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 

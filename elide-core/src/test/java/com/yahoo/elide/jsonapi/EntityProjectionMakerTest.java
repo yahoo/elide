@@ -8,20 +8,18 @@ package com.yahoo.elide.jsonapi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.TestRequestScope;
-import com.yahoo.elide.core.filter.InPredicate;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.pagination.PaginationImpl;
+import com.yahoo.elide.core.request.Attribute;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
-import com.yahoo.elide.request.Attribute;
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.request.Relationship;
-import com.yahoo.elide.request.Sorting;
-
 import com.google.common.collect.Sets;
 import example.Address;
 import example.Author;
@@ -34,7 +32,6 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.util.Collection;
 import java.util.HashMap;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 

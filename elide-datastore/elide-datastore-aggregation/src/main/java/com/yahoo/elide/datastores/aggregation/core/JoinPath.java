@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.core;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.google.common.collect.ImmutableList;

@@ -6,8 +6,7 @@
 
 package com.yahoo.elide.graphql;
 
-import com.yahoo.elide.core.EntityDictionary;
-
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import org.apache.commons.lang3.StringUtils;
 
 public class GraphQLNameUtils {

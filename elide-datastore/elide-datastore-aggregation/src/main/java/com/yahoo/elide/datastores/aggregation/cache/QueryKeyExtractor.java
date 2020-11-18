@@ -7,18 +7,18 @@
 package com.yahoo.elide.datastores.aggregation.cache;
 
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.Argument;
+import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.request.Argument;
-import com.yahoo.elide.request.Pagination;
-import com.yahoo.elide.request.Sorting;
 
 import java.util.Comparator;
 import java.util.Map;

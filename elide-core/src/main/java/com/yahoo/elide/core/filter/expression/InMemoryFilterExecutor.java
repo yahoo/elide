@@ -6,7 +6,7 @@
 package com.yahoo.elide.core.filter.expression;
 
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 
 import java.util.function.Predicate;
 

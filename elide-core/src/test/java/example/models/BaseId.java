@@ -8,7 +8,6 @@ package example.models;
 import com.yahoo.elide.annotation.Exclude;
 
 import java.util.UUID;
-
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;

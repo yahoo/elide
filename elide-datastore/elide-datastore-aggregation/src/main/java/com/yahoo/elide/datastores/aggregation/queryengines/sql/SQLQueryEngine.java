@@ -5,10 +5,13 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.TimedFunction;
-import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.Argument;
+import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.utils.TimedFunction;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
@@ -36,9 +39,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensio
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
-import com.yahoo.elide.request.Argument;
-import com.yahoo.elide.request.Pagination;
-import com.yahoo.elide.utils.coerce.CoerceUtil;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

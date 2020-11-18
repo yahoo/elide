@@ -6,11 +6,10 @@
 
 package com.yahoo.elide.graphql;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.request.EntityProjection;
-
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.EntityProjection;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

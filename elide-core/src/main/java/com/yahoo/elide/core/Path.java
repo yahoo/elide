@@ -5,16 +5,14 @@
  */
 package com.yahoo.elide.core;
 
-import static com.yahoo.elide.core.EntityDictionary.getSimpleName;
-import static com.yahoo.elide.utils.TypeHelper.appendAlias;
-import static com.yahoo.elide.utils.TypeHelper.getTypeAlias;
-
+import static com.yahoo.elide.core.dictionary.EntityDictionary.getSimpleName;
+import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.core.utils.TypeHelper.getTypeAlias;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.request.Argument;
-
+import com.yahoo.elide.core.request.Argument;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
