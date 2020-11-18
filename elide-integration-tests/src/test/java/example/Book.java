@@ -11,12 +11,10 @@ import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.annotation.ReadPermission;
-
 import org.hibernate.annotations.Formula;
 
 import java.util.ArrayList;
 import java.util.Collection;
-
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;

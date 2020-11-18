@@ -7,7 +7,6 @@ package com.yahoo.elide.async.service;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yahoo.elide.async.models.AsyncQuery;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;

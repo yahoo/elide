@@ -9,9 +9,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
-
 import org.hibernate.annotations.Formula;
-
 import lombok.Data;
 import lombok.Setter;
 

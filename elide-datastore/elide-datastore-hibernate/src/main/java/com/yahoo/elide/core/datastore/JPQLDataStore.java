@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.core.datastore;
 
-import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.annotations.JPQLFilterFragment;
 import com.yahoo.elide.core.filter.FilterTranslator;

@@ -16,7 +16,6 @@ import com.yahoo.elide.security.checks.FilterExpressionCheck;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;

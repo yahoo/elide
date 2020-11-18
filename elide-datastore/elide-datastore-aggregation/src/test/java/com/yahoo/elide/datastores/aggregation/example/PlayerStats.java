@@ -18,7 +18,6 @@ import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
-
 import com.yahoo.elide.datastores.aggregation.resolvers.DailyAverageScorePerPeriodResolver;
 import com.yahoo.elide.datastores.aggregation.timegrains.Day;
 import com.yahoo.elide.datastores.aggregation.timegrains.Month;

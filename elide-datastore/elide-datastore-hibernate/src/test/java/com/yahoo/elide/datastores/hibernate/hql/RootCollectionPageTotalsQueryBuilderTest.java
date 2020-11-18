@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.hibernate.hql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
-
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -17,12 +16,10 @@ import com.yahoo.elide.core.hibernate.hql.RootCollectionPageTotalsQueryBuilder;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Sorting;
-
 import example.Author;
 import example.Book;
 import example.Chapter;
 import example.Publisher;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;

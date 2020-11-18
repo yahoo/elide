@@ -10,7 +10,6 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import example.models.BaseId;
 import example.models.triggers.services.BillingService;
-
 import lombok.Data;
 
 import javax.inject.Inject;

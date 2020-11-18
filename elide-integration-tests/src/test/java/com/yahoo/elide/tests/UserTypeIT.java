@@ -14,15 +14,12 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
-
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
-
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

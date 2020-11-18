@@ -3,8 +3,12 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.core;
+package com.yahoo.elide.core.datastore;
 
+import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;

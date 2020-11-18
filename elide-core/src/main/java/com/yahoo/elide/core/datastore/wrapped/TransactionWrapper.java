@@ -6,8 +6,8 @@
 
 package com.yahoo.elide.core.datastore.wrapped;
 
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;

@@ -7,13 +7,11 @@
 package com.yahoo.elide.initialization;
 
 import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.core.DataStore;
+import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-
 import com.google.common.collect.Sets;
-
 import example.Parent;
 import example.models.generics.Manager;
 import example.models.triggers.Invoice;

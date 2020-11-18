@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.FIELD;
 import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.FORMULA;
-
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.EntityDictionary;
@@ -18,7 +17,6 @@ import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueSourceType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;

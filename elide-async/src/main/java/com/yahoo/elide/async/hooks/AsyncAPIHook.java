@@ -9,7 +9,6 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
-
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncAPIResult;
@@ -19,7 +18,6 @@ import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.security.RequestScope;
-
 import lombok.Data;
 
 import java.security.Principal;

@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
-
 import lombok.Data;
 
 import javax.persistence.Entity;

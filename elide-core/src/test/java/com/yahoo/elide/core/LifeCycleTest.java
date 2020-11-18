@@ -38,6 +38,8 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.audit.AuditLogger;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.functions.LifeCycleHook;
 import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;

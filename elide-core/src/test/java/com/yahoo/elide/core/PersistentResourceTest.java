@@ -28,6 +28,7 @@ import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.audit.LogMessage;
 import com.yahoo.elide.audit.TestAuditLogger;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;

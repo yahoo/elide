@@ -5,12 +5,11 @@
  */
 package com.yahoo.elide.datastores.multiplex.bridgeable;
 
-import com.yahoo.elide.core.DataStore;
+import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.hibernate5.AbstractHibernateStore;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.example.beans.HibernateUser;
-
 import org.hibernate.ScrollMode;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;

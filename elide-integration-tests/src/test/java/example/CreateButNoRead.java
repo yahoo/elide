@@ -14,7 +14,6 @@ import com.yahoo.elide.security.checks.OperationCheck;
 
 import java.util.Optional;
 import java.util.Set;
-
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;

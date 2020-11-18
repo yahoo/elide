@@ -16,7 +16,6 @@ import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;

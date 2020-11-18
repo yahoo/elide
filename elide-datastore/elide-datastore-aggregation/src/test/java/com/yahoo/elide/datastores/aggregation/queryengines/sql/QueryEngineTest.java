@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
@@ -23,10 +22,8 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable
 import com.yahoo.elide.datastores.aggregation.timegrains.Day;
 import com.yahoo.elide.datastores.aggregation.timegrains.Month;
 import com.yahoo.elide.request.Sorting;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

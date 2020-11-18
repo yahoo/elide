@@ -18,14 +18,12 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.yahoo.elide.audit.InMemoryLogger;
 import com.yahoo.elide.initialization.AuditIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.resources.JsonApiEndpoint;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
 import com.yahoo.elide.test.jsonapi.elements.ResourceLinkage;
-
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 

@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.EntityDictionary;
-
 import lombok.EqualsAndHashCode;
 
 /**

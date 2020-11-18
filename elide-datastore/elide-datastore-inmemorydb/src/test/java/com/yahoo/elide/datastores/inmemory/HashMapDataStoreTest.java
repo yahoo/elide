@@ -10,16 +10,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.example.beans.ExcludedBean;
 import com.yahoo.elide.example.beans.FirstBean;
 import com.yahoo.elide.example.beans.FirstChildBean;
 import com.yahoo.elide.example.beans.NonEntity;
 import com.yahoo.elide.example.beans.SecondBean;
 import com.yahoo.elide.request.EntityProjection;
-
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.collections4.IterableUtils;
 import org.junit.jupiter.api.BeforeEach;

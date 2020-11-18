@@ -6,10 +6,10 @@
 
 package com.yahoo.elide.core.datastore.inmemory;
 
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterPredicatePushdownExtractor;
 import com.yahoo.elide.core.filter.expression.InMemoryExecutionVerifier;

@@ -9,12 +9,10 @@ import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.UpdatePermission;
-
 import lombok.Data;
 
 import java.util.Date;
 import java.util.UUID;
-
 import javax.persistence.Column;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
