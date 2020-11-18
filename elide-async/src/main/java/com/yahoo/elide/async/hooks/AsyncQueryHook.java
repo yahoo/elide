@@ -24,8 +24,8 @@ import java.util.Optional;
  */
 public class AsyncQueryHook extends AsyncAPIHook<AsyncQuery> {
 
-    public AsyncQueryHook (AsyncExecutorService asyncExecutorService) {
-        super(asyncExecutorService);
+    public AsyncQueryHook (AsyncExecutorService asyncExecutorService, Integer maxAsyncAfterSeconds) {
+        super(asyncExecutorService, maxAsyncAfterSeconds);
     }
 
     @Override
@@ -38,6 +38,8 @@ public class AsyncQueryHook extends AsyncAPIHook<AsyncQuery> {
 
     @Override
     public void validateOptions(AsyncAPI query, RequestScope requestScope) {
+        super.validateOptions(query, requestScope);
+
         if (query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
             QueryRunner runner = getAsyncExecutorService().getRunners().get(requestScope.getApiVersion());
             if (runner == null) {

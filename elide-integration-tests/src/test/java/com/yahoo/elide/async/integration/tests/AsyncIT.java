@@ -736,6 +736,40 @@ public class AsyncIT extends IntegrationTest {
     }
 
     /**
+     * Various tests for a JSONAPI query as a Async Request with asyncAfterSeconds value set to 7.
+     * asyncAfterSeconds is more than 10.
+     * @throws InterruptedException
+     */
+    @Test
+    public void asyncAfterBeyondMax() throws InterruptedException {
+        String expected = "{\"errors\":[{\"detail\":\"Invalid value: Invalid Async After Seconds\"}]}";
+        AsyncDelayStoreTransaction.sleep = true;
+
+        //Create Async Request
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .body(
+                        data(
+                                resource(
+                                        type("asyncQuery"),
+                                        id("edc4a871-dff2-4054-804e-e80075cf831f"),
+                                        attributes(
+                                                attr("query", "/book?sort=genre&fields%5Bbook%5D=title"),
+                                                attr("queryType", "JSONAPI_V1_0"),
+                                                attr("status", "QUEUED"),
+                                                attr("asyncAfterSeconds", "70")
+                                        )
+                                )
+                        ).toJSON())
+                .when()
+                .post("/asyncQuery")
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_BAD_REQUEST)
+                .body(equalTo(expected));
+
+    }
+
+    /**
      * Reset sleep delay flag after each test.
      */
     @AfterEach

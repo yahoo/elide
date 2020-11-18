@@ -98,7 +98,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
 
                 ResultStorageEngine resultStorageEngine =
                         new FileResultStorageEngine(System.getProperty("java.io.tmpDir"));
-                AsyncExecutorService.init(elide, 5, 60, asyncAPIDao, resultStorageEngine);
+                AsyncExecutorService.init(elide, 5, asyncAPIDao, resultStorageEngine);
                 bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                 BillingService billingService = new BillingService() {
@@ -111,7 +111,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 bind(billingService).to(BillingService.class);
 
                 // Binding AsyncQuery LifeCycleHook
-                AsyncQueryHook asyncQueryHook = new AsyncQueryHook(AsyncExecutorService.getInstance());
+                AsyncQueryHook asyncQueryHook = new AsyncQueryHook(AsyncExecutorService.getInstance(), 10);
 
                 InvoiceCompletionHook invoiceCompletionHook = new InvoiceCompletionHook(billingService);
 
