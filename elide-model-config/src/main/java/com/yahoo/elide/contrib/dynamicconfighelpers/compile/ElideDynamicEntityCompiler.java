@@ -16,12 +16,10 @@ import com.yahoo.elide.contrib.dynamicconfighelpers.parser.handlebars.Handlebars
 import com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.utils.ClassScanner;
-import com.google.common.collect.Sets;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import org.apache.commons.lang3.StringUtils;
-import org.mdkt.compiler.InMemoryJavaCompiler;
 
 import lombok.Data;
 import lombok.Getter;
@@ -54,7 +52,7 @@ public class ElideDynamicEntityCompiler {
     private static final String DOT = ".";
     private Map<String, Class<?>> compiledObjects;
 
-    private InMemoryJavaCompiler compiler = InMemoryJavaCompiler.newInstance().ignoreWarnings();
+    private ElideDynamicInMemoryCompiler compiler = ElideDynamicInMemoryCompiler.newInstance().ignoreWarnings();
 
     private Map<String, String> tableClasses = new HashMap<String, String>();
     private Map<String, String> securityClasses = new HashMap<String, String>();
@@ -93,7 +91,6 @@ public class ElideDynamicEntityCompiler {
 
         return Collections.unmodifiableMap(map);
     }
-
     /**
      * Parse dynamic config path.
      * @param path : Dynamic config hjsons root location
@@ -125,9 +122,8 @@ public class ElideDynamicEntityCompiler {
             classNames.add(PACKAGE_NAME + entry.getKey());
         }
 
-        compiler.useParentClassLoader(
-                new ElideDynamicInMemoryClassLoader(ClassLoader.getSystemClassLoader(),
-                        Sets.newHashSet(classNames)));
+        compiler.useParentClassLoader(getClass().getClassLoader());
+
         compile();
 
         elideSQLDBConfig.getDbconfigs().forEach(config -> {
