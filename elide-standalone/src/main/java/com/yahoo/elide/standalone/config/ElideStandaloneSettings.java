@@ -12,7 +12,6 @@ import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.contrib.dynamicconfighelpers.DBPasswordExtractor;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
 import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
