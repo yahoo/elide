@@ -7,11 +7,10 @@ package com.yahoo.elide.jsonapi.document.processors;
 
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.request.Relationship;
-
 import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
@@ -20,7 +19,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
 import javax.ws.rs.core.MultivaluedMap;
 
 /**

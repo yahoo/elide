@@ -8,7 +8,7 @@ package com.yahoo.elide.datastores.aggregation.filter.visitor;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.example.Player;

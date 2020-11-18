@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.swagger.resources;
 
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
 import com.yahoo.elide.swagger.SwaggerBuilder;
 

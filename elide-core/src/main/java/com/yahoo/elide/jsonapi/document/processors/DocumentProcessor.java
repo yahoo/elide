@@ -10,7 +10,6 @@ import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
 import java.util.Optional;
 import java.util.Set;
-
 import javax.ws.rs.core.MultivaluedMap;
 
 /**

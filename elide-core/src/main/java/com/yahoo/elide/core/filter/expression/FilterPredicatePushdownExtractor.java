@@ -6,10 +6,10 @@
 
 package com.yahoo.elide.core.filter.expression;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.parsers.expression.FilterExpressionNormalizationVisitor;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.filter.visitors.FilterExpressionNormalizationVisitor;
 
 /**
  * Examines a FilterExpression to determine if some or all of it can be pushed to the data store.

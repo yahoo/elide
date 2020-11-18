@@ -7,10 +7,9 @@
 package com.yahoo.elide.graphql;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import org.junit.jupiter.api.Test;
-
 import graphql.ExecutionResult;
+
 import java.util.HashMap;
 
 /**

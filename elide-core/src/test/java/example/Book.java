@@ -13,12 +13,10 @@ import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.OperationCheck;
-
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.checks.OperationCheck;
 import example.Author.AuthorType;
-
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
@@ -26,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

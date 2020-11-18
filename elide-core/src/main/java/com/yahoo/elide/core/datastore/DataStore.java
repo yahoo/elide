@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.core.datastore;
 
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 
 /**
  * Database interface library.

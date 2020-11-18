@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.datastores.aggregation.query;
 
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
-import com.yahoo.elide.request.Argument;
 
 import java.io.Serializable;
 import java.util.Collections;

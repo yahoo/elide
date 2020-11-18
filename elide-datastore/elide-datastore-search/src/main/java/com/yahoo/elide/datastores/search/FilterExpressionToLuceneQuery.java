@@ -6,12 +6,12 @@
 
 package com.yahoo.elide.datastores.search;
 
-import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.google.common.base.Preconditions;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;

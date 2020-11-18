@@ -7,11 +7,9 @@
 package com.yahoo.elide.jsonapi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import com.yahoo.elide.utils.coerce.CoerceUtil;
-import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
-import com.yahoo.elide.utils.coerce.converters.Serde;
-
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.core.utils.coerce.converters.ISO8601DateSerde;
+import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;

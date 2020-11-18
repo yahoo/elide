@@ -7,19 +7,16 @@ package example;
 
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
-
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.ReadPermission;
-
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;

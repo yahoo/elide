@@ -9,7 +9,7 @@ import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.security.User;
+import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.spring.security.AuthenticationUser;
 import org.springframework.beans.factory.annotation.Autowired;

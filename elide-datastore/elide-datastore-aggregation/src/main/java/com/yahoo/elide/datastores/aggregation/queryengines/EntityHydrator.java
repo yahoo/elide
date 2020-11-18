@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines;
 
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;

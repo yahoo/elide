@@ -5,13 +5,15 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
-import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -21,8 +23,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSu
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
-import com.yahoo.elide.request.Pagination;
-import com.yahoo.elide.request.Sorting;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;

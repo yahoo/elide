@@ -6,8 +6,8 @@
 
 package com.yahoo.elide.datastores.aggregation;
 
-import static com.yahoo.elide.request.Pagination.DEFAULT_PAGE_LIMIT;
-import static com.yahoo.elide.request.Pagination.MAX_PAGE_LIMIT;
+import static com.yahoo.elide.core.request.Pagination.DEFAULT_PAGE_LIMIT;
+import static com.yahoo.elide.core.request.Pagination.MAX_PAGE_LIMIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -18,6 +18,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.pagination.PaginationImpl;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.cache.QueryKeyExtractor;
 import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
@@ -28,8 +30,6 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.request.Pagination;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

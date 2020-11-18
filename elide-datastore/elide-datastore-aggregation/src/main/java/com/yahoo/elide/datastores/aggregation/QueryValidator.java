@@ -5,19 +5,19 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
-import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.request.Sorting;
 
 import java.util.List;
 import java.util.Map;

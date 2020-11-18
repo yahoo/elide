@@ -9,16 +9,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
-
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.security.checks.Check;
+import com.yahoo.elide.core.security.checks.Check;
 import example.Author;
 import example.Book;
-
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
