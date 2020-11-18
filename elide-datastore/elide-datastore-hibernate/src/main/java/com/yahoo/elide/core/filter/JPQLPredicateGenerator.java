@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.core.filter;
 
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+
 import java.util.List;
 
 /**

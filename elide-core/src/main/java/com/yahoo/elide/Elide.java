@@ -5,14 +5,15 @@
  */
 package com.yahoo.elide;
 
-import com.yahoo.elide.audit.AuditLogger;
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.TransactionRegistry;
+import com.yahoo.elide.core.audit.AuditLogger;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
+import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
+import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidConstraintException;
@@ -20,23 +21,22 @@ import com.yahoo.elide.core.exceptions.InvalidURLException;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.core.exceptions.TimeoutException;
 import com.yahoo.elide.core.exceptions.TransactionException;
-import com.yahoo.elide.extensions.JsonApiPatch;
-import com.yahoo.elide.extensions.PatchRequestScope;
+import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
+import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
+import com.yahoo.elide.jsonapi.extensions.JsonApiPatch;
+import com.yahoo.elide.jsonapi.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.parsers.BaseVisitor;
-import com.yahoo.elide.parsers.DeleteVisitor;
-import com.yahoo.elide.parsers.GetVisitor;
-import com.yahoo.elide.parsers.JsonApiParser;
-import com.yahoo.elide.parsers.PatchVisitor;
-import com.yahoo.elide.parsers.PostVisitor;
-import com.yahoo.elide.security.User;
-import com.yahoo.elide.utils.ClassScanner;
-import com.yahoo.elide.utils.coerce.CoerceUtil;
-import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
-import com.yahoo.elide.utils.coerce.converters.Serde;
-
+import com.yahoo.elide.jsonapi.parser.BaseVisitor;
+import com.yahoo.elide.jsonapi.parser.DeleteVisitor;
+import com.yahoo.elide.jsonapi.parser.GetVisitor;
+import com.yahoo.elide.jsonapi.parser.JsonApiParser;
+import com.yahoo.elide.jsonapi.parser.PatchVisitor;
+import com.yahoo.elide.jsonapi.parser.PostVisitor;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -44,13 +44,11 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -58,7 +56,6 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
-
 import javax.validation.ConstraintViolationException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedMap;

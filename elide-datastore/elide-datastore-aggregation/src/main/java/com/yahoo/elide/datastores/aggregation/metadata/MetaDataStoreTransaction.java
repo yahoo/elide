@@ -5,16 +5,15 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata;
 
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.request.Relationship;
-import com.yahoo.elide.request.Sorting;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.request.Sorting;
 
 import java.io.IOException;
 import java.io.Serializable;

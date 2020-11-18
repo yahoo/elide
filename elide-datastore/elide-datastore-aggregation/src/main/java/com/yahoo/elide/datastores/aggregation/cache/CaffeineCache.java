@@ -7,7 +7,6 @@
 package com.yahoo.elide.datastores.aggregation.cache;
 
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
-
 import com.github.benmanes.caffeine.cache.Caffeine;
 
 import java.util.concurrent.TimeUnit;

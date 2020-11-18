@@ -7,10 +7,9 @@ package com.yahoo.elide.datastores.aggregation.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
-
+import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.security.User;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;

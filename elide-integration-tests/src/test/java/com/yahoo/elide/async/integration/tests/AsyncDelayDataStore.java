@@ -6,9 +6,9 @@
 
 package com.yahoo.elide.async.integration.tests;
 
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 
 /**
  * Data Store that wraps another store and provides delay for testing Async queries.

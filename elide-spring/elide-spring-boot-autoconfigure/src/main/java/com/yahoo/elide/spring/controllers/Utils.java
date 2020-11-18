@@ -6,7 +6,8 @@
 
 package com.yahoo.elide.spring.controllers;
 
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+
 import java.util.Map;
 
 public class Utils {

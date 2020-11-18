@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
-
 import lombok.Data;
 
 import javax.persistence.Entity;

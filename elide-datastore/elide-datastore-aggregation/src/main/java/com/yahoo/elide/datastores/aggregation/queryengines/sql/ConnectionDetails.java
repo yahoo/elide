@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
-
 import lombok.Value;
 
 import javax.sql.DataSource;

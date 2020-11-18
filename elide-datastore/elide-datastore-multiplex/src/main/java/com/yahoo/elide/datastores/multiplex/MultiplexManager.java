@@ -5,11 +5,10 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityBinding;
-import com.yahoo.elide.core.EntityDictionary;
-
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityBinding;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import lombok.AccessLevel;
 import lombok.Setter;
 

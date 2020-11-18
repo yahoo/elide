@@ -6,7 +6,6 @@
 package example;
 
 import com.yahoo.elide.annotation.Exclude;
-
 import lombok.AllArgsConstructor;
 
 import javax.persistence.Entity;

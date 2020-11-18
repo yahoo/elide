@@ -8,7 +8,6 @@ package example;
 import com.yahoo.elide.annotation.Include;
 
 import java.util.UUID;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;

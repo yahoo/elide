@@ -5,9 +5,8 @@
  */
 package com.yahoo.elide.core;
 
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.mockito.Mockito.mock;
-
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.CreatePermission;
@@ -15,16 +14,17 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.audit.AuditLogger;
+import com.yahoo.elide.core.audit.AuditLogger;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.TestDictionary;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.TestUser;
+import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.TestUser;
-import com.yahoo.elide.security.User;
-import com.yahoo.elide.security.checks.OperationCheck;
-
 import com.google.common.collect.Sets;
-
 import example.Author;
 import example.Book;
 import example.Child;
@@ -47,11 +47,9 @@ import example.UpdateAndCreate;
 import example.nontransferable.ContainerWithPackageShare;
 import example.nontransferable.ShareableWithPackageShare;
 import example.nontransferable.Untransferable;
-
 import io.reactivex.Observable;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
-
 import nocreate.NoCreateEntity;
 
 import java.util.Collection;
@@ -62,7 +60,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
@@ -235,7 +232,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     public static final class ChangeSpecCollection extends OperationCheck<Object> {
 
         @Override
-        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+        public boolean ok(Object object, com.yahoo.elide.core.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (changeSpec.isPresent() && (object instanceof ChangeSpecModel)) {
                 ChangeSpec spec = changeSpec.get();
                 if (!(spec.getModified() instanceof Collection)) {
@@ -250,7 +247,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     public static final class ChangeSpecNonCollection extends OperationCheck<Object> {
 
         @Override
-        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+        public boolean ok(Object object, com.yahoo.elide.core.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (changeSpec.isPresent() && (object instanceof ChangeSpecModel)) {
                 return ((ChangeSpecModel) object).checkFunction.apply(changeSpec.get());
             }
@@ -265,8 +262,8 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         return resources.toList(LinkedHashSet::new).blockingGet();
     }
 
-    public com.yahoo.elide.request.Relationship getRelationship(Class<?> type, String name) {
-        return com.yahoo.elide.request.Relationship.builder()
+    public com.yahoo.elide.core.request.Relationship getRelationship(Class<?> type, String name) {
+        return com.yahoo.elide.core.request.Relationship.builder()
                 .name(name)
                 .alias(name)
                 .projection(EntityProjection.builder()

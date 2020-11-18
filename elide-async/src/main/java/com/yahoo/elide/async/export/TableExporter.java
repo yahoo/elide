@@ -8,15 +8,14 @@ package com.yahoo.elide.async.export;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryType;
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.security.User;
-
 import io.reactivex.Observable;
 import lombok.extern.slf4j.Slf4j;
 

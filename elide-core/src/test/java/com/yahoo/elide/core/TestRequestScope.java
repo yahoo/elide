@@ -6,10 +6,13 @@
 
 package com.yahoo.elide.core;
 
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.security.User;
 
 import java.util.Optional;
 import java.util.UUID;

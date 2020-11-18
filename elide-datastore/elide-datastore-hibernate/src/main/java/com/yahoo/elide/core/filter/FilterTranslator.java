@@ -27,18 +27,17 @@ import static com.yahoo.elide.core.filter.Operator.POSTFIX_CASE_INSENSITIVE;
 import static com.yahoo.elide.core.filter.Operator.PREFIX;
 import static com.yahoo.elide.core.filter.Operator.PREFIX_CASE_INSENSITIVE;
 import static com.yahoo.elide.core.filter.Operator.TRUE;
-import static com.yahoo.elide.utils.TypeHelper.getFieldAlias;
-import static com.yahoo.elide.utils.TypeHelper.getPathAlias;
-
+import static com.yahoo.elide.core.utils.TypeHelper.getFieldAlias;
+import static com.yahoo.elide.core.utils.TypeHelper.getPathAlias;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.BadRequestException;
-import com.yahoo.elide.core.filter.FilterPredicate.FilterParameter;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate.FilterParameter;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.tuple.Triple;
 

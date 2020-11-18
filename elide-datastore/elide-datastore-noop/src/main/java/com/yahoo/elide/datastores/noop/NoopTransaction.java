@@ -5,11 +5,10 @@
  */
 package com.yahoo.elide.datastores.noop;
 
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
-
-import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.request.EntityProjection;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

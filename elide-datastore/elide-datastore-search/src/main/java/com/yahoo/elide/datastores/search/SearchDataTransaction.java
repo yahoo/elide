@@ -6,24 +6,23 @@
 
 package com.yahoo.elide.datastores.search;
 
-import static com.yahoo.elide.core.DataStoreTransaction.FeatureSupport.FULL;
-import static com.yahoo.elide.core.DataStoreTransaction.FeatureSupport.NONE;
-
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
+import static com.yahoo.elide.core.datastore.DataStoreTransaction.FeatureSupport.FULL;
+import static com.yahoo.elide.core.datastore.DataStoreTransaction.FeatureSupport.NONE;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.wrapped.TransactionWrapper;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.request.Pagination;
-import com.yahoo.elide.request.Sorting;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.request.Sorting;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.hibernate.search.annotations.Field;

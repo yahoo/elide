@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.jpa.transaction;
 
-import com.yahoo.elide.core.DataStoreTransaction;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 
 /**
  * Extended for JPA DataStoreTransaction.

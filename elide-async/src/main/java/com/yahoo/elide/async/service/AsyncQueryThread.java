@@ -11,13 +11,11 @@ import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryType;
+import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.QueryRunner;
-import com.yahoo.elide.security.User;
-
 import org.apache.http.NameValuePair;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
@@ -25,7 +23,6 @@ import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 

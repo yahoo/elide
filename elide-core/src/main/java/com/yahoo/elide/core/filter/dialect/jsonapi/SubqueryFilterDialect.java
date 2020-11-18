@@ -9,7 +9,6 @@ import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 
 import java.util.Map;
-
 import javax.ws.rs.core.MultivaluedMap;
 
 /**

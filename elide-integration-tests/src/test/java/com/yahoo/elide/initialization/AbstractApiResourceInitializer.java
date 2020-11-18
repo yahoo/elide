@@ -5,8 +5,7 @@
  */
 package com.yahoo.elide.initialization;
 
-import com.yahoo.elide.resources.JsonApiEndpoint;
-
+import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -16,7 +15,6 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
-
 import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 

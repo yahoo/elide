@@ -9,16 +9,13 @@ import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.datastores.multiplex.bridgeable.BridgeableDataStoreHarness;
 import com.yahoo.elide.example.beans.HibernateUser;
 import com.yahoo.elide.example.hbase.beans.RedisActions;
 import com.yahoo.elide.initialization.IntegrationTest;
-
 import com.google.common.collect.ImmutableMap;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;

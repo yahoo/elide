@@ -5,23 +5,20 @@
  */
 package com.yahoo.elide.async.service.thread;
 
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
-
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.TransactionRegistry;
-import com.yahoo.elide.core.filter.InPredicate;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-
 import com.google.common.collect.Sets;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +32,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 

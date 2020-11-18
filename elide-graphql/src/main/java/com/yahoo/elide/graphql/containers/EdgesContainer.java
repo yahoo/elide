@@ -6,12 +6,10 @@
 package com.yahoo.elide.graphql.containers;
 
 import static com.yahoo.elide.graphql.KeyWord.NODE;
-
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

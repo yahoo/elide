@@ -7,9 +7,9 @@
 package example;
 
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
-import com.yahoo.elide.functions.LifeCycleHook;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.RequestScope;
+import com.yahoo.elide.core.lifecycle.LifeCycleHook;
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.RequestScope;
 
 import java.util.Optional;
 

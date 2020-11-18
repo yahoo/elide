@@ -5,9 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.core;
 
+import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.datastores.aggregation.query.Query;
-import com.yahoo.elide.security.User;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;

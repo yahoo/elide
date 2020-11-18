@@ -12,16 +12,15 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.filter.NotNullPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.FilterExpressionCheck;
-import com.yahoo.elide.security.checks.OperationCheck;
+import com.yahoo.elide.core.filter.predicates.NotNullPredicate;
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
+import com.yahoo.elide.core.security.checks.OperationCheck;
 
 import java.util.Optional;
 import java.util.Set;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;

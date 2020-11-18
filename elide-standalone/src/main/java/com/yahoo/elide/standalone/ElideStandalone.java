@@ -6,27 +6,22 @@
 package com.yahoo.elide.standalone;
 
 import static com.yahoo.elide.standalone.config.ElideResourceConfig.ELIDE_STANDALONE_SETTINGS_ATTR;
-
-import com.yahoo.elide.security.checks.Check;
+import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.standalone.config.ElideResourceConfig;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
-
 import com.codahale.metrics.servlet.InstrumentedFilter;
 import com.codahale.metrics.servlets.AdminServlet;
 import com.codahale.metrics.servlets.HealthCheckServlet;
 import com.codahale.metrics.servlets.MetricsServlet;
-
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.EnumSet;
 import java.util.Map;
-
 import javax.servlet.DispatcherType;
 
 /**
@@ -89,7 +84,8 @@ public class ElideStandalone {
             ServletHolder jerseyServlet = context.addServlet(ServletContainer.class,
                     elideStandaloneSettings.getJsonApiPathSpec());
             jerseyServlet.setInitOrder(0);
-            jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.resources");
+            jerseyServlet.setInitParameter("jersey.config.server.provider.packages",
+                    "com.yahoo.elide.jsonapi.resources");
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
         }
 
@@ -122,7 +118,7 @@ public class ElideStandalone {
                     elideStandaloneSettings.getSwaggerPathSpec());
             jerseyServlet.setInitOrder(0);
             jerseyServlet.setInitParameter("jersey.config.server.provider.packages",
-                    "com.yahoo.elide.contrib.swagger.resources");
+                    "com.yahoo.elide.swagger.resources");
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
         }
 
