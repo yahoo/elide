@@ -13,7 +13,6 @@ import com.yahoo.elide.annotation.UpdatePermission;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.persistence.Entity;
 
 @CreatePermission(expression = "allow all")

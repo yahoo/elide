@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.datastores.jpa;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.JPQLDataStore;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.datastores.jpa.transaction.JpaTransaction;
 
 import java.util.HashSet;

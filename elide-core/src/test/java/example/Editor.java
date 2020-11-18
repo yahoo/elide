@@ -13,15 +13,13 @@ import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.NotNullPredicate;
-import com.yahoo.elide.security.checks.FilterExpressionCheck;
-
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.filter.predicates.NotNullPredicate;
+import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.UUID;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -85,7 +83,7 @@ public class Editor {
 
     public static class FieldPathFilterExpression extends FilterExpressionCheck {
         @Override
-        public FilterPredicate getFilterExpression(Class entityClass, com.yahoo.elide.security.RequestScope requestScope) {
+        public FilterPredicate getFilterExpression(Class entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
             Path path = super.getFieldPath(entityClass, requestScope, "getEditor", "editor");
             return new NotNullPredicate(path);
         }

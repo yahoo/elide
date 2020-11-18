@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.standalone.interfaces;
 
-import com.yahoo.elide.security.checks.Check;
+import com.yahoo.elide.core.security.checks.Check;
 
 import java.util.Map;
 

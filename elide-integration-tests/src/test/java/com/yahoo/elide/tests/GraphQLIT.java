@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.tests;
 
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.UNQUOTED_VALUE;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.arguments;
@@ -20,7 +20,7 @@ import static com.yahoo.elide.test.graphql.GraphQLDSL.variableDefinitions;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
-import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
 import com.yahoo.elide.test.graphql.VariableFieldSerializer;
 import com.fasterxml.jackson.databind.JsonNode;

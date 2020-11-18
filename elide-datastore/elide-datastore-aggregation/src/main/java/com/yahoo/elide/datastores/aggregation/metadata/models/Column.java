@@ -9,7 +9,7 @@ import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.F
 import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.FORMULA;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ToOne;
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;

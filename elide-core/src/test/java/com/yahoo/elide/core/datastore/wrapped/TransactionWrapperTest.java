@@ -15,9 +15,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
-import com.yahoo.elide.request.Attribute;
+import com.yahoo.elide.core.request.Attribute;
 import org.junit.jupiter.api.Test;
 
 public class TransactionWrapperTest {

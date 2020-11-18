@@ -6,7 +6,7 @@
 
 package com.yahoo.elide.graphql.parser;
 
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.graphql.KeyWord.EDGES;
 import static com.yahoo.elide.graphql.KeyWord.NODE;
 import static com.yahoo.elide.graphql.KeyWord.PAGE_INFO;
@@ -14,10 +14,9 @@ import static com.yahoo.elide.graphql.KeyWord.PAGE_INFO_TOTAL_RECORDS;
 import static com.yahoo.elide.graphql.KeyWord.SCHEMA;
 import static com.yahoo.elide.graphql.KeyWord.TYPE;
 import static com.yahoo.elide.graphql.KeyWord.TYPENAME;
-
 import com.yahoo.elide.ElideSettings;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.RelationshipType;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
@@ -26,16 +25,15 @@ import com.yahoo.elide.core.filter.dialect.graphql.FilterDialect;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.PaginationImpl;
+import com.yahoo.elide.core.request.Attribute;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.EntityProjection.EntityProjectionBuilder;
+import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.graphql.GraphQLNameUtils;
 import com.yahoo.elide.graphql.ModelBuilder;
-import com.yahoo.elide.request.Attribute;
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.request.EntityProjection.EntityProjectionBuilder;
-import com.yahoo.elide.request.Pagination;
-import com.yahoo.elide.request.Relationship;
-
-import com.yahoo.elide.request.Sorting;
 import graphql.language.Argument;
 import graphql.language.Document;
 import graphql.language.Field;
@@ -47,6 +45,7 @@ import graphql.language.SelectionSet;
 import graphql.language.SourceLocation;
 import graphql.parser.Parser;
 import lombok.extern.slf4j.Slf4j;
+
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
@@ -319,7 +318,7 @@ public class GraphQLEntityProjectionMaker {
                     .alias(attributeAlias)
                     .arguments(
                             attributeField.getArguments().stream()
-                                    .map(graphQLArgument -> com.yahoo.elide.request.Argument.builder()
+                                    .map(graphQLArgument -> com.yahoo.elide.core.request.Argument.builder()
                                             .name(graphQLArgument.getName())
                                             .value(
                                                     variableResolver.resolveValue(
@@ -528,7 +527,7 @@ public class GraphQLEntityProjectionMaker {
 
         Attribute existingAttribute = projectionBuilder.getAttributeByAlias(argumentName);
 
-        com.yahoo.elide.request.Argument elideArgument = com.yahoo.elide.request.Argument.builder()
+        com.yahoo.elide.core.request.Argument elideArgument = com.yahoo.elide.core.request.Argument.builder()
                 .name(argumentName)
                 .value(variableResolver.resolveValue(argument.getValue()))
                 .build();

@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.core.filter.expression;
 
-import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 
 /**
  * Visitor which walks the filter expression abstract syntax tree.

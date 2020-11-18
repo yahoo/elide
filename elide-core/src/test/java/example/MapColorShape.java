@@ -9,7 +9,6 @@ import com.yahoo.elide.annotation.Include;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;

@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.core;
 
+import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.datastores.aggregation.query.Query;
-import com.yahoo.elide.security.User;
 
 import java.util.List;
 import java.util.Map;

@@ -7,8 +7,8 @@ package com.yahoo.elide.datastores.multiplex;
 
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.request.Pagination;
-import com.yahoo.elide.request.Sorting;
+import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.request.Sorting;
 
 import java.io.Serializable;
 import java.util.Optional;

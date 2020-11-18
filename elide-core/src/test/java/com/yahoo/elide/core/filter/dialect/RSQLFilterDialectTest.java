@@ -5,13 +5,11 @@
  */
 package com.yahoo.elide.core.filter.dialect;
 
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-
 import example.Author;
 import example.Book;
 import example.Job;
@@ -19,9 +17,9 @@ import example.PrimitiveId;
 import example.StringId;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
 import cz.jirutka.rsql.parser.ast.ComparisonNode;
 import cz.jirutka.rsql.parser.ast.ComparisonOperator;
+
 import java.util.Collections;
 import java.util.Map;
 import javax.ws.rs.core.MultivaluedHashMap;

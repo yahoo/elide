@@ -6,9 +6,9 @@
 
 package com.yahoo.elide.graphql.parser;
 
-import com.yahoo.elide.request.Attribute;
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.request.Relationship;
+import com.yahoo.elide.core.request.Attribute;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.Relationship;
 import graphql.language.SourceLocation;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
