@@ -41,9 +41,9 @@ public class DynamicConfigSchemaValidator {
 
     public DynamicConfigSchemaValidator() {
 
-        Library library = DraftV4LibraryWithElideFormatAttr.getInstance();
+        Library library = new DraftV4LibraryWithElideFormatAttr().getLibrary();
 
-        MessageBundle bundle = MessageBundleWithElideMessages.getInstance();
+        MessageBundle bundle = new MessageBundleWithElideMessages().getMsgBundle();
 
         ValidationConfiguration cfg = ValidationConfiguration.newBuilder()
                         .setDefaultLibrary("http://my.site/myschema#", library)

@@ -91,7 +91,8 @@ public class DynamicConfigSchemaValidatorTest {
         String fileName = getFileName(resource);
         Exception e = assertThrows(IllegalStateException.class,
                         () -> testClass.verifySchema(Config.TABLE, jsonConfig, fileName));
-        String expectedMessage = "Schema validation failed for: table_schema_with_multiple_errors.hjson\n" + "[ERROR]\n"
+        String expectedMessage = "Schema validation failed for: table_schema_with_multiple_errors.hjson\n"
+                        + "[ERROR]\n"
                         + "object instance has properties which are not allowed by the schema: [\"name\"]\n"
                         + "[ERROR]\n"
                         + "Instance[/tables/0/cardinality] failed to validate against schema[/properties/tables/items/properties/cardinality]. Cardinality type [Extra Large] is not allowed. Supported value is one of [Tiny, Small, Medium, Large, Huge].\n"
@@ -105,26 +106,33 @@ public class DynamicConfigSchemaValidatorTest {
                         + "        Instance[/tables/0/dimensions/0/cardinality] failed to validate against schema[/definitions/dimensionRef/properties/cardinality]. Cardinality type [Extra small] is not allowed. Supported value is one of [Tiny, Small, Medium, Large, Huge].\n"
                         + "        Instance[/tables/0/dimensions/0/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [id] is not allowed. Field name cannot be 'id'\n"
                         + "        Instance[/tables/0/dimensions/0/type] failed to validate against schema[/definitions/timeDimension/allOf/1/properties/type]. Field type [Float] is not allowed. Field type must be [Time] for any time dimension.\n"
+                        + "    Instance[/tables/0/dimensions/0] failed to validate against schema[/definitions/timeDimension]. Properties: [tableSource] are not allowed for time dimensions.\n"
                         + "[ERROR]\n"
                         + "Instance[/tables/0/dimensions/1] failed to validate against schema[/properties/tables/items/properties/dimensions/items]. instance failed to match exactly one schema (matched 0 out of 2)\n"
-                        + "    Instance[/tables/0/dimensions/1] failed to validate against schema[/definitions/dimension]. instance failed to match all required schemas (matched only 0 out of 2)\n"
+                        + "    Instance[/tables/0/dimensions/1] failed to validate against schema[/definitions/dimension]. instance failed to match all required schemas (matched only 1 out of 2)\n"
                         + "        Instance[/tables/0/dimensions/1/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [_region] is not allowed. Field name must start with an alphabet and can include alaphabets, numbers and '_' only.\n"
                         + "        Instance[/tables/0/dimensions/1/tags] failed to validate against schema[/definitions/dimensionRef/properties/tags]. instance type (string) does not match any allowed primitive type (allowed: [\"array\"])\n"
-                        + "        Instance[/tables/0/dimensions/1] failed to validate against schema[/definitions/dimension/allOf/1/dependencies/tableSource]. instance matched a schema which it should not have\n"
-                        + "        Instance[/tables/0/dimensions/1] failed to validate against schema[/definitions/dimension/allOf/1/dependencies/values]. instance matched a schema which it should not have\n"
+                        + "    Instance[/tables/0/dimensions/1] failed to validate against schema[/definitions/dimension]. tableSource and values cannot both be defined for a dimension. Choose One or None.\n"
                         + "    Instance[/tables/0/dimensions/1] failed to validate against schema[/definitions/timeDimension]. instance failed to match all required schemas (matched only 0 out of 2)\n"
                         + "        Instance[/tables/0/dimensions/1/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [_region] is not allowed. Field name must start with an alphabet and can include alaphabets, numbers and '_' only.\n"
                         + "        Instance[/tables/0/dimensions/1/tags] failed to validate against schema[/definitions/dimensionRef/properties/tags]. instance type (string) does not match any allowed primitive type (allowed: [\"array\"])\n"
                         + "        Instance[/tables/0/dimensions/1/type] failed to validate against schema[/definitions/timeDimension/allOf/1/properties/type]. Field type [Text] is not allowed. Field type must be [Time] for any time dimension.\n"
+                        + "    Instance[/tables/0/dimensions/1] failed to validate against schema[/definitions/timeDimension]. Properties: [values, tableSource] are not allowed for time dimensions.\n"
                         + "[ERROR]\n"
                         + "Instance[/tables/0/dimensions/2] failed to validate against schema[/properties/tables/items/properties/dimensions/items]. instance failed to match exactly one schema (matched 0 out of 2)\n"
                         + "    Instance[/tables/0/dimensions/2] failed to validate against schema[/definitions/dimension]. instance failed to match all required schemas (matched only 1 out of 2)\n"
                         + "        Instance[/tables/0/dimensions/2/type] failed to validate against schema[/definitions/dimension/allOf/1/properties/type]. Field type [TIMEX] is not allowed. Supported value is one of [Integer, Decimal, Money, Text, Coordinate, Boolean].\n"
+                        + "    Instance[/tables/0/dimensions/2] failed to validate against schema[/definitions/dimension]. Properties: [grain] are not allowed for dimensions.\n"
                         + "    Instance[/tables/0/dimensions/2] failed to validate against schema[/definitions/timeDimension]. instance failed to match all required schemas (matched only 1 out of 2)\n"
                         + "        Instance[/tables/0/dimensions/2/grain/type] failed to validate against schema[/definitions/timeDimension/allOf/1/properties/grain/properties/type]. Grain type [Days] is not allowed. Supported value is one of [Second, Minute, Hour, Day, IsoWeek, Week, Month, Quarter, Year].\n"
                         + "        Instance[/tables/0/dimensions/2/type] failed to validate against schema[/definitions/timeDimension/allOf/1/properties/type]. Field type [TIMEX] is not allowed. Field type must be [Time] for any time dimension.\n"
                         + "[ERROR]\n"
+                        + "Instance[/tables/0/filterTemplate] failed to validate against schema[/properties/tables/items/properties/filterTemplate]. Input value[countryIsoCode={{code}};startTime=={{start}}] is not a valid RSQL filter expression. Please visit page https://elide.io/pages/guide/v5/11-graphql.html#operators for samples.\n"
+                        + "[ERROR]\n"
+                        + "Instance[/tables/0/measures/0/queryPlanResolver] failed to validate against schema[/definitions/measure/properties/queryPlanResolver]. Input value[com.yahoo.elide.datastores.aggregation.query@DefaultQueryPlanResolver.class] is not a valid Java class name with .class extension.\n"
+                        + "[ERROR]\n"
                         + "Instance[/tables/0/name] failed to validate against schema[/properties/tables/items/properties/name]. Name [Country@10] is not allowed. Name must start with an alphabet and can include alaphabets, numbers and '_' only.";
+
         assertEquals(expectedMessage, e.getMessage());
     }
 

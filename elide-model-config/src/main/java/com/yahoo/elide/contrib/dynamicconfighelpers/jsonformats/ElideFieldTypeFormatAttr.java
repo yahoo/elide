@@ -9,12 +9,16 @@ import com.github.fge.jackson.NodeType;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.format.AbstractFormatAttribute;
-import com.github.fge.jsonschema.format.FormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
+/**
+ * Format specifier for {@code elideFieldType} format attribute.
+ * <p>
+ * This specifier will check if a string instance is one of {@code Integer, Decimal, Money, Text, Coordinate, Boolean}.
+ * </p>
+ */
 public class ElideFieldTypeFormatAttr extends AbstractFormatAttribute {
-    private static final FormatAttribute INSTANCE = new ElideFieldTypeFormatAttr();
     private static final String FIELD_TYPE_REGEX = "^(?i)(Integer|Decimal|Money|Text|Coordinate|Boolean)$";
 
     public static final String FORMAT_NAME = "elideFieldType";
@@ -22,12 +26,8 @@ public class ElideFieldTypeFormatAttr extends AbstractFormatAttribute {
     public static final String TYPE_MSG = "Field type [%s] is not allowed. Supported value is one of "
                     + "[Integer, Decimal, Money, Text, Coordinate, Boolean].";
 
-    private ElideFieldTypeFormatAttr() {
+    public ElideFieldTypeFormatAttr() {
         super(FORMAT_NAME, NodeType.STRING);
-    }
-
-    public static FormatAttribute getInstance() {
-        return INSTANCE;
     }
 
     @Override
