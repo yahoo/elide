@@ -9,12 +9,16 @@ import com.github.fge.jackson.NodeType;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.format.AbstractFormatAttribute;
-import com.github.fge.jsonschema.format.FormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
+/**
+ * Format specifier for {@code elideCardiality} format attribute.
+ * <p>
+ * This specifier will check if a string instance is one of {@code Tiny, Small, Medium, Large, Huge}.
+ * </p>
+ */
 public class ElideCardinalityFormatAttr extends AbstractFormatAttribute {
-    private static final FormatAttribute INSTANCE = new ElideCardinalityFormatAttr();
     private static final String CARDINALITY_REGEX = "^(?i)(Tiny|Small|Medium|Large|Huge)$";
 
     public static final String FORMAT_NAME = "elideCardiality";
@@ -22,12 +26,8 @@ public class ElideCardinalityFormatAttr extends AbstractFormatAttribute {
     public static final String TYPE_MSG = "Cardinality type [%s] is not allowed. Supported value is one of "
                     + "[Tiny, Small, Medium, Large, Huge].";
 
-    private ElideCardinalityFormatAttr() {
+    public ElideCardinalityFormatAttr() {
         super(FORMAT_NAME, NodeType.STRING);
-    }
-
-    public static FormatAttribute getInstance() {
-        return INSTANCE;
     }
 
     @Override

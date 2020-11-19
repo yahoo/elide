@@ -13,20 +13,20 @@ import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
 /**
- * Format specifier for {@code elideTimeFieldType} format attribute.
+ * Format specifier for {@code elideClassName} format attribute.
  * <p>
- * This specifier will check if a string instance is {@code Time}.
+ * This specifier will check if a string instance is a valid JAVA Class Name with {@code .class} extension.
  * </p>
  */
-public class ElideTimeFieldTypeFormatAttr extends AbstractFormatAttribute {
-    private static final String TIME_FIELD_TYPE_REGEX = "^(?i)(Time)$";
+public class ElideClassNameFormatAttr extends AbstractFormatAttribute {
+    private static final String CLASS_NAME_FORMAT_REGEX =
+                    "^(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*\\.)+class$";
 
-    public static final String FORMAT_NAME = "elideTimeFieldType";
-    public static final String TYPE_KEY = "elideTimeFieldType.error.enum";
-    public static final String TYPE_MSG = "Field type [%s] is not allowed. Field type must be "
-                    + "[Time] for any time dimension.";
+    public static final String FORMAT_NAME = "elideClassName";
+    public static final String FORMAT_KEY = "elideClassName.error.format";
+    public static final String FORMAT_MSG = "Input value[%s] is not a valid Java class name with .class extension.";
 
-    public ElideTimeFieldTypeFormatAttr() {
+    public ElideClassNameFormatAttr() {
         super(FORMAT_NAME, NodeType.STRING);
     }
 
@@ -35,8 +35,8 @@ public class ElideTimeFieldTypeFormatAttr extends AbstractFormatAttribute {
                     throws ProcessingException {
         final String input = data.getInstance().getNode().textValue();
 
-        if (!input.matches(TIME_FIELD_TYPE_REGEX)) {
-            report.error(newMsg(data, bundle, TYPE_KEY).putArgument("value", input));
+        if (!input.matches(CLASS_NAME_FORMAT_REGEX)) {
+            report.error(newMsg(data, bundle, FORMAT_KEY).putArgument("value", input));
         }
     }
 }

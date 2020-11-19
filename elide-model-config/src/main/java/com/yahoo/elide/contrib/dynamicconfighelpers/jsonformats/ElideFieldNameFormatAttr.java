@@ -9,12 +9,16 @@ import com.github.fge.jackson.NodeType;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.format.AbstractFormatAttribute;
-import com.github.fge.jsonschema.format.FormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
+/**
+ * Format specifier for {@code elideFieldName} format attribute.
+ * <p>
+ * This specifier will check if a string instance is a valid Elide Field Name.
+ * </p>
+ */
 public class ElideFieldNameFormatAttr extends AbstractFormatAttribute {
-    private static final FormatAttribute INSTANCE = new ElideFieldNameFormatAttr();
     private static final String FIELD_NAME_FORMAT_REGEX = "^[A-Za-z][0-9A-Za-z_]*$";
 
     public static final String FORMAT_NAME = "elideFieldName";
@@ -24,12 +28,8 @@ public class ElideFieldNameFormatAttr extends AbstractFormatAttribute {
     public static final String FORMAT_MSG = "Field name [%s] is not allowed. Field name must start with "
                     + "an alphabet and can include alaphabets, numbers and '_' only.";
 
-    private ElideFieldNameFormatAttr() {
+    public ElideFieldNameFormatAttr() {
         super(FORMAT_NAME, NodeType.STRING);
-    }
-
-    public static FormatAttribute getInstance() {
-        return INSTANCE;
     }
 
     @Override
