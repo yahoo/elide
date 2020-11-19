@@ -252,7 +252,7 @@ Bringing life to our API is trivially easy. We need two new classes: Main and Se
                */
               @Override
               public String getDynamicConfigPath() {
-                  return "src/test/resources/configs/";
+                  return "src/main/resources/analytics";
               }
 
               /**
@@ -268,7 +268,7 @@ Bringing life to our API is trivially easy. We need two new classes: Main and Se
                */
               @Override
               public String getDefaultDialect() {
-                  return SQLDialectFactory.getDefaultDialect().getDialectType();
+                  return "h2";
               }
           };
       }
