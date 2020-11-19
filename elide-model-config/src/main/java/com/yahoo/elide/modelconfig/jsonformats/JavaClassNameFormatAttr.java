@@ -13,20 +13,20 @@ import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
 /**
- * Format specifier for {@code elideClassName} format attribute.
+ * Format specifier for {@code javaClassName} format attribute.
  * <p>
- * This specifier will check if a string instance is a valid JAVA Class Name with {@code .class} extension.
+ * This specifier will check if a string instance is a valid JAVA Class Name.
  * </p>
  */
-public class ElideClassNameFormatAttr extends AbstractFormatAttribute {
-    private static final String CLASS_NAME_FORMAT_REGEX =
-                    "^(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*\\.)+class$";
+public class JavaClassNameFormatAttr extends AbstractFormatAttribute {
+    private static final String ID_PATTERN = "\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*";
+    private static final String CLASS_NAME_FORMAT_REGEX = ID_PATTERN + "(\\." + ID_PATTERN + ")*";
 
-    public static final String FORMAT_NAME = "elideClassName";
-    public static final String FORMAT_KEY = "elideClassName.error.format";
-    public static final String FORMAT_MSG = "Input value[%s] is not a valid Java class name with .class extension.";
+    public static final String FORMAT_NAME = "javaClassName";
+    public static final String FORMAT_KEY = "javaClassName.error.format";
+    public static final String FORMAT_MSG = "Input value[%s] is not a valid Java class name.";
 
-    public ElideClassNameFormatAttr() {
+    public JavaClassNameFormatAttr() {
         super(FORMAT_NAME, NodeType.STRING);
     }
 

@@ -1,18 +1,18 @@
 {
-    "$schema": "https://json-schema.org/draft-06/schema#",
-    "$id": "https://elide.io/schemas/variable_schema_v1#",
+    "$schema": "https://json-schema.org/draft-04/schema#",
     "description": "Elide Variable config json/hjson schema",
     "type": "object",
     "patternProperties": {
         "^([A-Za-z0-9_]+[.]?)+$": {
-          "anyOf": [
-            {"type": "string"},
-            {"type": "array"},
-            {"type": "object"},
-            {"type": "null"}
-          ]
+            "type": [
+                "string",
+                "number",
+                "boolean",
+                "array",
+                "object"
+            ]
         }
-      },
-      "additionalProperties": false,
-      "minProperties": 1
+    },
+    "additionalProperties": false,
+    "minProperties": 1
 }

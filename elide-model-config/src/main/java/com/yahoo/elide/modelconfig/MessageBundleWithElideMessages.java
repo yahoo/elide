@@ -6,14 +6,16 @@
 package com.yahoo.elide.modelconfig;
 
 import com.yahoo.elide.modelconfig.jsonformats.ElideCardinalityFormatAttr;
-import com.yahoo.elide.modelconfig.jsonformats.ElideClassNameFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideFieldNameFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideFieldTypeFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideGrainTypeFormatAttr;
+import com.yahoo.elide.modelconfig.jsonformats.ElideJDBCUrlFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideJoinTypeFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideNameFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideRSQLFilterFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideTimeFieldTypeFormatAttr;
+import com.yahoo.elide.modelconfig.jsonformats.JavaClassNameFormatAttr;
+import com.yahoo.elide.modelconfig.jsonformats.JavaClassNameWithExtFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ValidateDimPropertiesValidator;
 import com.yahoo.elide.modelconfig.jsonformats.ValidateTimeDimPropertiesValidator;
 import com.github.fge.jsonschema.messages.JsonSchemaValidationBundle;
@@ -43,7 +45,9 @@ public class MessageBundleWithElideMessages {
         msgSourceBuilder.put(ElideTimeFieldTypeFormatAttr.TYPE_KEY, ElideTimeFieldTypeFormatAttr.TYPE_MSG);
         msgSourceBuilder.put(ElideNameFormatAttr.FORMAT_KEY, ElideNameFormatAttr.FORMAT_MSG);
         msgSourceBuilder.put(ElideRSQLFilterFormatAttr.FORMAT_KEY, ElideRSQLFilterFormatAttr.FORMAT_MSG);
-        msgSourceBuilder.put(ElideClassNameFormatAttr.FORMAT_KEY, ElideClassNameFormatAttr.FORMAT_MSG);
+        msgSourceBuilder.put(JavaClassNameWithExtFormatAttr.FORMAT_KEY, JavaClassNameWithExtFormatAttr.FORMAT_MSG);
+        msgSourceBuilder.put(JavaClassNameFormatAttr.FORMAT_KEY, JavaClassNameFormatAttr.FORMAT_MSG);
+        msgSourceBuilder.put(ElideJDBCUrlFormatAttr.FORMAT_KEY, ElideJDBCUrlFormatAttr.FORMAT_MSG);
 
         // for Keyword errors
         msgSourceBuilder.put(ValidateDimPropertiesValidator.ATMOST_ONE_KEY,
