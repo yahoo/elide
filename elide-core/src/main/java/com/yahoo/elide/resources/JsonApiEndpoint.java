@@ -6,14 +6,13 @@
 package com.yahoo.elide.resources;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.annotation.PATCH;
 import com.yahoo.elide.security.User;
+import com.yahoo.elide.utils.HeaderUtils;
 
-import java.util.List;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -68,8 +67,8 @@ public class JsonApiEndpoint {
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        String apiVersion = resolveApiVersion(headers);
-        MultivaluedMap<String, String> requestHeaders = removeAuthHeaders(headers);
+        String apiVersion = HeaderUtils.resolveApiVersion(headers);
+        MultivaluedMap<String, String> requestHeaders = HeaderUtils.removeAuthHeaders(headers);
         User user = new SecurityContextUser(securityContext);
         return build(elide.post(uriInfo.getBaseUri().toString(), path, jsonapiDocument,
                 queryParams, requestHeaders, user, apiVersion, UUID.randomUUID()));
@@ -92,8 +91,8 @@ public class JsonApiEndpoint {
         @Context HttpHeaders headers,
         @Context SecurityContext securityContext) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        String apiVersion = resolveApiVersion(headers);
-        MultivaluedMap<String, String> requestHeaders = removeAuthHeaders(headers);
+        String apiVersion = HeaderUtils.resolveApiVersion(headers);
+        MultivaluedMap<String, String> requestHeaders = HeaderUtils.removeAuthHeaders(headers);
         User user = new SecurityContextUser(securityContext);
 
         return build(elide.get(uriInfo.getBaseUri().toString(), path, queryParams,
@@ -124,8 +123,8 @@ public class JsonApiEndpoint {
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        String apiVersion = resolveApiVersion(headers);
-        MultivaluedMap<String, String> requestHeaders = removeAuthHeaders(headers);
+        String apiVersion = HeaderUtils.resolveApiVersion(headers);
+        MultivaluedMap<String, String> requestHeaders = HeaderUtils.removeAuthHeaders(headers);
         User user = new SecurityContextUser(securityContext);
         return build(elide.patch(uriInfo.getBaseUri().toString(), contentType, accept, path,
                                  jsonapiDocument, queryParams, requestHeaders, user, apiVersion, UUID.randomUUID()));
@@ -151,32 +150,13 @@ public class JsonApiEndpoint {
         @Context SecurityContext securityContext,
         String jsonApiDocument) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        String apiVersion = resolveApiVersion(headers);
-        MultivaluedMap<String, String> requestHeaders = removeAuthHeaders(headers);
+        String apiVersion = HeaderUtils.resolveApiVersion(headers);
+        MultivaluedMap<String, String> requestHeaders = HeaderUtils.removeAuthHeaders(headers);
         User user = new SecurityContextUser(securityContext);
         return build(elide.delete(uriInfo.getBaseUri().toString(), path, jsonApiDocument, queryParams, requestHeaders,
                                   user, apiVersion, UUID.randomUUID()));
     }
 
-    private String resolveApiVersion(HttpHeaders headers) {
-        List<String> apiVersionList = headers.getRequestHeader("ApiVersion");
-        String apiVersion = NO_VERSION;
-        if (apiVersionList != null && apiVersionList.size() == 1) {
-            apiVersion = apiVersionList.get(0);
-        }
-        return apiVersion;
-    }
-
-    private MultivaluedMap<String, String> removeAuthHeaders(HttpHeaders headers) {
-        MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
-        if (headers.getRequestHeader(HttpHeaders.AUTHORIZATION) != null) {
-            requestHeaders.remove(HttpHeaders.AUTHORIZATION);
-        }
-        if (headers.getRequestHeader("Proxy-Authorization") != null) {
-            requestHeaders.remove("Proxy-Authorization");
-        }
-        return requestHeaders;
-    }
     private static Response build(ElideResponse response) {
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
     }

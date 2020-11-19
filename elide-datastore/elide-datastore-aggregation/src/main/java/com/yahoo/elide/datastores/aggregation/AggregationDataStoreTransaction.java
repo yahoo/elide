@@ -131,7 +131,7 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
                 entityProjection,
                 scope.getDictionary(),
                 scope.getRequestHeaders());
-      //CARBON-371
+
         Query query = translator.getQuery();
 
         FilterExpression filterTemplate = table.getRequiredFilter(scope.getDictionary());

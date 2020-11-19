@@ -59,10 +59,9 @@ public class EntityProjectionTranslator {
         this.queriedTable = table;
         this.entityProjection = entityProjection;
         this.dictionary = dictionary;
-        String bypassCache = (requestHeaders.isPresent() && requestHeaders.get().get("bypasscache") != null)
+        String bypassCacheStr = (requestHeaders.isPresent() && requestHeaders.get().get("bypasscache") != null)
                              ? requestHeaders.get().get("bypasscache").get(0) : null;
-        String safebypassCache = bypassCache == null ? "true" : bypassCache;
-        this.bypassCache = Boolean.parseBoolean(safebypassCache);
+        this.bypassCache  = (bypassCacheStr != null && bypassCacheStr.equals("true")) ? true : false;
         dimensionProjections = resolveNonTimeDimensions();
         timeDimensions = resolveTimeDimensions();
         metrics = resolveMetrics();
@@ -87,6 +86,7 @@ public class EntityProjectionTranslator {
                 .build();
         QueryValidator validator = new QueryValidator(query, getAllFields(), dictionary);
         validator.validate();
+        System.out.println(query);
         return query;
     }
 

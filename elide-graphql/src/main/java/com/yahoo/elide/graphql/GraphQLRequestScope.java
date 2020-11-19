@@ -48,6 +48,4 @@ public class GraphQLRequestScope extends RequestScope {
         // Entity Projection is retrieved from projectionInfo.
         this.setEntityProjection(null);
     }
-    //CARBON-371
-
 }

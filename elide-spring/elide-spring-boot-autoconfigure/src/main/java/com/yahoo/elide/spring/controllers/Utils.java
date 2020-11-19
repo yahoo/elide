@@ -8,6 +8,7 @@ package com.yahoo.elide.spring.controllers;
 
 import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -19,12 +20,13 @@ public class Utils {
     }
 
     public static Map<String, String> removeAuthHeaders(Map<String, String> requestHeaders) {
-        if (requestHeaders.get(HttpHeaders.AUTHORIZATION) != null) {
-            requestHeaders.remove(HttpHeaders.AUTHORIZATION);
+        Map<String, String> requestHeadersCleaned = new HashMap<String, String>(requestHeaders);
+        if (requestHeadersCleaned.get(HttpHeaders.AUTHORIZATION) != null) {
+            requestHeadersCleaned.remove(HttpHeaders.AUTHORIZATION);
         }
-        if (requestHeaders.get("Proxy-Authorization") != null) {
-            requestHeaders.remove("Proxy-Authorization");
+        if (requestHeadersCleaned.get("Proxy-Authorization") != null) {
+            requestHeadersCleaned.remove("Proxy-Authorization");
         }
-        return requestHeaders;
+        return requestHeadersCleaned;
     }
 }

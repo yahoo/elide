@@ -64,6 +64,7 @@ public class JsonApiController {
                                                      @RequestParam Map<String, String> allRequestParams,
                                                      HttpServletRequest request, Authentication authentication) {
         final String apiVersion = Utils.getApiVersion(requestHeaders);
+        Map<String, String> requestHeadersCleaned = Utils.removeAuthHeaders(requestHeaders);
         final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
         final User user = new AuthenticationUser(authentication);
         final String baseUrl = getBaseUrlEndpoint();
@@ -72,7 +73,7 @@ public class JsonApiController {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide.get(baseUrl, pathname,
-                        new MultivaluedHashMap<>(allRequestParams), new MultivaluedHashMap<>(requestHeaders),
+                        new MultivaluedHashMap<>(allRequestParams), new MultivaluedHashMap<>(requestHeadersCleaned),
                         user, apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }

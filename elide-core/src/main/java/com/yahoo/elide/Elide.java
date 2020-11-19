@@ -176,7 +176,7 @@ public class Elide {
                              User opaqueUser, String apiVersion, UUID requestId) {
         return get(baseUrlEndPoint, path, queryParams, null, opaqueUser, apiVersion, requestId);
     }
- //CARBON-371
+
     /**
      * Handle GET.
      *
@@ -262,7 +262,7 @@ public class Elide {
             return visit(path, requestScope, visitor);
         });
     }
-    //CARBON-371
+
     /**
      * Handle PATCH.
      *
