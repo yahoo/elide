@@ -28,13 +28,13 @@ This tutorial will use elide-standalone, and all of the code is [available here]
 
 ### Add Elide as a Dependency
 
-To include `elide-standalone` into your project, add the single dependency:	
-```xml	
-<dependency>	
-  <groupId>com.yahoo.elide</groupId>	
-  <artifactId>elide-standalone</artifactId>	
-  <version>LATEST</version>	
-</dependency>	
+To include `elide-standalone` into your project, add the single dependency:
+```xml
+<dependency>
+  <groupId>com.yahoo.elide</groupId>
+  <artifactId>elide-standalone</artifactId>
+  <version>LATEST</version>
+</dependency>
 ```
 
 ### Create Models
@@ -42,7 +42,7 @@ To include `elide-standalone` into your project, add the single dependency:
 Elide models are some of the most important code in any Elide project. Your models are the view of your data that you wish to expose. In this example we will be modeling a software artifact repository since most developers have a high-level familiarity with artifact repositories such as Maven, Artifactory, npm, and the like.
 
 There will two kinds of models:
- - Models that we intend to both read & write.  These models are created by definining Java classes.  For this example, that includes `ArtifactGroup`, `ArtifactProduct`, and `ArtifactVersion`.  For brevity we will omit package names and import statements. 
+ - Models that we intend to both read & write.  These models are created by definining Java classes.  For this example, that includes `ArtifactGroup`, `ArtifactProduct`, and `ArtifactVersion`.  For brevity we will omit package names and import statements.
  - Read-only models that we intend to run analytic queries against.  These models can be created with Java classes or with a HJSON configuration language.  For this example, we will use the latter to create a `Downloads` model.
 
 #### ArtifactGroup.java
@@ -158,7 +158,7 @@ There will two kinds of models:
         ]
       }
     ]
-  } 
+  }
   ```
 
 ### Spin up the API
@@ -202,14 +202,14 @@ Bringing life to our API is trivially easy. We need two new classes: Main and Se
       @Override
       public Properties getDatabaseProperties() {
           Properties options = new Properties();
-          
-          //Here we use H2 in memory instead of Postgres 
+
+          //Here we use H2 in memory instead of Postgres
           options.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
           options.put("javax.persistence.jdbc.driver", "org.h2.Driver");
           options.put("javax.persistence.jdbc.url", "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1");
           options.put("javax.persistence.jdbc.user", "sa");
           options.put("javax.persistence.jdbc.password", "");
-             
+
           return options;
       }
 
@@ -219,12 +219,12 @@ Bringing life to our API is trivially easy. We need two new classes: Main and Se
       @Override
       public ElideStandaloneAsyncSettings getAsyncProperties() {
           return new ElideStandaloneAsyncSettings() {
-  
+
               @Override
               public boolean enabled() {
                   return true;
               }
-  
+
               @Override
               public boolean enableCleanup() {
                   return true;
@@ -233,37 +233,46 @@ Bringing life to our API is trivially easy. We need two new classes: Main and Se
       }
 
       /**
-       * Enable HJSON configuration files for analytic models.
+       * Configure analytic settings.
        */
       @Override
-      public boolean enableDynamicModelConfig() {
-          return true;
-      }
+      public ElideStandaloneAnalyticSettings getAnalyticProperties() {
+          return new ElideStandaloneAnalyticSettings() {
 
-      /**
-       * Enable analytic queries.
-       */
-      @Override
-      public boolean enableAggregationDataStore() {
-          return true;
-      }
+              /**
+               * Enable HJSON configuration files for analytic models.
+               */
+              @Override
+              public boolean enableDynamicModelConfig() {
+                  return true;
+              }
 
-      /**
-       * Configure the SQL dialect for analytic queries.
-       */
-      @Override
-      public String getDefaultDialect() {
-          return "h2";
-      }
+              /**
+               * Enable analytic queries.
+               */
+              @Override
+              public boolean enableAggregationDataStore() {
+                  return true;
+              }
 
-      /**
-       * Configure the location of HJSON models.
-       */
-      @Override
-      public String getDynamicConfigPath() {
-          return "src/main/resources/analytics";
+              /**
+               * Configure the SQL dialect for analytic queries.
+               */
+              @Override
+              public String getDefaultDialect() {
+                  return "h2";
+              }
+
+              /**
+               * Configure the location of HJSON models.
+               */
+              @Override
+              public String getDynamicConfigPath() {
+                  return "src/main/resources/analytics";
+              }
+          };
       }
-  } 
+  }
   ```
 
 ### Supporting Files
@@ -280,7 +289,7 @@ favorite IDE, or you can run the service from the command line:
 
 ```java -jar target/elide-heroku-example.jar```
 
-Our example requires the following environment variables to be set to work correctly with Heroku and Postgres.  
+Our example requires the following environment variables to be set to work correctly with Heroku and Postgres.
 
 1. JDBC_DATABASE_URL
 2. JDBC_DATABASE_USERNAME
@@ -288,7 +297,7 @@ Our example requires the following environment variables to be set to work corre
 
 If running inside a Heroku dyno, Heroku sets these variables for us.  If you don't set them, the example will use the H2 in memory database.
 
-With the `Main` and `Settings` classes we can now run our API. 
+With the `Main` and `Settings` classes we can now run our API.
 
 You can now run the following curl commands to see some of the sample data that the liquibase migrations added for us:
 Don't forget to replace localhost:8080 with your Heroku URL if running from Heroku!
@@ -303,7 +312,7 @@ Don't forget to replace localhost:8080 with your Heroku URL if running from Hero
   ```curl
   curl -g -X POST -H"Content-Type: application/json" -H"Accept: application/json" \
       "http://localhost:8080/graphql/api/v1" \
-      -d'{   
+      -d'{
              "query" : "{ group { edges { node { name commonName description } } } }"
          }'
   ```
@@ -314,7 +323,7 @@ Here are the respective responses:
   ```json
     {
         "data": [
-        {    
+        {
             "attributes": {
             "commonName": "Example Repository",
             "description": "The code for this project"
@@ -323,7 +332,7 @@ Here are the respective responses:
             "relationships": {
             "products": {
                 "data": [
-                {    
+                {
                     "id": "elide-demo",
                     "type": "product"
                 }
@@ -332,7 +341,7 @@ Here are the respective responses:
             },
             "type": "group"
         },
-        {   
+        {
             "attributes": {
             "commonName": "Elide",
             "description": "The magical library powering this project"
@@ -341,11 +350,11 @@ Here are the respective responses:
             "relationships": {
             "products": {
                 "data": [
-                {   
+                {
                     "id": "elide-core",
                     "type": "product"
                 },
-                {   
+                {
                     "id": "elide-standalone",
                     "type": "product"
                 },
@@ -445,7 +454,7 @@ data to help our users is just as easy as it is to add new data. Let’s update 
   ```curl
    curl -g -X POST -H"Content-Type: application/json" -H"Accept: application/json" \
       "http://localhost:8080/graphql/api/v1" \
-      -d'{   
+      -d'{
              "query" : "mutation { group(ids: [\"com.example.repository\"]) { edges { node { products(op: UPDATE, data: { name: \"elide-demo\", commonName: \"demo application\", description: \"An example implementation of an Elide web service that showcases many Elide features\" }) { edges { node { name } } } } } } }"
          }'
   ```
@@ -456,16 +465,16 @@ Analytic queries leverage the same API as reading any other Elide model.  Note t
 
 #### JSON-API
 
-  ```curl 
+  ```curl
   curl http://localhost:8080/api/v1/Downloads?fields[Downloads]=downloads,group,product
   ```
 
 #### GraphQL
 
-  ```curl 
+  ```curl
   curl -g -X POST -H"Content-Type: application/json" -H"Accept: application/json" \
       "http://localhost:8080/graphql/api/v1" \
-      -d'{ 
+      -d'{
              "query" : "{ Downloads { edges { node { downloads group product } } } }"
          }'
   ```
@@ -474,7 +483,7 @@ Here are the respective responses:
 
 #### JSON-API
 
-  ```json 
+  ```json
   {
     "data": [
       {
@@ -514,7 +523,7 @@ Here are the respective responses:
 
 Filters are JAX-RS or Jersey filter classes. These classes can be used for authentication, logging, or any other type of request filtering you may be required to perform.
 
-Some commonly used servlets & filters are packaged as individual settings.  
+Some commonly used servlets & filters are packaged as individual settings.
 
 #### Codahale / Dropwizard InstrumentedFilter Servlet
 
