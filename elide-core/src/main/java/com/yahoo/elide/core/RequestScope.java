@@ -521,4 +521,11 @@ public class RequestScope implements com.yahoo.elide.security.RequestScope {
                         LifeCycleHookBinding.Operation.DELETE,
                         LifeCycleHookBinding.TransactionPhase.PRESECURITY, true));
     }
+
+    public String getRequestHeaderByName(String headerName) {
+
+        String headerValue = (this.requestHeaders.isPresent() && this.requestHeaders.get().get(headerName) != null)
+                ? this.requestHeaders.get().get(headerName).get(0) : null;
+        return headerValue;
+    }
 }

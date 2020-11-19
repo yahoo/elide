@@ -28,12 +28,9 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Helper for Aggregation Data Store which does the work associated with extracting {@link Query}.
@@ -54,14 +51,12 @@ public class EntityProjectionTranslator {
 
     public EntityProjectionTranslator(QueryEngine engine, Table table,
                                       EntityProjection entityProjection, EntityDictionary dictionary,
-                                      Optional<MultivaluedMap<String, String>> requestHeaders) {
+                                      String bypassCache) {
         this.engine = engine;
         this.queriedTable = table;
         this.entityProjection = entityProjection;
         this.dictionary = dictionary;
-        String bypassCacheStr = (requestHeaders.isPresent() && requestHeaders.get().get("bypasscache") != null)
-                             ? requestHeaders.get().get("bypasscache").get(0) : null;
-        this.bypassCache  = (bypassCacheStr != null && bypassCacheStr.equals("true")) ? true : false;
+        this.bypassCache  = (bypassCache != null && bypassCache.equals("true")) ? true : false;
         dimensionProjections = resolveNonTimeDimensions();
         timeDimensions = resolveTimeDimensions();
         metrics = resolveMetrics();
