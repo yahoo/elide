@@ -44,7 +44,7 @@ public class AsyncCleanerService {
         // Since there will be multiple hosts running the elide service,
         // setting up random delays to avoid all of them trying to cleanup at the same time.
         Random random = new Random();
-        int initialDelayMinutes = random.ints(5, maxInitialDelayMinutes).limit(1).findFirst().getAsInt();
+        int initialDelayMinutes = random.ints(0, maxInitialDelayMinutes).limit(1).findFirst().getAsInt();
         log.debug("Initial Delay for cleaner service is {}", initialDelayMinutes);
 
         //Having a delay of at least DEFAULT_CLEANUP_DELAY between two cleanup attempts.
@@ -60,7 +60,7 @@ public class AsyncCleanerService {
         AsyncAPICancelThread cancelTask = new AsyncAPICancelThread(maxRunTimeSeconds,
                 elide, asyncQueryDao);
 
-        cancellation.scheduleWithFixedDelay(cancelTask, 300, cancelDelaySeconds, TimeUnit.SECONDS);
+        cancellation.scheduleWithFixedDelay(cancelTask, 0, cancelDelaySeconds, TimeUnit.SECONDS);
     }
 
     /**
