@@ -3,7 +3,7 @@
     "description": "Elide Variable config json/hjson schema",
     "type": "object",
     "patternProperties": {
-        "^.+$": {
+        "^([A-Za-z0-9_]+[.]?)+$": {
             "type": [
                 "string",
                 "number",
@@ -13,5 +13,6 @@
             ]
         }
     },
+    "additionalProperties": false,
     "minProperties": 1
 }

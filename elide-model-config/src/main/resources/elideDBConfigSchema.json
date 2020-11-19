@@ -77,7 +77,7 @@
                         "description": "A map of additional Hibernate properties and persistence properties",
                         "default": {},
                         "patternProperties": {
-                            "^.+$": {
+                            "^([A-Za-z0-9_]+[.]?)+$": {
                                 "type": [
                                     "string",
                                     "number",
@@ -87,6 +87,7 @@
                                 ]
                             }
                         },
+                        "additionalProperties": false,
                         "examples": [
                             {
                                 "hibernate.show_sql": true,

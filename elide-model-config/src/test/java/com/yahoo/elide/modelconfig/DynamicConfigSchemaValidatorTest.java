@@ -51,7 +51,9 @@ public class DynamicConfigSchemaValidatorTest {
                 () -> testClass.verifySchema(Config.MODELVARIABLE, jsonConfig, "variables.hjson"));
         String expectedMessage = "Schema validation failed for: variables.hjson\n"
                         + "[ERROR]\n"
-                        + "Instance[/cardinality] failed to validate against schema[/patternProperties/^.+$]. instance type (null) does not match any allowed primitive type (allowed: [\"array\",\"boolean\",\"integer\",\"number\",\"object\",\"string\"])";
+                        + "object instance has properties which are not allowed by the schema: [\"schema$\"]\n"
+                        + "[ERROR]\n"
+                        + "Instance[/cardinality] failed to validate against schema[/patternProperties/^([A-Za-z0-9_]+[.]?)+$]. instance type (null) does not match any allowed primitive type (allowed: [\"array\",\"boolean\",\"integer\",\"number\",\"object\",\"string\"])";
         assertEquals(expectedMessage, e.getMessage());
     }
 
@@ -158,7 +160,7 @@ public class DynamicConfigSchemaValidatorTest {
                         + "[ERROR]\n"
                         + "Instance[/dbconfigs/0/name] failed to validate against schema[/properties/dbconfigs/items/properties/name]. Name [11MyDB2Connection] is not allowed. Name must start with an alphabet and can include alaphabets, numbers and '_' only.\n"
                         + "[ERROR]\n"
-                        + "Instance[/dbconfigs/0/propertyMap/hibernate.show_sql] failed to validate against schema[/properties/dbconfigs/items/properties/propertyMap/patternProperties/^.+$]. instance type (null) does not match any allowed primitive type (allowed: [\"array\",\"boolean\",\"integer\",\"number\",\"object\",\"string\"])\n"
+                        + "Instance[/dbconfigs/0/propertyMap/hibernate.show_sql] failed to validate against schema[/properties/dbconfigs/items/properties/propertyMap/patternProperties/^([A-Za-z0-9_]+[.]?)+$]. instance type (null) does not match any allowed primitive type (allowed: [\"array\",\"boolean\",\"integer\",\"number\",\"object\",\"string\"])\n"
                         + "[ERROR]\n"
                         + "Instance[/dbconfigs/1/dialect] failed to validate against schema[/properties/dbconfigs/items/properties/dialect]. instance type (integer) does not match any allowed primitive type (allowed: [\"string\"])\n"
                         + "[ERROR]\n"
