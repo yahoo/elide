@@ -248,14 +248,6 @@ Bringing life to our API is trivially easy. We need two new classes: Main and Se
               }
 
               /**
-               * Configure the location of HJSON models.
-               */
-              @Override
-              public String getDynamicConfigPath() {
-                  return "src/main/resources/analytics";
-              }
-
-              /**
                * Enable analytic queries.
                */
               @Override
@@ -269,6 +261,14 @@ Bringing life to our API is trivially easy. We need two new classes: Main and Se
               @Override
               public String getDefaultDialect() {
                   return "h2";
+              }
+
+              /**
+               * Configure the location of HJSON models.
+               */
+              @Override
+              public String getDynamicConfigPath() {
+                  return "src/main/resources/analytics";
               }
           };
       }
