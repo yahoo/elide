@@ -127,7 +127,7 @@ public class DynamicConfigSchemaValidatorTest {
                         + "        Instance[/tables/0/dimensions/2/grain/type] failed to validate against schema[/definitions/timeDimension/allOf/1/properties/grain/properties/type]. Grain type [Days] is not allowed. Supported value is one of [Second, Minute, Hour, Day, IsoWeek, Week, Month, Quarter, Year].\n"
                         + "        Instance[/tables/0/dimensions/2/type] failed to validate against schema[/definitions/timeDimension/allOf/1/properties/type]. Field type [TIMEX] is not allowed. Field type must be [Time] for any time dimension.\n"
                         + "[ERROR]\n"
-                        + "Instance[/tables/0/filterTemplate] failed to validate against schema[/properties/tables/items/properties/filterTemplate]. Input value[countryIsoCode={{code}};startTime=={{start}}] is not a valid RSQL filter expression. Please visit page https://elide.io/pages/guide/v5/11-graphql.html and search 'RSQL operators' for samples.\n"
+                        + "Instance[/tables/0/filterTemplate] failed to validate against schema[/properties/tables/items/properties/filterTemplate]. Input value[countryIsoCode={{code}};startTime=={{start}}] is not a valid RSQL filter expression. Please visit page https://elide.io/pages/guide/v5/11-graphql.html#operators for samples.\n"
                         + "[ERROR]\n"
                         + "Instance[/tables/0/measures/0/queryPlanResolver] failed to validate against schema[/definitions/measure/properties/queryPlanResolver]. Input value[com.yahoo.elide.datastores.aggregation.query@DefaultQueryPlanResolver.class] is not a valid Java class name with .class extension.\n"
                         + "[ERROR]\n"

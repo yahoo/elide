@@ -27,7 +27,7 @@ public class ElideRSQLFilterFormatAttr extends AbstractFormatAttribute {
     public static final String FORMAT_NAME = "elideRSQLFilter";
     public static final String FORMAT_KEY = "elideRSQLFilter.error.format";
     public static final String FORMAT_MSG = "Input value[%s] is not a valid RSQL filter expression. Please visit page "
-                    + "https://elide.io/pages/guide/v5/11-graphql.html and search 'RSQL operators' for samples.";
+                    + "https://elide.io/pages/guide/v5/11-graphql.html#operators for samples.";
 
     public ElideRSQLFilterFormatAttr() {
         super(FORMAT_NAME, NodeType.STRING);
