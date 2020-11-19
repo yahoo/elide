@@ -80,7 +80,7 @@
                     "title": "query plan resolver class",
                     "description": "The JVM function class which maps a metric to a query plan",
                     "type": "string",
-                    "format": "elideClassName"
+                    "format": "javaClassNameWithExt"
                 },
                 "type": {
                     "title": "Measure field type",
