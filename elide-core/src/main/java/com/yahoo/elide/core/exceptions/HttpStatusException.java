@@ -5,16 +5,12 @@
  */
 package com.yahoo.elide.core.exceptions;
 
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.ErrorObjects;
-
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;

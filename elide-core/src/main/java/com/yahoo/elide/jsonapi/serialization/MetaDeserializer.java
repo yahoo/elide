@@ -6,7 +6,6 @@
 package com.yahoo.elide.jsonapi.serialization;
 
 import com.yahoo.elide.jsonapi.models.Meta;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;

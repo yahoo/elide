@@ -6,7 +6,7 @@
 package com.yahoo.elide.async.integration.tests;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.UNQUOTED_VALUE;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.arguments;
@@ -33,16 +33,16 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.integration.tests.framework.AsyncIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.async.models.QueryType;
-import com.yahoo.elide.audit.TestAuditLogger;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.audit.TestAuditLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.initialization.IntegrationTest;
-import com.yahoo.elide.resources.JsonApiEndpoint;
-import com.yahoo.elide.resources.SecurityContextUser;
-import com.yahoo.elide.security.User;
+import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
+import com.yahoo.elide.jsonapi.resources.SecurityContextUser;
 import com.yahoo.elide.test.graphql.EnumFieldSerializer;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -726,6 +726,40 @@ public class AsyncIT extends IntegrationTest {
         // Principal without Admin Role
         response = elide.get(baseUrl, "/asyncQuery/" + id, new MultivaluedHashMap<>(), securityContextNonAdminUser, NO_VERSION);
         assertEquals(HttpStatus.SC_NOT_FOUND, response.getResponseCode());
+    }
+
+    /**
+     * Various tests for a JSONAPI query as a Async Request with asyncAfterSeconds value set to 7.
+     * asyncAfterSeconds is more than 10.
+     * @throws InterruptedException
+     */
+    @Test
+    public void asyncAfterBeyondMax() throws InterruptedException {
+        String expected = "{\"errors\":[{\"detail\":\"Invalid value: Invalid Async After Seconds\"}]}";
+        AsyncDelayStoreTransaction.sleep = true;
+
+        //Create Async Request
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .body(
+                        data(
+                                resource(
+                                        type("asyncQuery"),
+                                        id("edc4a871-dff2-4054-804e-e80075cf831f"),
+                                        attributes(
+                                                attr("query", "/book?sort=genre&fields%5Bbook%5D=title"),
+                                                attr("queryType", "JSONAPI_V1_0"),
+                                                attr("status", "QUEUED"),
+                                                attr("asyncAfterSeconds", "70")
+                                        )
+                                )
+                        ).toJSON())
+                .when()
+                .post("/asyncQuery")
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_BAD_REQUEST)
+                .body(equalTo(expected));
+
     }
 
     /**

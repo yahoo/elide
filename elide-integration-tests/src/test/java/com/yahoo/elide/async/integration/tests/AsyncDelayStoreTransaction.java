@@ -9,7 +9,7 @@ package com.yahoo.elide.async.integration.tests;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.wrapped.TransactionWrapper;
-import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.core.request.EntityProjection;
 import lombok.extern.slf4j.Slf4j;
 
 /**

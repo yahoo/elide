@@ -6,34 +6,34 @@
 
 package com.yahoo.elide.parsers.expression;
 
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
-import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION;
-import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
-import static com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor.TRUE_USER_CHECK_EXPRESSION;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.security.visitors.PermissionToFilterExpressionVisitor.FALSE_USER_CHECK_EXPRESSION;
+import static com.yahoo.elide.core.security.visitors.PermissionToFilterExpressionVisitor.NO_EVALUATION_EXPRESSION;
+import static com.yahoo.elide.core.security.visitors.PermissionToFilterExpressionVisitor.TRUE_USER_CHECK_EXPRESSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.EntityPermissions;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.TestDictionary;
-import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.EntityPermissions;
+import com.yahoo.elide.core.dictionary.TestDictionary;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.TestUser;
-import com.yahoo.elide.security.User;
-import com.yahoo.elide.security.checks.Check;
-import com.yahoo.elide.security.checks.FilterExpressionCheck;
-import com.yahoo.elide.security.checks.OperationCheck;
-import com.yahoo.elide.security.checks.prefab.Role;
-
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.filter.visitors.FilterExpressionNormalizationVisitor;
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.TestUser;
+import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
+import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.core.security.visitors.PermissionToFilterExpressionVisitor;
 import example.Author;
 import example.Book;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -397,21 +397,21 @@ public class PermissionToFilterExpressionVisitorTest {
     public static class Permissions {
         public static class Succeeds extends OperationCheck<Object> {
             @Override
-            public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            public boolean ok(Object object, com.yahoo.elide.core.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
                 return true;
             }
         }
 
         public static class Fails extends OperationCheck<Object> {
             @Override
-            public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+            public boolean ok(Object object, com.yahoo.elide.core.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
                 return false;
             }
         }
 
         public static class InFilterExpression extends FilterExpressionCheck {
             @Override
-            public FilterPredicate getFilterExpression(Class entityClass, com.yahoo.elide.security.RequestScope requestScope) {
+            public FilterPredicate getFilterExpression(Class entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
                 return createDummyPredicate(Operator.IN);
             }
         }
@@ -419,21 +419,21 @@ public class PermissionToFilterExpressionVisitorTest {
         public static class NotInFilterExpression extends FilterExpressionCheck {
             @Override
             public FilterPredicate getFilterExpression(Class entityClass,
-                                                       com.yahoo.elide.security.RequestScope requestScope) {
+                                                       com.yahoo.elide.core.security.RequestScope requestScope) {
                 return createDummyPredicate(Operator.NOT);
             }
         }
 
         public static class LessThanFilterExpression extends FilterExpressionCheck {
             @Override
-            public FilterPredicate getFilterExpression(Class entityClass, com.yahoo.elide.security.RequestScope requestScope) {
+            public FilterPredicate getFilterExpression(Class entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
                 return createDummyPredicate(Operator.LT);
             }
         }
 
         public static class GreaterThanOrEqualFilterExpression extends FilterExpressionCheck {
             @Override
-            public FilterPredicate getFilterExpression(Class entityClass, com.yahoo.elide.security.RequestScope requestScope) {
+            public FilterPredicate getFilterExpression(Class entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
                 return createDummyPredicate(Operator.GE);
             }
         }

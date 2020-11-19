@@ -5,21 +5,23 @@
  */
 package com.yahoo.elide.datastores.aggregation.framework;
 
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
-import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
+import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.example.Continent;
 import com.yahoo.elide.datastores.aggregation.example.Country;
@@ -49,9 +51,7 @@ import com.yahoo.elide.datastores.aggregation.timegrains.Quarter;
 import com.yahoo.elide.datastores.aggregation.timegrains.Second;
 import com.yahoo.elide.datastores.aggregation.timegrains.Week;
 import com.yahoo.elide.datastores.aggregation.timegrains.Year;
-import com.yahoo.elide.request.Sorting;
-import com.yahoo.elide.utils.ClassScanner;
-import com.yahoo.elide.utils.coerce.CoerceUtil;
+import com.yahoo.elide.modelconfig.compile.ConnectionDetails;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.AfterEach;

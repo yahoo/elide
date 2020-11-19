@@ -7,19 +7,18 @@ package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.core.ErrorObjects;
-import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.CustomErrorException;
+import com.yahoo.elide.core.exceptions.ErrorObjects;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
+import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
 import com.yahoo.elide.core.exceptions.TimeoutException;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
-import com.yahoo.elide.security.User;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -27,10 +26,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
-
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;

@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.swagger;
 
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
 
 import com.google.common.collect.Maps;

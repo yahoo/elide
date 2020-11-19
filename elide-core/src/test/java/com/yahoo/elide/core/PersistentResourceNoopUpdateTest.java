@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.core;
 
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -13,10 +13,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
-import com.yahoo.elide.security.TestUser;
-import com.yahoo.elide.security.User;
+import com.yahoo.elide.core.security.TestUser;
+import com.yahoo.elide.core.security.User;
 import example.Child;
 import example.FunWithPermissions;
 import org.junit.jupiter.api.Test;

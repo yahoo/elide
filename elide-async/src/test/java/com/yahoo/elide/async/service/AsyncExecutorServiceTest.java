@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.async.service;
 
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -22,10 +22,10 @@ import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
 import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
 import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
-import com.yahoo.elide.security.User;
-import com.yahoo.elide.security.checks.Check;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.core.security.checks.Check;
 import org.apache.http.NoHttpResponseException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -55,7 +55,7 @@ public class AsyncExecutorServiceTest {
         asyncAPIDao = mock(DefaultAsyncAPIDAO.class);
         testUser = mock(User.class);
         resultStorageEngine = mock(FileResultStorageEngine.class);
-        AsyncExecutorService.init(elide, 5, 60, asyncAPIDao, resultStorageEngine);
+        AsyncExecutorService.init(elide, 5, asyncAPIDao, resultStorageEngine);
         service = AsyncExecutorService.getInstance();
     }
 
@@ -63,7 +63,6 @@ public class AsyncExecutorServiceTest {
     public void testAsyncExecutorServiceSet() {
         assertEquals(elide, service.getElide());
         assertNotNull(service.getRunners());
-        assertEquals(60, service.getMaxRunTime());
         assertNotNull(service.getExecutor());
         assertNotNull(service.getUpdater());
         assertEquals(asyncAPIDao, service.getAsyncAPIDao());

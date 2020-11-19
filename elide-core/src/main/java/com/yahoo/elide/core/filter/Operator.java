@@ -10,8 +10,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidOperatorNegationException;
-import com.yahoo.elide.utils.coerce.CoerceUtil;
-
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

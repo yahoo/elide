@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.async.service.dao;
 
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncAPIResult;
@@ -14,8 +14,8 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.request.EntityProjection;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;

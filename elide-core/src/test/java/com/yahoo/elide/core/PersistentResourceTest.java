@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.core;
 
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -22,36 +22,32 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.audit.LogMessage;
-import com.yahoo.elide.audit.TestAuditLogger;
+import com.yahoo.elide.core.audit.LogMessage;
+import com.yahoo.elide.core.audit.TestAuditLogger;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.extensions.PatchRequestScope;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.Attribute;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.TestUser;
+import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.jsonapi.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
-import com.yahoo.elide.request.Attribute;
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.TestUser;
-import com.yahoo.elide.security.User;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
 import example.Author;
 import example.Book;
 import example.Child;
@@ -74,14 +70,12 @@ import example.Shape;
 import example.nontransferable.ContainerWithPackageShare;
 import example.nontransferable.ShareableWithPackageShare;
 import example.nontransferable.Untransferable;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentCaptor;
-
 import io.reactivex.Observable;
 import nocreate.NoCreateEntity;
 
@@ -100,7 +94,6 @@ import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -1203,7 +1196,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         child.setReadNoAccess(secret);
 
-        when(tx.getRelation(any(), eq(fun), eq(com.yahoo.elide.request.Relationship.builder()
+        when(tx.getRelation(any(), eq(fun), eq(com.yahoo.elide.core.request.Relationship.builder()
                 .name("relation3")
                 .alias("relation3")
                 .projection(EntityProjection.builder()
@@ -1211,7 +1204,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                         .build())
                 .build()), any())).thenReturn(child);
 
-        when(tx.getRelation(any(), eq(fun), eq(com.yahoo.elide.request.Relationship.builder()
+        when(tx.getRelation(any(), eq(fun), eq(com.yahoo.elide.core.request.Relationship.builder()
                 .name("relation1")
                 .alias("relation1")
                 .projection(EntityProjection.builder()
@@ -1219,7 +1212,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                         .build())
                 .build()), any())).thenReturn(children1);
 
-        when(tx.getRelation(any(), eq(parent), eq(com.yahoo.elide.request.Relationship.builder()
+        when(tx.getRelation(any(), eq(parent), eq(com.yahoo.elide.core.request.Relationship.builder()
                 .name("children")
                 .alias("children")
                 .projection(EntityProjection.builder()
@@ -1227,7 +1220,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                         .build())
                 .build()), any())).thenReturn(children2);
 
-        when(tx.getRelation(any(), eq(child), eq(com.yahoo.elide.request.Relationship.builder()
+        when(tx.getRelation(any(), eq(child), eq(com.yahoo.elide.core.request.Relationship.builder()
                 .name("readNoAccess")
                 .alias("readNoAccess")
                 .projection(EntityProjection.builder()

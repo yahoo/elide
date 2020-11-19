@@ -17,7 +17,7 @@ import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
 import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -51,11 +51,12 @@ public class ElideAsyncConfiguration {
             AsyncAPIDAO asyncQueryDao, EntityDictionary dictionary,
             @Autowired(required = false) ResultStorageEngine resultStorageEngine) {
         AsyncExecutorService.init(elide, settings.getAsync().getThreadPoolSize(),
-                settings.getAsync().getMaxRunTimeSeconds(), asyncQueryDao, resultStorageEngine);
+                asyncQueryDao, resultStorageEngine);
         AsyncExecutorService asyncExecutorService = AsyncExecutorService.getInstance();
 
         // Binding AsyncQuery LifeCycleHook
-        AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService);
+        AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService,
+                settings.getAsync().getMaxAsyncAfterSeconds());
         dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, asyncQueryHook, false);
         dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, asyncQueryHook, false);
         dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, asyncQueryHook, false);

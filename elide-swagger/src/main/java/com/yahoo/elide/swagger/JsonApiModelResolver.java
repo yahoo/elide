@@ -9,7 +9,7 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.swagger.model.Resource;
 import com.yahoo.elide.swagger.property.Relationship;
 

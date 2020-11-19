@@ -7,7 +7,6 @@
 package com.yahoo.elide.graphql;
 
 import static graphql.Assert.assertNotNull;
-
 import graphql.AssertException;
 import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;

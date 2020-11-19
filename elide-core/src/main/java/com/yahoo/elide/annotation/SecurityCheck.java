@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  *
- * <b>NOTE: </b> The class you annotated must be a {@link com.yahoo.elide.security.checks.Check},
+ * <b>NOTE: </b> The class you annotated must be a {@link com.yahoo.elide.core.security.checks.Check},
  * otherwise a RuntimeException is thrown.
  *
  * @author olOwOlo

@@ -18,13 +18,13 @@ import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
 import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
-import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
-import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.modelconfig.compile.ConnectionDetails;
+import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.standalone.Util;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
 import com.codahale.metrics.MetricRegistry;
@@ -71,7 +71,7 @@ public class ElideResourceConfig extends ResourceConfig {
         settings = (ElideStandaloneSettings) servletContext.getAttribute(ELIDE_STANDALONE_SETTINGS_ATTR);
 
         Optional<ElideDynamicEntityCompiler> optionalCompiler =
-                        settings.getDynamicCompiler(settings.getDBPasswordExtractor());
+                        settings.getDynamicCompiler(settings.getAnalyticProperties().getDBPasswordExtractor());
 
         // Bind things that should be injectable to the Settings class
         register(new AbstractBinder() {
@@ -91,14 +91,14 @@ public class ElideResourceConfig extends ResourceConfig {
                 EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(settings.getModelPackageName(),
                         asyncProperties.enabled(), optionalCompiler, settings.getDatabaseProperties());
                 DataSource defaultDataSource = Util.getDataSource(settings.getDatabaseProperties());
-                ConnectionDetails defaultConnectionDetails =
-                                new ConnectionDetails(defaultDataSource, settings.getDefaultDialect());
+                ConnectionDetails defaultConnectionDetails = new ConnectionDetails(defaultDataSource,
+                                settings.getAnalyticProperties().getDefaultDialect());
 
                 EntityDictionary dictionary = settings.getEntityDictionary(injector, optionalCompiler);
 
                 DataStore dataStore;
 
-                if (settings.enableAggregationDataStore()) {
+                if (settings.getAnalyticProperties().enableAggregationDataStore()) {
                     MetaDataStore metaDataStore = settings.getMetaDataStore(optionalCompiler);
                     if (metaDataStore == null) {
                         throw new IllegalStateException("Aggregation Datastore is enabled but metaDataStore is null");
@@ -139,12 +139,13 @@ public class ElideResourceConfig extends ResourceConfig {
 
                     // TODO: If null, initialize with FileResultStorageEngine
                     ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
-                    AsyncExecutorService.init(elide, asyncProperties.getThreadSize(),
-                            asyncProperties.getMaxRunTimeSeconds(), asyncAPIDao, resultStorageEngine);
+                    AsyncExecutorService.init(elide, asyncProperties.getThreadSize(), asyncAPIDao,
+                            resultStorageEngine);
                     bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                     // Binding AsyncQuery LifeCycleHook
-                    AsyncQueryHook asyncQueryHook = new AsyncQueryHook(AsyncExecutorService.getInstance());
+                    AsyncQueryHook asyncQueryHook = new AsyncQueryHook(AsyncExecutorService.getInstance(),
+                            asyncProperties.getMaxAsyncAfterSeconds());
 
                     dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, asyncQueryHook, false);
                     dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, asyncQueryHook, false);

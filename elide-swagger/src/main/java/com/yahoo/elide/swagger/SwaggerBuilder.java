@@ -5,10 +5,10 @@
  */
 package com.yahoo.elide.swagger;
 
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.RelationshipType;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.swagger.model.Data;
 import com.yahoo.elide.swagger.model.Datum;

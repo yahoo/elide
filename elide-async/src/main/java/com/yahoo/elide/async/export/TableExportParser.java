@@ -7,7 +7,7 @@ package com.yahoo.elide.async.export;
 
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.core.exceptions.BadRequestException;
-import com.yahoo.elide.request.EntityProjection;
+import com.yahoo.elide.core.request.EntityProjection;
 
 /**
  * Interface for parsing TableExport request.

@@ -7,13 +7,10 @@ package com.yahoo.elide.core.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.utils.ClassScanner;
-
-import org.apache.commons.collections4.IterableUtils;
 import org.junit.jupiter.api.Test;
+
 import java.util.Set;
 
 public class ClassScannerTest {
@@ -21,8 +18,8 @@ public class ClassScannerTest {
     @Test
     public void testGetAllClasses() {
         Set<Class<?>> classes = ClassScanner.getAllClasses("com.yahoo.elide.core.utils");
-        assertEquals(1, classes.size());
-        assertEquals(ClassScannerTest.class, IterableUtils.first(classes));
+        assertEquals(29, classes.size());
+        assertTrue(classes.contains(ClassScannerTest.class));
     }
 
     @Test

@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.framework;
 
-import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails;
-import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
@@ -19,6 +17,8 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
+import com.yahoo.elide.modelconfig.compile.ConnectionDetails;
+import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
 import org.hibernate.Session;
 import lombok.AllArgsConstructor;
 

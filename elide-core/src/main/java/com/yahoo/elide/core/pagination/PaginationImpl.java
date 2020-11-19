@@ -8,8 +8,7 @@ package com.yahoo.elide.core.pagination;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.request.Pagination;
-
+import com.yahoo.elide.core.request.Pagination;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,7 +18,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import javax.ws.rs.core.MultivaluedMap;
 
 /**

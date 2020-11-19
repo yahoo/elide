@@ -8,13 +8,13 @@ package com.yahoo.elide.graphql.parser;
 
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
-
 import graphql.language.Document;
 import graphql.language.Field;
 import graphql.language.FragmentDefinition;
 import graphql.language.FragmentSpread;
 import graphql.language.Selection;
 import graphql.language.SelectionSet;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;

@@ -24,6 +24,12 @@ public class AsyncProperties {
     private int maxRunTimeSeconds = 3600;
 
     /**
+     * Default maximum permissible AsyncAfterSeconds value.
+     * The Async requests can be configured to execute synchronously before switching to asynchronous mode.
+     */
+    private int maxAsyncAfterSeconds = 10;
+
+    /**
      * Whether or not the cleanup is enabled.
      */
     private boolean cleanupEnabled = false;
@@ -36,7 +42,7 @@ public class AsyncProperties {
     /**
      * Polling interval to identify async queries that should be canceled.
      */
-    private int queryCancellationIntervalSeconds = 10;
+    private int queryCancellationIntervalSeconds = 300;
 
     /**
      * Whether or not to use the default implementation of AsyncAPIDAO.

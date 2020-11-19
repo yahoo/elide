@@ -23,12 +23,12 @@ import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
 import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
 import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
-import com.yahoo.elide.audit.InMemoryLogger;
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.audit.InMemoryLogger;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
-import com.yahoo.elide.security.checks.Check;
+import com.yahoo.elide.core.security.checks.Check;
 import example.TestCheckMappings;
 import example.models.triggers.Invoice;
 import example.models.triggers.InvoiceCompletionHook;
@@ -94,7 +94,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
 
                 ResultStorageEngine resultStorageEngine =
                         new FileResultStorageEngine(System.getProperty("java.io.tmpDir"));
-                AsyncExecutorService.init(elide, 5, 60, asyncAPIDao, resultStorageEngine);
+                AsyncExecutorService.init(elide, 5, asyncAPIDao, resultStorageEngine);
                 bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                 BillingService billingService = new BillingService() {
@@ -107,7 +107,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 bind(billingService).to(BillingService.class);
 
                 // Binding AsyncQuery LifeCycleHook
-                AsyncQueryHook asyncQueryHook = new AsyncQueryHook(AsyncExecutorService.getInstance());
+                AsyncQueryHook asyncQueryHook = new AsyncQueryHook(AsyncExecutorService.getInstance(), 10);
 
                 InvoiceCompletionHook invoiceCompletionHook = new InvoiceCompletionHook(billingService);
 

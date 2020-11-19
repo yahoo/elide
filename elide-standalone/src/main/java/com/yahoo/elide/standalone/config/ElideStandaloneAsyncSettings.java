@@ -44,10 +44,20 @@ public interface ElideStandaloneAsyncSettings {
     /**
      * Maximum Query Run time for Async Queries to mark as TIMEDOUT.
      *
-     * @return Default: 60
+     * @return Default: 3600
      */
     default Integer getMaxRunTimeSeconds() {
-        return 120;
+        return 3600;
+    }
+
+    /**
+     * Maximum permissible AsyncAfterSeconds value.
+     * The Async requests can be configured to execute synchronously before switching to asynchronous mode.
+     *
+     * @return Default: 10
+     */
+    default Integer getMaxAsyncAfterSeconds() {
+        return 10;
     }
 
     /**
@@ -62,7 +72,7 @@ public interface ElideStandaloneAsyncSettings {
     /**
      * Polling interval to identify async queries that should be canceled.
      *
-     * @return Default: 10
+     * @return Default: 300
      */
     default Integer getQueryCancelCheckIntervalSeconds() {
         return 300;

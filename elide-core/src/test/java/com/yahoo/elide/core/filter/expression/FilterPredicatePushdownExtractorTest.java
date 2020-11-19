@@ -9,20 +9,16 @@ package com.yahoo.elide.core.filter.expression;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.Path.PathElement;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.core.filter.InPredicate;
-
+import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.google.common.collect.ImmutableList;
-
 import example.Author;
 import example.Book;
 import example.Editor;
 import example.Publisher;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

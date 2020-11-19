@@ -5,16 +5,15 @@
  */
 package com.yahoo.elide.graphql.containers;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
+import com.yahoo.elide.core.request.Attribute;
+import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.graphql.DeferredId;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
-import com.yahoo.elide.request.Attribute;
-import com.yahoo.elide.request.Relationship;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

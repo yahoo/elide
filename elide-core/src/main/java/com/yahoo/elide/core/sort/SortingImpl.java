@@ -5,12 +5,11 @@
  */
 package com.yahoo.elide.core.sort;
 
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-
-import com.yahoo.elide.request.Attribute;
-import com.yahoo.elide.request.Sorting;
+import com.yahoo.elide.core.request.Attribute;
+import com.yahoo.elide.core.request.Sorting;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -23,7 +22,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.ws.rs.core.MultivaluedMap;
 
 /**

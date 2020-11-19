@@ -6,9 +6,9 @@
 package com.yahoo.elide.standalone;
 
 import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
+import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.jpa.PersistenceUnitInfoImpl;
-import com.yahoo.elide.utils.ClassScanner;
+import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.hibernate.cfg.AvailableSettings;

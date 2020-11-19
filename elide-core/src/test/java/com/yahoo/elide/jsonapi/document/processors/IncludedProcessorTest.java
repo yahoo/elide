@@ -9,16 +9,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
-
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.TestDictionary;
 import com.yahoo.elide.core.TestRequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.TestDictionary;
+import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
-import com.yahoo.elide.security.TestUser;
-
 import com.google.common.collect.Sets;
 import example.Child;
 import example.FunWithPermissions;

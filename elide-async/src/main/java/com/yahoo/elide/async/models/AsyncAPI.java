@@ -20,7 +20,6 @@ import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.PreUpdate;
 import javax.persistence.Transient;
-import javax.validation.constraints.Max;
 import javax.validation.constraints.Pattern;
 
 /**
@@ -60,7 +59,6 @@ public abstract class AsyncAPI implements PrincipalOwned {
     private Date updatedOn = new Date();
 
     @Transient
-    @Max(10)
     @ComputedAttribute
     private Integer asyncAfterSeconds = 10;
 

@@ -14,12 +14,11 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterPredicatePushdownExtractor;
 import com.yahoo.elide.core.filter.expression.InMemoryExecutionVerifier;
 import com.yahoo.elide.core.filter.expression.InMemoryFilterExecutor;
-import com.yahoo.elide.request.Attribute;
-import com.yahoo.elide.request.EntityProjection;
-import com.yahoo.elide.request.Pagination;
-import com.yahoo.elide.request.Relationship;
-import com.yahoo.elide.request.Sorting;
-
+import com.yahoo.elide.core.request.Attribute;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.request.Sorting;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;

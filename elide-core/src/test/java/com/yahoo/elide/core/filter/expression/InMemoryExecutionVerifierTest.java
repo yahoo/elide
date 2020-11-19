@@ -8,10 +8,9 @@ package com.yahoo.elide.core.filter.expression;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.filter.InPredicate;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.filter.predicates.InPredicate;
 import example.Author;
 import example.Book;
 import example.Editor;

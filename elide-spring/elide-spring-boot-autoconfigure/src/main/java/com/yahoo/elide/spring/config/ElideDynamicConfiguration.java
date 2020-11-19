@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.spring.config;
 
-import com.yahoo.elide.contrib.dynamicconfighelpers.compile.ElideDynamicEntityCompiler;
+import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.jpa.PersistenceUnitInfoImpl;
-import com.yahoo.elide.utils.ClassScanner;
+import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
 import org.hibernate.cfg.AvailableSettings;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;

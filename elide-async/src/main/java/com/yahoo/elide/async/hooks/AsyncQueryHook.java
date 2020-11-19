@@ -13,9 +13,9 @@ import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.AsyncQueryThread;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.graphql.QueryRunner;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.RequestScope;
 
 import java.util.Optional;
 
@@ -24,8 +24,8 @@ import java.util.Optional;
  */
 public class AsyncQueryHook extends AsyncAPIHook<AsyncQuery> {
 
-    public AsyncQueryHook (AsyncExecutorService asyncExecutorService) {
-        super(asyncExecutorService);
+    public AsyncQueryHook (AsyncExecutorService asyncExecutorService, Integer maxAsyncAfterSeconds) {
+        super(asyncExecutorService, maxAsyncAfterSeconds);
     }
 
     @Override
@@ -38,6 +38,8 @@ public class AsyncQueryHook extends AsyncAPIHook<AsyncQuery> {
 
     @Override
     public void validateOptions(AsyncAPI query, RequestScope requestScope) {
+        super.validateOptions(query, requestScope);
+
         if (query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
             QueryRunner runner = getAsyncExecutorService().getRunners().get(requestScope.getApiVersion());
             if (runner == null) {
