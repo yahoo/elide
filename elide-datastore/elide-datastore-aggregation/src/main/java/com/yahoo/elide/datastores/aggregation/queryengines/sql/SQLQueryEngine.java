@@ -71,7 +71,7 @@ public class SQLQueryEngine extends QueryEngine {
     private final Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
     public SQLQueryEngine(MetaDataStore metaDataStore,
-                    com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails defaultConnectionDetails) {
+                    com.yahoo.elide.modelconfig.compile.ConnectionDetails defaultConnectionDetails) {
         this(metaDataStore, defaultConnectionDetails, Collections.emptyMap());
     }
 
@@ -82,8 +82,8 @@ public class SQLQueryEngine extends QueryEngine {
      * @param detailsMap : Connection Name to DataSource Object and SQL Dialect Object mapping.
      */
     public SQLQueryEngine(MetaDataStore metaDataStore,
-                    com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails defaultConnectionDetails,
-                    Map<String, com.yahoo.elide.contrib.dynamicconfighelpers.compile.ConnectionDetails> detailsMap) {
+                    com.yahoo.elide.modelconfig.compile.ConnectionDetails defaultConnectionDetails,
+                    Map<String, com.yahoo.elide.modelconfig.compile.ConnectionDetails> detailsMap) {
 
         Preconditions.checkNotNull(defaultConnectionDetails);
         Preconditions.checkNotNull(detailsMap);
