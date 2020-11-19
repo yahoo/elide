@@ -51,7 +51,7 @@ public class DynamicConfigSchemaValidatorTest {
                 () -> testClass.verifySchema(Config.MODELVARIABLE, jsonConfig, "variables.hjson"));
         String expectedMessage = "Schema validation failed for: variables.hjson\n"
                         + "[ERROR]\n"
-                        + "object instance has properties which are not allowed by the schema: [\"schema$\"]";
+                        + "Instance[/cardinality] failed to validate against schema[/patternProperties/^.+$]. instance type (null) does not match any allowed primitive type (allowed: [\"array\",\"boolean\",\"integer\",\"number\",\"object\",\"string\"])";
         assertEquals(expectedMessage, e.getMessage());
     }
 
@@ -154,7 +154,15 @@ public class DynamicConfigSchemaValidatorTest {
                 () -> testClass.verifySchema(Config.SQLDBConfig, jsonConfig, "db_invalid.hjson"));
         String expectedMessage = "Schema validation failed for: db_invalid.hjson\n"
                         + "[ERROR]\n"
-                        + "Instance[/dbconfigs/1/url] failed to validate against schema[/properties/dbconfigs/items/properties/url]. ECMA 262 regex \"^jdbc:[0-9A-Za-z_]+:.*$\" does not match input string \"ojdbc:mysql://localhost/testdb?serverTimezone=UTC\"";
+                        + "Instance[/dbconfigs/0/driver] failed to validate against schema[/properties/dbconfigs/items/properties/driver]. Input value[11COM.ibm.db2.jdbc.net.DB2Driver] is not a valid Java class name.\n"
+                        + "[ERROR]\n"
+                        + "Instance[/dbconfigs/0/name] failed to validate against schema[/properties/dbconfigs/items/properties/name]. Name [11MyDB2Connection] is not allowed. Name must start with an alphabet and can include alaphabets, numbers and '_' only.\n"
+                        + "[ERROR]\n"
+                        + "Instance[/dbconfigs/0/propertyMap/hibernate.show_sql] failed to validate against schema[/properties/dbconfigs/items/properties/propertyMap/patternProperties/^.+$]. instance type (null) does not match any allowed primitive type (allowed: [\"array\",\"boolean\",\"integer\",\"number\",\"object\",\"string\"])\n"
+                        + "[ERROR]\n"
+                        + "Instance[/dbconfigs/1/dialect] failed to validate against schema[/properties/dbconfigs/items/properties/dialect]. instance type (integer) does not match any allowed primitive type (allowed: [\"string\"])\n"
+                        + "[ERROR]\n"
+                        + "Instance[/dbconfigs/1/url] failed to validate against schema[/properties/dbconfigs/items/properties/url]. Input value [ojdbc:mysql://localhost/testdb?serverTimezone=UTC] is not a valid JDBC url, it must start with 'jdbc:'.";
         assertEquals(expectedMessage, e.getMessage());
     }
 

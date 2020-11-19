@@ -1,10 +1,9 @@
 {
-    "$schema": "https://json-schema.org/draft-06/schema#",
-    "$id": "https://elide.io/schemas/security_schema_v1#",
+    "$schema": "https://json-schema.org/draft-04/schema#",
     "description": "Elide Security config json/hjson schema",
     "type": "object",
     "properties": {
-       "roles": {
+        "roles": {
             "title": "Security Roles",
             "description": "List of Roles that will map to security checks",
             "type": "array",
