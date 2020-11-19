@@ -294,7 +294,7 @@ public class SQLReferenceTable {
             } else {
                 FromTable fromTable = dictionary.getAnnotation(cls, FromTable.class);
 
-                return fromTable != null ? fromTable.name() : dictionary.getJsonAliasFor(cls);
+                return fromTable != null ? fromTable.name() : cls.getSimpleName();
             }
         }
     }
