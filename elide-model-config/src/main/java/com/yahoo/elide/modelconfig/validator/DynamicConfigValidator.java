@@ -11,6 +11,27 @@ import static com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler.isS
 import static com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler.staticModelHasField;
 import static com.yahoo.elide.modelconfig.parser.handlebars.HandlebarsHelper.REFERENCE_PARENTHESES;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import com.yahoo.elide.modelconfig.Config;
+import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
+import com.yahoo.elide.modelconfig.model.DBConfig;
+import com.yahoo.elide.modelconfig.model.Dimension;
+import com.yahoo.elide.modelconfig.model.ElideDBConfig;
+import com.yahoo.elide.modelconfig.model.ElideSQLDBConfig;
+import com.yahoo.elide.modelconfig.model.ElideSecurityConfig;
+import com.yahoo.elide.modelconfig.model.ElideTableConfig;
+import com.yahoo.elide.modelconfig.model.Join;
+import com.yahoo.elide.modelconfig.model.Measure;
+import com.yahoo.elide.modelconfig.model.Named;
+import com.yahoo.elide.modelconfig.model.Table;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.io.IOUtils;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import lombok.Data;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,30 +46,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import com.yahoo.elide.modelconfig.Config;
-import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
-import com.yahoo.elide.modelconfig.model.DBConfig;
-import com.yahoo.elide.modelconfig.model.Dimension;
-import com.yahoo.elide.modelconfig.model.ElideDBConfig;
-import com.yahoo.elide.modelconfig.model.ElideSQLDBConfig;
-import com.yahoo.elide.modelconfig.model.ElideSecurityConfig;
-import com.yahoo.elide.modelconfig.model.ElideTableConfig;
-import com.yahoo.elide.modelconfig.model.Join;
-import com.yahoo.elide.modelconfig.model.Measure;
-import com.yahoo.elide.modelconfig.model.Named;
-import com.yahoo.elide.modelconfig.model.Table;
-
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.io.IOUtils;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-
-import lombok.Data;
 
 @Data
 /**
