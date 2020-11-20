@@ -9,7 +9,7 @@
       measures : [
           {
             name : highScore
-            type : INTEGER
+            type : Text
             description : very awesome score
             definition: 'MAX({{score}})'
             queryPlanResolver: 'com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanResolver.class'
@@ -30,9 +30,9 @@
            definition : '{{create_on}}'
            grain:
             {
-             type : DAY
+             type : MONTH
              sql :  '''
-             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM')
              '''
             }
          },
