@@ -388,6 +388,8 @@ public abstract class SQLUnitTest {
     private static String getCompatabilityMode(String dialect) {
         if (dialect.equals(SQLDialectFactory.getMySQLDialect().getDialectType())) {
             return "MODE=MySQL;DATABASE_TO_LOWER=TRUE";
+        } else if (dialect.equals(SQLDialectFactory.getPostgresDialect().getDialectType())) {
+            return "MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE";
         }
 
         return "";
