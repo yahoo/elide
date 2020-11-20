@@ -35,6 +35,8 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
                         + "WHERE \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" IS NOT NULL";
         compareQueryLists(expectedQueryStr, engine.explain(TestQuery.WHERE_DIMS_ONLY.getQuery()));
+
+        testQueryExecution(TestQuery.WHERE_DIMS_ONLY.getQuery());
     }
 
     @Test
@@ -50,6 +52,8 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + " GROUP BY \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\"\n";
 
         compareQueryLists(expectedQueryStr, engine.explain(query));
+
+        testQueryExecution(TestQuery.WHERE_AND.getQuery());
     }
 
     @Test
@@ -65,6 +69,8 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + " GROUP BY \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\"\n";
 
         compareQueryLists(expectedQueryStr, engine.explain(query));
+
+        testQueryExecution(TestQuery.WHERE_OR.getQuery());
     }
 
     @Test
@@ -75,6 +81,8 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
                         + "HAVING MIN(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"lowScore\") > :XXX";
         compareQueryLists(expectedQueryStr, engine.explain(query));
+
+        testQueryExecution(TestQuery.HAVING_METRICS_ONLY.getQuery());
     }
 
     @Test
@@ -84,6 +92,9 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
                         + "HAVING \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" IS NOT NULL";
         compareQueryLists(expectedQueryStr, engine.explain(TestQuery.HAVING_DIMS_ONLY.getQuery()));
+
+        //Postgres does not allow HAVING on a column not in the GROUP BY list.
+        //testQueryExecution(TestQuery.HAVING_DIMS_ONLY.getQuery());
     }
 
     @Test
@@ -97,6 +108,8 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "HAVING (\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" IS NOT NULL "
                         + "AND MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") > :XXX)";
         compareQueryLists(expectedQueryStr, engine.explain(query));
+
+        testQueryExecution(TestQuery.HAVING_METRICS_AND_DIMS.getQuery());
     }
 
     @Test
@@ -110,10 +123,12 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "HAVING (\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" IS NOT NULL "
                         + "OR MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") > :XXX)";
         compareQueryLists(expectedQueryStr, engine.explain(query));
+
+        testQueryExecution(TestQuery.HAVING_METRICS_OR_DIMS.getQuery());
     }
 
     /*
-     * This test validates that generateCountDistinctClause() is called in the PrestoDialect (same as default/H2).
+     * This test validates that generateCountDistinctClause() is called in the PostgresDialect (same as default/H2).
      */
     @Test
     public void testExplainPagination() {
@@ -136,6 +151,8 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
         expectedQueryList.add(expectedQueryStr1);
         expectedQueryList.add(expectedQueryStr2);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.PAGINATION_TOTAL.getQuery()));
+
+        testQueryExecution(TestQuery.PAGINATION_TOTAL.getQuery());
     }
 
     @Test
@@ -146,6 +163,8 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "ORDER BY \"lowScore\" ASC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.SORT_METRIC_ASC.getQuery()));
+
+        testQueryExecution(TestQuery.SORT_METRIC_ASC.getQuery());
     }
 
     @Test
@@ -156,6 +175,8 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "ORDER BY \"lowScore\" DESC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.SORT_METRIC_DESC.getQuery()));
+
+        testQueryExecution(TestQuery.SORT_METRIC_DESC.getQuery());
     }
 
 
@@ -167,6 +188,8 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "ORDER BY \"overallRating\" DESC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.SORT_DIM_DESC.getQuery()));
+
+        testQueryExecution(TestQuery.SORT_DIM_DESC.getQuery());
     }
 
     @Test
@@ -179,6 +202,8 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "ORDER BY \"highScore\" DESC,\"overallRating\" DESC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.SORT_METRIC_AND_DIM_DESC.getQuery()));
+
+        testQueryExecution(TestQuery.SORT_METRIC_AND_DIM_DESC.getQuery());
     }
 
 
@@ -192,18 +217,22 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStatsView\"";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.SUBQUERY.getQuery()));
+
+        testQueryExecution(TestQuery.SUBQUERY.getQuery());
     }
 
-    /* TODO: Presto doesn't support this. To make this work, we'd need to push the ORDER BY field into the SELECT
-             then drop it before returning the data.
+    /* TODO: Postgres doesn't support this. To make this work, we'd need to push the ORDER BY field into the SELECT
+    then drop it before returning the data.
     @Test
     public void testExplainOrderByNotInSelect() {
         String expectedQueryStr =
-                "SELECT MAX(com_yahoo_elide_datastores_aggregation_example_PlayerStats.highScore) AS highScore "
-                        + "FROM playerStats AS com_yahoo_elide_datastores_aggregation_example_PlayerStats "
-                        + "ORDER BY com_yahoo_elide_datastores_aggregation_example_PlayerStats.overallRating DESC";
+                "SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\" "
+                        + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
+                        + "ORDER BY \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" DESC";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.ORDER_BY_DIMENSION_NOT_IN_SELECT.getQuery()));
+
+        testQueryExecution(TestQuery.ORDER_BY_DIMENSION_NOT_IN_SELECT.getQuery());
     }
     */
 
@@ -245,6 +274,8 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
         expectedQueryList.add(expectedQueryStr2);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
+
+        testQueryExecution(TestQuery.COMPLICATED.getQuery());
     }
 
     @Test
@@ -271,6 +302,8 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
         expectedQueryList.add(exptectedQueryStr);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
+
+        testQueryExecution(TestQuery.NESTED_METRIC_QUERY.getQuery());
     }
 
     @Test
@@ -298,6 +331,8 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
         expectedQueryList.add(exptectedQueryStr);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
+
+        testQueryExecution(TestQuery.SORT_DIM_DESC.getQuery());
     }
 
     @Test
@@ -326,6 +361,8 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
         expectedQueryList.add(exptectedQueryStr);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
+
+        testQueryExecution(TestQuery.NESTED_METRIC_WITH_WHERE_QUERY.getQuery());
     }
 
     @Test
@@ -365,6 +402,8 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
         expectedQueryList.add(exptectedQueryStr2);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
+
+        testQueryExecution(TestQuery.NESTED_METRIC_WITH_PAGINATION_QUERY.getQuery());
     }
 
     @Test
@@ -392,5 +431,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
         expectedQueryList.add(exptectedQueryStr);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
+
+        testQueryExecution(TestQuery.NESTED_METRIC_WITH_SORTING_QUERY.getQuery());
     }
 }
