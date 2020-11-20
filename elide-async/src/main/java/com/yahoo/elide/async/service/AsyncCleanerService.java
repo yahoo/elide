@@ -25,7 +25,7 @@ import javax.inject.Inject;
 @Slf4j
 public class AsyncCleanerService {
 
-    private final int defaultCleanupDelayMinutes = 360;
+    private final int defaultCleanupDelayMinutes = 120;
     private final int maxInitialDelayMinutes = 100;
     private static AsyncCleanerService asyncCleanerService = null;
 

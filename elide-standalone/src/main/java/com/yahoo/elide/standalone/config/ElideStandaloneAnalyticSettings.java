@@ -5,11 +5,10 @@
  */
 package com.yahoo.elide.standalone.config;
 
-import com.yahoo.elide.contrib.dynamicconfighelpers.DBPasswordExtractor;
-import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
 import com.yahoo.elide.datastores.aggregation.cache.CaffeineCache;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
-
+import com.yahoo.elide.modelconfig.DBPasswordExtractor;
+import com.yahoo.elide.modelconfig.model.DBConfig;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;

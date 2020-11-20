@@ -2,14 +2,14 @@
   dbconfigs:
   [
     {
-      name: MyDB2Connection
+      name: 11MyDB2Connection
       url: jdbc:db2:localhost:50000/testdb
-      driver: COM.ibm.db2.jdbc.net.DB2Driver
+      driver: 11COM.ibm.db2.jdbc.net.DB2Driver
       user: guestdb2
       dialect: com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.PrestoDBDialec
       propertyMap:
       {
-        hibernate.show_sql: true
+        hibernate.show_sql: null
         hibernate.default_batch_fetch_size: 100.1
         hibernate.hbm2ddl.auto: create
       }
@@ -19,7 +19,7 @@
       url: ojdbc:mysql://localhost/testdb?serverTimezone=UTC
       driver: com.mysql.jdbc.Driver
       user: guestmysql
-      dialect: com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.HiveDialect
+      dialect: 1234
     }
   ]
 }
