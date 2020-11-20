@@ -15,11 +15,13 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.yahoo.elide.contrib.dynamicconfighelpers.Config;
 import com.yahoo.elide.contrib.dynamicconfighelpers.DynamicConfigHelpers;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.DBConfig;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Dimension;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideDBConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSQLDBConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Join;
+import com.yahoo.elide.contrib.dynamicconfighelpers.model.Measure;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Named;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.Table;
 
@@ -36,6 +38,7 @@ import lombok.Data;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -140,31 +143,63 @@ public class DynamicConfigValidator {
         validateRequiredConfigsProvided();
         validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs());
         validateNameUniqueness(this.elideTableConfig.getTables());
+        populateInheritance(this.elideTableConfig);
         validateTableConfig(this.elideTableConfig);
         validateJoinedTablesDBConnectionName(this.elideTableConfig);
-        populateInheritanceHierarchy(this.elideTableConfig);
     }
 
-    private static void populateInheritanceHierarchy(ElideTableConfig elideTableConfig) {
+    private void populateInheritance(ElideTableConfig elideTableConfig) {
         for (Table table : elideTableConfig.getTables()) {
-
             if (table.hasParent()) {
-                Table parent = table.getParent(elideTableConfig);
-
-                table.getMeasures().forEach(measure -> {
-                    if (parent.hasField(elideTableConfig, measure.getName())) {
-                        measure.setOverride(true);
-                    }
-                });
-
-                table.getDimensions().forEach(dimension -> {
-                    if (parent.hasField(elideTableConfig, dimension.getName())) {
-                        dimension.setOverride(true);
-                    }
-                });
+                table.setMeasures(new ArrayList<Measure>(
+                        getInheritedMeasures(table, new HashSet<Measure>(), new HashSet<String>())));
+                table.setDimensions(new ArrayList<Dimension>(
+                        getInheritedDimensions(table, new HashSet<Dimension>(), new HashSet<String>())));
+                table.setJoins(new ArrayList<Join>(
+                        getInheritedJoins(table, new HashSet<Join>(), new HashSet<String>())));
             }
         }
     }
+
+    private Set<Measure> getInheritedMeasures(Table table, Set<Measure> measures, Set<String> measuresNames) {
+        table.getMeasures().forEach(m -> {
+            if (!measuresNames.contains(m.getName())) {
+                measures.add(m);
+                measuresNames.add(m.getName());
+            }
+        });
+        if (table.hasParent()) {
+            getInheritedMeasures(table.getParent(this.elideTableConfig), measures, measuresNames);
+        }
+        return measures;
+    }
+
+    private Set<Dimension> getInheritedDimensions(Table table, Set<Dimension> dimensions, Set<String> dimensionNames) {
+        table.getDimensions().forEach(dim -> {
+            if (!dimensionNames.contains(dim.getName())) {
+                dimensions.add(dim);
+                dimensionNames.add(dim.getName());
+            }
+        });
+        if (table.hasParent()) {
+            getInheritedDimensions(table.getParent(this.elideTableConfig), dimensions, dimensionNames);
+        }
+        return dimensions;
+    }
+
+    private Set<Join> getInheritedJoins(Table table, Set<Join> joins, Set<String> joinNames) {
+        table.getJoins().forEach(join -> {
+            if (!joinNames.contains(join.getName())) {
+                joins.add(join);
+                joinNames.add(join.getName());
+            }
+        });
+        if (table.hasParent()) {
+            getInheritedJoins(table.getParent(this.elideTableConfig), joins, joinNames);
+        }
+        return joins;
+    }
+
 
     /**
      * Add all Hjson resources under configDir in resourceMap.
