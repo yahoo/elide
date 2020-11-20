@@ -151,51 +151,50 @@ public class DynamicConfigValidator {
     private void populateInheritance(ElideTableConfig elideTableConfig) {
         for (Table table : elideTableConfig.getTables()) {
             if (table.hasParent()) {
-                table.setMeasures(new ArrayList<Measure>(
-                        getInheritedMeasures(table, new HashSet<Measure>(), new HashSet<String>())));
-                table.setDimensions(new ArrayList<Dimension>(
-                        getInheritedDimensions(table, new HashSet<Dimension>(), new HashSet<String>())));
-                table.setJoins(new ArrayList<Join>(
-                        getInheritedJoins(table, new HashSet<Join>(), new HashSet<String>())));
+                Map<String, Measure> measures = getInheritedMeasures(table, new HashMap<String, Measure>());
+                table.setMeasures(new ArrayList<Measure>(measures.values()));
+
+                Map<String, Dimension> dimensions = getInheritedDimensions(table, new HashMap<String, Dimension>());
+                table.setDimensions(new ArrayList<Dimension>(dimensions.values()));
+
+                Map<String, Join> joins = getInheritedJoins(table, new HashMap<String, Join>());
+                table.setJoins(new ArrayList<Join>(joins.values()));
             }
         }
     }
 
-    private Set<Measure> getInheritedMeasures(Table table, Set<Measure> measures, Set<String> measuresNames) {
+    private Map<String, Measure> getInheritedMeasures(Table table, Map<String, Measure> measures) {
         table.getMeasures().forEach(m -> {
-            if (!measuresNames.contains(m.getName())) {
-                measures.add(m);
-                measuresNames.add(m.getName());
+            if (!measures.containsKey(m.getName())) {
+                measures.put(m.getName(), m);
             }
         });
         if (table.hasParent()) {
-            getInheritedMeasures(table.getParent(this.elideTableConfig), measures, measuresNames);
+            getInheritedMeasures(table.getParent(this.elideTableConfig), measures);
         }
         return measures;
     }
 
-    private Set<Dimension> getInheritedDimensions(Table table, Set<Dimension> dimensions, Set<String> dimensionNames) {
+    private Map<String, Dimension> getInheritedDimensions(Table table, Map<String, Dimension> dimensions) {
         table.getDimensions().forEach(dim -> {
-            if (!dimensionNames.contains(dim.getName())) {
-                dimensions.add(dim);
-                dimensionNames.add(dim.getName());
+            if (!dimensions.containsKey(dim.getName())) {
+                dimensions.put(dim.getName(), dim);
             }
         });
         if (table.hasParent()) {
-            getInheritedDimensions(table.getParent(this.elideTableConfig), dimensions, dimensionNames);
+            getInheritedDimensions(table.getParent(this.elideTableConfig), dimensions);
         }
         return dimensions;
     }
 
-    private Set<Join> getInheritedJoins(Table table, Set<Join> joins, Set<String> joinNames) {
+    private Map<String, Join> getInheritedJoins(Table table, Map<String, Join> joins) {
         table.getJoins().forEach(join -> {
-            if (!joinNames.contains(join.getName())) {
-                joins.add(join);
-                joinNames.add(join.getName());
+            if (!joins.containsKey(join.getName())) {
+                joins.put(join.getName(), join);
             }
         });
         if (table.hasParent()) {
-            getInheritedJoins(table.getParent(this.elideTableConfig), joins, joinNames);
+            getInheritedJoins(table.getParent(this.elideTableConfig), joins);
         }
         return joins;
     }
