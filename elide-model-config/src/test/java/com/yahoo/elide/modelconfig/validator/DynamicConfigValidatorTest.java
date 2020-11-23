@@ -11,9 +11,30 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.yahoo.elide.modelconfig.model.Table;
+
 import org.junit.jupiter.api.Test;
 
 public class DynamicConfigValidatorTest {
+
+    @Test
+    public void testValidInheritanceConfig() throws Exception {
+        DynamicConfigValidator testClass = new DynamicConfigValidator("src/test/resources/validator/valid");
+        testClass.readAndValidateConfigs();
+        Table parent = testClass.getElideTableConfig().getTable("PlayerStats");
+        Table child = testClass.getElideTableConfig().getTable("PlayerStatsChild");
+
+        // parent class dim + 3 new in child class + 2 overridden
+        assertEquals(parent.getDimensions().size(), 4);
+        assertEquals(child.getDimensions().size(), parent.getDimensions().size() + 3);
+
+        // parent class measure + 1 new in child class
+        assertEquals(parent.getMeasures().size(), 2);
+        assertEquals(child.getMeasures().size(), parent.getMeasures().size() + 1);
+
+        // no new joins in child class, will inherit parent class joins
+        assertEquals(parent.getJoins().size(), child.getJoins().size());
+    }
 
     @Test
     public void testHelpArgumnents() {
