@@ -79,6 +79,8 @@ Alternatively, use [elide-standalone](https://github.com/yahoo/elide/tree/master
 
 ## Usage 
 
+The following examples leverage elide 5 (now in pre-release).  For documentation on prior/stable versions, visit [here](https://elide.io/pages/guide/v4/01-start.html).
+
 ### For CRUD APIs
 
 The simplest way to use Elide is by leveraging [JPA](https://en.wikipedia.org/wiki/Java_Persistence_API) to map your Elide models to persistence:
