@@ -9,16 +9,32 @@ import static com.github.stefanbirkner.systemlambda.SystemLambda.catchSystemExit
 import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemErr;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import com.yahoo.elide.modelconfig.model.Dimension;
-import com.yahoo.elide.modelconfig.model.Measure;
+
 import com.yahoo.elide.modelconfig.model.Table;
+
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-
 public class DynamicConfigValidatorTest {
+
+    @Test
+    public void testValidInheritanceConfig() throws Exception {
+        DynamicConfigValidator testClass = new DynamicConfigValidator("src/test/resources/validator/valid");
+        testClass.readAndValidateConfigs();
+        Table parent = testClass.getElideTableConfig().getTable("PlayerStats");
+        Table child = testClass.getElideTableConfig().getTable("PlayerStatsChild");
+
+        // parent class dim + 3 new in child class + 2 overridden
+        assertEquals(parent.getDimensions().size(), 4);
+        assertEquals(child.getDimensions().size(), parent.getDimensions().size() + 3);
+
+        // parent class measure + 1 new in child class
+        assertEquals(parent.getMeasures().size(), 2);
+        assertEquals(child.getMeasures().size(), parent.getMeasures().size() + 1);
+
+        // no new joins in child class, will inherit parent class joins
+        assertEquals(parent.getJoins().size(), child.getJoins().size());
+    }
 
     @Test
     public void testHelpArgumnents() {
@@ -72,35 +88,6 @@ public class DynamicConfigValidatorTest {
         });
 
         assertTrue(error.contains("config path does not exist"));
-    }
-
-    @Test
-    public void testValidConfigDir() throws IOException {
-        DynamicConfigValidator validator = new DynamicConfigValidator("src/test/resources/validator/valid");
-        validator.readAndValidateConfigs();
-        for (Table t : validator.getElideTableConfig().getTables()) {
-            if (t.getName().equals("PlayerStatsChild")) {
-                // test override flag for measures
-                for (Measure m : t.getMeasures()) {
-                    if (m.getName().equals("highScore")) {
-                        assertTrue(m.isOverride());
-                    }
-                    else if (m.getName().equals("AvgScore")) {
-                        assertFalse(m.isOverride());
-                    }
-                }
-                // test override flag for dimensions
-                for (Dimension dim : t.getDimensions()) {
-                    if (dim.getName().equals("createdOn")) {
-                        assertTrue(dim.isOverride());
-                    }
-                    else if (dim.getName().equals("updatedMonth")) {
-                        assertFalse(dim.isOverride());
-                    }
-                }
-                break;
-            }
-        }
     }
 
     @Test
