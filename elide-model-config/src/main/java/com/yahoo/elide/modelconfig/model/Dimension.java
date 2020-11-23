@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.modelconfig.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -80,9 +79,6 @@ public class Dimension implements Named {
 
     @JsonProperty("tableSource")
     private String tableSource;
-
-    @JsonIgnore
-    private boolean override = false;
 
     /**
      * Returns description of the dimension.
