@@ -102,7 +102,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     @Override
     public String toString() {
-        return String.format("PersistentResource{type=%s, id=%s}", type, uuid.orElse(getId()));
+        return String.format("PersistentResource{type=%s, id=%s}", type, uuid.orElseGet(this::getId));
     }
 
     /**
@@ -365,7 +365,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         Set<String> foundIds = new HashSet<>();
 
         allResources = allResources.doOnNext((resource) -> {
-            String id = (String) (resource.getUUID().orElseGet(resource::getId));
+            String id = (String) resource.getUUID().orElseGet(resource::getId);
             if (ids.contains(id)) {
                 foundIds.add(id);
             }
@@ -718,7 +718,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             return false;
         }
         if (relation instanceof Collection) {
-            return ((Collection) relation).stream().anyMatch((obj -> toAddId.equals(dictionary.getId(obj))));
+            return ((Collection) relation).stream().anyMatch(obj -> toAddId.equals(dictionary.getId(obj)));
         }
         return toAddId.equals(dictionary.getId(relation));
     }

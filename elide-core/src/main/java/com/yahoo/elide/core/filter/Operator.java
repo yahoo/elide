@@ -379,7 +379,7 @@ public enum Operator {
             Object val = getFieldValue(entity, fieldPath, requestScope);
             Object filterStr = fieldPath.lastElement()
                     .map(last -> CoerceUtil.coerce(values.get(0), last.getFieldType()))
-                    .orElse(CoerceUtil.coerce(values.get(0), String.class));
+                    .orElseGet(() -> CoerceUtil.coerce(values.get(0), String.class));
 
             if (val == null) {
                 return false;

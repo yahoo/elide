@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLEnumType;
+import graphql.schema.GraphQLEnumValueDefinition;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLList;
@@ -226,7 +227,7 @@ public class ModelBuilderTest {
     private boolean validateEnum(Class<?> expected, GraphQLEnumType actual) {
         Enum [] values = (Enum []) expected.getEnumConstants();
         Set<String> enumNames = actual.getValues().stream()
-                .map((value) -> value.getName())
+                .map(GraphQLEnumValueDefinition::getName)
                 .collect(Collectors.toSet());
 
         for (Enum value : values) {

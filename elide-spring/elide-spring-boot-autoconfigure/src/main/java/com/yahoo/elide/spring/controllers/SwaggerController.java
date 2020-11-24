@@ -86,7 +86,7 @@ public class SwaggerController {
 
         final List<String> documentPaths = documents.keySet().stream()
                 .filter(key -> key.getLeft().equals(apiVersion))
-                .map(key -> key.getRight())
+                .map(Pair::getRight)
                 .collect(Collectors.toList());
 
         return new Callable<ResponseEntity<String>>() {
