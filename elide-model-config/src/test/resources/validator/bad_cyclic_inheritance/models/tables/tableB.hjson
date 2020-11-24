@@ -1,0 +1,18 @@
+{
+  tables:
+  [
+    {
+      name: B
+      extend: A
+      description: B extends A (which extends B) - an invalid cycle.
+      measures : [
+          {
+            name : count
+            type : Integer
+            description : A simple count
+            definition: 'COUNT(*)'
+          }
+      ]
+    }
+  ]
+}

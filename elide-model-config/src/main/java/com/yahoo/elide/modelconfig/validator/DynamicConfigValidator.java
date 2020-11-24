@@ -140,9 +140,32 @@ public class DynamicConfigValidator {
         validateRequiredConfigsProvided();
         validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs());
         validateNameUniqueness(this.elideTableConfig.getTables());
+        validateInheritanceCycles(this.elideTableConfig);
         populateInheritance(this.elideTableConfig);
         validateTableConfig(this.elideTableConfig);
         validateJoinedTablesDBConnectionName(this.elideTableConfig);
+    }
+
+    private void validateInheritanceCycles(ElideTableConfig tables) {
+        tables.getTables().stream().forEach(table -> {
+            validateInheritanceCycles(tables, table, new HashSet<>());
+        });
+    }
+
+    private void validateInheritanceCycles(ElideTableConfig tables, Table table, Set<Table> visited) {
+        visited.add(table);
+
+        if (!table.hasParent()) {
+            return;
+        }
+        Table parent = table.getParent(tables);
+        if (visited.contains(parent)) {
+            throw new IllegalStateException(
+                    String.format("Inheriting from table '%s' creates an illegal cyclic dependency.",
+                            parent.getName()));
+        } else {
+            validateInheritanceCycles(tables, parent, visited);
+        }
     }
 
     private void populateInheritance(ElideTableConfig elideTableConfig) {
@@ -522,7 +545,7 @@ public class DynamicConfigValidator {
 
     /**
      * Checks if input string has any of the disallowed words.
-     * @param String input string to validate
+     * @param str input string to validate
      * @param keywords Array of disallowed words
      * @return boolean true if input string does not contain any of the keywords
      *         else false
@@ -533,7 +556,7 @@ public class DynamicConfigValidator {
 
     /**
      * Checks if any word in the input string matches any of the disallowed words.
-     * @param String input string to validate
+     * @param str input string to validate
      * @param splitter regex for splitting input string
      * @param keywords Set of disallowed words
      * @return boolean true if any word in the input string matches any of the
