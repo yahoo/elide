@@ -67,13 +67,23 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
-    public void testStaticTableDimensions() {
+    public void testStaticTableRelationshipsAreExcluded() {
         given()
                 .accept("application/vnd.api+json")
                 .get("/table/book/dimensions")
                 .then()
                 .body("data.id", containsInAnyOrder("book.language", "book.id",
                         "book.chapterCount", "book.publishDate", "book.editorName", "book.title", "book.genre"))
+                .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void testStaticComplexAttributesAreExcluded() {
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/embedded/dimensions")
+                .then()
+                .body("data.id", containsInAnyOrder("embedded.id"))
                 .statusCode(HttpStatus.SC_OK);
     }
 
