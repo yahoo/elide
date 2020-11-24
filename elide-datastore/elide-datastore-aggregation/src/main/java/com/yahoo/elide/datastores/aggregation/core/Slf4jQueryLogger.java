@@ -57,7 +57,7 @@ public class Slf4jQueryLogger implements QueryLogger {
             ObjectNode queryParamNode = rootNode.putObject("queryParams");
             queryParams.get().forEach((key, values) -> {
                 ArrayNode listNode = queryParamNode.putArray(key.toString());
-                values.stream().forEach((value) -> listNode.add(value));
+                values.stream().forEach(listNode::add);
             });
         }
 
@@ -77,7 +77,7 @@ public class Slf4jQueryLogger implements QueryLogger {
 
         rootNode.put(ID, queryId.toString());
         ArrayNode dbQueryNode = rootNode.putArray("queries");
-        apiQuery.stream().forEach((dbQuery) -> dbQueryNode.add(dbQuery));
+        apiQuery.stream().forEach(dbQueryNode::add);
         rootNode.put("isCached", isCached);
         logger.log("QUERY RUNNING: {}", rootNode);
     }
