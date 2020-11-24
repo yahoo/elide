@@ -2,7 +2,6 @@
   roles:
   [
     admin
-    operator
     guest user
   ]
 }

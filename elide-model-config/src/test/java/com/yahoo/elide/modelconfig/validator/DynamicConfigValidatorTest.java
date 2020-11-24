@@ -7,7 +7,6 @@ package com.yahoo.elide.modelconfig.validator;
 
 import static com.github.stefanbirkner.systemlambda.SystemLambda.catchSystemExit;
 import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemErr;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -37,9 +36,18 @@ public class DynamicConfigValidatorTest {
     }
 
     @Test
-    public void testHelpArgumnents() {
-        assertDoesNotThrow(() -> DynamicConfigValidator.main(new String[] { "-h" }));
-        assertDoesNotThrow(() -> DynamicConfigValidator.main(new String[] { "--help" }));
+    public void testHelpArgumnents() throws Exception {
+        tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() ->
+                    DynamicConfigValidator.main(new String[] { "-h" }));
+            assertEquals(0, exitStatus);
+        });
+
+        tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() ->
+                    DynamicConfigValidator.main(new String[] { "--help" }));
+            assertEquals(0, exitStatus);
+        });
     }
 
     @Test
@@ -91,15 +99,21 @@ public class DynamicConfigValidatorTest {
     }
 
     @Test
-    public void testMissingVariableConfig() {
-        assertDoesNotThrow(() -> DynamicConfigValidator
-                .main(new String[] { "--configDir", "src/test/resources/validator/missing_variable" }));
+    public void testMissingVariableConfig() throws Exception {
+        tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() ->
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/missing_variable" }));
+            assertEquals(0, exitStatus);
+        });
     }
 
     @Test
-    public void testMissingSecurityConfig() {
-        assertDoesNotThrow(() -> DynamicConfigValidator
-                .main(new String[] { "--configDir", "src/test/resources/validator/missing_security" }));
+    public void testMissingSecurityConfig() throws Exception {
+        tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() ->
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/missing_security" }));
+            assertEquals(0, exitStatus);
+        });
     }
 
     @Test
@@ -114,9 +128,12 @@ public class DynamicConfigValidatorTest {
     }
 
     @Test
-    public void testMissingTableConfig() {
-        assertDoesNotThrow(() -> DynamicConfigValidator
-                        .main(new String[] { "--configDir", "src/test/resources/validator/missing_table_config" }));
+    public void testMissingTableConfig() throws Exception {
+        tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() ->
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/missing_table_config" }));
+            assertEquals(0, exitStatus);
+        });
     }
 
     @Test
@@ -177,6 +194,17 @@ public class DynamicConfigValidatorTest {
         });
 
         assertEquals("ROLE provided in security config contain one of these words: [,]\n", error);
+    }
+
+    @Test
+    public void testBadSecurityChecks() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() ->
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_security_check" }));
+            assertEquals(2, exitStatus);
+        });
+
+        assertEquals("Found undefined security checks: [Principal is member, Principal is user, Principal is guest]\n", error);
     }
 
     @Test
