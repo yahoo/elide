@@ -225,7 +225,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     }
 
     public boolean isNewResource(Object entity) {
-        return newPersistentResources.stream().filter(r -> r.getObject() == entity).findAny().isPresent();
+        return newPersistentResources.stream().anyMatch(r -> r.getObject() == entity);
     }
 
     /**
