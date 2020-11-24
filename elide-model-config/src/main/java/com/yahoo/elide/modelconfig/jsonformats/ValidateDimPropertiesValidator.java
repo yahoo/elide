@@ -27,8 +27,9 @@ import java.util.Set;
  */
 public class ValidateDimPropertiesValidator extends AbstractKeywordValidator {
 
-    private static final Set<String> ALL_DIM_PROPERTIES = new HashSet<>(Arrays.asList("name", "description", "category",
-                    "hidden", "readAccess", "definition", "cardinality", "tags", "type", "values", "tableSource"));
+    private static final Set<String> ALL_DIM_PROPERTIES = new HashSet<>(Arrays.asList("name", "friendlyName",
+            "description", "category", "hidden", "readAccess", "definition", "cardinality", "tags", "type",
+            "values", "tableSource"));
 
     public static final String KEYWORD = "validateDimensionProperties";
     public static final String ATMOST_ONE_KEY = "validateDimensionProperties.error.atmostOne";
