@@ -60,8 +60,8 @@ public class ClassScanner {
         try (ScanResult scanResult = new ClassGraph().enableClassInfo().enableAnnotationInfo().scan()) {
             for (Class<? extends Annotation> annotation : annotations) {
                 result.addAll(scanResult.getClassesWithAnnotation(annotation.getCanonicalName()).stream()
-                        .map((ClassInfo::loadClass))
-                        .filter(clazz -> filter.include(clazz))
+                        .map(ClassInfo::loadClass)
+                        .filter(filter::include)
                         .collect(Collectors.toSet()));
             }
         }

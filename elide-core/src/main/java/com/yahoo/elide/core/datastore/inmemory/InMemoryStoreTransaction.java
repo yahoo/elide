@@ -288,8 +288,8 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         }
 
         Map<Path, Sorting.SortOrder> sortRules = sorting
-                .map((s) -> s.getSortingPaths())
-                .orElse(new HashMap<>());
+                .map(Sorting::getSortingPaths)
+                .orElseGet(HashMap::new);
 
         // No sorting required for this type & no pagination.
         if (sortRules.isEmpty() && ! pagination.isPresent()) {

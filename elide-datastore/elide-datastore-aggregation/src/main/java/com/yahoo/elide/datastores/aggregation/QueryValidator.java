@@ -154,7 +154,7 @@ public class QueryValidator {
         Class<?> currentClass = currentElement.getType();
 
         // TODO: support sorting using alias
-        if (allFields.stream().noneMatch(field -> field.equals(currentField))) {
+        if (allFields.stream().noneMatch(currentField::equals)) {
             throw new InvalidOperationException("Can not sort on " + currentField + " as it is not present in query");
         }
         if (dictionary.getIdFieldName(currentClass).equals(currentField)

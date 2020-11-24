@@ -61,7 +61,7 @@ public class EntityProjectionMaker
 
     public EntityProjectionMaker(EntityDictionary dictionary, RequestScope scope) {
         this.dictionary = dictionary;
-        this.queryParams = scope.getQueryParams().orElse(new MultivaluedHashMap<>());
+        this.queryParams = scope.getQueryParams().orElseGet(MultivaluedHashMap::new);
         sparseFields = RequestScope.parseSparseFields(queryParams);
         this.scope = scope;
     }
