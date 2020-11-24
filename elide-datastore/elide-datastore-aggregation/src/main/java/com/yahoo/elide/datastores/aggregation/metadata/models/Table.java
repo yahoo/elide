@@ -49,6 +49,8 @@ public abstract class Table implements Versioned  {
 
     private final String name;
 
+    private final String friendlyName;
+
     private final String category;
 
     @Exclude
@@ -120,12 +122,16 @@ public abstract class Table implements Versioned  {
                 .collect(Collectors.toSet());
 
         if (meta != null) {
+            this.friendlyName = meta.friendlyName() != null && !meta.friendlyName().isEmpty()
+                    ? meta.friendlyName()
+                    : name;
             this.description = meta.description();
             this.category = meta.category();
             this.requiredFilter = meta.filterTemplate();
             this.tags = new HashSet<>(Arrays.asList(meta.tags()));
             this.cardinality = meta.size();
         } else {
+            this.friendlyName = name;
             this.description = null;
             this.category = null;
             this.requiredFilter = null;

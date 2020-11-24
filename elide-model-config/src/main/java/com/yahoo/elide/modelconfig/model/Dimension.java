@@ -24,6 +24,7 @@ import java.util.Set;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "name",
+    "friendlyName",
     "description",
     "category",
     "hidden",
@@ -44,6 +45,9 @@ public class Dimension implements Named {
 
     @JsonProperty("name")
     private String name;
+
+    @JsonProperty("friendlyName")
+    private String friendlyName;
 
     @JsonProperty("description")
     private String description;

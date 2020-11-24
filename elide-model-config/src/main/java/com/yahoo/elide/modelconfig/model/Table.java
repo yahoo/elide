@@ -25,6 +25,7 @@ import java.util.Set;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "name",
+    "friendlyName",
     "schema",
     "isFact",
     "hidden",
@@ -49,6 +50,9 @@ public class Table implements Named {
 
     @JsonProperty("name")
     private String name;
+
+    @JsonProperty("friendlyName")
+    private String friendlyName;
 
     @JsonProperty("schema")
     private String schema;

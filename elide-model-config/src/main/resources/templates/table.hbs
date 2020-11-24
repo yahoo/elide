@@ -42,6 +42,7 @@ import javax.persistence.Id;
 <%/if%>
 <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
 @TableMeta(
+    <%#if friendlyName%>friendlyName = "<%friendlyName%>",<%/if%>
     <%#if cardinality%>size = CardinalitySize.<%#toUpperCase cardinality%><%/toUpperCase%>,<%/if%>
     description = "<%description%>",
     category="<%category%>",
@@ -76,6 +77,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%>{
 <%/ifTypeMatches%>
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
     @ColumnMeta(
+        <%#if friendlyName%>friendlyName = "<%friendlyName%>",<%/if%>
         <%#if cardinality%>size = CardinalitySize.<%#toUpperCase cardinality%><%/toUpperCase%>,<%/if%>
         description = "<%description%>",
         category="<%category%>",
@@ -136,6 +138,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%>{
     @MetricFormula(value="<%#trimColumnReferences definition%><%/trimColumnReferences%>"<%#if queryPlanResolver%>, queryPlan=<%queryPlanResolver%><%/if%>)
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
     @ColumnMeta(
+        <%#if friendlyName%>friendlyName = "<%friendlyName%>",<%/if%>
         description = "<%description%>",
         category="<%category%>",
         tags={<%#collectionToString tags%><%/collectionToString%>}

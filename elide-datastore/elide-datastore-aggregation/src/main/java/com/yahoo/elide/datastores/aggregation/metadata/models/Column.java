@@ -41,6 +41,8 @@ public abstract class Column implements Versioned {
 
     private final String name;
 
+    private final String friendlyName;
+
     private final String category;
 
     private final String description;
@@ -76,6 +78,9 @@ public abstract class Column implements Versioned {
 
         ColumnMeta meta = dictionary.getAttributeOrRelationAnnotation(tableClass, ColumnMeta.class, fieldName);
         if (meta != null) {
+            this.friendlyName = meta.friendlyName() != null && !meta.friendlyName().isEmpty()
+                    ? meta.friendlyName()
+                    : name;
             this.description = meta.description();
             this.category = meta.category();
             this.values = new HashSet<>(Arrays.asList(meta.values()));
@@ -84,6 +89,7 @@ public abstract class Column implements Versioned {
             this.valueSourceType = getValueSourceType();
             this.cardinality = meta.size();
         } else {
+            this.friendlyName = name;
             this.description = null;
             this.category = null;
             this.values = null;
