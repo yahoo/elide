@@ -17,6 +17,7 @@ import com.yahoo.elide.core.utils.TypeHelper;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -154,7 +155,10 @@ public abstract class Table implements Versioned  {
      */
     private Set<Column> constructColumns(Class<?> cls, EntityDictionary dictionary) {
         Set<Column> columns =  dictionary.getAllFields(cls).stream()
-                .filter(field -> getValueType(cls, field, dictionary) != null)
+                .filter(field -> {
+                    ValueType valueType = getValueType(cls, field, dictionary);
+                    return valueType != null && valueType != ValueType.RELATIONSHIP;
+                })
                 .map(field -> {
                     if (isMetricField(dictionary, cls, field)) {
                         return constructMetric(field, dictionary);
