@@ -38,4 +38,12 @@ public class ElideSecurityConfig {
     @JsonProperty("rules")
     @JsonDeserialize(as = LinkedHashSet.class)
     private Set<Rule> rules = new LinkedHashSet<Rule>();
+
+    public boolean hasCheckDefined(String role) {
+
+        return roles
+                   .stream()
+                   .map(r -> "Principal is " + r)
+                   .anyMatch(role::equals);
+    }
 }

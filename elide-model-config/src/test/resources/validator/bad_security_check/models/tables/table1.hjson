@@ -1,0 +1,23 @@
+{
+  tables: [{
+      name: PlayerStats
+      table: PlayerStats
+      // undefined security role: guest
+      readAccess : Principal is guest
+      dimensions : [
+         {
+           name : name
+           type : TEXT
+           definition : '{{name}}'
+           // undefined security roles: user & member
+           readAccess : Principal is user AND Principal is member
+         },
+         {
+           name : region
+           type : TEXT
+           definition : '{{region}}'
+           readAccess : Prefab.Role.None
+         }
+      ]
+  }]
+}

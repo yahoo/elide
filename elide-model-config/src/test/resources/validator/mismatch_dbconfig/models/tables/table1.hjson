@@ -10,7 +10,6 @@
       '''
       cardinality : large
       hidden : false
-      readAccess : A user is admin or is a player in the game
       joins: [
           {
              name: playerCountry

@@ -25,6 +25,7 @@ import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
+import com.yahoo.elide.datastores.aggregation.checks.PrincipalIsOperator;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
@@ -53,6 +54,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -86,6 +88,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
                     try {
                         dictionary.addSecurityChecks(COMPILER.findAnnotatedClasses(SecurityCheck.class));
+                        dictionary.addSecurityChecks(Collections.singleton(PrincipalIsOperator.class));
                     } catch (ClassNotFoundException e) {
                     }
 

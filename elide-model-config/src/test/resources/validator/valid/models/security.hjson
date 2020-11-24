@@ -3,6 +3,7 @@
         admin
         guest
         member
+        user
         ]
     rules: [
         {

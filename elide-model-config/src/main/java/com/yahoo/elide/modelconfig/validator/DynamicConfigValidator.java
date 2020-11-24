@@ -11,6 +11,8 @@ import static com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler.isS
 import static com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler.staticModelHasField;
 import static com.yahoo.elide.modelconfig.parser.handlebars.HandlebarsHelper.REFERENCE_PARENTHESES;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.EntityPermissions;
 import com.yahoo.elide.modelconfig.Config;
 import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
 import com.yahoo.elide.modelconfig.model.DBConfig;
@@ -23,6 +25,8 @@ import com.yahoo.elide.modelconfig.model.Join;
 import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Named;
 import com.yahoo.elide.modelconfig.model.Table;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -39,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -106,7 +111,7 @@ public class DynamicConfigValidator {
 
             if (cli.hasOption("help")) {
                 printHelp(options);
-                return;
+                System.exit(0);
             }
             if (!cli.hasOption("configDir")) {
                 printHelp(options);
@@ -123,6 +128,7 @@ public class DynamicConfigValidator {
         }
 
         System.out.println("Configs Validation Passed!");
+        System.exit(0);
     }
 
     /**
@@ -141,7 +147,7 @@ public class DynamicConfigValidator {
         validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs());
         validateNameUniqueness(this.elideTableConfig.getTables());
         populateInheritance(this.elideTableConfig);
-        validateTableConfig(this.elideTableConfig);
+        validateTableConfig(this.elideTableConfig, this.elideSecurityConfig);
         validateJoinedTablesDBConnectionName(this.elideTableConfig);
     }
 
@@ -335,7 +341,9 @@ public class DynamicConfigValidator {
      * @param elideTableConfig ElideTableConfig
      * @return boolean true if all provided table properties passes validation
      */
-    private static boolean validateTableConfig(ElideTableConfig elideTableConfig) {
+    private static boolean validateTableConfig(ElideTableConfig elideTableConfig,
+                    ElideSecurityConfig elideSecurityConfig) {
+        Set<String> extractedChecks = new HashSet<>();
         for (Table table : elideTableConfig.getTables()) {
 
             validateExtend(elideTableConfig, table.getExtend());
@@ -346,20 +354,72 @@ public class DynamicConfigValidator {
                 validateFieldNameUniqueness(tableFields, dim.getName(), table.getName());
                 validateSql(dim.getDefinition());
                 validateTableSource(elideTableConfig, dim.getTableSource());
+                extractChecksFromExpr(dim.getReadAccess(), extractedChecks);
             });
 
             table.getMeasures().forEach(measure -> {
                 validateFieldNameUniqueness(tableFields, measure.getName(), table.getName());
                 validateSql(measure.getDefinition());
+                extractChecksFromExpr(measure.getReadAccess(), extractedChecks);
             });
 
             table.getJoins().forEach(join -> {
                 validateFieldNameUniqueness(tableFields, join.getName(), table.getName());
                 validateJoin(join, elideTableConfig);
             });
+
+            extractChecksFromExpr(table.getReadAccess(), extractedChecks);
+            validateChecks(extractedChecks, elideSecurityConfig);
         }
 
         return true;
+    }
+
+    private static void validateChecks(Set<String> checks, ElideSecurityConfig elideSecurityConfig) {
+
+        if (checks.isEmpty()) {
+            return; // Nothing to validate
+        }
+
+        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        dictionary.scanForSecurityChecks();
+        Set<String> staticChecks = dictionary.getCheckMappings().keySet();
+
+        List<String> undefinedChecks = checks
+                        .stream()
+                        .filter(check -> !(elideSecurityConfig.hasCheckDefined(check) || staticChecks.contains(check)))
+                        .collect(Collectors.toList());
+
+        if (!undefinedChecks.isEmpty()) {
+            throw new IllegalStateException("Found undefined security checks: " + undefinedChecks);
+        }
+    }
+
+    private static void extractChecksFromExpr(String readAccess, Set<String> extractedChecks) {
+
+        if (!isNullOrEmpty(readAccess)) {
+            ParseTree root = EntityPermissions.parseExpression(readAccess);
+            extractChecksFromTree(root, extractedChecks);
+        }
+    }
+
+    private static void extractChecksFromTree(ParseTree root, Set<String> extractedChecks) {
+
+        if (root == null || root.getChildCount() == 0) {
+            return;
+        }
+
+        boolean allChildrenAreTerminalNodes = true;
+        for (int i = 0; i < root.getChildCount(); i++) {
+            if (!(root.getChild(i) instanceof TerminalNodeImpl)) {
+                allChildrenAreTerminalNodes = false;
+                extractChecksFromTree(root.getChild(i), extractedChecks);
+            }
+        }
+
+        if (allChildrenAreTerminalNodes) {
+            extractedChecks.add(root.getText());
+        }
     }
 
     private static void validateFieldNameUniqueness(Set<String> alreadyFoundFields, String fieldName,
@@ -574,7 +634,7 @@ public class DynamicConfigValidator {
     private static void printHelp(Options options) {
         HelpFormatter formatter = new HelpFormatter();
         formatter.printHelp(
-                "java -cp <Jar File> com.yahoo.elide.contrib.dynamicconfighelpers.validator.DynamicConfigValidator",
+                "java -cp <Jar File> com.yahoo.elide.modelconfig.validator.DynamicConfigValidator",
                 options);
     }
 
