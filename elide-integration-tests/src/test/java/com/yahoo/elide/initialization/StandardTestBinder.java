@@ -63,6 +63,7 @@ public class StandardTestBinder extends AbstractBinder {
                         .withSubqueryFilterDialect(multipleFilterStrategy)
                         .withEntityDictionary(dictionary)
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
+                        .withJpaEntityGraphHint(true)
                         .build());
             }
 

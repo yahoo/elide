@@ -43,4 +43,5 @@ public class ElideSettings {
     @Getter private final int updateStatusCode;
     @Getter private final Map<Class, Serde> serdes;
     @Getter private final boolean enableJsonLinks;
+    @Getter private final boolean useJpaEntityGraphHint;
 }

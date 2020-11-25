@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.jpa.transaction;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.RelationshipType;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.filter.FilterPredicate;
@@ -23,6 +24,7 @@ import com.yahoo.elide.core.hibernate.hql.SubCollectionPageTotalsQueryBuilder;
 import com.yahoo.elide.datastores.jpa.porting.EntityManagerWrapper;
 import com.yahoo.elide.datastores.jpa.porting.QueryWrapper;
 import com.yahoo.elide.datastores.jpa.transaction.checker.PersistentCollectionChecker;
+import com.yahoo.elide.request.Attribute;
 import com.yahoo.elide.request.EntityProjection;
 import com.yahoo.elide.request.Pagination;
 import com.yahoo.elide.request.Relationship;
@@ -38,7 +40,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.StreamSupport;
 
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.FlushModeType;
 import javax.persistence.NoResultException;
@@ -179,7 +183,15 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                     (QueryWrapper) new RootCollectionFetchQueryBuilder(projection, dictionary, emWrapper)
                             .build();
 
-            return query.getQuery().getSingleResult();
+            if (scope.getElideSettings() != null && scope.getElideSettings().isUseJpaEntityGraphHint()) {
+                return query.getQuery()
+                        .setHint("javax.persistence.loadgraph", createEntityGraph(scope, projection))
+                        .getSingleResult();
+            } else {
+                return query.getQuery()
+                        .getSingleResult();
+            }
+
         } catch (NoResultException e) {
             return null;
         }
@@ -195,7 +207,15 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                 (QueryWrapper) new RootCollectionFetchQueryBuilder(projection, scope.getDictionary(), emWrapper)
                         .build();
 
-        List results = query.getQuery().getResultList();
+        List results;
+        if (scope.getElideSettings() != null && scope.getElideSettings().isUseJpaEntityGraphHint()) {
+            results = query.getQuery()
+                    .setHint("javax.persistence.loadgraph", createEntityGraph(scope, projection))
+                    .getResultList();
+        } else {
+            results = query.getQuery()
+                    .getResultList();
+        }
 
         if (pagination != null) {
             //Issue #1429
@@ -294,5 +314,78 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     @Override
     public void cancel(RequestScope scope) {
         jpaTransactionCancel.accept(em);
+    }
+
+
+    /**
+     * Creates an entity graph for the first encountered to Many relationship that meets the following criteria
+     *  * The relationship has to be present in Entity Projection
+     *  * The relationship type should be ToMany and not computed relationship
+     *  * The relationship Entity should not be presnet in dirtyResource.
+     *      (no mutable operation is done on the relationship entity in this request)
+     *  * If the relationship Entity is present in dirtyResource,
+     *      then the relationshipship should have CASCADE.ALL cascade type.
+     * @param scope
+     * @param projection
+     * @return
+     */
+    private EntityGraph createEntityGraph(RequestScope scope, EntityProjection projection) {
+        EntityDictionary dictionary = scope.getDictionary();
+        Class<?> entityClass = projection.getType();
+        EntityGraph entityGraph = em.createEntityGraph(entityClass);
+
+        boolean toManyAdded = false;
+
+        for (Relationship relationship : projection.getRelationships()) {
+            RelationshipType type = dictionary.getRelationshipType(entityClass, relationship.getName());
+
+            if (type.isComputed()) {
+                continue;
+            } else if (type.isToOne()) {
+                entityGraph.addAttributeNodes(relationship.getName());
+            } else if (type.isToMany()) {
+                // To Many Relationship will always be collection type.
+
+                if (!toManyAdded && !checkTransient(scope, entityClass, relationship)) {
+                    entityGraph.addAttributeNodes(relationship.getName());
+                    toManyAdded = true;
+
+                }
+            }
+        }
+
+
+        //Add All attributes
+        for (Attribute attribute : projection.getAttributes()) {
+            if (dictionary.isComputed(entityClass, attribute.getName())) {
+                continue;
+            }
+            if (attribute.getType().isAssignableFrom(Collection.class)) {
+                if (!toManyAdded) {
+                    entityGraph.addAttributeNodes(attribute.getName());
+                    toManyAdded = true;
+                }
+            } else {
+                entityGraph.addAttributeNodes(attribute.getName());
+            }
+        }
+        return entityGraph;
+    }
+
+
+    private boolean checkTransient(RequestScope scope, Class<?> entityClass, Relationship relationship) {
+
+        EntityDictionary dictionary = scope.getDictionary();
+
+        String relationshipClassName = dictionary.getJsonAliasFor(
+                dictionary.getParameterizedType(entityClass, relationship.getName()));
+        boolean isRelationshipClassInDirtyRes = StreamSupport.stream(scope.getDirtyResources().spliterator(), false)
+                .anyMatch(resource -> resource.getType().equals(relationshipClassName));
+
+        if (isRelationshipClassInDirtyRes && !dictionary.cascadePersist(entityClass, relationship.getName())) {
+            return true;
+        }
+
+        return false;
     }
 }
