@@ -13,20 +13,19 @@ import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
 /**
- * Format specifier for {@code elideJoinType} format attribute.
+ * Format specifier for {@code elideJoinKind} format attribute.
  * <p>
- * This specifier will check if a string instance is one of {@code left, right, inner, outer, cross}.
+ * This specifier will check if a string instance is one of {@code ToOne, ToMany}.
  * </p>
  */
-public class ElideJoinTypeFormatAttr extends AbstractFormatAttribute {
-    private static final String JOIN_TYPE_REGEX = "^(?i)(left|right|inner|outer|cross)$";
+public class ElideJoinKindFormatAttr extends AbstractFormatAttribute {
+    private static final String JOIN_KIND_REGEX = "^(?i)(ToOne|ToMany)$";
 
-    public static final String FORMAT_NAME = "elideJoinType";
-    public static final String TYPE_KEY = "elideJoinType.error.enum";
-    public static final String TYPE_MSG =
-                    "Join type [%s] is not allowed. Supported value is one of [left, right, inner, outer, cross].";
+    public static final String FORMAT_NAME = "elideJoinKind";
+    public static final String TYPE_KEY = "elideJoinKind.error.enum";
+    public static final String TYPE_MSG = "Join kind [%s] is not allowed. Supported value is one of [ToOne, ToMany].";
 
-    public ElideJoinTypeFormatAttr() {
+    public ElideJoinKindFormatAttr() {
         super(FORMAT_NAME, NodeType.STRING);
     }
 
@@ -35,7 +34,7 @@ public class ElideJoinTypeFormatAttr extends AbstractFormatAttribute {
                     throws ProcessingException {
         final String input = data.getInstance().getNode().textValue();
 
-        if (!input.matches(JOIN_TYPE_REGEX)) {
+        if (!input.matches(JOIN_KIND_REGEX)) {
             report.error(newMsg(data, bundle, TYPE_KEY).putArgument("value", input));
         }
     }

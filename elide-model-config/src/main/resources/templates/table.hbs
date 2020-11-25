@@ -106,10 +106,10 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%>{
 
 <%#each joins%>
 <%#assign "joinClassName"%> <%#getJoinClassName to%><%/getJoinClassName%> <%/assign%>
-<%#ifTypeMatches type "toMany"%>
+<%#ifTypeMatches kind "toMany"%>
     private Set<<%joinClassName%>> <%name%>;
 
-    @Join("<%#trimColumnReferences definition%><%/trimColumnReferences%>")
+    @Join(value="<%#trimColumnReferences definition%><%/trimColumnReferences%>"<%#if type%>, type="<%type%>"<%/if%>)
     public Set<<%joinClassName%>> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
         return <%name%>;
     }
@@ -120,7 +120,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%>{
 <%else%>
     private <%joinClassName%> <%name%>;
 
-    @Join("<%#trimColumnReferences definition%><%/trimColumnReferences%>")
+    @Join(value="<%#trimColumnReferences definition%><%/trimColumnReferences%>"<%#if type%>, type="<%type%>"<%/if%>)
     public <%joinClassName%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
         return <%name%>;
     }

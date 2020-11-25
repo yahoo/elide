@@ -20,9 +20,15 @@
                 },
                 "type": {
                     "title": "Type of Join",
-                    "description": "Type of the join - toOne or toMany",
+                    "description": "Type of the join - left, right, inner, full or cross",
                     "type": "string",
                     "format": "elideJoinType"
+                },
+                "kind": {
+                    "title": "Kind of Join",
+                    "description": "Kind of the join - toOne or toMany",
+                    "type": "string",
+                    "format": "elideJoinKind"
                 },
                 "definition": {
                     "title": "Join definition SQL",
@@ -33,7 +39,7 @@
             "required": [
                 "name",
                 "to",
-                "type",
+                "kind",
                 "definition"
             ],
             "additionalProperties": false

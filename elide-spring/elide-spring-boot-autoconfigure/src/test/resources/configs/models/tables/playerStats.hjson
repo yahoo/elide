@@ -13,7 +13,7 @@
             {
                 name: playerCountry
                 to: playerCountry
-                type: toOne
+                kind: toOne
                 definition: '{{playerCountry.id}} = {{countryId}}'
             }
         ]
