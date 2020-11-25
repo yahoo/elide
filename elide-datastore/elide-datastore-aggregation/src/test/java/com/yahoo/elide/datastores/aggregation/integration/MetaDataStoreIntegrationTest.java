@@ -96,6 +96,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                .then()
                .statusCode(HttpStatus.SC_OK)
                .body("data.attributes.isFact", equalTo(false)) //FromTable, TableMeta Present, isFact false
+               .body("data.attributes.friendlyName", equalTo("planet"))
                .body("data.relationships.columns.data.id", containsInAnyOrder("planet.id", "planet.name"));
         given()
                .accept("application/vnd.api+json")
@@ -103,6 +104,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                .then()
                .statusCode(HttpStatus.SC_OK)
                .body("data.attributes.isFact", equalTo(false)) //TableMeta Present, isFact false
+               .body("data.attributes.friendlyName", equalTo("continent"))
                .body("data.relationships.columns.data.id", containsInAnyOrder("continent.id", "continent.name"));
         given()
                 .accept("application/vnd.api+json")
@@ -162,6 +164,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("playerName"))
+                .body("data.attributes.friendlyName", equalTo("playerName"))
                 .body("data.attributes.valueType",  equalTo("TEXT"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.valueSourceType",  equalTo("NONE"))
@@ -235,6 +238,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("recordedDate"))
+                .body("data.attributes.friendlyName", equalTo("recordedDate"))
                 .body("data.attributes.valueType",  equalTo("TIME"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.expression",  equalTo("{{recordedDate}}"))
@@ -255,6 +259,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("lowScore"))
+                .body("data.attributes.friendlyName", equalTo("lowScore"))
                 .body("data.attributes.valueType",  equalTo("INTEGER"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.expression",  equalTo("MIN({{lowScore}})"))
