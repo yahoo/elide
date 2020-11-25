@@ -68,7 +68,7 @@ public class SqlReferenceVisitorTest {
     @BeforeAll
     public void init() {
         SQLQueryEngine engine = mock(SQLQueryEngine.class);
-        store = new MetaDataStore(Sets.newHashSet(TestModel.class, JoinModel.class));
+        store = new MetaDataStore(Sets.newHashSet(TestModel.class, JoinModel.class), true);
         Table table1 = new SQLTable(TestModel.class, store.getMetadataDictionary());
         Table table2 = new SQLTable(JoinModel.class, store.getMetadataDictionary());
         store.addTable(table1);
