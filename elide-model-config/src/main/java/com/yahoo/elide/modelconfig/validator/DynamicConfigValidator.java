@@ -140,9 +140,36 @@ public class DynamicConfigValidator {
         validateRequiredConfigsProvided();
         validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs());
         validateNameUniqueness(this.elideTableConfig.getTables());
+        validateInheritance(this.elideTableConfig);
         populateInheritance(this.elideTableConfig);
         validateTableConfig(this.elideTableConfig);
         validateJoinedTablesDBConnectionName(this.elideTableConfig);
+    }
+
+    private static void validateInheritance(ElideTableConfig tables) {
+        tables.getTables().stream().forEach(table -> {
+            validateInheritance(tables, table, new HashSet<>());
+        });
+    }
+
+    private static void validateInheritance(ElideTableConfig tables, Table table, Set<Table> visited) {
+        visited.add(table);
+
+        if (!table.hasParent()) {
+            return;
+        }
+        Table parent = table.getParent(tables);
+        if (parent == null) {
+            throw new IllegalStateException(
+                    "Undefined model: " + table.getExtend() + " is used as a Parent(extend) for another model.");
+        }
+        if (visited.contains(parent)) {
+            throw new IllegalStateException(
+                    String.format("Inheriting from table '%s' creates an illegal cyclic dependency.",
+                            parent.getName()));
+        } else {
+            validateInheritance(tables, parent, visited);
+        }
     }
 
     private void populateInheritance(ElideTableConfig elideTableConfig) {
@@ -338,7 +365,6 @@ public class DynamicConfigValidator {
     private static boolean validateTableConfig(ElideTableConfig elideTableConfig) {
         for (Table table : elideTableConfig.getTables()) {
 
-            validateExtend(elideTableConfig, table.getExtend());
             validateSql(table.getSql());
             Set<String> tableFields = new HashSet<>();
 
@@ -450,16 +476,6 @@ public class DynamicConfigValidator {
     }
 
     /**
-     * Ensure model extends another logical model.
-     */
-    private static void validateExtend(ElideTableConfig elideTableConfig, String modelName) {
-        if (!(isNullOrEmpty(modelName) || elideTableConfig.hasTable(modelName))) {
-            throw new IllegalStateException(
-                            "Undefined model: " + modelName + " is used as a Parent(extend) for another model.");
-        }
-    }
-
-    /**
      * Check if input sql definition contains either semicolon or any of disallowed
      * keywords. Throw exception if check fails.
      */
@@ -522,7 +538,7 @@ public class DynamicConfigValidator {
 
     /**
      * Checks if input string has any of the disallowed words.
-     * @param String input string to validate
+     * @param str input string to validate
      * @param keywords Array of disallowed words
      * @return boolean true if input string does not contain any of the keywords
      *         else false
@@ -533,7 +549,7 @@ public class DynamicConfigValidator {
 
     /**
      * Checks if any word in the input string matches any of the disallowed words.
-     * @param String input string to validate
+     * @param str input string to validate
      * @param splitter regex for splitting input string
      * @param keywords Set of disallowed words
      * @return boolean true if any word in the input string matches any of the
