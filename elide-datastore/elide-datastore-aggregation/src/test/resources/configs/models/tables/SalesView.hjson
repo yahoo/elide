@@ -12,7 +12,7 @@
         {
           name: customer
           to: customerDetails
-          kind: toOne
+          type: Left
           // References Physical Columns
           definition: '{{customer_id}} = {{ customer.id}}'
         }
@@ -185,7 +185,6 @@
         {
           name: region
           to: regionDetails
-          kind: toOne
           // References Physical & Logical Columns
           definition: '{{zipCode}} = {{region.zip_code}}'
         }

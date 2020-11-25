@@ -15,16 +15,16 @@ import com.github.fge.msgsimple.bundle.MessageBundle;
 /**
  * Format specifier for {@code elideJoinType} format attribute.
  * <p>
- * This specifier will check if a string instance is one of {@code left, right, inner, outer, cross}.
+ * This specifier will check if a string instance is one of {@code left, inner, full, cross}.
  * </p>
  */
 public class ElideJoinTypeFormatAttr extends AbstractFormatAttribute {
-    private static final String JOIN_TYPE_REGEX = "^(?i)(left|right|inner|outer|cross)$";
+    private static final String JOIN_TYPE_REGEX = "^(?i)(left|inner|full|cross)$";
 
     public static final String FORMAT_NAME = "elideJoinType";
     public static final String TYPE_KEY = "elideJoinType.error.enum";
     public static final String TYPE_MSG =
-                    "Join type [%s] is not allowed. Supported value is one of [left, right, inner, outer, cross].";
+                    "Join type [%s] is not allowed. Supported value is one of [left, inner, full, cross].";
 
     public ElideJoinTypeFormatAttr() {
         super(FORMAT_NAME, NodeType.STRING);

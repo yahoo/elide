@@ -24,7 +24,7 @@ public @interface Join {
 
     /**
      * Join type.
-     * @return join type like {@code left, right, inner, outer or cross}
+     * @return join type like {@code left, inner, full or cross}
      */
-    String type() default "left";
+    JoinType type() default JoinType.LEFT;
 }

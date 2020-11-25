@@ -23,8 +23,7 @@
           {
              name: playerCountry
              to: Country
-             kind: toOnE
-             type: outeR
+             type: fuLL
              definition: '{{ playerCountry.id}} = {{country_id}}'
           },
           {

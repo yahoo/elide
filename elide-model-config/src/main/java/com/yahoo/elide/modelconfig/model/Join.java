@@ -41,7 +41,7 @@ public class Join implements Named {
     private Join.Type type;
 
     @JsonProperty("kind")
-    private Join.Kind kind;
+    private Join.Kind kind = Join.Kind.TOONE;
 
     @JsonProperty("definition")
     private String definition;
@@ -66,9 +66,8 @@ public class Join implements Named {
     public enum Type {
 
         LEFT("left"),
-        RIGHT("right"),
         INNER("inner"),
-        OUTER("outer"),
+        FULL("full"),
         CROSS("cross");
 
         private final String value;

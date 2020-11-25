@@ -20,7 +20,7 @@
                 },
                 "type": {
                     "title": "Type of Join",
-                    "description": "Type of the join - left, right, inner, full or cross",
+                    "description": "Type of the join - left, inner, full or cross",
                     "type": "string",
                     "format": "elideJoinType"
                 },
@@ -39,7 +39,6 @@
             "required": [
                 "name",
                 "to",
-                "kind",
                 "definition"
             ],
             "additionalProperties": false
