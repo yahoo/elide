@@ -52,6 +52,7 @@ public class ElideSettingsBuilder {
     private int defaultPageSize = PaginationImpl.DEFAULT_PAGE_LIMIT;
     private int updateStatusCode;
     private boolean enableJsonLinks;
+    private boolean useJpaEntityGraphHint;
 
     /**
      * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
@@ -68,6 +69,7 @@ public class ElideSettingsBuilder {
         updateStatusCode = HttpStatus.SC_NO_CONTENT;
         this.serdes = new HashMap<>();
         this.enableJsonLinks = false;
+        this.useJpaEntityGraphHint = false;
 
         //By default, Elide supports epoch based dates.
         this.withEpochDates();
@@ -102,7 +104,8 @@ public class ElideSettingsBuilder {
                 defaultPageSize,
                 updateStatusCode,
                 serdes,
-                enableJsonLinks);
+                enableJsonLinks,
+                useJpaEntityGraphHint);
     }
 
     public ElideSettingsBuilder withAuditLogger(AuditLogger auditLogger) {
@@ -179,6 +182,11 @@ public class ElideSettingsBuilder {
     public ElideSettingsBuilder withJSONApiLinks(JSONApiLinks links) {
         this.enableJsonLinks = true;
         this.jsonApiLinks = links;
+        return this;
+    }
+
+    public ElideSettingsBuilder withJpaEntityGraphHint(boolean enable) {
+        this.useJpaEntityGraphHint = enable;
         return this;
     }
 }

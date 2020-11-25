@@ -1373,6 +1373,25 @@ public class EntityDictionary {
     }
 
     /**
+     * Returns true if the relationship cascades persist and false otherwise.
+     * @param targetClass The class which owns the relationship.
+     * @param fieldName The relationship
+     * @return true or false
+     */
+    public boolean cascadePersist(Class<?> targetClass, String fieldName) {
+        CascadeType [] cascadeTypes =
+                getEntityBinding(targetClass).relationshipToCascadeTypes.getOrDefault(fieldName, new CascadeType[0]);
+
+        for (CascadeType cascadeType : cascadeTypes) {
+            if (cascadeType == CascadeType.ALL || cascadeType == CascadeType.PERSIST) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    /**
      * Walks the entity graph and performs a transform function on each element.
      * @param entities The roots of the entity graph.
      * @param transform The function to transform each entity class into a result.
