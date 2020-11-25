@@ -140,31 +140,35 @@ public class DynamicConfigValidator {
         validateRequiredConfigsProvided();
         validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs());
         validateNameUniqueness(this.elideTableConfig.getTables());
-        validateInheritanceCycles(this.elideTableConfig);
+        validateInheritance(this.elideTableConfig);
         populateInheritance(this.elideTableConfig);
         validateTableConfig(this.elideTableConfig);
         validateJoinedTablesDBConnectionName(this.elideTableConfig);
     }
 
-    private void validateInheritanceCycles(ElideTableConfig tables) {
+    private static void validateInheritance(ElideTableConfig tables) {
         tables.getTables().stream().forEach(table -> {
-            validateInheritanceCycles(tables, table, new HashSet<>());
+            validateInheritance(tables, table, new HashSet<>());
         });
     }
 
-    private void validateInheritanceCycles(ElideTableConfig tables, Table table, Set<Table> visited) {
+    private static void validateInheritance(ElideTableConfig tables, Table table, Set<Table> visited) {
         visited.add(table);
 
         if (!table.hasParent()) {
             return;
         }
         Table parent = table.getParent(tables);
+        if (parent == null) {
+            throw new IllegalStateException(
+                    "Undefined model: " + table.getExtend() + " is used as a Parent(extend) for another model.");
+        }
         if (visited.contains(parent)) {
             throw new IllegalStateException(
                     String.format("Inheriting from table '%s' creates an illegal cyclic dependency.",
                             parent.getName()));
         } else {
-            validateInheritanceCycles(tables, parent, visited);
+            validateInheritance(tables, parent, visited);
         }
     }
 
@@ -361,7 +365,6 @@ public class DynamicConfigValidator {
     private static boolean validateTableConfig(ElideTableConfig elideTableConfig) {
         for (Table table : elideTableConfig.getTables()) {
 
-            validateExtend(elideTableConfig, table.getExtend());
             validateSql(table.getSql());
             Set<String> tableFields = new HashSet<>();
 
@@ -470,16 +473,6 @@ public class DynamicConfigValidator {
                 throw new IllegalStateException("Duplicate!! Either Table or DB configs found with the same name.");
             }
         });
-    }
-
-    /**
-     * Ensure model extends another logical model.
-     */
-    private static void validateExtend(ElideTableConfig elideTableConfig, String modelName) {
-        if (!(isNullOrEmpty(modelName) || elideTableConfig.hasTable(modelName))) {
-            throw new IllegalStateException(
-                            "Undefined model: " + modelName + " is used as a Parent(extend) for another model.");
-        }
     }
 
     /**

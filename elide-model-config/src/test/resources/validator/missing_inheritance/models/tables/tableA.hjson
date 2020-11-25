@@ -1,0 +1,18 @@
+{
+  tables:
+  [
+    {
+      name: A
+      extend: B
+      description: A extends B (which doesn't exist)
+      measures : [
+          {
+            name : count
+            type : Integer
+            description : A simple count
+            definition: 'COUNT(*)'
+          }
+      ]
+    }
+  ]
+}

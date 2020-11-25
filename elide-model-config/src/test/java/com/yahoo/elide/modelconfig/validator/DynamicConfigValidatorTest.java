@@ -144,6 +144,17 @@ public class DynamicConfigValidatorTest {
     }
 
     @Test
+    public void testMissingInheritanceModel() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() ->
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/missing_inheritance" }));
+            assertEquals(2, exitStatus);
+        });
+
+        assertEquals("Undefined model: B is used as a Parent(extend) for another model.\n", error);
+    }
+
+    @Test
     public void testBadSecurityConfig() throws Exception {
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
