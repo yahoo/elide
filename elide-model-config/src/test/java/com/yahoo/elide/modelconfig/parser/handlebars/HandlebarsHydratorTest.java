@@ -7,6 +7,8 @@ package com.yahoo.elide.modelconfig.parser.handlebars;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.yahoo.elide.modelconfig.StaticModelsDetails;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -375,7 +377,7 @@ public class HandlebarsHydratorTest {
             + " * Licensed under the Apache License, Version 2.0\n"
             + " * See LICENSE file in project root for terms.\n"
             + " */\n"
-            + "package dynamicconfig.models;\n"
+            + "package dynamicconfig.checks;\n"
             + "\n"
             + "import com.yahoo.elide.annotation.SecurityCheck;\n"
             + "import com.yahoo.elide.core.security.checks.prefab.Role.RoleMemberCheck;\n"
@@ -395,7 +397,7 @@ public class HandlebarsHydratorTest {
             + " * Licensed under the Apache License, Version 2.0\n"
             + " * See LICENSE file in project root for terms.\n"
             + " */\n"
-            + "package dynamicconfig.models;\n"
+            + "package dynamicconfig.checks;\n"
             + "\n"
             + "import com.yahoo.elide.annotation.SecurityCheck;\n"
             + "import com.yahoo.elide.core.security.checks.prefab.Role.RoleMemberCheck;\n"
@@ -415,7 +417,7 @@ public class HandlebarsHydratorTest {
 
     @BeforeAll
     public void setup() throws IOException {
-        hydrator = new HandlebarsHydrator();
+        hydrator = new HandlebarsHydrator(new StaticModelsDetails());
         testClass = new DynamicConfigValidator(CONFIG_PATH);
         testClass.readAndValidateConfigs();
     }

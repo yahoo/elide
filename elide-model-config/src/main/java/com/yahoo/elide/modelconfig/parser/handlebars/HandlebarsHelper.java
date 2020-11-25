@@ -6,7 +6,8 @@
 package com.yahoo.elide.modelconfig.parser.handlebars;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
-import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
+
+import com.yahoo.elide.modelconfig.StaticModelsDetails;
 import com.yahoo.elide.modelconfig.model.Grain;
 import com.yahoo.elide.modelconfig.model.Type;
 import com.github.jknack.handlebars.Options;
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
  */
 public class HandlebarsHelper {
 
-    private static final String EMPTY_STRING = "";
+    public static final String EMPTY_STRING = "";
     private static final String STRING = "String";
     private static final String DAY = "Day";
     private static final String HOUR = "Hour";
@@ -43,6 +44,12 @@ public class HandlebarsHelper {
     private static final String UNDERSCORE = "_";
     public static final String NEWLINE = System.getProperty("line.separator");
     public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
+
+    private final StaticModelsDetails staticModelsDetails;
+
+    public HandlebarsHelper(StaticModelsDetails staticModelsDetails) {
+        this.staticModelsDetails = staticModelsDetails;
+    }
 
     /**
      * Capitalize first letter of the string.
@@ -213,8 +220,7 @@ public class HandlebarsHelper {
      * @return class name.
      */
     public String getJoinClassName(String modelName) {
-        return ElideDynamicEntityCompiler.getStaticModelClassName(modelName, NO_VERSION,
-                        capitalizeFirstLetter(modelName));
+        return staticModelsDetails.getClassName(modelName, NO_VERSION, capitalizeFirstLetter(modelName));
     }
 
     /**
@@ -223,7 +229,7 @@ public class HandlebarsHelper {
      * @return import statement.
      */
     public String getJoinClassImport(String modelName) {
-        return ElideDynamicEntityCompiler.getStaticModelClassImport(modelName, NO_VERSION, EMPTY_STRING);
+        return staticModelsDetails.getClassImport(modelName, NO_VERSION, EMPTY_STRING);
     }
 
     private static String replaceNewlineWithSpace(String str) {

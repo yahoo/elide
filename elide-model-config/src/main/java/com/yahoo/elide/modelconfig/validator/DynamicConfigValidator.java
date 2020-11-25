@@ -6,16 +6,24 @@
 package com.yahoo.elide.modelconfig.validator;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.modelconfig.DynamicConfigHelpers.getDataSource;
 import static com.yahoo.elide.modelconfig.DynamicConfigHelpers.isNullOrEmpty;
-import static com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler.isStaticModel;
-import static com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler.staticModelHasField;
+import static com.yahoo.elide.modelconfig.parser.handlebars.HandlebarsHelper.EMPTY_STRING;
 import static com.yahoo.elide.modelconfig.parser.handlebars.HandlebarsHelper.REFERENCE_PARENTHESES;
 import static java.nio.charset.StandardCharsets.UTF_8;
+
+import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.EntityPermissions;
+import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.modelconfig.Config;
+import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
 import com.yahoo.elide.modelconfig.DynamicConfigSchemaValidator;
+import com.yahoo.elide.modelconfig.StaticModelsDetails;
+import com.yahoo.elide.modelconfig.compile.ConnectionDetails;
+import com.yahoo.elide.modelconfig.compile.ElideDynamicInMemoryCompiler;
 import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.modelconfig.model.Dimension;
 import com.yahoo.elide.modelconfig.model.ElideDBConfig;
@@ -26,6 +34,8 @@ import com.yahoo.elide.modelconfig.model.Join;
 import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Named;
 import com.yahoo.elide.modelconfig.model.Table;
+import com.yahoo.elide.modelconfig.parser.handlebars.HandlebarsHydrator;
+
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.apache.commons.cli.CommandLine;
@@ -36,7 +46,9 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import lombok.Data;
+
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,9 +65,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@Data
+@Slf4j
 /**
- * Util class to validate and parse the config files.
+ * Util class to validate and parse the config files. Optionally compiles config files.
  */
 public class DynamicConfigValidator {
 
@@ -71,16 +83,23 @@ public class DynamicConfigValidator {
     private static final String CLASSPATH_PATTERN = "classpath*:";
     private static final String FILEPATH_PATTERN = "file:";
     private static final String HJSON_EXTN = "**/*.hjson";
+    private static final String MODEL_PACKAGE_NAME = "dynamicconfig.models.";
+    private static final String SECURITY_PACKAGE_NAME = "dynamicconfig.checks.";
 
-    private final ElideTableConfig elideTableConfig = new ElideTableConfig();
-    private ElideSecurityConfig elideSecurityConfig;
-    private Map<String, Object> modelVariables;
+    @Getter private final ElideTableConfig elideTableConfig = new ElideTableConfig();
+    @Getter private ElideSecurityConfig elideSecurityConfig;
+    @Getter private Map<String, Object> modelVariables;
     private Map<String, Object> dbVariables;
     private final ElideDBConfig elideSQLDBConfig = new ElideSQLDBConfig();
     private final String configDir;
     private final DynamicConfigSchemaValidator schemaValidator = new DynamicConfigSchemaValidator();
     private final Map<String, Resource> resourceMap = new HashMap<>();
     private final PathMatchingResourcePatternResolver resolver;
+    private final EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+    private final StaticModelsDetails staticModelDetails = new StaticModelsDetails();
+
+    @Getter private Map<String, Class<?>> compiledObjects;
+    @Getter private final Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
     public DynamicConfigValidator(String configDir) {
         resolver = new PathMatchingResourcePatternResolver(this.getClass().getClassLoader());
@@ -103,6 +122,23 @@ public class DynamicConfigValidator {
             }
             this.configDir = FILEPATH_PATTERN + DynamicConfigHelpers.formatFilePath(config.getAbsolutePath());
         }
+
+        initialize();
+    }
+
+    private void initialize() {
+
+        Set<Class<?>> annotatedClasses =
+                        ClassScanner.getAnnotatedClasses(Arrays.asList(Include.class, SecurityCheck.class));
+
+        annotatedClasses.forEach(cls -> {
+            if (cls.getAnnotation(Include.class) != null) {
+                dictionary.bindEntity(cls);
+                staticModelDetails.add(dictionary, cls);
+            } else {
+                dictionary.addSecurityCheck(cls);
+            }
+        });
     }
 
     public static void main(String[] args) {
@@ -124,13 +160,36 @@ public class DynamicConfigValidator {
 
             DynamicConfigValidator dynamicConfigValidator = new DynamicConfigValidator(configDir);
             dynamicConfigValidator.readAndValidateConfigs();
+            System.out.println("Configs Validation Passed!");
+
+            if (cli.hasOption("nocompile")) {
+                System.out.println("Skipped compilation for both Model and DB configs");
+                System.exit(0);
+            }
+
+            if (cli.hasOption("nomodelcompile")) {
+                System.out.println("Skipped compilation for Model configs");
+            } else {
+                System.out.println("Compiling Model configs (Use '--nomodelcompile' to skip this step).");
+                dynamicConfigValidator.hydrateAndCompileModelConfigs();
+                System.out.println("Model Configs Compilation Passed!");
+            }
+
+            if (cli.hasOption("nodbcompile")) {
+                System.out.println("Skipped compilation for DB configs");
+            } else {
+                System.out.println("Compiling DB configs (Use '--nodbcompile' to skip this step).");
+                dynamicConfigValidator.compileDBConfigs();
+                System.out.println("DB Configs Compilation Passed!");
+            }
+
+            System.exit(0);
+
         } catch (Exception e) {
-            System.err.println(e.getMessage());
+            String msg = isNullOrEmpty(e.getMessage()) ? "Process Failed!" : e.getMessage();
+            System.err.println(msg);
             System.exit(2);
         }
-
-        System.out.println("Configs Validation Passed!");
-        System.exit(0);
     }
 
     /**
@@ -139,10 +198,10 @@ public class DynamicConfigValidator {
      */
     public void readAndValidateConfigs() throws IOException {
         this.loadConfigMap();
-        this.setModelVariables(readVariableConfig(Config.MODELVARIABLE));
-        this.setElideSecurityConfig(readSecurityConfig());
+        this.modelVariables = readVariableConfig(Config.MODELVARIABLE);
+        this.elideSecurityConfig = readSecurityConfig();
         validateRoleInSecurityConfig(this.elideSecurityConfig);
-        this.setDbVariables(readVariableConfig(Config.DBVARIABLE));
+        this.dbVariables = readVariableConfig(Config.DBVARIABLE);
         this.elideSQLDBConfig.setDbconfigs(readDbConfig());
         this.elideTableConfig.setTables(readTableConfig());
         validateRequiredConfigsProvided();
@@ -150,8 +209,48 @@ public class DynamicConfigValidator {
         validateNameUniqueness(this.elideTableConfig.getTables());
         validateInheritance(this.elideTableConfig);
         populateInheritance(this.elideTableConfig);
-        validateTableConfig(this.elideTableConfig, this.elideSecurityConfig);
+        validateTableConfig();
         validateJoinedTablesDBConnectionName(this.elideTableConfig);
+    }
+
+    public void hydrateAndCompileModelConfigs() throws Exception {
+        hydrateAndCompileModelConfigs(ElideDynamicInMemoryCompiler.newInstance().ignoreWarnings());
+    }
+
+    public void hydrateAndCompileModelConfigs(ElideDynamicInMemoryCompiler compiler) throws Exception {
+        HandlebarsHydrator hydrator = new HandlebarsHydrator(staticModelDetails);
+        Map<String, String> tableClasses = hydrator.hydrateTableTemplate(this.elideTableConfig);
+        Map<String, String> securityClasses = hydrator.hydrateSecurityTemplate(this.elideSecurityConfig);
+
+        compiler.useParentClassLoader(getClass().getClassLoader());
+
+        for (Map.Entry<String, String> tablePojo : tableClasses.entrySet()) {
+            log.debug("key: " + tablePojo.getKey() + ", value: " + tablePojo.getValue());
+            compiler.addSource(MODEL_PACKAGE_NAME + tablePojo.getKey(), tablePojo.getValue());
+        }
+
+        for (Map.Entry<String, String> secPojo : securityClasses.entrySet()) {
+            log.debug("key: " + secPojo.getKey() + ", value: " + secPojo.getValue());
+            compiler.addSource(SECURITY_PACKAGE_NAME + secPojo.getKey(), secPojo.getValue());
+        }
+
+        compiledObjects = compiler.compileAll();
+    }
+
+    public void compileDBConfigs() {
+        compileDBConfigs(new DBPasswordExtractor() {
+            @Override
+            public String getDBPassword(DBConfig config) {
+                return EMPTY_STRING;
+            }
+        });
+    }
+
+    public void compileDBConfigs(DBPasswordExtractor dbPasswordExtractor) {
+        this.elideSQLDBConfig.getDbconfigs().forEach(config -> {
+            connectionDetailsMap.put(config.getName(),
+                            new ConnectionDetails(getDataSource(config, dbPasswordExtractor), config.getDialect()));
+        });
     }
 
     private static void validateInheritance(ElideTableConfig tables) {
@@ -370,8 +469,7 @@ public class DynamicConfigValidator {
      * @param elideTableConfig ElideTableConfig
      * @return boolean true if all provided table properties passes validation
      */
-    private static boolean validateTableConfig(ElideTableConfig elideTableConfig,
-                    ElideSecurityConfig elideSecurityConfig) {
+    private boolean validateTableConfig() {
         Set<String> extractedChecks = new HashSet<>();
         for (Table table : elideTableConfig.getTables()) {
 
@@ -381,7 +479,7 @@ public class DynamicConfigValidator {
             table.getDimensions().forEach(dim -> {
                 validateFieldNameUniqueness(tableFields, dim.getName(), table.getName());
                 validateSql(dim.getDefinition());
-                validateTableSource(elideTableConfig, dim.getTableSource());
+                validateTableSource(dim.getTableSource());
                 extractChecksFromExpr(dim.getReadAccess(), extractedChecks);
             });
 
@@ -393,24 +491,22 @@ public class DynamicConfigValidator {
 
             table.getJoins().forEach(join -> {
                 validateFieldNameUniqueness(tableFields, join.getName(), table.getName());
-                validateJoin(join, elideTableConfig);
+                validateJoin(join);
             });
 
             extractChecksFromExpr(table.getReadAccess(), extractedChecks);
-            validateChecks(extractedChecks, elideSecurityConfig);
+            validateChecks(extractedChecks);
         }
 
         return true;
     }
 
-    private static void validateChecks(Set<String> checks, ElideSecurityConfig elideSecurityConfig) {
+    private void validateChecks(Set<String> checks) {
 
         if (checks.isEmpty()) {
             return; // Nothing to validate
         }
 
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
-        dictionary.scanForSecurityChecks();
         Set<String> staticChecks = dictionary.getCheckMappings().keySet();
 
         List<String> undefinedChecks = checks
@@ -462,7 +558,7 @@ public class DynamicConfigValidator {
      * Validates tableSource is in format: modelName.logicalColumnName and refers to a defined model and a defined
      * column with in that model.
      */
-    private static void validateTableSource(ElideTableConfig elideTableConfig, String tableSource) {
+    private void validateTableSource(String tableSource) {
         if (isNullOrEmpty(tableSource)) {
             return; // Nothing to validate
         }
@@ -484,8 +580,8 @@ public class DynamicConfigValidator {
             return;
         }
 
-        if (isStaticModel(modelName, NO_VERSION)) {
-            if (!staticModelHasField(modelName, NO_VERSION, fieldName)) {
+        if (staticModelDetails.exists(modelName, NO_VERSION)) {
+            if (!staticModelDetails.hasField(modelName, NO_VERSION, fieldName)) {
                 throw new IllegalStateException("Invalid tableSource : " + tableSource + " . Field : " + fieldName
                                 + " is undefined for non-hjson model: " + modelName);
             }
@@ -552,12 +648,12 @@ public class DynamicConfigValidator {
     /**
      * Check if input join definition is valid.
      */
-    private static void validateJoin(Join join, ElideTableConfig elideTableConfig) {
+    private void validateJoin(Join join) {
         validateSql(join.getDefinition());
 
         String joinModelName = join.getTo();
 
-        if (!(elideTableConfig.hasTable(joinModelName) || isStaticModel(joinModelName, NO_VERSION))) {
+        if (!(elideTableConfig.hasTable(joinModelName) || staticModelDetails.exists(joinModelName, NO_VERSION))) {
             throw new IllegalStateException(
                             "Model: " + joinModelName + " is neither included in dynamic models nor in static models");
         }
@@ -628,12 +724,15 @@ public class DynamicConfigValidator {
     private static final Options prepareOptions() {
         Options options = new Options();
         options.addOption(new Option("h", "help", false, "Print a help message and exit."));
+        options.addOption(new Option("nocompile", "nocompile", false, "Do not compile Model and DB configs."));
+        options.addOption(new Option("nodbcompile", "nodbcompile", false, "Do not compile DB configs."));
+        options.addOption(new Option("nomodelcompile", "nomodelcompile", false, "Do not compile Model configs."));
         options.addOption(new Option("c", "configDir", true,
                 "Path for Configs Directory.\n"
                         + "Expected Directory Structure under Configs Directory:\n"
                         + "./models/security.hjson(optional)\n"
                         + "./models/variables.hjson(optional)\n"
-                        + "./models/tables/\n"
+                        + "./models/tables/(optional)\n"
                         + "./models/tables/table1.hjson\n"
                         + "./models/tables/table2.hjson\n"
                         + "./models/tables/tableN.hjson\n"

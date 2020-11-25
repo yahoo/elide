@@ -104,7 +104,7 @@ public class ElideDynamicConfiguration {
 
             //Create Elide dynamic Persistence Unit
             PersistenceUnitInfoImpl elideDynamicPersistenceUnit =
-                    new PersistenceUnitInfoImpl("dynamic", compiler.classNames, puiProps,
+                    new PersistenceUnitInfoImpl("dynamic", compiler.getClassNames(), puiProps,
                     compiler.getClassLoader());
             elideDynamicPersistenceUnit.setNonJtaDataSource(source);
             elideDynamicPersistenceUnit.setJtaDataSource(source);
