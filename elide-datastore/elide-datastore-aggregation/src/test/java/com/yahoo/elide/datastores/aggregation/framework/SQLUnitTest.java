@@ -348,7 +348,7 @@ public abstract class SQLUnitTest {
             throw new IllegalStateException(e);
         }
 
-        metaDataStore = new MetaDataStore(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example"));
+        metaDataStore = new MetaDataStore(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example"), true);
 
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(PlayerStatsWithView.class);

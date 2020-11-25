@@ -23,7 +23,7 @@ import java.util.HashMap;
 
 public class MetaDataStoreTest {
     private static MetaDataStore dataStore =
-            new MetaDataStore(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example"));
+            new MetaDataStore(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example"), true);
 
     @BeforeAll
     public static void setup() {

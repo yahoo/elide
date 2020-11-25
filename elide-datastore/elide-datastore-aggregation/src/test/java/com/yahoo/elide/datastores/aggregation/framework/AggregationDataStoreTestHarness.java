@@ -56,7 +56,7 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
         MetaDataStore metaDataStore;
         if (compiler != null) {
             try {
-                metaDataStore = new MetaDataStore(compiler);
+                metaDataStore = new MetaDataStore(compiler, true);
                 Set<Class<?>> annotatedClasses = new HashSet<>();
                 annotatedClasses.addAll(compiler.findAnnotatedClasses(FromTable.class));
                 annotatedClasses.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
@@ -65,7 +65,7 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
                 throw new IllegalStateException(e);
             }
         } else {
-            metaDataStore = new MetaDataStore();
+            metaDataStore = new MetaDataStore(true);
         }
 
         AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder
