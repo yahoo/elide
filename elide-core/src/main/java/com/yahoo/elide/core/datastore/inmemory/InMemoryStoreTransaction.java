@@ -100,11 +100,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
          * It must be done in memory by Elide as some newly created entities have not yet been persisted.
          */
         boolean filterInMemory = scope.getNewPersistentResources().size() > 0;
-        return fetchData(fetcher, relationship.getProjection().getType(),
-                Optional.ofNullable(relationship.getProjection().getFilterExpression()),
-                Optional.ofNullable(relationship.getProjection().getSorting()),
-                Optional.ofNullable(relationship.getProjection().getPagination()),
-                filterInMemory, scope);
+        return fetchData(fetcher, Optional.of(entity), relationship.getProjection(), filterInMemory, scope);
     }
 
     @Override
@@ -113,8 +109,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                       RequestScope scope) {
 
         if (projection.getFilterExpression() == null
-                || tx.supportsFiltering(projection.getType(),
-                projection.getFilterExpression()) == FeatureSupport.FULL) {
+                || tx.supportsFiltering(scope, Optional.empty(), projection) == FeatureSupport.FULL) {
             return tx.loadObject(projection, id, scope);
         } else {
             return DataStoreTransaction.super.loadObject(projection, id, scope);
@@ -140,11 +135,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
             }
         };
 
-        return (Iterable<Object>) fetchData(fetcher, projection.getType(),
-                Optional.ofNullable(projection.getFilterExpression()),
-                Optional.ofNullable(projection.getSorting()),
-                Optional.ofNullable(projection.getPagination()),
-                false, scope);
+        return (Iterable<Object>) fetchData(fetcher, Optional.empty(), projection, false, scope);
     }
 
     @Override
@@ -231,27 +222,27 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     }
 
     private Object fetchData(DataFetcher fetcher,
-                               Class<?> entityClass,
-                               Optional<FilterExpression> filterExpression,
-                               Optional<Sorting> sorting,
-                               Optional<Pagination> pagination,
+                               Optional<Object> parent,
+                               EntityProjection projection,
                                boolean filterInMemory,
                                RequestScope scope) {
 
+        Optional<FilterExpression> filterExpression = Optional.ofNullable(projection.getFilterExpression());
+
         Pair<Optional<FilterExpression>, Optional<FilterExpression>> expressionSplit = splitFilterExpression(
-                entityClass, filterExpression, filterInMemory, scope);
+                scope, parent, projection, filterInMemory);
 
         Optional<FilterExpression> dataStoreFilter = expressionSplit.getLeft();
         Optional<FilterExpression> inMemoryFilter = expressionSplit.getRight();
 
-        Pair<Optional<Sorting>, Optional<Sorting>> sortSplit = splitSorting(entityClass,
-                sorting, inMemoryFilter.isPresent());
+        Pair<Optional<Sorting>, Optional<Sorting>> sortSplit = splitSorting(scope, parent,
+                projection, inMemoryFilter.isPresent());
 
         Optional<Sorting> dataStoreSort = sortSplit.getLeft();
         Optional<Sorting> inMemorySort = sortSplit.getRight();
 
-        Pair<Optional<Pagination>, Optional<Pagination>> paginationSplit = splitPagination(entityClass,
-                filterExpression.orElse(null), pagination, inMemoryFilter.isPresent(), inMemorySort.isPresent());
+        Pair<Optional<Pagination>, Optional<Pagination>> paginationSplit = splitPagination(scope, parent,
+                 projection, inMemoryFilter.isPresent(), inMemorySort.isPresent());
 
         Optional<Pagination> dataStorePagination = paginationSplit.getLeft();
         Optional<Pagination> inMemoryPagination = paginationSplit.getRight();
@@ -371,26 +362,27 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
      * Splits a filter expression into two components:
      *  - a component that should be pushed down to the data store
      *  - a component that should be executed in memory
-     * @param entityClass The class to filter
-     * @param filterExpression The filter expression
-     * @param filterInMemory Whether or not the transaction requires in memory filtering.
      * @param scope The request context
+     * @param parent If this is a relationship load, the parent object.  Otherwise not set.
+     * @param projection The projection being loaded.
+     * @param filterInMemory Whether or not the transaction requires in memory filtering.
      * @return A pair of filter expressions (data store expression, in memory expression)
      */
     private Pair<Optional<FilterExpression>, Optional<FilterExpression>> splitFilterExpression(
-            Class<?> entityClass,
-            Optional<FilterExpression> filterExpression,
-            boolean filterInMemory,
-            RequestScope scope
+            RequestScope scope,
+            Optional<Object> parent,
+            EntityProjection projection,
+            boolean filterInMemory
     ) {
 
+        Optional<FilterExpression> filterExpression = Optional.ofNullable(projection.getFilterExpression());
         Optional<FilterExpression> inStoreFilterExpression = filterExpression;
         Optional<FilterExpression> inMemoryFilterExpression = Optional.empty();
 
         boolean transactionNeedsInMemoryFiltering = filterInMemory;
 
         if (filterExpression.isPresent()) {
-            FeatureSupport filterSupport = tx.supportsFiltering(entityClass, filterExpression.get());
+            FeatureSupport filterSupport = tx.supportsFiltering(scope, parent, projection);
 
             boolean storeNeedsInMemoryFiltering = filterSupport != FeatureSupport.FULL;
 
@@ -417,17 +409,21 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
      * Splits a sorting object into two components:
      *  - a component that should be pushed down to the data store
      *  - a component that should be executed in memory
-     * @param entityClass The class to filter
-     * @param sorting The sorting object
+     * @param scope The request context
+     * @param parent If this is a relationship load, the parent object.  Otherwise not set.
+     * @param projection The projection being loaded.
      * @param filteredInMemory Whether or not filtering was performed in memory
      * @return A pair of sorting objects (data store sort, in memory sort)
      */
     private Pair<Optional<Sorting>, Optional<Sorting>> splitSorting(
-            Class<?> entityClass,
-            Optional<Sorting> sorting,
+            RequestScope scope,
+            Optional<Object> parent,
+            EntityProjection projection,
             boolean filteredInMemory
     ) {
-        if (sorting.isPresent() && (! tx.supportsSorting(entityClass, sorting.get()) || filteredInMemory)) {
+        Optional<Sorting> sorting = Optional.ofNullable(projection.getSorting());
+
+        if (sorting.isPresent() && (! tx.supportsSorting(scope, parent, projection) || filteredInMemory)) {
             return Pair.of(Optional.empty(), sorting);
         }
         return Pair.of(sorting, Optional.empty());
@@ -437,20 +433,24 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
      * Splits a pagination object into two components:
      *  - a component that should be pushed down to the data store
      *  - a component that should be executed in memory
-     * @param entityClass The class to filter
-     * @param pagination The pagination object
+     * @param scope The request context
+     * @param parent If this is a relationship load, the parent object.  Otherwise not set.
+     * @param projection The projection being loaded.
      * @param filteredInMemory Whether or not filtering was performed in memory
      * @param sortedInMemory Whether or not sorting was performed in memory
      * @return A pair of pagination objects (data store pagination, in memory pagination)
      */
     private Pair<Optional<Pagination>, Optional<Pagination>> splitPagination(
-            Class<?> entityClass,
-            FilterExpression expression,
-            Optional<Pagination> pagination,
+            RequestScope scope,
+            Optional<Object> parent,
+            EntityProjection projection,
             boolean filteredInMemory,
             boolean sortedInMemory
     ) {
-        if (!tx.supportsPagination(entityClass, expression)
+
+        Optional<Pagination> pagination = Optional.ofNullable(projection.getPagination());
+
+        if (!tx.supportsPagination(scope, parent, projection)
                 || filteredInMemory
                 || sortedInMemory) {
             return Pair.of(Optional.empty(), pagination);

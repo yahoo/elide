@@ -19,6 +19,8 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.request.Attribute;
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+
 public class TransactionWrapperTest {
 
     private class TestTransactionWrapper extends TransactionWrapper {
@@ -129,10 +131,10 @@ public class TransactionWrapperTest {
         DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
         DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
 
-        when(wrapped.supportsSorting(any(), any())).thenReturn(true);
-        boolean actual = wrapper.supportsSorting(null, null);
+        when(wrapped.supportsSorting(any(), any(), any())).thenReturn(true);
+        boolean actual = wrapper.supportsSorting(null, Optional.empty(), null);
 
-        verify(wrapped, times(1)).supportsSorting(any(), any());
+        verify(wrapped, times(1)).supportsSorting(any(), any(), any());
         assertTrue(actual);
     }
 
@@ -141,10 +143,10 @@ public class TransactionWrapperTest {
         DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
         DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
 
-        when(wrapped.supportsPagination(any(), any())).thenReturn(true);
-        boolean actual = wrapper.supportsPagination(null, null);
+        when(wrapped.supportsPagination(any(), any(), any())).thenReturn(true);
+        boolean actual = wrapper.supportsPagination(null, Optional.empty(), null);
 
-        verify(wrapped, times(1)).supportsPagination(any(), any());
+        verify(wrapped, times(1)).supportsPagination(any(), any(), any());
         assertTrue(actual);
     }
 
@@ -153,10 +155,10 @@ public class TransactionWrapperTest {
         DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
         DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
 
-        when(wrapped.supportsFiltering(any(), any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        DataStoreTransaction.FeatureSupport actual = wrapper.supportsFiltering(null, null);
+        when(wrapped.supportsFiltering(any(), any(), any())).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
+        DataStoreTransaction.FeatureSupport actual = wrapper.supportsFiltering(null, Optional.empty(), null);
 
-        verify(wrapped, times(1)).supportsFiltering(any(), any());
+        verify(wrapped, times(1)).supportsFiltering(any(), any(), any());
         assertEquals(DataStoreTransaction.FeatureSupport.FULL, actual);
     }
 

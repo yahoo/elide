@@ -217,18 +217,21 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
-        return getTransaction(entityClass).supportsFiltering(entityClass, expression);
+    public FeatureSupport supportsFiltering(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+        Class<?> entityClass = projection.getType();
+        return getTransaction(entityClass).supportsFiltering(scope, parent, projection);
     }
 
     @Override
-    public boolean supportsSorting(Class<?> entityClass, Sorting sorting) {
-        return getTransaction(entityClass).supportsSorting(entityClass, sorting);
+    public boolean supportsSorting(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+        Class<?> entityClass = projection.getType();
+        return getTransaction(entityClass).supportsSorting(scope, parent, projection);
     }
 
     @Override
-    public boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
-        return getTransaction(entityClass).supportsPagination(entityClass, expression);
+    public boolean supportsPagination(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+        Class<?> entityClass = projection.getType();
+        return getTransaction(entityClass).supportsPagination(scope, parent, projection);
     }
 
     private Serializable extractId(FilterExpression filterExpression,

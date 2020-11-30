@@ -20,6 +20,7 @@ import com.yahoo.elide.core.request.Sorting;
 import java.io.Closeable;
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.Set;
 /**
  * Wraps the Database Transaction type.
@@ -239,31 +240,40 @@ public interface DataStoreTransaction extends Closeable {
 
     /**
      * Whether or not the transaction can filter the provided class with the provided expression.
-     * @param entityClass The class to filter
-     * @param expression The filter expression
+     * @param scope The request scope
+     * @param projection The projection being loaded
+     * @param parent Are we filtering a root collection or a relationship
      * @return FULL, PARTIAL, or NONE
      */
-    default FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
+    default FeatureSupport supportsFiltering(RequestScope scope,
+                                             Optional<Object> parent,
+                                             EntityProjection projection) {
         return FeatureSupport.FULL;
     }
 
     /**
      * Whether or not the transaction can sort the provided class.
-     * @param entityClass The model type
-     * @param sorting Whether or not the store supports sorting for the given model
+     * @param scope The request scope
+     * @param projection The projection being loaded
+     * @param parent Are we filtering a root collection or a relationship
      * @return true if sorting is possible
      */
-    default boolean supportsSorting(Class<?> entityClass, Sorting sorting) {
+    default boolean supportsSorting(RequestScope scope,
+                                    Optional<Object> parent,
+                                    EntityProjection projection) {
         return true;
     }
 
     /**
      * Whether or not the transaction can paginate the provided class.
-     * @param entityClass The entity class that is being paged.
-     * @param expression The filter expression
+     * @param scope The request scope
+     * @param projection The projection being loaded
+     * @param parent Are we filtering a root collection or a relationship
      * @return true if pagination is possible
      */
-    default boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
+    default boolean supportsPagination(RequestScope scope,
+                                       Optional<Object> parent,
+                                       EntityProjection projection) {
         return true;
     }
 

@@ -18,6 +18,7 @@ import lombok.Data;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -75,18 +76,18 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     }
 
     @Override
-    public FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
-        return tx.supportsFiltering(entityClass, expression);
+    public FeatureSupport supportsFiltering(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+        return tx.supportsFiltering(scope, parent, projection);
     }
 
     @Override
-    public boolean supportsSorting(Class<?> entityClass, Sorting sorting) {
-        return tx.supportsSorting(entityClass, sorting);
+    public boolean supportsSorting(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+        return tx.supportsSorting(scope, parent, projection);
     }
 
     @Override
-    public boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
-        return tx.supportsPagination(entityClass, expression);
+    public boolean supportsPagination(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+        return tx.supportsPagination(scope, parent, projection);
     }
 
     @Override

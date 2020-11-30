@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Optional;
 
 public class DataStoreTransactionTest implements DataStoreTransaction {
     private static final String NAME = "name";
@@ -56,19 +57,19 @@ public class DataStoreTransactionTest implements DataStoreTransaction {
 
     @Test
     public void testSupportsSorting() {
-        boolean actual = supportsSorting(null, null);
+        boolean actual = supportsSorting(null, Optional.empty(), null);
         assertTrue(actual);
     }
 
     @Test
     public void testSupportsPagination() {
-        boolean actual = supportsPagination(null, null);
+        boolean actual = supportsPagination(null, Optional.empty(), null);
         assertTrue(actual);
     }
 
     @Test
     public void testSupportsFiltering() {
-        DataStoreTransaction.FeatureSupport actual = supportsFiltering(null, null);
+        DataStoreTransaction.FeatureSupport actual = supportsFiltering(null, Optional.empty(), null);
         assertEquals(DataStoreTransaction.FeatureSupport.FULL, actual);
     }
 
