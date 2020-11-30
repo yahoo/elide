@@ -217,6 +217,18 @@ public class DynamicConfigValidator {
         }
 
         compiledObjects = compiler.compileAll();
+
+        Set<Class<?>> compiledTableClasses = new HashSet<Class<?>>();
+
+        compiledObjects.values().forEach(cls -> {
+            if (cls.getAnnotation(SecurityCheck.class) != null) {
+                dictionary.addSecurityCheck(cls);
+            } else {
+                compiledTableClasses.add(cls);
+            }
+        });
+
+        compiledTableClasses.forEach(dictionary::bindEntity);
     }
 
     private static void validateInheritance(ElideTableConfig tables) {
