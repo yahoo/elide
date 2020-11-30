@@ -5,11 +5,9 @@
  */
 package com.yahoo.elide.modelconfig.compile;
 
-import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
-import com.yahoo.elide.modelconfig.model.DBConfig;
+import com.yahoo.elide.modelconfig.model.ElideDBConfig;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
-import org.apache.commons.lang3.StringUtils;
 import lombok.Getter;
 
 import java.util.HashSet;
@@ -27,15 +25,14 @@ public class ElideDynamicEntityCompiler {
 
     private final ElideDynamicInMemoryCompiler compiler = ElideDynamicInMemoryCompiler.newInstance().ignoreWarnings();
     @Getter
-    private final Map<String, ConnectionDetails> connectionDetailsMap;
+    private final ElideDBConfig elideSQLDBConfig;
 
     /**
      * Parse dynamic config path.
      * @param path : Dynamic config hjsons root location
-     * @param dbPasswordExtractor : Password Extractor Implementation
      * @throws Exception Exception thrown
      */
-    public ElideDynamicEntityCompiler(String path, DBPasswordExtractor dbPasswordExtractor) throws Exception {
+    public ElideDynamicEntityCompiler(String path) throws Exception {
 
         if (DynamicConfigHelpers.isNullOrEmpty(path)) {
             throw new IllegalArgumentException("Config path is null");
@@ -44,24 +41,9 @@ public class ElideDynamicEntityCompiler {
         DynamicConfigValidator dynamicConfigValidator = new DynamicConfigValidator(path);
         dynamicConfigValidator.readAndValidateConfigs();
         dynamicConfigValidator.hydrateAndCompileModelConfigs(compiler);
-        dynamicConfigValidator.compileDBConfigs(dbPasswordExtractor);
 
         this.compiledObjects = dynamicConfigValidator.getCompiledObjects();
-        this.connectionDetailsMap = dynamicConfigValidator.getConnectionDetailsMap();
-    }
-
-    /**
-     * Parse dynamic config path and provides default implementation for DB Password Extractor.
-     * @param path : Dynamic config hjsons root location.
-     * @throws Exception Exception thrown.
-     */
-    public ElideDynamicEntityCompiler(String path) throws Exception {
-        this(path, new DBPasswordExtractor() {
-            @Override
-            public String getDBPassword(DBConfig config) {
-                return StringUtils.EMPTY;
-            }
-        });
+        this.elideSQLDBConfig = dynamicConfigValidator.getElideSQLDBConfig();
     }
 
     /**

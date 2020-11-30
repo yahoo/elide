@@ -105,12 +105,6 @@ public class DynamicConfigValidatorTest {
                     DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/valid", "--nocompile" }));
             assertEquals(0, exitStatus);
         });
-
-        tapSystemErr(() -> {
-            int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/valid", "--nomodelcompile", "--nodbcompile" }));
-            assertEquals(0, exitStatus);
-        });
     }
 
     @Test
@@ -122,22 +116,6 @@ public class DynamicConfigValidatorTest {
         });
 
         assertTrue(error.startsWith("Unable to compile the source"));
-
-        error = tapSystemErr(() -> {
-            int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/valid", "--nodbcompile" }));
-            assertEquals(2, exitStatus);
-        });
-
-        assertTrue(error.startsWith("Unable to compile the source"));
-
-        error = tapSystemErr(() -> {
-            int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/valid", "--nomodelcompile" }));
-            assertEquals(2, exitStatus);
-        });
-
-        assertTrue(error.startsWith("Failed to load driver"));
     }
 
     @Test

@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  */
 public class HandlebarsHelper {
 
-    public static final String EMPTY_STRING = "";
+    private static final String EMPTY_STRING = "";
     private static final String STRING = "String";
     private static final String DAY = "Day";
     private static final String HOUR = "Hour";

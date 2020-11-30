@@ -28,10 +28,13 @@ import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.checks.PrincipalIsOperator;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.DataSourceConfiguration;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
-import com.yahoo.elide.modelconfig.compile.ConnectionDetails;
 import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.zaxxer.hikari.HikariConfig;
@@ -130,7 +133,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
         HikariConfig config = new HikariConfig(File.separator + "jpah2db.properties");
         DataSource defaultDataSource = new HikariDataSource(config);
-        String defaultDialect = "h2";
+        SQLDialect defaultDialect = SQLDialectFactory.getDefaultDialect();
         ConnectionDetails defaultConnectionDetails = new ConnectionDetails(defaultDataSource, defaultDialect);
 
         Properties prop = new Properties();
@@ -143,12 +146,21 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         // Add an entry for "mycon" connection which is not from hjson
         connectionDetailsMap.put("mycon", defaultConnectionDetails);
         // Add connection details fetched from hjson
-        connectionDetailsMap.putAll(COMPILER.getConnectionDetailsMap());
+        COMPILER.getElideSQLDBConfig().getDbconfigs().forEach(dbConfig -> {
+            connectionDetailsMap.put(dbConfig.getName(),
+                            new ConnectionDetails(getDataSource(dbConfig, getDBPasswordExtractor()),
+                                            SQLDialectFactory.getDialect(dbConfig.getDialect())));
+        });
 
         return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, COMPILER);
     }
 
-    private static DBPasswordExtractor getDBPasswordExtractor() {
+    static DataSource getDataSource(DBConfig dbConfig, DBPasswordExtractor dbPasswordExtractor) {
+        return new DataSourceConfiguration() {
+        }.getDataSource(dbConfig, dbPasswordExtractor);
+    }
+
+    static DBPasswordExtractor getDBPasswordExtractor() {
         return new DBPasswordExtractor() {
             @Override
             public String getDBPassword(DBConfig config) {
@@ -165,7 +177,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
     private static ElideDynamicEntityCompiler getCompiler(String path) {
         try {
-            return new ElideDynamicEntityCompiler(path, getDBPasswordExtractor());
+            return new ElideDynamicEntityCompiler(path);
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

@@ -6,9 +6,7 @@
 package com.yahoo.elide.modelconfig.validator;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
-import static com.yahoo.elide.modelconfig.DynamicConfigHelpers.getDataSource;
 import static com.yahoo.elide.modelconfig.DynamicConfigHelpers.isNullOrEmpty;
-import static com.yahoo.elide.modelconfig.parser.handlebars.HandlebarsHelper.EMPTY_STRING;
 import static com.yahoo.elide.modelconfig.parser.handlebars.HandlebarsHelper.REFERENCE_PARENTHESES;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -18,11 +16,9 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.EntityPermissions;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.modelconfig.Config;
-import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
 import com.yahoo.elide.modelconfig.DynamicConfigSchemaValidator;
 import com.yahoo.elide.modelconfig.StaticModelsDetails;
-import com.yahoo.elide.modelconfig.compile.ConnectionDetails;
 import com.yahoo.elide.modelconfig.compile.ElideDynamicInMemoryCompiler;
 import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.modelconfig.model.Dimension;
@@ -90,7 +86,7 @@ public class DynamicConfigValidator {
     @Getter private ElideSecurityConfig elideSecurityConfig;
     @Getter private Map<String, Object> modelVariables;
     private Map<String, Object> dbVariables;
-    private final ElideDBConfig elideSQLDBConfig = new ElideSQLDBConfig();
+    @Getter private final ElideDBConfig elideSQLDBConfig = new ElideSQLDBConfig();
     private final String configDir;
     private final DynamicConfigSchemaValidator schemaValidator = new DynamicConfigSchemaValidator();
     private final Map<String, Resource> resourceMap = new HashMap<>();
@@ -99,7 +95,6 @@ public class DynamicConfigValidator {
     private final StaticModelsDetails staticModelDetails = new StaticModelsDetails();
 
     @Getter private Map<String, Class<?>> compiledObjects;
-    @Getter private final Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
     public DynamicConfigValidator(String configDir) {
         resolver = new PathMatchingResourcePatternResolver(this.getClass().getClassLoader());
@@ -163,26 +158,13 @@ public class DynamicConfigValidator {
             System.out.println("Configs Validation Passed!");
 
             if (cli.hasOption("nocompile")) {
-                System.out.println("Skipped compilation for both Model and DB configs");
+                System.out.println("Skipped compilation for Model configs");
                 System.exit(0);
             }
 
-            if (cli.hasOption("nomodelcompile")) {
-                System.out.println("Skipped compilation for Model configs");
-            } else {
-                System.out.println("Compiling Model configs (Use '--nomodelcompile' to skip this step).");
-                dynamicConfigValidator.hydrateAndCompileModelConfigs();
-                System.out.println("Model Configs Compilation Passed!");
-            }
-
-            if (cli.hasOption("nodbcompile")) {
-                System.out.println("Skipped compilation for DB configs");
-            } else {
-                System.out.println("Compiling DB configs (Use '--nodbcompile' to skip this step).");
-                dynamicConfigValidator.compileDBConfigs();
-                System.out.println("DB Configs Compilation Passed!");
-            }
-
+            System.out.println("Compiling Model configs (Use '--nocompile' to skip this step).");
+            dynamicConfigValidator.hydrateAndCompileModelConfigs();
+            System.out.println("Model Configs Compilation Passed!");
             System.exit(0);
 
         } catch (Exception e) {
@@ -235,22 +217,6 @@ public class DynamicConfigValidator {
         }
 
         compiledObjects = compiler.compileAll();
-    }
-
-    public void compileDBConfigs() {
-        compileDBConfigs(new DBPasswordExtractor() {
-            @Override
-            public String getDBPassword(DBConfig config) {
-                return EMPTY_STRING;
-            }
-        });
-    }
-
-    public void compileDBConfigs(DBPasswordExtractor dbPasswordExtractor) {
-        this.elideSQLDBConfig.getDbconfigs().forEach(config -> {
-            connectionDetailsMap.put(config.getName(),
-                            new ConnectionDetails(getDataSource(config, dbPasswordExtractor), config.getDialect()));
-        });
     }
 
     private static void validateInheritance(ElideTableConfig tables) {
@@ -724,9 +690,7 @@ public class DynamicConfigValidator {
     private static final Options prepareOptions() {
         Options options = new Options();
         options.addOption(new Option("h", "help", false, "Print a help message and exit."));
-        options.addOption(new Option("nocompile", "nocompile", false, "Do not compile Model and DB configs."));
-        options.addOption(new Option("nodbcompile", "nodbcompile", false, "Do not compile DB configs."));
-        options.addOption(new Option("nomodelcompile", "nomodelcompile", false, "Do not compile Model configs."));
+        options.addOption(new Option("nocompile", "nocompile", false, "Do not compile Model configs."));
         options.addOption(new Option("c", "configDir", true,
                 "Path for Configs Directory.\n"
                         + "Expected Directory Structure under Configs Directory:\n"

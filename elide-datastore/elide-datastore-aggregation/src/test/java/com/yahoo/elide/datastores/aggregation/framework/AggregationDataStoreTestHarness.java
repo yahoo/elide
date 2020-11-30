@@ -10,6 +10,7 @@ import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.core.Slf4jQueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
@@ -17,7 +18,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
-import com.yahoo.elide.modelconfig.compile.ConnectionDetails;
 import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
 import org.hibernate.Session;
 import lombok.AllArgsConstructor;
@@ -39,8 +39,7 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
     private ElideDynamicEntityCompiler compiler;
 
     public AggregationDataStoreTestHarness(EntityManagerFactory entityManagerFactory, DataSource defaultDataSource) {
-        this(entityManagerFactory, new ConnectionDetails(defaultDataSource,
-                        SQLDialectFactory.getDefaultDialect().getClass().getName()));
+        this(entityManagerFactory, new ConnectionDetails(defaultDataSource, SQLDialectFactory.getDefaultDialect()));
     }
 
     public AggregationDataStoreTestHarness(EntityManagerFactory entityManagerFactory,

@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.modelconfig;
 
-import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.modelconfig.model.ElideDBConfig;
 import com.yahoo.elide.modelconfig.model.ElideSecurityConfig;
 import com.yahoo.elide.modelconfig.model.ElideTableConfig;
@@ -14,8 +13,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import org.hjson.JsonValue;
 import org.hjson.ParseException;
 import lombok.extern.slf4j.Slf4j;
@@ -24,8 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.sql.DataSource;
 
 @Slf4j
 /**
@@ -170,23 +165,5 @@ public class DynamicConfigHelpers {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
         return objectMapper.readValue(jsonConfig, configPojo);
-    }
-
-    /**
-     * Generates DataSource for provided configuration.
-     * @param dbConfig DB Configuration pojo.
-     * @param dbPasswordExtractor DB Password Extractor Implementation.
-     * @return DataSource Object.
-     */
-    public static DataSource getDataSource(DBConfig dbConfig, DBPasswordExtractor dbPasswordExtractor) {
-        HikariConfig config = new HikariConfig();
-
-        config.setJdbcUrl(dbConfig.getUrl());
-        config.setUsername(dbConfig.getUser());
-        config.setPassword(dbPasswordExtractor.getDBPassword(dbConfig));
-        config.setDriverClassName(dbConfig.getDriver());
-        dbConfig.getPropertyMap().forEach((k, v) -> config.addDataSourceProperty(k, v));
-
-        return new HikariDataSource(config);
     }
 }
