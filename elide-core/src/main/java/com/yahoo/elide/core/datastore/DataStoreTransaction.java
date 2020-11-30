@@ -15,7 +15,6 @@ import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
-import com.yahoo.elide.core.request.Sorting;
 
 import java.io.Closeable;
 import java.io.Serializable;

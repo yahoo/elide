@@ -300,7 +300,7 @@ public class InMemoryStoreTransactionTest {
         ArgumentCaptor<EntityProjection> projectionArgument = ArgumentCaptor.forClass(EntityProjection.class);
 
         when(wrappedTransaction.supportsFiltering(eq(scope), any(), eq(projection))).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.supportsSorting(scope, any(), eq(projection))).thenReturn(false);
+        when(wrappedTransaction.supportsSorting(eq(scope), any(), eq(projection))).thenReturn(false);
         when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(
