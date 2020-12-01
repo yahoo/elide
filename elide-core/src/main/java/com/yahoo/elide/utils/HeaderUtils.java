@@ -8,6 +8,7 @@ package com.yahoo.elide.utils;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,13 +39,17 @@ public class HeaderUtils {
      * @return requestHeaders
      */
      public static Map<String, List<String>> removeAuthHeaders(Map<String, List<String>> headers) {
-         Map<String, List<String>> requestHeaders = headers;
-         if (requestHeaders != null && requestHeaders.get(HttpHeaders.AUTHORIZATION) != null) {
-             requestHeaders.remove(HttpHeaders.AUTHORIZATION);
+         try {
+             Map<String, List<String>> requestHeaders = new HashMap<String, List<String>>(headers);
+             if (requestHeaders.get(HttpHeaders.AUTHORIZATION) != null) {
+                 requestHeaders.remove(HttpHeaders.AUTHORIZATION);
+             }
+             if (requestHeaders.get("Proxy-Authorization") != null) {
+                 requestHeaders.remove("Proxy-Authorization");
+             }
+             return requestHeaders;
+         } catch (NullPointerException e) {
+             return null;
          }
-         if (requestHeaders !=  null && requestHeaders.get("Proxy-Authorization") != null) {
-             requestHeaders.remove("Proxy-Authorization");
-         }
-         return requestHeaders;
      }
 }
