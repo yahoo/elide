@@ -58,17 +58,6 @@ public class MetaDataStore implements DataStore {
         }
     };
 
-    private static final Function<String, HashMapDataStore> SETUP_NEW = new Function<String, HashMapDataStore>() {
-        @Override
-        public HashMapDataStore apply(String key) {
-            HashMapDataStore hashMapDataStore = new HashMapDataStore(META_DATA_PACKAGE);
-            EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
-            ClassScanner.getAllClasses(META_DATA_PACKAGE.getName()).forEach(dictionary::bindEntity);
-            hashMapDataStore.populateEntityDictionary(dictionary);
-            return hashMapDataStore;
-        }
-    };
-
     @Getter
     private final Set<Class<?>> modelsToBind;
 
@@ -79,6 +68,8 @@ public class MetaDataStore implements DataStore {
 
     @Getter
     private Map<String, HashMapDataStore> hashMapDataStores = new HashMap<>();
+
+    private final Set<Class<?>> metadataModelClasses;
 
     public MetaDataStore() {
         this(getAllAnnotatedClasses());
@@ -112,7 +103,8 @@ public class MetaDataStore implements DataStore {
         if (dynamicCompiledClasses != null && dynamicCompiledClasses.size() != 0) {
             dynamicCompiledClasses.forEach(cls -> {
                 String version = EntityDictionary.getModelVersion(cls);
-                HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version, SETUP_NEW);
+                HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version,
+                        getHashMapDataStoreInitializer());
                 hashMapDataStore.getDictionary().bindEntity(cls, Collections.singleton(Join.class));
                 this.metadataDictionary.bindEntity(cls, Collections.singleton(Join.class));
                 this.modelsToBind.add(cls);
@@ -127,10 +119,12 @@ public class MetaDataStore implements DataStore {
      * @param modelsToBind models to bind
      */
     public MetaDataStore(Set<Class<?>> modelsToBind) {
+        this.metadataModelClasses = ClassScanner.getAllClasses(META_DATA_PACKAGE.getName());
 
         modelsToBind.forEach(cls -> {
             String version = EntityDictionary.getModelVersion(cls);
-            HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version, SETUP_NEW);
+            HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version,
+                    getHashMapDataStoreInitializer());
             hashMapDataStore.getDictionary().bindEntity(cls, Collections.singleton(Join.class));
             this.metadataDictionary.bindEntity(cls, Collections.singleton(Join.class));
             this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);
@@ -142,8 +136,20 @@ public class MetaDataStore implements DataStore {
 
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        ClassScanner.getAllClasses(META_DATA_PACKAGE.getName())
-                .forEach(cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class)));
+        metadataModelClasses.forEach(cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class)));
+    }
+
+    private final Function<String, HashMapDataStore> getHashMapDataStoreInitializer() {
+        return new Function<String, HashMapDataStore>() {
+            @Override
+            public HashMapDataStore apply(String key) {
+                HashMapDataStore hashMapDataStore = new HashMapDataStore(META_DATA_PACKAGE);
+                EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+                metadataModelClasses.forEach(dictionary::bindEntity);
+                hashMapDataStore.populateEntityDictionary(dictionary);
+                return hashMapDataStore;
+            }
+        };
     }
 
     /**

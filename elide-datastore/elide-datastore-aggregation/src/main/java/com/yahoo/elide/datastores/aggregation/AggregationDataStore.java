@@ -53,11 +53,9 @@ public class AggregationDataStore implements DataStore {
                     Collections.singleton(Join.class)));
         }
 
-        for (Class<? extends Annotation> annotation : AGGREGATION_STORE_CLASSES) {
-            // bind non-jpa entity tables
-            ClassScanner.getAnnotatedClasses(annotation)
-                    .forEach(cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class)));
-        }
+        ClassScanner.getAnnotatedClasses(AGGREGATION_STORE_CLASSES).forEach(
+                cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class))
+        );
     }
 
     @Override
