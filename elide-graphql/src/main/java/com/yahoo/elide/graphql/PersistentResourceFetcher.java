@@ -226,14 +226,14 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
     private ConnectionContainer upsertObjects(Environment context) {
         return upsertOrUpdateObjects(
                 context,
-                (entityObject) -> upsertObject(entityObject),
+                this::upsertObject,
                 RelationshipOp.UPSERT);
     }
 
     private ConnectionContainer updateObjects(Environment context) {
         return upsertOrUpdateObjects(
                 context,
-                (entityObject) -> updateObject(entityObject),
+                this::updateObject,
                 RelationshipOp.UPDATE);
     }
 

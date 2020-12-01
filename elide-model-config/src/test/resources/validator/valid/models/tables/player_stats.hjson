@@ -1,6 +1,7 @@
 {
   tables: [{
       name: PlayerStats
+      friendlyName: Player Statistics
       table: player_stats
       schema: gamedb
       description:
@@ -37,6 +38,14 @@
       measures : [
           {
           name : highScore
+          friendlyName : High Score
+          type : INteGER
+          description : very awesome score
+          definition: 'MAX({{score}})'
+          tags: ['PUBLIC']
+          },
+          {
+          name : newHighScore
           type : INteGER
           description : very awesome score
           definition: 'MAX({{score}})'
@@ -46,6 +55,7 @@
       dimensions : [
          {
            name : countryIsoCode
+           friendlyName : Country ISO Code
            type : TEXT
            category : country detail
            definition : '{{playerCountry.isoCode}}'

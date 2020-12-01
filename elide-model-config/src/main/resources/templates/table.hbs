@@ -42,6 +42,7 @@ import javax.persistence.Id;
 <%/if%>
 <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
 @TableMeta(
+    <%#if friendlyName%>friendlyName = "<%friendlyName%>",<%/if%>
     <%#if cardinality%>size = CardinalitySize.<%#toUpperCase cardinality%><%/toUpperCase%>,<%/if%>
     description = "<%description%>",
     category="<%category%>",
@@ -50,7 +51,7 @@ import javax.persistence.Id;
     isFact=<%isFact%>
 )
 <%#if hidden%>@Exclude<%else%>@Include(type = "<%name%>")<%/if%>
-public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if extend%>extends <%#capitalizeFirstLetter extend%><%/capitalizeFirstLetter%><%/if%>{
+public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%>{
 
     private String id;
 
@@ -64,14 +65,11 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
     }
 
 <%#each dimensions%>
-<%#if override%>
-<%else%>
 <%#ifTypeMatches type "TIME"%>
-    protected com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%> <%name%>;
+    private com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%> <%name%>;
 <%else%>
-    protected <%#getJavaType type%><%/getJavaType%> <%name%>;
+    private <%#getJavaType type%><%/getJavaType%> <%name%>;
 <%/ifTypeMatches%>
-<%/if%>
 <%#ifTypeMatches type "TIME"%>
 <%#with grain%>
     @Temporal(grain = @TimeGrainDefinition(<%#if type%>grain = TimeGrain.<%type%><%#if sql%>, <%/if%><%/if%><%#if sql%>expression = "<%sql%>"<%/if%>), timeZone = "UTC")
@@ -79,6 +77,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
 <%/ifTypeMatches%>
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
     @ColumnMeta(
+        <%#if friendlyName%>friendlyName = "<%friendlyName%>",<%/if%>
         <%#if cardinality%>size = CardinalitySize.<%#toUpperCase cardinality%><%/toUpperCase%>,<%/if%>
         description = "<%description%>",
         category="<%category%>",
@@ -87,7 +86,6 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
         tableSource="<%tableSource%>"
     )
     <%#if hidden%>@Exclude<%/if%>
-    <%#if override%>@Override<%/if%>
     @DimensionFormula("<%#trimColumnReferences definition%><%/trimColumnReferences%>")
 <%#ifTypeMatches type "TIME"%>
     public com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
@@ -136,19 +134,16 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if ext
 <%/each%>
 
 <%#each measures%>
-    <%#if override%>
-    <%else%>
-    protected <%#getJavaType type%><%/getJavaType%> <%name%>;
-    <%/if%>
+    private <%#getJavaType type%><%/getJavaType%> <%name%>;
     @MetricFormula(value="<%#trimColumnReferences definition%><%/trimColumnReferences%>"<%#if queryPlanResolver%>, queryPlan=<%queryPlanResolver%><%/if%>)
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
     @ColumnMeta(
+        <%#if friendlyName%>friendlyName = "<%friendlyName%>",<%/if%>
         description = "<%description%>",
         category="<%category%>",
         tags={<%#collectionToString tags%><%/collectionToString%>}
     )
     <%#if hidden%>@Exclude<%/if%>
-    <%#if override%>@Override<%/if%>
     public <%#getJavaType type%><%/getJavaType%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
         return <%name%>;
     }

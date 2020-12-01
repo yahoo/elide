@@ -9,9 +9,8 @@ package com.yahoo.elide.datastores.aggregation.integration;
 import static com.yahoo.elide.datastores.aggregation.integration.AggregationDataStoreIntegrationTest.COMPILER;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
@@ -63,8 +62,28 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/table/playerStatsFiltered")
                 .then()
-                .log().all()
                 .body("data.attributes.requiredFilter", equalTo("recordedDate>={{start}};recordedDate<{{end}}"))
+                .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void testStaticTableRelationshipsAreExcluded() {
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/book/dimensions")
+                .then()
+                .body("data.id", containsInAnyOrder("book.language", "book.id",
+                        "book.chapterCount", "book.publishDate", "book.editorName", "book.title", "book.genre"))
+                .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void testStaticComplexAttributesAreExcluded() {
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/embedded/dimensions")
+                .then()
+                .body("data.id", containsInAnyOrder("embedded.id"))
                 .statusCode(HttpStatus.SC_OK);
     }
 
@@ -77,14 +96,16 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                .then()
                .statusCode(HttpStatus.SC_OK)
                .body("data.attributes.isFact", equalTo(false)) //FromTable, TableMeta Present, isFact false
-               .body("data.relationships.columns.data.id", hasItems("planet.id", "planet.name"));
+               .body("data.attributes.friendlyName", equalTo("planet"))
+               .body("data.relationships.columns.data.id", containsInAnyOrder("planet.id", "planet.name"));
         given()
                .accept("application/vnd.api+json")
                .get("/table/continent")
                .then()
                .statusCode(HttpStatus.SC_OK)
                .body("data.attributes.isFact", equalTo(false)) //TableMeta Present, isFact false
-               .body("data.relationships.columns.data.id", hasItems("continent.id", "continent.name"));
+               .body("data.attributes.friendlyName", equalTo("continent"))
+               .body("data.relationships.columns.data.id", containsInAnyOrder("continent.id", "continent.name"));
         given()
                 .accept("application/vnd.api+json")
                 .get("/table/playerRanking") //Entity Annotated
@@ -98,7 +119,8 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.isFact", equalTo(true)) //TableMeta Present, isFact default true
                 .body("data.attributes.cardinality", equalTo("UNKNOWN"))
-                .body("data.relationships.columns.data.id", hasItems("country.name", "country.isoCode"));
+                .body("data.relationships.columns.data.id", containsInAnyOrder("country.name",
+                        "country.inUsa", "country.unSeats", "country.nickName", "country.isoCode"));
         given()
                 .accept("application/vnd.api+json")
                 .get("/table/playerStatsView")
@@ -113,17 +135,24 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.isFact", equalTo(true)) //FromTable
                 .body("data.attributes.cardinality", equalTo("LARGE"))
                 .body("data.attributes.category", equalTo("Sports Category"))
-                .body("data.attributes.tags", hasItems("Statistics", "Game"))
+                .body("data.attributes.tags", containsInAnyOrder("Statistics", "Game"))
                 .body(
                         "data.relationships.dimensions.data.id",
-                        hasItems(
+                        containsInAnyOrder(
                                 "playerStats.playerName",
+                                "playerStats.playerRank",
+                                "playerStats.playerLevel",
+                                "playerStats.countryIsInUsa",
+                                "playerStats.countryUnSeats",
+                                "playerStats.countryNickName",
                                 "playerStats.player2Name",
                                 "playerStats.countryIsoCode",
                                 "playerStats.subCountryIsoCode",
                                 "playerStats.overallRating"))
-                .body("data.relationships.metrics.data.id", hasItems("playerStats.lowScore", "playerStats.highScore"))
-                .body("data.relationships.timeDimensions.data.id", hasItems("playerStats.recordedDate"));
+                .body("data.relationships.metrics.data.id", containsInAnyOrder("playerStats.lowScore",
+                        "playerStats.highScore", "playerStats.dailyAverageScorePerPeriod"))
+                .body("data.relationships.timeDimensions.data.id", containsInAnyOrder("playerStats.recordedDate",
+                        "playerStats.updatedDate", "playerStats.recordedMonth"));
     }
 
     @Test
@@ -135,6 +164,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("playerName"))
+                .body("data.attributes.friendlyName", equalTo("playerName"))
                 .body("data.attributes.valueType",  equalTo("TEXT"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.valueSourceType",  equalTo("NONE"))
@@ -150,7 +180,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/table/playerStats/dimensions/playerStats.countryIsoCode")
                 .then()
-                .body("data.attributes.values", hasItems("US", "HK"))
+                .body("data.attributes.values", containsInAnyOrder("US", "HK"))
                 .body("data.attributes.valueSourceType", equalTo("ENUM"))
                 .body("data.attributes.tableSource", nullValue())
                 .body("data.attributes.columnType", equalTo("FORMULA"))
@@ -164,7 +194,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/table/playerStats/dimensions/playerStats.overallRating")
                 .then()
-                .body("data.attributes.values", hasItems("GOOD", "OK", "TERRIBLE"))
+                .body("data.attributes.values", containsInAnyOrder("GOOD", "OK", "TERRIBLE"))
                 .body("data.attributes.valueSourceType", equalTo("ENUM"))
                 .body("data.attributes.tableSource", nullValue())
                 .body("data.attributes.columnType", equalTo("FIELD"))
@@ -179,7 +209,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/table/playerStats/dimensions/playerStats.overallRating")
                 .then()
-                .body("data.attributes.tags", hasItems("PUBLIC"))
+                .body("data.attributes.tags", containsInAnyOrder("PUBLIC"))
                 .statusCode(HttpStatus.SC_OK);
     }
 
@@ -208,15 +238,16 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("recordedDate"))
+                .body("data.attributes.friendlyName", equalTo("recordedDate"))
                 .body("data.attributes.valueType",  equalTo("TIME"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.expression",  equalTo("{{recordedDate}}"))
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
-                .body("data.relationships.supportedGrain.data.id", hasItem("playerStats.recordedDate.day"))
-                .body("included.id", hasItem("playerStats.recordedDate.day"))
-                .body("included.attributes.grain", hasItem("DAY"))
+                .body("data.relationships.supportedGrain.data.id", containsInAnyOrder("playerStats.recordedDate.day"))
+                .body("included.id", containsInAnyOrder("playerStats.recordedDate.day"))
+                .body("included.attributes.grain", containsInAnyOrder("DAY"))
                 .body("included.attributes.expression",
-                        hasItem("PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')"));
+                        containsInAnyOrder("PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')"));
     }
 
     @Test
@@ -228,16 +259,17 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("lowScore"))
+                .body("data.attributes.friendlyName", equalTo("lowScore"))
                 .body("data.attributes.valueType",  equalTo("INTEGER"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.expression",  equalTo("MIN({{lowScore}})"))
                 .body("data.attributes.category",  equalTo("Score Category"))
                 .body("data.attributes.description",  equalTo("very low score"))
-                .body("data.attributes.tags",  hasItems("PRIVATE"))
+                .body("data.attributes.tags",  containsInAnyOrder("PRIVATE"))
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
                 .body("data.relationships.metricFunction.data.id", equalTo("playerStats.lowScore[lowScore]"))
-                .body("included.id", hasItem("playerStats.lowScore[lowScore]"))
-                .body("included.attributes.description", hasItem("very low score"));
+                .body("included.id", containsInAnyOrder("playerStats.lowScore[lowScore]"))
+                .body("included.attributes.description", containsInAnyOrder("very low score"));
 
         given()
                 .accept("application/vnd.api+json")
@@ -277,7 +309,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data", hasSize(1))
-                .body("data.attributes.name", hasItem("book"));
+                .body("data.attributes.name", containsInAnyOrder("book"));
 
         given()
                 .header("ApiVersion", "2.0")
@@ -285,7 +317,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .get("/table")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body("errors.detail", hasItem("API version 2.0 not found"));
+                .body("errors.detail", containsInAnyOrder("API version 2.0 not found"));
     }
 
     @Test

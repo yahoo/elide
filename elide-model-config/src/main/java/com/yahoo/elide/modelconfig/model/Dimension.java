@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.modelconfig.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -25,6 +24,7 @@ import java.util.Set;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "name",
+    "friendlyName",
     "description",
     "category",
     "hidden",
@@ -45,6 +45,9 @@ public class Dimension implements Named {
 
     @JsonProperty("name")
     private String name;
+
+    @JsonProperty("friendlyName")
+    private String friendlyName;
 
     @JsonProperty("description")
     private String description;
@@ -80,9 +83,6 @@ public class Dimension implements Named {
 
     @JsonProperty("tableSource")
     private String tableSource;
-
-    @JsonIgnore
-    private boolean override = false;
 
     /**
      * Returns description of the dimension.

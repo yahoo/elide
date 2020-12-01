@@ -49,6 +49,11 @@
                     "type": "string",
                     "format": "elideFieldName"
                 },
+                "friendlyName": {
+                    "title": "Metric friendly name",
+                    "description": "The friendly name of the metric. This will be displayed in the UI.  If not provided, this defaults to the name",
+                    "type": "string"
+                },
                 "description": {
                     "title": "Metric description",
                     "description": "A long description of the metric.",
@@ -80,7 +85,7 @@
                     "title": "query plan resolver class",
                     "description": "The JVM function class which maps a metric to a query plan",
                     "type": "string",
-                    "format": "elideClassName"
+                    "format": "javaClassNameWithExt"
                 },
                 "type": {
                     "title": "Measure field type",
@@ -115,6 +120,11 @@
                     "description": "The name of the dimension. This will be the same as the POJO field name.",
                     "type": "string",
                     "format": "elideFieldName"
+                },
+                "friendlyName": {
+                    "title": "Dimension friendly name",
+                    "description": "The friendly name of the dimension. This will be displayed in the UI.  If not provided, this defaults to the name",
+                    "type": "string"
                 },
                 "description": {
                     "title": "Dimension description",
@@ -266,6 +276,11 @@
                         "description": "The name of the model. This will be the same as the POJO class name.",
                         "type": "string",
                         "format": "elideName"
+                    },
+                    "friendlyName": {
+                        "title": "Table friendly name",
+                        "description": "The friendly name of the table. This will be displayed in the UI.  If not provided, this defaults to the name",
+                        "type": "string"
                     },
                     "filterTemplate": {
                         "title": "Required RSQL Filter Template",

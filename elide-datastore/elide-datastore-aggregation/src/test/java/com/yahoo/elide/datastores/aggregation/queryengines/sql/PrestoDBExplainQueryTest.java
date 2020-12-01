@@ -31,11 +31,11 @@ import java.util.List;
  * *** * * * * * * * * ***
  *
  */
-public class PrestoExplainQueryTest extends SQLUnitTest {
+public class PrestoDBExplainQueryTest extends SQLUnitTest {
 
     @BeforeAll
     public static void init() {
-        SQLUnitTest.init(SQLDialectFactory.getPrestoDialect());
+        SQLUnitTest.init(SQLDialectFactory.getPrestoDBDialect());
     }
 
     @Test

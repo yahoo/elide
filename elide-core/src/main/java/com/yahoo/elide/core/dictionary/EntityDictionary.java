@@ -1406,8 +1406,7 @@ public class EntityDictionary {
      */
     public boolean hasBinding(Class<?> cls) {
         return entityBindings.values().stream()
-                .filter(binding -> binding.entityClass.equals(cls))
-                .findFirst().orElse(null) != null;
+                .anyMatch(binding -> binding.entityClass.equals(cls));
     }
 
     /**

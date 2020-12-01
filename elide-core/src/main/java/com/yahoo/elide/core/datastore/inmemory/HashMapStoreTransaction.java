@@ -211,8 +211,8 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
     private AtomicLong getId(Class<?> entityClass) {
         return dictionary.getSuperClassEntities(entityClass).stream()
                 .findFirst()
-                .map(superClass -> getId(superClass))
-                .orElse(typeIds.computeIfAbsent(entityClass,
+                .map(this::getId)
+                .orElseGet(() -> typeIds.computeIfAbsent(entityClass,
                     (key) -> {
                         long maxId = dataStore.get(key).keySet().stream()
                                 .mapToLong(Long::parseLong)

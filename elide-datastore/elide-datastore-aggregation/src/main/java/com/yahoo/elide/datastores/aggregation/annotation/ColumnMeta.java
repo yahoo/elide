@@ -19,6 +19,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ColumnMeta {
 
+    String friendlyName() default "";
     String description() default "";
     String category() default "";
     String tableSource() default "";
