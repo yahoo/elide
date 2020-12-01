@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
@@ -110,6 +111,7 @@ public class GraphQLEndpointTest {
         Mockito.when(user2.getUserPrincipal()).thenReturn(new User().withName("2"));
         Mockito.when(user3.getUserPrincipal()).thenReturn(new User().withName("3"));
         Mockito.when(uriInfo.getBaseUri()).thenReturn(URI.create("http://localhost:8080/graphql"));
+        Mockito.when(requestHeaders.getRequestHeaders()).thenReturn(new MultivaluedHashMap<String, String>());
     }
 
     @BeforeEach

@@ -51,12 +51,12 @@ public class EntityProjectionTranslator {
 
     public EntityProjectionTranslator(QueryEngine engine, Table table,
                                       EntityProjection entityProjection, EntityDictionary dictionary,
-                                      String bypassCache) {
+                                      Boolean bypassCache) {
         this.engine = engine;
         this.queriedTable = table;
         this.entityProjection = entityProjection;
         this.dictionary = dictionary;
-        this.bypassCache  = (bypassCache != null && bypassCache.equals("true")) ? true : false;
+        this.bypassCache  = bypassCache;
         dimensionProjections = resolveNonTimeDimensions();
         timeDimensions = resolveTimeDimensions();
         metrics = resolveMetrics();

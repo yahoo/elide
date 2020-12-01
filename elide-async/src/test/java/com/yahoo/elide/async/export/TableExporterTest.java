@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import io.reactivex.Observable;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -92,7 +93,7 @@ public class TableExporterTest {
     private void dataPrep() throws IOException {
         AsyncQuery temp = new AsyncQuery();
         DataStoreTransaction tx = dataStore.beginTransaction();
-        RequestScope scope = new RequestScope(null, null, NO_VERSION, null, tx, user, null, null, UUID.randomUUID(), elide.getElideSettings());
+        RequestScope scope = new RequestScope(null, null, NO_VERSION, null, tx, user, null, Collections.emptyMap(), UUID.randomUUID(), elide.getElideSettings());
         tx.save(temp, scope);
         tx.commit(scope);
         tx.close();

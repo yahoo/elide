@@ -66,7 +66,7 @@ public class TableExporter {
                 //TODO - we need to add the baseUrlEndpoint to the queryObject.
                 //TODO - Can we have projectionInfo as null?
                 requestScope = new GraphQLRequestScope("", tx, user, apiVersion, elide.getElideSettings(),
-                        null, requestId, null);
+                        null, requestId, Collections.emptyMap());
             } else {
                 //TODO - Add JSON Support
                 throw new InvalidValueException("QueryType not supported");

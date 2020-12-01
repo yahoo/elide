@@ -39,17 +39,13 @@ public class HeaderUtils {
      * @return requestHeaders
      */
      public static Map<String, List<String>> removeAuthHeaders(Map<String, List<String>> headers) {
-         try {
-             Map<String, List<String>> requestHeaders = new HashMap<String, List<String>>(headers);
-             if (requestHeaders.get(HttpHeaders.AUTHORIZATION) != null) {
-                 requestHeaders.remove(HttpHeaders.AUTHORIZATION);
-             }
-             if (requestHeaders.get("Proxy-Authorization") != null) {
-                 requestHeaders.remove("Proxy-Authorization");
-             }
-             return requestHeaders;
-         } catch (NullPointerException e) {
-             return null;
+         Map<String, List<String>> requestHeaders = new HashMap<String, List<String>>(headers);
+         if (requestHeaders.get(HttpHeaders.AUTHORIZATION) != null) {
+             requestHeaders.remove(HttpHeaders.AUTHORIZATION);
          }
+         if (requestHeaders.get("Proxy-Authorization") != null) {
+             requestHeaders.remove("Proxy-Authorization");
+         }
+         return requestHeaders;
      }
 }
