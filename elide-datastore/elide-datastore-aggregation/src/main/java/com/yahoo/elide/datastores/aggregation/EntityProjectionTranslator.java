@@ -81,7 +81,6 @@ public class EntityProjectionTranslator {
                 .build();
         QueryValidator validator = new QueryValidator(query, getAllFields(), dictionary);
         validator.validate();
-        System.out.println(query);
         return query;
     }
 

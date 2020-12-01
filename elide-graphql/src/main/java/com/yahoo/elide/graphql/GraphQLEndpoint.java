@@ -16,6 +16,7 @@ import com.yahoo.elide.utils.HeaderUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -29,7 +30,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
@@ -70,9 +70,8 @@ public class GraphQLEndpoint {
             @Context HttpHeaders headers,
             @Context SecurityContext securityContext,
             String graphQLDocument) {
-
-        String apiVersion = HeaderUtils.resolveApiVersion(headers);
-        MultivaluedMap<String, String> requestHeaders = HeaderUtils.removeAuthHeaders(headers);
+        String apiVersion = HeaderUtils.resolveApiVersion(headers.getRequestHeaders());
+        Map<String, List<String>> requestHeaders = HeaderUtils.removeAuthHeaders(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
         QueryRunner runner = runners.getOrDefault(apiVersion, null);
 

@@ -53,6 +53,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -187,7 +189,7 @@ public class Elide {
      * @return Elide response object
      */
     public ElideResponse get(String baseUrlEndPoint, String path, MultivaluedMap<String, String> queryParams,
-                             MultivaluedMap<String, String> requestHeaders, User opaqueUser, String apiVersion,
+                             Map<String, List<String>> requestHeaders, User opaqueUser, String apiVersion,
                              UUID requestId) {
         return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, requestId, (tx, user) -> {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
@@ -247,7 +249,7 @@ public class Elide {
      * @return Elide response object
      */
     public ElideResponse post(String baseUrlEndPoint, String path, String jsonApiDocument,
-                              MultivaluedMap<String, String> queryParams, MultivaluedMap<String, String> requestHeaders,
+                              MultivaluedMap<String, String> queryParams, Map<String, List<String>> requestHeaders,
                               User opaqueUser, String apiVersion, UUID requestId) {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestId, (tx, user) -> {
             JsonApiDocument jsonApiDoc = mapper.readJsonApiDocument(jsonApiDocument);
@@ -318,7 +320,7 @@ public class Elide {
      */
     public ElideResponse patch(String baseUrlEndPoint, String contentType, String accept,
                                String path, String jsonApiDocument, MultivaluedMap<String, String> queryParams,
-                               MultivaluedMap<String, String> requestHeaders, User opaqueUser,
+                               Map<String, List<String>> requestHeaders, User opaqueUser,
                                String apiVersion, UUID requestId) {
 
         Handler<DataStoreTransaction, User, HandlerResult> handler;
@@ -398,7 +400,7 @@ public class Elide {
      */
     public ElideResponse delete(String baseUrlEndPoint, String path, String jsonApiDocument,
                                 MultivaluedMap<String, String> queryParams,
-                                MultivaluedMap<String, String> requestHeaders,
+                                Map<String, List<String>> requestHeaders,
                                 User opaqueUser, String apiVersion, UUID requestId) {
         return handleRequest(false, opaqueUser, dataStore::beginTransaction, requestId, (tx, user) -> {
             JsonApiDocument jsonApiDoc = StringUtils.isEmpty(jsonApiDocument)

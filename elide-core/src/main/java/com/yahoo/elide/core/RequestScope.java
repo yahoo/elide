@@ -55,7 +55,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     @Getter private final JsonApiMapper mapper;
     @Getter private final AuditLogger auditLogger;
     @Getter private final Optional<MultivaluedMap<String, String>> queryParams;
-    @Getter private final Optional<MultivaluedMap<String, String>> requestHeaders;
+    @Getter private final Map<String, List<String>> requestHeaders;
     @Getter private final Map<String, Set<String>> sparseFields;
     @Getter private final PermissionExecutor permissionExecutor;
     @Getter private final ObjectEntityCache objectEntityCache;
@@ -102,7 +102,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
                         DataStoreTransaction transaction,
                         User user,
                         MultivaluedMap<String, String> queryParams,
-                        MultivaluedMap<String, String> requestHeaders,
+                        Map<String, List<String>> requestHeaders,
                         UUID requestId,
                         ElideSettings elideSettings) {
         this.apiVersion = apiVersion;
@@ -143,9 +143,8 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
                 : Optional.of(queryParams);
 
         this.requestHeaders = (requestHeaders == null || requestHeaders.size() == 0)
-                ? Optional.empty()
-                : Optional.of(requestHeaders);
-
+                ? Collections.emptyMap()
+                : requestHeaders;
         registerPreSecurityObservers();
 
         if (this.queryParams.isPresent()) {
@@ -210,7 +209,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.mapper = outerRequestScope.mapper;
         this.auditLogger = outerRequestScope.auditLogger;
         this.queryParams = Optional.empty();
-        this.requestHeaders = Optional.empty();
+        this.requestHeaders = Collections.emptyMap();
         this.sparseFields = Collections.emptyMap();
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.newPersistentResources = outerRequestScope.newPersistentResources;
@@ -524,9 +523,10 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     }
 
     public String getRequestHeaderByName(String headerName) {
-
-        String headerValue = (this.requestHeaders.isPresent() && this.requestHeaders.get().get(headerName) != null)
-                ? this.requestHeaders.get().get(headerName).get(0) : null;
-        return headerValue;
+        if (this.requestHeaders.get(headerName) == null) {
+            return null;
+        } else {
+            return this.requestHeaders.get(headerName).get(0);
+        }
     }
 }

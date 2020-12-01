@@ -37,13 +37,13 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 /**
@@ -133,7 +133,7 @@ public class QueryRunner {
      * @return The response.
      */
     public ElideResponse run(String baseUrlEndPoint, String graphQLDocument, User user, UUID requestId,
-                             MultivaluedMap<String, String> requestHeaders) {
+                             Map<String, List<String>> requestHeaders) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
 
         JsonNode topLevel;
@@ -227,7 +227,7 @@ public class QueryRunner {
 
     private ElideResponse executeGraphQLRequest(String baseUrlEndPoint, ObjectMapper mapper, User principal,
                                                 String graphQLDocument, JsonNode jsonDocument, UUID requestId,
-                                                MultivaluedMap<String, String> requestHeaders) {
+                                                Map<String, List<String>> requestHeaders) {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
@@ -237,10 +237,10 @@ public class QueryRunner {
             }
             String query = extractQuery(jsonDocument);
 
-// get variables from request for constructing entityProjections
+            // get variables from request for constructing entityProjections
             Map<String, Object> variables = extractVariables(mapper, jsonDocument);
 
-//TODO - get API version.
+            //TODO - get API version.
             GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables,
                     apiVersion).make(query);
             GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrlEndPoint, tx, principal, apiVersion,
@@ -248,8 +248,8 @@ public class QueryRunner {
 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
 
-// Logging all queries. It is recommended to put any private information that shouldn't be logged into
-// the "variables" section of your query. Variable values are not logged.
+            // Logging all queries. It is recommended to put any private information that shouldn't be logged into
+            // the "variables" section of your query. Variable values are not logged.
             log.info("Processing GraphQL query:\n{}", query);
 
             ExecutionInput.Builder executionInput = new ExecutionInput.Builder().context(requestScope).query(query);
@@ -275,7 +275,7 @@ public class QueryRunner {
                             put("data", null);
                         }
                     };
-// Do not commit. Throw OK response to process tx.close correctly.
+                    // Do not commit. Throw OK response to process tx.close correctly.
                     throw new WebApplicationException(
                             Response.ok(mapper.writeValueAsString(abortedResponseObject)).build());
                 }

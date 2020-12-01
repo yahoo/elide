@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.equalTo;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.jdbc.Sql;
 import io.micrometer.core.instrument.MeterRegistry;
 
@@ -91,8 +92,9 @@ public class AggregationStoreTest extends IntegrationTest {
     public void jsonApiGetTest(@Autowired MeterRegistry metrics) {
         Map<String, String> requestHeaders = new HashMap<>();
          requestHeaders.put("bypassCache", "true");
-
-         given().headers(requestHeaders)
+         HttpHeaders headers = new HttpHeaders();
+         headers.set("bypassCache", "true");
+         given().headers(headers)
                 .get("/json/stats?fields[stats]=measure")
                 .then()
                 .body(equalTo(

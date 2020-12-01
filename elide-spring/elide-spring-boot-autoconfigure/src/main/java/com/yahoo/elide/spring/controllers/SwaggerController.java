@@ -7,11 +7,14 @@ package com.yahoo.elide.spring.controllers;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.swagger.SwaggerBuilder;
+import com.yahoo.elide.utils.HeaderUtils;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+
 
 /**
  * Spring REST controller for exposing Swagger documentation.
@@ -81,8 +85,8 @@ public class SwaggerController {
     }
 
     @GetMapping(value = {"/", ""}, produces = JSON_CONTENT_TYPE)
-    public Callable<ResponseEntity<String>> list(@RequestHeader Map<String, String> requestHeaders) {
-        final String apiVersion = Utils.getApiVersion(requestHeaders);
+    public Callable<ResponseEntity<String>> list(@RequestHeader HttpHeaders requestHeaders) {
+        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
 
         final List<String> documentPaths = documents.keySet().stream()
                 .filter(key -> key.getLeft().equals(apiVersion))
@@ -115,10 +119,10 @@ public class SwaggerController {
      * @return response The Swagger JSON document
      */
     @GetMapping(value = "/{name}", produces = JSON_CONTENT_TYPE)
-    public Callable<ResponseEntity<String>> list(@RequestHeader Map<String, String> requestHeaders,
+    public Callable<ResponseEntity<String>> list(@RequestHeader HttpHeaders requestHeaders,
                                                  @PathVariable("name") String name) {
 
-        final String apiVersion = Utils.getApiVersion(requestHeaders);
+        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
         final String encodedName = Encode.forHtml(name);
 
         return new Callable<ResponseEntity<String>>() {
