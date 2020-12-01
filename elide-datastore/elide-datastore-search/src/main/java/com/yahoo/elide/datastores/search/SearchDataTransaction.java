@@ -167,13 +167,15 @@ public class SearchDataTransaction extends TransactionWrapper {
     }
 
     @Override
-    public FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
+    public FeatureSupport supportsFiltering(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+        Class<?> entityClass = projection.getType();
+        FilterExpression expression = projection.getFilterExpression();
 
         /* Return the least support among all the predicates */
         FeatureSupport support = canSearch(entityClass, expression);
 
         if (support == NONE) {
-            return super.supportsFiltering(entityClass, expression);
+            return super.supportsFiltering(scope, parent, projection);
         }
 
         return support;

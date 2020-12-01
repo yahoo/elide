@@ -8,16 +8,15 @@ package com.yahoo.elide.core.datastore.wrapped;
 
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
-import com.yahoo.elide.core.request.Sorting;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -29,8 +28,8 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     protected DataStoreTransaction tx;
 
     @Override
-    public void preCommit() {
-        tx.preCommit();
+    public void preCommit(RequestScope scope) {
+        tx.preCommit(scope);
     }
 
     @Override
@@ -75,18 +74,18 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     }
 
     @Override
-    public FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
-        return tx.supportsFiltering(entityClass, expression);
+    public FeatureSupport supportsFiltering(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+        return tx.supportsFiltering(scope, parent, projection);
     }
 
     @Override
-    public boolean supportsSorting(Class<?> entityClass, Sorting sorting) {
-        return tx.supportsSorting(entityClass, sorting);
+    public boolean supportsSorting(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+        return tx.supportsSorting(scope, parent, projection);
     }
 
     @Override
-    public boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
-        return tx.supportsPagination(entityClass, expression);
+    public boolean supportsPagination(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+        return tx.supportsPagination(scope, parent, projection);
     }
 
     @Override
