@@ -53,13 +53,13 @@ public class DynamicConfigHelpers {
     /**
      * converts variables hjson string to map of variables.
      * @param config
+     * @param schemaValidator JSON schema validator.
      * @return Map of Variables
      * @throws IOException
      */
     @SuppressWarnings("unchecked")
-    public static Map<String, Object> stringToVariablesPojo(String fileName, String config)
-            throws IOException {
-        DynamicConfigSchemaValidator schemaValidator = new DynamicConfigSchemaValidator();
+    public static Map<String, Object> stringToVariablesPojo(String fileName, String config,
+                    DynamicConfigSchemaValidator schemaValidator) throws IOException {
         Map<String, Object> variables = new HashMap<>();
         String jsonConfig = hjsonToJson(config);
         try {
@@ -77,12 +77,12 @@ public class DynamicConfigHelpers {
      * Generates ElideTableConfig Pojo from input String.
      * @param content : input string
      * @param variables : variables to resolve.
+     * @param schemaValidator JSON schema validator.
      * @return ElideTableConfig Pojo
      * @throws IOException
      */
     public static ElideTableConfig stringToElideTablePojo(String fileName, String content,
-                                                          Map<String, Object> variables) throws IOException {
-        DynamicConfigSchemaValidator schemaValidator = new DynamicConfigSchemaValidator();
+                    Map<String, Object> variables, DynamicConfigSchemaValidator schemaValidator) throws IOException {
         ElideTableConfig table = new ElideTableConfig();
         String jsonConfig = hjsonToJson(resolveVariables(content, variables));
         try {
@@ -100,12 +100,12 @@ public class DynamicConfigHelpers {
      * Generates ElideDBConfig Pojo from input String.
      * @param content : input string
      * @param variables : variables to resolve.
+     * @param schemaValidator JSON schema validator.
      * @return ElideDBConfig Pojo
      * @throws IOException
      */
     public static ElideDBConfig stringToElideDBConfigPojo(String fileName, String content,
-                                                          Map<String, Object> variables) throws IOException {
-        DynamicConfigSchemaValidator schemaValidator = new DynamicConfigSchemaValidator();
+                    Map<String, Object> variables, DynamicConfigSchemaValidator schemaValidator) throws IOException {
         ElideDBConfig dbconfig = new ElideDBConfig();
         String jsonConfig = hjsonToJson(resolveVariables(content, variables));
         try {
@@ -123,12 +123,12 @@ public class DynamicConfigHelpers {
      * Generates ElideSecurityConfig Pojo from input String.
      * @param content : input string
      * @param variables : variables to resolve.
+     * @param schemaValidator JSON schema validator.
      * @return ElideSecurityConfig Pojo
      * @throws IOException
      */
     public static ElideSecurityConfig stringToElideSecurityPojo(String fileName, String content,
-                                                                Map<String, Object> variables) throws IOException {
-        DynamicConfigSchemaValidator schemaValidator = new DynamicConfigSchemaValidator();
+                    Map<String, Object> variables, DynamicConfigSchemaValidator schemaValidator) throws IOException {
         String jsonConfig = hjsonToJson(resolveVariables(content, variables));
         try {
             if (schemaValidator.verifySchema(Config.SECURITY, jsonConfig, fileName)) {

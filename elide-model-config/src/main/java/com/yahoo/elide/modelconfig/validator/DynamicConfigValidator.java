@@ -13,6 +13,7 @@ import static com.yahoo.elide.modelconfig.parser.handlebars.HandlebarsHelper.REF
 import static java.nio.charset.StandardCharsets.UTF_8;
 import com.yahoo.elide.modelconfig.Config;
 import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
+import com.yahoo.elide.modelconfig.DynamicConfigSchemaValidator;
 import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.modelconfig.model.Dimension;
 import com.yahoo.elide.modelconfig.model.ElideDBConfig;
@@ -72,6 +73,7 @@ public class DynamicConfigValidator {
     private Map<String, Object> dbVariables;
     private final ElideDBConfig elideSQLDBConfig = new ElideSQLDBConfig();
     private final String configDir;
+    private final DynamicConfigSchemaValidator schemaValidator = new DynamicConfigSchemaValidator();
     private final Map<String, Resource> resourceMap = new HashMap<>();
     private final PathMatchingResourcePatternResolver resolver;
 
@@ -251,8 +253,8 @@ public class DynamicConfigValidator {
                         .map(entry -> {
                             try {
                                 String content = IOUtils.toString(entry.getValue().getInputStream(), UTF_8);
-                                return DynamicConfigHelpers.stringToVariablesPojo
-                                                (entry.getValue().getFilename(), content);
+                                return DynamicConfigHelpers.stringToVariablesPojo(entry.getValue().getFilename(),
+                                                content, schemaValidator);
                             } catch (IOException e) {
                                 throw new IllegalStateException(e);
                             }
@@ -274,8 +276,8 @@ public class DynamicConfigValidator {
                             try {
                                 String content = IOUtils.toString(entry.getValue().getInputStream(), UTF_8);
                                 validateConfigForMissingVariables(content, this.modelVariables);
-                                return DynamicConfigHelpers.stringToElideSecurityPojo
-                                                (entry.getValue().getFilename(), content, this.modelVariables);
+                                return DynamicConfigHelpers.stringToElideSecurityPojo(entry.getValue().getFilename(),
+                                                content, this.modelVariables, schemaValidator);
                             } catch (IOException e) {
                                 throw new IllegalStateException(e);
                             }
@@ -298,8 +300,8 @@ public class DynamicConfigValidator {
                             try {
                                 String content = IOUtils.toString(entry.getValue().getInputStream(), UTF_8);
                                 validateConfigForMissingVariables(content, this.dbVariables);
-                                return DynamicConfigHelpers.stringToElideDBConfigPojo
-                                                (entry.getValue().getFilename(), content, this.dbVariables);
+                                return DynamicConfigHelpers.stringToElideDBConfigPojo(entry.getValue().getFilename(),
+                                                content, this.dbVariables, schemaValidator);
                             } catch (IOException e) {
                                 throw new IllegalStateException(e);
                             }
@@ -321,8 +323,8 @@ public class DynamicConfigValidator {
                             try {
                                 String content = IOUtils.toString(entry.getValue().getInputStream(), UTF_8);
                                 validateConfigForMissingVariables(content, this.modelVariables);
-                                return DynamicConfigHelpers.stringToElideTablePojo
-                                                (entry.getValue().getFilename(), content, this.modelVariables);
+                                return DynamicConfigHelpers.stringToElideTablePojo(entry.getValue().getFilename(),
+                                                content, this.modelVariables, schemaValidator);
                             } catch (IOException e) {
                                 throw new IllegalStateException(e);
                             }
