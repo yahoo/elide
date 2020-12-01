@@ -14,6 +14,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
+import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
@@ -108,10 +109,10 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%>{
 
 <%#each joins%>
 <%#assign "joinClassName"%> <%#getJoinClassName to%><%/getJoinClassName%> <%/assign%>
-<%#ifTypeMatches type "toMany"%>
+<%#ifTypeMatches kind "toMany"%>
     private Set<<%joinClassName%>> <%name%>;
 
-    @Join("<%#trimColumnReferences definition%><%/trimColumnReferences%>")
+    @Join(value="<%#trimColumnReferences definition%><%/trimColumnReferences%>"<%#if type%>, type=JoinType.<%#toUpperCase type%><%/toUpperCase%><%/if%>)
     public Set<<%joinClassName%>> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
         return <%name%>;
     }
@@ -122,7 +123,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%>{
 <%else%>
     private <%joinClassName%> <%name%>;
 
-    @Join("<%#trimColumnReferences definition%><%/trimColumnReferences%>")
+    @Join(value="<%#trimColumnReferences definition%><%/trimColumnReferences%>"<%#if type%>, type=JoinType.<%#toUpperCase type%><%/toUpperCase%><%/if%>)
     public <%joinClassName%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
         return <%name%>;
     }

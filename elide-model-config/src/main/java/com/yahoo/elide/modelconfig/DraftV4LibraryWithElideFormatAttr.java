@@ -10,6 +10,7 @@ import com.yahoo.elide.modelconfig.jsonformats.ElideFieldNameFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideFieldTypeFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideGrainTypeFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideJDBCUrlFormatAttr;
+import com.yahoo.elide.modelconfig.jsonformats.ElideJoinKindFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideJoinTypeFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideNameFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideRSQLFilterFormatAttr;
@@ -38,6 +39,7 @@ public class DraftV4LibraryWithElideFormatAttr {
         builder.addFormatAttribute(ElideFieldTypeFormatAttr.FORMAT_NAME, new ElideFieldTypeFormatAttr());
         builder.addFormatAttribute(ElideGrainTypeFormatAttr.FORMAT_NAME, new ElideGrainTypeFormatAttr());
         builder.addFormatAttribute(ElideJoinTypeFormatAttr.FORMAT_NAME, new ElideJoinTypeFormatAttr());
+        builder.addFormatAttribute(ElideJoinKindFormatAttr.FORMAT_NAME, new ElideJoinKindFormatAttr());
         builder.addFormatAttribute(ElideTimeFieldTypeFormatAttr.FORMAT_NAME, new ElideTimeFieldTypeFormatAttr());
         builder.addFormatAttribute(ElideNameFormatAttr.FORMAT_NAME, new ElideNameFormatAttr());
         builder.addFormatAttribute(ElideRSQLFilterFormatAttr.FORMAT_NAME, new ElideRSQLFilterFormatAttr());

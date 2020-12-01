@@ -10,7 +10,7 @@
           {
              name: playerCountry
              to: Country
-             type: toOne
+             kind: toOne
              // referred column should start with field name i.e. playerCountry
              definition: '{{id}} = {{country.country_id}}'
           }

@@ -6,7 +6,7 @@
           {
              name: playerTeam
              to: Team
-             type: toMany
+             kind: toMany
              definition: '{{playerTeam.id}} = {{ team_id}}'
           }
       ]
