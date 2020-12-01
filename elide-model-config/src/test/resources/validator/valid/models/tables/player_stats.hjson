@@ -24,13 +24,13 @@
           {
              name: playerCountry
              to: Country
-             type: toOnE
+             type: fuLL
              definition: '{{ playerCountry.id}} = {{country_id}}'
           },
           {
              name: playerTeam
              to: Team
-             type: Tomany
+             kind: Tomany
              definition: '{{playerTeam.id}} = {{ team_id}}'
           }
       ]

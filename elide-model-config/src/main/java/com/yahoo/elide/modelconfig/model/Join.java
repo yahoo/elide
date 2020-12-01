@@ -22,6 +22,7 @@ import lombok.NoArgsConstructor;
     "name",
     "to",
     "type",
+    "kind",
     "definition"
 })
 @Data
@@ -39,13 +40,35 @@ public class Join implements Named {
     @JsonProperty("type")
     private Join.Type type;
 
+    @JsonProperty("kind")
+    private Join.Kind kind = Join.Kind.TOONE;
+
     @JsonProperty("definition")
     private String definition;
 
-    public enum Type {
+    public enum Kind {
 
         TOONE("toOne"),
         TOMANY("toMany");
+
+        private final String value;
+
+        private Kind(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return this.value;
+        }
+    }
+
+    public enum Type {
+
+        LEFT("left"),
+        INNER("inner"),
+        FULL("full"),
+        CROSS("cross");
 
         private final String value;
 
