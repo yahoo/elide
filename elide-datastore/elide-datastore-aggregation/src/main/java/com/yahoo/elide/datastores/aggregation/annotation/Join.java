@@ -21,4 +21,10 @@ public @interface Join {
      * @return join constraint like <code>{{col1}} = {{joinField.col2}}</code>
      */
     String value();
+
+    /**
+     * Join type.
+     * @return join type like {@code left, inner, full or cross}
+     */
+    JoinType type() default JoinType.LEFT;
 }

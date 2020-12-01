@@ -11,7 +11,7 @@
              name: playerCountry
              // undefined model PlayerContinent
              to: PlayerContinent
-             type: toOne
+             kind: toOne
              definition: '{{id}} = {{playerCountry.country_id}}'
           }
       ]

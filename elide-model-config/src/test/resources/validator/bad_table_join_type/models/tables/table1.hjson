@@ -14,14 +14,16 @@
           {
              name: playerCountry
              to: country
-             // Invalid Join Type
-             type: toAll
+             // Invalid Join Kind
+             kind: toAll
              definition: '{{playerCountry.id}} = {{country_id}}'
           },
           {
              name: playerTeam
              to: team
-             type: toMany
+             kind: toMany
+             // Invalid Join Type
+             type: full outer
              definition: '{{playerTeam.id}} = {{team_id}}'
           }
       ]
