@@ -10,14 +10,13 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
-import com.yahoo.elide.core.request.Sorting;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -94,17 +93,17 @@ public class MetaDataStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
+    public FeatureSupport supportsFiltering(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
         return FeatureSupport.NONE;
     }
 
     @Override
-    public boolean supportsSorting(Class<?> entityClass, Sorting sorting) {
+    public boolean supportsSorting(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
         return false;
     }
 
     @Override
-    public boolean supportsPagination(Class<?> entityClass, FilterExpression expression) {
+    public boolean supportsPagination(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
         return false;
     }
 

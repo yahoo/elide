@@ -140,7 +140,8 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        assert ("Inheriting from table 'A' creates an illegal cyclic dependency.\n".equals(error) || "Inheriting from table 'B' creates an illegal cyclic dependency.\n".equals(error));
+        assertTrue(error.contains("Inheriting from table"));
+        assertTrue(error.contains("creates an illegal cyclic dependency."));
     }
 
     @Test
@@ -187,7 +188,9 @@ public class DynamicConfigValidatorTest {
         });
         String expected = "Schema validation failed for: table1.hjson\n"
                         + "[ERROR]\n"
-                        + "Instance[/tables/0/joins/0/type] failed to validate against schema[/definitions/join/properties/type]. Join type [toAll] is not allowed. Supported value is one of [ToOne, ToMany].\n";
+                        + "Instance[/tables/0/joins/0/kind] failed to validate against schema[/definitions/join/properties/kind]. Join kind [toAll] is not allowed. Supported value is one of [ToOne, ToMany].\n"
+                        + "[ERROR]\n"
+                        + "Instance[/tables/0/joins/1/type] failed to validate against schema[/definitions/join/properties/type]. Join type [full outer] is not allowed. Supported value is one of [left, inner, full, cross].\n";
 
         assertEquals(expected, error);
     }

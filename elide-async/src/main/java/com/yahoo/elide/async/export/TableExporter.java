@@ -76,7 +76,7 @@ public class TableExporter {
                 results = PersistentResource.loadRecords(projection, Collections.emptyList(), requestScope);
             }
 
-            tx.preCommit();
+            tx.preCommit(requestScope);
             requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
 

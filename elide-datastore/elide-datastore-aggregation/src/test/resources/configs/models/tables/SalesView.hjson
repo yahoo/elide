@@ -12,14 +12,14 @@
         {
           name: customer
           to: customerDetails
-          type: toOne
+          type: Left
           // References Physical Columns
           definition: '{{customer_id}} = {{ customer.id}}'
         }
         {
           name: delivery
           to: deliveryDetails
-          type: toOne
+          kind: toOne
           // References Logical Columns, multiple join condition
           definition: '''
           {{ orderId}} = {{delivery.orderId}} AND
@@ -185,7 +185,6 @@
         {
           name: region
           to: regionDetails
-          type: toOne
           // References Physical & Logical Columns
           definition: '{{zipCode}} = {{region.zip_code}}'
         }

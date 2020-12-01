@@ -17,13 +17,13 @@
           {
              name: playerCountry
              to: country
-             type: toOne
+             kind: toOne
              definition: '${to}.id = ${from}.country_id'
           },
           {
              name: playerTeam
              to: team
-             type: toMany
+             kind: toMany
              definition: '${to}.id = ${from}.team_id'
           }
       ]

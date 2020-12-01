@@ -444,7 +444,7 @@ public class Elide {
             RequestScope requestScope = result.getRequestScope();
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
             Supplier<Pair<Integer, JsonNode>> responder = result.getResponder();
-            tx.preCommit();
+            tx.preCommit(requestScope);
             requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
             if (!isReadOnly) {
