@@ -28,8 +28,8 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     protected DataStoreTransaction tx;
 
     @Override
-    public void preCommit() {
-        tx.preCommit();
+    public void preCommit(RequestScope scope) {
+        tx.preCommit(scope);
     }
 
     @Override

@@ -118,7 +118,7 @@ public class LifeCycleTest {
         verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
         verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
 
-        verify(tx).preCommit();
+        verify(tx).preCommit(any());
         verify(tx, times(1)).createObject(eq(mockModel), isA(RequestScope.class));
         verify(tx).flush(isA(RequestScope.class));
         verify(tx).commit(isA(RequestScope.class));
@@ -150,7 +150,7 @@ public class LifeCycleTest {
         verify(mockModel, never()).relationCallback(any(), any(), any());
         verify(mockModel, never()).classAllFieldsCallback(any(), any());
 
-        verify(tx, never()).preCommit();
+        verify(tx, never()).preCommit(any());
         verify(tx, never()).createObject(eq(mockModel), isA(RequestScope.class));
         verify(tx, never()).flush(isA(RequestScope.class));
         verify(tx, never()).commit(isA(RequestScope.class));
@@ -195,7 +195,7 @@ public class LifeCycleTest {
         verify(mockModel, never()).relationCallback(eq(CREATE), any(), any());
         verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
         verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
-        verify(tx).preCommit();
+        verify(tx).preCommit(any());
         verify(tx).flush(any());
         verify(tx).commit(any());
         verify(tx).close();
@@ -236,7 +236,7 @@ public class LifeCycleTest {
 
         verify(mockModel, never()).relationCallback(any(), any(), any());
 
-        verify(tx).preCommit();
+        verify(tx).preCommit(any());
         verify(tx).flush(any());
         verify(tx).commit(any());
         verify(tx).close();
@@ -283,7 +283,7 @@ public class LifeCycleTest {
         verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
         verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
 
-        verify(tx).preCommit();
+        verify(tx).preCommit(any());
         verify(tx).flush(any());
         verify(tx).commit(any());
         verify(tx).close();
@@ -328,7 +328,7 @@ public class LifeCycleTest {
         verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
         verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
 
-        verify(tx).preCommit();
+        verify(tx).preCommit(any());
         verify(tx).save(eq(mockModel), isA(RequestScope.class));
         verify(tx).flush(isA(RequestScope.class));
         verify(tx).commit(isA(RequestScope.class));
@@ -370,7 +370,7 @@ public class LifeCycleTest {
         verify(mockModel, never()).relationCallback(eq(READ), any(), any());
         verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
 
-        verify(tx).preCommit();
+        verify(tx).preCommit(any());
         verify(tx).delete(eq(mockModel), isA(RequestScope.class));
         verify(tx).flush(isA(RequestScope.class));
         verify(tx).commit(isA(RequestScope.class));
@@ -407,7 +407,7 @@ public class LifeCycleTest {
 //       */
 //      verify(callback, times(6)).execute(eq(book), isA(RequestScope.class), any());
 //      verify(tx).accessUser(any());
-//      verify(tx).preCommit();
+//      verify(tx).preCommit(any());
 //      verify(tx, times(1)).createObject(eq(book), isA(RequestScope.class));
 //      verify(tx).flush(isA(RequestScope.class));
 //      verify(tx).commit(isA(RequestScope.class));
@@ -437,7 +437,7 @@ public class LifeCycleTest {
 //
 //      verify(callback, never()).execute(eq(book), isA(RequestScope.class), any());
 //      verify(tx).accessUser(any());
-//      verify(tx, never()).preCommit();
+//      verify(tx, never()).preCommit(any());
 //      verify(tx, never()).flush(isA(RequestScope.class));
 //      verify(tx, never()).commit(isA(RequestScope.class));
 //      verify(tx).close();
@@ -478,7 +478,7 @@ public class LifeCycleTest {
 //      verify(onUpdateImmediateCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
 //      verify(onUpdateDeferredCallback, never()).execute(eq(book), isA(RequestScope.class), eq(Optional.empty()));
 //      verify(tx).accessUser(any());
-//      verify(tx).preCommit();
+//      verify(tx).preCommit(any());
 //
 //      verify(tx).save(eq(book), isA(RequestScope.class));
 //      verify(tx).flush(isA(RequestScope.class));
@@ -513,7 +513,7 @@ public class LifeCycleTest {
 //       */
 //      verify(callback, times(3)).execute(eq(book), isA(RequestScope.class), any());
 //      verify(tx).accessUser(any());
-//      verify(tx).preCommit();
+//      verify(tx).preCommit(any());
 //
 //      verify(tx).delete(eq(book), isA(RequestScope.class));
 //      verify(tx).flush(isA(RequestScope.class));
@@ -564,7 +564,7 @@ public class LifeCycleTest {
 //      verify(mockModel, never()).relationCallback(eq(CREATE), any(), any());
 //      verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
 //
-//      verify(tx).preCommit();
+//      verify(tx).preCommit(any());
 //      verify(tx).save(eq(mockModel), isA(RequestScope.class));
 //      verify(tx).flush(isA(RequestScope.class));
 //      verify(tx, never()).commit(isA(RequestScope.class));
@@ -619,7 +619,7 @@ public class LifeCycleTest {
 //      verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
 //      verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
 //
-//      verify(tx).preCommit();
+//      verify(tx).preCommit(any());
 //      verify(tx, times(1)).createObject(eq(mockModel), isA(RequestScope.class));
 //      verify(tx).flush(isA(RequestScope.class));
 //      verify(tx).commit(isA(RequestScope.class));
@@ -647,7 +647,7 @@ public class LifeCycleTest {
 //              "[{\"errors\":[{\"detail\":\"Bad Request Body&#39;Patch extension requires all objects to have an assigned ID (temporary or permanent) when assigning relationships.&#39;\",\"status\":\"400\"}]}]",
 //              response.getBody());
 //
-//      verify(tx, never()).preCommit();
+//      verify(tx, never()).preCommit(any());
 //      verify(tx, never()).flush(isA(RequestScope.class));
 //      verify(tx, never()).commit(isA(RequestScope.class));
 //      verify(tx).close();
@@ -693,7 +693,7 @@ public class LifeCycleTest {
 //      verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
 //      verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
 //
-//      verify(tx).preCommit();
+//      verify(tx).preCommit(any());
 //      verify(tx).save(eq(mockModel), isA(RequestScope.class));
 //      verify(tx).flush(isA(RequestScope.class));
 //      verify(tx).commit(isA(RequestScope.class));
@@ -743,7 +743,7 @@ public class LifeCycleTest {
 //      verify(mockModel, times(1)).relationCallback(eq(READ), eq(PRECOMMIT), any());
 //      verify(mockModel, times(1)).relationCallback(eq(READ), eq(POSTCOMMIT), any());
 //
-//      verify(tx).preCommit();
+//      verify(tx).preCommit(any());
 //      verify(tx).delete(eq(mockModel), isA(RequestScope.class));
 //      verify(tx).flush(isA(RequestScope.class));
 //      verify(tx).commit(isA(RequestScope.class));

@@ -149,8 +149,8 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void preCommit() {
-        tx.preCommit();
+    public void preCommit(RequestScope scope) {
+        tx.preCommit(scope);
     }
 
     @Override

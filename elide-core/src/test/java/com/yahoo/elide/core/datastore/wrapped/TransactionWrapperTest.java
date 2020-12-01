@@ -34,8 +34,8 @@ public class TransactionWrapperTest {
         DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
         DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
 
-        wrapper.preCommit();
-        verify(wrapped, times(1)).preCommit();
+        wrapper.preCommit(null);
+        verify(wrapped, times(1)).preCommit(any());
     }
 
     @Test

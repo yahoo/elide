@@ -74,10 +74,10 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void preCommit() {
+    public void preCommit(RequestScope scope) {
         transactions.values().stream()
                 .filter(dataStoreTransaction -> dataStoreTransaction != null)
-                .forEach(DataStoreTransaction::preCommit);
+                .forEach(tx -> tx.preCommit(scope));
     }
 
     @Override

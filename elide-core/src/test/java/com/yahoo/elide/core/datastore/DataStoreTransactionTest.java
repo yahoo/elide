@@ -45,7 +45,7 @@ public class DataStoreTransactionTest implements DataStoreTransaction {
 
     @Test
     public void testPreCommit() {
-        preCommit();
+        preCommit(scope);
         verify(scope, never()).getDictionary();
     }
 

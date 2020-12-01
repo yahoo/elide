@@ -73,7 +73,7 @@ public interface DataStoreTransaction extends Closeable {
      * 4. transaction.flush();
      * 5. transaction.commit();
      */
-    default void preCommit() {
+    default void preCommit(RequestScope scope) {
     }
 
     /**
