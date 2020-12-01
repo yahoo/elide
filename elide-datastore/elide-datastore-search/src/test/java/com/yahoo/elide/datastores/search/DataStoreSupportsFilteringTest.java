@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.search;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -22,6 +23,7 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.core.utils.coerce.converters.ISO8601DateSerde;
 import com.yahoo.elide.datastores.search.models.Item;
@@ -34,6 +36,7 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Optional;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
@@ -89,7 +92,13 @@ public class DataStoreSupportsFilteringTest {
         FilterExpression filter = filterParser.parseFilterExpression("name==*rum*",
                 Item.class, false);
 
-        assertEquals(DataStoreTransaction.FeatureSupport.FULL, testTransaction.supportsFiltering(Item.class, filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertEquals(DataStoreTransaction.FeatureSupport.FULL,
+                testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
     }
 
     @Test
@@ -99,7 +108,13 @@ public class DataStoreSupportsFilteringTest {
         FilterExpression filter = filterParser.parseFilterExpression("description==*rum*",
                 Item.class, false);
 
-        assertEquals(DataStoreTransaction.FeatureSupport.FULL, testTransaction.supportsFiltering(Item.class, filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertEquals(DataStoreTransaction.FeatureSupport.FULL,
+                testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
     }
 
     @Test
@@ -109,8 +124,14 @@ public class DataStoreSupportsFilteringTest {
         FilterExpression filter = filterParser.parseFilterExpression("price==123",
                 Item.class, false);
 
-        assertEquals(null, testTransaction.supportsFiltering(Item.class, filter));
-        verify(wrappedTransaction, times(1)).supportsFiltering(eq(Item.class), eq(filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertEquals(null, testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
+        verify(wrappedTransaction, times(1))
+                .supportsFiltering(eq(mockScope), any(), eq(projection));
     }
 
     @Test
@@ -119,7 +140,13 @@ public class DataStoreSupportsFilteringTest {
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("description==*ru*",
                 Item.class, false);
 
-        assertThrows(InvalidValueException.class, () -> testTransaction.supportsFiltering(Item.class, filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertThrows(InvalidValueException.class,
+                () -> testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
     }
 
     @Test
@@ -128,7 +155,13 @@ public class DataStoreSupportsFilteringTest {
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("description==*abcdefghijk*",
                 Item.class, false);
 
-        assertThrows(InvalidValueException.class, () -> testTransaction.supportsFiltering(Item.class, filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertThrows(InvalidValueException.class,
+                () -> testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
     }
 
     @Test
@@ -137,8 +170,15 @@ public class DataStoreSupportsFilteringTest {
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("description==abcdefghijk",
                 Item.class, false);
 
-        assertEquals(null, testTransaction.supportsFiltering(Item.class, filter));
-        verify(wrappedTransaction, times(1)).supportsFiltering(eq(Item.class), eq(filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertEquals(null, testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
+
+        verify(wrappedTransaction, times(1))
+                .supportsFiltering(eq(mockScope), any(), eq(projection));
     }
 
     @Test
@@ -147,7 +187,13 @@ public class DataStoreSupportsFilteringTest {
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("description==*ruabc*",
                 Item.class, false);
 
-        assertEquals(DataStoreTransaction.FeatureSupport.FULL, testTransaction.supportsFiltering(Item.class, filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertEquals(DataStoreTransaction.FeatureSupport.FULL,
+                testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
     }
 
     @Test
@@ -156,7 +202,13 @@ public class DataStoreSupportsFilteringTest {
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("name==*rum*",
                 Item.class, false);
 
-        assertEquals(DataStoreTransaction.FeatureSupport.FULL, testTransaction.supportsFiltering(Item.class, filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertEquals(DataStoreTransaction.FeatureSupport.FULL,
+                testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
     }
 
     @Test
@@ -165,7 +217,13 @@ public class DataStoreSupportsFilteringTest {
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("name==drum*",
                 Item.class, false);
 
-        assertEquals(DataStoreTransaction.FeatureSupport.PARTIAL, testTransaction.supportsFiltering(Item.class, filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertEquals(DataStoreTransaction.FeatureSupport.PARTIAL,
+                testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
     }
 
     @Test
@@ -174,7 +232,13 @@ public class DataStoreSupportsFilteringTest {
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("name==drum",
                 Item.class, false);
 
-        assertEquals(null, testTransaction.supportsFiltering(Item.class, filter));
-        verify(wrappedTransaction, times(1)).supportsFiltering(eq(Item.class), eq(filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertEquals(null, testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
+        verify(wrappedTransaction, times(1))
+                .supportsFiltering(eq(mockScope), any(), eq(projection));
     }
 }

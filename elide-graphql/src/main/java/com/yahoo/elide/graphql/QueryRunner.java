@@ -254,7 +254,7 @@ public class QueryRunner {
 
             ExecutionResult result = api.execute(executionInput);
 
-            tx.preCommit();
+            tx.preCommit(requestScope);
             requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
             if (isMutation(query)) {

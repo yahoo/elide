@@ -228,7 +228,7 @@ public class BridgeableRedisStore implements DataStore {
         }
 
         @Override
-        public void preCommit() {
+        public void preCommit(RequestScope scope) {
 
         }
 

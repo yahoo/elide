@@ -140,7 +140,8 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        assertEquals("Inheriting from table 'B' creates an illegal cyclic dependency.\n", error);
+        assertTrue(error.contains("Inheriting from table"));
+        assertTrue(error.contains("creates an illegal cyclic dependency."));
     }
 
     @Test
