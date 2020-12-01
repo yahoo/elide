@@ -14,6 +14,10 @@ import lombok.Data;
 @Data
 @ConfigurationProperties(prefix = "elide")
 public class ElideConfigProperties {
+    /**
+     * Optional Package name for models to scan for.
+     */
+    private String modelPackage;
 
     /**
      * Settings for the JSON-API controller.

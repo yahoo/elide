@@ -427,7 +427,7 @@ public interface ElideStandaloneSettings {
 
         if (optionalCompiler.isPresent()) {
             try {
-                metaDataStore = new MetaDataStore(optionalCompiler.get(), enableMetaDataStore);
+                metaDataStore = new MetaDataStore(optionalCompiler.get(), enableMetaDataStore, getModelPackageName());
             } catch (ClassNotFoundException e) {
                 throw new IllegalStateException(e);
             }

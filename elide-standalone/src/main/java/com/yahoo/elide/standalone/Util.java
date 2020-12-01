@@ -131,11 +131,16 @@ public class Util {
     public static List<String> combineModelEntities(Optional<ElideDynamicEntityCompiler> optionalCompiler,
             String modelPackageName, boolean includeAsyncModel) {
 
-        List<String> modelEntities = getAllEntities(modelPackageName);
+        List<String> packageNamesList = new ArrayList<String>();
+        packageNamesList.add(modelPackageName);
 
         if (includeAsyncModel) {
-            modelEntities.addAll(getAllEntities(AsyncQuery.class.getPackage().getName()));
+            packageNamesList.add(AsyncQuery.class.getPackage().getName());
         }
+
+        List<String> modelEntities = new ArrayList<String>();
+
+        modelEntities.addAll(getAllEntities(modelEntities.toArray(new String[0])));
 
         if (optionalCompiler.isPresent()) {
             try {
@@ -153,8 +158,8 @@ public class Util {
      * @param packageName Package name
      * @return All entities found in package.
      */
-    public static List<String> getAllEntities(String packageName) {
-        return ClassScanner.getAnnotatedClasses(packageName, Entity.class).stream()
+    public static List<String> getAllEntities(String... packageName) {
+        return ClassScanner.getAnnotatedClasses(Entity.class, packageName).stream()
                 .map(Class::getName)
                 .collect(Collectors.toList());
     }

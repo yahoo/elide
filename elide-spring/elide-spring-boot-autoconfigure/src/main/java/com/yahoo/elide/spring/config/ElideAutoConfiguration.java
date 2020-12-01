@@ -8,6 +8,7 @@ package com.yahoo.elide.spring.config;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.SecurityCheck;
+import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -48,6 +49,8 @@ import io.swagger.models.Swagger;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
@@ -184,15 +187,23 @@ public class ElideAutoConfiguration {
             ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings)
             throws ClassNotFoundException {
 
+        Set<String> packageNamesSet = new HashSet<String>();
+        if (settings.getModelPackage() != null && !settings.getModelPackage().isEmpty()) {
+            packageNamesSet.add(settings.getModelPackage());
+            packageNamesSet.add(AsyncQuery.class.getPackage().getName());
+        }
+
+        List<String> packageNames = ElideDynamicConfiguration.setToList(packageNamesSet);
         boolean enableMetaDataStore = settings.getAggregationStore().isEnableMetaDataStore();
         ConnectionDetails defaultConnectionDetails =
                         new ConnectionDetails(defaultDataSource, settings.getAggregationStore().getDefaultDialect());
         if (isDynamicConfigEnabled(settings)) {
-            MetaDataStore metaDataStore = new MetaDataStore(dynamicCompiler.getIfAvailable(), enableMetaDataStore);
+            MetaDataStore metaDataStore = new MetaDataStore(dynamicCompiler.getIfAvailable(), enableMetaDataStore,
+                    packageNames.toArray(new String[0]));
             return new SQLQueryEngine(metaDataStore, defaultConnectionDetails,
                             dynamicCompiler.getIfAvailable().getConnectionDetailsMap());
         } else {
-            MetaDataStore metaDataStore = new MetaDataStore(enableMetaDataStore);
+            MetaDataStore metaDataStore = new MetaDataStore(enableMetaDataStore, packageNames.toArray(new String[0]));
             return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
         }
     }
@@ -306,6 +317,17 @@ public class ElideAutoConfiguration {
         boolean enabled = false;
         if (settings.getAggregationStore() != null) {
             enabled = settings.getAggregationStore().isEnabled();
+        }
+
+        return enabled;
+
+    }
+
+    private boolean isAsyncEnabled(ElideConfigProperties settings) {
+
+        boolean enabled = false;
+        if (settings.getAsync() != null) {
+            enabled = settings.getAsync().isEnabled();
         }
 
         return enabled;

@@ -14,6 +14,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.ClassScanner.FilterExpression;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
@@ -34,6 +35,7 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,31 +76,39 @@ public class MetaDataStore implements DataStore {
 
     private final Set<Class<?>> metadataModelClasses;
 
-    public MetaDataStore(boolean enableMetaDataStore) {
-        this(getAllAnnotatedClasses(), enableMetaDataStore);
+    public MetaDataStore(boolean enableMetaDataStore, String... modelPackage) {
+        this(getAllAnnotatedClasses(modelPackage), enableMetaDataStore);
     }
 
     /**
      * get all MetaDataStore supported annotated classes.
+     * @param modelPackage Package to scan for the models.
      * @return Set of Class with specific annotations.
      */
-    private static Set<Class<?>> getAllAnnotatedClasses() {
-        Set<Class<?>> metadataStoreResult = ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS, (clazz) -> {
+    private static Set<Class<?>> getAllAnnotatedClasses(String... modelPackage) {
+        Set<Class<?>> metadataStoreResult = new HashSet<>();
+        FilterExpression filter = (clazz) -> {
             if (clazz.getAnnotation(Entity.class) != null) {
                 if (clazz.getAnnotation(Include.class) != null) {
                     return true;
                 }
                 return false;
-             }
-             return true;
-       });
+            }
+            return true;
+        };
 
+        if (modelPackage != null && modelPackage.length > 0) {
+            metadataStoreResult.addAll(ClassScanner.getAnnotatedClasses(
+                    METADATA_STORE_ANNOTATIONS, filter, modelPackage));
+        } else {
+            metadataStoreResult.addAll(ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS, filter));
+        }
         return metadataStoreResult;
     }
 
-    public MetaDataStore(ElideDynamicEntityCompiler compiler,
-            boolean enableMetaDataStore) throws ClassNotFoundException {
-          this(enableMetaDataStore);
+    public MetaDataStore(ElideDynamicEntityCompiler compiler, boolean enableMetaDataStore,
+            String... modelPackage) throws ClassNotFoundException {
+        this(enableMetaDataStore, modelPackage);
 
         //TODO add Entity Annotation classes when supported by dynamic config.
         Set<Class<?>> dynamicCompiledClasses = compiler.findAnnotatedClasses(FromTable.class);

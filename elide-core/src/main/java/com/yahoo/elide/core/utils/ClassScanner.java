@@ -10,7 +10,6 @@ import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
 
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,7 +27,7 @@ public class ClassScanner {
      * @return The classes
      */
     static public Set<Class<?>> getAnnotatedClasses(Package toScan, Class<? extends Annotation> annotation) {
-        return getAnnotatedClasses(toScan.getName(), annotation);
+        return getAnnotatedClasses(annotation, toScan.getName());
     }
 
     /**
@@ -38,13 +37,38 @@ public class ClassScanner {
      * @param annotation Annotation to search
      * @return The classes
      */
-    static public Set<Class<?>> getAnnotatedClasses(String packageName, Class<? extends Annotation> annotation) {
+    @SafeVarargs
+    static public Set<Class<?>> getAnnotatedClasses(Class<? extends Annotation> annotation, String... packageName) {
         try (ScanResult scanResult = new ClassGraph()
                 .enableClassInfo().enableAnnotationInfo().whitelistPackages(packageName).scan()) {
             return scanResult.getClassesWithAnnotation(annotation.getCanonicalName()).stream()
                     .map((ClassInfo::loadClass))
                     .collect(Collectors.toSet());
         }
+    }
+
+    /**
+     * Scans all classes accessible from the context class loader which belong to the current class loader.
+     * Filters classes that belong to the given package and subpackages.
+     * Filters the final output based on expression.
+     * @param packageName package name to scan.
+     * @param annotations  One or more annotation to search for
+     * @param filter  filter expression to include the final results in the output.
+     * @return The classes
+     */
+    static public Set<Class<?>> getAnnotatedClasses(List<Class<? extends Annotation>> annotations,
+            FilterExpression filter, String... packageName) {
+        Set<Class<?>> result = new HashSet<>();
+        try (ScanResult scanResult = new ClassGraph().enableClassInfo().enableAnnotationInfo()
+                .whitelistPackages(packageName).scan()) {
+            for (Class<? extends Annotation> annotation : annotations) {
+                result.addAll(scanResult.getClassesWithAnnotation(annotation.getCanonicalName()).stream()
+                        .map(ClassInfo::loadClass)
+                        .filter(filter::include)
+                        .collect(Collectors.toSet()));
+            }
+        }
+        return result;
     }
 
     /**
@@ -76,11 +100,6 @@ public class ClassScanner {
      */
     static public Set<Class<?>> getAnnotatedClasses(List<Class<? extends Annotation>> annotations) {
         return getAnnotatedClasses(annotations, (clazz) -> { return true; });
-    }
-
-    @SafeVarargs
-    static public Set<Class<?>> getAnnotatedClasses(Class<? extends Annotation> ...annotations) {
-        return getAnnotatedClasses(Arrays.asList(annotations));
     }
 
     /**

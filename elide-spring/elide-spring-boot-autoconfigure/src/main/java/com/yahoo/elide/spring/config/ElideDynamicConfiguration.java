@@ -12,10 +12,12 @@ import org.hibernate.cfg.AvailableSettings;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.domain.EntityScanPackages;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateProperties;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateProperties.Naming;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -24,10 +26,15 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+
 import javax.persistence.Entity;
 import javax.persistence.spi.PersistenceUnitInfo;
 import javax.sql.DataSource;
@@ -62,15 +69,32 @@ public class ElideDynamicConfiguration {
     public LocalContainerEntityManagerFactoryBean entityManagerFactory (
             DataSource source,
             JpaProperties jpaProperties,
-            HibernateProperties hibernateProperties,
-            ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler) {
+            HibernateProperties hibernateProperties, ElideConfigProperties settings,
+            ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ApplicationContext context) {
 
+            log.debug("Starting entityManagerFactory");
             //Map for Persistent Unit properties
             Map<String, Object> puiPropertyMap = new HashMap<>();
 
             //Bind entity classes from classpath to Persistence Unit
-            ArrayList<Class> bindClasses = new ArrayList<>();
-            bindClasses.addAll(ClassScanner.getAnnotatedClasses(Entity.class));
+            Set<Class> bindClassesSet = new HashSet<>();
+
+            String modelPackage = settings.getModelPackage();
+
+            // List of packages with models identified through EntityScan or user provided.
+            // HashSet will dedup.
+            if (modelPackage != null && !modelPackage.isEmpty()) {
+                Set<String> packageNamesSet = new HashSet<String>(EntityScanPackages.get(context).getPackageNames());
+                packageNamesSet.add(modelPackage);
+                List<String> packageNames = setToList(packageNamesSet);
+                bindClassesSet.addAll(ClassScanner.getAnnotatedClasses(Arrays.asList(Entity.class),
+                        (clazz) -> { return true; },
+                        packageNames.toArray(new String[0])));
+            } else {
+                bindClassesSet.addAll(ClassScanner.getAnnotatedClasses(Entity.class));
+            }
+
+            ArrayList<Class> bindClasses = setToList(bindClassesSet);
 
             //Map of JPA Properties to be be passed to EntityManager
             Map<String, String> jpaPropMap = jpaProperties.getProperties();
@@ -140,7 +164,6 @@ public class ElideDynamicConfiguration {
                     return elideDynamicPersistenceUnit;
                 }
             });
-
             return bean;
     }
 
@@ -153,5 +176,16 @@ public class ElideDynamicConfiguration {
             jpaPropMap.put(jpaPropertyName, hibernateProperty);
         }
 
+    }
+
+    /**
+     * Converts Set to List.
+     * @param set to convert.
+     * @return List output.
+     */
+    public static ArrayList setToList(Set<?> set) {
+        ArrayList list = new ArrayList();
+        list.addAll(set);
+        return list;
     }
 }

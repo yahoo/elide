@@ -72,6 +72,7 @@ public class ElideDynamicEntityCompiler {
 
     private static Map<ModelMapKey, ModelMapValue> createMapping() {
         Map<ModelMapKey, ModelMapValue> map = new HashMap<>();
+        // TODO: Add Package Filter here, after PR#1693
         Set<Class<?>> includeClasses = ClassScanner.getAnnotatedClasses(Arrays.asList(Include.class));
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
         includeClasses.forEach(dictionary::bindEntity);

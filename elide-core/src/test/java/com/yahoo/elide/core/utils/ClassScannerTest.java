@@ -11,6 +11,7 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.Set;
 
 public class ClassScannerTest {
@@ -24,7 +25,7 @@ public class ClassScannerTest {
 
     @Test
     public void testGetAnnotatedClasses() {
-        Set<Class<?>> classes = ClassScanner.getAnnotatedClasses("example", ReadPermission.class);
+        Set<Class<?>> classes = ClassScanner.getAnnotatedClasses(ReadPermission.class, "example");
         assertEquals(6, classes.size(), "Actual: " + classes);
         classes.forEach(cls -> assertTrue(cls.isAnnotationPresent(ReadPermission.class)));
     }
@@ -38,7 +39,7 @@ public class ClassScannerTest {
 
     @Test
     public void testGetAnyAnnotatedClasses() {
-        Set<Class<?>> classes = ClassScanner.getAnnotatedClasses(ReadPermission.class, UpdatePermission.class);
+        Set<Class<?>> classes = ClassScanner.getAnnotatedClasses(Arrays.asList(ReadPermission.class, UpdatePermission.class));
         assertEquals(17, classes.size());
         for (Class<?> cls : classes) {
             assertTrue(cls.isAnnotationPresent(ReadPermission.class)
