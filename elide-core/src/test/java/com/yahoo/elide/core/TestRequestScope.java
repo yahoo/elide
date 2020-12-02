@@ -29,7 +29,7 @@ public class TestRequestScope extends RequestScope {
                             DataStoreTransaction transaction,
                             User user,
                             EntityDictionary dictionary) {
-        super(baseURL, null, NO_VERSION, new JsonApiDocument(), transaction, user, null, UUID.randomUUID(),
+        super(baseURL, null, NO_VERSION, new JsonApiDocument(), transaction, user, null, null, UUID.randomUUID(),
                 new ElideSettingsBuilder(null)
                         .withEntityDictionary(dictionary)
                         .withJSONApiLinks(new DefaultJSONApiLinks())
@@ -39,7 +39,7 @@ public class TestRequestScope extends RequestScope {
     public TestRequestScope(DataStoreTransaction transaction,
                         User user,
                         EntityDictionary dictionary) {
-        super(null, null, NO_VERSION, new JsonApiDocument(), transaction, user, null, UUID.randomUUID(),
+        super(null, null, NO_VERSION, new JsonApiDocument(), transaction, user, null, null, UUID.randomUUID(),
                 new ElideSettingsBuilder(null)
                 .withEntityDictionary(dictionary)
                 .build());
@@ -48,7 +48,7 @@ public class TestRequestScope extends RequestScope {
     public TestRequestScope(EntityDictionary dictionary,
                             String path,
                             MultivaluedMap<String, String> queryParams) {
-        super(null, path, NO_VERSION, new JsonApiDocument(), null, null, queryParams, UUID.randomUUID(),
+        super(null, path, NO_VERSION, new JsonApiDocument(), null, null, queryParams, null, UUID.randomUUID(),
                 new ElideSettingsBuilder(null)
                         .withEntityDictionary(dictionary)
                         .build());

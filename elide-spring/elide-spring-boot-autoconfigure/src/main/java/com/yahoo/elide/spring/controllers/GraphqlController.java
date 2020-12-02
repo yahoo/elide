@@ -13,10 +13,13 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.spring.security.AuthenticationUser;
+import com.yahoo.elide.utils.HeaderUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,7 +31,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
 /**
@@ -68,14 +73,14 @@ public class GraphqlController {
      * @return response
      */
     @PostMapping(value = {"/**", ""}, consumes = JSON_CONTENT_TYPE, produces = JSON_CONTENT_TYPE)
-    public Callable<ResponseEntity<String>> post(@RequestHeader Map<String, String> requestHeaders,
+    public Callable<ResponseEntity<String>> post(@RequestHeader HttpHeaders requestHeaders,
                                                  @RequestBody String graphQLDocument, Authentication principal) {
         final User user = new AuthenticationUser(principal);
-        final String apiVersion = Utils.getApiVersion(requestHeaders);
+        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned = HeaderUtils.removeAuthHeaders(requestHeaders);
         final QueryRunner runner = runners.get(apiVersion);
         final String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
                 + settings.getGraphql().getPath() + "/";
-
 
         return new Callable<ResponseEntity<String>>() {
             @Override
@@ -84,7 +89,7 @@ public class GraphqlController {
                 if (runner == null) {
                     response = buildErrorResponse(elide, new InvalidOperationException("Invalid API Version"), false);
                 } else {
-                    response = runner.run(baseUrl, graphQLDocument, user);
+                    response = runner.run(baseUrl, graphQLDocument, user, UUID.randomUUID(), requestHeadersCleaned);
                 }
 
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());

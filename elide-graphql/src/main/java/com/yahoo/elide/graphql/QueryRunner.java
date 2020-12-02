@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
@@ -121,6 +122,18 @@ public class QueryRunner {
      * @return The response.
      */
     public ElideResponse run(String baseUrlEndPoint, String graphQLDocument, User user, UUID requestId) {
+        return run(baseUrlEndPoint, graphQLDocument, user, requestId, null);
+    }
+
+    /**
+     * Execute a GraphQL query and return the response.
+     * @param graphQLDocument The graphQL document (wrapped in JSON payload).
+     * @param user The user who issued the query.
+     * @param requestId the Request ID.
+     * @return The response.
+     */
+    public ElideResponse run(String baseUrlEndPoint, String graphQLDocument, User user, UUID requestId,
+                             Map<String, List<String>> requestHeaders) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
 
         JsonNode topLevel;
@@ -135,7 +148,8 @@ public class QueryRunner {
         }
 
         Function<JsonNode, ElideResponse> executeRequest =
-                (node) -> executeGraphQLRequest(baseUrlEndPoint, mapper, user, graphQLDocument, node, requestId);
+                (node) -> executeGraphQLRequest(baseUrlEndPoint, mapper, user, graphQLDocument, node, requestId,
+                                                requestHeaders);
 
         if (topLevel.isArray()) {
             Iterator<JsonNode> nodeIterator = topLevel.iterator();
@@ -212,15 +226,14 @@ public class QueryRunner {
     }
 
     private ElideResponse executeGraphQLRequest(String baseUrlEndPoint, ObjectMapper mapper, User principal,
-                                                String graphQLDocument, JsonNode jsonDocument, UUID requestId) {
+                                                String graphQLDocument, JsonNode jsonDocument, UUID requestId,
+                                                Map<String, List<String>> requestHeaders) {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
             if (!jsonDocument.has(QUERY)) {
-                return ElideResponse.builder()
-                        .responseCode(HttpStatus.SC_BAD_REQUEST)
-                        .body("A `query` key is required.")
-                        .build();
+                return ElideResponse.builder().responseCode(HttpStatus.SC_BAD_REQUEST)
+                        .body("A `query` key is required.").build();
             }
             String query = extractQuery(jsonDocument);
 
@@ -228,11 +241,10 @@ public class QueryRunner {
             Map<String, Object> variables = extractVariables(mapper, jsonDocument);
 
             //TODO - get API version.
-            GraphQLProjectionInfo projectionInfo =
-                    new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables, apiVersion).make(query);
-            GraphQLRequestScope requestScope =
-                    new GraphQLRequestScope(baseUrlEndPoint, tx, principal, apiVersion,
-                            elide.getElideSettings(), projectionInfo, requestId);
+            GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables,
+                    apiVersion).make(query);
+            GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrlEndPoint, tx, principal, apiVersion,
+                    elide.getElideSettings(), projectionInfo, requestId, requestHeaders);
 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
 
@@ -240,9 +252,7 @@ public class QueryRunner {
             // the "variables" section of your query. Variable values are not logged.
             log.info("Processing GraphQL query:\n{}", query);
 
-            ExecutionInput.Builder executionInput = new ExecutionInput.Builder()
-                    .context(requestScope)
-                    .query(query);
+            ExecutionInput.Builder executionInput = new ExecutionInput.Builder().context(requestScope).query(query);
 
             String operationName = extractOperation(jsonDocument);
 
@@ -267,7 +277,7 @@ public class QueryRunner {
                     };
                     // Do not commit. Throw OK response to process tx.close correctly.
                     throw new WebApplicationException(
-                        Response.ok(mapper.writeValueAsString(abortedResponseObject)).build());
+                            Response.ok(mapper.writeValueAsString(abortedResponseObject)).build());
                 }
                 requestScope.saveOrCreateObjects();
             }
@@ -282,9 +292,7 @@ public class QueryRunner {
                 requestScope.getPermissionExecutor().printCheckStats();
             }
 
-            return ElideResponse.builder()
-                    .responseCode(HttpStatus.SC_OK)
-                    .body(mapper.writeValueAsString(result))
+            return ElideResponse.builder().responseCode(HttpStatus.SC_OK).body(mapper.writeValueAsString(result))
                     .build();
         } catch (JsonProcessingException e) {
             log.debug("Invalid json body provided to GraphQL", e);
@@ -295,9 +303,7 @@ public class QueryRunner {
         } catch (WebApplicationException e) {
             log.debug("WebApplicationException", e);
             String body = e.getResponse().getEntity() != null ? e.getResponse().getEntity().toString() : e.getMessage();
-            return ElideResponse.builder()
-                    .responseCode(e.getResponse().getStatus())
-                    .body(body).build();
+            return ElideResponse.builder().responseCode(e.getResponse().getStatus()).body(body).build();
         } catch (HttpStatusException e) {
             if (e instanceof ForbiddenAccessException) {
                 if (log.isDebugEnabled()) {
@@ -344,7 +350,6 @@ public class QueryRunner {
             elide.getAuditLogger().clear();
         }
     }
-
     public static ElideResponse buildErrorResponse(Elide elide, HttpStatusException error, boolean isVerbose) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
         JsonNode errorNode;

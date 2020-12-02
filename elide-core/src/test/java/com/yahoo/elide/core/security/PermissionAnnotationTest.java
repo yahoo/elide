@@ -57,9 +57,9 @@ public class PermissionAnnotationTest {
                 .withEntityDictionary(dictionary)
                 .build();
 
-        com.yahoo.elide.core.RequestScope goodScope = new com.yahoo.elide.core.RequestScope(null, null, NO_VERSION, null, null, GOOD_USER, null, UUID.randomUUID(), elideSettings);
-        funRecord = new com.yahoo.elide.core.PersistentResource<>(fun, null, goodScope.getUUIDFor(fun), goodScope);
-        com.yahoo.elide.core.RequestScope badScope = new RequestScope(null, null, NO_VERSION, null, null, BAD_USER, null, UUID.randomUUID(), elideSettings);
+        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, null, GOOD_USER, null, null, UUID.randomUUID(), elideSettings);
+        funRecord = new PersistentResource<>(fun, null, goodScope.getUUIDFor(fun), goodScope);
+        RequestScope badScope = new RequestScope(null, null, NO_VERSION, null, null, BAD_USER, null, null, UUID.randomUUID(), elideSettings);
         badRecord = new PersistentResource<>(fun, null, badScope.getUUIDFor(fun), badScope);
     }
 

@@ -55,6 +55,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     @Getter private final JsonApiMapper mapper;
     @Getter private final AuditLogger auditLogger;
     @Getter private final Optional<MultivaluedMap<String, String>> queryParams;
+    @Getter private final Map<String, List<String>> requestHeaders;
     @Getter private final Map<String, Set<String>> sparseFields;
     @Getter private final PermissionExecutor permissionExecutor;
     @Getter private final ObjectEntityCache objectEntityCache;
@@ -91,6 +92,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
      * @param transaction the transaction for this request
      * @param user the user making this request
      * @param queryParams the query parameters
+     * @param requestHeaders the requestHeaders
      * @param elideSettings Elide settings object
      */
     public RequestScope(String baseUrlEndPoint,
@@ -100,6 +102,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
                         DataStoreTransaction transaction,
                         User user,
                         MultivaluedMap<String, String> queryParams,
+                        Map<String, List<String>> requestHeaders,
                         UUID requestId,
                         ElideSettings elideSettings) {
         this.apiVersion = apiVersion;
@@ -139,6 +142,9 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
                 ? Optional.empty()
                 : Optional.of(queryParams);
 
+        this.requestHeaders = (requestHeaders == null || requestHeaders.size() == 0)
+                ? Collections.emptyMap()
+                : requestHeaders;
         registerPreSecurityObservers();
 
         if (this.queryParams.isPresent()) {
@@ -203,6 +209,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.mapper = outerRequestScope.mapper;
         this.auditLogger = outerRequestScope.auditLogger;
         this.queryParams = Optional.empty();
+        this.requestHeaders = Collections.emptyMap();
         this.sparseFields = Collections.emptyMap();
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.newPersistentResources = outerRequestScope.newPersistentResources;
@@ -513,5 +520,14 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
                 .subscribeWith(new LifecycleHookInvoker(dictionary,
                         LifeCycleHookBinding.Operation.DELETE,
                         LifeCycleHookBinding.TransactionPhase.PRESECURITY, true));
+    }
+
+    @Override
+    public String getRequestHeaderByName(String headerName) {
+        if (this.requestHeaders.get(headerName) == null) {
+            return null;
+        } else {
+            return this.requestHeaders.get(headerName).get(0);
+        }
     }
 }

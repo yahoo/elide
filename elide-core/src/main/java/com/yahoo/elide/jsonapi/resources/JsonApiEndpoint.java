@@ -6,12 +6,15 @@
 package com.yahoo.elide.jsonapi.resources;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.annotation.PATCH;
 import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.utils.HeaderUtils;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -25,6 +28,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -50,7 +54,7 @@ public class JsonApiEndpoint {
      *
      * @param path request path
      * @param uriInfo URI info
-     * @param apiVersion The api version
+     * @param headers the request headers
      * @param securityContext security context
      * @param jsonapiDocument post data as jsonapi document
      * @return response
@@ -61,22 +65,23 @@ public class JsonApiEndpoint {
     public Response post(
         @PathParam("path") String path,
         @Context UriInfo uriInfo,
-        @HeaderParam("ApiVersion") String apiVersion,
+        @Context HttpHeaders headers,
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
+        String apiVersion = HeaderUtils.resolveApiVersion(headers.getRequestHeaders());
+        Map<String, List<String>> requestHeaders = HeaderUtils.removeAuthHeaders(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
         return build(elide.post(uriInfo.getBaseUri().toString(), path, jsonapiDocument,
-                queryParams, user, safeApiVersion, UUID.randomUUID()));
+                queryParams, requestHeaders, user, apiVersion, UUID.randomUUID()));
     }
 
     /**
      * Read handler.
      *
      * @param path request path
-     * @param apiVersion The API version
      * @param uriInfo URI info
+     * @param headers the request headers
      * @param securityContext security context
      * @return response
      */
@@ -84,23 +89,26 @@ public class JsonApiEndpoint {
     @Path("{path:.*}")
     public Response get(
         @PathParam("path") String path,
-        @HeaderParam("ApiVersion") String apiVersion,
         @Context UriInfo uriInfo,
+        @Context HttpHeaders headers,
         @Context SecurityContext securityContext) {
-        String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        String apiVersion = HeaderUtils.resolveApiVersion(headers.getRequestHeaders());
+        Map<String, List<String>> requestHeaders = HeaderUtils.removeAuthHeaders(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
-        return build(elide.get(uriInfo.getBaseUri().toString(), path, queryParams, user, safeApiVersion));
+
+        return build(elide.get(uriInfo.getBaseUri().toString(), path, queryParams,
+                               requestHeaders, user, apiVersion, UUID.randomUUID()));
     }
 
     /**
      * Update handler.
      *
      * @param contentType document MIME type
-     * @param apiVersion the API version
      * @param accept response MIME type
      * @param path request path
      * @param uriInfo URI info
+     * @param headers the request headers
      * @param securityContext security context
      * @param jsonapiDocument patch data as jsonapi document
      * @return response
@@ -110,18 +118,18 @@ public class JsonApiEndpoint {
     @Consumes(JSONAPI_CONTENT_TYPE)
     public Response patch(
         @HeaderParam("Content-Type") String contentType,
-        @HeaderParam("ApiVersion") String apiVersion,
         @HeaderParam("accept") String accept,
         @PathParam("path") String path,
         @Context UriInfo uriInfo,
+        @Context HttpHeaders headers,
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-
-        String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
+        String apiVersion = HeaderUtils.resolveApiVersion(headers.getRequestHeaders());
+        Map<String, List<String>> requestHeaders = HeaderUtils.removeAuthHeaders(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
         return build(elide.patch(uriInfo.getBaseUri().toString(), contentType, accept, path,
-                                 jsonapiDocument, queryParams, user, safeApiVersion, UUID.randomUUID()));
+                                 jsonapiDocument, queryParams, requestHeaders, user, apiVersion, UUID.randomUUID()));
     }
 
     /**
@@ -129,7 +137,7 @@ public class JsonApiEndpoint {
      *
      * @param path request path
      * @param uriInfo URI info
-     * @param apiVersion the API version.
+     * @param headers the request headers
      * @param securityContext security context
      * @param jsonApiDocument DELETE document
      * @return response
@@ -140,14 +148,15 @@ public class JsonApiEndpoint {
     public Response delete(
         @PathParam("path") String path,
         @Context UriInfo uriInfo,
-        @HeaderParam("ApiVersion") String apiVersion,
+        @Context HttpHeaders headers,
         @Context SecurityContext securityContext,
         String jsonApiDocument) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
+        String apiVersion = HeaderUtils.resolveApiVersion(headers.getRequestHeaders());
+        Map<String, List<String>> requestHeaders = HeaderUtils.removeAuthHeaders(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
-        return build(elide.delete(uriInfo.getBaseUri().toString(), path, jsonApiDocument, queryParams,
-                user, safeApiVersion, UUID.randomUUID()));
+        return build(elide.delete(uriInfo.getBaseUri().toString(), path, jsonApiDocument, queryParams, requestHeaders,
+                                  user, apiVersion, UUID.randomUUID()));
     }
 
     private static Response build(ElideResponse response) {

@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -108,7 +109,7 @@ public class AsyncAPICancelThread implements Runnable {
                        JsonApiDocument jsonApiDoc = new JsonApiDocument();
                        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
                        RequestScope scope = new RequestScope("", "query", NO_VERSION, jsonApiDoc,
-                               runningTransaction, null, queryParams,
+                               runningTransaction, null, queryParams, Collections.emptyMap(),
                                uuid, elide.getElideSettings());
                        runningTransaction.cancel(scope);
                    }
