@@ -21,6 +21,11 @@ public class AggregationStoreProperties {
     private boolean enabled = false;
 
     /**
+     * Whether or not meta data store is enabled.
+     */
+    private boolean enableMetaDataStore = false;
+
+    /**
      * {@link SQLDialect} type for default DataSource Object.
      */
     private String defaultDialect = "Hive";

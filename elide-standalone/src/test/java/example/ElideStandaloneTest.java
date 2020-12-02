@@ -130,6 +130,11 @@ public class ElideStandaloneTest {
                     }
 
                     @Override
+                    public boolean enableMetaDataStore() {
+                        return true;
+                    }
+
+                    @Override
                     public String getDefaultDialect() {
                         return SQLDialectFactory.getDefaultDialect().getDialectType();
                     }

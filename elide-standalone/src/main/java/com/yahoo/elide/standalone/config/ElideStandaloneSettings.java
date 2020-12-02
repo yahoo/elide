@@ -423,15 +423,16 @@ public interface ElideStandaloneSettings {
      */
     default MetaDataStore getMetaDataStore(Optional<ElideDynamicEntityCompiler> optionalCompiler) {
         MetaDataStore metaDataStore = null;
+        boolean enableMetaDataStore = getAnalyticProperties().enableMetaDataStore();
 
         if (optionalCompiler.isPresent()) {
             try {
-                metaDataStore = new MetaDataStore(optionalCompiler.get());
+                metaDataStore = new MetaDataStore(optionalCompiler.get(), enableMetaDataStore);
             } catch (ClassNotFoundException e) {
                 throw new IllegalStateException(e);
             }
         } else {
-            metaDataStore = new MetaDataStore();
+            metaDataStore = new MetaDataStore(enableMetaDataStore);
         }
 
         return metaDataStore;

@@ -47,6 +47,15 @@ public interface ElideStandaloneAnalyticSettings {
     }
 
     /**
+     * Enable the support for MetaData Store. If false, the feature will be disabled.
+     *
+     * @return Default: False
+     */
+    default boolean enableMetaDataStore() {
+        return false;
+    }
+
+    /**
      * Provides the default SQLDialect type.
      *
      * @return {@link SQLDialect} type for default DataSource Object.
