@@ -6,13 +6,6 @@
       readAccess : guest
       dimensions : [
          {
-           name : name
-           type : TEXT
-           definition : '{{name}}'
-           // undefined security roles: user & member
-           readAccess : user AND member
-         },
-         {
            name : region
            type : TEXT
            definition : '{{region}}'

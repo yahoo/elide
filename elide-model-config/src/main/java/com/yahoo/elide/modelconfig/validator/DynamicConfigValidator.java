@@ -14,6 +14,8 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.EntityPermissions;
+import com.yahoo.elide.core.security.permissions.ExpressionResult;
+import com.yahoo.elide.core.security.permissions.expressions.Expression;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.modelconfig.Config;
 import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
@@ -33,7 +35,6 @@ import com.yahoo.elide.modelconfig.model.Table;
 import com.yahoo.elide.modelconfig.parser.handlebars.HandlebarsHydrator;
 
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -52,7 +53,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -448,7 +448,20 @@ public class DynamicConfigValidator {
      * @return boolean true if all provided table properties passes validation
      */
     private boolean validateTableConfig() {
-        Set<String> extractedChecks = new HashSet<>();
+
+        PermissionExpressionVisitor visitor = new PermissionExpressionVisitor((check) -> {
+            return new Expression() {
+                @Override
+                public ExpressionResult evaluate(EvaluationMode mode) {
+                    if (!(elideSecurityConfig.hasCheckDefined(check)
+                                    || dictionary.getCheckMappings().keySet().contains(check))) {
+                        throw new IllegalStateException(String.format("Security Check [%s] is not defined.", check));
+                    }
+                    return ExpressionResult.PASS;
+                }
+            };
+        });
+
         for (Table table : elideTableConfig.getTables()) {
 
             validateSql(table.getSql());
@@ -458,13 +471,13 @@ public class DynamicConfigValidator {
                 validateFieldNameUniqueness(tableFields, dim.getName(), table.getName());
                 validateSql(dim.getDefinition());
                 validateTableSource(dim.getTableSource());
-                extractChecksFromExpr(dim.getReadAccess(), extractedChecks);
+                validateCheckExpr(dim.getReadAccess(), visitor);
             });
 
             table.getMeasures().forEach(measure -> {
                 validateFieldNameUniqueness(tableFields, measure.getName(), table.getName());
                 validateSql(measure.getDefinition());
-                extractChecksFromExpr(measure.getReadAccess(), extractedChecks);
+                validateCheckExpr(measure.getReadAccess(), visitor);
             });
 
             table.getJoins().forEach(join -> {
@@ -472,56 +485,16 @@ public class DynamicConfigValidator {
                 validateJoin(join);
             });
 
-            extractChecksFromExpr(table.getReadAccess(), extractedChecks);
-            validateChecks(extractedChecks);
+            validateCheckExpr(table.getReadAccess(), visitor);
         }
 
         return true;
     }
 
-    private void validateChecks(Set<String> checks) {
-
-        if (checks.isEmpty()) {
-            return; // Nothing to validate
-        }
-
-        Set<String> staticChecks = dictionary.getCheckMappings().keySet();
-
-        List<String> undefinedChecks = checks
-                        .stream()
-                        .filter(check -> !(elideSecurityConfig.hasCheckDefined(check) || staticChecks.contains(check)))
-                        .sorted()
-                        .collect(Collectors.toList());
-
-        if (!undefinedChecks.isEmpty()) {
-            throw new IllegalStateException("Found undefined security checks: " + undefinedChecks);
-        }
-    }
-
-    private static void extractChecksFromExpr(String readAccess, Set<String> extractedChecks) {
-
+    private void validateCheckExpr(String readAccess, PermissionExpressionVisitor visitor) {
         if (!isNullOrEmpty(readAccess)) {
             ParseTree root = EntityPermissions.parseExpression(readAccess);
-            extractChecksFromTree(root, extractedChecks);
-        }
-    }
-
-    private static void extractChecksFromTree(ParseTree root, Set<String> extractedChecks) {
-
-        if (root == null || root.getChildCount() == 0) {
-            return;
-        }
-
-        boolean allChildrenAreTerminalNodes = true;
-        for (int i = 0; i < root.getChildCount(); i++) {
-            if (!(root.getChild(i) instanceof TerminalNodeImpl)) {
-                allChildrenAreTerminalNodes = false;
-                extractChecksFromTree(root.getChild(i), extractedChecks);
-            }
-        }
-
-        if (allChildrenAreTerminalNodes) {
-            extractedChecks.add(root.getText());
+            visitor.visit(root).evaluate(null);
         }
     }
 
