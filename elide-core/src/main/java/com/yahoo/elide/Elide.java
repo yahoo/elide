@@ -233,7 +233,8 @@ public class Elide {
     public ElideResponse post(String baseUrlEndPoint, String path, String jsonApiDocument,
                               MultivaluedMap<String, String> queryParams,
                               User opaqueUser, String apiVersion, UUID requestId) {
-        return post(baseUrlEndPoint, path, jsonApiDocument, queryParams, Collections.emptyMap(), opaqueUser, apiVersion, requestId);
+        return post(baseUrlEndPoint, path, jsonApiDocument, queryParams, Collections.emptyMap(),
+                    opaqueUser, apiVersion, requestId);
     }
 
     /**
@@ -383,7 +384,8 @@ public class Elide {
     public ElideResponse delete(String baseUrlEndPoint, String path, String jsonApiDocument,
                                 MultivaluedMap<String, String> queryParams,
                                 User opaqueUser, String apiVersion, UUID requestId) {
-        return delete(baseUrlEndPoint, path, jsonApiDocument, queryParams, Collections.emptyMap(), opaqueUser, apiVersion, requestId);
+        return delete(baseUrlEndPoint, path, jsonApiDocument, queryParams, Collections.emptyMap(),
+                      opaqueUser, apiVersion, requestId);
     }
 
     /**
