@@ -213,7 +213,7 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        assertEquals("Duplicate!! Role name: 'Admin User' is already defined. Please use different role.\n", error);
+        assertEquals("Duplicate!! Role name: 'prefab.role.all' is already defined. Please use different role.\n", error);
     }
 
     @Test

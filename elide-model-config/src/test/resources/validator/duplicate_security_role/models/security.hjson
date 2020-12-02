@@ -1,6 +1,6 @@
 {
     roles:  [
-        admin user
         Admin User
+        prefab.role.all
         ]
 }
