@@ -1,7 +1,7 @@
 {
     roles : [
         admin
-        guest
+        gu.est user
         member
         user
         ]

@@ -25,7 +25,7 @@ import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
-import com.yahoo.elide.datastores.aggregation.checks.PrincipalIsOperator;
+import com.yahoo.elide.datastores.aggregation.checks.OperatorCheck;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
@@ -91,7 +91,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
                     try {
                         dictionary.addSecurityChecks(COMPILER.findAnnotatedClasses(SecurityCheck.class));
-                        dictionary.addSecurityChecks(Collections.singleton(PrincipalIsOperator.class));
+                        dictionary.addSecurityChecks(Collections.singleton(OperatorCheck.class));
                     } catch (ClassNotFoundException e) {
                     }
 
@@ -123,7 +123,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
     @BeforeEach
     public void setUp() {
-        when(securityContextMock.isUserInRole("admin")).thenReturn(true);
+        when(securityContextMock.isUserInRole("admin.user")).thenReturn(true);
         when(securityContextMock.isUserInRole("operator")).thenReturn(true);
         when(securityContextMock.isUserInRole("guest user")).thenReturn(true);
     }

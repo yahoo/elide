@@ -206,6 +206,17 @@ public class DynamicConfigValidatorTest {
     }
 
     @Test
+    public void testDuplicateSecurityRoleConfig() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() ->
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/duplicate_security_role", "--nocompile" }));
+            assertEquals(2, exitStatus);
+        });
+
+        assertEquals("Duplicate!! Role name: 'Admin User' is already defined. Please use different role.\n", error);
+    }
+
+    @Test
     public void testBadSecurityRoleConfig() throws Exception {
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
@@ -213,7 +224,12 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        assertEquals("ROLE provided in security config contain one of these words: [,]\n", error);
+        String expectedError = "Schema validation failed for: security.hjson\n"
+                        + "[ERROR]\n"
+                        + "Instance[/roles/0] failed to validate against schema[/properties/roles/items]. Role [admin,] is not allowed. Role must start with an alphabet and can include alaphabets, numbers, spaces and '.' only.\n"
+                        + "[ERROR]\n"
+                        + "Instance[/roles/1] failed to validate against schema[/properties/roles/items]. Role [guest,] is not allowed. Role must start with an alphabet and can include alaphabets, numbers, spaces and '.' only.\n";
+        assertEquals(expectedError, error);
     }
 
     @Test
@@ -224,7 +240,7 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        assertEquals("Found undefined security checks: [Principal is member, Principal is user, Principal is guest]\n", error);
+        assertEquals("Found undefined security checks: [guest, member, user]\n", error);
     }
 
     @Test

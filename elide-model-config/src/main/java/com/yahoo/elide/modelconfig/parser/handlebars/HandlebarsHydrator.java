@@ -28,7 +28,7 @@ import java.util.Map;
  */
 public class HandlebarsHydrator {
 
-    public static final String SECURITY_CLASS_PREFIX = "DynamicConfigOperationChecksPrincipalIs";
+    public static final String SECURITY_CLASS_PREFIX = "DynamicConfigOperationChecks";
     public static final String HANDLEBAR_START_DELIMITER = "<%";
     public static final String HANDLEBAR_END_DELIMITER = "%>";
     public static final EscapingStrategy MY_ESCAPING_STRATEGY = new Hbs(new String[][]{
@@ -103,7 +103,8 @@ public class HandlebarsHydrator {
 
         Template template = handlebars.compile("security", HANDLEBAR_START_DELIMITER, HANDLEBAR_END_DELIMITER);
         for (String role : security.getRoles()) {
-            securityClasses.put(SECURITY_CLASS_PREFIX + helper.titleCaseRemoveSpaces(role), template.apply(role));
+            securityClasses.put(SECURITY_CLASS_PREFIX + helper.createSecurityIdenitfier(role, false),
+                            template.apply(role));
         }
 
         return securityClasses;

@@ -3,14 +3,14 @@
       name: PlayerStats
       table: PlayerStats
       // undefined security role: guest
-      readAccess : Principal is guest
+      readAccess : guest
       dimensions : [
          {
            name : name
            type : TEXT
            definition : '{{name}}'
            // undefined security roles: user & member
-           readAccess : Principal is user AND Principal is member
+           readAccess : user AND member
          },
          {
            name : region

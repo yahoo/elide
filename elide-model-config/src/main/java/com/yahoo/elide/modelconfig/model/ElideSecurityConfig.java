@@ -43,7 +43,6 @@ public class ElideSecurityConfig {
 
         return roles
                    .stream()
-                   .map(r -> "Principal is " + r)
                    .anyMatch(role::equals);
     }
 }

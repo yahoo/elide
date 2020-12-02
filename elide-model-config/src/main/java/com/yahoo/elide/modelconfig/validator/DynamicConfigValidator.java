@@ -57,6 +57,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -70,7 +71,6 @@ public class DynamicConfigValidator {
     private static final Set<String> SQL_DISALLOWED_WORDS = new HashSet<>(
             Arrays.asList("DROP", "TRUNCATE", "DELETE", "INSERT", "UPDATE", "ALTER", "COMMENT", "CREATE", "DESCRIBE",
                     "SHOW", "USE", "GRANT", "REVOKE", "CONNECT", "LOCK", "EXPLAIN", "CALL", "MERGE", "RENAME"));
-    private static final String[] ROLE_NAME_DISALLOWED_WORDS = new String[] { "," };
     private static final String SQL_SPLIT_REGEX = "\\s+";
     private static final String SEMI_COLON = ";";
     private static final Pattern HANDLEBAR_REGEX = Pattern.compile("<%(.*?)%>");
@@ -182,7 +182,7 @@ public class DynamicConfigValidator {
         this.loadConfigMap();
         this.modelVariables = readVariableConfig(Config.MODELVARIABLE);
         this.elideSecurityConfig = readSecurityConfig();
-        validateRoleInSecurityConfig(this.elideSecurityConfig);
+        validateSecurityConfig();
         this.dbVariables = readVariableConfig(Config.DBVARIABLE);
         this.elideSQLDBConfig.setDbconfigs(readDbConfig());
         this.elideTableConfig.setTables(readTableConfig());
@@ -490,6 +490,7 @@ public class DynamicConfigValidator {
         List<String> undefinedChecks = checks
                         .stream()
                         .filter(check -> !(elideSecurityConfig.hasCheckDefined(check) || staticChecks.contains(check)))
+                        .sorted()
                         .collect(Collectors.toList());
 
         if (!undefinedChecks.isEmpty()) {
@@ -659,28 +660,22 @@ public class DynamicConfigValidator {
 
     /**
      * Validate role name provided in security config.
-     * @param elideSecurityConfig ElideSecurityConfig
      * @return boolean true if all role name passes validation else throw exception
      */
-    private static boolean validateRoleInSecurityConfig(ElideSecurityConfig elideSecurityConfig) {
-        for (String role : elideSecurityConfig.getRoles()) {
-            if (containsDisallowedWords(role, ROLE_NAME_DISALLOWED_WORDS)) {
-                throw new IllegalStateException("ROLE provided in security config contain one of these words: "
-                        + Arrays.toString(ROLE_NAME_DISALLOWED_WORDS));
-            }
-        }
-        return true;
-    }
+    private boolean validateSecurityConfig() {
+        Set<String> alreadyDefinedRoles = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+        alreadyDefinedRoles.addAll(dictionary.getCheckMappings().keySet());
 
-    /**
-     * Checks if input string has any of the disallowed words.
-     * @param str input string to validate
-     * @param keywords Array of disallowed words
-     * @return boolean true if input string does not contain any of the keywords
-     *         else false
-     */
-    private static boolean containsDisallowedWords(String str, String[] keywords) {
-        return Arrays.stream(keywords).anyMatch(str.toUpperCase(Locale.ENGLISH)::contains);
+        elideSecurityConfig.getRoles().forEach(role -> {
+            if (alreadyDefinedRoles.contains(role)) {
+                throw new IllegalStateException(String.format(
+                                "Duplicate!! Role name: '%s' is already defined. Please use different role.", role));
+            } else {
+                alreadyDefinedRoles.add(role);
+            }
+        });
+
+        return true;
     }
 
     /**

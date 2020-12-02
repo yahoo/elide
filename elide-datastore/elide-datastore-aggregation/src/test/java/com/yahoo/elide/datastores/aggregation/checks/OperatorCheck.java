@@ -8,12 +8,12 @@ package com.yahoo.elide.datastores.aggregation.checks;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.security.checks.prefab.Role.RoleMemberCheck;
 
-@SecurityCheck(PrincipalIsOperator.PRINCIPAL_IS_OPERTOR)
-public class PrincipalIsOperator extends RoleMemberCheck {
+@SecurityCheck(OperatorCheck.OPERTOR_CHECK)
+public class OperatorCheck extends RoleMemberCheck {
 
-    public static final String PRINCIPAL_IS_OPERTOR = "Principal is operator";
+    public static final String OPERTOR_CHECK = "operator";
 
-    public PrincipalIsOperator() {
+    public OperatorCheck() {
         super("operator");
     }
 }
