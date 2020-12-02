@@ -184,14 +184,15 @@ public class ElideAutoConfiguration {
             ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings)
             throws ClassNotFoundException {
 
+        boolean enableMetaDataStore = settings.getAggregationStore().isEnableMetaDataStore();
         ConnectionDetails defaultConnectionDetails =
                         new ConnectionDetails(defaultDataSource, settings.getAggregationStore().getDefaultDialect());
         if (isDynamicConfigEnabled(settings)) {
-            MetaDataStore metaDataStore = new MetaDataStore(dynamicCompiler.getIfAvailable());
+            MetaDataStore metaDataStore = new MetaDataStore(dynamicCompiler.getIfAvailable(), enableMetaDataStore);
             return new SQLQueryEngine(metaDataStore, defaultConnectionDetails,
                             dynamicCompiler.getIfAvailable().getConnectionDetailsMap());
         } else {
-            MetaDataStore metaDataStore = new MetaDataStore();
+            MetaDataStore metaDataStore = new MetaDataStore(enableMetaDataStore);
             return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
         }
     }

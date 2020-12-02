@@ -61,6 +61,9 @@ public class MetaDataStore implements DataStore {
     @Getter
     private final Set<Class<?>> modelsToBind;
 
+    @Getter
+    private boolean enableMetaDataStore = false;
+
     private Map<Class<?>, Table> tables = new HashMap<>();
 
     @Getter
@@ -71,8 +74,8 @@ public class MetaDataStore implements DataStore {
 
     private final Set<Class<?>> metadataModelClasses;
 
-    public MetaDataStore() {
-        this(getAllAnnotatedClasses());
+    public MetaDataStore(boolean enableMetaDataStore) {
+        this(getAllAnnotatedClasses(), enableMetaDataStore);
     }
 
     /**
@@ -93,8 +96,9 @@ public class MetaDataStore implements DataStore {
         return metadataStoreResult;
     }
 
-    public MetaDataStore(ElideDynamicEntityCompiler compiler) throws ClassNotFoundException {
-        this();
+    public MetaDataStore(ElideDynamicEntityCompiler compiler,
+            boolean enableMetaDataStore) throws ClassNotFoundException {
+          this(enableMetaDataStore);
 
         //TODO add Entity Annotation classes when supported by dynamic config.
         Set<Class<?>> dynamicCompiledClasses = compiler.findAnnotatedClasses(FromTable.class);
@@ -118,7 +122,7 @@ public class MetaDataStore implements DataStore {
      *
      * @param modelsToBind models to bind
      */
-    public MetaDataStore(Set<Class<?>> modelsToBind) {
+    public MetaDataStore(Set<Class<?>> modelsToBind, boolean enableMetaDataStore) {
         this.metadataModelClasses = ClassScanner.getAllClasses(META_DATA_PACKAGE.getName());
 
         modelsToBind.forEach(cls -> {
@@ -128,6 +132,7 @@ public class MetaDataStore implements DataStore {
             hashMapDataStore.getDictionary().bindEntity(cls, Collections.singleton(Join.class));
             this.metadataDictionary.bindEntity(cls, Collections.singleton(Join.class));
             this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);
+            this.enableMetaDataStore = enableMetaDataStore;
         });
 
         // bind external data models in the package.
@@ -136,7 +141,11 @@ public class MetaDataStore implements DataStore {
 
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        metadataModelClasses.forEach(cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class)));
+        if (enableMetaDataStore) {
+            metadataModelClasses.forEach(
+                cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class))
+            );
+        }
     }
 
     private final Function<String, HashMapDataStore> getHashMapDataStoreInitializer() {
