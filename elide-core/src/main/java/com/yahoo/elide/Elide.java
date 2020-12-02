@@ -53,6 +53,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -173,7 +174,7 @@ public class Elide {
      */
     public ElideResponse get(String baseUrlEndPoint, String path, MultivaluedMap<String, String> queryParams,
                              User opaqueUser, String apiVersion, UUID requestId) {
-        return get(baseUrlEndPoint, path, queryParams, null, opaqueUser, apiVersion, requestId);
+        return get(baseUrlEndPoint, path, queryParams, Collections.emptyMap(), opaqueUser, apiVersion, requestId);
     }
 
     /**
@@ -232,7 +233,7 @@ public class Elide {
     public ElideResponse post(String baseUrlEndPoint, String path, String jsonApiDocument,
                               MultivaluedMap<String, String> queryParams,
                               User opaqueUser, String apiVersion, UUID requestId) {
-        return post(baseUrlEndPoint, path, jsonApiDocument, queryParams, null, opaqueUser, apiVersion, requestId);
+        return post(baseUrlEndPoint, path, jsonApiDocument, queryParams, Collections.emptyMap(), opaqueUser, apiVersion, requestId);
     }
 
     /**
@@ -382,7 +383,7 @@ public class Elide {
     public ElideResponse delete(String baseUrlEndPoint, String path, String jsonApiDocument,
                                 MultivaluedMap<String, String> queryParams,
                                 User opaqueUser, String apiVersion, UUID requestId) {
-        return delete(baseUrlEndPoint, path, jsonApiDocument, queryParams, null, opaqueUser, apiVersion, requestId);
+        return delete(baseUrlEndPoint, path, jsonApiDocument, queryParams, Collections.emptyMap(), opaqueUser, apiVersion, requestId);
     }
 
     /**
