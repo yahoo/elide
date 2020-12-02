@@ -11,5 +11,6 @@ package com.yahoo.elide.core.security;
 public interface RequestScope {
     User getUser();
     String getApiVersion();
+    String getRequestHeaderByName(String headerName);
     String getBaseUrlEndPoint();
 }

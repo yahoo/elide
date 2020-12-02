@@ -46,13 +46,17 @@ public class EntityProjectionTranslator {
     private FilterExpression whereFilter;
     private FilterExpression havingFilter;
     private EntityDictionary dictionary;
+    private Boolean bypassCache;
+
 
     public EntityProjectionTranslator(QueryEngine engine, Table table,
-                                      EntityProjection entityProjection, EntityDictionary dictionary) {
+                                      EntityProjection entityProjection, EntityDictionary dictionary,
+                                      Boolean bypassCache) {
         this.engine = engine;
         this.queriedTable = table;
         this.entityProjection = entityProjection;
         this.dictionary = dictionary;
+        this.bypassCache  = bypassCache;
         dimensionProjections = resolveNonTimeDimensions();
         timeDimensions = resolveTimeDimensions();
         metrics = resolveMetrics();
@@ -73,6 +77,7 @@ public class EntityProjectionTranslator {
                 .havingFilter(havingFilter)
                 .sorting(entityProjection.getSorting())
                 .pagination(ImmutablePagination.from(entityProjection.getPagination()))
+                .bypassingCache(bypassCache)
                 .build();
         QueryValidator validator = new QueryValidator(query, getAllFields(), dictionary);
         validator.validate();

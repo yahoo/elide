@@ -125,12 +125,15 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
         Table table = metaDataStore.getTable(
                 scope.getDictionary().getJsonAliasFor(entityProjection.getType()),
                 scope.getApiVersion());
-
+        String bypassCacheStr = scope.getRequestHeaderByName("bypasscache");
+        Boolean bypassCache = (bypassCacheStr != null && bypassCacheStr.equals("true")) ? true : false;
         EntityProjectionTranslator translator = new EntityProjectionTranslator(
                 queryEngine,
                 table,
                 entityProjection,
-                scope.getDictionary());
+                scope.getDictionary(),
+                bypassCache);
+
         Query query = translator.getQuery();
 
         FilterExpression filterTemplate = table.getRequiredFilter(scope.getDictionary());

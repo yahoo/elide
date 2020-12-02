@@ -128,7 +128,7 @@ public class PermissionExpressionBuilderTest {
      }
 
     public <T> PersistentResource newResource(T obj, Class<T> cls) {
-        RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, null, null, null, UUID.randomUUID(), elideSettings);
+        RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, null, null, null, null, UUID.randomUUID(), elideSettings);
         return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
     }
 }
