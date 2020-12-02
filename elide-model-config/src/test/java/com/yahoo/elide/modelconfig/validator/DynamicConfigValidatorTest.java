@@ -240,7 +240,7 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        assertEquals("Security Check [guest] is not defined.\n", error);
+        assertEquals("Found undefined security checks: [guest, member, user]\n", error);
     }
 
     @Test

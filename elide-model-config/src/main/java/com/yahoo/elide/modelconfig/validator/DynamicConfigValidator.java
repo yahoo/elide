@@ -14,8 +14,6 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.EntityPermissions;
-import com.yahoo.elide.core.security.permissions.ExpressionResult;
-import com.yahoo.elide.core.security.permissions.expressions.Expression;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.modelconfig.Config;
 import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
@@ -53,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -448,19 +447,8 @@ public class DynamicConfigValidator {
      * @return boolean true if all provided table properties passes validation
      */
     private boolean validateTableConfig() {
-
-        PermissionExpressionVisitor visitor = new PermissionExpressionVisitor((check) -> {
-            return new Expression() {
-                @Override
-                public ExpressionResult evaluate(EvaluationMode mode) {
-                    if (!(elideSecurityConfig.hasCheckDefined(check)
-                                    || dictionary.getCheckMappings().keySet().contains(check))) {
-                        throw new IllegalStateException(String.format("Security Check [%s] is not defined.", check));
-                    }
-                    return ExpressionResult.PASS;
-                }
-            };
-        });
+        Set<String> extractedChecks = new HashSet<>();
+        PermissionExpressionVisitor visitor = new PermissionExpressionVisitor();
 
         for (Table table : elideTableConfig.getTables()) {
 
@@ -471,13 +459,13 @@ public class DynamicConfigValidator {
                 validateFieldNameUniqueness(tableFields, dim.getName(), table.getName());
                 validateSql(dim.getDefinition());
                 validateTableSource(dim.getTableSource());
-                validateCheckExpr(dim.getReadAccess(), visitor);
+                extractChecksFromExpr(dim.getReadAccess(), extractedChecks, visitor);
             });
 
             table.getMeasures().forEach(measure -> {
                 validateFieldNameUniqueness(tableFields, measure.getName(), table.getName());
                 validateSql(measure.getDefinition());
-                validateCheckExpr(measure.getReadAccess(), visitor);
+                extractChecksFromExpr(measure.getReadAccess(), extractedChecks, visitor);
             });
 
             table.getJoins().forEach(join -> {
@@ -485,16 +473,37 @@ public class DynamicConfigValidator {
                 validateJoin(join);
             });
 
-            validateCheckExpr(table.getReadAccess(), visitor);
+            extractChecksFromExpr(table.getReadAccess(), extractedChecks, visitor);
+            validateChecks(extractedChecks);
         }
 
         return true;
     }
 
-    private void validateCheckExpr(String readAccess, PermissionExpressionVisitor visitor) {
+    private void validateChecks(Set<String> checks) {
+
+        if (checks.isEmpty()) {
+            return; // Nothing to validate
+        }
+
+        Set<String> staticChecks = dictionary.getCheckMappings().keySet();
+
+        List<String> undefinedChecks = checks
+                        .stream()
+                        .filter(check -> !(elideSecurityConfig.hasCheckDefined(check) || staticChecks.contains(check)))
+                        .sorted()
+                        .collect(Collectors.toList());
+
+        if (!undefinedChecks.isEmpty()) {
+            throw new IllegalStateException("Found undefined security checks: " + undefinedChecks);
+        }
+    }
+
+    private static void extractChecksFromExpr(String readAccess, Set<String> extractedChecks,
+                    PermissionExpressionVisitor visitor) {
         if (!isNullOrEmpty(readAccess)) {
             ParseTree root = EntityPermissions.parseExpression(readAccess);
-            visitor.visit(root).evaluate(null);
+            extractedChecks.addAll(visitor.visit(root));
         }
     }
 
