@@ -32,6 +32,14 @@ public class DynamicConfigValidatorTest {
         assertEquals(parent.getMeasures().size(), 2);
         assertEquals(child.getMeasures().size(), parent.getMeasures().size() + 1);
 
+        // parent class sql/table
+        assertEquals("player_stats", child.getTable());
+        assertEquals(null, child.getSql());
+        assertEquals("gamedb", child.getSchema());
+        assertEquals(null, child.getDbConnectionName());
+        assertEquals(true, child.getIsFact());
+        assertEquals("A user is admin or is a player in the game", child.getReadAccess());
+
         // no new joins in child class, will inherit parent class joins
         assertEquals(parent.getJoins().size(), child.getJoins().size());
     }
@@ -153,6 +161,40 @@ public class DynamicConfigValidatorTest {
         });
 
         assertEquals("Undefined model: B is used as a Parent(extend) for another model.\n", error);
+    }
+
+    @Test
+    public void testInfiniteLoopMissingParentInheritance() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() ->
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/infinite_loop_missing_parent_inheritance" }));
+            assertEquals(2, exitStatus);
+        });
+
+        assertEquals("Undefined model: B is used as a Parent(extend) for another model.\n", error);
+    }
+
+    @Test
+    public void testInfiniteLoopCyclicInheritance1() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() ->
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/infinite_loop_cyclic_dependency_inheritance" }));
+            assertEquals(2, exitStatus);
+        });
+
+        assertTrue(error.contains("Inheriting from table"));
+        assertTrue(error.contains("creates an illegal cyclic dependency."));
+    }
+
+    @Test
+    public void testInheritanceTableSqlBoth() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() ->
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/table_sql_both_inheritance" }));
+            assertEquals(2, exitStatus);
+        });
+
+        assertTrue(error.contains("instance failed to match exactly one schema (matched 2 out of 3)"));
     }
 
     @Test

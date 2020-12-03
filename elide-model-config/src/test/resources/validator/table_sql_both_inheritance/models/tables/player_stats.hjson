@@ -1,0 +1,55 @@
+{
+  tables: [{
+      name: PlayerStats
+      friendlyName: Player Statistics
+      table: player_stats
+      schema: gamedb
+      description:
+      // newlines are replaced by single space in handlebar if no helper function is applied
+      '''
+      A long description
+      with newline
+       and additional space at start of this line.
+      '''
+      category: Table Category
+      cardinality : lARge
+      hidden : false
+      readAccess : A user is admin or is a player in the game
+      filterTemplate : countryIsoCode=={{code}}
+      tags: ['GAME', 'PLAYER',  '''
+      A tag
+      with newline
+      ''']
+      joins: [
+          {
+             name: playerCountry
+             to: Country
+             type: fuLL
+             definition: '{{ playerCountry.id}} = {{country_id}}'
+          }
+      ]
+
+      measures : [
+          {
+          name : highScore
+          friendlyName : High Score
+          type : INteGER
+          description : very awesome score
+          definition: 'MAX({{score}})'
+          tags: ['PUBLIC']
+          }
+      ]
+      dimensions : [
+         {
+           name : countryIsoCode
+           friendlyName : Country ISO Code
+           type : TEXT
+           category : country detail
+           definition : '{{playerCountry.isoCode}}'
+           values : ['US', 'HK']
+           tags: ['PRIVATE']
+           cardinality: Small
+         }
+      ]
+  }]
+}

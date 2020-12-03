@@ -1,0 +1,36 @@
+{
+  tables:
+  [
+    {
+      name: PlayerStatsChild
+      extend: PlayerStats
+      description: PlayerStats Child
+      cardinality: large
+      // Adding SQL for PlayerStatsChild, PlayerStats has table. This should fail.
+      sql: select * from player_stats
+      measures : [
+          {
+            name : AvgScore
+            type : INTEGER
+            description : Avg score
+            definition: 'Avg({{score}})'
+            tags: ['PUBLIC']
+          }
+      ]
+      dimensions : [
+         {
+           name : createdYear
+           type : TIME
+           definition : '{{createdYear}}'
+           grain:
+            {
+             type : Year
+             sql :  '''
+             PARSEDATETIME(FORMATDATETIME(createdOn, 'yyyy-MM-dd'), 'yyyy')
+             '''
+            }
+         }
+      ]
+    }
+  ]
+}
