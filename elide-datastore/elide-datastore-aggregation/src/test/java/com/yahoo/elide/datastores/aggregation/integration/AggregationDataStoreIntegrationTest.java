@@ -12,6 +12,7 @@ import static com.yahoo.elide.test.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
 import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItems;
@@ -878,6 +879,28 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                             allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderMonth", "2020-08")),
                             allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderMonth", "2020-09"))))
             .body("data.attributes.orderTotal", hasItems(61.43F, 113.07F, 260.34F));
+    }
+
+    @Test
+    public void missingClientFilterTest() {
+        String expectedError = "Querying deliveryDetails requires a mandatory filter:"
+                + " month&gt;={{start}};month&lt;{{end}}";
+        when()
+        .get("/deliveryDetails/")
+        .then()
+        .body("errors.detail", hasItems(expectedError))
+        .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void incompleteClientFilterTest() {
+        String expectedError = "Querying deliveryDetails requires a mandatory filter:"
+                + " month&gt;={{start}};month&lt;{{end}}";
+        when()
+        .get("/deliveryDetails?month&gt;=2020-08")
+        .then()
+        .body("errors.detail", hasItems(expectedError))
+        .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test
