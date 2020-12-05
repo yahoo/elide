@@ -162,8 +162,8 @@ public class DynamicConfigValidator {
             }
 
             System.out.println("Compiling Model configs (Use '--nocompile' to skip this step).");
-            dynamicConfigValidator.hydrateAndCompileModelConfigs(ElideDynamicInMemoryCompiler.newInstance()
-                            .ignoreWarnings().useParentClassLoader(DynamicConfigValidator.class.getClassLoader()));
+            dynamicConfigValidator.hydrateAndCompileModelConfigs(new ElideDynamicInMemoryCompiler().ignoreWarnings()
+                            .useParentClassLoader(DynamicConfigValidator.class.getClassLoader()));
             System.out.println("Model Configs Compilation Passed!");
             System.exit(0);
 

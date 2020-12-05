@@ -23,7 +23,7 @@ public class ElideDynamicEntityCompiler {
 
     private final Map<String, Class<?>> compiledObjects;
 
-    private final ElideDynamicInMemoryCompiler compiler = ElideDynamicInMemoryCompiler.newInstance().ignoreWarnings()
+    private final ElideDynamicInMemoryCompiler compiler = new ElideDynamicInMemoryCompiler().ignoreWarnings()
                     .useParentClassLoader(getClass().getClassLoader());
     @Getter
     private final ElideDBConfig elideSQLDBConfig;
