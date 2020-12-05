@@ -8,6 +8,7 @@ package com.yahoo.elide.async.models;
 import lombok.Data;
 
 import javax.persistence.Embeddable;
+import javax.persistence.Lob;
 
 /**
  * Model for Async Query Result.
@@ -17,5 +18,6 @@ import javax.persistence.Embeddable;
 public class AsyncQueryResult extends AsyncAPIResult {
     private Integer contentLength;
 
+    @Lob
     private String responseBody;  //URL or Response body
 }
