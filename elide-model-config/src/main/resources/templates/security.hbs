@@ -7,8 +7,8 @@ package dynamicconfig.checks;
 
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.security.checks.prefab.Role.RoleMemberCheck;
-<%#assign "upperCaseName"%> <%#createSecurityIdenitfier this true%><%/createSecurityIdenitfier%> <%/assign%>
-<%#assign "titleCaseName"%> <%#createSecurityIdenitfier this false%><%/createSecurityIdenitfier%> <%/assign%>
+<%#assign "upperCaseName"%> <%#createSecurityIdentifier this true%><%/createSecurityIdentifier%> <%/assign%>
+<%#assign "titleCaseName"%> <%#createSecurityIdentifier this false%><%/createSecurityIdentifier%> <%/assign%>
 @SecurityCheck(DynamicConfigOperationChecks<%titleCaseName%>.<%upperCaseName%>)
 public class DynamicConfigOperationChecks<%titleCaseName%> extends RoleMemberCheck {
 

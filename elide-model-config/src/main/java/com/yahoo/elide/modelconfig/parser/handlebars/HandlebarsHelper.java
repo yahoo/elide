@@ -89,7 +89,7 @@ public class HandlebarsHelper {
      * @param toUpperCase Change case to upper for converted string.
      * @return converted string.
      */
-    public String createSecurityIdenitfier(Object obj, boolean toUpperCase) {
+    public String createSecurityIdentifier(Object obj, boolean toUpperCase) {
         String id = capitalizeFirstLetter(obj.toString()).replace(SPACE, UNDERSCORE).replace(DOT, DOLLAR_SIGN);
         if (toUpperCase) {
             return toUpperCase(id);

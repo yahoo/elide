@@ -49,11 +49,6 @@ public class HandlebarsHydrator {
         this.handlebars.registerHelpers(helper);
     }
 
-    public HandlebarsHydrator() {
-        this.handlebars = new Handlebars();
-        this.helper = null;
-    }
-
     /**
      * Method to hydrate the Table template.
      * @param table ElideTable object
@@ -103,7 +98,7 @@ public class HandlebarsHydrator {
 
         Template template = handlebars.compile("security", HANDLEBAR_START_DELIMITER, HANDLEBAR_END_DELIMITER);
         for (String role : security.getRoles()) {
-            securityClasses.put(SECURITY_CLASS_PREFIX + helper.createSecurityIdenitfier(role, false),
+            securityClasses.put(SECURITY_CLASS_PREFIX + helper.createSecurityIdentifier(role, false),
                             template.apply(role));
         }
 

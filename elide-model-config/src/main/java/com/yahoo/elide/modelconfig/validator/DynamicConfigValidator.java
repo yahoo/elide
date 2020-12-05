@@ -162,7 +162,8 @@ public class DynamicConfigValidator {
             }
 
             System.out.println("Compiling Model configs (Use '--nocompile' to skip this step).");
-            dynamicConfigValidator.hydrateAndCompileModelConfigs();
+            dynamicConfigValidator.hydrateAndCompileModelConfigs(ElideDynamicInMemoryCompiler.newInstance()
+                            .ignoreWarnings().useParentClassLoader(DynamicConfigValidator.class.getClassLoader()));
             System.out.println("Model Configs Compilation Passed!");
             System.exit(0);
 
@@ -194,16 +195,10 @@ public class DynamicConfigValidator {
         validateJoinedTablesDBConnectionName(this.elideTableConfig);
     }
 
-    public void hydrateAndCompileModelConfigs() throws Exception {
-        hydrateAndCompileModelConfigs(ElideDynamicInMemoryCompiler.newInstance().ignoreWarnings());
-    }
-
     public void hydrateAndCompileModelConfigs(ElideDynamicInMemoryCompiler compiler) throws Exception {
         HandlebarsHydrator hydrator = new HandlebarsHydrator(staticModelDetails);
         Map<String, String> tableClasses = hydrator.hydrateTableTemplate(this.elideTableConfig);
         Map<String, String> securityClasses = hydrator.hydrateSecurityTemplate(this.elideSecurityConfig);
-
-        compiler.useParentClassLoader(getClass().getClassLoader());
 
         for (Map.Entry<String, String> tablePojo : tableClasses.entrySet()) {
             log.debug("key: " + tablePojo.getKey() + ", value: " + tablePojo.getValue());

@@ -57,7 +57,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -91,7 +90,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
                     try {
                         dictionary.addSecurityChecks(COMPILER.findAnnotatedClasses(SecurityCheck.class));
-                        dictionary.addSecurityChecks(Collections.singleton(OperatorCheck.class));
+                        dictionary.addSecurityCheck(OperatorCheck.class);
                     } catch (ClassNotFoundException e) {
                     }
 
