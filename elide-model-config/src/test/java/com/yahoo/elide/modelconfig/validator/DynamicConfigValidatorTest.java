@@ -31,6 +31,13 @@ public class DynamicConfigValidatorTest {
         assertEquals(parent.getMeasures().size(), 2);
         assertEquals(child.getMeasures().size(), parent.getMeasures().size() + 1);
 
+        // parent class sql/table
+        assertEquals("player_stats", child.getTable());
+        assertEquals(null, child.getSql());
+        assertEquals("gamedb", child.getSchema());
+        assertEquals(null, child.getDbConnectionName());
+        assertEquals(true, child.getIsFact());
+
         // no new joins in child class, will inherit parent class joins
         assertEquals(parent.getJoins().size(), child.getJoins().size());
     }
