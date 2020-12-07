@@ -85,29 +85,4 @@ public class DynamicConfigTest extends IntegrationTest {
                 .body("data.attributes.countryCode", hasItems("USA", "IND"))
                 .statusCode(HttpStatus.SC_OK);
     }
-
-
-    @Test
-    public void missingClientFilterTest() {
-        String expectedError = "Querying playerStats requires a mandatory filter: "
-                + "createdOn&gt;={{start}};createdOn&lt;{{end}}";
-
-        when()
-                .get("/json/playerStats")
-                .then()
-                .body("errors.detail", hasItems(expectedError))
-                .statusCode(HttpStatus.SC_BAD_REQUEST);
-    }
-
-    @Test
-    public void incompleteClientFilterTest() {
-        String expectedError = "Querying playerStats requires a mandatory filter: "
-                + "createdOn&gt;={{start}};createdOn&lt;{{end}}";
-
-        when()
-                .get("/json/playerStats?createdOn>=1999-01-01")
-                .then()
-                .body("errors.detail", hasItems(expectedError))
-                .statusCode(HttpStatus.SC_BAD_REQUEST);
-    }
 }
