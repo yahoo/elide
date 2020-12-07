@@ -261,12 +261,13 @@ public class DynamicConfigValidator {
     }
 
     private void populateInheritance(Table table, Set<Table> processed) {
-        if (!table.hasParent()) {
-            processed.add(table);
+        if (processed.contains(table)) {
             return;
         }
 
-        if (processed.contains(table)) {
+        processed.add(table);
+
+        if (!table.hasParent()) {
             return;
         }
 
@@ -297,8 +298,6 @@ public class DynamicConfigValidator {
         table.setTable(tableName);
         // isFact, isHidden, ReadAccess have default Values in schema, so can not be inherited.
         // Other properties (tags, cardinality, etc.) have been categorized as non-inheritable too.
-
-        processed.add(table);
     }
 
     private <T extends Named> Map<String, T> attributesListToMap(List<T> attributes) {
