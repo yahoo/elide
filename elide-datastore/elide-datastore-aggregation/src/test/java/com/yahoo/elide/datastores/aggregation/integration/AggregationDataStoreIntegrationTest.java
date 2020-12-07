@@ -24,6 +24,7 @@ import com.yahoo.elide.core.audit.TestAuditLogger;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.checks.OperatorCheck;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
@@ -86,11 +87,12 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
             register(new AbstractBinder() {
                 @Override
                 protected void configure() {
-                    EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
+                    Map<String, Class<? extends Check>> map = new HashMap<>(TestCheckMappings.MAPPINGS);
+                    map.put(OperatorCheck.OPERTOR_CHECK, OperatorCheck.class);
+                    EntityDictionary dictionary = new EntityDictionary(map);
 
                     try {
                         dictionary.addSecurityChecks(COMPILER.findAnnotatedClasses(SecurityCheck.class));
-                        dictionary.addSecurityCheck(OperatorCheck.class);
                     } catch (ClassNotFoundException e) {
                     }
 
