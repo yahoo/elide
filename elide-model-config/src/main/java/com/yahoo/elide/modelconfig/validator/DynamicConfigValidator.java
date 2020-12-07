@@ -291,14 +291,10 @@ public class DynamicConfigValidator {
 
             // isFact, isHidden, ReadAccess have default Values in schema, so can not be inherited.
             // Other properties (tags, cardinality, etc.) have been categorized as non-inheritable too.
-            table.setExtend(null);
         }
         processed.add(table);
     }
 
-    private <T> T getInheritedAttribute(Table table, Inheritance action) {
-        return (T) action.inherit();
-    }
 
     @FunctionalInterface
     public interface Inheritance<T> {
@@ -315,7 +311,7 @@ public class DynamicConfigValidator {
                 return measures;
         };
 
-        getInheritedAttribute(table, action);
+        action.inherit();
         if (table.hasParent()) {
             getInheritedMeasures(table.getParent(elideTableConfig), measures);
         }
@@ -331,7 +327,7 @@ public class DynamicConfigValidator {
             });
             return dimensions;
         };
-        getInheritedAttribute(table, action);
+        action.inherit();
         if (table.hasParent()) {
             getInheritedDimensions(table.getParent(elideTableConfig), dimensions);
         }
@@ -347,7 +343,7 @@ public class DynamicConfigValidator {
             });
             return joins;
         };
-        getInheritedAttribute(table, action);
+        action.inherit();
         if (table.hasParent()) {
             getInheritedJoins(table.getParent(elideTableConfig), joins);
         }
@@ -359,7 +355,7 @@ public class DynamicConfigValidator {
             return table.getSchema();
         };
 
-        String schema = getInheritedAttribute(table, action);
+        String schema = (String) action.inherit();
 
         if (schema == null && table.hasParent()) {
             schema = getInheritedSchema(table.getParent(elideTableConfig));
@@ -372,7 +368,7 @@ public class DynamicConfigValidator {
             return table.getDbConnectionName();
         };
 
-        String conn = getInheritedAttribute(table, action);
+        String conn = (String) action.inherit();
 
         if (conn == null && table.hasParent()) {
             conn = getInheritedConnection(table.getParent(elideTableConfig));
@@ -385,7 +381,7 @@ public class DynamicConfigValidator {
             return table.getSql();
         };
 
-        String sql = getInheritedAttribute(table, action);
+        String sql = (String) action.inherit();
 
         if (sql == null && table.hasParent()) {
             sql = getInheritedSql(table.getParent(elideTableConfig));
@@ -398,7 +394,7 @@ public class DynamicConfigValidator {
             return table.getTable();
         };
 
-        String tableName = getInheritedAttribute(table, action);
+        String tableName = (String) action.inherit();
 
         if (tableName == null && table.hasParent()) {
             tableName = getInheritedTable(table.getParent(elideTableConfig));
