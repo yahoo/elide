@@ -261,8 +261,12 @@ public class DynamicConfigValidator {
     }
 
     private void populateInheritance(Table table, Set<Table> processed) {
-        if (!table.hasParent() || processed.contains(table)) {
+        if (!table.hasParent()) {
             processed.add(table);
+            return;
+        }
+
+        if (processed.contains(table)) {
             return;
         }
 
