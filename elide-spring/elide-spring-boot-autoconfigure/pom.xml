@@ -113,11 +113,15 @@
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
             <optional>true</optional>
+            <!-- Till new spring-boot-dependencies release. CVE-2020-17527 -->
+            <version>9.0.40</version>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-websocket</artifactId>
             <optional>true</optional>
+            <!-- Till new spring-boot-dependencies release. CVE-2020-17527 -->
+            <version>9.0.40</version>
         </dependency>
 
         <dependency>
