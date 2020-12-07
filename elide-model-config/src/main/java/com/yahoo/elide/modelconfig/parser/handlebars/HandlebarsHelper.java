@@ -6,13 +6,13 @@
 package com.yahoo.elide.modelconfig.parser.handlebars;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
-import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
+
+import com.yahoo.elide.modelconfig.StaticModelsDetails;
 import com.yahoo.elide.modelconfig.model.Grain;
 import com.yahoo.elide.modelconfig.model.Type;
 import com.github.jknack.handlebars.Options;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -38,11 +38,18 @@ public class HandlebarsHelper {
     private static final String BIGDECIMAL = "BigDecimal";
     private static final String LONG = "Long";
     private static final String BOOLEAN = "Boolean";
-    private static final String WHITESPACE_REGEX = "\\s+";
     private static final String SPACE = " ";
     private static final String UNDERSCORE = "_";
     public static final String NEWLINE = System.getProperty("line.separator");
     public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
+    private static final char DOT = '.';
+    private static final char DOLLAR_SIGN = '$';
+
+    private final StaticModelsDetails staticModelsDetails;
+
+    public HandlebarsHelper(StaticModelsDetails staticModelsDetails) {
+        this.staticModelsDetails = staticModelsDetails;
+    }
 
     /**
      * Capitalize first letter of the string.
@@ -67,20 +74,6 @@ public class HandlebarsHelper {
     }
 
     /**
-    * Transform string to capitalize first character of each word, change other
-    * characters to lower case and remove spaces.
-    * @param str String to be transformed
-    * @return Capitalize First Letter of Each Word and remove spaces
-    */
-    public String titleCaseRemoveSpaces(String str) {
-
-        return (str == null || str.length() == 0) ? str
-                : String.join(EMPTY_STRING, Arrays.asList(str.trim().split(WHITESPACE_REGEX)).stream().map(
-                        s -> toUpperCase(s.substring(0, 1)) + toLowerCase(s.substring(1)))
-                        .collect(Collectors.toList()));
-    }
-
-    /**
      * Transform string to upper case.
      * @param obj Object representation of the string
      * @return string converted to upper case
@@ -91,12 +84,17 @@ public class HandlebarsHelper {
     }
 
     /**
-     * Transform string to upper case and replace space with underscore.
-     * @param obj Object representation of the string
-     * @return string converted to upper case and spaces replaced
+     * Capitalize first letter, replace space with underscore and dot with euro sign.
+     * @param obj Object representation of the string.
+     * @param toUpperCase Change case to upper for converted string.
+     * @return converted string.
      */
-    public String toUpperCaseReplaceSpace(Object obj) {
-        return toUpperCase(obj).replace(SPACE, UNDERSCORE);
+    public String createSecurityIdentifier(Object obj, boolean toUpperCase) {
+        String id = capitalizeFirstLetter(obj.toString()).replace(SPACE, UNDERSCORE).replace(DOT, DOLLAR_SIGN);
+        if (toUpperCase) {
+            return toUpperCase(id);
+        }
+        return id;
     }
 
     /**
@@ -213,8 +211,7 @@ public class HandlebarsHelper {
      * @return class name.
      */
     public String getJoinClassName(String modelName) {
-        return ElideDynamicEntityCompiler.getStaticModelClassName(modelName, NO_VERSION,
-                        capitalizeFirstLetter(modelName));
+        return staticModelsDetails.getClassName(modelName, NO_VERSION, capitalizeFirstLetter(modelName));
     }
 
     /**
@@ -223,7 +220,7 @@ public class HandlebarsHelper {
      * @return import statement.
      */
     public String getJoinClassImport(String modelName) {
-        return ElideDynamicEntityCompiler.getStaticModelClassImport(modelName, NO_VERSION, EMPTY_STRING);
+        return staticModelsDetails.getClassImport(modelName, NO_VERSION, EMPTY_STRING);
     }
 
     private static String replaceNewlineWithSpace(String str) {

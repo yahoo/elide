@@ -3,17 +3,17 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package dynamicconfig.models;
+package dynamicconfig.checks;
 
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.security.checks.prefab.Role.RoleMemberCheck;
-<%#assign "upperCaseName"%> <%#toUpperCaseReplaceSpace this%><%/toUpperCaseReplaceSpace%> <%/assign%>
-<%#assign "titleCaseName"%> <%#titleCaseRemoveSpaces this%><%/titleCaseRemoveSpaces%> <%/assign%>
-@SecurityCheck(DynamicConfigOperationChecksPrincipalIs<%titleCaseName%>.PRINCIPAL_IS_<%upperCaseName%>)
-public class DynamicConfigOperationChecksPrincipalIs<%titleCaseName%> extends RoleMemberCheck {
+<%#assign "upperCaseName"%> <%#createSecurityIdentifier this true%><%/createSecurityIdentifier%> <%/assign%>
+<%#assign "titleCaseName"%> <%#createSecurityIdentifier this false%><%/createSecurityIdentifier%> <%/assign%>
+@SecurityCheck(DynamicConfigOperationChecks<%titleCaseName%>.<%upperCaseName%>)
+public class DynamicConfigOperationChecks<%titleCaseName%> extends RoleMemberCheck {
 
-    public static final String PRINCIPAL_IS_<%upperCaseName%> = "Principal is <%this%>";
-    public DynamicConfigOperationChecksPrincipalIs<%titleCaseName%>() {
+    public static final String <%upperCaseName%> = "<%this%>";
+    public DynamicConfigOperationChecks<%titleCaseName%>() {
         super("<%this%>");
     }
 }
