@@ -22,8 +22,6 @@ import org.springframework.test.context.jdbc.SqlMergeMode;
 
 /**
  * Dynamic Configuration functional test.
- * TODO - All of the tests in this file need to migrate over to AggregationDataStore so they are not duplicated
- * here and in standalone tests.
  */
 @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
 @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
