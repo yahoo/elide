@@ -22,17 +22,20 @@ import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.cache.CaffeineCache;
 import com.yahoo.elide.datastores.aggregation.core.Slf4jQueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.DataSourceConfiguration;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
-import com.yahoo.elide.modelconfig.compile.ConnectionDetails;
 import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
+
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -42,6 +45,7 @@ import io.swagger.models.Swagger;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -316,23 +320,30 @@ public interface ElideStandaloneSettings {
 
     /**
      * Gets the dynamic compiler for elide.
-     * @param dbPasswordExtractor : Password Extractor Implementation
      * @return Optional ElideDynamicEntityCompiler
      */
-    default Optional<ElideDynamicEntityCompiler> getDynamicCompiler(DBPasswordExtractor dbPasswordExtractor) {
+    default Optional<ElideDynamicEntityCompiler> getDynamicCompiler() {
         ElideDynamicEntityCompiler dynamicEntityCompiler = null;
 
         if (getAnalyticProperties().enableAggregationDataStore()
                         && getAnalyticProperties().enableDynamicModelConfig()) {
             try {
-                dynamicEntityCompiler = new ElideDynamicEntityCompiler(getAnalyticProperties().getDynamicConfigPath(),
-                                dbPasswordExtractor);
+                dynamicEntityCompiler = new ElideDynamicEntityCompiler(getAnalyticProperties().getDynamicConfigPath());
             } catch (Exception e) { // thrown by in memory compiler
                 throw new IllegalStateException(e);
             }
         }
 
         return Optional.ofNullable(dynamicEntityCompiler);
+    }
+
+    /**
+     * Provides the default Hikari DataSource Configuration.
+     * @return An instance of DataSourceConfiguration.
+     */
+    default DataSourceConfiguration getDataSourceConfiguration() {
+        return new DataSourceConfiguration() {
+        };
     }
 
     /**
@@ -443,13 +454,23 @@ public interface ElideStandaloneSettings {
      * @param metaDataStore MetaDataStore object.
      * @param defaultConnectionDetails default DataSource Object and SQLDialect Object.
      * @param optionalCompiler Optional dynamic compiler object.
+     * @param dataSourceConfiguration DataSource Configuration.
+     * @param dbPasswordExtractor Password Extractor Implementation.
      * @return QueryEngine object initialized.
      */
     default QueryEngine getQueryEngine(MetaDataStore metaDataStore, ConnectionDetails defaultConnectionDetails,
-                    Optional<ElideDynamicEntityCompiler> optionalCompiler) {
+                    Optional<ElideDynamicEntityCompiler> optionalCompiler,
+                    DataSourceConfiguration dataSourceConfiguration, DBPasswordExtractor dbPasswordExtractor) {
         if (optionalCompiler.isPresent()) {
-            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails,
-                            optionalCompiler.get().getConnectionDetailsMap());
+            Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
+
+            optionalCompiler.get().getElideSQLDBConfig().getDbconfigs().forEach(dbConfig -> {
+                connectionDetailsMap.put(dbConfig.getName(),
+                                new ConnectionDetails(
+                                                dataSourceConfiguration.getDataSource(dbConfig, dbPasswordExtractor),
+                                                SQLDialectFactory.getDialect(dbConfig.getDialect())));
+            });
+            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap);
         }
         return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
     }

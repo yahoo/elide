@@ -9,7 +9,8 @@
             "type": "array",
             "uniqueItems": true,
             "items": {
-                "type": "string"
+                "type": "string",
+                "format": "elideRole"
             }
         },
         "rules": {
