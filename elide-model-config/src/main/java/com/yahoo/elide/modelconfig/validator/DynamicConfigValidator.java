@@ -41,7 +41,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -175,113 +174,160 @@ public class DynamicConfigValidator {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void populateInheritance(ElideTableConfig elideTableConfig) {
         //ensures validation is run before populate always.
         validateInheritance(this.elideTableConfig);
 
-        List<Table> tables = elideTableConfig.getTables().stream().collect(Collectors.toList());
-        while (!tables.isEmpty()) {
-            Table table = tables.remove(0);
-            if (table.hasParent()) {
-
-                Table parent = table.getParent(elideTableConfig);
-                // If parent also extends, ensure parent is processed first.
-                if (parent.getExtend() != null && parent.getSql() == null && parent.getTable() == null) {
-                    tables.add(table);
-                    continue;
-                }
-
-                Map<String, Measure> measures = (Map<String, Measure>) getInheritedAttribute(table,
-                        new HashMap<String, Measure>(), (tab, result) -> {
-                            tab.getMeasures().forEach(measure -> {
-                                if (!((Map<String, Measure>) result).containsKey(measure.getName())) {
-                                    ((Map<String, Measure>) result).put(measure.getName(), measure);
-                                }
-                            });
-                            return result;
-                        }, false
-                );
-                table.setMeasures(new ArrayList<Measure>(measures.values()));
-
-                Map<String, Dimension> dimensions = (Map<String, Dimension>) getInheritedAttribute(table,
-                        new HashMap<String, Dimension>(), (tab, result) -> {
-                            tab.getDimensions().forEach(dim -> {
-                                if (!((Map<String, Dimension>) result).containsKey(dim.getName())) {
-                                    ((Map<String, Dimension>) result).put(dim.getName(), dim);
-                                }
-                            });
-                            return result;
-                        }, false
-                );
-                table.setDimensions(new ArrayList<Dimension>(dimensions.values()));
-
-                Map<String, Join> joins = (Map<String, Join>) getInheritedAttribute(table,
-                        new HashMap<String, Join>(), (tab, result) -> {
-                            tab.getJoins().forEach(dim -> {
-                                if (!((Map<String, Join>) result).containsKey(dim.getName())) {
-                                    ((Map<String, Join>) result).put(dim.getName(), dim);
-                                }
-                            });
-                            return result;
-                        }, false
-                );
-                table.setJoins(new ArrayList<Join>(joins.values()));
-
-                String schema = (String) getInheritedAttribute(table, null,
-                        (tab, result) -> {
-                            return tab.getSchema();
-                        }, true
-                );
-                table.setSchema(schema);
-
-                String dbConnectionName = (String) getInheritedAttribute(table, null,
-                        (tab, result) -> {
-                            return tab.getDbConnectionName();
-                        }, true
-                );
-                table.setDbConnectionName(dbConnectionName);
-
-                String readAccess = (String) getInheritedAttribute(table, null,
-                        (tab, result) -> {
-                            return tab.getReadAccess();
-                        }, true
-                );
-                table.setReadAccess(readAccess);
-
-                String sql = (String) getInheritedAttribute(table, null,
-                        (tab, result) -> {
-                            return tab.getSql();
-                        }, true
-                );
-                table.setSql(sql);
-
-                String tableName = (String) getInheritedAttribute(table, null,
-                        (tab, result) -> {
-                            return tab.getTable();
-                        }, true
-                );
-                table.setTable(tableName);
-            }
-        }
+        Set<Table> processed = new HashSet<Table>();
+        elideTableConfig.getTables().stream().forEach(table -> {
+            populateInheritance(table, processed);
+        });
     }
 
+    private void populateInheritance(Table table, Set<Table> processed) {
+        if (table.hasParent() && !processed.contains(table)) {
+            Table parent = table.getParent(this.elideTableConfig);
+            // If parent also extends, ensure parent is processed first.
+            if (parent.hasParent()) {
+                populateInheritance(parent, processed);
+            }
 
-    private Object getInheritedAttribute(Table table, Object result, Inheritance action, boolean recurseOnlyIfNull) {
-        Object newResult = action.inherit(table, result);
-        boolean recurse = true;
-        if (recurseOnlyIfNull && newResult != null) {
-            recurse = false;
+            Map<String, Measure> measures = getInheritedMeasures(table, new HashMap<String, Measure>());
+            table.setMeasures(new ArrayList<Measure>(measures.values()));
+
+            Map<String, Dimension> dimensions = getInheritedDimensions(table, new HashMap<String, Dimension>());
+            table.setDimensions(new ArrayList<Dimension>(dimensions.values()));
+
+            Map<String, Join> joins = getInheritedJoins(table, new HashMap<String, Join>());
+            table.setJoins(new ArrayList<Join>(joins.values()));
+
+            String schema = getInheritedSchema(table);
+            table.setSchema(schema);
+
+            String dbConnectionName = (String) getInheritedConnection(table);
+            table.setDbConnectionName(dbConnectionName);
+
+            String sql = (String) getInheritedSql(table);
+            table.setSql(sql);
+
+            String tableName = (String) getInheritedTable(table);
+            table.setTable(tableName);
+
+            // isFact, isHidden, ReadAccess have default Values in schema, so can not be inherited.
+            // Other properties (tags, cardinality, etc.) have been categorized as non-inheritable too.
+            table.setExtend(null);
         }
-        if (table.hasParent()) {
-            newResult = getInheritedAttribute(table.getParent(this.elideTableConfig), newResult, action, recurse);
-        }
-        return newResult;
+        processed.add(table);
+    }
+
+    private <T> T getInheritedAttribute(Table table, Inheritance action) {
+        return (T) action.inherit();
     }
 
     @FunctionalInterface
-    public interface Inheritance {
-        public Object inherit(Table childTable, Object result);
+    public interface Inheritance<T> {
+        public T inherit();
+    }
+
+    private Map<String, Measure> getInheritedMeasures(Table table, Map<String, Measure> measures) {
+        Inheritance action = () -> {
+                table.getMeasures().forEach(measure -> {
+                    if (!measures.containsKey(measure.getName())) {
+                        measures.put(measure.getName(), measure);
+                    }
+                });
+                return measures;
+        };
+
+        getInheritedAttribute(table, action);
+        if (table.hasParent()) {
+            getInheritedMeasures(table.getParent(elideTableConfig), measures);
+        }
+        return measures;
+    }
+
+    private Map<String, Dimension> getInheritedDimensions(Table table, Map<String, Dimension> dimensions) {
+        Inheritance action = () -> {
+            table.getDimensions().forEach(dimension -> {
+                if (!dimensions.containsKey(dimension.getName())) {
+                    dimensions.put(dimension.getName(), dimension);
+                }
+            });
+            return dimensions;
+        };
+        getInheritedAttribute(table, action);
+        if (table.hasParent()) {
+            getInheritedDimensions(table.getParent(elideTableConfig), dimensions);
+        }
+        return dimensions;
+    }
+
+    private Map<String, Join> getInheritedJoins(Table table, Map<String, Join> joins) {
+        Inheritance action = () -> {
+            table.getJoins().forEach(join -> {
+                if (!joins.containsKey(join.getName())) {
+                    joins.put(join.getName(), join);
+                }
+            });
+            return joins;
+        };
+        getInheritedAttribute(table, action);
+        if (table.hasParent()) {
+            getInheritedJoins(table.getParent(elideTableConfig), joins);
+        }
+        return joins;
+    }
+
+    private String getInheritedSchema(Table table) {
+        Inheritance action = () -> {
+            return table.getSchema();
+        };
+
+        String schema = getInheritedAttribute(table, action);
+
+        if (schema == null && table.hasParent()) {
+            schema = getInheritedSchema(table.getParent(elideTableConfig));
+        }
+        return schema;
+    }
+
+    private String getInheritedConnection(Table table) {
+        Inheritance action = () -> {
+            return table.getDbConnectionName();
+        };
+
+        String conn = getInheritedAttribute(table, action);
+
+        if (conn == null && table.hasParent()) {
+            conn = getInheritedConnection(table.getParent(elideTableConfig));
+        }
+        return conn;
+    }
+
+    private String getInheritedSql(Table table) {
+        Inheritance action = () -> {
+            return table.getSql();
+        };
+
+        String sql = getInheritedAttribute(table, action);
+
+        if (sql == null && table.hasParent()) {
+            sql = getInheritedSql(table.getParent(elideTableConfig));
+        }
+        return sql;
+    }
+
+    private String getInheritedTable(Table table) {
+        Inheritance action = () -> {
+            return table.getTable();
+        };
+
+        String tableName = getInheritedAttribute(table, action);
+
+        if (tableName == null && table.hasParent()) {
+            tableName = getInheritedTable(table.getParent(elideTableConfig));
+        }
+        return tableName;
     }
 
     /**
