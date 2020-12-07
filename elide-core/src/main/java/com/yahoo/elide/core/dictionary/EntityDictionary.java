@@ -1290,15 +1290,21 @@ public class EntityDictionary {
             return;
         }
 
-        for (Class<?> cls : classes) {
-            if (Check.class.isAssignableFrom(cls)) {
-                SecurityCheck securityCheckMeta = cls.getAnnotation(SecurityCheck.class);
-                log.debug("Register Elide Check [{}] with expression [{}]",
-                        cls.getCanonicalName(), securityCheckMeta.value());
-                checkNames.put(securityCheckMeta.value(), cls.asSubclass(Check.class));
-            } else {
-                throw new IllegalStateException("Class annotated with SecurityCheck is not a Check");
-            }
+        classes.forEach(this::addSecurityCheck);
+    }
+
+    /**
+     * Add security checks and bind them to the dictionary.
+     * @param cls Security check class.
+     */
+    public void addSecurityCheck(Class<?> cls) {
+        if (Check.class.isAssignableFrom(cls)) {
+            SecurityCheck securityCheckMeta = cls.getAnnotation(SecurityCheck.class);
+            log.debug("Register Elide Check [{}] with expression [{}]",
+                    cls.getCanonicalName(), securityCheckMeta.value());
+            checkNames.put(securityCheckMeta.value(), cls.asSubclass(Check.class));
+        } else {
+            throw new IllegalStateException("Class annotated with SecurityCheck is not a Check");
         }
     }
 

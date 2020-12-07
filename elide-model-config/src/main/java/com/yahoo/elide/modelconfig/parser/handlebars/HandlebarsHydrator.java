@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.modelconfig.parser.handlebars;
 
+import com.yahoo.elide.modelconfig.StaticModelsDetails;
 import com.yahoo.elide.modelconfig.model.ElideSecurityConfig;
 import com.yahoo.elide.modelconfig.model.ElideTableConfig;
 import com.yahoo.elide.modelconfig.model.Table;
@@ -27,7 +28,7 @@ import java.util.Map;
  */
 public class HandlebarsHydrator {
 
-    public static final String SECURITY_CLASS_PREFIX = "DynamicConfigOperationChecksPrincipalIs";
+    public static final String SECURITY_CLASS_PREFIX = "DynamicConfigOperationChecks";
     public static final String HANDLEBAR_START_DELIMITER = "<%";
     public static final String HANDLEBAR_END_DELIMITER = "%>";
     public static final EscapingStrategy MY_ESCAPING_STRATEGY = new Hbs(new String[][]{
@@ -35,6 +36,18 @@ public class HandlebarsHydrator {
         {"`", "&#x60;" },
         {"\n", " " }
     });
+
+    private final Handlebars handlebars;
+    private final HandlebarsHelper helper;
+
+    public HandlebarsHydrator(StaticModelsDetails staticModelDetails) {
+        TemplateLoader loader = new ClassPathTemplateLoader("/templates");
+        this.helper = new HandlebarsHelper(staticModelDetails);
+        this.handlebars = new Handlebars(loader).with(MY_ESCAPING_STRATEGY);
+        this.handlebars.registerHelpers(ConditionalHelpers.class);
+        this.handlebars.registerHelper(AssignHelper.NAME, AssignHelper.INSTANCE);
+        this.handlebars.registerHelpers(helper);
+    }
 
     /**
      * Method to hydrate the Table template.
@@ -46,14 +59,7 @@ public class HandlebarsHydrator {
 
         Map<String, String> tableClasses = new HashMap<>();
 
-        TemplateLoader loader = new ClassPathTemplateLoader("/templates");
-        Handlebars handlebars = new Handlebars(loader).with(MY_ESCAPING_STRATEGY);
-        HandlebarsHelper helper = new HandlebarsHelper();
-        handlebars.registerHelpers(ConditionalHelpers.class);
-        handlebars.registerHelper(AssignHelper.NAME, AssignHelper.INSTANCE);
-        handlebars.registerHelpers(helper);
         Template template = handlebars.compile("table", HANDLEBAR_START_DELIMITER, HANDLEBAR_END_DELIMITER);
-
         for (Table t : table.getTables()) {
             tableClasses.put(helper.capitalizeFirstLetter(t.getName()), template.apply(t));
         }
@@ -71,7 +77,6 @@ public class HandlebarsHydrator {
     public String hydrateConfigTemplate(String config, Map<String, Object> replacements) throws IOException {
 
         Context context = Context.newBuilder(replacements).build();
-        Handlebars handlebars = new Handlebars();
         Template template = handlebars.compileInline(config, HANDLEBAR_START_DELIMITER, HANDLEBAR_END_DELIMITER);
 
         return template.apply(context);
@@ -91,16 +96,10 @@ public class HandlebarsHydrator {
             return securityClasses;
         }
 
-        TemplateLoader loader = new ClassPathTemplateLoader("/templates");
-        Handlebars handlebars = new Handlebars(loader).with(MY_ESCAPING_STRATEGY);
-        HandlebarsHelper helper = new HandlebarsHelper();
-        handlebars.registerHelpers(ConditionalHelpers.class);
-        handlebars.registerHelper(AssignHelper.NAME, AssignHelper.INSTANCE);
-        handlebars.registerHelpers(helper);
         Template template = handlebars.compile("security", HANDLEBAR_START_DELIMITER, HANDLEBAR_END_DELIMITER);
-
         for (String role : security.getRoles()) {
-            securityClasses.put(SECURITY_CLASS_PREFIX + helper.titleCaseRemoveSpaces(role), template.apply(role));
+            securityClasses.put(SECURITY_CLASS_PREFIX + helper.createSecurityIdentifier(role, false),
+                            template.apply(role));
         }
 
         return securityClasses;

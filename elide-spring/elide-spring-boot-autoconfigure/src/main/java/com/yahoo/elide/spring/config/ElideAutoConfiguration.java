@@ -20,17 +20,20 @@ import com.yahoo.elide.datastores.aggregation.cache.CaffeineCache;
 import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
 import com.yahoo.elide.datastores.aggregation.core.Slf4jQueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.DataSourceConfiguration;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
-import com.yahoo.elide.modelconfig.compile.ConnectionDetails;
 import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.swagger.SwaggerBuilder;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.springframework.beans.factory.ObjectProvider;
@@ -48,6 +51,7 @@ import io.swagger.models.Swagger;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
@@ -72,20 +76,18 @@ public class ElideAutoConfiguration {
     /**
      * Creates a entity compiler for compiling dynamic config classes.
      * @param settings Config Settings.
-     * @param dbPasswordExtractor : Password Extractor Implementation.
      * @return An instance of ElideDynamicEntityCompiler.
      * @throws Exception Exception thrown.
      */
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
-    public ElideDynamicEntityCompiler buildElideDynamicEntityCompiler(ElideConfigProperties settings,
-                    DBPasswordExtractor dbPasswordExtractor) throws Exception {
+    public ElideDynamicEntityCompiler buildElideDynamicEntityCompiler(ElideConfigProperties settings) throws Exception {
 
         ElideDynamicEntityCompiler compiler = null;
 
         if (isDynamicConfigEnabled(settings)) {
-            compiler = new ElideDynamicEntityCompiler(settings.getDynamicConfig().getPath(), dbPasswordExtractor);
+            compiler = new ElideDynamicEntityCompiler(settings.getDynamicConfig().getPath());
         }
         return compiler;
     }
@@ -104,6 +106,18 @@ public class ElideAutoConfiguration {
             public String getDBPassword(DBConfig config) {
                 return StringUtils.EMPTY;
             }
+        };
+    }
+
+    /**
+     * Provides the default Hikari DataSource Configuration.
+     * @return An instance of DataSourceConfiguration.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
+    public DataSourceConfiguration getDataSourceConfiguration() {
+        return new DataSourceConfiguration() {
         };
     }
 
@@ -174,6 +188,8 @@ public class ElideAutoConfiguration {
      * @param defaultDataSource DataSource for JPA.
      * @param dynamicCompiler An instance of objectprovider for ElideDynamicEntityCompiler.
      * @param settings Elide configuration settings.
+     * @param dataSourceConfiguration DataSource Configuration
+     * @param dbPasswordExtractor Password Extractor Implementation
      * @return An instance of a QueryEngine
      * @throws ClassNotFoundException Exception thrown.
      */
@@ -181,16 +197,26 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
     public QueryEngine buildQueryEngine(DataSource defaultDataSource,
-            ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings)
-            throws ClassNotFoundException {
+                                        ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler,
+                                        ElideConfigProperties settings,
+                                        DataSourceConfiguration dataSourceConfiguration,
+                                        DBPasswordExtractor dbPasswordExtractor) throws ClassNotFoundException {
 
         boolean enableMetaDataStore = settings.getAggregationStore().isEnableMetaDataStore();
-        ConnectionDetails defaultConnectionDetails =
-                        new ConnectionDetails(defaultDataSource, settings.getAggregationStore().getDefaultDialect());
+        ConnectionDetails defaultConnectionDetails = new ConnectionDetails(defaultDataSource,
+                        SQLDialectFactory.getDialect(settings.getAggregationStore().getDefaultDialect()));
         if (isDynamicConfigEnabled(settings)) {
             MetaDataStore metaDataStore = new MetaDataStore(dynamicCompiler.getIfAvailable(), enableMetaDataStore);
-            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails,
-                            dynamicCompiler.getIfAvailable().getConnectionDetailsMap());
+            Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
+
+            dynamicCompiler.getIfAvailable().getElideSQLDBConfig().getDbconfigs().forEach(dbConfig -> {
+                connectionDetailsMap.put(dbConfig.getName(),
+                                new ConnectionDetails(
+                                                dataSourceConfiguration.getDataSource(dbConfig, dbPasswordExtractor),
+                                                SQLDialectFactory.getDialect(dbConfig.getDialect())));
+            });
+
+            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap);
         } else {
             MetaDataStore metaDataStore = new MetaDataStore(enableMetaDataStore);
             return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);

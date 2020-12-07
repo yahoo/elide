@@ -7,6 +7,8 @@
 package com.yahoo.elide.datastores.aggregation.integration;
 
 import static com.yahoo.elide.datastores.aggregation.integration.AggregationDataStoreIntegrationTest.COMPILER;
+import static com.yahoo.elide.datastores.aggregation.integration.AggregationDataStoreIntegrationTest.getDBPasswordExtractor;
+import static com.yahoo.elide.datastores.aggregation.integration.AggregationDataStoreIntegrationTest.getDataSource;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -16,8 +18,10 @@ import static org.hamcrest.Matchers.hasSize;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.initialization.IntegrationTest;
-import com.yahoo.elide.modelconfig.compile.ConnectionDetails;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.Test;
@@ -38,7 +42,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         HikariConfig config = new HikariConfig(File.separator + "jpah2db.properties");
         DataSource defaultDataSource = new HikariDataSource(config);
-        String defaultDialect = "h2";
+        SQLDialect defaultDialect = SQLDialectFactory.getDefaultDialect();
         ConnectionDetails defaultConnectionDetails = new ConnectionDetails(defaultDataSource, defaultDialect);
 
         Properties prop = new Properties();
@@ -51,7 +55,11 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
         // Add an entry for "mycon" connection which is not from hjson
         connectionDetailsMap.put("mycon", defaultConnectionDetails);
         // Add connection details fetched from hjson
-        connectionDetailsMap.putAll(COMPILER.getConnectionDetailsMap());
+        COMPILER.getElideSQLDBConfig().getDbconfigs().forEach(dbConfig -> {
+            connectionDetailsMap.put(dbConfig.getName(),
+                            new ConnectionDetails(getDataSource(dbConfig, getDBPasswordExtractor()),
+                                            SQLDialectFactory.getDialect(dbConfig.getDialect())));
+        });
 
         return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, COMPILER);
     }

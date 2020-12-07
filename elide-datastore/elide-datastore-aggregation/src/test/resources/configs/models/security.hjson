@@ -1,8 +1,7 @@
 {
   roles:
   [
-    admin
-    operator
+    admin.user
     guest user
   ]
 }

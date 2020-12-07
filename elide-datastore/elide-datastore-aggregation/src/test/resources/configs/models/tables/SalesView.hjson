@@ -6,7 +6,7 @@
       table: order_details
       dbConnectionName: SalesDBConnection
       cardinality: large
-      readAccess: Principal is guest user
+      readAccess: guest user
       joins:
       [
         {
@@ -33,7 +33,7 @@
           name: orderTotal
           type: DECIMAL
           definition: 'SUM({{ order_total }})'
-          readAccess: Principal is admin
+          readAccess: admin.user
         }
       ]
       dimensions:
@@ -42,40 +42,40 @@
           name: orderId
           type: TEXT
           definition: '{{ order_id }}'
-          readAccess: Principal is guest user
+          readAccess: guest user
         }
         {
           name: courierName
           type: TEXT
           definition: '{{delivery.courier_name}}'
-          readAccess: Principal is operator
+          readAccess: operator
         }
         {
           name: customerRegion
           type: TEXT
           definition: '{{customer.customerRegion}}'
-          readAccess: Principal is operator
+          readAccess: operator
           cardinality: small
         }
         {
           name: customerRegionRegion
           type: TEXT
           definition: '{{customer.region.region}}'
-          readAccess: Principal is operator
+          readAccess: operator
           tableSource: regionDetails.region
         }
         {
           name: zipCode
           type: INTEGER
           definition: '{{customer.zipCode}}'
-          readAccess: Principal is operator
+          readAccess: operator
         }
         {
           name: orderTime
           type: TIME
           // Physical Column Reference in same table
           definition: '{{created_on}}'
-          readAccess: Principal is guest user
+          readAccess: guest user
           grain:
           {
             type: SECOND
@@ -88,7 +88,7 @@
           type: TIME
           // Logical Column Reference in same table, which references Physical column in same table
           definition: '{{orderTime}}'
-          readAccess: Principal is guest user
+          readAccess: guest user
           grain:
           {
             type: DAY
@@ -100,7 +100,7 @@
           type: TIME
           // Logical Column Reference in same table, which references another Logical column in same table, which references Physical column in same table
           definition: '{{orderDate}}'
-          readAccess: Principal is guest user
+          readAccess: guest user
           grain:
           {
             type: MONTH
@@ -112,7 +112,7 @@
           type: TIME
           // Physical Column Reference in referred table
           definition: '{{delivery.delivered_on}}'
-          readAccess: Principal is guest user
+          readAccess: guest user
           grain:
           {
             type: SECOND
@@ -123,7 +123,7 @@
           type: TIME
           // Logical Column Reference in referred table, which references Physical column in referred table
           definition: '{{delivery.time}}'
-          readAccess: Principal is guest user
+          readAccess: guest user
           grain:
           {
             sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
@@ -134,7 +134,7 @@
           type: TIME
           // Logical Column Reference in referred table, which references another Logical column in referred table, which references another Logical column in referred table, which references Physical column in referred table
           definition: '{{delivery.month}}'
-          readAccess: Principal is guest user
+          readAccess: guest user
           grain:
           {
             type: MONTH
@@ -146,7 +146,7 @@
           type: TIME
           // Logical Column Reference in same table, which references Physical column in referred table
           definition: '{{deliveryTime}}'
-          readAccess: Principal is guest user
+          readAccess: guest user
           grain:
           {
             type: HOUR
@@ -158,7 +158,7 @@
           type: TIME
           // Logical Column Reference in same table, which references another Logical Column in referred table, which references another Logical column in referred table, which references another Logical column in referred table, which references Physical column in referred table
           definition: '{{deliveryMonth}}'
-          readAccess: Principal is guest user
+          readAccess: guest user
           grain:
           {
             type: YEAR
@@ -170,7 +170,7 @@
           type: TIME
           // Logical Column Reference in same table, which references another Logical Column in referred table, which references another Logical column in referred table, which references another Logical column in referred table, which references Physical column in referred table
           definition: '{{delivery.time}}'
-          readAccess: Principal is guest user
+          readAccess: guest user
         }
       ]
     }
@@ -179,7 +179,7 @@
       table: customer_details
       dbConnectionName: SalesDBConnection
       cardinality: small
-      readAccess: Principal is guest user
+      readAccess: guest user
       joins:
       [
         {
@@ -195,19 +195,19 @@
           name: name
           type: TEXT
           definition: '{{name}}'
-          readAccess: Principal is guest user
+          readAccess: guest user
         }
         {
           name: zipCode
           type: INTEGER
           definition: '{{zip_code}}'
-          readAccess: Principal is guest user
+          readAccess: guest user
         }
         {
           name: customerRegion
           type: TEXT
           definition: '{{region.region}}'
-          readAccess: Principal is guest user
+          readAccess: guest user
         }
       ]
     }
@@ -216,26 +216,26 @@
       table: delivery_details
       dbConnectionName: SalesDBConnection
       cardinality: large
-      readAccess: Principal is guest user
+      readAccess: guest user
       dimensions:
       [
         {
           name: orderId
           type: TEXT
           definition: '{{order_id}}'
-          readAccess: Principal is guest user
+          readAccess: guest user
         }
         {
           name: trackingNumber
           type: INTEGER
           definition: '{{tracking_number}}'
-          readAccess: Principal is operator
+          readAccess: operator
         }
         {
           name: time
           type: TIME
           definition: '{{delivered_on}}'
-          readAccess: Principal is guest user
+          readAccess: guest user
           grain:
           {
             type: SECOND
@@ -246,7 +246,7 @@
           name: date
           type: TIME
           definition: '{{time}}'
-          readAccess: Principal is guest user
+          readAccess: guest user
           grain:
           {
             type: DAY
@@ -257,7 +257,7 @@
           name: month
           type: TIME
           definition: '{{date}}'
-          readAccess: Principal is guest user
+          readAccess: guest user
           grain:
           {
             type: MONTH
