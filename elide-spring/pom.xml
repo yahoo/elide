@@ -81,7 +81,7 @@
                 <version>${groovy.version}</version>
                 <scope>test</scope>
             </dependency>
-            <!-- ill new spring-boot-dependencies release. CVE-2020-25638-->
+            <!-- Till new spring-boot-dependencies release. CVE-2020-25638-->
             <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-core</artifactId>
