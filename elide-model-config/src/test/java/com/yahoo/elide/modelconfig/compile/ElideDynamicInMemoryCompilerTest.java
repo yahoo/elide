@@ -10,6 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mdkt.compiler.CompilationException;
 
@@ -22,6 +24,13 @@ import java.util.Map;
  */
 public class ElideDynamicInMemoryCompilerTest {
 
+    private ElideDynamicInMemoryCompiler compiler;
+
+    @BeforeEach
+    public void setUp() {
+        compiler = new ElideDynamicInMemoryCompiler();
+    }
+
     @Test
     public void compileWhenTypical() throws Exception {
         StringBuffer sourceCode = new StringBuffer();
@@ -31,7 +40,7 @@ public class ElideDynamicInMemoryCompilerTest {
         sourceCode.append("   public String hello() { return \"hello\"; }");
         sourceCode.append("}");
 
-        Class<?> helloClass = ElideDynamicInMemoryCompiler.newInstance().ignoreWarnings().compile("org.mdkt.HelloClass", sourceCode.toString());
+        Class<?> helloClass = compiler.ignoreWarnings().compile("org.mdkt.HelloClass", sourceCode.toString());
         assertNotNull(helloClass);
         assertEquals(1, helloClass.getDeclaredMethods().length);
     }
@@ -41,7 +50,7 @@ public class ElideDynamicInMemoryCompilerTest {
         String cls1 = "public class A{ public B b() { return new B(); }}";
         String cls2 = "public class B{ public String toString() { return \"B!\"; }}";
 
-        Map<String, Class<?>> compiled = ElideDynamicInMemoryCompiler.newInstance().ignoreWarnings().addSource("A", cls1).addSource("B", cls2).compileAll();
+        Map<String, Class<?>> compiled = compiler.ignoreWarnings().addSource("A", cls1).addSource("B", cls2).compileAll();
 
         assertNotNull(compiled.get("A"));
         assertNotNull(compiled.get("B"));
@@ -61,7 +70,7 @@ public class ElideDynamicInMemoryCompilerTest {
         sourceCode.append("   public String hello() { return \"hello\"; }");
         sourceCode.append("}");
 
-        Class<?> helloClass = ElideDynamicInMemoryCompiler.newInstance().ignoreWarnings().compile("org.mdkt.HelloClass", sourceCode.toString());
+        Class<?> helloClass = compiler.ignoreWarnings().compile("org.mdkt.HelloClass", sourceCode.toString());
         assertNotNull(helloClass);
         assertEquals(1, helloClass.getDeclaredMethods().length);
     }
@@ -75,7 +84,7 @@ public class ElideDynamicInMemoryCompilerTest {
                 sourceCode.append("public classHelloClass {\n");
                 sourceCode.append("   public String hello() { return \"hello\"; }");
                 sourceCode.append("}");
-                ElideDynamicInMemoryCompiler.newInstance().ignoreWarnings().compile("org.mdkt.HelloClass", sourceCode.toString());
+                compiler.ignoreWarnings().compile("org.mdkt.HelloClass", sourceCode.toString());
             }
         );
         assertTrue(e.getMessage().contains("Unable to compile the source"));
@@ -90,7 +99,7 @@ public class ElideDynamicInMemoryCompilerTest {
                 sourceCode.append("public class HelloClass {\n");
                 sourceCode.append("   public java.util.List<String> hello() { return new java.util.ArrayList(); }");
                 sourceCode.append("}");
-                ElideDynamicInMemoryCompiler.newInstance().compile("org.mdkt.HelloClass", sourceCode.toString());
+                compiler.compile("org.mdkt.HelloClass", sourceCode.toString());
             }
         );
     }
@@ -103,7 +112,7 @@ public class ElideDynamicInMemoryCompilerTest {
         sourceCode.append("public class HelloClass {\n");
         sourceCode.append("   public java.util.List<String> hello() { return new java.util.ArrayList(); }");
         sourceCode.append("}");
-        Class<?> helloClass = ElideDynamicInMemoryCompiler.newInstance().ignoreWarnings().compile("org.mdkt.HelloClass", sourceCode.toString());
+        Class<?> helloClass = compiler.ignoreWarnings().compile("org.mdkt.HelloClass", sourceCode.toString());
         List<?> res = (List<?>) helloClass.getMethod("hello").invoke(helloClass.newInstance());
         assertEquals(0, res.size());
     }
@@ -118,7 +127,7 @@ public class ElideDynamicInMemoryCompilerTest {
                 sourceCode.append("   public java.util.List<String> hello() { return new java.util.ArrayList(); }");
                 sourceCode.append("}");
 
-                ElideDynamicInMemoryCompiler.newInstance().compile("org.mdkt.HelloClass", sourceCode.toString());
+                compiler.compile("org.mdkt.HelloClass", sourceCode.toString());
             }
         );
     }

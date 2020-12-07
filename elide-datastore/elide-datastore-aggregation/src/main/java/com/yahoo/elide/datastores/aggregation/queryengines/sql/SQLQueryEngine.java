@@ -29,7 +29,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSu
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.DynamicSQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
@@ -51,7 +50,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -68,10 +66,9 @@ public class SQLQueryEngine extends QueryEngine {
     @Getter
     private final SQLReferenceTable referenceTable;
     private final ConnectionDetails defaultConnectionDetails;
-    private final Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
+    private final Map<String, ConnectionDetails> connectionDetailsMap;
 
-    public SQLQueryEngine(MetaDataStore metaDataStore,
-                    com.yahoo.elide.modelconfig.compile.ConnectionDetails defaultConnectionDetails) {
+    public SQLQueryEngine(MetaDataStore metaDataStore, ConnectionDetails defaultConnectionDetails) {
         this(metaDataStore, defaultConnectionDetails, Collections.emptyMap());
     }
 
@@ -79,21 +76,16 @@ public class SQLQueryEngine extends QueryEngine {
      * Constructor.
      * @param metaDataStore : MetaDataStore.
      * @param defaultConnectionDetails : default DataSource Object and SQLDialect Object.
-     * @param detailsMap : Connection Name to DataSource Object and SQL Dialect Object mapping.
+     * @param connectionDetailsMap : Connection Name to DataSource Object and SQL Dialect Object mapping.
      */
-    public SQLQueryEngine(MetaDataStore metaDataStore,
-                    com.yahoo.elide.modelconfig.compile.ConnectionDetails defaultConnectionDetails,
-                    Map<String, com.yahoo.elide.modelconfig.compile.ConnectionDetails> detailsMap) {
+    public SQLQueryEngine(MetaDataStore metaDataStore, ConnectionDetails defaultConnectionDetails,
+                    Map<String, ConnectionDetails> connectionDetailsMap) {
 
         Preconditions.checkNotNull(defaultConnectionDetails);
-        Preconditions.checkNotNull(detailsMap);
+        Preconditions.checkNotNull(connectionDetailsMap);
 
-        this.defaultConnectionDetails = new ConnectionDetails(defaultConnectionDetails.getDataSource(),
-                        SQLDialectFactory.getDialect(defaultConnectionDetails.getDialect()));
-        detailsMap.forEach((name, details) -> {
-            this.connectionDetailsMap.put(name, new ConnectionDetails(details.getDataSource(),
-                            SQLDialectFactory.getDialect(details.getDialect())));
-        });
+        this.defaultConnectionDetails = defaultConnectionDetails;
+        this.connectionDetailsMap = connectionDetailsMap;
         this.metaDataStore = metaDataStore;
         this.metadataDictionary = metaDataStore.getMetadataDictionary();
         populateMetaData(metaDataStore);

@@ -38,6 +38,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
@@ -51,7 +52,6 @@ import com.yahoo.elide.datastores.aggregation.timegrains.Quarter;
 import com.yahoo.elide.datastores.aggregation.timegrains.Second;
 import com.yahoo.elide.datastores.aggregation.timegrains.Week;
 import com.yahoo.elide.datastores.aggregation.timegrains.Year;
-import com.yahoo.elide.modelconfig.compile.ConnectionDetails;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.AfterEach;
@@ -332,11 +332,11 @@ public abstract class SQLUnitTest {
 
     protected Pattern repeatedWhitespacePattern = Pattern.compile("\\s\\s*");
 
-    public static void init(String sqlDialect) {
+    public static void init(SQLDialect sqlDialect) {
         Properties properties = new Properties();
         properties.put("driverClassName", "org.h2.Driver");
 
-        String jdbcUrl = "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=FALSE" + getCompatabilityMode(sqlDialect);
+        String jdbcUrl = "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=FALSE" + getCompatabilityMode(sqlDialect.getDialectType());
         properties.put("jdbcUrl", jdbcUrl);
         HikariConfig config = new HikariConfig(properties);
         DataSource dataSource = new HikariDataSource(config);
@@ -385,11 +385,11 @@ public abstract class SQLUnitTest {
         playerStatsTable = (SQLTable) metaDataStore.getTable("playerStats", NO_VERSION);
     }
 
-    private static String getCompatabilityMode(String dialect) {
-        if (dialect.equals(SQLDialectFactory.getMySQLDialect().getDialectType())) {
-            return "MODE=MySQL;DATABASE_TO_LOWER=TRUE";
-        } else if (dialect.equals(SQLDialectFactory.getPostgresDialect().getDialectType())) {
-            return "MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE";
+    private static String getCompatabilityMode(String dialectType) {
+        if (dialectType.equals(SQLDialectFactory.getMySQLDialect().getDialectType())) {
+            return ";MODE=MySQL";
+        } else if (dialectType.equals(SQLDialectFactory.getPostgresDialect().getDialectType())) {
+            return ";MODE=PostgreSQL";
         }
 
         return "";
@@ -397,10 +397,6 @@ public abstract class SQLUnitTest {
 
     public static void init() {
         init(SQLDialectFactory.getDefaultDialect());
-    }
-
-    public static void init(SQLDialect sqlDialect) {
-        init(sqlDialect.getClass().getName());
     }
 
     @BeforeEach

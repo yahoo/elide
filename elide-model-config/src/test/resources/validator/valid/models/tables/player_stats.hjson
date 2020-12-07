@@ -14,7 +14,7 @@
       category: Table Category
       cardinality : lARge
       hidden : false
-      readAccess : A user is admin or is a player in the game
+      readAccess : (user AND member) OR (admin AND NOT gu.est user)
       filterTemplate : countryIsoCode=={{code}}
       tags: ['GAME', 'PLAYER',  '''
       A tag

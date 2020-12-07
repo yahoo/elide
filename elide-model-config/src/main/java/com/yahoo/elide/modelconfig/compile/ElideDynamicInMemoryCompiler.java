@@ -37,11 +37,7 @@ public class ElideDynamicInMemoryCompiler {
 
     private Map<String, SourceCode> sourceCodes = new HashMap<String, SourceCode>();
 
-    public static ElideDynamicInMemoryCompiler newInstance() {
-        return new ElideDynamicInMemoryCompiler();
-    }
-
-    private ElideDynamicInMemoryCompiler() {
+    public ElideDynamicInMemoryCompiler() {
         this.javac = ToolProvider.getSystemJavaCompiler();
         this.classLoader = new DynamicClassLoader(ClassLoader.getSystemClassLoader());
     }
