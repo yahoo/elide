@@ -7,6 +7,8 @@ package com.yahoo.elide.modelconfig.parser.handlebars;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.yahoo.elide.modelconfig.StaticModelsDetails;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -40,7 +42,7 @@ public class HandlebarsHydratorTest {
             + "      category: Table Category\n"
             + "      cardinality : lARge\n"
             + "      hidden : false\n"
-            + "      readAccess : A user is admin or is a player in the game\n"
+            + "      readAccess : (user AND member) OR (admin AND NOT gu.est user)\n"
             + "      filterTemplate : countryIsoCode=={{code}}\n"
             + "      tags: ['GAME', 'PLAYER',  '''\n"
             + "      A tag\n"
@@ -160,7 +162,7 @@ public class HandlebarsHydratorTest {
             + "@Data\n"
             + "@FromTable(name = \"gamedb.player_stats\", dbConnectionName = \"\")\n"
             + "\n"
-            + "@ReadPermission(expression = \"A user is admin or is a player in the game\")\n"
+            + "@ReadPermission(expression = \"(user AND member) OR (admin AND NOT gu.est user)\")\n"
             + "@TableMeta(\n"
             + "    friendlyName = \"Player Statistics\",\n"
             + "    size = CardinalitySize.LARGE,\n"
@@ -367,25 +369,25 @@ public class HandlebarsHydratorTest {
             + "\n"
             + "}\n";
 
-    private static final String VALID_SECURITY_ADMIN_JAVA_NAME = "DynamicConfigOperationChecksPrincipalIsAdmin";
-    private static final String VALID_SECURITY_GUEST_JAVA_NAME = "DynamicConfigOperationChecksPrincipalIsGuest";
+    private static final String VALID_SECURITY_ADMIN_JAVA_NAME = "DynamicConfigOperationChecksAdmin";
+    private static final String VALID_SECURITY_GUEST_JAVA_NAME = "DynamicConfigOperationChecksGu$est_user";
 
     private static final String VALID_SECURITY_ADMIN_JAVA = "/*\n"
             + " * Copyright 2020, Yahoo Inc.\n"
             + " * Licensed under the Apache License, Version 2.0\n"
             + " * See LICENSE file in project root for terms.\n"
             + " */\n"
-            + "package dynamicconfig.models;\n"
+            + "package dynamicconfig.checks;\n"
             + "\n"
             + "import com.yahoo.elide.annotation.SecurityCheck;\n"
             + "import com.yahoo.elide.core.security.checks.prefab.Role.RoleMemberCheck;\n"
             + "\n"
             + "\n"
-            + "@SecurityCheck(DynamicConfigOperationChecksPrincipalIsAdmin.PRINCIPAL_IS_ADMIN)\n"
-            + "public class DynamicConfigOperationChecksPrincipalIsAdmin extends RoleMemberCheck {\n"
+            + "@SecurityCheck(DynamicConfigOperationChecksAdmin.ADMIN)\n"
+            + "public class DynamicConfigOperationChecksAdmin extends RoleMemberCheck {\n"
             + "\n"
-            + "    public static final String PRINCIPAL_IS_ADMIN = \"Principal is admin\";\n"
-            + "    public DynamicConfigOperationChecksPrincipalIsAdmin() {\n"
+            + "    public static final String ADMIN = \"admin\";\n"
+            + "    public DynamicConfigOperationChecksAdmin() {\n"
             + "        super(\"admin\");\n"
             + "    }\n"
             + "}\n";
@@ -395,18 +397,18 @@ public class HandlebarsHydratorTest {
             + " * Licensed under the Apache License, Version 2.0\n"
             + " * See LICENSE file in project root for terms.\n"
             + " */\n"
-            + "package dynamicconfig.models;\n"
+            + "package dynamicconfig.checks;\n"
             + "\n"
             + "import com.yahoo.elide.annotation.SecurityCheck;\n"
             + "import com.yahoo.elide.core.security.checks.prefab.Role.RoleMemberCheck;\n"
             + "\n"
             + "\n"
-            + "@SecurityCheck(DynamicConfigOperationChecksPrincipalIsGuest.PRINCIPAL_IS_GUEST)\n"
-            + "public class DynamicConfigOperationChecksPrincipalIsGuest extends RoleMemberCheck {\n"
+            + "@SecurityCheck(DynamicConfigOperationChecksGu$est_user.GU$EST_USER)\n"
+            + "public class DynamicConfigOperationChecksGu$est_user extends RoleMemberCheck {\n"
             + "\n"
-            + "    public static final String PRINCIPAL_IS_GUEST = \"Principal is guest\";\n"
-            + "    public DynamicConfigOperationChecksPrincipalIsGuest() {\n"
-            + "        super(\"guest\");\n"
+            + "    public static final String GU$EST_USER = \"gu.est user\";\n"
+            + "    public DynamicConfigOperationChecksGu$est_user() {\n"
+            + "        super(\"gu.est user\");\n"
             + "    }\n"
             + "}\n";
 
@@ -415,7 +417,7 @@ public class HandlebarsHydratorTest {
 
     @BeforeAll
     public void setup() throws IOException {
-        hydrator = new HandlebarsHydrator();
+        hydrator = new HandlebarsHydrator(new StaticModelsDetails());
         testClass = new DynamicConfigValidator(CONFIG_PATH);
         testClass.readAndValidateConfigs();
     }

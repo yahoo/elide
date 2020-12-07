@@ -10,9 +10,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
-import com.yahoo.elide.modelconfig.compile.ConnectionDetails;
 import com.google.common.collect.Sets;
 import com.zaxxer.hikari.HikariDataSource;
 import org.hibernate.annotations.Formula;
@@ -30,7 +30,7 @@ import javax.persistence.ManyToOne;
 public class DimensionFormulaTest {
 
     public static final ConnectionDetails DUMMY_CONNECTION = new ConnectionDetails(new HikariDataSource(),
-                    SQLDialectFactory.getDefaultDialect().getDialectType());
+                    SQLDialectFactory.getDefaultDialect());
 
     @Test
     public void testReferenceLoop() {
