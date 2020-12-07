@@ -149,7 +149,7 @@ public class ElideDynamicInMemoryCompiler {
     }
 
     /**
-     * Add source code to the compiler
+     * Add source code to the compiler.
      *
      * @param className
      * @param sourceCode
