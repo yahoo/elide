@@ -217,6 +217,7 @@
       dbConnectionName: SalesDBConnection
       cardinality: large
       readAccess: guest user
+      filterTemplate : month>={{start}};month<{{end}}
       dimensions:
       [
         {
