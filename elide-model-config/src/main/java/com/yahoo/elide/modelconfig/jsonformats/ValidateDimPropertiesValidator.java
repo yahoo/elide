@@ -27,9 +27,9 @@ import java.util.Set;
  */
 public class ValidateDimPropertiesValidator extends AbstractKeywordValidator {
 
-    private static final Set<String> ALL_DIM_PROPERTIES = new HashSet<>(Arrays.asList("name", "friendlyName",
-            "description", "category", "hidden", "readAccess", "definition", "cardinality", "tags", "type",
-            "values", "tableSource"));
+    public static final Set<String> COMMON_DIM_PROPERTIES = new HashSet<>(Arrays.asList("name", "friendlyName",
+            "description", "category", "hidden", "readAccess", "definition", "cardinality", "tags", "type"));
+    private static final Set<String> ADDITIONAL_DIM_PROPERTIES = new HashSet<>(Arrays.asList("values", "tableSource"));
 
     public static final String KEYWORD = "validateDimensionProperties";
     public static final String ATMOST_ONE_KEY = "validateDimensionProperties.error.atmostOne";
@@ -57,7 +57,8 @@ public class ValidateDimPropertiesValidator extends AbstractKeywordValidator {
                 report.error(newMsg(data, bundle, ATMOST_ONE_KEY));
             }
 
-            fields.removeAll(ALL_DIM_PROPERTIES);
+            fields.removeAll(COMMON_DIM_PROPERTIES);
+            fields.removeAll(ADDITIONAL_DIM_PROPERTIES);
             if (!fields.isEmpty()) {
                 report.error(newMsg(data, bundle, ADDITIONAL_KEY).putArgument("value", fields.toString()));
             }
