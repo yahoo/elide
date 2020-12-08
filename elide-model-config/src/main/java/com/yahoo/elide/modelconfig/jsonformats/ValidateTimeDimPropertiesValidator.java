@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.modelconfig.jsonformats;
 
+import static com.yahoo.elide.modelconfig.jsonformats.ValidateDimPropertiesValidator.COMMON_DIM_PROPERTIES;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.processing.Processor;
@@ -26,8 +28,7 @@ import java.util.Set;
  */
 public class ValidateTimeDimPropertiesValidator extends AbstractKeywordValidator {
 
-    private static final Set<String> ALL_DIM_PROPERTIES = new HashSet<>(Arrays.asList("name", "description", "category",
-                    "hidden", "readAccess", "definition", "cardinality", "tags", "type", "grain"));
+    private static final Set<String> ADDITIONAL_TIME_DIM_PROPERTIES = new HashSet<>(Arrays.asList("grain"));
 
     public static final String KEYWORD = "validateTimeDimensionProperties";
     public static final String ADDITIONAL_KEY = "validateTimeDimensionProperties.error.addtional";
@@ -48,7 +49,8 @@ public class ValidateTimeDimPropertiesValidator extends AbstractKeywordValidator
             JsonNode instance = data.getInstance().getNode();
             Set<String> fields = Sets.newHashSet(instance.fieldNames());
 
-            fields.removeAll(ALL_DIM_PROPERTIES);
+            fields.removeAll(COMMON_DIM_PROPERTIES);
+            fields.removeAll(ADDITIONAL_TIME_DIM_PROPERTIES);
             if (!fields.isEmpty()) {
                 report.error(newMsg(data, bundle, ADDITIONAL_KEY).putArgument("value", fields.toString()));
             }
