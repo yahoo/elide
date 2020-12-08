@@ -21,4 +21,9 @@ public class MySQLDialect extends AbstractSqlDialect {
     public String generateOffsetLimitClause(int offset, int limit) {
         return LIMIT + offset + COMMA + limit;
     }
+
+    @Override
+    public String getFullJoinKeyword() {
+        throw new IllegalArgumentException("Full Join is not supported for: " + getDialectType());
+    }
 }
