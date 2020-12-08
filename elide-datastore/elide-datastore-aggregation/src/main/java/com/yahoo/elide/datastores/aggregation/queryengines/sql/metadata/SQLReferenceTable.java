@@ -181,10 +181,6 @@ public class SQLReferenceTable {
                                      Class<?> joinClass,
                                      String joinField,
                                      SQLDialect dialect) {
-        //TODO - support composite join keys.
-        //TODO - support joins where either side owns the relationship.
-        //TODO - Support INNER and RIGHT joins.
-        //TODO - Support toMany joins.
 
         String joinAlias = appendAlias(fromAlias, joinField);
         String joinColumnName = dictionary.getAnnotatedColumnName(fromClass, joinField);
