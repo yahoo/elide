@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects;
 
+import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
+
 /**
  * Interface for SQL Dialects used to customize SQL queries for specific persistent storage.
  */
@@ -48,4 +50,11 @@ public interface SQLDialect {
      * @return end quote for SQL identifiers.
      */
     char getEndQuote();
+
+    /**
+     * Provides keyword for requested Join Type.
+     * @param joinType {@link JoinType} enum
+     * @return the keyword for provided Join type.
+     */
+    String getJoinKeyword(JoinType joinType);
 }

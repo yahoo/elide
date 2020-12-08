@@ -11,6 +11,7 @@ import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isTa
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
+import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
@@ -196,6 +197,17 @@ public class SQLReferenceTable {
                 Join.class,
                 joinField);
 
+        String joinKeyword = join == null
+                ? dialect.getJoinKeyword(JoinType.LEFT)
+                : dialect.getJoinKeyword(join.type());
+
+        if (join != null && join.type().equals(JoinType.CROSS)) {
+            return String.format("%s %s AS %s",
+                    joinKeyword,
+                    joinSource,
+                    applyQuotes(joinAlias, dialect));
+        }
+
         String joinClause = join == null
                 ? String.format(
                         "%s.%s = %s.%s",
@@ -207,7 +219,8 @@ public class SQLReferenceTable {
                                 dictionary.getIdFieldName(joinClass)))
                 : getJoinClause(fromClass, fromAlias, join.value(), dialect);
 
-        return String.format("LEFT JOIN %s AS %s ON %s",
+        return String.format("%s %s AS %s ON %s",
+                joinKeyword,
                 joinSource,
                 applyQuotes(joinAlias, dialect),
                 joinClause);

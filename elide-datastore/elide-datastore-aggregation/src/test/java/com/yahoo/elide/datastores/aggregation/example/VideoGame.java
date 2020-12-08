@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.example;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
+import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import lombok.Setter;
@@ -40,7 +41,19 @@ public class VideoGame {
     private Player player;
 
     @Setter
+    private Player playerInnerJoin;
+
+    @Setter
+    private Player playerCrossJoin;
+
+    @Setter
     private String playerName;
+
+    @Setter
+    private String playerNameInnerJoin;
+
+    @Setter
+    private String playerNameCrossJoin;
 
     @Id
     public Long getId() {
@@ -68,13 +81,33 @@ public class VideoGame {
         return timeSpentPerGame;
     }
 
-    @Join("{{player_id}} = {{player.id}}")
+    @Join(value = "{{player_id}} = {{player.id}}", type = JoinType.LEFT)
     public Player getPlayer() {
         return player;
+    }
+
+    @Join(value = "{{player_id}} = {{playerInnerJoin.id}}", type = JoinType.INNER)
+    public Player getPlayerInnerJoin() {
+        return playerInnerJoin;
+    }
+
+    @Join(value = "", type = JoinType.CROSS)
+    public Player getPlayerCrossJoin() {
+        return playerCrossJoin;
     }
 
     @DimensionFormula("{{player.name}}")
     public String getPlayerName() {
         return playerName;
+    }
+
+    @DimensionFormula("{{playerInnerJoin.name}}")
+    public String getPlayerNameInnerJoin() {
+        return playerNameInnerJoin;
+    }
+
+    @DimensionFormula("{{playerCrossJoin.name}}")
+    public String getPlayerNameCrossJoin() {
+        return playerNameCrossJoin;
     }
 }

@@ -84,6 +84,7 @@ public abstract class SQLUnitTest {
     protected static QueryEngine engine;
 
     protected QueryEngine.Transaction transaction;
+    private static SQLTable videoGameTable;
 
     // Standard set of test queries used in dialect tests
     protected enum TestQuery {
@@ -317,6 +318,24 @@ public abstract class SQLUnitTest {
                     .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
                     .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                     .build();
+        }),
+        LEFT_JOIN (() -> {
+            return Query.builder()
+                    .source(videoGameTable)
+                    .dimensionProjection(videoGameTable.getDimensionProjection("playerName"))
+                    .build();
+        }),
+        INNER_JOIN (() -> {
+            return Query.builder()
+                    .source(videoGameTable)
+                    .dimensionProjection(videoGameTable.getDimensionProjection("playerNameInnerJoin"))
+                    .build();
+        }),
+        CROSS_JOIN (() -> {
+            return Query.builder()
+                    .source(videoGameTable)
+                    .dimensionProjection(videoGameTable.getDimensionProjection("playerNameCrossJoin"))
+                    .build();
         });
 
         private Provider<Query> queryProvider;
@@ -377,12 +396,13 @@ public abstract class SQLUnitTest {
 
         // Need to provide details for connections used by all available models.
         Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
-        connectionDetailsMap.put("mycon", new ConnectionDetails(DUMMY_DATASOURCE, sqlDialect));
+        connectionDetailsMap.put("mycon", new ConnectionDetails(dataSource, sqlDialect));
         connectionDetailsMap.put("SalesDBConnection", new ConnectionDetails(DUMMY_DATASOURCE, sqlDialect));
 
         engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect), connectionDetailsMap);
 
         playerStatsTable = (SQLTable) metaDataStore.getTable("playerStats", NO_VERSION);
+        videoGameTable = (SQLTable) metaDataStore.getTable("videoGame", NO_VERSION);
     }
 
     private static String getCompatabilityMode(String dialectType) {

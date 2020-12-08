@@ -20,4 +20,9 @@ public class H2Dialect extends AbstractSqlDialect {
     public String generateOffsetLimitClause(int offset, int limit) {
         return LIMIT + limit + SPACE + OFFSET + offset;
     }
+
+    @Override
+    public String getFullJoinKeyword() {
+        throw new IllegalArgumentException("Full Join is not supported for: " + getDialectType());
+    }
 }
