@@ -38,8 +38,7 @@
             },
             "required": [
                 "name",
-                "to",
-                "definition"
+                "to"
             ],
             "additionalProperties": false
         },

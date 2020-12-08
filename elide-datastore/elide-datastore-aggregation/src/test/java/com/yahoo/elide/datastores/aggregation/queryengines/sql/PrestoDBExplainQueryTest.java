@@ -54,7 +54,7 @@ public class PrestoDBExplainQueryTest extends SQLUnitTest {
                 "SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS \"overallRating\" "
                         + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
-                        + "LEFT JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\" "
+                        + "LEFT OUTER JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\" "
                         + "ON \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"country_id\" = \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"id\" "
                         + "WHERE (\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" IS NOT NULL AND \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"iso_code\" IN (:XXX)) "
                         + " GROUP BY \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\"\n";
@@ -69,7 +69,7 @@ public class PrestoDBExplainQueryTest extends SQLUnitTest {
                 "SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS \"overallRating\" "
                         + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
-                        + "LEFT JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\" "
+                        + "LEFT OUTER JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\" "
                         + "ON \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"country_id\" = \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"id\" "
                         + "WHERE (\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" IS NOT NULL OR \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"iso_code\" IN (:XXX)) "
                         + " GROUP BY \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\"\n";
@@ -225,7 +225,7 @@ public class PrestoDBExplainQueryTest extends SQLUnitTest {
                 "SELECT COUNT(DISTINCT(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\")) "
                         + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
-                        + "LEFT JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\" "
+                        + "LEFT OUTER JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\" "
                         + "ON \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"country_id\" = "
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"id\" "
                         + "WHERE \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"iso_code\" "
@@ -239,7 +239,7 @@ public class PrestoDBExplainQueryTest extends SQLUnitTest {
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), "
                         + "'yyyy-MM-dd') AS \"recordedDate\" "
                         + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
-                        + "LEFT JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\" "
+                        + "LEFT OUTER JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\" "
                         + "ON \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"country_id\" = "
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"id\" "
                         + "WHERE \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"iso_code\" "
@@ -323,7 +323,7 @@ public class PrestoDBExplainQueryTest extends SQLUnitTest {
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate\","
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedMonth\" "
                         + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
-                        + "LEFT JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\" ON \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"country_id\" = \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"id\" "
+                        + "LEFT OUTER JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\" ON \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"country_id\" = \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"id\" "
                         + "WHERE \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"iso_code\" IN (:XXX) "
                         + "GROUP BY \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
@@ -402,5 +402,40 @@ public class PrestoDBExplainQueryTest extends SQLUnitTest {
         expectedQueryList.add(exptectedQueryStr);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
+    }
+
+    @Test
+    public void testLeftJoin() throws Exception {
+        Query query = TestQuery.LEFT_JOIN.getQuery();
+
+        String expectedQueryStr =
+                        "SELECT DISTINCT \"com_yahoo_elide_datastores_aggregation_example_VideoGame_player\".\"name\" AS \"playerName\" FROM \"videoGames\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame\""
+                                        + " LEFT OUTER JOIN \"players\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame_player\" ON \"com_yahoo_elide_datastores_aggregation_example_VideoGame\".\"player_id\""
+                                        + " = \"com_yahoo_elide_datastores_aggregation_example_VideoGame_player\".\"id\"";
+
+        compareQueryLists(expectedQueryStr, engine.explain(query));
+    }
+
+    @Test
+    public void testInnerJoin() throws Exception {
+        Query query = TestQuery.INNER_JOIN.getQuery();
+
+        String expectedQueryStr =
+                        "SELECT DISTINCT \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerInnerJoin\".\"name\" AS \"playerNameInnerJoin\" FROM \"videoGames\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame\""
+                                        + " INNER JOIN \"players\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerInnerJoin\" ON \"com_yahoo_elide_datastores_aggregation_example_VideoGame\".\"player_id\""
+                                        + " = \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerInnerJoin\".\"id\"";
+
+        compareQueryLists(expectedQueryStr, engine.explain(query));
+    }
+
+    @Test
+    public void testCrossJoin() throws Exception {
+        Query query = TestQuery.CROSS_JOIN.getQuery();
+
+        String expectedQueryStr =
+                        "SELECT DISTINCT \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerCrossJoin\".\"name\" AS \"playerNameCrossJoin\" FROM \"videoGames\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame\""
+                                        + " CROSS JOIN \"players\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerCrossJoin\"";
+
+        compareQueryLists(expectedQueryStr, engine.explain(query));
     }
 }

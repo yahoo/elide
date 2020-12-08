@@ -689,13 +689,19 @@ public class DynamicConfigValidator {
      * Check if input join definition is valid.
      */
     private void validateJoin(Join join) {
-        validateSql(join.getDefinition());
-
         String joinModelName = join.getTo();
 
         if (!(elideTableConfig.hasTable(joinModelName) || staticModelDetails.exists(joinModelName, NO_VERSION))) {
             throw new IllegalStateException(
                             "Model: " + joinModelName + " is neither included in dynamic models nor in static models");
+        }
+
+        if (join.getType() == Join.Type.CROSS) {
+            return; // Join's definition validation not required.
+        }
+
+        if (isNullOrEmpty(join.getDefinition())) {
+            throw new IllegalStateException("Join definition must be provided.");
         }
 
         Matcher matcher = REFERENCE_PARENTHESES.matcher(join.getDefinition());
@@ -717,6 +723,8 @@ public class DynamicConfigValidator {
                 }
             }
         });
+
+        validateSql(join.getDefinition());
     }
 
     /**
