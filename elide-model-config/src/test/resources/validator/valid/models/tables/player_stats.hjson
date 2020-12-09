@@ -24,13 +24,13 @@
           {
              name: playerCountry
              to: Country
-             type: fuLL
-             definition: '{{ playerCountry.id}} = {{country_id}}'
+             type: Cross
           },
           {
              name: playerTeam
              to: Team
              kind: Tomany
+             type: left
              definition: '{{playerTeam.id}} = {{ team_id}}'
           }
       ]
