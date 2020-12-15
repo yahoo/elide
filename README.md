@@ -52,7 +52,7 @@ Filtering, sorting, pagination, and text search are supported out of the box.
 Elide supports multiple data model mutations in a single request in either JSON-API or GraphQL. Create objects, add them to relationships, modify or delete together in a single atomic request.
 
 ## Analytic Query Support
-Elide supports analytic queries against models crafted with its powerful semantic layer.  Elide APIs work natively with [Yavin](https://github.com/yahoo/navi) to visualize, explore, and report on your data.
+Elide supports analytic queries against models crafted with its powerful semantic layer.  Elide APIs work natively with [Yavin](https://github.com/yahoo/yavin) to visualize, explore, and report on your data.
 
 ### Schema Introspection
 Explore, understand, and compose queries against your Elide API through generated Swagger documentation or GraphQL schema.
