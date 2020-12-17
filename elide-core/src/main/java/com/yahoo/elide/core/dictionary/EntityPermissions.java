@@ -11,6 +11,8 @@ import com.yahoo.elide.annotation.NonTransferable;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.security.CheckInstantiator;
+import com.yahoo.elide.core.type.AccessibleObject;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.generated.parsers.ExpressionLexer;
 import com.yahoo.elide.generated.parsers.ExpressionParser;
 import org.antlr.v4.runtime.BailErrorStrategy;
@@ -25,7 +27,6 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AccessibleObject;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -72,7 +73,7 @@ public class EntityPermissions implements CheckInstantiator {
      * @param fieldOrMethodList list of fields/methods
      */
     public EntityPermissions(EntityDictionary dictionary,
-                             Class<?> cls,
+                             Type<?> cls,
                              Collection<AccessibleObject> fieldOrMethodList)  {
         for (Class<? extends Annotation> annotationClass : PERMISSION_ANNOTATIONS) {
             final Map<String, ParseTree> fieldPermissions = new HashMap<>();
@@ -87,7 +88,7 @@ public class EntityPermissions implements CheckInstantiator {
         }
     }
 
-    private ParseTree bindClassPermissions(Class<?> cls, Class<? extends Annotation> annotationClass) {
+    private ParseTree bindClassPermissions(Type<?> cls, Class<? extends Annotation> annotationClass) {
         Annotation annotation = EntityDictionary.getFirstAnnotation(cls, Arrays.asList(annotationClass));
         return (annotation == null) ? null : getPermissionExpressionTree(annotationClass, annotation);
     }
