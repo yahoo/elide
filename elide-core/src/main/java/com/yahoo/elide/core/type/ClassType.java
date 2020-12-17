@@ -27,18 +27,35 @@ public class ClassType<T> implements Type<T> {
 
     @Override
     public Type<T> getSuperclass() {
+
         return new ClassType(cls.getSuperclass());
     }
-
+    @Override
+    public Field[] getFields() {
+        return Arrays.stream(cls.getFields())
+                .map(ClassType::constructField).collect(Collectors.toList()).toArray(new Field[0]);
+    }
     @Override
     public Field[] getDeclaredFields() {
         return Arrays.stream(cls.getDeclaredFields())
-                .map(this::constructField).collect(Collectors.toList()).toArray(new Field[0]);
+                .map(ClassType::constructField).collect(Collectors.toList()).toArray(new Field[0]);
     }
 
     @Override
     public Package getPackage() {
         return constructPackage(cls.getPackage());
+    }
+
+    @Override
+    public Method[] getMethods() {
+        return Arrays.stream(cls.getMethods())
+                .map(ClassType::constructMethod).collect(Collectors.toList()).toArray(new Method[0]);
+    }
+
+    @Override
+    public Method[] getDeclaredMethods() {
+        return Arrays.stream(cls.getDeclaredMethods())
+                .map(ClassType::constructMethod).collect(Collectors.toList()).toArray(new Method[0]);
     }
 
     @Override
@@ -70,8 +87,24 @@ public class ClassType<T> implements Type<T> {
         return constructMethod(cls.getMethod(name, typeParams));
     }
 
-    private Field constructField(java.lang.reflect.Field field) {
+    public static Field constructField(java.lang.reflect.Field field) {
         return new Field() {
+
+            @Override
+            public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
+                return field.isAnnotationPresent(annotationClass);
+            }
+
+            @Override
+            public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+                return field.getAnnotation(annotationClass);
+            }
+
+            @Override
+            public int getModifiers() {
+                return field.getModifiers();
+            }
+
             @Override
             public Object get(Object obj) throws IllegalArgumentException, IllegalAccessException {
                 return field.get(obj);
@@ -89,7 +122,7 @@ public class ClassType<T> implements Type<T> {
         };
     }
 
-    private Method constructMethod(java.lang.reflect.Method method) {
+    public static Method constructMethod(java.lang.reflect.Method method) {
         return new Method() {
             @Override
             public int getModifiers() {
@@ -114,7 +147,7 @@ public class ClassType<T> implements Type<T> {
         };
     }
 
-    private Package constructPackage(java.lang.Package pkg) {
+    public static Package constructPackage(java.lang.Package pkg) {
         return new Package() {
             @Override
             public <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass) {
