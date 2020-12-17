@@ -16,6 +16,10 @@ import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.core.lifecycle.LifeCycleHook;
+import com.yahoo.elide.core.type.AccessibleObject;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Member;
+import com.yahoo.elide.core.type.Method;
 import com.yahoo.elide.core.type.Type;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -27,10 +31,6 @@ import org.apache.commons.lang3.tuple.Triple;
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.lang.reflect.Member;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
@@ -67,7 +67,9 @@ import javax.persistence.Transient;
  */
 public class EntityBinding {
 
-    private static final List<Method> OBJ_METHODS = ImmutableList.copyOf(Object.class.getMethods());
+    private static final List<Method> OBJ_METHODS = ImmutableList.copyOf(
+            Arrays.stream(Object.class.getMethods()).map(ClassType::constructMethod).collect(Collectors.toList()));
+
     private static final List<Class<? extends Annotation>> RELATIONSHIP_TYPES =
             Arrays.asList(ManyToMany.class, ManyToOne.class, OneToMany.class, OneToOne.class,
                     ToOne.class, ToMany.class);
