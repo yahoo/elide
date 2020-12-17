@@ -50,6 +50,7 @@ import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.FlushModeType;
 import javax.persistence.NoResultException;
+import javax.persistence.Subgraph;
 import javax.validation.ConstraintViolationException;
 
 /**
@@ -346,13 +347,13 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
             if (type.isComputed()) {
                 continue;
             } else if (type.isToOne()) {
-                entityGraph.addAttributeNodes(relationship.getName());
+                populateSubGraph(entityGraph.addSubgraph(relationship.getName()), scope, relationship.getProjection(), toManyAdded);
             } else if (type.isToMany()) {
                 // To Many Relationship will always be collection type.
 
                 if (!toManyAdded && !checkTransient(scope, entityClass, relationship)) {
-                    entityGraph.addAttributeNodes(relationship.getName());
                     toManyAdded = true;
+                    populateSubGraph(entityGraph.addSubgraph(relationship.getName()), scope, relationship.getProjection(), toManyAdded);
 
                 }
             }
@@ -374,6 +375,49 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
             }
         }
         return entityGraph;
+    }
+
+
+    private void populateSubGraph(Subgraph subgraph, RequestScope scope, EntityProjection projection, boolean toManyAdded) {
+        if (subgraph == null) {
+            return;
+        }
+        EntityDictionary dictionary = scope.getDictionary();
+        Class<?> entityClass = projection.getType();
+
+        for (Relationship relationship : projection.getRelationships()) {
+            RelationshipType type = dictionary.getRelationshipType(entityClass, relationship.getName());
+
+            if (type.isComputed()) {
+                continue;
+            } else if (type.isToOne()) {
+                populateSubGraph(subgraph.addSubgraph(relationship.getName()), scope, relationship.getProjection(), toManyAdded);
+            } else if (type.isToMany()) {
+                // To Many Relationship will always be collection type.
+
+                if (!toManyAdded && !checkTransient(scope, entityClass, relationship)) {
+                    toManyAdded = true;
+                    populateSubGraph(subgraph.addSubgraph(relationship.getName()), scope, relationship.getProjection(), toManyAdded);
+
+                }
+            }
+        }
+
+
+        //Add All attributes
+        for (Attribute attribute : projection.getAttributes()) {
+            if (dictionary.isComputed(entityClass, attribute.getName())) {
+                continue;
+            }
+            if (attribute.getType().isAssignableFrom(Collection.class)) {
+                if (!toManyAdded) {
+                    subgraph.addAttributeNodes(attribute.getName());
+                    toManyAdded = true;
+                }
+            } else {
+                subgraph.addAttributeNodes(attribute.getName());
+            }
+        }
     }
 
 
