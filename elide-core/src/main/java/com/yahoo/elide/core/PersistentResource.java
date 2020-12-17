@@ -40,6 +40,7 @@ import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import com.yahoo.elide.core.security.visitors.CanPaginateVisitor;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -52,6 +53,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 import io.reactivex.Observable;
+import lombok.Getter;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -86,6 +88,9 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     private final DataStoreTransaction transaction;
     private final RequestScope requestScope;
     private int hashCode = 0;
+
+    @Getter
+    private Type entityType;
 
     public static final String CLASS_NO_FIELD = "";
 
