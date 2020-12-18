@@ -468,7 +468,7 @@ public class EntityDictionary {
      * @return List of attribute names for entity
      */
     public List<String> getAttributes(Object entity) {
-        return getAttributes(entity.getClass());
+        return getAttributes(getType(entity));
     }
 
     /**
@@ -488,7 +488,7 @@ public class EntityDictionary {
      * @return List of relationship names for entity
      */
     public List<String> getRelationships(Object entity) {
-        return getRelationships(entity.getClass());
+        return getRelationships(getType(entity));
     }
 
     /**
@@ -510,7 +510,7 @@ public class EntityDictionary {
      * @return List of elide-bound relationship names.
      */
     public List<String> getElideBoundRelationships(Object entity) {
-        return getElideBoundRelationships(entity.getClass());
+        return getElideBoundRelationships(getType(entity));
     }
 
     /**
@@ -521,7 +521,7 @@ public class EntityDictionary {
      * @return True if method accepts a RequestScope, false otherwise.
      */
     public boolean isMethodRequestScopeable(Object entity, Method method) {
-        return isMethodRequestScopeable(entity.getClass(), method);
+        return isMethodRequestScopeable(getType(entity), method);
     }
 
     /**
@@ -541,7 +541,7 @@ public class EntityDictionary {
      * @param entityClass entity name
      * @return List of all fields.
      */
-    public List<String> getAllFields(Class<?> entityClass) {
+    public List<String> getAllFields(Type<?> entityClass) {
         List<String> fields = new ArrayList<>();
 
         List<String> attrs = getAttributes(entityClass);
@@ -565,7 +565,7 @@ public class EntityDictionary {
      * @return List of all fields.
      */
     public List<String> getAllFields(Object entity) {
-        return getAllFields(entity.getClass());
+        return getAllFields(getType(entity));
     }
 
     /**
@@ -631,7 +631,7 @@ public class EntityDictionary {
      * @return Relationship type. RelationshipType.NONE if is none found.
      */
     public RelationshipType getRelationshipType(Object entity, String relation) {
-        return getRelationshipType(entity.getClass(), relation);
+        return getRelationshipType(getType(entity), relation);
     }
 
     /**
@@ -704,7 +704,7 @@ public class EntityDictionary {
      * @return Type of entity
      */
     public Type<?> getType(Object entity, String identifier) {
-        return getType(entity.getClass(), identifier);
+        return getType(getType(entity), identifier);
     }
 
     /**
@@ -785,7 +785,7 @@ public class EntityDictionary {
      * @return Real field/method name as a string. null if not found.
      */
     public String getNameFromAlias(Object entity, String alias) {
-        return getNameFromAlias(entity.getClass(), alias);
+        return getNameFromAlias(getType(entity), alias);
     }
 
     /**
@@ -1225,7 +1225,7 @@ public class EntityDictionary {
      * @return the value
      */
     public AccessibleObject getAccessibleObject(Object target, String fieldName) {
-        return getAccessibleObject(target.getClass(), fieldName);
+        return getAccessibleObject(getType(target), fieldName);
     }
 
     public boolean isComputed(Type<?> entityClass, String fieldName) {

@@ -536,7 +536,7 @@ public class EntityBinding {
                     ((ParameterizedType) cls.getGenericSuperclass()).getActualTypeArguments()[index.get().intValue()]);
         }
 
-        return EntityDictionary.getType(TypeUtils.getRawType(cls, ((ClassType) parentClass).getCls()));
+        return new ClassType(TypeUtils.getRawType(cls, ((ClassType) parentClass).getCls()));
     }
 
     private void bindTriggerIfPresent(AccessibleObject fieldOrMethod) {
