@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core.security;
 
+import com.yahoo.elide.core.type.Type;
+
 import java.util.Optional;
 
 /**
@@ -17,9 +19,10 @@ public interface PersistentResource<T> {
 
     Optional<String> getUUID();
     String getId();
-    String getType();
+    String getTypeName();
+    Type getType();
 
     T getObject();
-    Class<T> getResourceClass();
+    Class<T> getResourceType();
     RequestScope getRequestScope();
 }

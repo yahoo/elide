@@ -23,6 +23,7 @@ import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import com.yahoo.elide.core.security.permissions.ExpressionResultCache;
 import com.yahoo.elide.core.security.permissions.PermissionExpressionBuilder;
 import com.yahoo.elide.core.security.permissions.expressions.Expression;
+import com.yahoo.elide.core.type.Type;
 import org.apache.commons.lang3.tuple.Triple;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -47,7 +48,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
 
     private final RequestScope requestScope;
     private final PermissionExpressionBuilder expressionBuilder;
-    private final Map<Triple<Class<? extends Annotation>, Class, String>, ExpressionResult> userPermissionCheckCache;
+    private final Map<Triple<Class<? extends Annotation>, Type, String>, ExpressionResult> userPermissionCheckCache;
     private final Map<String, Long> checkStats;
     private final boolean verbose;
 
@@ -111,7 +112,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                                                                    ChangeSpec changeSpec) {
         Supplier<Expression> expressionSupplier = () -> {
             if (NonTransferable.class == annotationClass) {
-                if (requestScope.getDictionary().isTransferable(resource.getResourceClass())) {
+                if (requestScope.getDictionary().isTransferable(resource.getType())) {
                     return expressionBuilder.buildAnyFieldExpressions(resource, ReadPermission.class, changeSpec);
                 }
                 return PermissionExpressionBuilder.FAIL_EXPRESSION;
@@ -128,7 +129,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         };
 
         return checkPermissions(
-                resource.getResourceClass(),
+                resource.getType(),
                 annotationClass,
                 Optional.empty(),
                 expressionSupplier,
@@ -173,7 +174,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         };
 
         return checkPermissions(
-                resource.getResourceClass(),
+                resource.getType(),
                 annotationClass,
                 Optional.of(field),
                 expressionSupplier,
@@ -216,7 +217,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         };
 
         return checkPermissions(
-                resource.getResourceClass(),
+                resource.getType(),
                 expressionAnnotation,
                 Optional.of(field),
                 expressionSupplier,
@@ -231,7 +232,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * @param annotationClass Annotation class
      */
     @Override
-    public <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass,
+    public <A extends Annotation> ExpressionResult checkUserPermissions(Type<?> resourceClass,
                                                                         Class<A> annotationClass) {
         Supplier<Expression> expressionSupplier = () -> {
             return expressionBuilder.buildUserCheckAnyExpression(
@@ -260,7 +261,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * @param expressionExecutor Evaluates the expression (post user check evaluation)
      */
     protected <A extends Annotation> ExpressionResult checkPermissions(
-            Class<?> resourceClass,
+            Type<?> resourceClass,
             Class<A> annotationClass,
             Optional<String> field,
             Supplier<Expression> expressionSupplier,
@@ -305,7 +306,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * @param expressionSupplier Builds a permission expression.
      */
     protected <A extends Annotation> ExpressionResult checkOnlyUserPermissions(
-            Class<?> resourceClass,
+            Type<?> resourceClass,
             Class<A> annotationClass,
             Optional<String> field,
             Supplier<Expression> expressionSupplier) {
@@ -331,7 +332,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * @param expressionExecutor Evaluates the expression (post user check evaluation)
      */
     protected <A extends Annotation> ExpressionResult checkPermissions(
-            Class<?> resourceClass,
+            Type<?> resourceClass,
             Class<A> annotationClass,
             Optional<String> field,
             Supplier<Expression> expressionSupplier,
@@ -354,7 +355,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * @return the filter expression for the class, if any
      */
     @Override
-    public Optional<FilterExpression> getReadPermissionFilter(Class<?> resourceClass) {
+    public Optional<FilterExpression> getReadPermissionFilter(Type<?> resourceClass) {
         FilterExpression filterExpression =
                 expressionBuilder.buildAnyFieldFilterExpression(resourceClass, requestScope);
 
@@ -495,7 +496,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * @param field The entity field
      */
     @Override
-    public <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass,
+    public <A extends Annotation> ExpressionResult checkUserPermissions(Type<?> resourceClass,
                                                                         Class<A> annotationClass,
                                                                         String field) {
         Supplier<Expression> expressionSupplier = () -> {

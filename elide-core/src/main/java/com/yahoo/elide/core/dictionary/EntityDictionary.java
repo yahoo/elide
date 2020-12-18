@@ -792,7 +792,8 @@ public class EntityDictionary {
      * @param <T>    the type parameter
      * @param entity Entity to initialize
      */
-    public <T> void initializeEntity(T entity, Type type) {
+    public <T> void initializeEntity(T entity) {
+        Type type = getType(entity);
         if (entity != null) {
             EntityBinding binding = getEntityBinding(type);
 
@@ -1153,7 +1154,7 @@ public class EntityDictionary {
      * @param objClass provided class
      * @return Bound class.
      */
-    public Type<?> lookupBoundClass(Type<?> objClass) {
+    public  Type<?> lookupBoundClass(Type<?> objClass) {
         //Common case - we can avoid reflection by checking the map ...
         EntityBinding binding = entityBindings.getOrDefault(objClass, EMPTY_BINDING);
         if (binding != EMPTY_BINDING) {

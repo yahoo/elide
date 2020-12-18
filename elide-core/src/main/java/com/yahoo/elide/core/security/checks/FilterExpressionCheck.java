@@ -14,6 +14,7 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.visitors.FilterExpressionCheckEvaluationVisitor;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.type.Type;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
@@ -39,7 +40,7 @@ public abstract class FilterExpressionCheck<T> extends OperationCheck<T> {
      * @param requestScope Request scope object
      * @return FilterExpression for FilterExpressionCheck.
      */
-    public abstract FilterExpression getFilterExpression(Class<?> entityClass, RequestScope requestScope);
+    public abstract FilterExpression getFilterExpression(Type<?> entityClass, RequestScope requestScope);
 
     /**
      * The filter expression is evaluated in memory if it cannot be pushed to the data store by elide for any reason.
@@ -51,7 +52,7 @@ public abstract class FilterExpressionCheck<T> extends OperationCheck<T> {
      */
     @Override
     public final boolean ok(T object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-        Class<?> entityClass = dictionary.lookupBoundClass(object.getClass());
+        Type<?> entityClass = dictionary.lookupBoundClass(EntityDictionary.getType(object));
         FilterExpression filterExpression = getFilterExpression(entityClass, requestScope);
         return filterExpression.accept(new FilterExpressionCheckEvaluationVisitor(object, this, requestScope));
     }
@@ -85,7 +86,7 @@ public abstract class FilterExpressionCheck<T> extends OperationCheck<T> {
      * @param defaultPath  path to use if no FieldExpressionPath defined
      * @return Predicates
      */
-    protected Path getFieldPath(Class<?> type, RequestScope requestScope, String method, String defaultPath) {
+    protected Path getFieldPath(Type<?> type, RequestScope requestScope, String method, String defaultPath) {
         try {
             FilterExpressionPath fep = getFilterExpressionPath(type, method, dictionary);
             return new Path(type, dictionary, fep == null ? defaultPath : fep.value());
@@ -95,7 +96,7 @@ public abstract class FilterExpressionCheck<T> extends OperationCheck<T> {
     }
 
     private static FilterExpressionPath getFilterExpressionPath(
-            Class<?> type,
+            Type<?> type,
             String method,
             EntityDictionary dictionary) throws NoSuchMethodException {
         FilterExpressionPath path = dictionary.lookupBoundClass(type)

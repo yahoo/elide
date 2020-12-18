@@ -34,7 +34,7 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
         EntityDictionary entityDictionary = context.requestScope.getDictionary();
         NonEntityDictionary nonEntityDictionary = fetcher.getNonEntityDictionary();
 
-        Class parentClass = context.parentResource.getResourceClass();
+        Class parentClass = context.parentResource.getResourceType();
         String fieldName = context.field.getName();
         String idFieldName = entityDictionary.getIdFieldName(parentClass);
 
@@ -74,7 +74,7 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
 
             if (relationship == null) {
                 throw new BadRequestException(
-                        "Relationship doesn't have projection " + context.parentResource.getType() + "." + fieldName);
+                        "Relationship doesn't have projection " + context.parentResource.getTypeName() + "." + fieldName);
             }
 
             return fetcher.fetchRelationship(context.parentResource, relationship, context.ids);
