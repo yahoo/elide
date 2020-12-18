@@ -18,6 +18,8 @@ import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.type.AccessibleObject;
 import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.DynamicType;
+import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.Member;
 import com.yahoo.elide.core.type.Method;
 import com.yahoo.elide.core.type.Type;
@@ -513,20 +515,28 @@ public class EntityBinding {
      * @return field type
      */
     public static Type<?> getFieldType(Type<?> parentClass,
-                                         AccessibleObject fieldOrMethod,
-                                         Optional<Integer> index) {
+                                       AccessibleObject fieldOrMethod,
+                                       Optional<Integer> index) {
         Type type;
         if (fieldOrMethod instanceof Field) {
-            type = ((Field) fieldOrMethod).getGenericType();
+            type = ((Field) fieldOrMethod).getType();
         } else {
-            type = ((Method) fieldOrMethod).getGenericReturnType();
+            type = ((Method) fieldOrMethod).getReturnType();
         }
 
-        if (type instanceof ParameterizedType && index.isPresent()) {
-            type = ((ParameterizedType) type).getActualTypeArguments()[index.get().intValue()];
+        //Dynamic types don't support parameters.
+        if (type instanceof DynamicType || parentClass instanceof DynamicType) {
+            return type;
         }
 
-        return TypeUtils.getRawType(type, parentClass);
+        Class<?> cls = ((ClassType) type).getCls();
+
+        if (type.isParameterized() && index.isPresent()) {
+            return EntityDictionary.getType(
+                    ((ParameterizedType) cls.getGenericSuperclass()).getActualTypeArguments()[index.get().intValue()]);
+        }
+
+        return EntityDictionary.getType(TypeUtils.getRawType(cls, ((ClassType) parentClass).getCls()));
     }
 
     private void bindTriggerIfPresent(AccessibleObject fieldOrMethod) {
@@ -667,7 +677,7 @@ public class EntityBinding {
     private List<Type<?>> getInheritedTypes(Type<?> entityCls) {
         ArrayList<Type<?>> results = new ArrayList<>();
 
-        for (Type<?> cls = entityCls.getSuperclass(); null != cls && Object.class != cls; cls = cls.getSuperclass()) {
+        for (Type<?> cls = entityCls.getSuperclass(); cls.hasSuperType(); cls = cls.getSuperclass()) {
             results.add(cls);
         }
 
