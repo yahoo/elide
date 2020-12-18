@@ -15,6 +15,7 @@ import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class ClassType<T> implements Type<T> {
@@ -295,5 +296,18 @@ public class ClassType<T> implements Type<T> {
                 return idx == -1 ? null : constructPackage(java.lang.Package.getPackage(name.substring(0, idx)));
             }
         };
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ClassType<?> classType = (ClassType<?>) o;
+        return Objects.equals(cls, classType.cls);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(cls);
     }
 }
