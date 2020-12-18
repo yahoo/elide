@@ -39,20 +39,6 @@ public class TransactionWrapperTest {
     }
 
     @Test
-    public void testCreateNewObject() {
-        DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
-        DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
-
-        Object expected = new Object();
-        when(wrapped.createNewObject(eq(Object.class))).thenReturn(expected);
-
-        Object actual = wrapper.createNewObject(Object.class);
-
-        verify(wrapped, times(1)).createNewObject(eq(Object.class));
-        assertEquals(expected, actual);
-    }
-
-    @Test
     public void testClose() throws Exception {
         DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
         DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);

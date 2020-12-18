@@ -11,6 +11,7 @@ import static com.yahoo.elide.core.utils.TypeHelper.getTypeAlias;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.request.Argument;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -48,6 +49,10 @@ public class Path {
         @Getter private String alias;
         @Getter private Set<Argument> arguments;
 
+        public PathElement(Class<?> type, Class<?> fieldType, String fieldName) {
+            this(new ClassType(type), new ClassType(fieldType), fieldName);
+        }
+
         public PathElement(Type type, Type fieldType, String fieldName) {
             this.type = type;
             this.fieldType = fieldType;
@@ -68,8 +73,17 @@ public class Path {
         this.pathElements = ImmutableList.copyOf(pathElements);
     }
 
+    public Path(Class<?> entityClass, EntityDictionary dictionary, String dotSeparatedPath) {
+        this(new ClassType(entityClass), dictionary, dotSeparatedPath);
+    }
+
     public Path(Type<?> entityClass, EntityDictionary dictionary, String dotSeparatedPath) {
         pathElements = resolvePathElements(entityClass, dictionary, dotSeparatedPath);
+    }
+
+    public Path(Class<?> entityClass, EntityDictionary dictionary, String fieldName,
+                String alias, Set<Argument> arguments) {
+        this(new ClassType(entityClass), dictionary, fieldName, alias, arguments);
     }
 
     public Path(Type<?> entityClass, EntityDictionary dictionary, String fieldName,

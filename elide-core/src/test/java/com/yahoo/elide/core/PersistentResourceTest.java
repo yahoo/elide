@@ -39,6 +39,7 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.jsonapi.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -315,7 +316,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertThrows(
                 ForbiddenAccessException.class,
                 () -> PersistentResource.createObject(
-                        NoCreateEntity.class, goodScope, Optional.of("1"))); // should throw here
+                        new ClassType(NoCreateEntity.class), goodScope, Optional.of("1"))); // should throw here
     }
 
     @Test

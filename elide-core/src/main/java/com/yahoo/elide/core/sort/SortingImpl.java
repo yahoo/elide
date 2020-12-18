@@ -10,6 +10,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.Sorting;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -52,6 +53,16 @@ public class SortingImpl implements Sorting {
      */
     public SortingImpl(final Map<String, SortOrder> sortingRules, Type<?> type, EntityDictionary dictionary) {
         this(sortingRules, type, Collections.EMPTY_SET, dictionary);
+    }
+
+    /**
+     * Constructs a new Sorting instance.
+     * @param sortingRules The map of sorting rules
+     * @param type The model being sorted
+     * @param dictionary The entity dictionary
+     */
+    public SortingImpl(final Map<String, SortOrder> sortingRules, Class<?> type, EntityDictionary dictionary) {
+        this(sortingRules, new ClassType<>(type), dictionary);
     }
 
     /**

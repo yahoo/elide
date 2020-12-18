@@ -34,6 +34,7 @@ import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.security.visitors.PermissionToFilterExpressionVisitor;
+import com.yahoo.elide.core.type.Type;
 import example.Author;
 import example.Book;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -411,14 +412,14 @@ public class PermissionToFilterExpressionVisitorTest {
 
         public static class InFilterExpression extends FilterExpressionCheck {
             @Override
-            public FilterPredicate getFilterExpression(Class entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
+            public FilterPredicate getFilterExpression(Type entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
                 return createDummyPredicate(Operator.IN);
             }
         }
 
         public static class NotInFilterExpression extends FilterExpressionCheck {
             @Override
-            public FilterPredicate getFilterExpression(Class entityClass,
+            public FilterPredicate getFilterExpression(Type entityClass,
                                                        com.yahoo.elide.core.security.RequestScope requestScope) {
                 return createDummyPredicate(Operator.NOT);
             }
@@ -426,14 +427,14 @@ public class PermissionToFilterExpressionVisitorTest {
 
         public static class LessThanFilterExpression extends FilterExpressionCheck {
             @Override
-            public FilterPredicate getFilterExpression(Class entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
+            public FilterPredicate getFilterExpression(Type entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
                 return createDummyPredicate(Operator.LT);
             }
         }
 
         public static class GreaterThanOrEqualFilterExpression extends FilterExpressionCheck {
             @Override
-            public FilterPredicate getFilterExpression(Class entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
+            public FilterPredicate getFilterExpression(Type entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
                 return createDummyPredicate(Operator.GE);
             }
         }

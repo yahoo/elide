@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.core.datastore;
 
+import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -18,6 +19,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.type.ClassType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -39,7 +41,7 @@ public class DataStoreTransactionTest implements DataStoreTransaction {
         EntityDictionary dictionary = mock(EntityDictionary.class);
 
         when(scope.getDictionary()).thenReturn(dictionary);
-        when(dictionary.getIdType(String.class)).thenReturn((Class) Long.class);
+        when(dictionary.getIdType(STRING_TYPE)).thenReturn(new ClassType(Long.class));
         when(dictionary.getValue(ENTITY, NAME, scope)).thenReturn(3L);
     }
 
@@ -47,12 +49,6 @@ public class DataStoreTransactionTest implements DataStoreTransaction {
     public void testPreCommit() {
         preCommit(scope);
         verify(scope, never()).getDictionary();
-    }
-
-    @Test
-    public void testCreateNewObject() {
-        Object actual = createNewObject(String.class);
-        assertEquals("", actual);
     }
 
     @Test
