@@ -1556,8 +1556,8 @@ public class EntityDictionary {
     }
 
     private Map coerceMap(Object target, Map<?, ?> values, String fieldName) {
-        Class<?> keyType = getParameterizedType(target, fieldName, 0);
-        Class<?> valueType = getParameterizedType(target, fieldName, 1);
+        Class<?> keyType = ((ClassType) getParameterizedType(target, fieldName, 0)).getCls();
+        Class<?> valueType = ((ClassType) getParameterizedType(target, fieldName, 1)).getCls();
 
         // Verify the existing Map
         if (isValidParameterizedMap(values, keyType, valueType)) {
