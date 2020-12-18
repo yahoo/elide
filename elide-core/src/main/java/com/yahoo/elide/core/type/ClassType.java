@@ -49,7 +49,12 @@ public class ClassType<T> implements Type<T> {
 
     @Override
     public Type<T> getSuperclass() {
-        return new ClassType(cls.getSuperclass());
+        Class<?> superClass = cls.getSuperclass();
+        if (superClass == null) {
+            return null;
+        }
+
+        return new ClassType(superClass);
     }
 
     @Override
@@ -136,6 +141,10 @@ public class ClassType<T> implements Type<T> {
     }
 
     public static Field constructField(java.lang.reflect.Field field) {
+        if (field == null) {
+            return null;
+        }
+
         return new Field() {
 
             @Override
@@ -202,6 +211,10 @@ public class ClassType<T> implements Type<T> {
     }
 
     public static Method constructMethod(java.lang.reflect.Executable method) {
+        if (method == null) {
+            return null;
+        }
+
         return new Method() {
             @Override
             public int getModifiers() {
@@ -235,7 +248,7 @@ public class ClassType<T> implements Type<T> {
 
             @Override
             public Annotation[] getDeclaredAnnotations() {
-                return getDeclaredAnnotations();
+                return method.getDeclaredAnnotations();
             }
 
             @Override
@@ -256,7 +269,7 @@ public class ClassType<T> implements Type<T> {
             @Override
             public Object invoke(Object obj, Object... args) throws IllegalAccessException,
                     IllegalArgumentException, InvocationTargetException {
-                if (method instanceof Executable) {
+                if (! (method instanceof Executable)) {
                     throw new UnsupportedOperationException("Constructors cannot be invoked");
                 }
                 return ((java.lang.reflect.Method) method).invoke(obj, args);
@@ -264,7 +277,7 @@ public class ClassType<T> implements Type<T> {
 
             @Override
             public Type<?> getReturnType() {
-                if (method instanceof Executable) {
+                if (! (method instanceof Executable)) {
                     throw new UnsupportedOperationException("Constructors cannot be invoked");
                 }
                 return new ClassType(((java.lang.reflect.Method) method).getReturnType());
@@ -278,6 +291,10 @@ public class ClassType<T> implements Type<T> {
     }
 
     public static Package constructPackage(java.lang.Package pkg) {
+        if (pkg == null) {
+            return null;
+        }
+
         return new Package() {
             @Override
             public <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass) {
