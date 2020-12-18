@@ -9,6 +9,7 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -75,6 +76,27 @@ public class PaginationImpl implements Pagination {
 
     @Getter
     private final Type<?> entityClass;
+
+    /**
+     * Constructor.
+     * @param entityClass The type of collection we are paginating.
+     * @param clientOffset The client requested offset or null if not provided.
+     * @param clientLimit The client requested limit or null if not provided.
+     * @param systemDefaultLimit The system default limit (in terms of records).
+     * @param systemMaxLimit The system max limit (in terms of records).
+     * @param generateTotals Whether to return the total number of records.
+     * @param pageByPages Whether to page by pages or records.
+     */
+    public PaginationImpl(Class<?> entityClass,
+                          Integer clientOffset,
+                          Integer clientLimit,
+                          int systemDefaultLimit,
+                          int systemMaxLimit,
+                          Boolean generateTotals,
+                          Boolean pageByPages) {
+        this(new ClassType(entityClass), clientOffset, clientLimit,
+                systemDefaultLimit, systemMaxLimit, generateTotals, pageByPages);
+    }
 
     /**
      * Constructor.

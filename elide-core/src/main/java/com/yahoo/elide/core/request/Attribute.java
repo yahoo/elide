@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.core.request;
 
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import lombok.Builder;
 import lombok.Data;
@@ -40,5 +41,18 @@ public class Attribute {
         this.name = name;
         this.alias = alias == null ? name : alias;
         this.arguments = arguments;
+    }
+
+    public static class AttributeBuilder {
+
+        public Attribute.AttributeBuilder type(Type<?> type) {
+            this.type = type;
+            return this;
+        }
+
+        public Attribute.AttributeBuilder type(Class<?> type) {
+            this.type = new ClassType(type);
+            return this;
+        }
     }
 }

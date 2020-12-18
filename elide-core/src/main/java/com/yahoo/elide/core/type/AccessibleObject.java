@@ -9,6 +9,8 @@ package com.yahoo.elide.core.type;
 import java.lang.annotation.Annotation;
 
 public interface AccessibleObject extends Member {
+    String getName();
+
     default void setAccessible(boolean flag) {
         //NOOP
     }

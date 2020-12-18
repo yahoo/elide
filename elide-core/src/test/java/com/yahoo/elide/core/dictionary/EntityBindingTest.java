@@ -8,12 +8,14 @@ package com.yahoo.elide.core.dictionary;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.yahoo.elide.core.type.AccessibleObject;
+import com.yahoo.elide.core.type.ClassType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import java.lang.reflect.AccessibleObject;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MapsId;
@@ -28,16 +30,18 @@ public class EntityBindingTest {
 
     @BeforeAll
     public static void init() {
-        entityBinding = new EntityBinding(entityDictionary, ChildClass.class, "childBinding");
+        entityBinding = new EntityBinding(entityDictionary, new ClassType(ChildClass.class), "childBinding");
     }
 
     @Test
     public void testGetAllFields() throws Exception {
-        List<AccessibleObject> allFields = entityBinding.getAllFields();
+        List<String> allFields = entityBinding.getAllFields().stream()
+                .map(AccessibleObject::getName)
+                .collect(Collectors.toList());
 
         assertEquals(2, allFields.size());
-        assertEquals(allFields.get(0), ChildClass.class.getDeclaredField("childField"));
-        assertEquals(allFields.get(1), ParentClass.class.getDeclaredField("parentField"));
+        assertEquals(allFields.get(0), "childField");
+        assertEquals(allFields.get(1), "parentField");
     }
 
     @Test
@@ -53,19 +57,22 @@ public class EntityBindingTest {
 
     @Test
     public void testIdGeneratedTrueWhenGenerateValue() throws Exception {
-        final EntityBinding eb = new EntityBinding(entityDictionary, GeneratedValueClass.class, "testBinding");
+        final EntityBinding eb = new EntityBinding(entityDictionary,
+                new ClassType(GeneratedValueClass.class), "testBinding");
         assertTrue(eb.isIdGenerated());
     }
 
     @Test
     public void testIdGeneratedTrueWhenMapsId() throws Exception {
-        final EntityBinding eb = new EntityBinding(entityDictionary, MapsIdClass.class, "testBinding");
+        final EntityBinding eb = new EntityBinding(entityDictionary,
+                new ClassType(MapsIdClass.class), "testBinding");
         assertTrue(eb.isIdGenerated());
     }
 
     @Test
     public void testIdGeneratedFalseWhenBadMapsId() throws Exception {
-        final EntityBinding eb = new EntityBinding(entityDictionary, BadMapsIdClass.class, "testBinding");
+        final EntityBinding eb = new EntityBinding(entityDictionary,
+                new ClassType(BadMapsIdClass.class), "testBinding");
         assertFalse(eb.isIdGenerated());
     }
 
