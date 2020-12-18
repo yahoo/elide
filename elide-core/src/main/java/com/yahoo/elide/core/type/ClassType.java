@@ -3,7 +3,9 @@ package com.yahoo.elide.core.type;
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -27,9 +29,14 @@ public class ClassType<T> implements Type<T> {
 
     @Override
     public Type<T> getSuperclass() {
-
         return new ClassType(cls.getSuperclass());
     }
+
+    @Override
+    public <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationClass) {
+        return cls.getAnnotationsByType(annotationClass);
+    }
+
     @Override
     public Field[] getFields() {
         return Arrays.stream(cls.getFields())
@@ -39,6 +46,22 @@ public class ClassType<T> implements Type<T> {
     public Field[] getDeclaredFields() {
         return Arrays.stream(cls.getDeclaredFields())
                 .map(ClassType::constructField).collect(Collectors.toList()).toArray(new Field[0]);
+    }
+
+    @Override
+    public Method[] getConstructors() {
+        return Arrays.stream(cls.getConstructors())
+                .map(ClassType::constructMethod).collect(Collectors.toList()).toArray(new Method[0]);
+    }
+
+    @Override
+    public boolean isParameterized() {
+        return (cls.getGenericSuperclass() instanceof ParameterizedType);
+    }
+
+    @Override
+    public boolean hasSuperType() {
+        return cls != null && cls != Object.class;
     }
 
     @Override
@@ -91,6 +114,11 @@ public class ClassType<T> implements Type<T> {
         return new Field() {
 
             @Override
+            public boolean isSynthetic() {
+                return field.isSynthetic();
+            }
+
+            @Override
             public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
                 return field.isAnnotationPresent(annotationClass);
             }
@@ -101,8 +129,23 @@ public class ClassType<T> implements Type<T> {
             }
 
             @Override
+            public <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass) {
+                return field.getAnnotationsByType(annotationClass);
+            }
+
+            @Override
+            public Annotation[] getAnnotations() {
+                return field.getAnnotations();
+            }
+
+            @Override
             public int getModifiers() {
                 return field.getModifiers();
+            }
+
+            @Override
+            public String getName() {
+                return field.getName();
             }
 
             @Override
@@ -119,14 +162,20 @@ public class ClassType<T> implements Type<T> {
             public void set(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException {
                 field.set(obj, value);
             }
+
         };
     }
 
-    public static Method constructMethod(java.lang.reflect.Method method) {
+    public static Method constructMethod(java.lang.reflect.Executable method) {
         return new Method() {
             @Override
             public int getModifiers() {
                 return method.getModifiers();
+            }
+
+            @Override
+            public boolean isSynthetic() {
+                return method.isSynthetic();
             }
 
             @Override
@@ -135,14 +184,50 @@ public class ClassType<T> implements Type<T> {
             }
 
             @Override
+            public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+                return method.getAnnotation(annotationClass);
+            }
+
+            @Override
+            public <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass) {
+                return method.getAnnotationsByType(annotationClass);
+            }
+
+            @Override
+            public Annotation[] getAnnotations() {
+                return method.getAnnotations();
+            }
+
+            @Override
+            public String getName() {
+                return method.getName();
+            }
+
+            @Override
+            public int getParameterCount() {
+                return method.getParameterCount();
+            }
+
+            @Override
             public Object invoke(Object obj, Object... args) throws IllegalAccessException,
                     IllegalArgumentException, InvocationTargetException {
-                return method.invoke(obj, args);
+                if (method instanceof Executable) {
+                    throw new UnsupportedOperationException("Constructors cannot be invoked");
+                }
+                return ((java.lang.reflect.Method) method).invoke(obj, args);
             }
 
             @Override
             public Type<?> getReturnType() {
-                return new ClassType(method.getReturnType());
+                if (method instanceof Executable) {
+                    throw new UnsupportedOperationException("Constructors cannot be invoked");
+                }
+                return new ClassType(((java.lang.reflect.Method) method).getReturnType());
+            }
+
+            @Override
+            public Class<?>[] getParameterTypes() {
+                return method.getParameterTypes();
             }
         };
     }

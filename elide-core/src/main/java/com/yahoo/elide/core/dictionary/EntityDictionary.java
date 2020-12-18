@@ -26,6 +26,7 @@ import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.core.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.core.type.AccessibleObject;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.DynamicType;
 import com.yahoo.elide.core.type.Field;
@@ -47,7 +48,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
@@ -745,7 +745,7 @@ public class EntityDictionary {
      * @return Entity type for field otherwise null.
      */
     public Type<?> getParameterizedType(Object entity, String identifier) {
-        return getParameterizedType(entity.getClass(), identifier);
+        return getParameterizedType(getType(entity), identifier);
     }
 
     /**
@@ -756,8 +756,8 @@ public class EntityDictionary {
      * @param paramIndex the index of the parameterization
      * @return Entity type for field otherwise null.
      */
-    public Class<?> getParameterizedType(Object entity, String identifier, int paramIndex) {
-        return getParameterizedType(entity.getClass(), identifier, paramIndex);
+    public Type<?> getParameterizedType(Object entity, String identifier, int paramIndex) {
+        return getParameterizedType(getType(entity), identifier, paramIndex);
     }
 
     /**

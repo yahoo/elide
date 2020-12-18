@@ -7,7 +7,15 @@ public interface AccessibleObject extends Member {
         //NOOP
     }
 
+    default boolean isSynthetic() {
+        return false;
+    }
+
     boolean isAnnotationPresent(Class<? extends Annotation> annotationClass);
 
     <T extends Annotation> T getAnnotation(Class<T> annotationClass);
+
+    <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass);
+
+    Annotation[] getAnnotations();
 }
