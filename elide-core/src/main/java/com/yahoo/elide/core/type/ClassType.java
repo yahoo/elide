@@ -114,6 +114,11 @@ public class ClassType<T> implements Type<T> {
         return new Field() {
 
             @Override
+            public void setAccessible(boolean flag) {
+                field.setAccessible(flag);
+            }
+
+            @Override
             public boolean isSynthetic() {
                 return field.isSynthetic();
             }
@@ -131,6 +136,11 @@ public class ClassType<T> implements Type<T> {
             @Override
             public <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass) {
                 return field.getAnnotationsByType(annotationClass);
+            }
+
+            @Override
+            public Annotation[] getDeclaredAnnotations() {
+                return field.getDeclaredAnnotations();
             }
 
             @Override
@@ -174,6 +184,11 @@ public class ClassType<T> implements Type<T> {
             }
 
             @Override
+            public void setAccessible(boolean flag) {
+                method.setAccessible(flag);
+            }
+
+            @Override
             public boolean isSynthetic() {
                 return method.isSynthetic();
             }
@@ -191,6 +206,11 @@ public class ClassType<T> implements Type<T> {
             @Override
             public <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass) {
                 return method.getAnnotationsByType(annotationClass);
+            }
+
+            @Override
+            public Annotation[] getDeclaredAnnotations() {
+                return getDeclaredAnnotations();
             }
 
             @Override
