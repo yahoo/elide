@@ -18,6 +18,7 @@ import com.yahoo.elide.core.hibernate.Session;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Sorting;
+import com.yahoo.elide.core.type.Type;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -174,7 +175,7 @@ public abstract class AbstractHQLQueryBuilder {
 
         for (Path.PathElement pathElement : path.getPathElements()) {
             String fieldName = pathElement.getFieldName();
-            Class<?> typeClass = dictionary.lookupEntityClass(pathElement.getType());
+            Type<?> typeClass = dictionary.lookupEntityClass(pathElement.getType());
             String typeAlias = getTypeAlias(typeClass);
 
             // Nothing left to join.
