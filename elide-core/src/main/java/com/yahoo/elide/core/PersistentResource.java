@@ -54,7 +54,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 import io.reactivex.Observable;
-import lombok.Getter;
 import lombok.NonNull;
 
 import java.io.Serializable;

@@ -7,6 +7,7 @@ package com.yahoo.elide.core.exceptions;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.permissions.expressions.Expression;
+import com.yahoo.elide.core.type.ClassType;
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;
@@ -41,6 +42,6 @@ public class ForbiddenAccessException extends HttpStatusException {
     }
 
     private static String getMessage(Class<? extends Annotation> permission) {
-        return EntityDictionary.getSimpleName(permission) + " Denied";
+        return EntityDictionary.getSimpleName(new ClassType(permission)) + " Denied";
     }
 }

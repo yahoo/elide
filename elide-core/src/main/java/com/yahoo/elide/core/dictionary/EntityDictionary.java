@@ -7,6 +7,8 @@
 package com.yahoo.elide.core.dictionary;
 
 import static com.yahoo.elide.core.dictionary.EntityBinding.EMPTY_BINDING;
+import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
+import static com.yahoo.elide.core.type.ClassType.MAP_TYPE;
 import com.yahoo.elide.annotation.ApiVersion;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
@@ -820,6 +822,15 @@ public class EntityDictionary {
      *
      * @param cls Entity bean class
      */
+    public void bindEntity(Class<?> cls) {
+        bindEntity(new ClassType(cls));
+    }
+
+    /**
+     * Add given Entity bean to dictionary.
+     *
+     * @param cls Entity bean class
+     */
     public void bindEntity(Type<?> cls) {
         bindEntity(cls, new HashSet<>());
     }
@@ -1217,7 +1228,7 @@ public class EntityDictionary {
         return getAccessibleObject(target.getClass(), fieldName);
     }
 
-    public boolean isComputed(Class<?> entityClass, String fieldName) {
+    public boolean isComputed(Type<?> entityClass, String fieldName) {
         AccessibleObject fieldOrMethod = getAccessibleObject(entityClass, fieldName);
 
         if (fieldOrMethod == null) {
@@ -1315,6 +1326,23 @@ public class EntityDictionary {
      * @param phase PRESECURITY, PRECOMMIT, or POSTCOMMIT
      * @param hook The callback to invoke.
      */
+    public void bindTrigger(Class<?> entityClass,
+                            String fieldOrMethodName,
+                            LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
+                            LifeCycleHook hook) {
+        bindTrigger(new ClassType(entityClass), fieldOrMethodName, operation, phase, hook);
+    }
+
+    /**
+     * Binds a lifecycle hook to a particular field or method in an entity.  The hook will be called a
+     * single time per request per field READ, CREATE, or UPDATE.
+     * @param entityClass The entity that triggers the lifecycle hook.
+     * @param fieldOrMethodName The name of the field or method.
+     * @param operation CREATE, READ, or UPDATE
+     * @param phase PRESECURITY, PRECOMMIT, or POSTCOMMIT
+     * @param hook The callback to invoke.
+     */
     public void bindTrigger(Type<?> entityClass,
                             String fieldOrMethodName,
                             LifeCycleHookBinding.Operation operation,
@@ -1323,6 +1351,27 @@ public class EntityDictionary {
         bindIfUnbound(entityClass);
 
         getEntityBinding(entityClass).bindTrigger(operation, phase, fieldOrMethodName, hook);
+    }
+
+    /**
+     * Binds a lifecycle hook to a particular entity class.  The hook will either be called:
+     *  - A single time single time per request per class READ, CREATE, UPDATE, or DELETE.
+     *  - Multiple times per request per field READ, CREATE, or UPDATE.
+     *
+     * The behavior is determined by the value of the {@code allowMultipleInvocations} flag.
+     * @param entityClass The entity that triggers the lifecycle hook.
+     * @param operation CREATE, READ, or UPDATE
+     * @param phase PRESECURITY, PRECOMMIT, or POSTCOMMIT
+     * @param hook The callback to invoke.
+     * @param allowMultipleInvocations Should the same life cycle hook be invoked multiple times for multiple
+     *                                 CRUD actions on the same model.
+     */
+    public void bindTrigger(Class<?> entityClass,
+                            LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
+                            LifeCycleHook hook,
+                            boolean allowMultipleInvocations) {
+        bindTrigger(new ClassType(entityClass), operation, phase, hook, allowMultipleInvocations);
     }
 
     /**
@@ -1514,13 +1563,13 @@ public class EntityDictionary {
 
         Class<?> fieldClass = ((ClassType) fieldType).getCls();
         if (fieldType != null
-                && Collection.class.isAssignableFrom(fieldClass)
+                && COLLECTION_TYPE.isAssignableFrom(fieldType)
                 && value instanceof Collection) {
             return coerceCollection(target, (Collection) value, fieldName, fieldClass);
         }
 
 
-        if (fieldClass != null && Map.class.isAssignableFrom(fieldClass) && value instanceof Map) {
+        if (fieldType != null && MAP_TYPE.isAssignableFrom(fieldType) && value instanceof Map) {
             return coerceMap(target, (Map<?, ?>) value, fieldName);
         }
 

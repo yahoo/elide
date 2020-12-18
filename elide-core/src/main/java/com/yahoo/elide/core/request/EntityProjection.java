@@ -131,7 +131,7 @@ public class EntityProjection {
      */
     public static class EntityProjectionBuilder {
         @Getter
-        private Class<?> type;
+        private Type<?> type;
 
         private Set<Relationship> relationships = new LinkedHashSet<>();
 

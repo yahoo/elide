@@ -15,6 +15,7 @@ import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.type.Type;
 
 import java.io.Closeable;
 import java.io.Serializable;
@@ -99,11 +100,11 @@ public interface DataStoreTransaction extends Closeable {
     default Object loadObject(EntityProjection entityProjection,
                               Serializable id,
                               RequestScope scope) {
-        Class<?> entityClass = entityProjection.getType();
+        Type<?> entityClass = entityProjection.getType();
         FilterExpression filterExpression = entityProjection.getFilterExpression();
 
         EntityDictionary dictionary = scope.getDictionary();
-        Class idType = dictionary.getIdType(entityClass);
+        Type idType = dictionary.getIdType(entityClass);
         String idField = dictionary.getIdFieldName(entityClass);
         FilterExpression idFilter = new InPredicate(
                 new Path.PathElement(entityClass, idType, idField),
