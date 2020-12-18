@@ -17,5 +17,7 @@ public interface AccessibleObject extends Member {
 
     <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass);
 
+    Annotation[] getDeclaredAnnotations();
+
     Annotation[] getAnnotations();
 }
