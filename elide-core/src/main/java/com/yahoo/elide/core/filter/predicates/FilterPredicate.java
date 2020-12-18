@@ -13,6 +13,7 @@ import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
+import com.yahoo.elide.core.type.Type;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +58,7 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
                 .anyMatch(RelationshipType::isToMany);
     }
 
-    public static boolean isLastPathElementAssignableFrom(EntityDictionary dictionary, Path path, Class<?> clz) {
+    public static boolean isLastPathElementAssignableFrom(EntityDictionary dictionary, Path path, Type<?> clz) {
         return path.lastElement()
                 .map(last ->
                         clz.isAssignableFrom(
@@ -111,7 +112,7 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         return new FilterPredicate(new Path(pathElements), operator, values);
     }
 
-    public Class getEntityType() {
+    public Type getEntityType() {
         List<PathElement> elements = path.getPathElements();
         PathElement first = elements.get(0);
         return first.getType();

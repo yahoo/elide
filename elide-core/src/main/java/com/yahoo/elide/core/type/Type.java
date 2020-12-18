@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 
 public interface Type<T> {
+    String getCanonicalName();
     String getSimpleName();
     String getName();
     Method getMethod(String name, Type<?>... parameterTypes) throws NoSuchMethodException;

@@ -9,6 +9,7 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.type.Type;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -73,7 +74,7 @@ public class PaginationImpl implements Pagination {
     private final boolean defaultInstance;
 
     @Getter
-    private final Class<?> entityClass;
+    private final Type<?> entityClass;
 
     /**
      * Constructor.
@@ -85,7 +86,7 @@ public class PaginationImpl implements Pagination {
      * @param generateTotals Whether to return the total number of records.
      * @param pageByPages Whether to page by pages or records.
      */
-    public PaginationImpl(Class<?> entityClass,
+    public PaginationImpl(Type<?> entityClass,
                            Integer clientOffset,
                            Integer clientLimit,
                            int systemDefaultLimit,
@@ -150,7 +151,7 @@ public class PaginationImpl implements Pagination {
      * @return The new Pagination object.
      * @throws InvalidValueException invalid query parameter
      */
-    public static PaginationImpl parseQueryParams(Class<?> entityClass,
+    public static PaginationImpl parseQueryParams(Type<?> entityClass,
                                                   final Optional<MultivaluedMap<String, String>> queryParams,
                                                   ElideSettings elideSettings)
             throws InvalidValueException {
@@ -195,7 +196,7 @@ public class PaginationImpl implements Pagination {
      * @param elideSettings Settings containing pagination defaults
      * @return Pagination object
      */
-    private static PaginationImpl getPagination(Class<?> entityClass, Map<PaginationKey, Integer> pageData,
+    private static PaginationImpl getPagination(Type<?> entityClass, Map<PaginationKey, Integer> pageData,
                                                 ElideSettings elideSettings) {
         if (hasInvalidCombination(pageData)) {
             throw new InvalidValueException("Invalid usage of pagination parameters.");
@@ -231,7 +232,7 @@ public class PaginationImpl implements Pagination {
      * @param elideSettings general Elide settings
      * @return The default instance.
      */
-    public static PaginationImpl getDefaultPagination(Class<?> entityClass, ElideSettings elideSettings) {
+    public static PaginationImpl getDefaultPagination(Type<?> entityClass, ElideSettings elideSettings) {
         return new PaginationImpl(
                 entityClass,
                 null,
@@ -246,7 +247,7 @@ public class PaginationImpl implements Pagination {
      * Default Instance.
      * @return The default instance.
      */
-    public static PaginationImpl getDefaultPagination(Class<?> entityClass) {
+    public static PaginationImpl getDefaultPagination(Type<?> entityClass) {
         return new PaginationImpl(
                 entityClass,
                 null,

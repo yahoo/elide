@@ -15,12 +15,19 @@ public class ClassType<T> implements Type<T> {
 
     public static final ClassType MAP_TYPE = new ClassType(Map.class);
     public static final ClassType COLLECTION_TYPE = new ClassType(Collection.class);
+    public static final ClassType STRING_TYPE = new ClassType(String.class);
+    public static final ClassType NUMBER_TYPE = new ClassType(String.class);
 
     @Getter
     private Class<T> cls;
 
     public ClassType(Class<T> cls) {
         this.cls = cls;
+    }
+
+    @Override
+    public String getCanonicalName() {
+        return cls.getCanonicalName();
     }
 
     @Override
