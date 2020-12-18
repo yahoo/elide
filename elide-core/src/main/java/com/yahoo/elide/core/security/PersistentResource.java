@@ -20,9 +20,8 @@ public interface PersistentResource<T> {
     Optional<String> getUUID();
     String getId();
     String getTypeName();
-    Type getType();
 
     T getObject();
-    Class<T> getResourceType();
+    Type<T> getResourceType();
     RequestScope getRequestScope();
 }

@@ -9,6 +9,7 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.DELETE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
+import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
@@ -83,7 +84,6 @@ import java.util.stream.Collectors;
 public class PersistentResource<T> implements com.yahoo.elide.core.security.PersistentResource<T> {
     protected T obj;
 
-    @Getter
     private final Type type;
     private final String typeName;
     private final ResourceLineage lineage;
@@ -91,9 +91,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     private final DataStoreTransaction transaction;
     private final RequestScope requestScope;
     private int hashCode = 0;
-
-    @Getter
-    private Type entityType;
 
     public static final String CLASS_NO_FIELD = "";
 
@@ -868,9 +865,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      * @return Boolean
      */
     public boolean isIdGenerated() {
-        return dictionary.getEntityBinding(
-            getObject().getClass()
-        ).isIdGenerated();
+        return dictionary.getEntityBinding(type).isIdGenerated();
     }
 
 
@@ -923,7 +918,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 .orElse(null);
 
         assertRelationshipExists(relationship.getName());
-        Class<?> entityType = dictionary.getParameterizedType(getResourceType(), relationship.getName());
+        Type<?> entityType = dictionary.getParameterizedType(getResourceType(), relationship.getName());
 
         Set<PersistentResource> newResources = new LinkedHashSet<>();
 
@@ -1062,7 +1057,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             return Observable.empty();
         }
 
-        final Class<?> relationClass = dictionary.getParameterizedType(obj, relationship.getName());
+        Type<?> relationClass = dictionary.getParameterizedType(obj, relationship.getName());
 
         Optional<Pagination> pagination = Optional.ofNullable(relationship.getProjection().getPagination());
 
@@ -1121,7 +1116,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         Sorting sorting = relationship.getProjection().getSorting();
 
         RelationshipType type = getRelationshipType(relationName);
-        final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
+        final Type<?> relationClass = dictionary.getParameterizedType(obj, relationName);
         if (relationClass == null) {
             throw new InvalidAttributeException(relationName, this.getTypeName());
         }
@@ -1239,7 +1234,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     @Override
     @JsonIgnore
     public Type<T> getResourceType() {
-        return dictionary.lookupBoundClass(EntityDictionary.getType(obj));
+        return (Type) dictionary.lookupBoundClass(EntityDictionary.getType(obj));
     }
 
     /**
@@ -1636,7 +1631,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         String inverseField = getInverseRelationField(relationName);
 
         if (!"".equals(inverseField)) {
-            Class<?> inverseType = dictionary.getType(inverseEntity.getClass(), inverseField);
+            Type<?> inverseType = dictionary.getType(inverseEntity.getClass(), inverseField);
 
             String uuid = requestScope.getUUIDFor(inverseEntity);
             PersistentResource inverseResource = new PersistentResource(inverseEntity,
@@ -1675,7 +1670,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     }
 
     private String getInverseRelationField(String relationName) {
-        return dictionary.getRelationInverse(obj.getClass(), relationName);
+        return dictionary.getRelationInverse(type, relationName);
     }
 
     /**
@@ -1685,17 +1680,17 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      * @param inverseObj The value (B) which has been added to this object.
      */
     protected void addInverseRelation(String relationName, Object inverseObj) {
-        String inverseName = dictionary.getRelationInverse(obj.getClass(), relationName);
+        String inverseName = dictionary.getRelationInverse(type, relationName);
 
         if (!"".equals(inverseName)) {
-            Class<?> inverseType = dictionary.getType(inverseObj.getClass(), inverseName);
+            Type<?> inverseType = dictionary.getType(inverseObj, inverseName);
 
             String uuid = requestScope.getUUIDFor(inverseObj);
             PersistentResource inverseResource = new PersistentResource(inverseObj,
                     this, relationName, uuid, requestScope);
             Object inverseRelation = inverseResource.getValueUnchecked(inverseName);
 
-            if (Collection.class.isAssignableFrom(inverseType)) {
+            if (COLLECTION_TYPE.isAssignableFrom(inverseType)) {
                 if (inverseRelation != null) {
                     inverseResource.addToCollection((Collection) inverseRelation, inverseName, this);
                 } else {
@@ -1800,7 +1795,8 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     private static <A extends Annotation> ExpressionResult checkUserPermission(
             Class<A> annotationClass, Object obj, RequestScope requestScope) {
-        return requestScope.getPermissionExecutor().checkUserPermissions(obj.getClass(), annotationClass);
+        return requestScope.getPermissionExecutor()
+                .checkUserPermissions(EntityDictionary.getType(obj), annotationClass);
     }
 
     private <A extends Annotation> ExpressionResult checkFieldAwarePermissions(Class<A> annotationClass) {

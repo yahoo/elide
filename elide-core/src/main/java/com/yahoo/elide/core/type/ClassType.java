@@ -7,9 +7,15 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ClassType<T> implements Type<T> {
+
+    public static final ClassType MAP_TYPE = new ClassType(Map.class);
+    public static final ClassType COLLECTION_TYPE = new ClassType(Collection.class);
+
     @Getter
     private Class<T> cls;
 

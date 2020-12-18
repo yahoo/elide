@@ -7,6 +7,7 @@
 package com.yahoo.elide.core.utils;
 
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.type.Type;
 import com.google.common.collect.Sets;
 
 import java.util.List;
@@ -96,7 +97,7 @@ public class TypeHelper {
      * @param type The type to alias
      * @return type name alias that will likely not conflict with other types or with reserved keywords.
      */
-    public static String getTypeAlias(Class<?> type) {
+    public static String getTypeAlias(Type<?> type) {
         return type.getCanonicalName().replace(PERIOD, UNDERSCORE);
     }
 
