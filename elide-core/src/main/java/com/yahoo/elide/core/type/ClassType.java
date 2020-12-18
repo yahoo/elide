@@ -300,8 +300,12 @@ public class ClassType<T> implements Type<T> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ClassType<?> classType = (ClassType<?>) o;
         return Objects.equals(cls, classType.cls);
     }
