@@ -38,6 +38,7 @@ import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate.FilterParameter;
+import com.yahoo.elide.core.type.Type;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.tuple.Triple;
 
@@ -54,7 +55,7 @@ public class FilterTranslator implements FilterOperation<String> {
     private static final String COMMA = ", ";
 
     private static Map<Operator, JPQLPredicateGenerator> operatorGenerators;
-    private static Map<Triple<Operator, Class<?>, String>, JPQLPredicateGenerator> predicateOverrides;
+    private static Map<Triple<Operator, Type<?>, String>, JPQLPredicateGenerator> predicateOverrides;
 
     public static final Function<FilterPredicate, String> GENERATE_HQL_COLUMN_NO_ALIAS = FilterPredicate::getFieldPath;
 
@@ -213,7 +214,7 @@ public class FilterTranslator implements FilterOperation<String> {
      * @param generator The generator to resgister
      */
     public static void registerJPQLGenerator(Operator op,
-                                             Class<?> entityClass,
+                                             Type<?> entityClass,
                                              String fieldName,
                                              JPQLPredicateGenerator generator) {
         predicateOverrides.put(Triple.of(op, entityClass, fieldName), generator);
@@ -227,7 +228,7 @@ public class FilterTranslator implements FilterOperation<String> {
      * @return Returns null if no generator is registered.
      */
     public static JPQLPredicateGenerator lookupJPQLGenerator(Operator op,
-                                                             Class<?> entityClass,
+                                                             Type<?> entityClass,
                                                              String fieldName) {
         return predicateOverrides.get(Triple.of(op, entityClass, fieldName));
     }

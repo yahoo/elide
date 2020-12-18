@@ -1610,7 +1610,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         String inverseField = getInverseRelationField(relationName);
 
         if (!"".equals(inverseField)) {
-            Type<?> inverseType = dictionary.getType(inverseEntity.getClass(), inverseField);
+            Type<?> inverseType = dictionary.getType(inverseEntity, inverseField);
 
             String uuid = requestScope.getUUIDFor(inverseEntity);
             PersistentResource inverseResource = new PersistentResource(inverseEntity,
