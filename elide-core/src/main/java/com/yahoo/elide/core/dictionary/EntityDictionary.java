@@ -1257,7 +1257,7 @@ public class EntityDictionary {
      * @param targetType Type of fields to find
      * @return Set containing field names
      */
-    public Set<String> getFieldsOfType(Class<?> targetClass, Class<?> targetType) {
+    public Set<String> getFieldsOfType(Type<?> targetClass, Type<?> targetType) {
         HashSet<String> fields = new HashSet<>();
         for (String field : getAllFields(targetClass)) {
             if (getParameterizedType(targetClass, field).equals(targetType)) {
@@ -1457,7 +1457,7 @@ public class EntityDictionary {
      * @param cls The class to verify.
      * @return true if the class is bound.  False otherwise.
      */
-    public boolean hasBinding(Class<?> cls) {
+    public boolean hasBinding(Type<?> cls) {
         return entityBindings.values().stream()
                 .anyMatch(binding -> binding.entityClass.equals(cls));
     }
