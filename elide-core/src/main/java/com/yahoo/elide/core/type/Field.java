@@ -1,9 +1,7 @@
 package com.yahoo.elide.core.type;
 
 public interface Field extends AccessibleObject {
-    default boolean isSynthetic() {
-        return false;
-    }
+    String getName();
 
     Object get(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
