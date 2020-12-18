@@ -88,6 +88,23 @@ public interface DataStoreTransaction extends Closeable {
     void createObject(Object entity, RequestScope scope);
 
     /**
+     * Create a new instance of an object.
+     *
+     * @param entityClass the class
+     * @param <T> the class to create
+     * @return a new instance of type T
+     */
+     default <T> T createNewObject(Type<T> entityClass) {
+        T obj;
+        try {
+            obj = entityClass.newInstance();
+        } catch (java.lang.InstantiationException | IllegalAccessException e) {
+            obj = null;
+        }
+        return obj;
+     }
+
+    /**
      * Loads an object by ID.  The reason we support both load by ID and load by filter is that
      * some legacy stores are optimized to load by ID.
      *
