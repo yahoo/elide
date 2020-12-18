@@ -65,6 +65,11 @@ public class ClassType<T> implements Type<T> {
     }
 
     @Override
+    public T newInstance() throws InstantiationException, IllegalAccessException {
+        return cls.newInstance();
+    }
+
+    @Override
     public Package getPackage() {
         return constructPackage(cls.getPackage());
     }

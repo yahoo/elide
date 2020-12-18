@@ -63,7 +63,7 @@ public class IncludedProcessor implements DocumentProcessor {
             List<String> requestedRelationPaths) {
 
         EntityProjectionMaker maker = new EntityProjectionMaker(rec.getDictionary(), rec.getRequestScope());
-        EntityProjection projection = maker.parseInclude(rec.getResourceClass());
+        EntityProjection projection = maker.parseInclude(rec.getResourceType());
         // Process each include relation path
         requestedRelationPaths.forEach(pathParam -> {
             List<String> pathList = Arrays.asList(pathParam.split(RELATION_PATH_SEPARATOR));

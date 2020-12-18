@@ -265,7 +265,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         } else {
             assert context.parentResource != null;
             entityClass = dictionary.getParameterizedType(
-                    context.parentResource.getResourceClass(),
+                    context.parentResource.getResourceType(),
                     context.field.getName());
         }
 
@@ -276,7 +276,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
             parentEntity = Optional.of(new Entity(
                     Optional.empty(),
                     null,
-                    context.parentResource.getResourceClass(),
+                    context.parentResource.getResourceType(),
                     context.requestScope));
         } else {
             parentEntity = Optional.empty();
