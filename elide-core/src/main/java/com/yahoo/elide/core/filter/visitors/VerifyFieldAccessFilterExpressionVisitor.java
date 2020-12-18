@@ -111,7 +111,7 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
                 .name(fieldName)
                 .alias(fieldName)
                 .projection(EntityProjection.builder()
-                        .type(dictionary.getParameterizedType(resource.getResourceClass(), fieldName))
+                        .type(dictionary.getParameterizedType(resource.getResourceType(), fieldName))
                         .build())
                 .build();
         // use no filter to allow the read directly from loaded resource

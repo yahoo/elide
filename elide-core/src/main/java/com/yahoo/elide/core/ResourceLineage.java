@@ -82,7 +82,7 @@ public class ResourceLineage {
     }
 
     private void addRecord(PersistentResource latest) {
-        addRecord(latest, latest.getType());
+        addRecord(latest, latest.getTypeName());
     }
 
     @Override

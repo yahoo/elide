@@ -22,4 +22,5 @@ public interface Type<T> {
         return false;
     }
     boolean hasSuperType();
+    T newInstance() throws InstantiationException, IllegalAccessException;
 }

@@ -13,6 +13,7 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.PersistentResource;
+import com.yahoo.elide.core.type.Type;
 import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
 
@@ -24,7 +25,7 @@ import java.util.Optional;
  */
 public class PermissionCondition {
     @Getter final Class<? extends Annotation> permission;
-    @Getter final Class<?> entityClass;
+    @Getter final Type<?> entityClass;
     @Getter final Optional<PersistentResource> resource;
     @Getter final Optional<ChangeSpec> changes;
     @Getter final Optional<String> field;
@@ -74,7 +75,7 @@ public class PermissionCondition {
     PermissionCondition(Class<? extends Annotation> permission, PersistentResource resource) {
         this.permission = permission;
         this.resource = Optional.of(resource);
-        this.entityClass = resource.getResourceClass();
+        this.entityClass = resource.getType();
         this.changes = Optional.empty();
         this.field = Optional.empty();
     }
@@ -82,12 +83,12 @@ public class PermissionCondition {
     PermissionCondition(Class<? extends Annotation> permission, PersistentResource resource, ChangeSpec changes) {
         this.permission = permission;
         this.resource = Optional.of(resource);
-        this.entityClass = resource.getResourceClass();
+        this.entityClass = resource.getType();
         this.changes = Optional.of(changes);
         this.field = Optional.ofNullable(changes.getFieldName());
     }
 
-    PermissionCondition(Class<? extends Annotation> permission, Class<?> entityClass) {
+    PermissionCondition(Class<? extends Annotation> permission, Type<?> entityClass) {
         this.permission = permission;
         this.resource = Optional.empty();
         this.entityClass = entityClass;
@@ -95,7 +96,7 @@ public class PermissionCondition {
         this.field = Optional.empty();
     }
 
-    PermissionCondition(Class<? extends Annotation> permission, Class<?> entityClass, String field) {
+    PermissionCondition(Class<? extends Annotation> permission, Type<?> entityClass, String field) {
         this.permission = permission;
         this.resource = Optional.empty();
         this.entityClass = entityClass;
@@ -106,7 +107,7 @@ public class PermissionCondition {
     PermissionCondition(Class<? extends Annotation> permission, PersistentResource resource, String field) {
         this.permission = permission;
         this.resource = Optional.of(resource);
-        this.entityClass = resource.getResourceClass();
+        this.entityClass = resource.getType();
         this.changes = Optional.empty();
         this.field = Optional.of(field);
     }

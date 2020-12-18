@@ -151,7 +151,7 @@ public class CollectionTerminalState extends BaseState {
         List<Resource> resources = collection.stream().map(PersistentResource::toResource).collect(Collectors.toList());
 
         if (parent.isPresent()) {
-            Class<?> parentClass = parent.get().getResourceClass();
+            Class<?> parentClass = parent.get().getResourceType();
             String relationshipName = relationName.get();
             RelationshipType type = dictionary.getRelationshipType(parentClass, relationshipName);
 

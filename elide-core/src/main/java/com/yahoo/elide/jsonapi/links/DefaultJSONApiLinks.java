@@ -41,9 +41,9 @@ public class DefaultJSONApiLinks implements JSONApiLinks {
             result.append(resource.getRequestScope().getBaseUrlEndPoint());
         }
         for (PersistentResource resourcePath : resource.getLineage().getResourcePath()) {
-            result.append(String.join("/", resourcePath.getType(), resourcePath.getId()));
+            result.append(String.join("/", resourcePath.getTypeName(), resourcePath.getId()));
         }
-        result.append(String.join("/", resource.getType(), resource.getId()));
+        result.append(String.join("/", resource.getTypeName(), resource.getId()));
         return result.toString();
     }
 }

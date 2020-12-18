@@ -257,7 +257,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
 
     public Set<PersistentResource> getRelation(PersistentResource resource, String relation) {
         Observable<PersistentResource> resources =
-                resource.getRelationCheckedFiltered(getRelationship(resource.getResourceClass(), relation));
+                resource.getRelationCheckedFiltered(getRelationship(resource.getResourceType(), relation));
 
         return resources.toList(LinkedHashSet::new).blockingGet();
     }

@@ -26,6 +26,7 @@ import com.yahoo.elide.core.security.permissions.expressions.OrExpression;
 import com.yahoo.elide.core.security.permissions.expressions.SpecificFieldExpression;
 import com.yahoo.elide.core.security.visitors.PermissionExpressionVisitor;
 import com.yahoo.elide.core.security.visitors.PermissionToFilterExpressionVisitor;
+import com.yahoo.elide.core.type.Type;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.lang.annotation.Annotation;
@@ -70,7 +71,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                                                                            final String field,
                                                                            final ChangeSpec changeSpec) {
 
-        Class<?> resourceClass = resource.getResourceClass();
+        Type<?> resourceClass = resource.getType();
         if (!entityDictionary.entityHasChecksForPermission(resourceClass, annotationClass)) {
             return SUCCESSFUL_EXPRESSION;
         }
@@ -100,7 +101,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                                                                        final ChangeSpec changeSpec) {
 
 
-        Class<?> resourceClass = resource.getResourceClass();
+        Type<?> resourceClass = resource.getType();
         if (!entityDictionary.entityHasChecksForPermission(resourceClass, annotationClass)) {
             return SUCCESSFUL_EXPRESSION;
         }
@@ -129,7 +130,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      * @param <A>             type parameter
      * @return User check expression to evaluate
      */
-    public <A extends Annotation> Expression buildUserCheckFieldExpressions(final Class<?> resourceClass,
+    public <A extends Annotation> Expression buildUserCheckFieldExpressions(final Type<?> resourceClass,
                                                                              final RequestScope scope,
                                                                              final Class<A> annotationClass,
                                                                              final String field) {
@@ -155,7 +156,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      * @param <A>             type parameter
      * @return User check expression to evaluate
      */
-    public <A extends Annotation> Expression buildUserCheckAnyExpression(final Class<?> resourceClass,
+    public <A extends Annotation> Expression buildUserCheckAnyExpression(final Type<?> resourceClass,
                                                                          final Class<A> annotationClass,
                                                                          final RequestScope requestScope) {
 
@@ -175,7 +176,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      */
     private Expression buildSpecificFieldExpression(final PermissionCondition condition,
             final Function<Check, Expression> checkFn) {
-        Class<?> resourceClass = condition.getEntityClass();
+        Type<?> resourceClass = condition.getEntityClass();
         Class<? extends Annotation> annotationClass = condition.getPermission();
         String field = condition.getField().isPresent() ? condition.getField().get() : null;
 
@@ -200,7 +201,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
             final Function<Check, Expression> checkFn,
             final RequestScope scope) {
 
-        Class<?> resourceClass = condition.getEntityClass();
+        Type<?> resourceClass = condition.getEntityClass();
         Class<? extends Annotation> annotationClass = condition.getPermission();
 
         ParseTree classPermissions = entityDictionary.getPermissionsForClass(resourceClass, annotationClass);
@@ -232,7 +233,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      * @param requestScope requestScope
      * @return Expressions
      */
-    public FilterExpression buildAnyFieldFilterExpression(Class<?> forType, RequestScope requestScope) {
+    public FilterExpression buildAnyFieldFilterExpression(Type<?> forType, RequestScope requestScope) {
 
         Class<? extends Annotation> annotationClass = ReadPermission.class;
         ParseTree classPermissions = entityDictionary.getPermissionsForClass(forType, annotationClass);
@@ -292,7 +293,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         return new PermissionExpressionVisitor(entityDictionary, checkFn).visit(permissions);
     }
 
-    private FilterExpression filterExpressionFromParseTree(ParseTree permissions, Class type, RequestScope scope) {
+    private FilterExpression filterExpressionFromParseTree(ParseTree permissions, Type type, RequestScope scope) {
         if (permissions == null) {
             return null;
         }

@@ -8,6 +8,7 @@ package com.yahoo.elide.core.request;
 
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.type.Type;
 import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,7 +29,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class EntityProjection {
     @NonNull
-    private Class<?> type;
+    private Type<?> type;
 
     private Set<Attribute> attributes;
 
