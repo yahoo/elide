@@ -890,7 +890,7 @@ public class EntityDictionary {
      * @return the annotation
      */
     public <A extends Annotation> A getAnnotation(PersistentResource record, Class<A> annotationClass) {
-        return getAnnotation(record.getEntityType(), annotationClass);
+        return getAnnotation(record.getResourceType(), annotationClass);
     }
 
     /**

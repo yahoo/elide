@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.filter.dialect.jsonapi;
 
+import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
@@ -12,6 +13,7 @@ import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 
@@ -107,7 +109,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
 
         for (FilterPredicate filterPredicate : filterPredicates) {
 
-            Class firstClass = filterPredicate.getPath().getPathElements().get(0).getType();
+            Type firstClass = filterPredicate.getPath().getPathElements().get(0).getType();
 
             /* The first type in the predicate must match the first collection in the URL */
             if (!dictionary.getJsonAliasFor(firstClass).equals(firstPathComponent)) {
@@ -117,7 +119,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
             if ((filterPredicate.getOperator().equals(Operator.HASMEMBER)
                     || filterPredicate.getOperator().equals(Operator.HASNOMEMBER))
                 && !FilterPredicate.isLastPathElementAssignableFrom(
-                        dictionary, filterPredicate.getPath(), Collection.class)) {
+                        dictionary, filterPredicate.getPath(), COLLECTION_TYPE)) {
                 throw new ParseException("Invalid Path: Last Path Element has to be a collection type");
             }
 
@@ -167,7 +169,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
 
         List<Path.PathElement> path = new ArrayList<>();
 
-        Class<?>[] types = new Class[keyParts.length];
+        Type<?>[] types = new Type[keyParts.length];
         String type = keyParts[0];
 
         types[0] = dictionary.getEntityClass(type, apiVersion);
@@ -179,8 +181,8 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
         /* Extract all the paths for the associations */
         for (int i = 1; i < keyParts.length; ++i) {
             final String field = keyParts[i];
-            final Class<?> entityClass = types[i - 1];
-            final Class<?> fieldType = ("id".equals(field.toLowerCase(Locale.ENGLISH)))
+            final Type<?> entityClass = types[i - 1];
+            final Type<?> fieldType = ("id".equals(field.toLowerCase(Locale.ENGLISH)))
                     ? dictionary.getIdType(entityClass)
                     : dictionary.getParameterizedType(entityClass, field);
             if (fieldType == null) {
@@ -192,9 +194,9 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
 
         /* Build all the Predicate path elements */
         for (int i = 0; i < types.length - 1; ++i) {
-            Class typeClass = types[i];
+            Type typeClass = types[i];
             String fieldName = keyParts[i + 1];
-            Class fieldClass = types[i + 1];
+            Type fieldClass = types[i + 1];
             Path.PathElement pathElement = new Path.PathElement(typeClass, fieldClass, fieldName);
 
             path.add(pathElement);
@@ -241,7 +243,7 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
             throw new ParseException("Invalid toMany join: member of operator cannot be used for toMany relationships");
         }
 
-        if (!FilterPredicate.isLastPathElementAssignableFrom(dictionary, filterPredicate.getPath(), Collection.class)) {
+        if (!FilterPredicate.isLastPathElementAssignableFrom(dictionary, filterPredicate.getPath(), COLLECTION_TYPE)) {
             throw new ParseException("Invalid Path: Last Path Element has to be a collection type");
         }
     }

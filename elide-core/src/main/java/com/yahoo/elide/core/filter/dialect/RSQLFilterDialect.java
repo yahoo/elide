@@ -6,6 +6,9 @@
 package com.yahoo.elide.core.filter.dialect;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.REGULAR_ID_NAME;
+import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
+import static com.yahoo.elide.core.type.ClassType.NUMBER_TYPE;
+import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import static com.yahoo.elide.core.utils.TypeHelper.isPrimitiveNumberType;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -26,6 +29,7 @@ import com.yahoo.elide.core.filter.predicates.IsNullPredicate;
 import com.yahoo.elide.core.filter.predicates.NotEmptyPredicate;
 import com.yahoo.elide.core.filter.predicates.NotNullPredicate;
 import com.yahoo.elide.core.request.Attribute;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.google.common.collect.ImmutableMap;
@@ -105,7 +109,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
     }
 
     @Override
-    public FilterExpression parse(Class<?> entityClass,
+    public FilterExpression parse(Type<?> entityClass,
                                   Set<Attribute> attributes,
                                   String filterText,
                                   String apiVersion)
@@ -147,7 +151,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
          * This works today by virtue that global filter expressions are only used for root collections
          * and NOT nested associations.
          */
-        Class entityType = dictionary.getEntityClass(lastPathComponent, apiVersion);
+        Type entityType = dictionary.getEntityClass(lastPathComponent, apiVersion);
         if (entityType == null) {
             throw new ParseException("No such collection: " + lastPathComponent);
         }
@@ -174,7 +178,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                     throw new ParseException("Exactly one RSQL expression must be defined for type : " + typeName);
                 }
 
-                Class entityType = dictionary.getEntityClass(typeName, apiVersion);
+                Type entityType = dictionary.getEntityClass(typeName, apiVersion);
                 if (entityType == null) {
                     throw new ParseException(INVALID_QUERY_PARAMETER + paramName);
                 }
@@ -199,7 +203,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
      * @throws ParseException
      */
     public FilterExpression parseFilterExpression(String expressionText,
-                                                  Class<?> entityType,
+                                                  Type<?> entityType,
                                                   boolean allowNestedToManyAssociations) throws ParseException {
         return parseFilterExpression(expressionText, entityType, true, allowNestedToManyAssociations);
     }
@@ -214,7 +218,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
      * @throws ParseException
      */
     public FilterExpression parseFilterExpression(String expressionText,
-                                                  Class<?> entityType,
+                                                  Type<?> entityType,
                                                   boolean coerceValues,
                                                   boolean allowNestedToManyAssociations) throws ParseException {
         return parseFilterExpression(expressionText, entityType, coerceValues,
@@ -233,7 +237,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
      * @throws ParseException
      */
     public FilterExpression parseFilterExpression(String expressionText,
-                                                  Class<?> entityType,
+                                                  Type<?> entityType,
                                                   boolean coerceValues,
                                                   boolean allowNestedToManyAssociations,
                                                   Set<Attribute> attributes) throws ParseException {
@@ -267,7 +271,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
     /**
      * Visitor which converts RSQL abstract syntax tree into an Elide filter expression.
      */
-    public class RSQL2FilterExpressionVisitor implements RSQLVisitor<FilterExpression, Class> {
+    public class RSQL2FilterExpressionVisitor implements RSQLVisitor<FilterExpression, Type> {
         private boolean allowNestedToManyAssociations = false;
         private boolean coerceValues = true;
         private Set<Attribute> attributes;
@@ -283,7 +287,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
             this.attributes = attributes;
         }
 
-        private Path buildAttribute(Class rootEntityType, String attributeName) {
+        private Path buildAttribute(Type rootEntityType, String attributeName) {
             Attribute attribute = attributes.stream()
                     .filter(attr -> attr.getName().equals(attributeName) || attr.getAlias().equals(attributeName))
                     .findFirst().orElse(null);
@@ -296,11 +300,11 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
             }
         }
 
-        private Path buildPath(Class rootEntityType, String selector) {
+        private Path buildPath(Type rootEntityType, String selector) {
             String[] associationNames = selector.split("\\.");
 
             List<Path.PathElement> path = new ArrayList<>();
-            Class entityType = rootEntityType;
+            Type entityType = rootEntityType;
 
             for (String associationName : associationNames) {
                 // if the association name is "id", replaced it with real id field name
@@ -310,7 +314,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                 }
 
                 String typeName = dictionary.getJsonAliasFor(entityType);
-                Class fieldType = dictionary.getParameterizedType(entityType, associationName);
+                Type fieldType = dictionary.getParameterizedType(entityType, associationName);
 
                 if (fieldType == null) {
                     throw new RSQLParseException(
@@ -325,7 +329,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
         }
 
         @Override
-        public FilterExpression visit(AndNode node, Class entityType) {
+        public FilterExpression visit(AndNode node, Type entityType) {
 
             List<Node> children = node.getChildren();
             if (children.size() < 2) {
@@ -345,7 +349,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
         }
 
         @Override
-        public FilterExpression visit(OrNode node, Class entityType) {
+        public FilterExpression visit(OrNode node, Type entityType) {
 
             List<Node> children = node.getChildren();
             if (children.size() < 2) {
@@ -365,7 +369,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
         }
 
         @Override
-        public FilterExpression visit(ComparisonNode node, Class entityType) {
+        public FilterExpression visit(ComparisonNode node, Type entityType) {
             ComparisonOperator op = node.getOperator();
             String relationship = node.getSelector();
             List<String> arguments = node.getArguments();
@@ -394,7 +398,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                     throw new RSQLParseException(
                             "Invalid toMany join: member of operator cannot be used for toMany relationships");
                 }
-                if (!FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, Collection.class)) {
+                if (!FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, COLLECTION_TYPE)) {
                     throw new RSQLParseException("Invalid Path: Last Path Element has to be a collection type");
                 }
             }
@@ -408,14 +412,14 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                 return buildIsNullOperator(path, arguments);
             }
 
-            Class<?> relationshipType = path.lastElement()
+            Type<?> relationshipType = path.lastElement()
                     .map(Path.PathElement::getFieldType)
                     .orElseThrow(() -> new IllegalStateException("Path must not be empty"));
 
             //Coerce arguments to their correct types
             List<Object> values = arguments.stream()
                     .map(argument ->
-                            isPrimitiveNumberType(relationshipType) || Number.class.isAssignableFrom(relationshipType)
+                            isPrimitiveNumberType(relationshipType) || NUMBER_TYPE.isAssignableFrom(relationshipType)
                                     ? argument.replace("*", "") //Support filtering on number types
                                     : argument
                     )
@@ -473,7 +477,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
             }
 
             Boolean isStringLike = path.lastElement()
-                    .map(e -> e.getFieldType().isAssignableFrom(String.class))
+                    .map(e -> e.getFieldType().isAssignableFrom(STRING_TYPE))
                     .orElse(false);
             if (isStringLike) {
                 Operator op = caseSensitive
