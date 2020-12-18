@@ -112,7 +112,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                                                                    ChangeSpec changeSpec) {
         Supplier<Expression> expressionSupplier = () -> {
             if (NonTransferable.class == annotationClass) {
-                if (requestScope.getDictionary().isTransferable(resource.getType())) {
+                if (requestScope.getDictionary().isTransferable(resource.getResourceType())) {
                     return expressionBuilder.buildAnyFieldExpressions(resource, ReadPermission.class, changeSpec);
                 }
                 return PermissionExpressionBuilder.FAIL_EXPRESSION;
@@ -129,7 +129,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         };
 
         return checkPermissions(
-                resource.getType(),
+                resource.getResourceType(),
                 annotationClass,
                 Optional.empty(),
                 expressionSupplier,
@@ -174,7 +174,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         };
 
         return checkPermissions(
-                resource.getType(),
+                resource.getResourceType(),
                 annotationClass,
                 Optional.of(field),
                 expressionSupplier,
@@ -217,7 +217,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         };
 
         return checkPermissions(
-                resource.getType(),
+                resource.getResourceType(),
                 expressionAnnotation,
                 Optional.of(field),
                 expressionSupplier,

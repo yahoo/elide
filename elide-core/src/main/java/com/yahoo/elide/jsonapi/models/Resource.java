@@ -12,6 +12,7 @@ import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.UnknownEntityException;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.jsonapi.serialization.KeySerializer;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -148,7 +149,7 @@ public class Resource {
         throws ForbiddenAccessException, InvalidObjectIdentifierException {
         EntityDictionary dictionary = requestScope.getDictionary();
 
-        Class<?> cls = dictionary.getEntityClass(type, requestScope.getApiVersion());
+        Type<?> cls = dictionary.getEntityClass(type, requestScope.getApiVersion());
 
         if (cls == null) {
             throw new UnknownEntityException(type);

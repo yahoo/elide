@@ -154,11 +154,6 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> T createNewObject(Class<T> entityClass) {
-        return tx.createNewObject(entityClass);
-    }
-
-    @Override
     public void close() throws IOException {
         tx.close();
     }

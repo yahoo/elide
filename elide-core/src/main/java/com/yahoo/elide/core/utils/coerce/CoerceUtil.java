@@ -6,7 +6,6 @@
 package com.yahoo.elide.core.utils.coerce;
 
 import static com.yahoo.elide.core.utils.TypeHelper.isNumberType;
-import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.type.ClassType;

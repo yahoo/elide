@@ -75,7 +75,7 @@ public class PermissionCondition {
     PermissionCondition(Class<? extends Annotation> permission, PersistentResource resource) {
         this.permission = permission;
         this.resource = Optional.of(resource);
-        this.entityClass = resource.getType();
+        this.entityClass = resource.getResourceType();
         this.changes = Optional.empty();
         this.field = Optional.empty();
     }
@@ -83,7 +83,7 @@ public class PermissionCondition {
     PermissionCondition(Class<? extends Annotation> permission, PersistentResource resource, ChangeSpec changes) {
         this.permission = permission;
         this.resource = Optional.of(resource);
-        this.entityClass = resource.getType();
+        this.entityClass = resource.getResourceType();
         this.changes = Optional.of(changes);
         this.field = Optional.ofNullable(changes.getFieldName());
     }
@@ -107,7 +107,7 @@ public class PermissionCondition {
     PermissionCondition(Class<? extends Annotation> permission, PersistentResource resource, String field) {
         this.permission = permission;
         this.resource = Optional.of(resource);
-        this.entityClass = resource.getType();
+        this.entityClass = resource.getResourceType();
         this.changes = Optional.empty();
         this.field = Optional.of(field);
     }

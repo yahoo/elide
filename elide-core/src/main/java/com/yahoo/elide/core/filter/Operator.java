@@ -5,11 +5,13 @@
  */
 package com.yahoo.elide.core.filter;
 
+import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidOperatorNegationException;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -466,11 +468,11 @@ public enum Operator {
 
     private static boolean evaluate(Object entity, Path fieldPath, List<Object> values,
                              BiPredicate predicate, RequestScope requestScope) {
-        Class<?> valueClass = fieldPath.lastElement().get().getFieldType();
+        Type<?> valueClass = fieldPath.lastElement().get().getFieldType();
 
         Object leftHandSide = getFieldValue(entity, fieldPath, requestScope);
 
-        if (leftHandSide instanceof Collection && !valueClass.isAssignableFrom(Collection.class)) {
+        if (leftHandSide instanceof Collection && !valueClass.isAssignableFrom(COLLECTION_TYPE)) {
             return ((Collection) leftHandSide).stream()
                     .anyMatch((leftHandSideElement) -> {
                         return values.stream()

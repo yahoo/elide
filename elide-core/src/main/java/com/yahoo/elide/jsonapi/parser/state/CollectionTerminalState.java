@@ -18,6 +18,7 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.exceptions.UnknownEntityException;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.document.processors.DocumentProcessor;
 import com.yahoo.elide.jsonapi.document.processors.IncludedProcessor;
@@ -53,11 +54,11 @@ import javax.ws.rs.core.MultivaluedMap;
 public class CollectionTerminalState extends BaseState {
     private final Optional<PersistentResource> parent;
     private final Optional<String> relationName;
-    private final Class<?> entityClass;
+    private final Type<?> entityClass;
     private PersistentResource newObject;
     private final EntityProjection parentProjection;
 
-    public CollectionTerminalState(Class<?> entityClass, Optional<PersistentResource> parent,
+    public CollectionTerminalState(Type<?> entityClass, Optional<PersistentResource> parent,
                                    Optional<String> relationName, EntityProjection projection) {
         this.parentProjection = projection;
         this.parent = parent;
@@ -151,7 +152,7 @@ public class CollectionTerminalState extends BaseState {
         List<Resource> resources = collection.stream().map(PersistentResource::toResource).collect(Collectors.toList());
 
         if (parent.isPresent()) {
-            Class<?> parentClass = parent.get().getResourceType();
+            Type<?> parentClass = parent.get().getResourceType();
             String relationshipName = relationName.get();
             RelationshipType type = dictionary.getRelationshipType(parentClass, relationshipName);
 
@@ -179,7 +180,7 @@ public class CollectionTerminalState extends BaseState {
 
         String id = resource.getId();
 
-        Class<?> newObjectClass = requestScope.getDictionary().getEntityClass(resource.getType(),
+        Type<?> newObjectClass = requestScope.getDictionary().getEntityClass(resource.getType(),
                 requestScope.getApiVersion());
 
         if (newObjectClass == null) {

@@ -9,6 +9,7 @@ package com.yahoo.elide.core.filter.expression;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.type.Type;
 
 /**
  * Intended to specify whether the expression must be evaluated in memory or can be pushed to the DataStore.
@@ -25,7 +26,7 @@ public class InMemoryExecutionVerifier implements FilterExpressionVisitor<Boolea
     @Override
     public Boolean visitPredicate(FilterPredicate filterPredicate) {
         for (Path.PathElement pathElement : filterPredicate.getPath().getPathElements()) {
-            Class<?> entityClass = pathElement.getType();
+            Type<?> entityClass = pathElement.getType();
             String fieldName = pathElement.getFieldName();
 
             if (dictionary.isComputed(entityClass, fieldName)) {

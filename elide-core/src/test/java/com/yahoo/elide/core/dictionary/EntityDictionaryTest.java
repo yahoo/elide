@@ -31,6 +31,7 @@ import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.core.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.converters.ISO8601DateSerde;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -147,7 +148,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         Long testLong;
 
         @Override
-        public FilterExpression getFilterExpression(Class entityClass,
+        public FilterExpression getFilterExpression(Type entityClass,
                                                     com.yahoo.elide.core.security.RequestScope requestScope) {
             assertEquals(testLong, 123L);
             return null;

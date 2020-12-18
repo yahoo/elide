@@ -71,7 +71,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                                                                            final String field,
                                                                            final ChangeSpec changeSpec) {
 
-        Type<?> resourceClass = resource.getType();
+        Type<?> resourceClass = resource.getResourceType();
         if (!entityDictionary.entityHasChecksForPermission(resourceClass, annotationClass)) {
             return SUCCESSFUL_EXPRESSION;
         }
@@ -101,7 +101,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                                                                        final ChangeSpec changeSpec) {
 
 
-        Type<?> resourceClass = resource.getType();
+        Type<?> resourceClass = resource.getResourceType();
         if (!entityDictionary.entityHasChecksForPermission(resourceClass, annotationClass)) {
             return SUCCESSFUL_EXPRESSION;
         }
