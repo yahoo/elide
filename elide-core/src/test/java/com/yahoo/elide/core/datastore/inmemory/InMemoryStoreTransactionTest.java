@@ -30,6 +30,7 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
+import com.yahoo.elide.core.type.ClassType;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import example.Author;
@@ -361,7 +362,7 @@ public class InMemoryStoreTransactionTest {
 
     @Test
     public void testPaginationPushDown() {
-        PaginationImpl pagination = PaginationImpl.getDefaultPagination(Book.class, elideSettings);
+        PaginationImpl pagination = PaginationImpl.getDefaultPagination(new ClassType(Book.class), elideSettings);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -391,7 +392,7 @@ public class InMemoryStoreTransactionTest {
 
     @Test
     public void testDataStoreRequiresInMemoryPagination() {
-        PaginationImpl pagination = PaginationImpl.getDefaultPagination(Book.class, elideSettings);
+        PaginationImpl pagination = PaginationImpl.getDefaultPagination(new ClassType(Book.class), elideSettings);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -427,7 +428,7 @@ public class InMemoryStoreTransactionTest {
         FilterExpression expression =
                 new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
 
-        PaginationImpl pagination = PaginationImpl.getDefaultPagination(Book.class, elideSettings);
+        PaginationImpl pagination = PaginationImpl.getDefaultPagination(new ClassType(Book.class), elideSettings);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -460,7 +461,7 @@ public class InMemoryStoreTransactionTest {
 
     @Test
     public void testSortingRequiresInMemoryPagination() {
-        PaginationImpl pagination = PaginationImpl.getDefaultPagination(Book.class, elideSettings);
+        PaginationImpl pagination = PaginationImpl.getDefaultPagination(new ClassType(Book.class), elideSettings);
 
         Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
         sortOrder.put("title", Sorting.SortOrder.asc);

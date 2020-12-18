@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.ClassType;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
@@ -73,7 +74,7 @@ public class RequestScopeTest {
 
         String myId = "myId";
         // Test that a new inherited class is counted for base type
-        requestScope.setUUIDForObject(MyInheritedClass.class, myId, new MyInheritedClass());
-        assertNotNull(requestScope.getObjectById(MyBaseClass.class, myId));
+        requestScope.setUUIDForObject(new ClassType(MyInheritedClass.class), myId, new MyInheritedClass());
+        assertNotNull(requestScope.getObjectById(new ClassType(MyBaseClass.class), myId));
     }
 }
