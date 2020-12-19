@@ -6,10 +6,14 @@
 
 package com.yahoo.elide.core.type;
 
+import java.util.Optional;
+
 public interface Field extends AccessibleObject {
     Object get(Object obj) throws IllegalArgumentException, IllegalAccessException;
 
     Type<?> getType();
+
+    Type<?> getParameterizedType(Type<?> parentType, Optional<Integer> index);
 
     void set(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException;
 }
