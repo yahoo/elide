@@ -7,6 +7,7 @@
 package com.yahoo.elide.core.type;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Optional;
 
 public interface Method extends AccessibleObject {
     int getParameterCount();
@@ -15,6 +16,8 @@ public interface Method extends AccessibleObject {
             IllegalArgumentException, InvocationTargetException;
 
     Type<?> getReturnType();
+
+    Type<?> getParameterizedReturnType(Type<?> parentType, Optional<Integer> index);
 
     Class<?>[] getParameterTypes();
 }

@@ -18,7 +18,6 @@ import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.type.AccessibleObject;
 import com.yahoo.elide.core.type.ClassType;
-import com.yahoo.elide.core.type.DynamicType;
 import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.Member;
 import com.yahoo.elide.core.type.Method;
@@ -27,14 +26,12 @@ import com.google.common.collect.ImmutableList;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.reflect.TypeUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -519,24 +516,10 @@ public class EntityBinding {
                                        Optional<Integer> index) {
         Type type;
         if (fieldOrMethod instanceof Field) {
-            type = ((Field) fieldOrMethod).getType();
+            return ((Field) fieldOrMethod).getParameterizedType(parentClass, index);
         } else {
-            type = ((Method) fieldOrMethod).getReturnType();
+            return ((Method) fieldOrMethod).getParameterizedReturnType(parentClass, index);
         }
-
-        //Dynamic types don't support parameters.
-        if (type instanceof DynamicType || parentClass instanceof DynamicType) {
-            return type;
-        }
-
-        Class<?> cls = ((ClassType) type).getCls();
-
-        if (type.isParameterized() && index.isPresent()) {
-            return EntityDictionary.getType(
-                    ((ParameterizedType) cls.getGenericSuperclass()).getActualTypeArguments()[index.get().intValue()]);
-        }
-
-        return new ClassType(TypeUtils.getRawType(cls, ((ClassType) parentClass).getCls()));
     }
 
     private void bindTriggerIfPresent(AccessibleObject fieldOrMethod) {
