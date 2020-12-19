@@ -6,16 +6,17 @@
 
 package com.yahoo.elide.core.type;
 
+import org.apache.commons.lang3.reflect.TypeUtils;
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ClassType<T> implements Type<T> {
@@ -203,6 +204,25 @@ public class ClassType<T> implements Type<T> {
             }
 
             @Override
+            public Type<?> getParameterizedType(Type<?> parentType, Optional<Integer> index) {
+                if (parentType instanceof DynamicType) {
+                    return getType();
+                }
+
+                java.lang.reflect.Type type = field.getGenericType();
+
+                if (type instanceof ParameterizedType && index.isPresent()) {
+                    return new ClassType(
+                            TypeUtils.getRawType(
+                                ((ParameterizedType) type).getActualTypeArguments()[index.get().intValue()],
+                                ((ClassType) parentType).getCls()
+                            )
+                    );
+                }
+                return new ClassType(TypeUtils.getRawType(type, ((ClassType) parentType).getCls()));
+            }
+
+            @Override
             public void set(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException {
                 field.set(obj, value);
             }
@@ -269,7 +289,7 @@ public class ClassType<T> implements Type<T> {
             @Override
             public Object invoke(Object obj, Object... args) throws IllegalAccessException,
                     IllegalArgumentException, InvocationTargetException {
-                if (! (method instanceof Executable)) {
+                if (! (method instanceof java.lang.reflect.Method)) {
                     throw new UnsupportedOperationException("Constructors cannot be invoked");
                 }
                 return ((java.lang.reflect.Method) method).invoke(obj, args);
@@ -277,10 +297,33 @@ public class ClassType<T> implements Type<T> {
 
             @Override
             public Type<?> getReturnType() {
-                if (! (method instanceof Executable)) {
+                if (! (method instanceof java.lang.reflect.Method)) {
                     throw new UnsupportedOperationException("Constructors cannot be invoked");
                 }
                 return new ClassType(((java.lang.reflect.Method) method).getReturnType());
+            }
+
+            @Override
+            public Type<?> getParameterizedReturnType(Type<?> parentType, Optional<Integer> index) {
+                if (! (method instanceof java.lang.reflect.Method)) {
+                    throw new UnsupportedOperationException("Constructors cannot be invoked");
+                }
+
+                if (parentType instanceof DynamicType) {
+                    return getReturnType();
+                }
+
+                java.lang.reflect.Type type = ((java.lang.reflect.Method) method).getGenericReturnType();
+
+                if (type instanceof ParameterizedType && index.isPresent()) {
+                    return new ClassType(
+                            TypeUtils.getRawType(
+                                    ((ParameterizedType) type).getActualTypeArguments()[index.get().intValue()],
+                                    ((ClassType) parentType).getCls()
+                            )
+                    );
+                }
+                return new ClassType(TypeUtils.getRawType(type, ((ClassType) parentType).getCls()));
             }
 
             @Override
@@ -330,5 +373,10 @@ public class ClassType<T> implements Type<T> {
     @Override
     public int hashCode() {
         return Objects.hash(cls);
+    }
+
+    @Override
+    public String toString() {
+        return "ClassType{" + "cls=" + cls + '}';
     }
 }
