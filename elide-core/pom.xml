@@ -137,7 +137,7 @@
         <dependency>
             <groupId>io.github.classgraph</groupId>
             <artifactId>classgraph</artifactId>
-            <version>4.8.95</version>
+            <version>4.8.97</version>
         </dependency>
 
         <dependency>
