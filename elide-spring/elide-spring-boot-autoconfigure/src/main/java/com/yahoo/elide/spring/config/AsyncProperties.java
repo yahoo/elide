@@ -54,4 +54,9 @@ public class AsyncProperties {
      * Whether or not the async feature is enabled.
      */
     private boolean enabled = false;
+
+    /**
+     * Bypass Query result caching.
+     */
+    private boolean bypassCache = false;
 }

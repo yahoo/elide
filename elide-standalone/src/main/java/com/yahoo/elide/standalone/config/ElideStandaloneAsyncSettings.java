@@ -95,4 +95,13 @@ public interface ElideStandaloneAsyncSettings {
     default ResultStorageEngine getResultStorageEngine() {
         return null;
     }
+
+    /**
+     * Bypass Query result caching.
+     *
+     * @return Default: False
+     */
+    default boolean bypassCache() {
+        return false;
+    }
 }
