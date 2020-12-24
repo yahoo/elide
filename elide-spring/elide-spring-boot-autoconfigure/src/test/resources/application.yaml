@@ -19,6 +19,7 @@ elide:
     cleanupEnabled: true
     queryCleanupDays: 7
     defaultAsyncAPIDAO: true
+    bypassCache: true
   dynamic-config:
     path: src/test/resources/configs
     enabled: true

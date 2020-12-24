@@ -50,7 +50,7 @@ public class AsyncExecutorService {
     private static AsyncExecutorService asyncExecutorService = null;
     private ResultStorageEngine resultStorageEngine;
     private ThreadLocal<AsyncAPIResultFuture> asyncResultFutureThreadLocal = new ThreadLocal<>();
-
+    private boolean bypassCache;
     /**
      * A Future with Synchronous Execution Complete Flag.
      */
@@ -62,9 +62,10 @@ public class AsyncExecutorService {
 
     @Inject
     private AsyncExecutorService(Elide elide, Integer threadPoolSize, AsyncAPIDAO asyncAPIDao,
-            ResultStorageEngine resultStorageEngine) {
+            ResultStorageEngine resultStorageEngine, boolean bypassCache) {
         this.elide = elide;
         runners = new HashMap();
+        this.bypassCache = bypassCache;
 
         for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
             runners.put(apiVersion, new QueryRunner(elide, apiVersion));
@@ -84,10 +85,10 @@ public class AsyncExecutorService {
      * @param asyncAPIDao DAO Object
      */
     public static void init(Elide elide, Integer threadPoolSize, AsyncAPIDAO asyncAPIDao,
-            ResultStorageEngine resultStorageEngine) {
+            ResultStorageEngine resultStorageEngine, boolean bypassCache) {
         if (asyncExecutorService == null) {
             asyncExecutorService = new AsyncExecutorService(elide, threadPoolSize, asyncAPIDao,
-                    resultStorageEngine);
+                    resultStorageEngine, bypassCache);
         } else {
             log.debug("asyncExecutorService is already initialized.");
         }

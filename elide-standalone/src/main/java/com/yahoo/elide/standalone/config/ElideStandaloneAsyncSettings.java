@@ -99,9 +99,9 @@ public interface ElideStandaloneAsyncSettings {
     /**
      * Bypass Query result caching.
      *
-     * @return Default: False
+     * @return Default: true
      */
     default boolean bypassCache() {
-        return false;
+        return true;
     }
 }

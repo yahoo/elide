@@ -19,7 +19,10 @@ import org.apache.http.client.utils.URIBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -37,6 +40,7 @@ public class AsyncQueryThread implements Callable<AsyncAPIResult> {
     private AsyncExecutorService service;
     private String apiVersion;
 
+
     public AsyncQueryThread(AsyncAPI queryObj, User user, AsyncExecutorService service, String apiVersion) {
         this.queryObj = queryObj;
         this.user = user;
@@ -49,10 +53,13 @@ public class AsyncQueryThread implements Callable<AsyncAPIResult> {
         ElideResponse response = null;
         log.debug("AsyncQuery Object from request: {}", this);
         UUID requestUUID = UUID.fromString(queryObj.getRequestId());
+        Map<String, List<String>> bypassCacheMap = new HashMap<String, List<String>>();
+        bypassCacheMap.put("bypasscache", Arrays.asList(String.valueOf(service.isBypassCache())));
+
         if (queryObj.getQueryType().equals(QueryType.JSONAPI_V1_0)) {
-            response = executeJsonApiRequest(service.getElide(), user, apiVersion, requestUUID);
+            response = executeJsonApiRequest(service.getElide(), user, apiVersion, requestUUID, bypassCacheMap);
         } else if (queryObj.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
-            response = executeGraphqlRequest(service.getRunners(), user, apiVersion, requestUUID);
+            response = executeGraphqlRequest(service.getRunners(), user, apiVersion, requestUUID, bypassCacheMap);
         }
         nullResponseCheck(response);
 
@@ -90,24 +97,25 @@ public class AsyncQueryThread implements Callable<AsyncAPIResult> {
         return uri.getPath();
     }
 
-    private ElideResponse executeJsonApiRequest(Elide elide, User user, String apiVersion, UUID requestUUID)
-            throws URISyntaxException {
+    private ElideResponse executeJsonApiRequest(Elide elide, User user, String apiVersion, UUID requestUUID,
+            Map<String, List<String>> bypassCacheMap) throws URISyntaxException {
         URIBuilder uri = new URIBuilder(queryObj.getQuery());
         MultivaluedMap<String, String> queryParams = getQueryParams(uri);
         log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
 
         //TODO - we need to add the baseUrlEndpoint to the queryObject.
-        ElideResponse response = elide.get("", getPath(uri), queryParams, user, apiVersion, requestUUID);
+        ElideResponse response = elide.get("", getPath(uri), queryParams, bypassCacheMap, user, apiVersion,
+                requestUUID);
         log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
                 response.getResponseCode(), response.getBody());
         return response;
     }
 
     private ElideResponse executeGraphqlRequest(Map<String, QueryRunner> runners, User user, String apiVersion,
-            UUID requestUUID) throws URISyntaxException {
+            UUID requestUUID, Map<String, List<String>> bypassCacheMap) throws URISyntaxException {
         QueryRunner runner = runners.get(apiVersion);
         //TODO - we need to add the baseUrlEndpoint to the queryObject.
-        ElideResponse response = runner.run("", queryObj.getQuery(), user, requestUUID);
+        ElideResponse response = runner.run("", queryObj.getQuery(), user, requestUUID, bypassCacheMap);
         log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
                 response.getResponseCode(), response.getBody());
         return response;
