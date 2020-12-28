@@ -20,7 +20,7 @@ public class Day extends Date {
 
     public static final String FORMAT = "yyyy-MM-dd";
     private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
-    
+
     public static final String ISO_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     private static final SimpleDateFormat ISO_FORMATTER = new SimpleDateFormat(ISO_FORMAT);
 
@@ -37,12 +37,11 @@ public class Day extends Date {
 
             try {
                 if (val instanceof String) {
-                	try {
-                		date = new Day(new Timestamp(FORMATTER.parse((String) val).getTime()));
-                	}
-                	catch(ParseException pe) {
-                		date = new Day(new Timestamp(ISO_FORMATTER.parse((String) val).getTime()));
-                	}
+                    try {
+                        date = new Day(new Timestamp(FORMATTER.parse((String) val).getTime()));
+                    } catch (ParseException pe) {
+                        date = new Day(new Timestamp(ISO_FORMATTER.parse((String) val).getTime()));
+                    }
                 }
                 date = new Day(FORMATTER.parse(FORMATTER.format(val)));
             } catch (ParseException e) {
