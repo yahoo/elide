@@ -146,6 +146,7 @@
     </module>
     <module name="MethodCount">
       <property name="severity" value="error"/>
+      <property name="maxTotal" value="150"/>
     </module>
     <module name="ParameterNumber">
       <property name="severity" value="warning"/>

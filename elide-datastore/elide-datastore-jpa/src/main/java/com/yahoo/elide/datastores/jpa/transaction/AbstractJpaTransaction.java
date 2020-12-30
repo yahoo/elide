@@ -21,6 +21,7 @@ import com.yahoo.elide.core.hibernate.hql.RootCollectionFetchQueryBuilder;
 import com.yahoo.elide.core.hibernate.hql.RootCollectionPageTotalsQueryBuilder;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionFetchQueryBuilder;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionPageTotalsQueryBuilder;
+import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Relationship;
@@ -28,11 +29,6 @@ import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.datastores.jpa.porting.EntityManagerWrapper;
 import com.yahoo.elide.datastores.jpa.porting.QueryWrapper;
 import com.yahoo.elide.datastores.jpa.transaction.checker.PersistentCollectionChecker;
-import com.yahoo.elide.core.request.Attribute;
-import com.yahoo.elide.core.request.EntityProjection;
-import com.yahoo.elide.core.request.Pagination;
-import com.yahoo.elide.core.request.Relationship;
-import com.yahoo.elide.core.request.Sorting;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -347,13 +343,15 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
             if (type.isComputed()) {
                 continue;
             } else if (type.isToOne()) {
-                populateSubGraph(entityGraph.addSubgraph(relationship.getName()), scope, relationship.getProjection(), toManyAdded);
+                populateSubGraph(entityGraph.addSubgraph(relationship.getName()),
+                        scope, relationship.getProjection(), toManyAdded);
             } else if (type.isToMany()) {
                 // To Many Relationship will always be collection type.
 
                 if (!toManyAdded && !checkTransient(scope, entityClass, relationship)) {
                     toManyAdded = true;
-                    populateSubGraph(entityGraph.addSubgraph(relationship.getName()), scope, relationship.getProjection(), toManyAdded);
+                    populateSubGraph(entityGraph.addSubgraph(relationship.getName()),
+                            scope, relationship.getProjection(), toManyAdded);
 
                 }
             }
@@ -378,7 +376,8 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     }
 
 
-    private void populateSubGraph(Subgraph subgraph, RequestScope scope, EntityProjection projection, boolean toManyAdded) {
+    private void populateSubGraph(Subgraph subgraph, RequestScope scope,
+                                  EntityProjection projection, boolean toManyAdded) {
         if (subgraph == null) {
             return;
         }
@@ -391,13 +390,15 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
             if (type.isComputed()) {
                 continue;
             } else if (type.isToOne()) {
-                populateSubGraph(subgraph.addSubgraph(relationship.getName()), scope, relationship.getProjection(), toManyAdded);
+                populateSubGraph(subgraph.addSubgraph(relationship.getName()),
+                        scope, relationship.getProjection(), toManyAdded);
             } else if (type.isToMany()) {
                 // To Many Relationship will always be collection type.
 
                 if (!toManyAdded && !checkTransient(scope, entityClass, relationship)) {
                     toManyAdded = true;
-                    populateSubGraph(subgraph.addSubgraph(relationship.getName()), scope, relationship.getProjection(), toManyAdded);
+                    populateSubGraph(subgraph.addSubgraph(relationship.getName()),
+                            scope, relationship.getProjection(), toManyAdded);
 
                 }
             }
