@@ -12,11 +12,12 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.dictionary.Injector;
+import com.yahoo.elide.core.exceptions.CustomErrorException;
+import com.yahoo.elide.core.exceptions.ErrorObjects;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
-import com.yahoo.elide.core.exceptions.InvalidConstraintException;
 import com.yahoo.elide.core.exceptions.InvalidURLException;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.core.exceptions.TimeoutException;
@@ -45,8 +46,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.Getter;
@@ -54,11 +53,14 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
+
+import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedMap;
@@ -491,11 +493,21 @@ public class Elide {
         } catch (ConstraintViolationException e) {
             log.debug("Constraint violation exception caught", e);
             String message = "Constraint violation";
-            if (CollectionUtils.isNotEmpty(e.getConstraintViolations())) {
-                // Return error for the first constraint violation
-                message = IterableUtils.first(e.getConstraintViolations()).getMessage();
+            final ErrorObjects.ErrorObjectsBuilder errorObjectsBuilder = ErrorObjects.builder();
+            for (ConstraintViolation<?> constraintViolation : e.getConstraintViolations()) {
+                errorObjectsBuilder.addError()
+                    .withDetail(constraintViolation.getMessage());
+                final String propertyPathString = constraintViolation.getPropertyPath().toString();
+                if (!propertyPathString.isEmpty()) {
+                    Map<String, Object> source = new HashMap<>(1);
+                    source.put("property", propertyPathString);
+                    errorObjectsBuilder.with("source", source);
+                }
             }
-            return buildErrorResponse(new InvalidConstraintException(message), isVerbose);
+            return buildErrorResponse(
+                new CustomErrorException(HttpStatus.SC_BAD_REQUEST, message, errorObjectsBuilder.build()),
+                isVerbose
+            );
         } catch (Exception | Error e) {
             if (e instanceof InterruptedException) {
                 log.debug("Request Thread interrupted.", e);
