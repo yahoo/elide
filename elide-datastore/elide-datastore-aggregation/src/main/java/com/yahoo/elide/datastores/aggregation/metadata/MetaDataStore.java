@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getType;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.datastore.DataStore;
@@ -13,6 +15,7 @@ import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
@@ -34,6 +37,7 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,12 +63,12 @@ public class MetaDataStore implements DataStore {
     };
 
     @Getter
-    private final Set<Class<?>> modelsToBind;
+    private final Set<Type<?>> modelsToBind = new HashSet<>();
 
     @Getter
     private boolean enableMetaDataStore = false;
 
-    private Map<Class<?>, Table> tables = new HashMap<>();
+    private Map<Type<?>, Table> tables = new HashMap<>();
 
     @Getter
     private EntityDictionary metadataDictionary = new EntityDictionary(new HashMap<>());
@@ -72,7 +76,7 @@ public class MetaDataStore implements DataStore {
     @Getter
     private Map<String, HashMapDataStore> hashMapDataStores = new HashMap<>();
 
-    private final Set<Class<?>> metadataModelClasses;
+    private final Set<Type<?>> metadataModelClasses = new HashSet<>();
 
     public MetaDataStore(boolean enableMetaDataStore) {
         this(getAllAnnotatedClasses(), enableMetaDataStore);
@@ -91,14 +95,14 @@ public class MetaDataStore implements DataStore {
                 return false;
              }
              return true;
-       });
+        });
 
         return metadataStoreResult;
     }
 
     public MetaDataStore(ElideDynamicEntityCompiler compiler,
             boolean enableMetaDataStore) throws ClassNotFoundException {
-          this(enableMetaDataStore);
+        this(enableMetaDataStore);
 
         //TODO add Entity Annotation classes when supported by dynamic config.
         Set<Class<?>> dynamicCompiledClasses = compiler.findAnnotatedClasses(FromTable.class);
@@ -106,12 +110,13 @@ public class MetaDataStore implements DataStore {
 
         if (dynamicCompiledClasses != null && dynamicCompiledClasses.size() != 0) {
             dynamicCompiledClasses.forEach(cls -> {
-                String version = EntityDictionary.getModelVersion(cls);
+                Type<?> type = getType(cls);
+                String version = EntityDictionary.getModelVersion(type);
                 HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version,
                         getHashMapDataStoreInitializer());
-                hashMapDataStore.getDictionary().bindEntity(cls, Collections.singleton(Join.class));
-                this.metadataDictionary.bindEntity(cls, Collections.singleton(Join.class));
-                this.modelsToBind.add(cls);
+                hashMapDataStore.getDictionary().bindEntity(type, Collections.singleton(Join.class));
+                this.metadataDictionary.bindEntity(type, Collections.singleton(Join.class));
+                this.modelsToBind.add(type);
                 this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);
             });
         }
@@ -123,20 +128,21 @@ public class MetaDataStore implements DataStore {
      * @param modelsToBind models to bind
      */
     public MetaDataStore(Set<Class<?>> modelsToBind, boolean enableMetaDataStore) {
-        this.metadataModelClasses = ClassScanner.getAllClasses(META_DATA_PACKAGE.getName());
+        ClassScanner.getAllClasses(META_DATA_PACKAGE.getName())
+                        .forEach(cls -> this.metadataModelClasses.add(getType(cls)));
+        this.enableMetaDataStore = enableMetaDataStore;
 
         modelsToBind.forEach(cls -> {
-            String version = EntityDictionary.getModelVersion(cls);
+            Type<?> type = getType(cls);
+            String version = EntityDictionary.getModelVersion(type);
             HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version,
                     getHashMapDataStoreInitializer());
-            hashMapDataStore.getDictionary().bindEntity(cls, Collections.singleton(Join.class));
-            this.metadataDictionary.bindEntity(cls, Collections.singleton(Join.class));
+            hashMapDataStore.getDictionary().bindEntity(type, Collections.singleton(Join.class));
+            this.metadataDictionary.bindEntity(type, Collections.singleton(Join.class));
+            // bind external data models in the package.
+            this.modelsToBind.add(type);
             this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);
-            this.enableMetaDataStore = enableMetaDataStore;
         });
-
-        // bind external data models in the package.
-        this.modelsToBind = modelsToBind;
     }
 
     @Override
@@ -180,7 +186,7 @@ public class MetaDataStore implements DataStore {
      * @param tableClass table class
      * @return meta data table
      */
-    public Table getTable(Class<?> tableClass) {
+    public Table getTable(Type<?> tableClass) {
         return tables.get(tableClass);
     }
 
@@ -204,7 +210,7 @@ public class MetaDataStore implements DataStore {
      * @param fieldName field name
      * @return meta data column
      */
-    public final Column getColumn(Class<?> tableClass, String fieldName) {
+    public final Column getColumn(Type<?> tableClass, String fieldName) {
         return getTable(tableClass).getColumnMap().get(fieldName);
     }
 
@@ -273,7 +279,7 @@ public class MetaDataStore implements DataStore {
 
         HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version, SERVER_ERROR);
         EntityDictionary dictionary = hashMapDataStore.getDictionary();
-        Class<?> cls = dictionary.lookupBoundClass(object.getClass());
+        Type<?> cls = dictionary.lookupBoundClass(getType(object.getClass()));
         String id = dictionary.getId(object);
 
         if (hashMapDataStore.get(cls).containsKey(id)) {
@@ -292,11 +298,11 @@ public class MetaDataStore implements DataStore {
      * @param <T> metadata class
      * @return all metadata of given class
      */
-    public <T> Set<T> getMetaData(Class<T> cls) {
+    public <T> Set<T> getMetaData(Type<T> cls) {
 
         String version = EntityDictionary.getModelVersion(cls);
         HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version, SERVER_ERROR);
-        return hashMapDataStore.get(cls).values().stream().map(cls::cast).collect(Collectors.toSet());
+        return hashMapDataStore.get(cls).values().stream().map(obj -> (T) obj).collect(Collectors.toSet());
     }
 
     /**
@@ -313,7 +319,7 @@ public class MetaDataStore implements DataStore {
      *
      * @return {@code true} if the field is a metric field
      */
-    public static boolean isMetricField(EntityDictionary dictionary, Class<?> cls, String fieldName) {
+    public static boolean isMetricField(EntityDictionary dictionary, Type<?> cls, String fieldName) {
         return dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricFormula.class);
     }
 
@@ -325,7 +331,7 @@ public class MetaDataStore implements DataStore {
      * @param dictionary metadata dictionary
      * @return True if this field is a table join
      */
-    public static boolean isTableJoin(Class<?> cls, String fieldName, EntityDictionary dictionary) {
+    public static boolean isTableJoin(Type<?> cls, String fieldName, EntityDictionary dictionary) {
         return dictionary.getAttributeOrRelationAnnotation(cls, Join.class, fieldName) != null;
     }
 

@@ -5,7 +5,10 @@
  */
 package com.yahoo.elide.modelconfig;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getType;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.Type;
 
 import lombok.Data;
 
@@ -37,8 +40,9 @@ public class StaticModelsDetails {
 
     public void add(EntityDictionary dictionary, Class<?> cls) {
 
-        String modelName = dictionary.getJsonAliasFor(cls);
-        String modelVersion = EntityDictionary.getModelVersion(cls);
+        Type<?> type = getType(cls);
+        String modelName = dictionary.getJsonAliasFor(type);
+        String modelVersion = EntityDictionary.getModelVersion(type);
         String className = cls.getSimpleName();
         String pkgName = cls.getPackage().getName();
         Set<String> fieldNames = new HashSet<String>(dictionary.getAllFields(cls));

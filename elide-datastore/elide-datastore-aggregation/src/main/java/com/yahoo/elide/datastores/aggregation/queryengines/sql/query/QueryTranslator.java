@@ -14,6 +14,7 @@ import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Sorting;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -111,7 +112,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
     public SQLQuery.SQLQueryBuilder visitQueryable(Queryable table) {
         SQLQuery.SQLQueryBuilder builder = SQLQuery.builder();
 
-        Class<?> tableCls = dictionary.getEntityClass(table.getName(), table.getVersion());
+        Type<?> tableCls = dictionary.getEntityClass(table.getName(), table.getVersion());
         String tableAlias = applyQuotes(table.getAlias());
 
         String tableStatement = tableCls.isAnnotationPresent(FromSubquery.class)

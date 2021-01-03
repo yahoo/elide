@@ -10,6 +10,7 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.Argument;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -90,7 +91,7 @@ public abstract class QueryEngine {
      * @param metaDataDictionary metadata dictionary
      * @return constructed Table
      */
-    protected abstract Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary);
+    protected abstract Table constructTable(Type<?> entityClass, EntityDictionary metaDataDictionary);
 
     /**
      * Construct a parameterized instance of a Column.

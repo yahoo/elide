@@ -17,6 +17,7 @@ public interface Type<T> {
     <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass);
     <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass);
     <A extends Annotation> A getAnnotation(Class<A> annotationClass);
+    boolean isAnnotationPresent(Class<? extends Annotation> annotationClass);
     boolean isAssignableFrom(Type<?> cls);
     Package getPackage();
     Method[] getMethods();
@@ -29,4 +30,6 @@ public interface Type<T> {
     }
     boolean hasSuperType();
     T newInstance() throws InstantiationException, IllegalAccessException;
+    boolean isEnum();
+    T[] getEnumConstants();
 }

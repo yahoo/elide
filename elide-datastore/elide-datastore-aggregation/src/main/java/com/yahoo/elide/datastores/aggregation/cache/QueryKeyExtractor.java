@@ -16,6 +16,7 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Sorting;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
@@ -191,7 +192,7 @@ public final class QueryKeyExtractor implements FilterExpressionVisitor<Object> 
 
     // Basic types
     //
-    private void visit(Class<?> type) {
+    private void visit(Type<?> type) {
         keyBuilder.append(type.getCanonicalName()).append(DELIMITER);
     }
 

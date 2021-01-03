@@ -10,6 +10,7 @@ import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.TimedFunction;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -108,7 +109,7 @@ public class SQLQueryEngine extends QueryEngine {
     };
 
     @Override
-    protected Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary) {
+    protected Table constructTable(Type<?> entityClass, EntityDictionary metaDataDictionary) {
 
         String dbConnectionName = null;
         Annotation annotation = EntityDictionary.getFirstAnnotation(entityClass,
@@ -255,7 +256,7 @@ public class SQLQueryEngine extends QueryEngine {
 
         String tableVersion = null;
         SQLTable sqlTable = (SQLTable) table;
-        Class<?> tableClass = metadataDictionary.getEntityClass(table.getName(), table.getVersion());
+        Type<?> tableClass = metadataDictionary.getEntityClass(table.getName(), table.getVersion());
         VersionQuery versionAnnotation = tableClass.getAnnotation(VersionQuery.class);
         if (versionAnnotation != null) {
             String versionQueryString = versionAnnotation.sql();

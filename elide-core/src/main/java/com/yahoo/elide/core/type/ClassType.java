@@ -14,6 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -25,6 +26,9 @@ public class ClassType<T> implements Type<T> {
     public static final ClassType COLLECTION_TYPE = new ClassType(Collection.class);
     public static final ClassType STRING_TYPE = new ClassType(String.class);
     public static final ClassType NUMBER_TYPE = new ClassType(String.class);
+    public static final ClassType DATE_TYPE = new ClassType(Date.class);
+    public static final ClassType OBJECT_TYPE = new ClassType(Object.class);
+    public static final ClassType CLASS_TYPE = new ClassType(Class.class);
 
     @Getter
     private Class<T> cls;
@@ -129,6 +133,11 @@ public class ClassType<T> implements Type<T> {
     @Override
     public Annotation getDeclaredAnnotation(Class annotationClass) {
         return cls.getDeclaredAnnotation(annotationClass);
+    }
+
+    @Override
+    public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
+        return getAnnotation(annotationClass) != null;
     }
 
     @Override
@@ -378,5 +387,15 @@ public class ClassType<T> implements Type<T> {
     @Override
     public String toString() {
         return "ClassType{" + "cls=" + cls + '}';
+    }
+
+    @Override
+    public boolean isEnum() {
+        return cls.isEnum();
+    }
+
+    @Override
+    public T[] getEnumConstants() {
+        return cls.getEnumConstants();
     }
 }

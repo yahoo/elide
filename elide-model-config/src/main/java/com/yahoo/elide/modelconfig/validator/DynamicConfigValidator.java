@@ -6,6 +6,7 @@
 package com.yahoo.elide.modelconfig.validator;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.utils.TypeHelper.getType;
 import static com.yahoo.elide.modelconfig.DynamicConfigHelpers.isNullOrEmpty;
 import static com.yahoo.elide.modelconfig.parser.handlebars.HandlebarsHelper.REFERENCE_PARENTHESES;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -14,6 +15,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.EntityPermissions;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.modelconfig.Config;
 import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
@@ -127,7 +129,7 @@ public class DynamicConfigValidator {
 
         annotatedClasses.forEach(cls -> {
             if (cls.getAnnotation(Include.class) != null) {
-                dictionary.bindEntity(cls);
+                dictionary.bindEntity(getType(cls));
                 staticModelDetails.add(dictionary, cls);
             } else {
                 dictionary.addSecurityCheck(cls);
@@ -211,13 +213,13 @@ public class DynamicConfigValidator {
 
         compiledObjects = compiler.compileAll();
 
-        Set<Class<?>> compiledTableClasses = new HashSet<Class<?>>();
+        Set<Type<?>> compiledTableClasses = new HashSet<>();
 
         compiledObjects.values().forEach(cls -> {
             if (cls.getAnnotation(SecurityCheck.class) != null) {
                 dictionary.addSecurityCheck(cls);
             } else {
-                compiledTableClasses.add(cls);
+                compiledTableClasses.add(getType(cls));
             }
         });
 

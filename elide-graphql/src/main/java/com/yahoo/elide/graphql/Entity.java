@@ -10,6 +10,8 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.type.Type;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -28,7 +30,7 @@ import java.util.UUID;
 public class Entity {
     @Getter private Optional<Entity> parentResource;
     private Map<String, Object> data;
-    @Getter private Class<?> entityClass;
+    @Getter private Type<?> entityClass;
     @Getter private RequestScope requestScope;
     @Getter private Set<Attribute> attributes;
     @Getter private Set<Relationship> relationships;
@@ -43,7 +45,7 @@ public class Entity {
     public Entity(
             Optional<Entity> parentResource,
             Map<String, Object> data,
-            Class<?> entityClass,
+            Type<?> entityClass,
             RequestScope requestScope) {
         this.parentResource = parentResource;
         this.data = data;
@@ -97,7 +99,7 @@ public class Entity {
                     .filter(entry -> dictionary.isRelation(this.entityClass, entry.getKey()))
                     .forEach(entry -> {
                         String relationshipName = entry.getKey();
-                        Class<?> relationshipClass =
+                        Type<?> relationshipClass =
                                 dictionary.getParameterizedType(this.entityClass, relationshipName);
 
                         Set<Entity> relationshipEntities = new LinkedHashSet<>();
