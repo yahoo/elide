@@ -7,9 +7,11 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
 import static com.yahoo.elide.core.utils.TypeHelper.getTypeAlias;
+import static com.yahoo.elide.core.utils.TypeHelper.getType;
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isTableJoin;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
@@ -52,7 +54,7 @@ public class SQLReferenceTable {
 
     public SQLReferenceTable(MetaDataStore metaDataStore) {
         this(metaDataStore,
-             metaDataStore.getMetaData(Table.class)
+             metaDataStore.getMetaData(getType(Table.class))
                 .stream()
                 .map(SQLTable.class::cast)
                 .collect(Collectors.toSet()));
@@ -151,7 +153,7 @@ public class SQLReferenceTable {
 
         for (Path.PathElement pathElement : joinPath.getPathElements()) {
             String fieldName = pathElement.getFieldName();
-            Class<?> parentClass = pathElement.getType();
+            Type<?> parentClass = pathElement.getType();
 
             // Nothing left to join.
             if (!dictionary.isRelation(parentClass, fieldName) && !isTableJoin(parentClass, fieldName, dictionary)) {
@@ -176,9 +178,9 @@ public class SQLReferenceTable {
      * @param joinField relationship/join field name
      * @return built join clause i.e. <code>LEFT JOIN table1 AS dimension1 ON table0.dim_id = dimension1.id</code>
      */
-    private String extractJoinClause(Class<?> fromClass,
+    private String extractJoinClause(Type<?> fromClass,
                                      String fromAlias,
-                                     Class<?> joinClass,
+                                     Type<?> joinClass,
                                      String joinField,
                                      SQLDialect dialect) {
 
@@ -230,7 +232,7 @@ public class SQLReferenceTable {
      * @param expr unresolved ON clause
      * @return string resolved ON clause
      */
-    private String getJoinClause(Class<?> fromClass, String fromAlias, String expr, SQLDialect dialect) {
+    private String getJoinClause(Type<?> fromClass, String fromAlias, String expr, SQLDialect dialect) {
         SQLTable table = new SQLTable(fromClass, dictionary);
         SQLReferenceVisitor visitor =
                         new SQLReferenceVisitor(metaDataStore, fromAlias, dialect);
@@ -265,7 +267,7 @@ public class SQLReferenceTable {
      * @param cls entity class
      * @return <code>tableName</code> or <code>(subselect query)</code>
      */
-    private String constructTableOrSubselect(Class<?> cls, SQLDialect dialect) {
+    private String constructTableOrSubselect(Type<?> cls, SQLDialect dialect) {
         return isSubselect(cls)
                 ? "(" + resolveTableOrSubselect(dictionary, cls) + ")"
                 : applyQuotes(resolveTableOrSubselect(dictionary, cls), dialect);
@@ -277,7 +279,7 @@ public class SQLReferenceTable {
      * @param cls The entity class
      * @return True if the class has {@link Subselect} annotation
      */
-    private static boolean isSubselect(Class<?> cls) {
+    private static boolean isSubselect(Type<?> cls) {
         return cls.isAnnotationPresent(Subselect.class) || cls.isAnnotationPresent(FromSubquery.class);
     }
 
@@ -288,7 +290,7 @@ public class SQLReferenceTable {
      * @param cls The entity class.
      * @return The physical SQL table or subselect query.
      */
-    private static String resolveTableOrSubselect(EntityDictionary dictionary, Class<?> cls) {
+    private static String resolveTableOrSubselect(EntityDictionary dictionary, Type<?> cls) {
         if (isSubselect(cls)) {
             if (cls.isAnnotationPresent(FromSubquery.class)) {
                 return dictionary.getAnnotation(cls, FromSubquery.class).sql();

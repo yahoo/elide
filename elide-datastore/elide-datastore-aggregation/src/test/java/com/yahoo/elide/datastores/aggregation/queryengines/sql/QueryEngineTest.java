@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.utils.TypeHelper.getType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.Operator;
@@ -110,9 +111,9 @@ public class QueryEngineTest extends SQLUnitTest {
                 .metricProjection(playerStatsViewTable.getMetricProjection("highScore"))
                 .dimensionProjection(playerStatsViewTable.getDimensionProjection("countryName"))
                 .whereFilter(filterParser.parseFilterExpression("countryName=='United States'",
-                        PlayerStatsView.class, false))
+                        getType(PlayerStatsView.class), false))
                 .havingFilter(filterParser.parseFilterExpression("highScore > 300",
-                        PlayerStatsView.class, false))
+                        getType(PlayerStatsView.class), false))
                 .sorting(new SortingImpl(sortMap, PlayerStatsView.class, dictionary))
                 .build();
 
@@ -139,7 +140,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                 .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"))
                 .whereFilter(filterParser.parseFilterExpression("overallRating==Great",
-                        PlayerStats.class, false))
+                        getType(PlayerStats.class), false))
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
@@ -164,7 +165,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .source(playerStatsViewTable)
                 .metricProjection(playerStatsViewTable.getMetricProjection("highScore"))
                 .whereFilter(filterParser.parseFilterExpression("countryName=='United States'",
-                        PlayerStatsView.class, false))
+                        getType(PlayerStatsView.class), false))
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
@@ -281,7 +282,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .metricProjection(playerStatsTable.getMetricProjection("highScore"))
                 .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                 .havingFilter(filterParser.parseFilterExpression("highScore < 2400",
-                        PlayerStats.class, false))
+                        getType(PlayerStats.class), false))
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
@@ -308,7 +309,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                 .dimensionProjection(playerStatsTable.getDimensionProjection("countryIsoCode"))
                 .havingFilter(filterParser.parseFilterExpression("countryIsoCode==USA",
-                        PlayerStats.class, false))
+                        getType(PlayerStats.class), false))
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
@@ -406,7 +407,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .metricProjection(playerStatsTable.getMetricProjection("highScore"))
                 .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                 .whereFilter(filterParser.parseFilterExpression("countryIsoCode==USA",
-                        PlayerStats.class, false))
+                        getType(PlayerStats.class), false))
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());

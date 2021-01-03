@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
@@ -38,14 +39,14 @@ public class SQLTable extends Table implements Queryable {
     @Getter
     private ConnectionDetails connectionDetails;
 
-    public SQLTable(Class<?> cls,
+    public SQLTable(Type<?> cls,
                     EntityDictionary dictionary,
                     ConnectionDetails connectionDetails) {
         super(cls, dictionary);
         this.connectionDetails = connectionDetails;
     }
 
-    public SQLTable(Class<?> cls, EntityDictionary dictionary) {
+    public SQLTable(Type<?> cls, EntityDictionary dictionary) {
         super(cls, dictionary);
     }
 

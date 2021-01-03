@@ -6,9 +6,9 @@
 
 package com.yahoo.elide.datastores.aggregation.cache;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.mockito.Mockito.mock;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.request.Sorting;
@@ -17,7 +17,6 @@ import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.Query;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -35,9 +34,8 @@ public class QueryKeyExtractorTest {
     public static void init() {
         SQLUnitTest.init();
         dictionary = new EntityDictionary(new HashMap<>());
-        dictionary.bindEntity(PlayerStats.class);
-        SQLQueryEngine engine = mock(SQLQueryEngine.class);
-        playerStatsTable = new SQLTable(PlayerStats.class, dictionary);
+        dictionary.bindEntity(getType(PlayerStats.class));
+        playerStatsTable = new SQLTable(getType(PlayerStats.class), dictionary);
     }
 
     @Test
@@ -63,9 +61,9 @@ public class QueryKeyExtractorTest {
                 .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                 .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"))
                 .whereFilter(filterParser.parseFilterExpression("countryNickName=='Uncle Sam'",
-                        PlayerStats.class, false))
+                        getType(PlayerStats.class), false))
                 .havingFilter(filterParser.parseFilterExpression("highScore > 300",
-                        PlayerStats.class, false))
+                        getType(PlayerStats.class), false))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .pagination(new ImmutablePagination(0, 2, false, true))
                 .build();

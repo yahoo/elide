@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core.dictionary;
 
+import com.yahoo.elide.core.type.Type;
+
 import lombok.Getter;
 
 /**
@@ -14,9 +16,9 @@ public class ArgumentType {
     @Getter
     private String name;
     @Getter
-    private Class<?> type;
+    private Type<?> type;
 
-    public ArgumentType(String name, Class<?> type) {
+    public ArgumentType(String name, Type<?> type) {
         this.name = name;
         this.type = type;
     }

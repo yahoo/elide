@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getType;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -49,12 +50,12 @@ public class AggregationDataStore implements DataStore {
     public void populateEntityDictionary(EntityDictionary dictionary) {
 
         if (dynamicCompiledClasses != null && dynamicCompiledClasses.size() != 0) {
-            dynamicCompiledClasses.forEach(dynamicLoadedClass -> dictionary.bindEntity(dynamicLoadedClass,
-                    Collections.singleton(Join.class)));
+            dynamicCompiledClasses.forEach(dynamicLoadedClass -> dictionary.bindEntity(getType(dynamicLoadedClass),
+                            Collections.singleton(Join.class)));
         }
 
         ClassScanner.getAnnotatedClasses(AGGREGATION_STORE_CLASSES).forEach(
-                cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class))
+                cls -> dictionary.bindEntity(getType(cls), Collections.singleton(Join.class))
         );
     }
 

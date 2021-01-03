@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata;
 
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
@@ -53,7 +54,7 @@ public class FormulaValidator extends ColumnVisitor<Void> {
         }
 
         Queryable source = column.getSource();
-        Class<?> tableClass = dictionary.getEntityClass(source.getName(), source.getVersion());
+        Type<?> tableClass = dictionary.getEntityClass(source.getName(), source.getVersion());
 
         visited.add(column.getId());
         for (String reference : resolveFormulaReferences(column.getExpression())) {

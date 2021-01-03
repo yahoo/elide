@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 import static com.yahoo.elide.core.utils.TypeHelper.extendTypeAlias;
 import static com.yahoo.elide.core.utils.TypeHelper.getFieldAlias;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnVisitor;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
@@ -98,7 +99,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
 
             //The reference is a join to another logical column.
             } else if (reference.contains(".")) {
-                Class<?> tableClass = dictionary.getEntityClass(source.getName(), source.getVersion());
+                Type<?> tableClass = dictionary.getEntityClass(source.getName(), source.getVersion());
                 resolvedReference = visitTableJoinToReference(tableClass, reference);
             } else {
                 ColumnProjection referenceColumn = source.getColumnProjection(reference);
@@ -131,7 +132,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
      * @param joinToPath a dot separated path
      * @return resolved reference
      */
-    private String visitTableJoinToReference(Class<?> tableClass, String joinToPath) {
+    private String visitTableJoinToReference(Type<?> tableClass, String joinToPath) {
         JoinPath joinPath = new JoinPath(tableClass, dictionary, joinToPath);
 
         tableAliases.push(extendTypeAlias(tableAliases.peek(), joinPath));
