@@ -10,6 +10,8 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.DeferredId;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.NonEntityDictionary;
@@ -34,7 +36,7 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
         EntityDictionary entityDictionary = context.requestScope.getDictionary();
         NonEntityDictionary nonEntityDictionary = fetcher.getNonEntityDictionary();
 
-        Class parentClass = context.parentResource.getResourceType();
+        Type parentClass = context.parentResource.getResourceType();
         String fieldName = context.field.getName();
         String idFieldName = entityDictionary.getIdFieldName(parentClass);
 
@@ -43,7 +45,7 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
                     .getAttributeMap().getOrDefault(context.field.getSourceLocation(), null);
             Object attribute = context.parentResource.getAttribute(requested);
 
-            if (attribute != null && nonEntityDictionary.hasBinding(attribute.getClass())) {
+            if (attribute != null && nonEntityDictionary.hasBinding(new ClassType(attribute.getClass()))) {
                 return new NonEntityContainer(attribute);
             }
 
@@ -54,7 +56,7 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
             }
 
             if (attribute instanceof Collection) {
-                Class<?> innerType = entityDictionary.getParameterizedType(parentClass, fieldName);
+                Type<?> innerType = entityDictionary.getParameterizedType(parentClass, fieldName);
 
                 if (nonEntityDictionary.hasBinding(innerType)) {
                     return ((Collection) attribute).stream()

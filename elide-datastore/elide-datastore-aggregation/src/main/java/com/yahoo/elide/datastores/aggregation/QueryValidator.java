@@ -14,6 +14,7 @@ import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Sorting;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -69,7 +70,6 @@ public class QueryValidator {
         if (havingClause instanceof FilterPredicate) {
             Path path = ((FilterPredicate) havingClause).getPath();
             Path.PathElement last = path.lastElement().get();
-            Class<?> cls = last.getType();
             String fieldName = last.getFieldName();
 
             if (path.getPathElements().size() > 1) {
@@ -151,7 +151,7 @@ public class QueryValidator {
 
         Path.PathElement currentElement = pathElements.get(0);
         String currentField = currentElement.getFieldName();
-        Class<?> currentClass = currentElement.getType();
+        Type<?> currentClass = currentElement.getType();
 
         // TODO: support sorting using alias
         if (allFields.stream().noneMatch(currentField::equals)) {

@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.graphql.containers;
 
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
@@ -35,7 +37,7 @@ public class NonEntityContainer implements GraphQLContainer {
             return null;
         }
 
-        if (nonEntityDictionary.hasBinding(object.getClass())) {
+        if (nonEntityDictionary.hasBinding(new ClassType(object.getClass()))) {
             return new NonEntityContainer(object);
         }
 
@@ -46,7 +48,7 @@ public class NonEntityContainer implements GraphQLContainer {
         }
 
         if (object instanceof Collection) {
-            Class<?> innerType = nonEntityDictionary.getParameterizedType(nonEntity.getClass(), fieldName);
+            Type<?> innerType = nonEntityDictionary.getParameterizedType(nonEntity.getClass(), fieldName);
 
             if (nonEntityDictionary.hasBinding(innerType)) {
                 return ((Collection) object).stream()

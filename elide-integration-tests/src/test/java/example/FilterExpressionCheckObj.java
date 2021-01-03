@@ -12,6 +12,7 @@ import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
+import com.yahoo.elide.core.type.Type;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -68,7 +69,7 @@ public class FilterExpressionCheckObj extends BaseId {
     public static class CheckRestrictUser extends FilterExpressionCheck {
 
         @Override
-        public FilterPredicate getFilterExpression(Class entityClass, RequestScope requestScope) {
+        public FilterPredicate getFilterExpression(Type entityClass, RequestScope requestScope) {
             return createUserPredicate(requestScope, false, 1L);
         }
 
@@ -80,7 +81,7 @@ public class FilterExpressionCheckObj extends BaseId {
     public static class CheckLE extends FilterExpressionCheck {
 
         @Override
-        public FilterPredicate getFilterExpression(Class entityClass, RequestScope requestScope) {
+        public FilterPredicate getFilterExpression(Type entityClass, RequestScope requestScope) {
             Path.PathElement path1 = new Path.PathElement(FilterExpressionCheckObj.class, long.class, "id");
             Operator op = Operator.LE;
             List<Object> value = new ArrayList<>();

@@ -138,4 +138,8 @@ public class TypeHelper {
     private static boolean nullOrEmpty(String alias) {
         return alias == null || alias.equals("");
     }
+
+    public static Type<?> getType(Class<?> cls) {
+        return new ClassType<>(cls);
+    }
 }

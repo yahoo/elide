@@ -7,6 +7,7 @@
 package com.yahoo.elide.graphql;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.utils.TypeHelper.getType;
 import static graphql.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -17,6 +18,8 @@ import static org.mockito.Mockito.mock;
 import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.Sorting;
+import com.yahoo.elide.core.type.ClassType;
+
 import example.Author;
 import example.Book;
 import example.Publisher;
@@ -86,9 +89,9 @@ public class ModelBuilderTest {
     public ModelBuilderTest() {
         dictionary = new EntityDictionary(Collections.EMPTY_MAP);
 
-        dictionary.bindEntity(Book.class);
-        dictionary.bindEntity(Author.class);
-        dictionary.bindEntity(Publisher.class);
+        dictionary.bindEntity(getType(Book.class));
+        dictionary.bindEntity(getType(Author.class));
+        dictionary.bindEntity(getType(Publisher.class));
     }
 
     @Test
@@ -199,9 +202,9 @@ public class ModelBuilderTest {
     @Test
     public void checkAttributeArguments() {
         Set<ArgumentType> arguments = new HashSet<>();
-        arguments.add(new ArgumentType(SORT, Sorting.SortOrder.class));
-        arguments.add(new ArgumentType(TYPE, String.class));
-        dictionary.addArgumentsToAttribute(Book.class, FIELD_PUBLISH_DATE, arguments);
+        arguments.add(new ArgumentType(SORT, getType(Sorting.SortOrder.class)));
+        arguments.add(new ArgumentType(TYPE, ClassType.STRING_TYPE));
+        dictionary.addArgumentsToAttribute(getType(Book.class), FIELD_PUBLISH_DATE, arguments);
 
         DataFetcher fetcher = mock(DataFetcher.class);
         ModelBuilder builder = new ModelBuilder(dictionary, new NonEntityDictionary(), fetcher, NO_VERSION);

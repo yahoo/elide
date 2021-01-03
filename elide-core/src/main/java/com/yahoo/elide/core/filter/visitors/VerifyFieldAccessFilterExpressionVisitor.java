@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.filter.visitors;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getType;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.PersistentResource;
@@ -103,7 +104,7 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
                 fieldName);
         Object entity = resource.getObject();
         if (entity == null || resource.getDictionary()
-                .getRelationshipType(entity.getClass(), fieldName) == RelationshipType.NONE) {
+                .getRelationshipType(getType(entity.getClass()), fieldName) == RelationshipType.NONE) {
             return Observable.empty();
         }
 

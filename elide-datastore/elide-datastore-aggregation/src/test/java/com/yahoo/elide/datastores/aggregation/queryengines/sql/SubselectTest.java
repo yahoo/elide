@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
@@ -78,7 +79,7 @@ public class SubselectTest extends SQLUnitTest {
                 .metricProjection(playerStatsTable.getMetricProjection("highScore"))
                 .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                 .whereFilter(filterParser.parseFilterExpression("subCountryIsoCode==USA",
-                        PlayerStats.class, false))
+                        getType(PlayerStats.class), false))
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());

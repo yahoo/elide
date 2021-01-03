@@ -497,7 +497,7 @@ public class EntityDictionary {
      * @param entityClass Entity class to find relationships for
      * @return List of elide-bound relationship names.
      */
-    public List<String> getElideBoundRelationships(Class<?> entityClass) {
+    public List<String> getElideBoundRelationships(Type<?> entityClass) {
         return getRelationships(entityClass).stream()
                 .filter(relationName -> getBoundClasses().contains(getParameterizedType(entityClass, relationName)))
                 .collect(Collectors.toList());

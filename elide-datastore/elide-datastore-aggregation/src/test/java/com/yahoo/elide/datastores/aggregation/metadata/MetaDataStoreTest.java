@@ -21,6 +21,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getType;
+
 public class MetaDataStoreTest {
     private static MetaDataStore dataStore =
             new MetaDataStore(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example"), true);
@@ -28,14 +30,14 @@ public class MetaDataStoreTest {
     @BeforeAll
     public static void setup() {
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
-        dictionary.bindEntity(PlayerStatsWithView.class);
-        dictionary.bindEntity(PlayerStatsView.class);
-        dictionary.bindEntity(PlayerStats.class);
-        dictionary.bindEntity(Country.class);
-        dictionary.bindEntity(SubCountry.class);
-        dictionary.bindEntity(Player.class);
-        dictionary.bindEntity(CountryView.class);
-        dictionary.bindEntity(CountryViewNested.class);
+        dictionary.bindEntity(getType(PlayerStatsWithView.class));
+        dictionary.bindEntity(getType(PlayerStatsView.class));
+        dictionary.bindEntity(getType(PlayerStats.class));
+        dictionary.bindEntity(getType(Country.class));
+        dictionary.bindEntity(getType(SubCountry.class));
+        dictionary.bindEntity(getType(Player.class));
+        dictionary.bindEntity(getType(CountryView.class));
+        dictionary.bindEntity(getType(CountryViewNested.class));
 
         dataStore.populateEntityDictionary(dictionary);
     }

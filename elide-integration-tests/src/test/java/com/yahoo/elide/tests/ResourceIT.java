@@ -8,6 +8,7 @@ package com.yahoo.elide.tests;
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.utils.TypeHelper.getType;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
@@ -2659,7 +2660,7 @@ public class ResourceIT extends IntegrationTest {
         DataStoreTransaction tx = dataStore.beginReadTransaction();
         RequestScope scope = mock(RequestScope.class);
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
-        dictionary.bindEntity(Book.class);
+        dictionary.bindEntity(getType(Book.class));
         when(scope.getDictionary()).thenReturn(dictionary);
         PaginationImpl pagination = mock(PaginationImpl.class);
         when(pagination.returnPageTotals()).thenReturn(true);
