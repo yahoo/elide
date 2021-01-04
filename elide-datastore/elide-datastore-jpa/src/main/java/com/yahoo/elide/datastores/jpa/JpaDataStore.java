@@ -5,9 +5,11 @@
  */
 package com.yahoo.elide.datastores.jpa;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getType;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.JPQLDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.jpa.transaction.JpaTransaction;
 
 import java.util.HashSet;
@@ -22,17 +24,17 @@ public class JpaDataStore implements JPQLDataStore {
     protected final EntityManagerSupplier entityManagerSupplier;
     protected final JpaTransactionSupplier readTransactionSupplier;
     protected final JpaTransactionSupplier writeTransactionSupplier;
-    protected final Set<Class<?>> modelsToBind;
+    protected final Set<Type<?>> modelsToBind;
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier readTransactionSupplier,
                         JpaTransactionSupplier writeTransactionSupplier,
-                        Class<?> ... models) {
+                        Type<?> ... models) {
         this.entityManagerSupplier = entityManagerSupplier;
         this.readTransactionSupplier = readTransactionSupplier;
         this.writeTransactionSupplier = writeTransactionSupplier;
         this.modelsToBind = new HashSet<>();
-        for (Class<?> model : models) {
+        for (Type<?> model : models) {
             modelsToBind.add(model);
         }
     }
@@ -40,7 +42,7 @@ public class JpaDataStore implements JPQLDataStore {
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier transactionSupplier,
-                        Class<?> ... models) {
+                        Type<?> ... models) {
         this(entityManagerSupplier, transactionSupplier, transactionSupplier, models);
     }
 
@@ -55,7 +57,7 @@ public class JpaDataStore implements JPQLDataStore {
         // Use the entities defined in the entity manager factory.
         for (EntityType type : entityManagerSupplier.get().getMetamodel().getEntities()) {
             try {
-                Class<?> mappedClass = type.getJavaType();
+                Type<?> mappedClass = getType(type.getJavaType());
                 // Ignore this result. We are just checking to see if it throws an exception meaning that
                 // provided class was _not_ an entity.
                 dictionary.lookupEntityClass(mappedClass);
