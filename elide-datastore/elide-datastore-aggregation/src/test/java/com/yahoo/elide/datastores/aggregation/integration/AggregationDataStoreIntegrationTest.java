@@ -913,10 +913,18 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String expectedError = "Querying deliveryDetails requires a mandatory filter:"
                 + " month&gt;={{start}};month&lt;{{end}}";
         when()
-        .get("/deliveryDetails?month&gt;=2020-08")
+        .get("/deliveryDetails?filter=month>=2020-08")
         .then()
         .body("errors.detail", hasItems(expectedError))
         .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void completeClientFilterTest() {
+        when()
+        .get("/deliveryDetails?filter=month>=2020-08;month<2020-09")
+        .then()
+        .statusCode(HttpStatus.SC_OK);
     }
 
     @Test
