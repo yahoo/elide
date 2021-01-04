@@ -10,6 +10,7 @@ import com.yahoo.elide.core.utils.coerce.converters.Serde;
 
 import java.sql.Date;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 /**
  * Time Grain class for Day.
@@ -17,6 +18,7 @@ import java.text.ParseException;
 public class Day extends Date implements TimeGrainFormatter {
 
     public static final String FORMAT = "yyyy-MM-dd";
+    private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
 
     public Day(java.util.Date date) {
         super(date.getTime());
@@ -31,11 +33,11 @@ public class Day extends Date implements TimeGrainFormatter {
 
             try {
                 if (val instanceof String) {
-                   date = new Day(TimeGrainFormatter.formatDateString((String) val, "Day"));
+                    date = new Day(TimeGrainFormatter.formatDateString(FORMATTER, (String) val));
                 }
-                date = new Day(TimeGrainFormatter.DAY_FORMATTER.parse(TimeGrainFormatter.DAY_FORMATTER.format(val)));
+                date = new Day(FORMATTER.parse(FORMATTER.format(val)));
             } catch (ParseException e) {
-                throw new IllegalArgumentException("String must be formatted as " + TimeGrainFormatter.DAY_FORMAT
+                throw new IllegalArgumentException("String must be formatted as " + FORMAT
                         + " or " + TimeGrainFormatter.ISO_FORMAT);
             }
             return date;
@@ -43,7 +45,7 @@ public class Day extends Date implements TimeGrainFormatter {
 
         @Override
         public String serialize(Day val) {
-            return TimeGrainFormatter.DAY_FORMATTER.format(val);
+            return FORMATTER.format(val);
         }
     }
 }
