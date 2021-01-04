@@ -9,6 +9,6 @@ package com.yahoo.elide.async.models;
  * ENUM of supported result types.
  */
 public enum ResultType {
-    //TODO JSON,
+    JSON,
     CSV
 }
