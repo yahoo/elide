@@ -12,6 +12,11 @@
         <cve>CVE-2020-11050</cve>
     </suppress>
 
+    <!-- hibernate-core-3.6.10.Final.jar: CVE-2020-25638 -->
+    <suppress until="2021-07-01Z">
+        <cve>CVE-2020-25638</cve>
+    </suppress>
+
     <!-- Invalid Spring Security CVE -->
     <suppress until="2021-12-01Z">
         <cve>CVE-2018-1258</cve>
