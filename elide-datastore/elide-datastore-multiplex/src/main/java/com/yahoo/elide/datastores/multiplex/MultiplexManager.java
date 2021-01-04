@@ -9,6 +9,8 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.Type;
+
 import lombok.AccessLevel;
 import lombok.Setter;
 
@@ -34,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class MultiplexManager implements DataStore {
 
     protected final List<DataStore> dataStores;
-    protected final ConcurrentHashMap<Class<?>, DataStore> dataStoreMap = new ConcurrentHashMap<>();
+    protected final ConcurrentHashMap<Type<?>, DataStore> dataStoreMap = new ConcurrentHashMap<>();
 
     @Setter(AccessLevel.PROTECTED)
     private EntityDictionary dictionary;
@@ -88,9 +90,9 @@ public final class MultiplexManager implements DataStore {
      * @param cls provided class
      * @return database manager handling this entity
      */
-    protected <T> DataStore getSubManager(Class<T> cls) {
+    protected <T> DataStore getSubManager(Type<T> cls) {
         // Follow for this class or super-class for Entity annotation
-        Class<T> type = (Class<T>) dictionary.lookupBoundClass(cls);
+        Type<T> type = (Type<T>) dictionary.lookupBoundClass(cls);
         return dataStoreMap.get(type);
     }
 }
