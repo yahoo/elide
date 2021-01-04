@@ -23,7 +23,6 @@ import com.yahoo.elide.core.exceptions.InvalidURLException;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.core.exceptions.TimeoutException;
 import com.yahoo.elide.core.exceptions.TransactionException;
-import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
@@ -567,7 +566,7 @@ public class Elide {
         boolean validKey = key.equals("sort")
                         || key.startsWith("filter")
                         || (key.startsWith("fields[") && key.endsWith("]"))
-                        || PaginationImpl.PAGE_KEYS.containsKey(key)
+                        || key.startsWith("page[")
                         || key.equals(EntityProjectionMaker.INCLUDE);
         return !validKey;
     }
