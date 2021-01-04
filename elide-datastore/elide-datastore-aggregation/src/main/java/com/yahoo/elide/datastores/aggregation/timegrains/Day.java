@@ -9,20 +9,14 @@ import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 
 import java.sql.Date;
-import java.sql.Timestamp;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 /**
  * Time Grain class for Day.
  */
-public class Day extends Date {
+public class Day extends Date implements TimeGrainFormatter {
 
     public static final String FORMAT = "yyyy-MM-dd";
-    private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
-
-    public static final String ISO_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
-    private static final SimpleDateFormat ISO_FORMATTER = new SimpleDateFormat(ISO_FORMAT);
 
     public Day(java.util.Date date) {
         super(date.getTime());
@@ -37,23 +31,19 @@ public class Day extends Date {
 
             try {
                 if (val instanceof String) {
-                    try {
-                        date = new Day(new Timestamp(FORMATTER.parse((String) val).getTime()));
-                    } catch (ParseException pe) {
-                        date = new Day(new Timestamp(ISO_FORMATTER.parse((String) val).getTime()));
-                    }
+                   date = new Day(TimeGrainFormatter.formatDateString((String) val, "Day"));
                 }
-                date = new Day(FORMATTER.parse(FORMATTER.format(val)));
+                date = new Day(TimeGrainFormatter.DAY_FORMATTER.parse(TimeGrainFormatter.DAY_FORMATTER.format(val)));
             } catch (ParseException e) {
-                throw new IllegalArgumentException("String must be formatted as " + FORMAT);
+                throw new IllegalArgumentException("String must be formatted as " + TimeGrainFormatter.DAY_FORMAT
+                        + " or " + TimeGrainFormatter.ISO_FORMAT);
             }
-
             return date;
         }
 
         @Override
         public String serialize(Day val) {
-            return FORMATTER.format(val);
+            return TimeGrainFormatter.DAY_FORMATTER.format(val);
         }
     }
 }
