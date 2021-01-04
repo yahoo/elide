@@ -243,6 +243,19 @@ public class LifeCycleTest {
     }
 
     @Test
+    public void testElideGetInvalidKey() throws Exception {
+        DataStore store = mock(DataStore.class);
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
+        headers.putSingle("fields[testModel]", "field");
+        headers.putSingle("?filter", "field"); // Key starts with '?'
+        ElideResponse response = elide.get(baseUrl, "/testModel/1", headers, null, NO_VERSION);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
+        assertEquals("{\"errors\":[{\"detail\":\"Found undefined keys in request: ?filter\"}]}", response.getBody());
+    }
+
+    @Test
     public void testElideGetRelationship() throws Exception {
         DataStore store = mock(DataStore.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);

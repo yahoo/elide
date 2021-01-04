@@ -14,6 +14,7 @@ import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.CustomErrorException;
 import com.yahoo.elide.core.exceptions.ErrorObjects;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
@@ -22,6 +23,7 @@ import com.yahoo.elide.core.exceptions.InvalidURLException;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
 import com.yahoo.elide.core.exceptions.TimeoutException;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
@@ -61,6 +63,8 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 import javax.validation.ConstraintViolation;
+import java.util.stream.Collectors;
+
 import javax.validation.ConstraintViolationException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedMap;
@@ -194,6 +198,13 @@ public class Elide {
     public ElideResponse get(String baseUrlEndPoint, String path, MultivaluedMap<String, String> queryParams,
                              Map<String, List<String>> requestHeaders, User opaqueUser, String apiVersion,
                              UUID requestId) {
+        if (elideSettings.isStrictQueryParams()) {
+            try {
+                verifyQueryParams(queryParams);
+            } catch (BadRequestException e) {
+                return buildErrorResponse(e, false);
+            }
+        }
         return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, requestId, (tx, user) -> {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             RequestScope requestScope = new RequestScope(baseUrlEndPoint, path, apiVersion, jsonApiDoc,
@@ -539,6 +550,26 @@ public class Elide {
         } catch (JsonProcessingException e) {
             return new ElideResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.toString());
         }
+    }
+
+    private void verifyQueryParams(MultivaluedMap<String, String> queryParams) {
+        String undefinedKeys = queryParams.keySet()
+                        .stream()
+                        .filter(Elide::notAValidKey)
+                        .collect(Collectors.joining(", "));
+
+        if (!undefinedKeys.isEmpty()) {
+            throw new BadRequestException("Found undefined keys in request: " + undefinedKeys);
+        }
+    }
+
+    private static boolean notAValidKey(String key) {
+        boolean validKey = key.equals("sort")
+                        || key.startsWith("filter")
+                        || (key.startsWith("fields[") && key.endsWith("]"))
+                        || PaginationImpl.PAGE_KEYS.containsKey(key)
+                        || key.equals(EntityProjectionMaker.INCLUDE);
+        return !validKey;
     }
 
     /**
