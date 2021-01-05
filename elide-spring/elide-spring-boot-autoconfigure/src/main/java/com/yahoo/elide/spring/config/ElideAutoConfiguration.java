@@ -13,6 +13,8 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
@@ -55,6 +57,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -176,7 +180,10 @@ public class ElideAutoConfiguration {
 
         if (isAggregationStoreEnabled(settings) && isDynamicConfigEnabled(settings)) {
             ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();
-            Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(SecurityCheck.class);
+            Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(SecurityCheck.class).stream()
+                            .map(ClassType.class::cast)
+                            .map(ClassType::getCls)
+                            .collect(Collectors.toSet());
             dictionary.addSecurityChecks(annotatedClass);
         }
 
@@ -249,7 +256,7 @@ public class ElideAutoConfiguration {
             AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder =
                             AggregationDataStore.builder().queryEngine(queryEngine);
             if (isDynamicConfigEnabled(settings)) {
-                Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(FromTable.class);
+                Set<Type<?>> annotatedClass = compiler.findAnnotatedClasses(FromTable.class);
                 annotatedClass.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
                 aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClass);
             }
