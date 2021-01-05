@@ -80,7 +80,7 @@
         <version.antlr4>4.9</version.antlr4>
         <version.logback>1.2.3</version.logback>
         <version.jetty>9.4.35.v20201120</version.jetty>
-        <version.restassured>4.3.2</version.restassured>
+        <version.restassured>4.3.3</version.restassured>
         <version.jackson>2.11.3</version.jackson>
         <version.jersey>2.32</version.jersey>
         <version.junit>5.7.0</version.junit>
