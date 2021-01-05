@@ -72,10 +72,16 @@ public class ClassType<T> implements Type<T> {
         return Arrays.stream(cls.getFields())
                 .map(ClassType::constructField).collect(Collectors.toList()).toArray(new Field[0]);
     }
+
     @Override
     public Field[] getDeclaredFields() {
         return Arrays.stream(cls.getDeclaredFields())
                 .map(ClassType::constructField).collect(Collectors.toList()).toArray(new Field[0]);
+    }
+
+    @Override
+    public Field getDeclaredField(String name) throws NoSuchFieldException {
+        return constructField(cls.getDeclaredField(name));
     }
 
     @Override

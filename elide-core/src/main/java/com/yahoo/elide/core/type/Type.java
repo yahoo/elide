@@ -24,6 +24,7 @@ public interface Type<T> {
     Method[] getDeclaredMethods();
     Field[] getFields();
     Field[] getDeclaredFields();
+    Field getDeclaredField(String name) throws NoSuchFieldException;
     Method[] getConstructors();
     default boolean isParameterized() {
         return false;
