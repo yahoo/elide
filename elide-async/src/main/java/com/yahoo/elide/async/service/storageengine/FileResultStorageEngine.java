@@ -6,7 +6,7 @@
 
 package com.yahoo.elide.async.service.storageengine;
 
-import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.TableExport;
 import io.reactivex.Observable;
 import lombok.Getter;
 import lombok.Setter;
@@ -43,10 +43,10 @@ public class FileResultStorageEngine implements ResultStorageEngine {
     }
 
     @Override
-    public AsyncQuery storeResults(AsyncQuery asyncQuery, Observable<String> result) {
+    public TableExport storeResults(TableExport tableExport, Observable<String> result) {
         log.debug("store AsyncResults for Download");
 
-        try (BufferedWriter writer = getWriter(asyncQuery.getId())) {
+        try (BufferedWriter writer = getWriter(tableExport.getId())) {
             result
                 .map(record -> record.concat(System.getProperty("line.separator")))
                 .subscribe(
@@ -65,7 +65,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
             throw new IllegalStateException(e);
         }
 
-        return asyncQuery;
+        return tableExport;
     }
 
     @Override
