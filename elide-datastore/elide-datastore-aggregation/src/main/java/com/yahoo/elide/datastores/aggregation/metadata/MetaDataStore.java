@@ -17,6 +17,7 @@ import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.TypeHelper;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
@@ -86,8 +87,8 @@ public class MetaDataStore implements DataStore {
      * get all MetaDataStore supported annotated classes.
      * @return Set of Class with specific annotations.
      */
-    private static Set<Class<?>> getAllAnnotatedClasses() {
-        Set<Class<?>> metadataStoreResult = ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS, (clazz) -> {
+    private static Set<Type<?>> getAllAnnotatedClasses() {
+        Set<Type<?>> metadataStoreResult = ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS, (clazz) -> {
             if (clazz.getAnnotation(Entity.class) != null) {
                 if (clazz.getAnnotation(Include.class) != null) {
                     return true;
@@ -95,7 +96,10 @@ public class MetaDataStore implements DataStore {
                 return false;
              }
              return true;
-        });
+        })
+        .stream()
+        .map(TypeHelper::getType)
+        .collect(Collectors.toSet());
 
         return metadataStoreResult;
     }
@@ -105,18 +109,17 @@ public class MetaDataStore implements DataStore {
         this(enableMetaDataStore);
 
         //TODO add Entity Annotation classes when supported by dynamic config.
-        Set<Class<?>> dynamicCompiledClasses = compiler.findAnnotatedClasses(FromTable.class);
+        Set<Type<?>> dynamicCompiledClasses = compiler.findAnnotatedClasses(FromTable.class);
         dynamicCompiledClasses.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
 
         if (dynamicCompiledClasses != null && dynamicCompiledClasses.size() != 0) {
             dynamicCompiledClasses.forEach(cls -> {
-                Type<?> type = getType(cls);
-                String version = EntityDictionary.getModelVersion(type);
+                String version = EntityDictionary.getModelVersion(cls);
                 HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version,
                         getHashMapDataStoreInitializer());
-                hashMapDataStore.getDictionary().bindEntity(type, Collections.singleton(Join.class));
-                this.metadataDictionary.bindEntity(type, Collections.singleton(Join.class));
-                this.modelsToBind.add(type);
+                hashMapDataStore.getDictionary().bindEntity(cls, Collections.singleton(Join.class));
+                this.metadataDictionary.bindEntity(cls, Collections.singleton(Join.class));
+                this.modelsToBind.add(cls);
                 this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);
             });
         }
@@ -127,20 +130,19 @@ public class MetaDataStore implements DataStore {
      *
      * @param modelsToBind models to bind
      */
-    public MetaDataStore(Set<Class<?>> modelsToBind, boolean enableMetaDataStore) {
+    public MetaDataStore(Set<Type<?>> modelsToBind, boolean enableMetaDataStore) {
         ClassScanner.getAllClasses(META_DATA_PACKAGE.getName())
                         .forEach(cls -> this.metadataModelClasses.add(getType(cls)));
         this.enableMetaDataStore = enableMetaDataStore;
 
         modelsToBind.forEach(cls -> {
-            Type<?> type = getType(cls);
-            String version = EntityDictionary.getModelVersion(type);
+            String version = EntityDictionary.getModelVersion(cls);
             HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version,
                     getHashMapDataStoreInitializer());
-            hashMapDataStore.getDictionary().bindEntity(type, Collections.singleton(Join.class));
-            this.metadataDictionary.bindEntity(type, Collections.singleton(Join.class));
+            hashMapDataStore.getDictionary().bindEntity(cls, Collections.singleton(Join.class));
+            this.metadataDictionary.bindEntity(cls, Collections.singleton(Join.class));
             // bind external data models in the package.
-            this.modelsToBind.add(type);
+            this.modelsToBind.add(cls);
             this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);
         });
     }

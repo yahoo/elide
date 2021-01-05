@@ -23,6 +23,7 @@ import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.TypeHelper;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.example.Continent;
@@ -369,7 +370,8 @@ public abstract class SQLUnitTest {
             throw new IllegalStateException(e);
         }
 
-        metaDataStore = new MetaDataStore(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example"), false);
+        metaDataStore = new MetaDataStore(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example")
+                        .stream().map(TypeHelper::getType).collect(Collectors.toSet()), false);
 
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(getType(PlayerStatsWithView.class));
