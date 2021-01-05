@@ -38,7 +38,6 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,7 +63,7 @@ public class MetaDataStore implements DataStore {
     };
 
     @Getter
-    private final Set<Type<?>> modelsToBind = new HashSet<>();
+    private final Set<Type<?>> modelsToBind;
 
     @Getter
     private boolean enableMetaDataStore = false;
@@ -77,7 +76,7 @@ public class MetaDataStore implements DataStore {
     @Getter
     private Map<String, HashMapDataStore> hashMapDataStores = new HashMap<>();
 
-    private final Set<Type<?>> metadataModelClasses = new HashSet<>();
+    private final Set<Type<?>> metadataModelClasses;
 
     public MetaDataStore(boolean enableMetaDataStore) {
         this(getAllAnnotatedClasses(), enableMetaDataStore);
@@ -131,8 +130,9 @@ public class MetaDataStore implements DataStore {
      * @param modelsToBind models to bind
      */
     public MetaDataStore(Set<Type<?>> modelsToBind, boolean enableMetaDataStore) {
-        ClassScanner.getAllClasses(META_DATA_PACKAGE.getName())
-                        .forEach(cls -> this.metadataModelClasses.add(getType(cls)));
+        this.metadataModelClasses = ClassScanner.getAllClasses(META_DATA_PACKAGE.getName()).stream()
+                        .map(TypeHelper::getType)
+                        .collect(Collectors.toSet());
         this.enableMetaDataStore = enableMetaDataStore;
 
         modelsToBind.forEach(cls -> {
@@ -141,10 +141,11 @@ public class MetaDataStore implements DataStore {
                     getHashMapDataStoreInitializer());
             hashMapDataStore.getDictionary().bindEntity(cls, Collections.singleton(Join.class));
             this.metadataDictionary.bindEntity(cls, Collections.singleton(Join.class));
-            // bind external data models in the package.
-            this.modelsToBind.add(cls);
             this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);
         });
+
+        // bind external data models in the package.
+        this.modelsToBind = modelsToBind;
     }
 
     @Override
