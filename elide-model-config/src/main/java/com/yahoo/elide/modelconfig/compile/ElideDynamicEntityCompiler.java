@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.modelconfig.compile;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getType;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
 import com.yahoo.elide.modelconfig.model.ElideDBConfig;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
@@ -62,14 +64,14 @@ public class ElideDynamicEntityCompiler {
      * @throws ClassNotFoundException
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public Set<Class<?>> findAnnotatedClasses(Class annotationClass)
+    public Set<Type<?>> findAnnotatedClasses(Class annotationClass)
             throws ClassNotFoundException {
 
-        Set<Class<?>> annotatedClasses = new HashSet<Class<?>>();
+        Set<Type<?>> annotatedClasses = new HashSet<>();
 
         compiledObjects.values().forEach(classz -> {
             if (classz.getAnnotation(annotationClass) != null) {
-                annotatedClasses.add(classz);
+                annotatedClasses.add(getType(classz));
             }
         });
 
@@ -88,7 +90,7 @@ public class ElideDynamicEntityCompiler {
 
         return findAnnotatedClasses(annotationClass)
                .stream()
-               .map(Class::getName)
+               .map(Type::getName)
                .collect(Collectors.toList());
     }
 
