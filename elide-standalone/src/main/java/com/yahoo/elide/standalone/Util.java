@@ -39,8 +39,6 @@ public class Util {
         populateDefaultOptions(options);
 
         ClassLoader classLoader = null;
-        //Bind entity classes from classpath to Persistence Unit
-        ArrayList<Class> loadedClasses = new ArrayList<>();
 
         if (optionalCompiler.isPresent()) {
             ElideDynamicEntityCompiler compiler = optionalCompiler.get();
@@ -48,12 +46,6 @@ public class Util {
             Collection<ClassLoader> classLoaders = new ArrayList<>();
             classLoaders.add(classLoader);
             options.put(AvailableSettings.CLASSLOADERS, classLoaders);
-
-            try {
-                loadedClasses.addAll(compiler.findAnnotatedClasses(Entity.class));
-            } catch (ClassNotFoundException e) {
-                throw new IllegalStateException(e);
-            }
         }
 
         PersistenceUnitInfo persistenceUnitInfo = new PersistenceUnitInfoImpl("elide-stand-alone",
