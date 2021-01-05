@@ -12,9 +12,9 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.dictionary.Injector;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.CustomErrorException;
 import com.yahoo.elide.core.exceptions.ErrorObjects;
-import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
@@ -61,8 +61,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-import javax.validation.ConstraintViolation;
 import java.util.stream.Collectors;
+import javax.validation.ConstraintViolation;
 
 import javax.validation.ConstraintViolationException;
 import javax.ws.rs.WebApplicationException;
