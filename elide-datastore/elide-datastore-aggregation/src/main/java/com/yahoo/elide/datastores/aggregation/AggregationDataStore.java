@@ -9,6 +9,7 @@ import static com.yahoo.elide.core.utils.TypeHelper.getType;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
@@ -33,7 +34,7 @@ import java.util.Set;
 public class AggregationDataStore implements DataStore {
     @NonNull private final QueryEngine queryEngine;
     private final Cache cache;
-    private final Set<Class<?>> dynamicCompiledClasses;
+    private final Set<Type<?>> dynamicCompiledClasses;
     private final QueryLogger queryLogger;
 
     /**
@@ -50,8 +51,8 @@ public class AggregationDataStore implements DataStore {
     public void populateEntityDictionary(EntityDictionary dictionary) {
 
         if (dynamicCompiledClasses != null && dynamicCompiledClasses.size() != 0) {
-            dynamicCompiledClasses.forEach(dynamicLoadedClass -> dictionary.bindEntity(getType(dynamicLoadedClass),
-                            Collections.singleton(Join.class)));
+            dynamicCompiledClasses.forEach(dynamicLoadedClass -> dictionary.bindEntity(dynamicLoadedClass,
+                    Collections.singleton(Join.class)));
         }
 
         ClassScanner.getAnnotatedClasses(AGGREGATION_STORE_CLASSES).forEach(
