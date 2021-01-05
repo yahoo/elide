@@ -144,7 +144,7 @@ public class ClassType<T> implements Type<T> {
     public Method getMethod(String name, Type[] parameterTypes)  throws NoSuchMethodException, SecurityException {
         Class<?>[] typeParams = Arrays.stream(parameterTypes)
                 .map(ClassType.class::cast)
-                .map(ClassType::getCls)
+                .map(classType -> (classType == null) ? null : classType.getCls())
                 .collect(Collectors.toList()).toArray(new Class[0]);
 
         return constructMethod(cls.getMethod(name, typeParams));
@@ -234,6 +234,11 @@ public class ClassType<T> implements Type<T> {
             @Override
             public void set(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException {
                 field.set(obj, value);
+            }
+
+            @Override
+            public java.lang.reflect.Field getField() {
+                return field;
             }
 
         };

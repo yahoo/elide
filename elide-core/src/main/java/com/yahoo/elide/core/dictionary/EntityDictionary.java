@@ -1525,7 +1525,7 @@ public class EntityDictionary {
             if (accessor != null && accessor instanceof Field) {
                 Field field = (Field) accessor;
                 try {
-                    field.set(target, coerce(target, value, fieldAlias, field.getType()));
+                    field.getField().set(target, coerce(target, value, fieldAlias, field.getType()));
                 } catch (IllegalAccessException noField) {
                     throw new InvalidAttributeException(fieldAlias, targetType, noField);
                 }
