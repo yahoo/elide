@@ -16,4 +16,6 @@ public interface Field extends AccessibleObject {
     Type<?> getParameterizedType(Type<?> parentType, Optional<Integer> index);
 
     void set(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException;
+
+    java.lang.reflect.Field getField();
 }

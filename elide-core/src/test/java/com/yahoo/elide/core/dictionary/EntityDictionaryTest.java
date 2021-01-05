@@ -214,7 +214,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         LifeCycleHook<Foo2> trigger = mock(LifeCycleHook.class);
 
         bindTrigger(Foo2.class, "bar", UPDATE, LifeCycleHookBinding.TransactionPhase.PRESECURITY, trigger);
-        assertEquals(1, getAllFields(Foo2.class).size());
+        assertEquals(1, getAllFields(new ClassType(Foo2.class)).size());
     }
 
     @Test
