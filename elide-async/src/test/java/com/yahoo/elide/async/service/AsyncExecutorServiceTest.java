@@ -22,6 +22,7 @@ import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
 import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
 import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
+import com.yahoo.elide.async.service.thread.AsyncQueryThread;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.User;
