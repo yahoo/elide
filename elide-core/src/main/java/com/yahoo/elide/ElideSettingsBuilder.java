@@ -52,6 +52,7 @@ public class ElideSettingsBuilder {
     private int defaultPageSize = PaginationImpl.DEFAULT_PAGE_LIMIT;
     private int updateStatusCode;
     private boolean enableJsonLinks;
+    private boolean strictQueryParams = true;
 
     /**
      * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
@@ -102,7 +103,8 @@ public class ElideSettingsBuilder {
                 defaultPageSize,
                 updateStatusCode,
                 serdes,
-                enableJsonLinks);
+                enableJsonLinks,
+                strictQueryParams);
     }
 
     public ElideSettingsBuilder withAuditLogger(AuditLogger auditLogger) {
@@ -179,6 +181,11 @@ public class ElideSettingsBuilder {
     public ElideSettingsBuilder withJSONApiLinks(JSONApiLinks links) {
         this.enableJsonLinks = true;
         this.jsonApiLinks = links;
+        return this;
+    }
+
+    public ElideSettingsBuilder withStrictQueryParams(boolean enabled) {
+        this.strictQueryParams = enabled;
         return this;
     }
 }
