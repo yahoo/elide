@@ -8,7 +8,7 @@ package com.yahoo.elide.async.service.storageengine;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.TableExport;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import io.reactivex.Observable;
@@ -81,7 +81,7 @@ public class FileResultStorageEngineTest {
 
     private void storeResultsFile(String path, String queryId, Observable<String> storable) {
         FileResultStorageEngine engine = new FileResultStorageEngine(path);
-        AsyncQuery query = new AsyncQuery();
+        TableExport query = new TableExport();
         query.setId(queryId);
 
         engine.storeResults(query, storable);
