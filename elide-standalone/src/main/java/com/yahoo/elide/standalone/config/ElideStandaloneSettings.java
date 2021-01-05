@@ -16,6 +16,8 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
@@ -54,6 +56,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
@@ -399,7 +403,7 @@ public interface ElideStandaloneSettings {
                 .queryEngine(queryEngine).queryLogger(new Slf4jQueryLogger());
 
         if (getAnalyticProperties().enableDynamicModelConfig()) {
-            Set<Class<?>> annotatedClasses = getDynamicClassesIfAvailable(optionalCompiler, FromTable.class);
+            Set<Type<?>> annotatedClasses = getDynamicClassesIfAvailable(optionalCompiler, FromTable.class);
             annotatedClasses.addAll(getDynamicClassesIfAvailable(optionalCompiler, FromSubquery.class));
             aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClasses);
         }
@@ -430,7 +434,11 @@ public interface ElideStandaloneSettings {
 
         dictionary.scanForSecurityChecks();
 
-        Set<Class<?>> annotatedSecurityClasses = getDynamicClassesIfAvailable(optionalCompiler, SecurityCheck.class);
+        Set<Class<?>> annotatedSecurityClasses = getDynamicClassesIfAvailable(optionalCompiler, SecurityCheck.class)
+                        .stream()
+                        .map(ClassType.class::cast)
+                        .map(ClassType::getCls)
+                        .collect(Collectors.toSet());
 
         dictionary.addSecurityChecks(annotatedSecurityClasses);
 
@@ -485,9 +493,9 @@ public interface ElideStandaloneSettings {
         return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
     }
 
-    static Set<Class<?>> getDynamicClassesIfAvailable(Optional<ElideDynamicEntityCompiler> optionalCompiler,
+    static Set<Type<?>> getDynamicClassesIfAvailable(Optional<ElideDynamicEntityCompiler> optionalCompiler,
             Class<?> classz) {
-        Set<Class<?>> annotatedClasses = new HashSet<Class<?>>();
+        Set<Type<?>> annotatedClasses = new HashSet<>();
 
         if (!optionalCompiler.isPresent()) {
             return annotatedClasses;
