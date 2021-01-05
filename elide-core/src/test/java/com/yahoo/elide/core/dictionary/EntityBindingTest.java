@@ -47,7 +47,7 @@ public class EntityBindingTest {
     @Test
     public void testIdField() throws Exception {
         AccessibleObject idField = entityBinding.getIdField();
-        assertEquals(idField, ParentClass.class.getDeclaredField("parentField"));
+        assertEquals(idField.getName(), new ClassType(ParentClass.class).getDeclaredField("parentField").getName());
     }
 
     @Test
