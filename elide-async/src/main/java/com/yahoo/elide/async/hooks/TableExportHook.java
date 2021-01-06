@@ -29,8 +29,9 @@ public class TableExportHook extends AsyncAPIHook<TableExport> {
     @Override
     public void execute(Operation operation, TransactionPhase phase, TableExport query, RequestScope requestScope,
             Optional<ChangeSpec> changes) {
-    	AsyncExecutorService service = getAsyncExecutorService();
-    	TableExporter exporter =new TableExporter(service.getElide(), requestScope.getApiVersion(), requestScope.getUser());
+        AsyncExecutorService service = getAsyncExecutorService();
+        TableExporter exporter = new TableExporter(service.getElide(), requestScope.getApiVersion(),
+                requestScope.getUser());
         TableExportThread queryWorker = new TableExportThread(query, service.getResultStorageEngine(), exporter);
         executeHook(operation, phase, query, requestScope, queryWorker);
     }
