@@ -15,6 +15,7 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.type.Type;
 
 import java.util.Collection;
 
@@ -36,7 +37,7 @@ public class RootCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
      */
     @Override
     public Query build() {
-        Class<?> entityClass = this.entityProjection.getType();
+        Type<?> entityClass = this.entityProjection.getType();
         String entityName = entityClass.getCanonicalName();
         String entityAlias = getTypeAlias(entityClass);
 
