@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.graphql.containers;
 
-import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.NonEntityDictionary;
@@ -37,7 +37,7 @@ public class NonEntityContainer implements GraphQLContainer {
             return null;
         }
 
-        if (nonEntityDictionary.hasBinding(new ClassType(object.getClass()))) {
+        if (nonEntityDictionary.hasBinding(EntityDictionary.getType(object))) {
             return new NonEntityContainer(object);
         }
 

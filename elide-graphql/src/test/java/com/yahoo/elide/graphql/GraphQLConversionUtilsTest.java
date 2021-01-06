@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.graphql;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getType;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -26,7 +26,7 @@ public class GraphQLConversionUtilsTest {
         CoerceUtil.register(OffsetDateTime.class, new OffsetDateTimeSerde());
         GraphQLConversionUtils graphQLConversionUtils =
                 new GraphQLConversionUtils(new EntityDictionary(new HashMap<>()), new NonEntityDictionary());
-        GraphQLScalarType offsetDateTimeType = graphQLConversionUtils.classToScalarType(getType(OffsetDateTime.class));
+        GraphQLScalarType offsetDateTimeType = graphQLConversionUtils.classToScalarType(getClassType(OffsetDateTime.class));
         assertNotNull(offsetDateTimeType);
         String expected = "OffsetDateTime";
         assertEquals(expected, offsetDateTimeType.getName());
@@ -36,7 +36,7 @@ public class GraphQLConversionUtilsTest {
         CoerceUtil.register(TimeZone.class, new TimeZoneSerde());
         GraphQLConversionUtils graphQLConversionUtils =
                 new GraphQLConversionUtils(new EntityDictionary(new HashMap<>()), new NonEntityDictionary());
-        GraphQLScalarType timeZoneType = graphQLConversionUtils.classToScalarType(getType(TimeZone.class));
+        GraphQLScalarType timeZoneType = graphQLConversionUtils.classToScalarType(getClassType(TimeZone.class));
         assertNotNull(timeZoneType);
         String expectedTimezone = "TimeZone";
         assertEquals(expectedTimezone, timeZoneType.getName());

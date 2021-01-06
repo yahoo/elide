@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.core;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getType;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
@@ -19,9 +19,9 @@ import java.util.HashMap;
 
 public class JoinPathTest {
     private static EntityDictionary dictionary;
-    private static Type<?> playerStatsWithViewType = getType(PlayerStatsWithView.class);
-    private static Type<?> countryViewType = getType(CountryView.class);
-    private static Type<?> countryViewNestedType = getType(CountryViewNested.class);
+    private static Type<?> playerStatsWithViewType = getClassType(PlayerStatsWithView.class);
+    private static Type<?> countryViewType = getClassType(CountryView.class);
+    private static Type<?> countryViewNestedType = getClassType(CountryViewNested.class);
 
     @BeforeAll
     public static void init() {

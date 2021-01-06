@@ -10,7 +10,6 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.Relationship;
-import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.DeferredId;
 import com.yahoo.elide.graphql.Environment;
@@ -45,7 +44,7 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
                     .getAttributeMap().getOrDefault(context.field.getSourceLocation(), null);
             Object attribute = context.parentResource.getAttribute(requested);
 
-            if (attribute != null && nonEntityDictionary.hasBinding(new ClassType(attribute.getClass()))) {
+            if (attribute != null && nonEntityDictionary.hasBinding(EntityDictionary.getType(attribute))) {
                 return new NonEntityContainer(attribute);
             }
 

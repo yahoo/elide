@@ -5,10 +5,10 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.utils.ClassScanner;
-import com.yahoo.elide.core.utils.TypeHelper;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.CountryView;
 import com.yahoo.elide.datastores.aggregation.example.CountryViewNested;
@@ -21,30 +21,22 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
-import java.util.stream.Collectors;
-
-import static com.yahoo.elide.core.utils.TypeHelper.getType;
 
 public class MetaDataStoreTest {
-    private static MetaDataStore dataStore =
-                    new MetaDataStore(
-                                    ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example")
-                                                    .stream()
-                                                    .map(TypeHelper::getType)
-                                                    .collect(Collectors.toSet()),
-                                    true);
+    private static MetaDataStore dataStore = new MetaDataStore(
+                    getClassType(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example")), true);
 
     @BeforeAll
     public static void setup() {
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
-        dictionary.bindEntity(getType(PlayerStatsWithView.class));
-        dictionary.bindEntity(getType(PlayerStatsView.class));
-        dictionary.bindEntity(getType(PlayerStats.class));
-        dictionary.bindEntity(getType(Country.class));
-        dictionary.bindEntity(getType(SubCountry.class));
-        dictionary.bindEntity(getType(Player.class));
-        dictionary.bindEntity(getType(CountryView.class));
-        dictionary.bindEntity(getType(CountryViewNested.class));
+        dictionary.bindEntity(PlayerStatsWithView.class);
+        dictionary.bindEntity(PlayerStatsView.class);
+        dictionary.bindEntity(PlayerStats.class);
+        dictionary.bindEntity(Country.class);
+        dictionary.bindEntity(SubCountry.class);
+        dictionary.bindEntity(Player.class);
+        dictionary.bindEntity(CountryView.class);
+        dictionary.bindEntity(CountryViewNested.class);
 
         dataStore.populateEntityDictionary(dictionary);
     }

@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.filter.visitor;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getType;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -47,12 +47,12 @@ public class SplitFilterExpressionVisitorTest {
     @BeforeAll
     public static void setupEntityDictionary() {
         EntityDictionary entityDictionary = new EntityDictionary(Collections.emptyMap());
-        entityDictionary.bindEntity(getType(PlayerStats.class));
-        entityDictionary.bindEntity(getType(Country.class));
-        entityDictionary.bindEntity(getType(SubCountry.class));
-        entityDictionary.bindEntity(getType(Player.class));
+        entityDictionary.bindEntity(PlayerStats.class);
+        entityDictionary.bindEntity(Country.class);
+        entityDictionary.bindEntity(SubCountry.class);
+        entityDictionary.bindEntity(Player.class);
 
-        Table table = new SQLTable(getType(PlayerStats.class), entityDictionary);
+        Table table = new SQLTable(getClassType(PlayerStats.class), entityDictionary);
         splitFilterExpressionVisitor = new SplitFilterExpressionVisitor(table);
     }
 

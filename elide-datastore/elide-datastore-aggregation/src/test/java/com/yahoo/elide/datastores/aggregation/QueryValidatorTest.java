@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getType;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
@@ -95,7 +95,7 @@ public class QueryValidatorTest extends SQLUnitTest {
     @Test
     public void testHavingFilterPromotionUngroupedDimension() throws ParseException {
         FilterExpression originalFilter = filterParser.parseFilterExpression("countryIsoCode==USA,lowScore<45",
-                getType(PlayerStats.class), false);
+                getClassType(PlayerStats.class), false);
         SplitFilterExpressionVisitor visitor = new SplitFilterExpressionVisitor(playerStatsTable);
         FilterConstraints constraints = originalFilter.accept(visitor);
         FilterExpression whereFilter = constraints.getWhereExpression();
@@ -119,7 +119,8 @@ public class QueryValidatorTest extends SQLUnitTest {
 
     @Test
     public void testHavingFilterNoAggregatedMetric() throws ParseException {
-        FilterExpression originalFilter = filterParser.parseFilterExpression("lowScore<45", getType(PlayerStats.class), false);
+        FilterExpression originalFilter =
+                        filterParser.parseFilterExpression("lowScore<45", getClassType(PlayerStats.class), false);
         SplitFilterExpressionVisitor visitor = new SplitFilterExpressionVisitor(playerStatsTable);
         FilterConstraints constraints = originalFilter.accept(visitor);
         FilterExpression whereFilter = constraints.getWhereExpression();
@@ -144,7 +145,7 @@ public class QueryValidatorTest extends SQLUnitTest {
     @Test
     public void testHavingFilterOnDimensionTable() throws ParseException {
         FilterExpression originalFilter = filterParser.parseFilterExpression("country.isoCode==USA,lowScore<45",
-                getType(PlayerStats.class), false);
+                getClassType(PlayerStats.class), false);
         SplitFilterExpressionVisitor visitor = new SplitFilterExpressionVisitor(playerStatsTable);
         FilterConstraints constraints = originalFilter.accept(visitor);
         FilterExpression whereFilter = constraints.getWhereExpression();
