@@ -7,6 +7,8 @@
 package com.yahoo.elide.core.hibernate.hql;
 
 import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.type.Type;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -16,7 +18,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class RelationshipImpl implements AbstractHQLQueryBuilder.Relationship {
-    private Class<?> parentType;
+    private Type<?> parentType;
     private Object parent;
     private Relationship relationship;
 }

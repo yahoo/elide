@@ -14,6 +14,7 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.type.Type;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -41,7 +42,7 @@ public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilde
      */
     @Override
     public Query build() {
-        Class<?> entityClass = entityProjection.getType();
+        Type<?> entityClass = entityProjection.getType();
         String entityName = entityClass.getCanonicalName();
         String entityAlias = getTypeAlias(entityClass);
 

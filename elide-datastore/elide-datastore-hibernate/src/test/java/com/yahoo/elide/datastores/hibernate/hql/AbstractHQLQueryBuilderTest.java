@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.hibernate.hql;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -123,7 +124,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
 
         when(this.entityProjection.getIncludedRelationsName()).thenReturn(relationsIncludedInProjection);
 
-        String actual = extractToOneMergeJoins(Left.class, "right_alias");
+        String actual = extractToOneMergeJoins(getClassType(Left.class), "right_alias");
 
         String expected = "LEFT JOIN FETCH right_alias.one2one";
         assertEquals(expected, actual.trim());

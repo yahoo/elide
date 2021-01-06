@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.hibernate.hql;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import com.yahoo.elide.core.Path;
@@ -67,7 +68,7 @@ public class SubCollectionFetchQueryBuilderTest {
 
 
         RelationshipImpl relationship = new RelationshipImpl(
-                Author.class,
+                getClassType(Author.class),
                 author,
                 relationshipProjection
         );
@@ -106,7 +107,7 @@ public class SubCollectionFetchQueryBuilderTest {
         Relationship relationshipProjection = Relationship.builder().name(BOOKS).projection(entityProjection).build();
 
         RelationshipImpl relationship = new RelationshipImpl(
-                Author.class,
+                getClassType(Author.class),
                 author,
                 relationshipProjection
         );
@@ -151,7 +152,7 @@ public class SubCollectionFetchQueryBuilderTest {
         Relationship relationshipProjection = Relationship.builder().name(BOOKS).projection(entityProjection).build();
 
         RelationshipImpl relationship = new RelationshipImpl(
-                Author.class,
+                getClassType(Author.class),
                 author,
                 relationshipProjection
         );
@@ -190,7 +191,7 @@ public class SubCollectionFetchQueryBuilderTest {
 
         Relationship relationshipProjection = Relationship.builder().name(BOOKS).projection(entityProjection).build();
         RelationshipImpl relationship = new RelationshipImpl(
-                Author.class,
+                getClassType(Author.class),
                 author,
                 relationshipProjection
         );
@@ -238,7 +239,7 @@ public class SubCollectionFetchQueryBuilderTest {
         Relationship relationshipProjection = Relationship.builder().name(BOOKS).projection(entityProjection).build();
 
         RelationshipImpl relationship = new RelationshipImpl(
-                Author.class,
+                getClassType(Author.class),
                 author,
                 relationshipProjection
         );
@@ -290,7 +291,7 @@ public class SubCollectionFetchQueryBuilderTest {
 
 
         RelationshipImpl relationship = new RelationshipImpl(
-                Author.class,
+                getClassType(Author.class),
                 author,
                 relationshipProjection
         );
@@ -330,7 +331,7 @@ public class SubCollectionFetchQueryBuilderTest {
         Relationship relationshipProjection = Relationship.builder().name(BOOKS).projection(entityProjection).build();
 
         RelationshipImpl relationship = new RelationshipImpl(
-                Publisher.class,
+                getClassType(Publisher.class),
                 publisher,
                 relationshipProjection
         );
@@ -371,7 +372,7 @@ public class SubCollectionFetchQueryBuilderTest {
         Relationship relationshipProjection = Relationship.builder().name(BOOKS).projection(entityProjection).build();
 
         RelationshipImpl relationship = new RelationshipImpl(
-                Author.class,
+                getClassType(Author.class),
                 author,
                 relationshipProjection
         );
