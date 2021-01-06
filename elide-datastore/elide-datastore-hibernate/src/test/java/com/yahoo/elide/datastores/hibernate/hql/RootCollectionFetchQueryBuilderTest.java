@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.hibernate.hql;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -106,8 +107,8 @@ public class RootCollectionFetchQueryBuilderTest {
     @Test
     public void testRootFetchWithJoinFilter() throws ParseException {
 
-        final FilterExpression titlePredicate = filterParser.parseFilterExpression("books.chapters.title=in=('ABC','DEF')", Author.class, true);
-        final FilterExpression publisherNamePredicate = filterParser.parseFilterExpression("books.publisher.name=in='Pub1'", Author.class, true);
+        final FilterExpression titlePredicate = filterParser.parseFilterExpression("books.chapters.title=in=('ABC','DEF')", getClassType(Author.class), true);
+        final FilterExpression publisherNamePredicate = filterParser.parseFilterExpression("books.publisher.name=in='Pub1'", getClassType(Author.class), true);
 
         OrFilterExpression expression = new OrFilterExpression(titlePredicate, publisherNamePredicate);
 
@@ -146,8 +147,8 @@ public class RootCollectionFetchQueryBuilderTest {
     public void testDistinctRootFetchWithToManyJoinFilterAndPagination() throws ParseException {
         final Pagination pagination = new PaginationImpl(Book.class, 0, 10, 10, 10, false, false);
 
-        final FilterExpression titlePredicate = filterParser.parseFilterExpression("books.chapters.title=in=('ABC','DEF')", Author.class, true);
-        final FilterExpression publisherNamePredicate = filterParser.parseFilterExpression("books.publisher.name=in='Pub1'", Author.class, true);
+        final FilterExpression titlePredicate = filterParser.parseFilterExpression("books.chapters.title=in=('ABC','DEF')", getClassType(Author.class), true);
+        final FilterExpression publisherNamePredicate = filterParser.parseFilterExpression("books.publisher.name=in='Pub1'", getClassType(Author.class), true);
 
         OrFilterExpression expression = new OrFilterExpression(titlePredicate, publisherNamePredicate);
 

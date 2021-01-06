@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.hibernate.hql;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import com.yahoo.elide.core.Path;
@@ -57,7 +58,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         EntityProjection entityProjection = EntityProjection.builder().type(Book.class).build();
         Relationship relationshipProjection = Relationship.builder().projection(entityProjection).name(BOOKS).build();
         RelationshipImpl relationship = new RelationshipImpl(
-                Author.class,
+                getClassType(Author.class),
                 author,
                 relationshipProjection
         );
@@ -99,7 +100,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
 
         Relationship relationshipProjection = Relationship.builder().name(BOOKS).projection(entityProjection).build();
         RelationshipImpl relationship = new RelationshipImpl(
-                Author.class,
+                getClassType(Author.class),
                 author,
                 relationshipProjection
         );
@@ -137,7 +138,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
                 .build();
         Relationship relationshipProjection = Relationship.builder().name(BOOKS).projection(entityProjection).build();
         RelationshipImpl relationship = new RelationshipImpl(
-                Author.class,
+                getClassType(Author.class),
                 author,
                 relationshipProjection
         );
@@ -185,7 +186,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         Relationship relationshipProjection = Relationship.builder().name(BOOKS).projection(entityProjection).build();
 
         RelationshipImpl relationship = new RelationshipImpl(
-                Author.class,
+                getClassType(Author.class),
                 author,
                 relationshipProjection
         );

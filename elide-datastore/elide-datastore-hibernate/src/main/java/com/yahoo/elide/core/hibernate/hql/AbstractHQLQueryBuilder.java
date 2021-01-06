@@ -60,9 +60,9 @@ public abstract class AbstractHQLQueryBuilder {
 
         com.yahoo.elide.core.request.Relationship getRelationship();
 
-        Class<?> getParentType();
+        Type<?> getParentType();
 
-        default Class<?> getChildType() {
+        default Type<?> getChildType() {
             return getRelationship().getProjection().getType();
         }
 
@@ -224,11 +224,11 @@ public abstract class AbstractHQLQueryBuilder {
      * @param alias The HQL alias for the entity class.
      * @return The JOIN clause that can be added to the FROM clause.
      */
-    protected String extractToOneMergeJoins(Class<?> entityClass, String alias) {
+    protected String extractToOneMergeJoins(Type<?> entityClass, String alias) {
         return extractToOneMergeJoins(entityClass, alias, (unused) -> false);
     }
 
-    protected String extractToOneMergeJoins(Class<?> entityClass, String alias,
+    protected String extractToOneMergeJoins(Type<?> entityClass, String alias,
                                             Function<String, Boolean> skipRelation) {
         List<String> relationshipNames = dictionary.getRelationships(entityClass);
         StringBuilder joinString = new StringBuilder("");
@@ -274,7 +274,7 @@ public abstract class AbstractHQLQueryBuilder {
 
                     for (Path.PathElement pathElement : path.getPathElements()) {
                         String fieldName = pathElement.getFieldName();
-                        Class<?> typeClass = dictionary.lookupEntityClass(pathElement.getType());
+                        Type<?> typeClass = dictionary.lookupEntityClass(pathElement.getType());
                         previousAlias = previousAlias == null
                                 ? getTypeAlias(typeClass)
                                 : previousAlias;
