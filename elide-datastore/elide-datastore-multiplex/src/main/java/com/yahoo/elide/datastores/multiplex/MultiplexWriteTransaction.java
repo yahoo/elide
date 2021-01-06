@@ -5,10 +5,10 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getType;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.request.EntityProjection;
@@ -48,13 +48,13 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
     @Override
     public void save(Object entity, RequestScope requestScope) {
         getTransaction(entity).save(entity, requestScope);
-        dirtyObjects.add(this.multiplexManager.getSubManager(getType(entity.getClass())), entity);
+        dirtyObjects.add(this.multiplexManager.getSubManager(EntityDictionary.getType(entity)), entity);
     }
 
     @Override
     public void delete(Object entity, RequestScope requestScope) {
         getTransaction(entity).delete(entity, requestScope);
-        dirtyObjects.add(this.multiplexManager.getSubManager(getType(entity.getClass())), entity);
+        dirtyObjects.add(this.multiplexManager.getSubManager(EntityDictionary.getType(entity)), entity);
     }
 
     @Override
@@ -139,7 +139,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
             return null;
         }
 
-        Type<?> cls = multiplexManager.getDictionary().lookupBoundClass(getType(object.getClass()));
+        Type<?> cls = multiplexManager.getDictionary().lookupBoundClass(EntityDictionary.getType(object));
         try {
             Object clone = cls.newInstance();
             for (Field field : cls.getFields()) {

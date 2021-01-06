@@ -242,11 +242,6 @@ public class ClassType<T> implements Type<T> {
                 field.set(obj, value);
             }
 
-            @Override
-            public java.lang.reflect.Field getField() {
-                return field;
-            }
-
         };
     }
 

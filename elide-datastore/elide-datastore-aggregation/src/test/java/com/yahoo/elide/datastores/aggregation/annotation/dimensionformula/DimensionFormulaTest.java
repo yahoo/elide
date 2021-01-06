@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.annotation.dimensionformula;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getType;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.annotation.Include;
@@ -35,7 +35,7 @@ public class DimensionFormulaTest {
 
     @Test
     public void testReferenceLoop() {
-        MetaDataStore metaDataStore = new MetaDataStore(Sets.newHashSet(getType(Loop.class)), true);
+        MetaDataStore metaDataStore = new MetaDataStore(getClassType(Sets.newHashSet(Loop.class)), true);
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
@@ -46,7 +46,7 @@ public class DimensionFormulaTest {
     @Test
     public void testCrossClassReferenceLoop() {
         MetaDataStore metaDataStore = new MetaDataStore(
-                        Sets.newLinkedHashSet(Arrays.asList(getType(LoopCountryA.class), getType(LoopCountryB.class))),
+                        getClassType(Sets.newLinkedHashSet(Arrays.asList(LoopCountryA.class, LoopCountryB.class))),
                         true);
 
         IllegalArgumentException exception = assertThrows(

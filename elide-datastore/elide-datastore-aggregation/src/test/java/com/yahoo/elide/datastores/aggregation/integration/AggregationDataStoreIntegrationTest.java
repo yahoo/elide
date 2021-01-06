@@ -27,7 +27,6 @@ import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.security.checks.Check;
-import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.checks.OperatorCheck;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
@@ -64,7 +63,6 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManagerFactory;
@@ -97,10 +95,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                     EntityDictionary dictionary = new EntityDictionary(map);
 
                     try {
-                        dictionary.addSecurityChecks(COMPILER.findAnnotatedClasses(SecurityCheck.class).stream()
-                                        .map(ClassType.class::cast)
-                                        .map(ClassType::getCls)
-                                        .collect(Collectors.toSet()));
+                        dictionary.addSecurityChecks(COMPILER.findAnnotatedClasses(SecurityCheck.class));
                     } catch (ClassNotFoundException e) {
                     }
 

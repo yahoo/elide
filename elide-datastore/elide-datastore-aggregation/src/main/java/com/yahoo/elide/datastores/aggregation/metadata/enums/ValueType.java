@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.enums;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getType;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 
 import com.yahoo.elide.core.type.Type;
 
@@ -28,21 +28,21 @@ public enum ValueType {
     ID;
 
     private static final Map<Type<?>, ValueType> SCALAR_TYPES = new HashMap<Type<?>, ValueType>() {{
-        put(getType(short.class), INTEGER);
-        put(getType(Short.class), INTEGER);
-        put(getType(int.class), INTEGER);
-        put(getType(Integer.class), INTEGER);
-        put(getType(long.class), INTEGER);
-        put(getType(Long.class), INTEGER);
-        put(getType(BigDecimal.class), DECIMAL);
-        put(getType(float.class), DECIMAL);
-        put(getType(Float.class), DECIMAL);
-        put(getType(double.class), DECIMAL);
-        put(getType(Double.class), DECIMAL);
-        put(getType(boolean.class), BOOLEAN);
-        put(getType(Boolean.class), BOOLEAN);
-        put(getType(char.class), TEXT);
-        put(getType(String.class), TEXT);
+        put(getClassType(short.class), INTEGER);
+        put(getClassType(Short.class), INTEGER);
+        put(getClassType(int.class), INTEGER);
+        put(getClassType(Integer.class), INTEGER);
+        put(getClassType(long.class), INTEGER);
+        put(getClassType(Long.class), INTEGER);
+        put(getClassType(BigDecimal.class), DECIMAL);
+        put(getClassType(float.class), DECIMAL);
+        put(getClassType(Float.class), DECIMAL);
+        put(getClassType(double.class), DECIMAL);
+        put(getClassType(Double.class), DECIMAL);
+        put(getClassType(boolean.class), BOOLEAN);
+        put(getClassType(Boolean.class), BOOLEAN);
+        put(getClassType(char.class), TEXT);
+        put(getClassType(String.class), TEXT);
     }};
 
     public static ValueType getScalarType(Type<?> fieldClass) {

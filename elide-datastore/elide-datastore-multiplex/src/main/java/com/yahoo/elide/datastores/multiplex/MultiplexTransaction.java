@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getType;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
@@ -154,7 +153,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         Pagination pagination = relation.getProjection().getPagination();
 
         relationTx = getRelationTransaction(entity, relation.getName());
-        DataStoreTransaction entityTransaction = getTransaction(getType(entity.getClass()));
+        DataStoreTransaction entityTransaction = getTransaction(EntityDictionary.getType(entity));
 
         EntityDictionary dictionary = scope.getDictionary();
         Type<?> relationClass = dictionary.getParameterizedType(entity, relation.getName());
@@ -193,7 +192,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
                                      Set<Object> deletedRelationships,
                                      RequestScope scope) {
         relationTx = getRelationTransaction(entity, relationName);
-        DataStoreTransaction entityTransaction = getTransaction(getType(entity.getClass()));
+        DataStoreTransaction entityTransaction = getTransaction(EntityDictionary.getType(entity));
         entityTransaction.updateToManyRelation(relationTx, entity, relationName,
                 newRelationships, deletedRelationships, scope);
     }
@@ -202,19 +201,19 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     public void updateToOneRelation(DataStoreTransaction relationTx, Object entity,
                                     String relationName, Object relationshipValue, RequestScope scope) {
         relationTx = getRelationTransaction(entity, relationName);
-        DataStoreTransaction entityTransaction = getTransaction(getType(entity.getClass()));
+        DataStoreTransaction entityTransaction = getTransaction(EntityDictionary.getType(entity));
         entityTransaction.updateToOneRelation(relationTx, entity, relationName, relationshipValue, scope);
     }
 
     @Override
     public Object getAttribute(Object entity, Attribute attribute, RequestScope scope) {
-        DataStoreTransaction transaction = getTransaction(getType(entity.getClass()));
+        DataStoreTransaction transaction = getTransaction(EntityDictionary.getType(entity));
         return transaction.getAttribute(entity, attribute, scope);
     }
 
     @Override
     public void setAttribute(Object entity, Attribute attribute, RequestScope scope) {
-        DataStoreTransaction transaction = getTransaction(getType(entity.getClass()));
+        DataStoreTransaction transaction = getTransaction(EntityDictionary.getType(entity));
         transaction.setAttribute(entity, attribute, scope);
     }
 

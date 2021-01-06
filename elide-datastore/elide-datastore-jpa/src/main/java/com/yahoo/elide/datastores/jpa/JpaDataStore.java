@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.jpa;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getType;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.JPQLDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -50,14 +50,14 @@ public class JpaDataStore implements JPQLDataStore {
     public void populateEntityDictionary(EntityDictionary dictionary) {
         // If the user provided models, we'll manually add them and skip scanning for entities.
         if (! modelsToBind.isEmpty()) {
-            modelsToBind.stream().forEach((model) -> bindEntityClass(model, dictionary));
+            modelsToBind.forEach((model) -> bindEntityClass(model, dictionary));
             return;
         }
 
         // Use the entities defined in the entity manager factory.
         for (EntityType type : entityManagerSupplier.get().getMetamodel().getEntities()) {
             try {
-                Type<?> mappedClass = getType(type.getJavaType());
+                Type<?> mappedClass = getClassType(type.getJavaType());
                 // Ignore this result. We are just checking to see if it throws an exception meaning that
                 // provided class was _not_ an entity.
                 dictionary.lookupEntityClass(mappedClass);
