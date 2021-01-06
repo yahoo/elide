@@ -10,13 +10,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-
-import org.apache.http.NoHttpResponseException;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import com.yahoo.elide.async.export.TableExporter;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultType;
@@ -24,7 +17,14 @@ import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.TableExportResult;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 
+import org.apache.http.NoHttpResponseException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import io.reactivex.Observable;
+
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 
 public class TableExportThreadTest {
 
