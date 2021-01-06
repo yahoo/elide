@@ -6,7 +6,7 @@
 
 package com.yahoo.elide.graphql;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getType;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static graphql.schema.GraphQLArgument.newArgument;
 import static graphql.schema.GraphQLEnumType.newEnum;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
@@ -73,7 +73,7 @@ public class GraphQLConversionUtils {
                     .getAnnotation(ElideTypeConverter.class);
             if (elideTypeConverter != null) {
                 SerdeCoercing serdeCoercing = new SerdeCoercing(ERROR_MESSAGE, serde);
-                scalarMap.put(getType(elideTypeConverter.type()), new GraphQLScalarType(elideTypeConverter.name(),
+                scalarMap.put(getClassType(elideTypeConverter.type()), new GraphQLScalarType(elideTypeConverter.name(),
                         elideTypeConverter.description(), serdeCoercing));
             }
         }
@@ -85,21 +85,21 @@ public class GraphQLConversionUtils {
      * @return the GraphQLType or null if there is a problem with the underlying model.
      */
     public GraphQLScalarType classToScalarType(Type<?> clazz) {
-        if (clazz.equals(getType(int.class)) || clazz.equals(getType(Integer.class))) {
+        if (clazz.equals(getClassType(int.class)) || clazz.equals(getClassType(Integer.class))) {
             return Scalars.GraphQLInt;
-        } else if (clazz.equals(getType(boolean.class)) || clazz.equals(getType(Boolean.class))) {
+        } else if (clazz.equals(getClassType(boolean.class)) || clazz.equals(getClassType(Boolean.class))) {
             return Scalars.GraphQLBoolean;
-        } else if (clazz.equals(getType(long.class)) || clazz.equals(getType(Long.class))) {
+        } else if (clazz.equals(getClassType(long.class)) || clazz.equals(getClassType(Long.class))) {
             return Scalars.GraphQLLong;
-        } else if (clazz.equals(getType(float.class)) || clazz.equals(getType(Float.class))) {
+        } else if (clazz.equals(getClassType(float.class)) || clazz.equals(getClassType(Float.class))) {
             return Scalars.GraphQLFloat;
-        } else if (clazz.equals(getType(double.class)) || clazz.equals(getType(Double.class))) {
+        } else if (clazz.equals(getClassType(double.class)) || clazz.equals(getClassType(Double.class))) {
             return Scalars.GraphQLFloat;
-        } else if (clazz.equals(getType(short.class)) || clazz.equals(getType(Short.class))) {
+        } else if (clazz.equals(getClassType(short.class)) || clazz.equals(getClassType(Short.class))) {
             return Scalars.GraphQLShort;
-        } else if (clazz.equals(getType(String.class))) {
+        } else if (clazz.equals(getClassType(String.class))) {
             return Scalars.GraphQLString;
-        } else if (clazz.equals(getType(BigDecimal.class))) {
+        } else if (clazz.equals(getClassType(BigDecimal.class))) {
             return Scalars.GraphQLBigDecimal;
         } else if (scalarMap.containsKey(clazz)) {
             return scalarMap.get(clazz);

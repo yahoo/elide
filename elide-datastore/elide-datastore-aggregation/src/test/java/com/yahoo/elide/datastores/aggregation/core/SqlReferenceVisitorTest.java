@@ -6,7 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.core;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getType;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory.getDefaultDialect;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -66,9 +66,9 @@ public class SqlReferenceVisitorTest {
 
     @BeforeAll
     public void init() {
-        store = new MetaDataStore(Sets.newHashSet(getType(TestModel.class), getType(JoinModel.class)), true);
-        Table table1 = new SQLTable(getType(TestModel.class), store.getMetadataDictionary());
-        Table table2 = new SQLTable(getType(JoinModel.class), store.getMetadataDictionary());
+        store = new MetaDataStore(getClassType(Sets.newHashSet(TestModel.class, JoinModel.class)), true);
+        Table table1 = new SQLTable(getClassType(TestModel.class), store.getMetadataDictionary());
+        Table table2 = new SQLTable(getClassType(JoinModel.class), store.getMetadataDictionary());
         store.addTable(table1);
         store.addTable(table2);
     }
@@ -77,7 +77,7 @@ public class SqlReferenceVisitorTest {
     public void testMatchingPhysicalReference() {
         SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "test_table", getDefaultDialect());
 
-        SQLTable table = (SQLTable) store.getTable(getType(TestModel.class));
+        SQLTable table = (SQLTable) store.getTable(getClassType(TestModel.class));
         ColumnProjection column = table.getDimensionProjection("dimension1");
 
         String actual = visitor.visitColumn(column);
@@ -89,7 +89,7 @@ public class SqlReferenceVisitorTest {
     public void testMismatchingPhysicalReference() {
         SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "test_table", getDefaultDialect());
 
-        SQLTable table = (SQLTable) store.getTable(getType(TestModel.class));
+        SQLTable table = (SQLTable) store.getTable(getClassType(TestModel.class));
         ColumnProjection column = table.getDimensionProjection("dimension2");
         String actual = visitor.visitColumn(column);
 
@@ -100,7 +100,7 @@ public class SqlReferenceVisitorTest {
     public void testJoinReference() {
         SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "join_table", getDefaultDialect());
 
-        SQLTable table = (SQLTable) store.getTable(getType(TestModel.class));
+        SQLTable table = (SQLTable) store.getTable(getClassType(TestModel.class));
         ColumnProjection column = table.getDimensionProjection("dimension3");
 
         String actual = visitor.visitColumn(column);

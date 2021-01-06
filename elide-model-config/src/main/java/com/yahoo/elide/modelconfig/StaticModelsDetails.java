@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.modelconfig;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getType;
-
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
 
@@ -38,14 +36,13 @@ public class StaticModelsDetails {
         private final Set<String> fieldNames;
     }
 
-    public void add(EntityDictionary dictionary, Class<?> cls) {
+    public void add(EntityDictionary dictionary, Type<?> cls) {
 
-        Type<?> type = getType(cls);
-        String modelName = dictionary.getJsonAliasFor(type);
-        String modelVersion = EntityDictionary.getModelVersion(type);
-        String className = type.getSimpleName();
-        String pkgName = type.getPackage().getName();
-        Set<String> fieldNames = new HashSet<String>(dictionary.getAllFields(type));
+        String modelName = dictionary.getJsonAliasFor(cls);
+        String modelVersion = EntityDictionary.getModelVersion(cls);
+        String className = cls.getSimpleName();
+        String pkgName = cls.getPackage().getName();
+        Set<String> fieldNames = new HashSet<String>(dictionary.getAllFields(cls));
 
         staticModelsDetailsMap.put(new ModelMapKey(modelName, modelVersion),
                         new ModelMapValue(className, prepareImport(pkgName, className), fieldNames));

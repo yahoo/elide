@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.async.service.dao;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -54,8 +53,8 @@ public class DefaultAsyncAPIDAOTest {
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
 
         EntityDictionary dictionary = new EntityDictionary(checkMappings);
-        dictionary.bindEntity(getType(AsyncQuery.class));
-        dictionary.bindEntity(getType(AsyncQueryResult.class));
+        dictionary.bindEntity(AsyncQuery.class);
+        dictionary.bindEntity(AsyncQueryResult.class);
 
         ElideSettings elideSettings = new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)

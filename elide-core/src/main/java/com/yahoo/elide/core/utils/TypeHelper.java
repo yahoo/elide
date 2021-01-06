@@ -14,6 +14,7 @@ import com.google.common.collect.Sets;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Utilities for handling types and aliases.
@@ -139,7 +140,13 @@ public class TypeHelper {
         return alias == null || alias.equals("");
     }
 
-    public static Type<?> getType(Class<?> cls) {
+    public static Type<?> getClassType(Class<?> cls) {
         return new ClassType<>(cls);
+    }
+
+    public static Set<Type<?>> getClassType(Set<Class<?>> cls) {
+        return cls.stream()
+                        .map(TypeHelper::getClassType)
+                        .collect(Collectors.toSet());
     }
 }

@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.spring.config;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.SecurityCheck;
@@ -13,8 +14,6 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.core.type.ClassType;
-import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
@@ -57,7 +56,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -180,10 +178,7 @@ public class ElideAutoConfiguration {
 
         if (isAggregationStoreEnabled(settings) && isDynamicConfigEnabled(settings)) {
             ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();
-            Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(SecurityCheck.class).stream()
-                            .map(ClassType.class::cast)
-                            .map(ClassType::getCls)
-                            .collect(Collectors.toSet());
+            Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(SecurityCheck.class);
             dictionary.addSecurityChecks(annotatedClass);
         }
 
@@ -256,9 +251,9 @@ public class ElideAutoConfiguration {
             AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder =
                             AggregationDataStore.builder().queryEngine(queryEngine);
             if (isDynamicConfigEnabled(settings)) {
-                Set<Type<?>> annotatedClass = compiler.findAnnotatedClasses(FromTable.class);
-                annotatedClass.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
-                aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClass);
+                Set<Class<?>> annotatedClasses = compiler.findAnnotatedClasses(FromTable.class);
+                annotatedClasses.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
+                aggregationDataStoreBuilder.dynamicCompiledClasses(getClassType(annotatedClasses));
             }
             aggregationDataStoreBuilder.cache(cache);
             aggregationDataStoreBuilder.queryLogger(querylogger);

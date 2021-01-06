@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.graphql;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.checks.Check;
 import example.Address;
@@ -30,10 +29,10 @@ public abstract class GraphQLTest {
 
         dictionary = new EntityDictionary(checks);
 
-        dictionary.bindEntity(getType(Book.class));
-        dictionary.bindEntity(getType(Author.class));
-        dictionary.bindEntity(getType(Publisher.class));
-        dictionary.bindEntity(getType(Pseudonym.class));
-        dictionary.bindEntity(getType(Address.class));
+        dictionary.bindEntity(Book.class);
+        dictionary.bindEntity(Author.class);
+        dictionary.bindEntity(Publisher.class);
+        dictionary.bindEntity(Pseudonym.class);
+        dictionary.bindEntity(Address.class);
     }
 }

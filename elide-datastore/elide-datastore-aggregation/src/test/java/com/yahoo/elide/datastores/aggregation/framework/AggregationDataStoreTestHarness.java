@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.datastores.aggregation.framework;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.core.Slf4jQueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
@@ -57,10 +57,10 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
         if (compiler != null) {
             try {
                 metaDataStore = new MetaDataStore(compiler, true);
-                Set<Type<?>> annotatedClasses = new HashSet<>();
+                Set<Class<?>> annotatedClasses = new HashSet<>();
                 annotatedClasses.addAll(compiler.findAnnotatedClasses(FromTable.class));
                 annotatedClasses.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
-                aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClasses);
+                aggregationDataStoreBuilder.dynamicCompiledClasses(getClassType(annotatedClasses));
             } catch (ClassNotFoundException e) {
                 throw new IllegalStateException(e);
             }

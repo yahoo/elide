@@ -6,7 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.framework;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
-import static com.yahoo.elide.core.utils.TypeHelper.getType;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -23,7 +23,6 @@ import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
-import com.yahoo.elide.core.utils.TypeHelper;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.example.Continent;
@@ -88,6 +87,9 @@ public abstract class SQLUnitTest {
 
     protected QueryEngine.Transaction transaction;
     private static SQLTable videoGameTable;
+    
+    protected static Type<?> playerStatsType = getClassType(PlayerStats.class);
+    protected static Type<?> playerStatsViewType = getClassType(PlayerStatsView.class);
 
     // Standard set of test queries used in dialect tests
     protected enum TestQuery {
@@ -262,8 +264,7 @@ public abstract class SQLUnitTest {
                     .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                     .havingFilter(predicate)
                     // force a join to look up countryIsoCode
-                    .whereFilter(parseFilterExpression("countryIsoCode==USA",
-                            getType(PlayerStats.class), false))
+                    .whereFilter(parseFilterExpression("countryIsoCode==USA", playerStatsType, false))
                     .build();
         }),
         NESTED_METRIC_QUERY (() -> {
@@ -295,8 +296,7 @@ public abstract class SQLUnitTest {
                     .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
                     .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                     .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
-                    .whereFilter(parseFilterExpression("countryIsoCode==USA",
-                            getType(PlayerStats.class), false))
+                    .whereFilter(parseFilterExpression("countryIsoCode==USA", playerStatsType, false))
                     .build();
         }),
         NESTED_METRIC_WITH_PAGINATION_QUERY (() -> {
@@ -357,6 +357,8 @@ public abstract class SQLUnitTest {
     public static void init(SQLDialect sqlDialect) {
         Properties properties = new Properties();
         properties.put("driverClassName", "org.h2.Driver");
+        
+        Type<?> classType = getClassType(PlayerStats.class);
 
         String jdbcUrl = "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=FALSE" + getCompatabilityMode(sqlDialect.getDialectType());
         properties.put("jdbcUrl", jdbcUrl);
@@ -370,19 +372,18 @@ public abstract class SQLUnitTest {
             throw new IllegalStateException(e);
         }
 
-        metaDataStore = new MetaDataStore(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example")
-                        .stream().map(TypeHelper::getType).collect(Collectors.toSet()), false);
+        metaDataStore = new MetaDataStore(getClassType(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example")), false);
 
         dictionary = new EntityDictionary(new HashMap<>());
-        dictionary.bindEntity(getType(PlayerStatsWithView.class));
-        dictionary.bindEntity(getType(PlayerStatsView.class));
-        dictionary.bindEntity(getType(PlayerStats.class));
-        dictionary.bindEntity(getType(Country.class));
-        dictionary.bindEntity(getType(SubCountry.class));
-        dictionary.bindEntity(getType(Player.class));
-        dictionary.bindEntity(getType(CountryView.class));
-        dictionary.bindEntity(getType(CountryViewNested.class));
-        dictionary.bindEntity(getType(Continent.class));
+        dictionary.bindEntity(PlayerStatsWithView.class);
+        dictionary.bindEntity(PlayerStatsView.class);
+        dictionary.bindEntity(PlayerStats.class);
+        dictionary.bindEntity(Country.class);
+        dictionary.bindEntity(SubCountry.class);
+        dictionary.bindEntity(Player.class);
+        dictionary.bindEntity(CountryView.class);
+        dictionary.bindEntity(CountryViewNested.class);
+        dictionary.bindEntity(Continent.class);
         filterParser = new RSQLFilterDialect(dictionary);
 
         //Manually register the serdes because we are not running a complete Elide service.

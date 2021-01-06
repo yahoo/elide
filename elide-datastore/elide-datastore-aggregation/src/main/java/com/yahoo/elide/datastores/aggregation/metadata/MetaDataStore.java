@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getType;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.Path;
@@ -17,7 +17,6 @@ import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
-import com.yahoo.elide.core.utils.TypeHelper;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
@@ -76,18 +75,18 @@ public class MetaDataStore implements DataStore {
     @Getter
     private Map<String, HashMapDataStore> hashMapDataStores = new HashMap<>();
 
-    private final Set<Type<?>> metadataModelClasses;
+    private final Set<Class<?>> metadataModelClasses;
 
     public MetaDataStore(boolean enableMetaDataStore) {
-        this(getAllAnnotatedClasses(), enableMetaDataStore);
+        this(getClassType(getAllAnnotatedClasses()), enableMetaDataStore);
     }
 
     /**
      * get all MetaDataStore supported annotated classes.
      * @return Set of Class with specific annotations.
      */
-    private static Set<Type<?>> getAllAnnotatedClasses() {
-        Set<Type<?>> metadataStoreResult = ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS, (clazz) -> {
+    private static Set<Class<?>> getAllAnnotatedClasses() {
+        return ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS, (clazz) -> {
             if (clazz.getAnnotation(Entity.class) != null) {
                 if (clazz.getAnnotation(Include.class) != null) {
                     return true;
@@ -95,12 +94,7 @@ public class MetaDataStore implements DataStore {
                 return false;
              }
              return true;
-        })
-        .stream()
-        .map(TypeHelper::getType)
-        .collect(Collectors.toSet());
-
-        return metadataStoreResult;
+        });
     }
 
     public MetaDataStore(ElideDynamicEntityCompiler compiler,
@@ -108,11 +102,11 @@ public class MetaDataStore implements DataStore {
         this(enableMetaDataStore);
 
         //TODO add Entity Annotation classes when supported by dynamic config.
-        Set<Type<?>> dynamicCompiledClasses = compiler.findAnnotatedClasses(FromTable.class);
+        Set<Class<?>> dynamicCompiledClasses = compiler.findAnnotatedClasses(FromTable.class);
         dynamicCompiledClasses.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
 
         if (dynamicCompiledClasses != null && dynamicCompiledClasses.size() != 0) {
-            dynamicCompiledClasses.forEach(cls -> {
+            getClassType(dynamicCompiledClasses).forEach(cls -> {
                 String version = EntityDictionary.getModelVersion(cls);
                 HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version,
                         getHashMapDataStoreInitializer());
@@ -130,9 +124,7 @@ public class MetaDataStore implements DataStore {
      * @param modelsToBind models to bind
      */
     public MetaDataStore(Set<Type<?>> modelsToBind, boolean enableMetaDataStore) {
-        this.metadataModelClasses = ClassScanner.getAllClasses(META_DATA_PACKAGE.getName()).stream()
-                        .map(TypeHelper::getType)
-                        .collect(Collectors.toSet());
+        this.metadataModelClasses = ClassScanner.getAllClasses(META_DATA_PACKAGE.getName());
         this.enableMetaDataStore = enableMetaDataStore;
 
         modelsToBind.forEach(cls -> {
@@ -282,7 +274,7 @@ public class MetaDataStore implements DataStore {
 
         HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version, SERVER_ERROR);
         EntityDictionary dictionary = hashMapDataStore.getDictionary();
-        Type<?> cls = dictionary.lookupBoundClass(getType(object.getClass()));
+        Type<?> cls = dictionary.lookupBoundClass(EntityDictionary.getType(object));
         String id = dictionary.getId(object);
 
         if (hashMapDataStore.get(cls).containsKey(id)) {

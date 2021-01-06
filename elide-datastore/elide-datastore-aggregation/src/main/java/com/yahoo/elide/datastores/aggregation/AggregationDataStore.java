@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getType;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -56,7 +55,7 @@ public class AggregationDataStore implements DataStore {
         }
 
         ClassScanner.getAnnotatedClasses(AGGREGATION_STORE_CLASSES).forEach(
-                cls -> dictionary.bindEntity(getType(cls), Collections.singleton(Join.class))
+                cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class))
         );
     }
 

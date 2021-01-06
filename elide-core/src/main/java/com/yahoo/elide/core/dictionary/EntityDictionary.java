@@ -841,6 +841,16 @@ public class EntityDictionary {
      * @param cls Entity bean class
      * @param hiddenAnnotations Annotations for hiding a field in API
      */
+    public void bindEntity(Class<?> cls, Set<Class<? extends Annotation>> hiddenAnnotations) {
+        bindEntity(new ClassType(cls), hiddenAnnotations);
+    }
+
+    /**
+     * Add given Entity bean to dictionary.
+     *
+     * @param cls Entity bean class
+     * @param hiddenAnnotations Annotations for hiding a field in API
+     */
     public void bindEntity(Type<?> cls, Set<Class<? extends Annotation>> hiddenAnnotations) {
         Type<?> declaredClass = lookupIncludeClass(cls);
 
@@ -1525,7 +1535,7 @@ public class EntityDictionary {
             if (accessor != null && accessor instanceof Field) {
                 Field field = (Field) accessor;
                 try {
-                    field.getField().set(target, coerce(target, value, fieldAlias, field.getType()));
+                    field.set(target, coerce(target, value, fieldAlias, field.getType()));
                 } catch (IllegalAccessException noField) {
                     throw new InvalidAttributeException(fieldAlias, targetType, noField);
                 }

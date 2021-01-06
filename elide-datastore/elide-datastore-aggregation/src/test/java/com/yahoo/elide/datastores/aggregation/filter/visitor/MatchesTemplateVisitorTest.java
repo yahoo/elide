@@ -6,7 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.filter.visitor;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getType;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -23,8 +23,8 @@ import java.util.HashMap;
 
 public class MatchesTemplateVisitorTest {
     private RSQLFilterDialect dialect;
-    private Type<?> playerStatsType = getType(PlayerStats.class);
-    private Type<?> playerType = getType(Player.class);
+    private Type<?> playerStatsType = getClassType(PlayerStats.class);
+    private Type<?> playerType = getClassType(Player.class);
 
     @BeforeEach
     public void setup() {
