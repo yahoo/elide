@@ -75,6 +75,7 @@ public class TableExportThreadTest {
         PersistentResource resource = mock(PersistentResource.class);
         when(resource.getObject()).thenReturn(queryObj);
         TableExportThread queryThread = new TableExportThread(queryObj, engine, exporter);
+        queryThread.incrementRecordCount();
         String output = queryThread.convertToCSV(resource);
         assertEquals(true, output.startsWith(row1));
         assertEquals(true, output.contains(row2));
