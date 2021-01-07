@@ -19,7 +19,6 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.FilterExpressionPath;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
-import com.yahoo.elide.annotation.MappedInterface;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.RequestScope;
@@ -40,6 +39,7 @@ import com.google.common.collect.ImmutableSet;
 import example.Author;
 import example.Book;
 import example.Child;
+import example.CoerceBean;
 import example.Editor;
 import example.FieldAnnotations;
 import example.FunWithPermissions;
@@ -61,7 +61,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -561,16 +560,7 @@ public class EntityDictionaryTest extends EntityDictionary {
                 && !rels.contains("excludedEntityList"));
     }
 
-    @MappedInterface
-    public interface SuitableInterface {
-    }
-
     public interface BadInterface {
-    }
-
-    @Test
-    public void testMappedInterface() {
-        assertEquals(EntityBinding.EMPTY_BINDING, getEntityBinding(new ClassType(SuitableInterface.class)));
     }
 
     @Test
@@ -938,15 +928,6 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testCoerce() throws Exception {
-        @Entity
-        @Include(rootLevel = false)
-        class CoerceBean {
-            public String string;
-            public List<Boolean> list;
-            public Map<String, Long> map;
-            public Set<Double> set;
-        }
-
         bindEntity(CoerceBean.class);
         CoerceBean bean = new CoerceBean();
 
