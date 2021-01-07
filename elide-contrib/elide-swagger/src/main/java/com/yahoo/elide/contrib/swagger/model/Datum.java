@@ -24,7 +24,7 @@ public class Datum extends ModelImpl {
     /**
      * Constructs a singular resource identifier.
      *
-     * @param relationship added as a property of 'data'
+     * @param relationship added as a property of 'data'.
      */
     public Datum(Relationship relationship) {
         super();

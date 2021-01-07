@@ -24,7 +24,7 @@ public class Data extends ObjectProperty {
     }
 
     /**
-     * Used to construct a collection of resources (referenced by the resource type)
+     * Used to construct a collection of resources (referenced by the resource type).
      * @param definitionName The swagger model to reference in 'data'
      * @param included Whether or not to add the 'included' property to the schema.
      */

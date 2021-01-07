@@ -23,7 +23,7 @@ public class Data extends ModelImpl {
 
     /**
      * Used to construct a collection of resource identifiers.
-     * @param relationship is added as a property of 'data'
+     * @param relationship is added as a property of 'data'.
      */
     public Data(Relationship relationship) {
         super();
