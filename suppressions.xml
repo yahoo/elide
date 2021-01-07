@@ -5,6 +5,9 @@
     <!-- Invalid web socket CVE (flagging wrong package) -->
     <suppress until="2021-12-01Z">
         <cve>CVE-2020-11050</cve>
+        <cve>CVE-2020-25638</cve>
+        <cve>CVE-2020-8908</cve>
+        <cve>CVE-2020-17527</cve>
     </suppress>
 
     <!-- Invalid Spring Security CVE -->
