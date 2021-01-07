@@ -27,7 +27,6 @@ import io.swagger.models.parameters.PathParameter;
 import io.swagger.models.parameters.QueryParameter;
 import io.swagger.models.properties.StringProperty;
 import io.swagger.util.Json;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.ArrayDeque;
@@ -68,7 +67,6 @@ public class SwaggerBuilder {
     /**
      * Metadata for constructing URLs and Swagger 'Path' objects.
      */
-    @AllArgsConstructor
     public class PathMetaData {
 
         /**
@@ -88,14 +86,21 @@ public class SwaggerBuilder {
         @Getter
         private Class<?> type;
 
+        private String url;
+
         /**
          * Constructs a PathMetaData for a 'root' entity.
          * @param type the 'root' entity type of the first segment of the URL.
          */
         public PathMetaData(Class<?> type) {
+            this(new Stack<>(), dictionary.getJsonAliasFor(type), type);
+        }
+
+        public PathMetaData(Stack<PathMetaData> lineage, String name, Class<?> type) {
+            this.lineage = lineage;
             this.type = type;
-            lineage = new Stack<>();
-            name = dictionary.getJsonAliasFor(type);
+            this.name = name;
+            this.url = toString();
         }
 
         /**
@@ -552,6 +557,9 @@ public class SwaggerBuilder {
          * @return is shorter or same
          */
         public boolean shorterThan(PathMetaData compare) {
+            return (compare.url.startsWith(url));
+
+            /*
             if (lineage.isEmpty()) {
                 return this.type.equals(compare.type);
             }
@@ -560,6 +568,7 @@ public class SwaggerBuilder {
                     && this.name.equals(compare.name)
                     && !compare.lineage.isEmpty()
                     && lineage.peek().shorterThan(compare.lineage.peek());
+            */
         }
 
         @Override
@@ -573,9 +582,7 @@ public class SwaggerBuilder {
 
             PathMetaData that = (PathMetaData) o;
 
-            return lineage.equals(that.lineage)
-                    && name.equals(that.name)
-                    && type.equals(that.type);
+            return url.equals(that.url);
         }
 
         @Override
@@ -741,7 +748,7 @@ public class SwaggerBuilder {
                  * We don't prune paths that are redundant with root collections to allow both BOTH
                  * root collection urls as well as relationship urls.
                  */
-                if (path.equals(compare) || compare.lineage.isEmpty()) {
+                if (compare.lineage.isEmpty() || path == compare) {
                     continue;
                 }
                 if (compare.shorterThan(path)) {
