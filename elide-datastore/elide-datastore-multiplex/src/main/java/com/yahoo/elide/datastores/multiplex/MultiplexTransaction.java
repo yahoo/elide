@@ -50,7 +50,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
 
     @Override
     public void createObject(Object entity, RequestScope scope) {
-        getTransaction(entity).createObject(entity, scope);
+        getTransaction(EntityDictionary.getType(entity)).createObject(entity, scope);
     }
 
     @Override
@@ -138,7 +138,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
 
     protected DataStoreTransaction getRelationTransaction(Object object, String relationName) {
         EntityDictionary dictionary = multiplexManager.getDictionary();
-        Type<?> relationClass = dictionary.getParameterizedType(object, relationName);
+        Type<?> relationClass = dictionary.getParameterizedType(EntityDictionary.getType(object), relationName);
         return getTransaction(relationClass);
     }
 
@@ -153,16 +153,17 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         Pagination pagination = relation.getProjection().getPagination();
 
         relationTx = getRelationTransaction(entity, relation.getName());
-        DataStoreTransaction entityTransaction = getTransaction(EntityDictionary.getType(entity));
+        Type<Object> entityType = EntityDictionary.getType(entity);
+        DataStoreTransaction entityTransaction = getTransaction(entityType);
 
         EntityDictionary dictionary = scope.getDictionary();
-        Type<?> relationClass = dictionary.getParameterizedType(entity, relation.getName());
+        Type<?> relationClass = dictionary.getParameterizedType(entityType, relation.getName());
         String idFieldName = dictionary.getIdFieldName(relationClass);
 
         // If different transactions, check if bridgeable and try to bridge
         if (entityTransaction != relationTx && relationTx instanceof BridgeableTransaction) {
             BridgeableTransaction bridgeableTx = (BridgeableTransaction) relationTx;
-            RelationshipType relationType = dictionary.getRelationshipType(entity.getClass(), relation.getName());
+            RelationshipType relationType = dictionary.getRelationshipType(entityType, relation.getName());
             Serializable id = (filter != null) ? extractId(filter, idFieldName, relationClass) : null;
 
             if (relationType.isToMany()) {

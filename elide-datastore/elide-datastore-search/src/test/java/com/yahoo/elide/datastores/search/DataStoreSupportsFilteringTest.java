@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.search;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -90,7 +91,7 @@ public class DataStoreSupportsFilteringTest {
         /* The field is indexed using the @Fields annotation */
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterExpression filter = filterParser.parseFilterExpression("name==*rum*",
-                Item.class, false);
+                getClassType(Item.class), false);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Item.class)
@@ -106,7 +107,7 @@ public class DataStoreSupportsFilteringTest {
         /* The field is indexed using the @Field annotation */
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterExpression filter = filterParser.parseFilterExpression("description==*rum*",
-                Item.class, false);
+                getClassType(Item.class), false);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Item.class)
@@ -122,7 +123,7 @@ public class DataStoreSupportsFilteringTest {
         /* The field is not indexed */
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterExpression filter = filterParser.parseFilterExpression("price==123",
-                Item.class, false);
+                getClassType(Item.class), false);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Item.class)
@@ -138,7 +139,7 @@ public class DataStoreSupportsFilteringTest {
     public void testNgramTooSmall() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("description==*ru*",
-                Item.class, false);
+                getClassType(Item.class), false);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Item.class)
@@ -153,7 +154,7 @@ public class DataStoreSupportsFilteringTest {
     public void testNgramTooLarge() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("description==*abcdefghijk*",
-                Item.class, false);
+                getClassType(Item.class), false);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Item.class)
@@ -168,7 +169,7 @@ public class DataStoreSupportsFilteringTest {
     public void testLargeNgramForEqualityOperator() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("description==abcdefghijk",
-                Item.class, false);
+                getClassType(Item.class), false);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Item.class)
@@ -185,7 +186,7 @@ public class DataStoreSupportsFilteringTest {
     public void testNgramJustRight() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("description==*ruabc*",
-                Item.class, false);
+                getClassType(Item.class), false);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Item.class)
@@ -200,7 +201,7 @@ public class DataStoreSupportsFilteringTest {
     public void testInfixOperator() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("name==*rum*",
-                Item.class, false);
+                getClassType(Item.class), false);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Item.class)
@@ -215,7 +216,7 @@ public class DataStoreSupportsFilteringTest {
     public void testPrefixOperator() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("name==drum*",
-                Item.class, false);
+                getClassType(Item.class), false);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Item.class)
@@ -230,7 +231,7 @@ public class DataStoreSupportsFilteringTest {
     public void testEqualityOperator() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("name==drum",
-                Item.class, false);
+                getClassType(Item.class), false);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Item.class)

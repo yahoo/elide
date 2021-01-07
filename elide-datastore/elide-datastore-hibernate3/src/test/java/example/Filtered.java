@@ -16,6 +16,8 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
+import com.yahoo.elide.core.type.Type;
+
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import lombok.ToString;
@@ -53,7 +55,7 @@ public class Filtered extends BaseId {
     static public class FilterCheck<T> extends FilterExpressionCheck<T> {
         /* Limit reads to ID 1 */
         @Override
-        public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Type entityClass, RequestScope requestScope) {
             return getPredicateOfId(1L);
         }
     }
@@ -64,7 +66,7 @@ public class Filtered extends BaseId {
     static public class FilterCheck3<T> extends FilterExpressionCheck<T> {
         /* Limit reads to ID 3 */
         @Override
-        public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Type entityClass, RequestScope requestScope) {
             return getPredicateOfId(3L);
         }
     }

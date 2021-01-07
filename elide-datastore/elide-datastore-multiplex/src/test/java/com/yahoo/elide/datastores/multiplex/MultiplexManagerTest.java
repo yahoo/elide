@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -51,8 +52,8 @@ public class MultiplexManagerTest {
     @Test
     public void checkLoading() {
         EntityDictionary entityDictionary = multiplexManager.getDictionary();
-        assertNotNull(entityDictionary.getJsonAliasFor(FirstBean.class));
-        assertNotNull(entityDictionary.getJsonAliasFor(OtherBean.class));
+        assertNotNull(entityDictionary.getJsonAliasFor(getClassType(FirstBean.class)));
+        assertNotNull(entityDictionary.getJsonAliasFor(getClassType(OtherBean.class)));
     }
 
     @Test
@@ -91,8 +92,8 @@ public class MultiplexManagerTest {
         final MultiplexManager multiplexManager = new MultiplexManager(ds1, ds2);
         multiplexManager.populateEntityDictionary(entityDictionary);
 
-        assertEquals(ds1, multiplexManager.getSubManager(FirstBean.class));
-        assertEquals(ds2, multiplexManager.getSubManager(OtherBean.class));
+        assertEquals(ds1, multiplexManager.getSubManager(getClassType(FirstBean.class)));
+        assertEquals(ds2, multiplexManager.getSubManager(getClassType(OtherBean.class)));
 
         try (DataStoreTransaction t = ds1.beginTransaction()) {
             assertFalse(t.loadObjects(EntityProjection.builder()
