@@ -14,8 +14,8 @@ import io.swagger.models.properties.StringProperty;
 public class Relationship extends ObjectProperty {
 
     /**
-     * Constructs a singular resource identifier
-     * @param relationshipType the type of resource
+     * Constructs a singular resource identifier.
+     * @param relationshipType the type of resource.
      */
     public Relationship(String relationshipType) {
         super();
