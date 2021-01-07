@@ -25,10 +25,11 @@ public class ClassType<T> implements Type<T> {
     public static final ClassType MAP_TYPE = new ClassType(Map.class);
     public static final ClassType COLLECTION_TYPE = new ClassType(Collection.class);
     public static final ClassType STRING_TYPE = new ClassType(String.class);
-    public static final ClassType NUMBER_TYPE = new ClassType(String.class);
+    public static final ClassType NUMBER_TYPE = new ClassType(Number.class);
     public static final ClassType DATE_TYPE = new ClassType(Date.class);
     public static final ClassType OBJECT_TYPE = new ClassType(Object.class);
     public static final ClassType CLASS_TYPE = new ClassType(Class.class);
+    public static final ClassType INTEGER_TYPE = new ClassType(Integer.class);
 
     @Getter
     private Class<T> cls;

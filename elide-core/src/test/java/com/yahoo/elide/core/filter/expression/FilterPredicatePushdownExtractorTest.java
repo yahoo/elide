@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.core.filter.expression;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -102,7 +103,7 @@ public class FilterPredicatePushdownExtractorTest {
         path = new Path(Book.class, dictionary, "this.editor.firstName");
 
         pathElements = ImmutableList.of(
-                new PathElement(Book.class, null, "this"),
+                new PathElement(getClassType(Book.class), null, "this"),
                 new PathElement(Book.class, Editor.class, "editor"),
                 new PathElement(Editor.class, String.class, "firstName"));
 
