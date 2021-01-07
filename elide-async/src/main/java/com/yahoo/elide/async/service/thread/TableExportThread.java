@@ -81,15 +81,20 @@ public class TableExportThread implements Callable<AsyncAPIResult> {
         Observable<String> results = Observable.just("No Records Generated");
 
         if (queryObj.getResultType() == ResultType.CSV) {
-            results =  resources.map(resource -> convertToCSV(resource));
+            results =  resources.map(resource -> {
+                incrementRecordCount();
+                return convertToCSV(resource);
+            });
         } else if (queryObj.getResultType() == ResultType.JSON) {
-            results = resources.map(resource -> resourceToJsonStr(resource));
+            results = resources.map(resource -> {
+                incrementRecordCount();
+                return resourceToJsonStr(resource);
+            });
         }
         return results;
     }
 
-    private String resourceToJsonStr(PersistentResource resource) throws IOException {
-        incrementRecordCount();
+    protected String resourceToJsonStr(PersistentResource resource) throws IOException {
         //TODO Additional logic to create an array of records???
         return resource == null ? null : mapper.writeValueAsString(resource.getObject());
     }
@@ -120,7 +125,8 @@ public class TableExportThread implements Callable<AsyncAPIResult> {
 
             for (Object[] obj : json2Csv) {
                 // Skip Header record from 2nd time onwards.
-                if (index++ == 0 && downloadRecordCount != 0) {
+                // TODO Flag to Skip Headers
+                if (index++ == 0 && downloadRecordCount != 1) {
                     continue;
                 }
 
@@ -129,12 +135,11 @@ public class TableExportThread implements Callable<AsyncAPIResult> {
                     objString = objString.substring(1, objString.length() - 1);
                 }
                 str.append(objString);
-                // Only append new lines after header. Other records have a new line present already.
+                // Only append new lines after header. Cause 1st resource is transformed to 2 records.
+                // TODO Flag to Skip Headers
                 if (index == 1) {
                     str.append(System.getProperty("line.separator"));
                 }
-
-                incrementRecordCount();
             }
         } catch (Exception e) {
             log.debug("Exception while converting to CSV: {}", e.getMessage());
