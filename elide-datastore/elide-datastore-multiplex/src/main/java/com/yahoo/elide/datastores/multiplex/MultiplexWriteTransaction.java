@@ -47,14 +47,16 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
 
     @Override
     public void save(Object entity, RequestScope requestScope) {
-        getTransaction(entity).save(entity, requestScope);
-        dirtyObjects.add(this.multiplexManager.getSubManager(EntityDictionary.getType(entity)), entity);
+        Type<Object> entityType = EntityDictionary.getType(entity);
+        getTransaction(entityType).save(entity, requestScope);
+        dirtyObjects.add(this.multiplexManager.getSubManager(entityType), entity);
     }
 
     @Override
     public void delete(Object entity, RequestScope requestScope) {
-        getTransaction(entity).delete(entity, requestScope);
-        dirtyObjects.add(this.multiplexManager.getSubManager(EntityDictionary.getType(entity)), entity);
+        Type<Object> entityType = EntityDictionary.getType(entity);
+        getTransaction(entityType).delete(entity, requestScope);
+        dirtyObjects.add(this.multiplexManager.getSubManager(entityType), entity);
     }
 
     @Override
@@ -105,7 +107,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
     @SuppressWarnings("resource")
     @Override
     public void createObject(Object entity, RequestScope scope) {
-        DataStoreTransaction transaction = getTransaction(entity.getClass());
+        DataStoreTransaction transaction = getTransaction(EntityDictionary.getType(entity));
         transaction.createObject(entity, scope);
         // mark this object as newly created to be deleted on reverse transaction
         clonedObjects.put(entity, NEWLY_CREATED_OBJECT);
@@ -184,7 +186,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
                               Object entity,
                               Relationship relationship,
                               RequestScope scope) {
-        DataStoreTransaction transaction = getTransaction(entity.getClass());
+        DataStoreTransaction transaction = getTransaction(EntityDictionary.getType(entity));
         Object relation = super.getRelation(relationTx, entity, relationship, scope);
 
         if (relation instanceof Iterable) {

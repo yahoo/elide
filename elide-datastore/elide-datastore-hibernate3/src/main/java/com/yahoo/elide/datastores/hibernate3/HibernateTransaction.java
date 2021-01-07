@@ -25,6 +25,7 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.hibernate3.porting.QueryWrapper;
 import com.yahoo.elide.datastores.hibernate3.porting.SessionWrapper;
 import org.hibernate.FlushMode;
@@ -120,12 +121,12 @@ public class HibernateTransaction implements DataStoreTransaction {
                              Serializable id,
                              RequestScope scope) {
 
-        Class<?> entityClass = projection.getType();
+        Type<?> entityClass = projection.getType();
         FilterExpression filterExpression = projection.getFilterExpression();
 
         try {
             EntityDictionary dictionary = scope.getDictionary();
-            Class<?> idType = dictionary.getIdType(entityClass);
+            Type<?> idType = dictionary.getIdType(entityClass);
             String idField = dictionary.getIdFieldName(entityClass);
 
             //Construct a predicate that selects an individual element of the relationship's parent (Author.id = 3).
@@ -212,7 +213,7 @@ public class HibernateTransaction implements DataStoreTransaction {
                 }
 
                 RelationshipImpl relationship = new RelationshipImpl(
-                        dictionary.lookupEntityClass(entity.getClass()),
+                        dictionary.lookupEntityClass(EntityDictionary.getType(entity)),
                         entity,
                         relation
                 );

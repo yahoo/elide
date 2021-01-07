@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.hibernate3;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.JPQLDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -91,7 +92,7 @@ public class HibernateStore implements JPQLDataStore {
     public void populateEntityDictionary(EntityDictionary dictionary) {
         /* bind all entities */
         for (ClassMetadata meta : sessionFactory.getAllClassMetadata().values()) {
-            bindEntityClass(meta.getMappedClass(EntityMode.POJO), dictionary);
+            bindEntityClass(getClassType(meta.getMappedClass(EntityMode.POJO)), dictionary);
         }
     }
 

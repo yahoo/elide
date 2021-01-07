@@ -74,8 +74,8 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
                     .getOrDefault(context.field.getSourceLocation(), null);
 
             if (relationship == null) {
-                throw new BadRequestException(
-                        "Relationship doesn't have projection " + context.parentResource.getTypeName() + "." + fieldName);
+                throw new BadRequestException("Relationship doesn't have projection "
+                                + context.parentResource.getTypeName() + "." + fieldName);
             }
 
             return fetcher.fetchRelationship(context.parentResource, relationship, context.ids);

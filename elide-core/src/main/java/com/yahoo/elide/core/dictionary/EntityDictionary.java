@@ -1569,18 +1569,19 @@ public class EntityDictionary {
      * @return coerced value
      */
     public Object coerce(Object target, Object value, String fieldName, Type<?> fieldType) {
-        Preconditions.checkState(fieldType instanceof ClassType);
 
-        Class<?> fieldClass = ((ClassType) fieldType).getCls();
-        if (fieldType != null
-                && COLLECTION_TYPE.isAssignableFrom(fieldType)
-                && value instanceof Collection) {
-            return coerceCollection(target, (Collection) value, fieldName, fieldClass);
-        }
+        Class<?> fieldClass = null;
+        if (fieldType != null) {
+            Preconditions.checkState(fieldType instanceof ClassType);
+            fieldClass = ((ClassType) fieldType).getCls();
 
+            if (COLLECTION_TYPE.isAssignableFrom(fieldType) && value instanceof Collection) {
+                return coerceCollection(target, (Collection) value, fieldName, fieldClass);
+            }
 
-        if (fieldType != null && MAP_TYPE.isAssignableFrom(fieldType) && value instanceof Map) {
-            return coerceMap(target, (Map<?, ?>) value, fieldName);
+            if (MAP_TYPE.isAssignableFrom(fieldType) && value instanceof Map) {
+                return coerceMap(target, (Map<?, ?>) value, fieldName);
+            }
         }
 
         return CoerceUtil.coerce(value, fieldClass);

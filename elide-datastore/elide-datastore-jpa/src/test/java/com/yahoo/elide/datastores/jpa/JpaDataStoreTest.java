@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.jpa;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -64,9 +65,9 @@ public class JpaDataStoreTest {
         try {
             store.populateEntityDictionary(dictionary);
 
-            assertNotNull(FilterTranslator.lookupJPQLGenerator(Operator.IN, Test.class, "name"));
+            assertNotNull(FilterTranslator.lookupJPQLGenerator(Operator.IN, getClassType(Test.class), "name"));
         } finally {
-            FilterTranslator.registerJPQLGenerator(Operator.IN, Test.class, "name", null);
+            FilterTranslator.registerJPQLGenerator(Operator.IN, getClassType(Test.class), "name", null);
         }
     }
 
@@ -88,10 +89,10 @@ public class JpaDataStoreTest {
         EntityManager managerMock = mock(EntityManager.class);
         when(managerMock.getMetamodel()).thenReturn(mockModel);
 
-        JpaDataStore store = new JpaDataStore(() -> { return managerMock; }, (unused) -> { return null; }, Test.class);
+        JpaDataStore store = new JpaDataStore(() -> { return managerMock; }, (unused) -> { return null; }, getClassType(Test.class));
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
         store.populateEntityDictionary(dictionary);
 
-        assertNotNull(dictionary.lookupBoundClass(Test.class));
+        assertNotNull(dictionary.lookupBoundClass(getClassType(Test.class)));
     }
 }
