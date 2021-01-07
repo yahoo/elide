@@ -50,6 +50,9 @@ public class AsyncExecutorService {
     private static AsyncExecutorService asyncExecutorService = null;
     private ResultStorageEngine resultStorageEngine;
     private ThreadLocal<AsyncAPIResultFuture> asyncResultFutureThreadLocal = new ThreadLocal<>();
+    // TODO Update constructor to populate these.
+    private String downloadURI;
+    private boolean skipCSVHeader;
 
     /**
      * A Future with Synchronous Execution Complete Flag.

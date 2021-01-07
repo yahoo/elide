@@ -32,7 +32,8 @@ public class TableExportHook extends AsyncAPIHook<TableExport> {
         AsyncExecutorService service = getAsyncExecutorService();
         TableExporter exporter = new TableExporter(service.getElide(), requestScope.getApiVersion(),
                 requestScope.getUser());
-        TableExportThread queryWorker = new TableExportThread(query, service.getResultStorageEngine(), exporter);
+        TableExportThread queryWorker = new TableExportThread(query, service.getResultStorageEngine(), exporter,
+                requestScope.getBaseUrlEndPoint(), service.getDownloadURI(), service.isSkipCSVHeader());
         executeHook(operation, phase, query, requestScope, queryWorker);
     }
 

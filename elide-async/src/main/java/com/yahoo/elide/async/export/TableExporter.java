@@ -18,6 +18,7 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
 
 import io.reactivex.Observable;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -34,6 +35,7 @@ public class TableExporter {
     private String apiVersion;
     private User user;
     private GraphQLParser graphQLParser;
+    @Getter private EntityProjection projection = null;
 
     public TableExporter(Elide elide, String apiVersion, User user) {
         this(elide, apiVersion, user, new GraphQLParser(elide, apiVersion));
@@ -59,7 +61,6 @@ public class TableExporter {
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
 
-            EntityProjection projection = null;
             RequestScope requestScope = null;
 
             if (query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {

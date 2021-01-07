@@ -19,10 +19,10 @@ import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.QueryRunner;
-import org.apache.http.NoHttpResponseException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,9 +47,13 @@ public class AsyncQueryThreadTest {
     }
 
     @Test
-    public void testProcessQueryJsonApi() throws NoHttpResponseException, URISyntaxException {
+    public void testProcessQueryJsonApi() throws URISyntaxException, IOException {
         AsyncQuery queryObj = new AsyncQuery();
-        ElideResponse response = new ElideResponse(200, "ResponseBody");
+        String responseBody = "{\"data\":"
+                + "[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}}"
+                + ",{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},"
+                + "{\"type\":\"book\",\"id\":\"1\",\"attributes\":{\"title\":\"Ender's Game\"}}]}";
+        ElideResponse response = new ElideResponse(200, responseBody);
         String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         queryObj.setId(id);
@@ -59,14 +63,18 @@ public class AsyncQueryThreadTest {
         when(elide.get(anyString(), anyString(), any(), any(), anyString(), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, asyncExecutorService, "v1");
         AsyncQueryResult queryResultObj = (AsyncQueryResult) queryThread.call();
-        assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
+        assertEquals(queryResultObj.getResponseBody(), responseBody);
         assertEquals(queryResultObj.getHttpStatus(), 200);
+        assertEquals(queryResultObj.getRecordCount(), 3);
     }
 
     @Test
-    public void testProcessQueryGraphQl() throws NoHttpResponseException, URISyntaxException {
+    public void testProcessQueryGraphQl() throws URISyntaxException, IOException {
         AsyncQuery queryObj = new AsyncQuery();
-        ElideResponse response = new ElideResponse(200, "ResponseBody");
+        String responseBody = "{\"data\":{\"book\":{\"edges\":[{\"node\":{\"id\":\"1\",\"title\":\"Ender's Game\"}},"
+        + "{\"node\":{\"id\":\"2\",\"title\":\"Song of Ice and Fire\"}},"
+        + "{\"node\":{\"id\":\"3\",\"title\":\"For Whom the Bell Tolls\"}}]}}}";
+        ElideResponse response = new ElideResponse(200, responseBody);
         String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         queryObj.setId(id);
@@ -76,7 +84,27 @@ public class AsyncQueryThreadTest {
         when(runner.run(anyString(), eq(query), eq(user), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, asyncExecutorService, "v1");
         AsyncQueryResult queryResultObj = (AsyncQueryResult) queryThread.call();
-        assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
+        assertEquals(queryResultObj.getResponseBody(), responseBody);
         assertEquals(queryResultObj.getHttpStatus(), 200);
+        assertEquals(queryResultObj.getRecordCount(), 3);
+    }
+
+    @Test
+    public void testProcessQueryGraphQlInvalidResponse() throws URISyntaxException, IOException {
+        AsyncQuery queryObj = new AsyncQuery();
+        String responseBody = "ResponseBody";
+        ElideResponse response = new ElideResponse(200, responseBody);
+        String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
+        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
+
+        when(runner.run(anyString(), eq(query), eq(user), any())).thenReturn(response);
+        AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, asyncExecutorService, "v1");
+        AsyncQueryResult queryResultObj = (AsyncQueryResult) queryThread.call();
+        assertEquals(queryResultObj.getResponseBody(), responseBody);
+        assertEquals(queryResultObj.getHttpStatus(), 200);
+        assertEquals(queryResultObj.getRecordCount(), 0);
     }
 }

@@ -14,16 +14,23 @@ import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.QueryRunner;
+
+import com.jayway.jsonpath.JsonPath;
+
 import org.apache.http.NameValuePair;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
+
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -46,7 +53,7 @@ public class AsyncQueryThread implements Callable<AsyncAPIResult> {
     }
 
     @Override
-    public AsyncAPIResult call() throws URISyntaxException, NoHttpResponseException {
+    public AsyncAPIResult call() throws URISyntaxException, IOException {
         ElideResponse response = null;
         log.debug("AsyncQuery Object from request: {}", this);
         UUID requestUUID = UUID.fromString(queryObj.getRequestId());
@@ -62,8 +69,29 @@ public class AsyncQueryThread implements Callable<AsyncAPIResult> {
         queryResult.setCompletedOn(new Date());
         queryResult.setResponseBody(response.getBody());
         queryResult.setContentLength(response.getBody().length());
-        //TODO Add recordcount to queryResultObj
+        queryResult.setRecordCount(calculateRecordCount(response, queryObj.getQueryType()));
         return queryResult;
+    }
+
+    /**
+     * This method calculates the number of records from the response.
+     * @param response is the ElideResponse
+     * @param queryType is the query type (GraphQL or JSON).
+     * @return Record Count
+     * @throws IOException Exception thrown by JsonPath
+     */
+    protected Integer calculateRecordCount(ElideResponse response, QueryType queryType)
+            throws IOException {
+        Integer count = null;
+        if (response.getResponseCode() == 200) {
+            if (queryType.equals(QueryType.GRAPHQL_V1_0)) {
+                List<Integer> countList = JsonPath.read(response.getBody(), "$..edges.length()");
+                count = countList.size() > 0 ? countList.get(0) : 0;
+            } else if (queryType.equals(QueryType.JSONAPI_V1_0)) {
+                count = JsonPath.read(response.getBody(), "$.data.length()");
+            }
+        }
+        return count;
     }
 
     /**

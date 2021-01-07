@@ -22,6 +22,7 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.Check;
 import org.junit.jupiter.api.AfterEach;
@@ -72,7 +73,7 @@ public class TableExporterTest {
 
         TableExporter exporter = new TableExporter(elide, NO_VERSION, user);
         Observable<PersistentResource> results = exporter.export(tableExport);
-
+        EntityProjection projection = exporter.getProjection();
         assertNotEquals(Observable.empty(), results);
         assertEquals(1, results.toList(LinkedHashSet::new).blockingGet().size());
     }
