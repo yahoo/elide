@@ -103,6 +103,14 @@ public class SwaggerBuilder {
             this.url = toString();
         }
 
+        public Class<?> getRootType() {
+            if (lineage.isEmpty()) {
+                return type;
+            }
+
+            return lineage.elementAt(0).type;
+        }
+
         /**
          * @return Something like '/book/{bookId}/authors' or '/publisher'
          */
@@ -741,22 +749,30 @@ public class SwaggerBuilder {
 
         /* Prune the discovered paths to remove redundant elements */
         Set<PathMetaData> toRemove = new HashSet<>();
-        for (PathMetaData path : pathData) {
-            for (PathMetaData compare : pathData) {
 
-                /*
-                 * We don't prune paths that are redundant with root collections to allow both BOTH
-                 * root collection urls as well as relationship urls.
-                 */
-                if (compare.lineage.isEmpty() || path == compare) {
-                    continue;
+        pathData.stream()
+                .collect(Collectors.groupingBy(PathMetaData::getRootType))
+                .values()
+                .forEach(pathSet -> {
+                    for (PathMetaData path : pathSet) {
+                        for (PathMetaData compare : pathSet) {
+
+                            /*
+                             * We don't prune paths that are redundant with root collections to allow both BOTH
+                             * root collection urls as well as relationship urls.
+                             */
+                            if (compare.lineage.isEmpty() || path == compare) {
+                                continue;
+                            }
+                            if (compare.shorterThan(path)) {
+                                toRemove.add(path);
+                                break;
+                            }
+                        }
+                    }
                 }
-                if (compare.shorterThan(path)) {
-                    toRemove.add(path);
-                    break;
-                }
-            }
-        }
+        );
+
         pathData = Sets.difference(pathData, toRemove);
 
         /* Each path constructs 3 URLs (collection, instance, and relationship) */
