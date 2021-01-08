@@ -134,6 +134,11 @@ public class ClassType<T> implements Type<T> {
     }
 
     @Override
+    public boolean isPrimitive() {
+        return cls.isPrimitive();
+    }
+
+    @Override
     public Annotation getAnnotation(Class annotationClass) {
         return cls.getAnnotation(annotationClass);
     }

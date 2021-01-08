@@ -10,10 +10,12 @@ import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.swagger.model.Data;
 import com.yahoo.elide.swagger.model.Datum;
 import com.yahoo.elide.swagger.property.Relationship;
-
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 import io.swagger.converter.ModelConverters;
@@ -52,8 +54,8 @@ import java.util.stream.Collectors;
  */
 public class SwaggerBuilder {
     protected EntityDictionary dictionary;
-    protected Set<Class<?>> rootClasses;
-    protected Set<Class<?>> allClasses;
+    protected Set<Type<?>> rootClasses;
+    protected Set<Type<?>> allClasses;
     protected Swagger swagger;
     protected Map<Integer, Response> globalResponses;
     protected Set<Parameter> globalParams;
@@ -88,13 +90,13 @@ public class SwaggerBuilder {
          * Either the type of the root collection of the relationship.
          */
         @Getter
-        private Class<?> type;
+        private Type<?> type;
 
         /**
          * Constructs a PathMetaData for a 'root' entity.
          * @param type the 'root' entity type of the first segment of the URL.
          */
-        public PathMetaData(Class<?> type) {
+        public PathMetaData(Type<?> type) {
             this.type = type;
             lineage = new Stack<>();
             name = dictionary.getJsonAliasFor(type);
@@ -190,7 +192,7 @@ public class SwaggerBuilder {
             Response okEmptyResponse = new Response()
                     .description("Successful response");
 
-            Class<?> parentClass = lineage.peek().getType();
+            Type<?> parentClass = lineage.peek().getType();
             RelationshipType relationshipType = dictionary.getRelationshipType(parentClass, name);
 
             if (relationshipType.isToMany()) {
@@ -472,8 +474,8 @@ public class SwaggerBuilder {
         private Parameter getSortParameter() {
             List<String> filterAttributes = dictionary.getAttributes(type).stream()
                     .filter((name) -> {
-                        Class<?> attributeClass = dictionary.getType(type, name);
-                        return (attributeClass.isPrimitive() || String.class.isAssignableFrom(attributeClass));
+                        Type<?> attributeClass = dictionary.getType(type, name);
+                        return (attributeClass.isPrimitive() || ClassType.STRING_TYPE.isAssignableFrom(attributeClass));
                     })
                     .map((name) -> Arrays.asList(name, "-" + name))
                     .flatMap(Collection::stream)
@@ -520,10 +522,10 @@ public class SwaggerBuilder {
             if (supportLegacyDialect) {
                 for (Operator op : filterOperators) {
                     attributeNames.forEach((name) -> {
-                        Class<?> attributeClass = dictionary.getType(type, name);
+                        Type<?> attributeClass = dictionary.getType(type, name);
 
                         /* Only filter attributes that can be assigned to strings or primitives */
-                        if (attributeClass.isPrimitive() || String.class.isAssignableFrom(attributeClass)) {
+                        if (attributeClass.isPrimitive() || ClassType.STRING_TYPE.isAssignableFrom(attributeClass)) {
                             params.add(new QueryParameter()
                                     .type("string")
                                     .name("filter[" + typeName + "." + name + "][" + op.getNotation() + "]")
@@ -684,7 +686,7 @@ public class SwaggerBuilder {
      * @param classes A subset of the entities in the entity dictionary.
      * @return the builder
      */
-    public SwaggerBuilder withExplicitClassList(Set<Class<?>> classes) {
+    public SwaggerBuilder withExplicitClassList(Set<Type<?>> classes) {
         allClasses = new HashSet<>(classes);
         return this;
     }
@@ -724,8 +726,9 @@ public class SwaggerBuilder {
 
         /* Create a Model for each Elide entity */
         Map<String, Model> models = new HashMap<>();
-        for (Class<?> clazz : allClasses) {
-            models.putAll(converters.readAll(clazz));
+        for (Type<?> clazz : allClasses) {
+            Preconditions.checkState(clazz instanceof ClassType);
+            models.putAll(converters.readAll(((ClassType) clazz).getCls()));
         }
         swagger.setDefinitions(models);
 
@@ -788,7 +791,7 @@ public class SwaggerBuilder {
      * @param rootClass the starting node of the graph
      * @return set of discovered paths.
      */
-    protected Set<PathMetaData> find(Class<?> rootClass) {
+    protected Set<PathMetaData> find(Type<?> rootClass) {
         Queue<PathMetaData> toVisit = new ArrayDeque<>();
         Set<PathMetaData> paths = new HashSet<>();
 
@@ -807,7 +810,7 @@ public class SwaggerBuilder {
             }
 
             for (String relationshipName : relationshipNames) {
-                Class<?> relationshipClass = dictionary.getParameterizedType(current.getType(), relationshipName);
+                Type<?> relationshipClass = dictionary.getParameterizedType(current.getType(), relationshipName);
 
                 PathMetaData next = new PathMetaData(current.getFullLineage(), relationshipName, relationshipClass);
 
