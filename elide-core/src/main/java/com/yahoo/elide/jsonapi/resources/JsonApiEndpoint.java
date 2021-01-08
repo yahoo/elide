@@ -9,7 +9,6 @@ import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.PATCH;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.utils.HeaderUtils;
@@ -33,7 +32,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 /**
@@ -168,7 +166,6 @@ public class JsonApiEndpoint {
     protected String getBaseUrlEndpoint(UriInfo uriInfo) {
         String baseUrl = elide.getElideSettings().getBaseUrl();
 
-        //TODO - we need to incorporate the JSON-API resource path as well.
         if (baseUrl == null || baseUrl.isEmpty()) {
             baseUrl = uriInfo.getBaseUri().toString();
         } else {
