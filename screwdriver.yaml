@@ -22,6 +22,13 @@ jobs:
     steps:
       - build: mvn -B clean verify coveralls:report
 
+  elide-4-build:
+    requires: [~pr:elide-4.x, ~commit:elide-4.x]
+    secrets:
+        - COVERALLS_REPO_TOKEN
+    steps:
+      - build: mvn -B clean verify coveralls:report
+
   release:
     secrets:
         - BINTRAY_USER
