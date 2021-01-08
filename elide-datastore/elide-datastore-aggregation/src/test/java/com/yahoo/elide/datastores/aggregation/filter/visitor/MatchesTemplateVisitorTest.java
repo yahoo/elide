@@ -24,13 +24,12 @@ import java.util.HashMap;
 public class MatchesTemplateVisitorTest {
     private RSQLFilterDialect dialect;
     private Type<?> playerStatsType = getClassType(PlayerStats.class);
-    private Type<?> playerType = getClassType(Player.class);
 
     @BeforeEach
     public void setup() {
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
-        dictionary.bindEntity(playerStatsType);
-        dictionary.bindEntity(playerType);
+        dictionary.bindEntity(PlayerStats.class);
+        dictionary.bindEntity(Player.class);
         dialect = new RSQLFilterDialect(dictionary);
     }
 
