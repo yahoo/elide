@@ -304,6 +304,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
+    @ConditionalOnProperty(name = "elide.swagger.enabled", havingValue = "true")
     public Swagger buildSwagger(EntityDictionary dictionary, ElideConfigProperties settings) {
         Info info = new Info()
                 .title(settings.getSwagger().getName())
