@@ -60,7 +60,6 @@ public class JsonApiModelResolver extends ModelResolver {
             return super.resolve(type, context, next);
         }
 
-        type.getTypeName();
         Class<?> clazz = (Class<?>) type;
         Type<?> clazzType = getClassType(clazz);
 
@@ -80,8 +79,7 @@ public class JsonApiModelResolver extends ModelResolver {
         for (String attributeName : attributeNames) {
             Type<?> attributeType = dictionary.getType(clazzType, attributeName);
 
-            Preconditions.checkState(attributeType instanceof ClassType);
-            Property attribute = processAttribute(clazzType, attributeName, ((ClassType) attributeType).getCls(),
+            Property attribute = processAttribute(clazzType, attributeName, attributeType,
                             context, next);
             entitySchema.addAttribute(attributeName, attribute);
         }
@@ -104,10 +102,11 @@ public class JsonApiModelResolver extends ModelResolver {
         return entitySchema;
     }
 
-    private Property processAttribute(Type<?> clazzType, String attributeName, Class<?> attributeClazz,
+    private Property processAttribute(Type<?> clazzType, String attributeName, Type<?> attributeType,
         ModelConverterContext context, Iterator<ModelConverter> next) {
 
-        Property attribute = super.resolveProperty(attributeClazz, context, null, next);
+        Preconditions.checkState(attributeType instanceof ClassType);
+        Property attribute = super.resolveProperty(((ClassType) attributeType).getCls(), context, null, next);
 
         String permissions = getFieldPermissions(clazzType, attributeName);
         String description = getFieldDescription(clazzType, attributeName);
