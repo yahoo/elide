@@ -101,7 +101,6 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
         // checkFieldAwareReadPermissions
         requestScope.getPermissionExecutor().checkSpecificFieldPermissions(resource, null, ReadPermission.class,
                 fieldName);
-        resource.getResourceType();
         Object entity = resource.getObject();
         if (entity == null || resource.getDictionary()
                 .getRelationshipType(resource.getResourceType(), fieldName) == RelationshipType.NONE) {

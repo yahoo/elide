@@ -161,7 +161,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .source(playerStatsViewTable)
                 .metricProjection(playerStatsViewTable.getMetricProjection("highScore"))
                 .whereFilter(filterParser.parseFilterExpression("countryName=='United States'",
-                                playerStatsViewType, false))
+                        playerStatsViewType, false))
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());

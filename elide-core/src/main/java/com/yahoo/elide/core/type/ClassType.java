@@ -79,8 +79,7 @@ public class ClassType<T> implements Type<T> {
 
     @Override
     public Field getDeclaredField(String name) throws NoSuchFieldException {
-        return Arrays.stream(getDeclaredFields()).filter(field -> field.getName().equals(name)).findFirst().get();
-//        return constructField(cls.getDeclaredField(name));
+        return constructField(cls.getDeclaredField(name));
     }
 
     @Override
