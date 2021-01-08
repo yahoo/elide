@@ -123,8 +123,13 @@ public class JsonApiController {
         return pathname.replaceFirst(prefix, "");
     }
 
-    private String getBaseUrlEndpoint() {
-        return ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
-                + settings.getJsonApi().getPath() + "/";
+    protected String getBaseUrlEndpoint() {
+        String baseUrl = elide.getElideSettings().getBaseUrl();
+
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+        }
+
+        return baseUrl + settings.getJsonApi().getPath() + "/";
     }
 }

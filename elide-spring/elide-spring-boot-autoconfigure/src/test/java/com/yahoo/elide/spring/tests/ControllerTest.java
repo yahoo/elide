@@ -56,7 +56,7 @@ public class ControllerTest extends IntegrationTest {
      */
     @Test
     public void jsonApiGetTest() {
-        String baseUrl = "http://" + hostname + ":" + port + "/json/";
+        String baseUrl = "https://elide.io/json/";
         when()
                 .get("/json/group")
                 .then()
@@ -90,7 +90,7 @@ public class ControllerTest extends IntegrationTest {
 
     @Test
     public void jsonApiPatchTest() {
-        String baseUrl = "http://" + hostname + ":" + port + "/json/";
+        String baseUrl = "https://elide.io/json/";
         given()
             .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
             .body(
@@ -190,7 +190,7 @@ public class ControllerTest extends IntegrationTest {
 
     @Test
     public void jsonApiPostTest() {
-        String baseUrl = "http://" + hostname + ":" + port + "/json/";
+        String baseUrl = "https://elide.io/json/";
         given()
                 .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
                 .body(

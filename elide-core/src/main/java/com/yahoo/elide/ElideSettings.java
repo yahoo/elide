@@ -44,4 +44,5 @@ public class ElideSettings {
     @Getter private final Map<Class, Serde> serdes;
     @Getter private final boolean encodeErrorResponses;
     @Getter private final boolean enableJsonLinks;
+    @Getter private final String baseUrl;
 }
