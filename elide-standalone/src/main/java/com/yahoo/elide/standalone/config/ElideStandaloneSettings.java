@@ -93,6 +93,7 @@ public interface ElideStandaloneSettings {
                 .withEntityDictionary(dictionary)
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
+                .withBaseUrl(getBaseUrl())
                 .withAuditLogger(getAuditLogger());
 
         if (enableISO8601Dates()) {
@@ -226,6 +227,15 @@ public interface ElideStandaloneSettings {
      */
     default String getSwaggerVersion() {
         return NO_VERSION;
+    }
+
+    /**
+     * The service base URL that clients use in queries.  Elide will reference this name
+     * in any callback URLs returned by the service.  If not set, Elide uses the API request to generate the base URL.
+     * @return The base URL of the service.
+     */
+    default String getBaseUrl() {
+        return "";
     }
 
     /**
