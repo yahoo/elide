@@ -43,7 +43,7 @@ public class TableExportThreadTest {
     public void testProcessQueryGraphqlApiEmptyResults() throws NoHttpResponseException, URISyntaxException,
             MalformedURLException {
         TableExport queryObj = new TableExport();
-        String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
+        String query = "/tableExport?sort=commonName&fields%5Bgroup%5D=commonName,description";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         queryObj.setId(id);
         queryObj.setQuery(query);
@@ -62,10 +62,10 @@ public class TableExportThreadTest {
     @Test
     public void testJsonToCSV() {
         String row1 = "id, query, queryType, requestId, principalName, status, createdOn, updatedOn, asyncAfterSeconds, resultType, result";
-        String row2 = "\"edc4a871-dff2-4054-804e-d80075cf827d\", \"/group?sort=commonName&fields%5Bgroup%5D=commonName,description\", \"GRAPHQL_V1_0\"";
+        String row2 = "\"edc4a871-dff2-4054-804e-d80075cf827d\", \"/tableExport\", \"GRAPHQL_V1_0\"";
         String row2End = "10.0, \"CSV\", null";
         TableExport queryObj = new TableExport();
-        String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
+        String query = "/tableExport";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         queryObj.setId(id);
         queryObj.setQuery(query);
@@ -84,11 +84,11 @@ public class TableExportThreadTest {
 
     @Test
     public void testResourceToJSON() throws IOException {
-        String start = "{\"id\":\"edc4a871-dff2-4054-804e-d80075cf827d\",\"query\":\"/group?sort=commonName&fields%5Bgroup%5D=commonName,description\","
+        String start = "{\"id\":\"edc4a871-dff2-4054-804e-d80075cf827d\",\"query\":\"/tableExport\","
                 + "\"queryType\":\"GRAPHQL_V1_0\",";
         String end = "\"asyncAfterSeconds\":10,\"resultType\":\"CSV\",\"result\":null}";
         TableExport queryObj = new TableExport();
-        String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
+        String query = "/tableExport";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         queryObj.setId(id);
         queryObj.setQuery(query);
