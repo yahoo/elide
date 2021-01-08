@@ -44,11 +44,11 @@ public class EntityBindingTest {
         assertEquals(allFields.get(1), "parentField");
     }
 
-//    @Test
-//    public void testIdField() throws Exception {
-//        AccessibleObject idField = entityBinding.getIdField();
-//        assertEquals(idField, ParentClass.class.getDeclaredField("parentField"));
-//    }
+    @Test
+    public void testIdField() throws Exception {
+        AccessibleObject idField = entityBinding.getIdField();
+        assertEquals(idField, new ClassType(ParentClass.class).getDeclaredField("parentField"));
+    }
 
     @Test
     public void testIdGeneratedFalseWhenNoAnnotations() throws Exception {
