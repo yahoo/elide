@@ -33,6 +33,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 /**
@@ -170,6 +171,8 @@ public class JsonApiEndpoint {
         //TODO - we need to incorporate the JSON-API resource path as well.
         if (baseUrl == null || baseUrl.isEmpty()) {
             baseUrl = uriInfo.getBaseUri().toString();
+        } else {
+            baseUrl += uriInfo.getBaseUri().getPath();
         }
 
         return baseUrl;
