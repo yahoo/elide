@@ -59,7 +59,7 @@ public class ControllerTest extends IntegrationTest {
     @Override
     public void setUp() {
         super.setUp();
-        baseUrl = "http://localhost:" + port + "/json/";
+        baseUrl = "https://elide.io/json/";
     }
 
     /**
