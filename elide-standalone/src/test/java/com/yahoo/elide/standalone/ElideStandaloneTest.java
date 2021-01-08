@@ -92,7 +92,7 @@ public class ElideStandaloneTest {
                         .withJSONApiLinks(new DefaultJSONApiLinks(jsonApiBaseUrl))
                         .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                         .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
-                        .withBaseUrl("https://elide.io")
+                        .withBaseUrl(getBaseUrl())
                         .withAuditLogger(getAuditLogger());
 
                 if (enableIS06081Dates()) {
