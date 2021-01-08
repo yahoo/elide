@@ -40,4 +40,10 @@ public class ElideConfigProperties {
      * The maximum pagination size a client can request.
      */
     private int maxPageSize = 10000;
+
+    /**
+     * The base service URL that clients use in queries.  Elide will reference this name
+     * in any callback URLs returned by the service.  If not set, Elide uses the API request to derive the base URL.
+     */
+    private String baseUrl = "";
 }

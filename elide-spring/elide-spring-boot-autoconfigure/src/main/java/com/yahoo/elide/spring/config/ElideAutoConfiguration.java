@@ -57,6 +57,7 @@ public class ElideAutoConfiguration {
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
                 .withAuditLogger(new Slf4jLogger())
+                .withBaseUrl(settings.getBaseUrl())
                 .withEncodeErrorResponses(true)
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
 

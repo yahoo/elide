@@ -16,6 +16,16 @@ import java.util.Map;
  */
 public class DefaultJSONApiLinks implements JSONApiLinks {
 
+    private final String baseUrl;
+
+    public DefaultJSONApiLinks() {
+        this("");
+    }
+
+    public DefaultJSONApiLinks(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
+
     @Override
     public Map<String, String> getResourceLevelLinks(PersistentResource resource) {
         return ImmutableMap.of("self", getResourceUrl(resource));
@@ -36,8 +46,13 @@ public class DefaultJSONApiLinks implements JSONApiLinks {
      */
     protected String getResourceUrl(PersistentResource resource) {
         StringBuilder result = new StringBuilder();
-        if (resource.getRequestScope().getBaseUrlEndPoint() != null) {
-            result.append(resource.getRequestScope().getBaseUrlEndPoint());
+
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            if (resource.getRequestScope().getBaseUrlEndPoint() != null) {
+                result.append(resource.getRequestScope().getBaseUrlEndPoint());
+            }
+        } else {
+            result.append(baseUrl);
         }
         for (PersistentResource resourcePath : resource.getLineage().getResourcePath()) {
             result.append(String.join("/", resourcePath.getType(), resourcePath.getId()));

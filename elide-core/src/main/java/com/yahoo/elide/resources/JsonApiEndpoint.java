@@ -68,7 +68,7 @@ public class JsonApiEndpoint {
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        return build(elide.post(uriInfo.getBaseUri().toString(), path, jsonapiDocument,
+        return build(elide.post(getBaseUrlEndpoint(uriInfo), path, jsonapiDocument,
                 queryParams, getUser.apply(securityContext)));
     }
 
@@ -87,7 +87,7 @@ public class JsonApiEndpoint {
         @Context UriInfo uriInfo,
         @Context SecurityContext securityContext) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        return build(elide.get(uriInfo.getBaseUri().toString(), path, queryParams, getUser.apply(securityContext)));
+        return build(elide.get(getBaseUrlEndpoint(uriInfo), path, queryParams, getUser.apply(securityContext)));
     }
 
     /**
@@ -112,7 +112,7 @@ public class JsonApiEndpoint {
         @Context SecurityContext securityContext,
         String jsonapiDocument) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        return build(elide.patch(uriInfo.getBaseUri().toString(), contentType, accept, path, jsonapiDocument,
+        return build(elide.patch(getBaseUrlEndpoint(uriInfo), contentType, accept, path, jsonapiDocument,
                                  queryParams, getUser.apply(securityContext)));
     }
 
@@ -134,11 +134,23 @@ public class JsonApiEndpoint {
         @Context SecurityContext securityContext,
         String jsonApiDocument) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        return build(elide.delete(uriInfo.getBaseUri().toString(), path, jsonApiDocument,
+        return build(elide.delete(getBaseUrlEndpoint(uriInfo), path, jsonApiDocument,
                 queryParams, getUser.apply(securityContext)));
     }
 
     private static Response build(ElideResponse response) {
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
+    }
+
+    protected String getBaseUrlEndpoint(UriInfo uriInfo) {
+        String baseUrl = elide.getElideSettings().getBaseUrl();
+
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            baseUrl = uriInfo.getBaseUri().toString();
+        } else {
+            baseUrl += uriInfo.getBaseUri().getPath();
+        }
+
+        return baseUrl;
     }
 }

@@ -28,16 +28,20 @@ public class IntegrationTestSetup {
     public Elide initializeElide(EntityDictionary dictionary,
                                  DataStore dataStore, ElideConfigProperties settings) {
 
+        String baseUrl = "https://elide.io";
+        String jsonApiBaseUrl = baseUrl + settings.getJsonApi().getPath() + "/";
+
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
                 .withDefaultMaxPageSize(settings.getMaxPageSize())
                 .withDefaultPageSize(settings.getPageSize())
-                .withJSONApiLinks(new DefaultJSONApiLinks())
+                .withJSONApiLinks(new DefaultJSONApiLinks(jsonApiBaseUrl))
                 .withUseFilterExpressions(true)
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
                 .withAuditLogger(new Slf4jLogger())
                 .withEncodeErrorResponses(true)
+                .withBaseUrl(baseUrl)
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
 
         return new Elide(builder.build());

@@ -82,12 +82,17 @@ public class ElideStandaloneTest {
 
                 dictionary.scanForSecurityChecks();
 
+                String jsonApiBaseUrl = getBaseUrl()
+                        + getJsonApiPathSpec().replaceAll("/\\*", "")
+                        + "/";
+
                 ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                         .withUseFilterExpressions(true)
                         .withEntityDictionary(dictionary)
-                        .withJSONApiLinks(new DefaultJSONApiLinks())
+                        .withJSONApiLinks(new DefaultJSONApiLinks(jsonApiBaseUrl))
                         .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                         .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
+                        .withBaseUrl("https://elide.io")
                         .withAuditLogger(getAuditLogger());
 
                 if (enableIS06081Dates()) {
@@ -95,6 +100,11 @@ public class ElideStandaloneTest {
                 }
 
                 return builder.build();
+            }
+
+            @Override
+            public String getBaseUrl() {
+                return "https://elide.io";
             }
 
             @Override
@@ -173,7 +183,7 @@ public class ElideStandaloneTest {
                                                 attr("date", "2019-01-01T00:00Z")
                                         ),
                                         links(
-                                                attr("self", "http://localhost:8080/api/v1/post/1")
+                                                attr("self", "https://elide.io/api/v1/post/1")
                                         )
                                 )
                         ).toJSON()))
