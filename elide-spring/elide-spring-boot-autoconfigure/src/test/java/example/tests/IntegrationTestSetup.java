@@ -26,7 +26,8 @@ public class IntegrationTestSetup {
     @Primary
     public Elide initializeElide(EntityDictionary dictionary,
                                  DataStore dataStore, ElideConfigProperties settings) {
-        String jsonApiBaseUrl = settings.getBaseUrl() + settings.getJsonApi().getPath();
+        String baseUrl = "https://elide.io";
+        String jsonApiBaseUrl = baseUrl + settings.getJsonApi().getPath() + "/";
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
@@ -36,7 +37,7 @@ public class IntegrationTestSetup {
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
                 .withAuditLogger(new Slf4jLogger())
-                .withBaseUrl("https://elide.io")
+                .withBaseUrl(baseUrl)
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
 
         return new Elide(builder.build());
