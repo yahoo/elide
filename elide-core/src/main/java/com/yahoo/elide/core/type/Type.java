@@ -19,6 +19,7 @@ public interface Type<T> {
     <A extends Annotation> A getAnnotation(Class<A> annotationClass);
     boolean isAnnotationPresent(Class<? extends Annotation> annotationClass);
     boolean isAssignableFrom(Type<?> cls);
+    boolean isPrimitive();
     Package getPackage();
     Method[] getMethods();
     Method[] getDeclaredMethods();

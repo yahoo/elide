@@ -87,7 +87,7 @@ public abstract class SQLUnitTest {
 
     protected QueryEngine.Transaction transaction;
     private static SQLTable videoGameTable;
-    
+
     protected static Type<?> playerStatsType = getClassType(PlayerStats.class);
     protected static Type<?> playerStatsViewType = getClassType(PlayerStatsView.class);
 
@@ -364,8 +364,6 @@ public abstract class SQLUnitTest {
     public static void init(SQLDialect sqlDialect) {
         Properties properties = new Properties();
         properties.put("driverClassName", "org.h2.Driver");
-        
-        Type<?> classType = getClassType(PlayerStats.class);
 
         String jdbcUrl = "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=FALSE" + getCompatabilityMode(sqlDialect.getDialectType());
         properties.put("jdbcUrl", jdbcUrl);
