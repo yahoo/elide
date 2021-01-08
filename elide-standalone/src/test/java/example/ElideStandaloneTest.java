@@ -11,6 +11,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.links;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
@@ -22,7 +23,13 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
+import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
@@ -36,6 +43,7 @@ import org.junit.jupiter.api.TestInstance;
 import io.restassured.response.Response;
 
 import java.util.Properties;
+import java.util.TimeZone;
 import javax.ws.rs.core.MediaType;
 
 /**
@@ -48,6 +56,24 @@ public class ElideStandaloneTest {
     @BeforeAll
     public void init() throws Exception {
         elide = new ElideStandalone(new ElideStandaloneSettings() {
+
+            @Override
+            public ElideSettings getElideSettings(EntityDictionary dictionary, DataStore dataStore) {
+
+                ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
+                        .withEntityDictionary(dictionary)
+                        .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
+                        .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
+                        .withJSONApiLinks(new DefaultJSONApiLinks())
+                        .withBaseUrl("https://elide.io")
+                        .withAuditLogger(getAuditLogger());
+
+                if (enableISO8601Dates()) {
+                    builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
+                }
+
+                return builder.build();
+            }
 
             @Override
             public Properties getDatabaseProperties() {
@@ -174,6 +200,7 @@ public class ElideStandaloneTest {
             )
             .post("/api/v1/post")
             .then()
+
             .statusCode(HttpStatus.SC_CREATED)
             .extract().body().asString();
 
@@ -183,8 +210,21 @@ public class ElideStandaloneTest {
             .get("/api/v1/postView")
             .then()
             .statusCode(200)
-            .body("data.id", hasItems("0"))
-            .body("data.attributes.content", hasItems("This is my first post. woot."));
+            .body(equalTo(
+                    data(
+                            resource(
+                                    type("postView"),
+                                    id("0"),
+                                    attributes(
+                                            attr("content", "This is my first post. woot.")
+                                    ),
+                                    links(
+                                            attr("self", "https://elide.io/api/v1/postView/0")
+                                    )
+                            )
+                    ).toJSON()
+                )
+            );
     }
 
     @Test
