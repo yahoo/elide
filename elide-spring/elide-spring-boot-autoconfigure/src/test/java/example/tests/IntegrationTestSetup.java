@@ -26,12 +26,13 @@ public class IntegrationTestSetup {
     @Primary
     public Elide initializeElide(EntityDictionary dictionary,
                                  DataStore dataStore, ElideConfigProperties settings) {
+        String jsonApiBaseUrl = settings.getBaseUrl() + settings.getJsonApi().getPath();
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
                 .withDefaultMaxPageSize(settings.getMaxPageSize())
                 .withDefaultPageSize(settings.getPageSize())
-                .withJSONApiLinks(new DefaultJSONApiLinks())
+                .withJSONApiLinks(new DefaultJSONApiLinks(jsonApiBaseUrl))
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
                 .withAuditLogger(new Slf4jLogger())
