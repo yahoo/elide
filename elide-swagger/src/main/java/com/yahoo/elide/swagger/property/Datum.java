@@ -25,7 +25,7 @@ public class Datum extends ObjectProperty {
     }
 
     /**
-     * Constructs a singular resource (referenced by type)
+     * Constructs a singular resource (referenced by type).
      * @param definitionName The swagger model to reference in 'data'.
      * @param included Whether or not to add the 'included' property to the schema.
      */
