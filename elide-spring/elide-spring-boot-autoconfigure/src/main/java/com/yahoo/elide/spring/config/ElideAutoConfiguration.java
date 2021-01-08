@@ -18,6 +18,7 @@ import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -112,6 +113,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
+    @ConditionalOnProperty(name = "elide.swagger.enabled", havingValue = "true")
     public Swagger buildSwagger(EntityDictionary dictionary, ElideConfigProperties settings) {
         Info info = new Info()
                 .title(settings.getSwagger().getName())
