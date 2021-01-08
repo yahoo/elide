@@ -124,7 +124,9 @@ public class TableExportThread implements Callable<AsyncAPIResult> {
             int index = 0;
 
             for (Object[] obj : json2Csv) {
-                // Skip Header record from 2nd time onwards.
+                // convertToCSV is called once for each PersistentResource in the observable.
+                // json2Csv will always have 2 entries.
+                // 0th index is the header so we need to skip the header from 2nd time this method is called.
                 // TODO Flag to Skip Headers
                 if (index++ == 0 && downloadRecordCount != 1) {
                     continue;
@@ -132,6 +134,7 @@ public class TableExportThread implements Callable<AsyncAPIResult> {
 
                 String objString = Arrays.toString(obj);
                 if (objString != null) {
+                    //The arrays.toString returns o/p with [ and ] at the beginning and end. So need to exclude them.
                     objString = objString.substring(1, objString.length() - 1);
                 }
                 str.append(objString);
