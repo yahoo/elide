@@ -57,11 +57,17 @@ public class GraphqlController {
      */
     @PostMapping(value = {"/**", ""}, consumes = JSON_CONTENT_TYPE, produces = JSON_CONTENT_TYPE)
     public ResponseEntity<String> post(@RequestBody String graphQLDocument, Principal user) {
-
-        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
-                + settings.getGraphql().getPath() + "/";
-
-        ElideResponse response = runner.run(baseUrl, graphQLDocument, user);
+        ElideResponse response = runner.run(getBaseUrlEndpoint(), graphQLDocument, user);
         return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+    }
+
+    protected String getBaseUrlEndpoint() {
+        String baseUrl = settings.getBaseUrl();
+
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+        }
+
+        return baseUrl + settings.getGraphql().getPath() + "/";
     }
 }
