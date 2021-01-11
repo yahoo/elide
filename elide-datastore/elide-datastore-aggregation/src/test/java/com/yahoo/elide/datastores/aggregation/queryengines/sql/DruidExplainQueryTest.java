@@ -131,10 +131,10 @@ public class DruidExplainQueryTest  extends SQLUnitTest {
     public void testExplainPagination() {
         String expectedQueryStr1 = "SELECT COUNT(*) FROM "
                         + "(SELECT \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
-                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\" FROM "
-                        + "\"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
+                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') "
+                        + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
                         + "GROUP BY \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
-                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\" ) AS \"dist_dims\"";
+                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') ) AS \"pagination_subquery\"";
         String expectedQueryStr2 =
                 "SELECT MIN(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"lowScore\") AS "
                         + "\"lowScore\",\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS "
@@ -241,7 +241,7 @@ public class DruidExplainQueryTest  extends SQLUnitTest {
 
         String expectedQueryStr1 = "SELECT COUNT(*) FROM "
                         + "(SELECT \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
-                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\" "
+                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') "
                         + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
                         + "LEFT OUTER JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\" "
                         + "ON \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"country_id\" = "
@@ -249,8 +249,8 @@ public class DruidExplainQueryTest  extends SQLUnitTest {
                         + "WHERE \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"iso_code\" "
                         + "IN (:XXX) "
                         + "GROUP BY \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
-                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\" "
-                        + "HAVING MIN(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"lowScore\") > :XXX ) AS \"dist_dims\"";
+                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') "
+                        + "HAVING MIN(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"lowScore\") > :XXX ) AS \"pagination_subquery\"";
 
         String expectedQueryStr2 =
                 "SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
@@ -372,7 +372,7 @@ public class DruidExplainQueryTest  extends SQLUnitTest {
 
         String exptectedQueryStr1 = "SELECT COUNT(*) FROM "
                 + "(SELECT \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\", "
-                + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedMonth\" "
+                + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedMonth\", 'yyyy-MM'), 'yyyy-MM') "
                 + "FROM (SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
                 + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS \"overallRating\","
                 + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate\","
@@ -383,7 +383,7 @@ public class DruidExplainQueryTest  extends SQLUnitTest {
                 + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') ) "
                 + "AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\" "
                 + "GROUP BY \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\", "
-                + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedMonth\" ) AS \"dist_dims\"\n";
+                + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedMonth\", 'yyyy-MM'), 'yyyy-MM') ) AS \"pagination_subquery\"\n";
 
         String exptectedQueryStr2 = "SELECT AVG(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"highScore\") "
                 + "AS \"dailyAverageScorePerPeriod\",\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\" AS \"overallRating\","

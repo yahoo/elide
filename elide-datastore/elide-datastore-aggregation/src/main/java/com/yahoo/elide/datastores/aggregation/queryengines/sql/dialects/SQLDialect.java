@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects;
 
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
 
 /**
  * Interface for SQL Dialects used to customize SQL queries for specific persistent storage.
@@ -24,13 +23,6 @@ public interface SQLDialect {
      * @return boolean.
      */
     boolean useAliasForOrderByClause();
-
-    /**
-     * Generates an SQL clause that requests the count of distinct values for the input dimensions.
-     * @param dimensions for which to request a distinct count.
-     * @return the SQL clause as a string.
-     */
-    SQLQuery generateCountDistinctQuery(SQLQuery sql, String dimensions);
 
     /**
      * Generates required offset and limit clause.
