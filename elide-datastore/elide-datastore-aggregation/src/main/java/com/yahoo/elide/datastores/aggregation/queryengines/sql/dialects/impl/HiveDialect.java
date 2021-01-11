@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl;
 
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.AbstractSqlDialect;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
 
 /**
  * Hive SQLDialect.
@@ -25,8 +26,14 @@ public class HiveDialect extends AbstractSqlDialect {
      * @return
      */
     @Override
-    public String generateCountDistinctClause(String dimensions) {
-        return String.format("COUNT(DISTINCT %s)", dimensions);
+    public SQLQuery generateCountDistinctQuery(SQLQuery sql, String dimensions) {
+        return SQLQuery.builder()
+                .projectionClause(String.format("COUNT(DISTINCT %s)", dimensions))
+                .fromClause(sql.getFromClause())
+                .joinClause(sql.getJoinClause())
+                .whereClause(sql.getWhereClause())
+                .havingClause(sql.getHavingClause())
+                .build();
     }
 
     @Override
