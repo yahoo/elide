@@ -398,7 +398,20 @@ public class SQLQueryEngine extends QueryEngine {
                         .map((column) -> column.toSQL(queryReferenceTable))
                         .collect(Collectors.joining(", "));
 
-        return sqlDialect.generateCountDistinctQuery(sql, groupByDimensions);
+        SQLQuery innerQuery =  SQLQuery.builder()
+                .projectionClause(groupByDimensions)
+                .fromClause(sql.getFromClause())
+                .joinClause(sql.getJoinClause())
+                .whereClause(sql.getWhereClause())
+                .groupByClause(String.format("GROUP BY %s", groupByDimensions))
+                .havingClause(sql.getHavingClause())
+                .build();
+
+        return SQLQuery.builder()
+                .projectionClause("COUNT(*)")
+                .fromClause(String.format("(%s) AS %spagination_subquery%s",
+                        innerQuery.toString(), sqlDialect.getBeginQuote(), sqlDialect.getEndQuote()))
+                .build();
     }
 
     private static boolean returnPageTotals(Pagination pagination) {
