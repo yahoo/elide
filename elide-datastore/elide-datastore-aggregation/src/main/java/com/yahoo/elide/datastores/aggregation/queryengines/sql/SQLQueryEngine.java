@@ -398,15 +398,7 @@ public class SQLQueryEngine extends QueryEngine {
                         .map((column) -> column.toSQL(queryReferenceTable))
                         .collect(Collectors.joining(", "));
 
-        String projectionClause = sqlDialect.generateCountDistinctClause(groupByDimensions);
-
-        return SQLQuery.builder()
-                .projectionClause(projectionClause)
-                .fromClause(sql.getFromClause())
-                .joinClause(sql.getJoinClause())
-                .whereClause(sql.getWhereClause())
-                .havingClause(sql.getHavingClause())
-                .build();
+        return sqlDialect.generateCountDistinctQuery(sql, groupByDimensions);
     }
 
     private static boolean returnPageTotals(Pagination pagination) {

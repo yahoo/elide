@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects;
 
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
 
 /**
  * Common code for {@link SQLDialect} implementations.
@@ -29,8 +30,14 @@ public abstract class AbstractSqlDialect implements SQLDialect {
     }
 
     @Override
-    public String generateCountDistinctClause(String dimensions) {
-        return String.format("COUNT(DISTINCT(%s))", dimensions);
+    public SQLQuery generateCountDistinctQuery(SQLQuery sql, String dimensions) {
+        return SQLQuery.builder()
+                .projectionClause(String.format("COUNT(DISTINCT(%s))", dimensions))
+                .fromClause(sql.getFromClause())
+                .joinClause(sql.getJoinClause())
+                .whereClause(sql.getWhereClause())
+                .havingClause(sql.getHavingClause())
+                .build();
     }
 
     @Override
