@@ -35,6 +35,7 @@ import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.spring.controllers.JsonApiController;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 
@@ -49,6 +50,11 @@ import javax.ws.rs.core.MediaType;
                 + "\t\t('com.example.repository','Example Repository','The code for this project', false);")
 @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
         statements = "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;")
+@TestPropertySource(
+        properties = {
+                "elide.json-api.enableLinks=true"
+        }
+)
 public class ControllerTest extends IntegrationTest {
     private String hostname = "localhost";
     /**
