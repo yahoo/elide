@@ -23,16 +23,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -70,18 +69,15 @@ public class AsyncAPICancelThread implements Runnable {
 
             //Construct filter expression
             PathElement statusPathElement = new PathElement(type, QueryStatus.class, "status");
-            List<QueryStatus> statusList = new ArrayList<QueryStatus>();
-            statusList.add(QueryStatus.CANCELLED);
-            statusList.add(QueryStatus.PROCESSING);
-            statusList.add(QueryStatus.QUEUED);
             FilterExpression fltStatusExpression =
-                    new InPredicate(statusPathElement, statusList);
+                    new InPredicate(statusPathElement, QueryStatus.CANCELLED, QueryStatus.PROCESSING,
+                            QueryStatus.QUEUED);
 
-            Collection<T> asyncAPICollection =
-                    asyncAPIDao.loadAsyncAPICollection(fltStatusExpression, type);
+            Iterable<T> asyncAPIIterable =
+                    asyncAPIDao.loadAsyncAPIByFilter(fltStatusExpression, type);
 
             //Active AsyncAPI UUIDs
-            Set<UUID> asyncTransactionUUIDs = asyncAPICollection.stream()
+            Set<UUID> asyncTransactionUUIDs = StreamSupport.stream(asyncAPIIterable.spliterator(), false)
                     .filter(query -> query.getStatus() == QueryStatus.CANCELLED
                     || TimeUnit.SECONDS.convert(Math.abs(new Date(System.currentTimeMillis()).getTime()
                             - query.getCreatedOn().getTime()), TimeUnit.MILLISECONDS) > maxRunTimeSeconds)
@@ -94,7 +90,7 @@ public class AsyncAPICancelThread implements Runnable {
             //AsyncAPI IDs that need to be cancelled
             Set<String> queryIDsToCancel = queryUUIDsToCancel.stream()
             .map(uuid -> {
-                return asyncAPICollection.stream()
+                return StreamSupport.stream(asyncAPIIterable.spliterator(), false)
                 .filter(query -> query.getRequestId().equals(uuid.toString()))
                 .map(T::getId)
                 .findFirst().orElseThrow(IllegalStateException::new);
@@ -120,7 +116,7 @@ public class AsyncAPICancelThread implements Runnable {
                 PathElement idPathElement = new PathElement(type, String.class, "id");
                 FilterExpression fltIdExpression =
                         new InPredicate(idPathElement, queryIDsToCancel);
-                asyncAPIDao.updateStatusAsyncAPICollection(fltIdExpression, QueryStatus.CANCEL_COMPLETE,
+                asyncAPIDao.updateStatusAsyncAPIByFilter(fltIdExpression, QueryStatus.CANCEL_COMPLETE,
                         type);
             }
         } catch (Exception e) {

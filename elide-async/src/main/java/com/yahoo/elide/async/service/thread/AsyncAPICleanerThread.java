@@ -21,10 +21,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Runnable thread for updating AsyncAPIThread status.
@@ -58,7 +56,7 @@ public class AsyncAPICleanerThread implements Runnable {
             Date cleanupDate = dateUtil.calculateFilterDate(Calendar.DATE, queryCleanupDays);
             PathElement createdOnPathElement = new PathElement(type, Long.class, "createdOn");
             FilterExpression fltDeleteExp = new LEPredicate(createdOnPathElement, cleanupDate);
-            asyncAPIDao.deleteAsyncAPIAndResultCollection(fltDeleteExp, type);
+            asyncAPIDao.deleteAsyncAPIAndResultByFilter(fltDeleteExp, type);
         } catch (Exception e) {
             log.error("Exception in scheduled cleanup: {}", e);
         }
@@ -75,13 +73,11 @@ public class AsyncAPICleanerThread implements Runnable {
             Date filterDate = dateUtil.calculateFilterDate(Calendar.MINUTE, maxRunTimeMinutes);
             PathElement createdOnPathElement = new PathElement(type, Long.class, "createdOn");
             PathElement statusPathElement = new PathElement(type, String.class, "status");
-            List<QueryStatus> statusList = new ArrayList<QueryStatus>();
-            statusList.add(QueryStatus.PROCESSING);
-            statusList.add(QueryStatus.QUEUED);
-            FilterPredicate inPredicate = new InPredicate(statusPathElement, statusList);
+            FilterPredicate inPredicate = new InPredicate(statusPathElement, QueryStatus.PROCESSING,
+                    QueryStatus.QUEUED);
             FilterPredicate lePredicate = new LEPredicate(createdOnPathElement, filterDate);
             AndFilterExpression fltTimeoutExp = new AndFilterExpression(inPredicate, lePredicate);
-            asyncAPIDao.updateStatusAsyncAPICollection(fltTimeoutExp, QueryStatus.TIMEDOUT, type);
+            asyncAPIDao.updateStatusAsyncAPIByFilter(fltTimeoutExp, QueryStatus.TIMEDOUT, type);
         } catch (Exception e) {
             log.error("Exception in scheduled cleanup: {}", e);
         }
