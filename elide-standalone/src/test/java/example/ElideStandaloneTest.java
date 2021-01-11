@@ -11,6 +11,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.links;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
@@ -18,11 +19,16 @@ import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
+import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
@@ -36,6 +42,7 @@ import org.junit.jupiter.api.TestInstance;
 import io.restassured.response.Response;
 
 import java.util.Properties;
+import java.util.TimeZone;
 import javax.ws.rs.core.MediaType;
 
 /**
@@ -48,6 +55,32 @@ public class ElideStandaloneTest {
     @BeforeAll
     public void init() throws Exception {
         elide = new ElideStandalone(new ElideStandaloneSettings() {
+
+            @Override
+            public ElideSettings getElideSettings(EntityDictionary dictionary, DataStore dataStore) {
+                String jsonApiBaseUrl = getBaseUrl()
+                        + getJsonApiPathSpec().replaceAll("/\\*", "")
+                        + "/";
+
+                ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
+                        .withEntityDictionary(dictionary)
+                        .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
+                        .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
+                        .withJSONApiLinks(new DefaultJSONApiLinks(jsonApiBaseUrl))
+                        .withBaseUrl("https://elide.io")
+                        .withAuditLogger(getAuditLogger());
+
+                if (enableISO8601Dates()) {
+                    builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
+                }
+
+                return builder.build();
+            }
+
+            @Override
+            public String getBaseUrl() {
+                return "https://elide.io";
+            }
 
             @Override
             public Properties getDatabaseProperties() {
@@ -174,6 +207,7 @@ public class ElideStandaloneTest {
             )
             .post("/api/v1/post")
             .then()
+
             .statusCode(HttpStatus.SC_CREATED)
             .extract().body().asString();
 
@@ -183,8 +217,21 @@ public class ElideStandaloneTest {
             .get("/api/v1/postView")
             .then()
             .statusCode(200)
-            .body("data.id", hasItems("0"))
-            .body("data.attributes.content", hasItems("This is my first post. woot."));
+            .body(equalTo(
+                    data(
+                            resource(
+                                    type("postView"),
+                                    id("0"),
+                                    attributes(
+                                            attr("content", "This is my first post. woot.")
+                                    ),
+                                    links(
+                                            attr("self", "https://elide.io/api/v1/postView/0")
+                                    )
+                            )
+                    ).toJSON()
+                )
+            );
     }
 
     @Test
@@ -315,9 +362,22 @@ public class ElideStandaloneTest {
                         .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
                         .body("data.attributes.status", equalTo("COMPLETE"))
                         .body("data.attributes.result.contentLength", notNullValue())
-                        .body("data.attributes.result.responseBody", equalTo("{\"data\":"
-                                + "[{\"type\":\"post\",\"id\":\"2\",\"attributes\":{\"abusiveContent\":false,"
-                                + "\"content\":\"This is my first post. woot.\",\"date\":\"2019-01-01T00:00Z\"}}]}"));
+                        .body("data.attributes.result.responseBody", equalTo(
+                            data(
+                                resource(
+                                    type("post"),
+                                    id("2"),
+                                    attributes(
+                                        attr("abusiveContent", false),
+                                        attr("content", "This is my first post. woot."),
+                                        attr("date", "2019-01-01T00:00Z")
+                                    ),
+                                    links(
+                                        attr("self", "https://elide.io/api/v1/post/2")
+                                    )
+                                )
+                            ).toJSON()
+                        ));
 
                 // Validate GraphQL Response
                 String responseGraphQL = given()
@@ -330,7 +390,7 @@ public class ElideStandaloneTest {
                         .post("/graphql/api/v1/")
                         .asString();
 
-                String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\",\"queryType\":\"JSONAPI_V1_0\",\"status\":\"COMPLETE\",\"result\":{\"responseBody\":\"{\\\"data\\\":[{\\\"type\\\":\\\"post\\\",\\\"id\\\":\\\"2\\\",\\\"attributes\\\":{\\\"abusiveContent\\\":false,\\\"content\\\":\\\"This is my first post. woot.\\\",\\\"date\\\":\\\"2019-01-01T00:00Z\\\"}}]}\",\"httpStatus\":200,\"contentLength\":141}}}]}}}";
+                String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\",\"queryType\":\"JSONAPI_V1_0\",\"status\":\"COMPLETE\",\"result\":{\"responseBody\":\"{\\\"data\\\":[{\\\"type\\\":\\\"post\\\",\\\"id\\\":\\\"2\\\",\\\"attributes\\\":{\\\"abusiveContent\\\":false,\\\"content\\\":\\\"This is my first post. woot.\\\",\\\"date\\\":\\\"2019-01-01T00:00Z\\\"},\\\"links\\\":{\\\"self\\\":\\\"https://elide.io/api/v1/post/2\\\"}}]}\",\"httpStatus\":200,\"contentLength\":191}}}]}}}";
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
             } else if (!(outputResponse.equals("PROCESSING"))) {

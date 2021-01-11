@@ -140,6 +140,7 @@ public class ElideAutoConfiguration {
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
                 .withAuditLogger(new Slf4jLogger())
+                .withBaseUrl(settings.getBaseUrl())
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
 
         return new Elide(builder.build());
@@ -304,6 +305,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
+    @ConditionalOnProperty(name = "elide.swagger.enabled", havingValue = "true")
     public Swagger buildSwagger(EntityDictionary dictionary, ElideConfigProperties settings) {
         Info info = new Info()
                 .title(settings.getSwagger().getName())

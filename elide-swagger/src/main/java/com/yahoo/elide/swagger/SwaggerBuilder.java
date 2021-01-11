@@ -29,7 +29,6 @@ import io.swagger.models.parameters.PathParameter;
 import io.swagger.models.parameters.QueryParameter;
 import io.swagger.models.properties.StringProperty;
 import io.swagger.util.Json;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.ArrayDeque;
@@ -70,7 +69,6 @@ public class SwaggerBuilder {
     /**
      * Metadata for constructing URLs and Swagger 'Path' objects.
      */
-    @AllArgsConstructor
     public class PathMetaData {
 
         /**
@@ -91,35 +89,69 @@ public class SwaggerBuilder {
         private Class<?> type;
 
         /**
+         * The unique identifying instance URL for the path.
+         */
+        @Getter
+        private String url;
+
+        /**
          * Constructs a PathMetaData for a 'root' entity.
          * @param type the 'root' entity type of the first segment of the URL.
          */
         public PathMetaData(Class<?> type) {
+            this(new Stack<>(), dictionary.getJsonAliasFor(type), type);
+        }
+
+
+        /**
+         * Required argument constructor.
+         * @param lineage The lineage of prior path elements.
+         * @param name The relationship of the path element.
+         * @param type The type associated with the relationship.
+         */
+        public PathMetaData(Stack<PathMetaData> lineage, String name, Class<?> type) {
+            this.lineage = lineage;
             this.type = type;
-            lineage = new Stack<>();
-            name = dictionary.getJsonAliasFor(type);
+            this.name = name;
+            this.url = constructInstanceUrl();
         }
 
         /**
+         * Returns the root type (first collection) of this path.
+         * @return The class that represents the root collection of the path.
+         */
+        public Class<?> getRootType() {
+            if (lineage.isEmpty()) {
+                return type;
+            }
+
+            return lineage.elementAt(0).type;
+        }
+
+        /**
+         * Returns a URL that represents the collection.
          * @return Something like '/book/{bookId}/authors' or '/publisher'
          */
         public String getCollectionUrl() {
             if (lineage.isEmpty()) {
                 return "/" + name;
             }
-            return lineage.peek().getInstanceUrl() + "/" + name;
+            return lineage.peek().getUrl() + "/" + name;
         }
 
         /**
+         * Constructs a URL that returns an instance of the entity.
          * @return Something like '/book/{bookId}'
          */
-        public String getInstanceUrl() {
+        private String constructInstanceUrl() {
             String typeName = dictionary.getJsonAliasFor(type);
             return getCollectionUrl() + "/{" + typeName + "Id}";
         }
 
         /**
+         * Constructs a URL that returns a relationship collection.
          * @return Something like '/book/{bookId}/relationships/authors'
+         * @throws IllegalStateException for errors.
          */
         public String getRelationshipUrl() {
             if (lineage.isEmpty()) {
@@ -127,14 +159,14 @@ public class SwaggerBuilder {
             }
 
             PathMetaData prior = lineage.peek();
-            String baseUrl = prior.getInstanceUrl();
+            String baseUrl = prior.getUrl();
 
             return baseUrl + "/relationships/" + name;
         }
 
         @Override
         public String toString() {
-            return getInstanceUrl();
+            return getUrl();
         }
 
         /**
@@ -147,6 +179,7 @@ public class SwaggerBuilder {
         }
 
         /**
+         * Returns the path parameter for the instance URL.
          * @return the swagger PathParameter for this particular path segment.
          */
         private Parameter getPathParameter() {
@@ -161,7 +194,9 @@ public class SwaggerBuilder {
         }
 
         /**
+         * Returns the swagger path for a relationship URL.
          * @return the Swagger 'Path' for a relationship URL (/books/{bookId}/relationships/author).
+         * @throws IllegalStateException for errors.
          */
         public Path getRelationshipPath() {
             if (lineage.isEmpty()) {
@@ -252,7 +287,8 @@ public class SwaggerBuilder {
         }
 
         /**
-         * @return the Swagger 'Path' for a relationship URL (/books)
+         * Returns the Swagger Path for a collection URL.
+         * @return the Swagger 'Path' for a collection URL (/books).
          */
         public Path getCollectionPath() {
             String typeName = dictionary.getJsonAliasFor(type);
@@ -314,7 +350,8 @@ public class SwaggerBuilder {
         }
 
         /**
-         * @return the Swagger 'Path' for a relationship URL (/books/{bookID})
+         * Returns the Swagger Path for an instance URL.
+         * @return the Swagger 'Path' for a instance URL (/books/{bookID}).
          */
         public Path getInstancePath() {
             String typeName = dictionary.getJsonAliasFor(type);
@@ -372,8 +409,8 @@ public class SwaggerBuilder {
 
         /**
          * Decorates with responses that apply to all operations for all paths.
-         * @param path the path to decorate
-         * @return the decorated path
+         * @param path the path to decorate.
+         * @return the decorated path.
          */
         private Path decorateGlobalResponses(Path path) {
             globalResponses.forEach(
@@ -396,6 +433,7 @@ public class SwaggerBuilder {
         }
 
         /**
+         * Returns the sparse fields query parameter.
          * @return the JSON-API 'field' query parameter for some GET operations.
          */
         private Parameter getSparseFieldsParameter() {
@@ -411,6 +449,7 @@ public class SwaggerBuilder {
         }
 
         /**
+         * Returns the include parameter.
          * @return the JSON-API 'include' query parameter for some GET operations.
          */
         private Parameter getIncludeParameter() {
@@ -426,6 +465,7 @@ public class SwaggerBuilder {
         }
 
         /**
+         * Returns the pagination parameter.
          * @return the Elide 'page' query parameter for some GET operations.
          */
         private List<Parameter> getPageParameters() {
@@ -467,6 +507,7 @@ public class SwaggerBuilder {
         }
 
         /**
+         * Returns the sort parameter.
          * @return the JSON-API 'sort' query parameter for some GET operations.
          */
         private Parameter getSortParameter() {
@@ -491,6 +532,7 @@ public class SwaggerBuilder {
         }
 
         /**
+         * Returns the filter parameter.
          * @return the Elide 'filter' query parameter for some GET operations.
          */
         private List<Parameter> getFilterParameters() {
@@ -538,6 +580,7 @@ public class SwaggerBuilder {
         }
 
         /**
+         * Constructs a new lineage including the current path element.
          * @return ALL of the path segments in the URL including this segment.
          */
         public Stack<PathMetaData> getFullLineage() {
@@ -554,14 +597,7 @@ public class SwaggerBuilder {
          * @return is shorter or same
          */
         public boolean shorterThan(PathMetaData compare) {
-            if (lineage.isEmpty()) {
-                return this.type.equals(compare.type);
-            }
-
-            return this.type.equals(compare.type)
-                    && this.name.equals(compare.name)
-                    && !compare.lineage.isEmpty()
-                    && lineage.peek().shorterThan(compare.lineage.peek());
+            return (compare.getUrl().startsWith(url));
         }
 
         @Override
@@ -575,9 +611,7 @@ public class SwaggerBuilder {
 
             PathMetaData that = (PathMetaData) o;
 
-            return lineage.equals(that.lineage)
-                    && name.equals(that.name)
-                    && type.equals(that.type);
+            return url.equals(that.getUrl());
         }
 
         @Override
@@ -610,8 +644,9 @@ public class SwaggerBuilder {
     }
 
     /**
-     * @param dictionary The entity dictionary
-     * @param info Basic service information that cannot be generated
+     * Constructor.
+     * @param dictionary The entity dictionary.
+     * @param info Basic service information that cannot be generated.
      */
     public SwaggerBuilder(EntityDictionary dictionary, Info info) {
         this.dictionary = dictionary;
@@ -700,6 +735,7 @@ public class SwaggerBuilder {
     }
 
     /**
+     * Builds a swagger object.
      * @return the constructed 'Swagger' object
      */
     public Swagger build() {
@@ -741,29 +777,37 @@ public class SwaggerBuilder {
 
         /* Prune the discovered paths to remove redundant elements */
         Set<PathMetaData> toRemove = new HashSet<>();
-        for (PathMetaData path : pathData) {
-            for (PathMetaData compare : pathData) {
 
-                /*
-                 * We don't prune paths that are redundant with root collections to allow both BOTH
-                 * root collection urls as well as relationship urls.
-                 */
-                if (path.equals(compare) || compare.lineage.isEmpty()) {
-                    continue;
+        pathData.stream()
+                .collect(Collectors.groupingBy(PathMetaData::getRootType))
+                .values()
+                .forEach(pathSet -> {
+                    for (PathMetaData path : pathSet) {
+                        for (PathMetaData compare : pathSet) {
+
+                            /*
+                             * We don't prune paths that are redundant with root collections to allow both BOTH
+                             * root collection urls as well as relationship urls.
+                             */
+                            if (compare.lineage.isEmpty() || path == compare) {
+                                continue;
+                            }
+                            if (compare.shorterThan(path)) {
+                                toRemove.add(path);
+                                break;
+                            }
+                        }
+                    }
                 }
-                if (compare.shorterThan(path)) {
-                    toRemove.add(path);
-                    break;
-                }
-            }
-        }
+        );
+
         pathData = Sets.difference(pathData, toRemove);
 
         /* Each path constructs 3 URLs (collection, instance, and relationship) */
         for (PathMetaData pathDatum : pathData) {
             swagger.path(pathDatum.getCollectionUrl(), pathDatum.getCollectionPath());
 
-            swagger.path(pathDatum.getInstanceUrl(), pathDatum.getInstancePath());
+            swagger.path(pathDatum.getUrl(), pathDatum.getInstancePath());
 
             /* We only construct relationship URLs if the entity is not a root collection */
             if (! pathDatum.lineage.isEmpty()) {
@@ -824,6 +868,7 @@ public class SwaggerBuilder {
     }
 
     /**
+     * Converts a swagger document to human-formatted JSON.
      * @param swagger Swagger-Core swagger POJO
      * @return Pretty printed 'Swagger' document in JSON.
      */

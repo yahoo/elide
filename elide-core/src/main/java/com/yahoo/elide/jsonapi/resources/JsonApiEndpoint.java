@@ -72,7 +72,7 @@ public class JsonApiEndpoint {
         String apiVersion = HeaderUtils.resolveApiVersion(headers.getRequestHeaders());
         Map<String, List<String>> requestHeaders = HeaderUtils.removeAuthHeaders(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
-        return build(elide.post(uriInfo.getBaseUri().toString(), path, jsonapiDocument,
+        return build(elide.post(getBaseUrlEndpoint(uriInfo), path, jsonapiDocument,
                 queryParams, requestHeaders, user, apiVersion, UUID.randomUUID()));
     }
 
@@ -97,7 +97,7 @@ public class JsonApiEndpoint {
         Map<String, List<String>> requestHeaders = HeaderUtils.removeAuthHeaders(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
 
-        return build(elide.get(uriInfo.getBaseUri().toString(), path, queryParams,
+        return build(elide.get(getBaseUrlEndpoint(uriInfo), path, queryParams,
                                requestHeaders, user, apiVersion, UUID.randomUUID()));
     }
 
@@ -128,7 +128,7 @@ public class JsonApiEndpoint {
         String apiVersion = HeaderUtils.resolveApiVersion(headers.getRequestHeaders());
         Map<String, List<String>> requestHeaders = HeaderUtils.removeAuthHeaders(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
-        return build(elide.patch(uriInfo.getBaseUri().toString(), contentType, accept, path,
+        return build(elide.patch(getBaseUrlEndpoint(uriInfo), contentType, accept, path,
                                  jsonapiDocument, queryParams, requestHeaders, user, apiVersion, UUID.randomUUID()));
     }
 
@@ -155,11 +155,23 @@ public class JsonApiEndpoint {
         String apiVersion = HeaderUtils.resolveApiVersion(headers.getRequestHeaders());
         Map<String, List<String>> requestHeaders = HeaderUtils.removeAuthHeaders(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
-        return build(elide.delete(uriInfo.getBaseUri().toString(), path, jsonApiDocument, queryParams, requestHeaders,
+        return build(elide.delete(getBaseUrlEndpoint(uriInfo), path, jsonApiDocument, queryParams, requestHeaders,
                                   user, apiVersion, UUID.randomUUID()));
     }
 
     private static Response build(ElideResponse response) {
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
+    }
+
+    protected String getBaseUrlEndpoint(UriInfo uriInfo) {
+        String baseUrl = elide.getElideSettings().getBaseUrl();
+
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            baseUrl = uriInfo.getBaseUri().toString();
+        } else {
+            baseUrl += uriInfo.getBaseUri().getPath();
+        }
+
+        return baseUrl;
     }
 }
