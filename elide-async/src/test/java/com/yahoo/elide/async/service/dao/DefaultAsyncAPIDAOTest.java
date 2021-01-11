@@ -87,7 +87,7 @@ public class DefaultAsyncAPIDAOTest {
    public void testUpdateStatusAsyncQueryCollection() {
        Iterable<Object> loaded = Arrays.asList(asyncQuery, asyncQuery);
        when(tx.loadObjects(any(), any())).thenReturn(loaded);
-       asyncAPIDAO.updateStatusAsyncAPICollection(filter, QueryStatus.TIMEDOUT, asyncQuery.getClass());
+       asyncAPIDAO.updateStatusAsyncAPIByFilter(filter, QueryStatus.TIMEDOUT, asyncQuery.getClass());
        verify(tx, times(2)).save(any(AsyncQuery.class), any(RequestScope.class));
        verify(asyncQuery, times(2)).setStatus(QueryStatus.TIMEDOUT);
    }
@@ -96,7 +96,7 @@ public class DefaultAsyncAPIDAOTest {
     public void testDeleteAsyncQueryAndResultCollection() {
         Iterable<Object> loaded = Arrays.asList(asyncQuery, asyncQuery, asyncQuery);
         when(tx.loadObjects(any(), any())).thenReturn(loaded);
-        asyncAPIDAO.deleteAsyncAPIAndResultCollection(filter, asyncQuery.getClass());
+        asyncAPIDAO.deleteAsyncAPIAndResultByFilter(filter, asyncQuery.getClass());
         verify(dataStore, times(1)).beginTransaction();
         verify(tx, times(1)).loadObjects(any(), any());
         verify(tx, times(3)).delete(any(AsyncQuery.class), any(RequestScope.class));
@@ -118,7 +118,7 @@ public class DefaultAsyncAPIDAOTest {
     public void testLoadAsyncQueryCollection() {
         Iterable<Object> loaded = Arrays.asList(asyncQuery, asyncQuery, asyncQuery);
         when(tx.loadObjects(any(), any())).thenReturn(loaded);
-        asyncAPIDAO.loadAsyncAPICollection(filter, asyncQuery.getClass());
+        asyncAPIDAO.loadAsyncAPIByFilter(filter, asyncQuery.getClass());
         verify(dataStore, times(1)).beginTransaction();
         verify(tx, times(1)).loadObjects(any(), any());
     }
