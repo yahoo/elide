@@ -29,6 +29,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
+import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.modelconfig.model.DBConfig;
@@ -142,6 +143,19 @@ public class ElideAutoConfiguration {
                 .withAuditLogger(new Slf4jLogger())
                 .withBaseUrl(settings.getBaseUrl())
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
+
+        if (settings.getJsonApi() != null
+                && settings.getJsonApi().isEnabled()
+                && settings.getJsonApi().isEnableLinks()) {
+            String baseUrl = settings.getBaseUrl();
+
+            if (baseUrl == null || baseUrl.isEmpty()) {
+                builder.withJSONApiLinks(new DefaultJSONApiLinks());
+            } else {
+                String jsonApiBaseUrl = baseUrl + settings.getJsonApi().getPath() + "/";
+                builder.withJSONApiLinks(new DefaultJSONApiLinks(jsonApiBaseUrl));
+            }
+        }
 
         return new Elide(builder.build());
     }
