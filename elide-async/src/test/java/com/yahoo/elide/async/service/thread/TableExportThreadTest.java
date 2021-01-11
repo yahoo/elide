@@ -43,7 +43,7 @@ public class TableExportThreadTest {
     public void testProcessQueryGraphqlApiEmptyResults() throws NoHttpResponseException, URISyntaxException,
             MalformedURLException {
         TableExport queryObj = new TableExport();
-        String query = "/tableExport?sort=commonName&fields%5Bgroup%5D=commonName,description";
+        String query = "/tableExport";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         queryObj.setId(id);
         queryObj.setQuery(query);
