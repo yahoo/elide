@@ -30,7 +30,7 @@ import com.yahoo.elide.core.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.AccessibleObject;
 import com.yahoo.elide.core.type.ClassType;
-import com.yahoo.elide.core.type.DynamicType;
+import com.yahoo.elide.core.type.Dynamic;
 import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.Method;
 import com.yahoo.elide.core.type.Package;
@@ -1777,8 +1777,8 @@ public class EntityDictionary {
     }
 
     public static <T> Type<T> getType(T object) {
-        return object instanceof DynamicType
-                ? ((DynamicType) object).getType()
+        return object instanceof Dynamic
+                ? ((Dynamic) object).getType()
                 : new ClassType(object.getClass());
     }
 }

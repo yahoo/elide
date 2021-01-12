@@ -6,6 +6,6 @@
 
 package com.yahoo.elide.core.type;
 
-public interface DynamicType {
+public interface Dynamic {
     Type getType();
 }

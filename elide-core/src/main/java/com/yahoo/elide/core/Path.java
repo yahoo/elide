@@ -7,6 +7,7 @@ package com.yahoo.elide.core;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.getSimpleName;
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static com.yahoo.elide.core.utils.TypeHelper.getTypeAlias;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
@@ -50,7 +51,7 @@ public class Path {
         @Getter private Set<Argument> arguments;
 
         public PathElement(Class<?> type, Class<?> fieldType, String fieldName) {
-            this(new ClassType(type), new ClassType(fieldType), fieldName);
+            this(getClassType(type), getClassType(fieldType), fieldName);
         }
 
         public PathElement(Type type, Type fieldType, String fieldName) {
