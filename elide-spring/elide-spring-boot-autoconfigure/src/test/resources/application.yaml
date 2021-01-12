@@ -2,7 +2,7 @@ server:
   port: 4001
 
 elide:
-  modelPackage: 'example.models'
+  baseUrl: 'https://elide.io'
   json-api:
     path: /json
     enabled: true

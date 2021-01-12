@@ -18,7 +18,7 @@ public class ElideConfigProperties {
     /**
      * Settings for the JSON-API controller.
      */
-    private ControllerProperties jsonApi;
+    private JsonApiControllerProperties jsonApi;
 
     /**
      * Settings for the GraphQL controller.

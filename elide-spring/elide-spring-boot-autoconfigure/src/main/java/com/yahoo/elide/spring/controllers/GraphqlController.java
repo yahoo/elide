@@ -79,8 +79,7 @@ public class GraphqlController {
         final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
         final Map<String, List<String>> requestHeadersCleaned = HeaderUtils.removeAuthHeaders(requestHeaders);
         final QueryRunner runner = runners.get(apiVersion);
-        final String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
-                + settings.getGraphql().getPath() + "/";
+        final String baseUrl = getBaseUrlEndpoint();
 
         return new Callable<ResponseEntity<String>>() {
             @Override
@@ -95,5 +94,14 @@ public class GraphqlController {
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
         };
+    }
+
+    protected String getBaseUrlEndpoint() {
+        String baseUrl = settings.getBaseUrl();
+
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+        }
+        return baseUrl + settings.getGraphql().getPath() + "/";
     }
 }
