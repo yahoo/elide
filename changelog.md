@@ -1,5 +1,44 @@
 # Change Log
 
+## 4.6.9
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/e1be594a896dad79cc7c8011e3ba92750d36455a) Adding simple setting to enable JSON-API links 
+   * [view commit](https://github.com/yahoo/elide/commit/42f2bd55c381dfcba2c971413b84a025a7cc5dac) Adding baseURL setting for JSON-API links for Elide 4 
+   
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/97791f75648a34204914961e1700ebb7710b3429) Bump checkstyle from 8.36.1 to 8.36.2 (#1559) 
+   * [view commit](https://github.com/yahoo/elide/commit/8a93716912da746d875799e646084010ad518319) Bump mockito-core from 3.5.11 to 3.5.13 (#1558) 
+   * [view commit](https://github.com/yahoo/elide/commit/7c80d9a972150ffe9f5fcdb400f440a8facd2628) Bump jersey-container-jetty-servlet from 2.31 to 2.32 (#1560) 
+   * [view commit](https://github.com/yahoo/elide/commit/22005b59fe72f03dc3d74f1d0aa09a952c15e3b5) Bump version.jersey from 2.31 to 2.32 (#1557) 
+   * [view commit](https://github.com/yahoo/elide/commit/43e6598eb1c3d60ae04925e6e89795867d7bac34) Bump version.jackson from 2.11.2 to 2.11.3 (#1570) 
+   * [view commit](https://github.com/yahoo/elide/commit/fe5787ee2a760925e75a3c781e7282e637a8adb4) Bump version.jetty from 9.4.31.v20200723 to 9.4.32.v20200930 (#1571) 
+   * [view commit](https://github.com/yahoo/elide/commit/41a349efbe8a53638e9c80f91d184364cc7b440f) Bump groovy.version from 3.0.5 to 3.0.6 (#1573) 
+   * [view commit](https://github.com/yahoo/elide/commit/94bf7ec54ae7a9db2f8cd2f3916a91e3fee1cf27) Bump lombok from 1.18.12 to 1.18.14 (#1589) 
+   * [view commit](https://github.com/yahoo/elide/commit/733ec09842f7a38ae7851b0a67fa3ac67855ebe6) Bump liquibase-core from 4.0.0 to 4.1.1 (#1599) 
+   * [view commit](https://github.com/yahoo/elide/commit/33ad32bba3a1ed1a0e8172415aa0c3b47aec39a0) Bump rxjava from 2.2.19 to 2.2.20 (#1588) 
+   * [view commit](https://github.com/yahoo/elide/commit/210d18d12e1deaefe26918727fe05a61a6ec87a1) Bump lombok from 1.18.14 to 1.18.16 (#1600) 
+   * [view commit](https://github.com/yahoo/elide/commit/70c2d5a4eb8ad12613e1304918ec5e94cd7d37a0) Bump mysql-connector-java from 8.0.21 to 8.0.22 (#1601) 
+   * [view commit](https://github.com/yahoo/elide/commit/6915ec99a2df7a0cb6c9949f09f036176da1ee3f) Bump postgresql from 42.2.16 to 42.2.18 (#1598) 
+   * [view commit](https://github.com/yahoo/elide/commit/bb17ebe5716f3691e7cf4ffbf42924e09aedac40) Bump metrics.version from 4.1.12.1 to 4.1.13 (#1587) 
+   * [view commit](https://github.com/yahoo/elide/commit/2900a5f3d3335e58fe3fdf2f967978c285ab54dd) Bump jersey-container-servlet-core from 2.31 to 2.32 (#1556) 
+   * [view commit](https://github.com/yahoo/elide/commit/e9827162fc319685cdd1e4f3fd672c7b1d6c7a95) Bump mockito-core from 3.5.13 to 3.6.0 (#1613) 
+   * [view commit](https://github.com/yahoo/elide/commit/ff18972f729914cc9693437c24614c137a7b32a4) Bump metrics.version from 4.1.13 to 4.1.14 (#1610) 
+   * [view commit](https://github.com/yahoo/elide/commit/77ce02abae1529914ed4e5eb6f7b896fa00673ba) Migrating build to screwdriver (#1631) 
+   * [view commit](https://github.com/yahoo/elide/commit/271cadc63554b5543ada5c7b95822d2f405364ff) [Security] Bump version.jetty from 9.4.32.v20200930 to 9.4.34.v20201102 (#1635) 
+   * [view commit](https://github.com/yahoo/elide/commit/e14c3fb136900171a392092a9bd9569dab1cddbb) Fixing broken links (#1642) 
+   * [view commit](https://github.com/yahoo/elide/commit/f8f65b95b764dee30e1b166b310506af8ae46950) Bump encoder from 1.2.2 to 1.2.3 (#1651) 
+   * [view commit](https://github.com/yahoo/elide/commit/6e20980990413c3f1749d1228b1037845e944cc2) Bump version.restassured from 4.3.1 to 4.3.2 (#1650) 
+   * [view commit](https://github.com/yahoo/elide/commit/78f464a6c04608c2657b56fb18245471078fd3b2) Bump jansi from 1.14 to 2.0.1 (#1627) 
+   * [view commit](https://github.com/yahoo/elide/commit/597634d31b1c610f91c41a0e81adee134954fc18) Bump checkstyle from 8.36.2 to 8.37 (#1625) 
+   * [view commit](https://github.com/yahoo/elide/commit/1dfbc5ca3df5d0082f58675167efd6ad51d7dafc) Bump resteasy.version from 3.13.1.Final to 3.13.2.Final (#1572) 
+   * [view commit](https://github.com/yahoo/elide/commit/c9c3c3851ff3fdda0479461eeba483fca4dd2f82) Bumped packages to fix CVE errors in Elide 4 
+   * [view commit](https://github.com/yahoo/elide/commit/75fa9b0b459368616c6f16e84022a9154539a2a9) prototype code 
+   * [view commit](https://github.com/yahoo/elide/commit/6b267a01b9e35f645652dd900274ca779dbe5832) Improved performance by reducing N squared computation 
+   * [view commit](https://github.com/yahoo/elide/commit/cd69d666f5a3031f3d48d9b02bd58466a44cc3ec) Improved boot time for swagger builder after profiling.  Also bumped guava for CVE. 
+   * [view commit](https://github.com/yahoo/elide/commit/2966c2974fbb3f7d2951d37911f9ea7a4aa969b0) Updated screwdriver yaml 
+   * [view commit](https://github.com/yahoo/elide/commit/d17a1e27169b388d6421b8aa91b50acd10a9b79f) A few more fixes 
+   * [view commit](https://github.com/yahoo/elide/commit/5815249af02f7217329f3e5543c34771801a9f36) Added baseURL for GraphQLController 
+
 ## 4.6.8
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/3d3c831696401e26a24d254fa1158675a23adca1) H2 MVCC setting is removed (#1483) 
