@@ -70,7 +70,6 @@ public abstract class IntegrationTest {
         try {
             this.server = setUpServer();
         } catch (Exception e) {
-            e.printStackTrace();
             throw new IllegalStateException(e);
         }
     }

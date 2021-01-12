@@ -145,7 +145,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         GraphQLType parent = environment.parentType;
         if (log.isDebugEnabled()) {
             log.debug("{} {} fields with parent {}<{}>", operation, requestedFields,
-                            EntityDictionary.getSimpleName(new ClassType(parent.getClass())), parent.getName());
+                    EntityDictionary.getSimpleName(EntityDictionary.getType(parent)), parent.getName());
         }
     }
 

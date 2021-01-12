@@ -77,7 +77,7 @@ public class FieldType implements Field {
 
     @Override
     public Type<?> getParameterizedType(Type<?> parentType, Optional<Integer> index) {
-        if (parentType instanceof DynamicType) {
+        if (parentType instanceof Dynamic) {
             return getType();
         }
 

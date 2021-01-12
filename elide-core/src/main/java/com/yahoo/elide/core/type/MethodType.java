@@ -94,7 +94,7 @@ public class MethodType implements Method {
             throw new UnsupportedOperationException("Constructors cannot be invoked");
         }
 
-        if (parentType instanceof DynamicType) {
+        if (parentType instanceof Dynamic) {
             return getReturnType();
         }
 

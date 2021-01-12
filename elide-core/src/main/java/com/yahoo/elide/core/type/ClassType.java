@@ -122,7 +122,7 @@ public class ClassType<T> implements Type<T> {
 
     @Override
     public boolean isAssignableFrom(Type other) {
-        if (other instanceof DynamicType) {
+        if (other instanceof Dynamic) {
             return false;
         }
 

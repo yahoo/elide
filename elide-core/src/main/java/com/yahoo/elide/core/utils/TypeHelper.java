@@ -8,7 +8,7 @@ package com.yahoo.elide.core.utils;
 
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.type.ClassType;
-import com.yahoo.elide.core.type.DynamicType;
+import com.yahoo.elide.core.type.Dynamic;
 import com.yahoo.elide.core.type.Type;
 import com.google.common.collect.Sets;
 
@@ -35,7 +35,7 @@ public class TypeHelper {
      * @return True is the type is primitive number type
      */
     public static boolean isPrimitiveNumberType(Type<?> type) {
-        if (type instanceof DynamicType) {
+        if (type instanceof Dynamic) {
             return false;
         }
 
@@ -141,7 +141,7 @@ public class TypeHelper {
     }
 
     public static Type<?> getClassType(Class<?> cls) {
-        return new ClassType<>(cls);
+        return (cls == null) ? null : new ClassType<>(cls);
     }
 
     public static Set<Type<?>> getClassType(Set<Class<?>> cls) {
