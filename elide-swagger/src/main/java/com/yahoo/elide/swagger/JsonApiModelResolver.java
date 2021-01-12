@@ -48,20 +48,25 @@ public class JsonApiModelResolver extends ModelResolver {
 
     @Override
     public Model resolve(java.lang.reflect.Type type, ModelConverterContext context, Iterator<ModelConverter> next) {
+
+        if (!(type instanceof Class || type instanceof SimpleType || type instanceof Type)) {
+            return super.resolve(type, context, next);
+        }
+
+        Type<?> clazzType = null;
+
         /*
          * If an Elide entity is an attribute somewhere in a model, the ModelResolver will
          * end up wrapping this as a SimpleType (rather than trying to resolve the entity class directly).
          */
         if (type instanceof SimpleType) {
             type = ((SimpleType) type).getRawClass();
+            clazzType = getClassType((Class<?>) type);
+        } else if (type instanceof Type) {
+            clazzType = (Type<?>) type;
+        } else if (type instanceof Class) {
+            clazzType = getClassType((Class<?>) type);
         }
-
-        if (!(type instanceof Class)) {
-            return super.resolve(type, context, next);
-        }
-
-        Class<?> clazz = (Class<?>) type;
-        Type<?> clazzType = getClassType(clazz);
 
         /* Not an entity managed by Elide, let Swagger convert it */
         String typeAlias;

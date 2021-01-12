@@ -15,9 +15,10 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.swagger.model.Data;
 import com.yahoo.elide.swagger.model.Datum;
 import com.yahoo.elide.swagger.property.Relationship;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
+import io.swagger.converter.ModelConverter;
+import io.swagger.converter.ModelConverterContextImpl;
 import io.swagger.converter.ModelConverters;
 import io.swagger.models.Info;
 import io.swagger.models.Model;
@@ -744,7 +745,8 @@ public class SwaggerBuilder {
 
         /* Used to convert Elide POJOs into Swagger Model objects */
         ModelConverters converters = ModelConverters.getInstance();
-        converters.addConverter(new JsonApiModelResolver(dictionary));
+        ModelConverter converter = new JsonApiModelResolver(dictionary);
+        converters.addConverter(converter);
 
         String apiVersion = swagger.getInfo().getVersion();
         if (apiVersion == null) {
@@ -763,8 +765,15 @@ public class SwaggerBuilder {
         /* Create a Model for each Elide entity */
         Map<String, Model> models = new HashMap<>();
         for (Type<?> clazz : allClasses) {
-            Preconditions.checkState(clazz instanceof ClassType);
-            models.putAll(converters.readAll(((ClassType) clazz).getCls()));
+            if (clazz instanceof ClassType) {
+                models.putAll(converters.readAll(((ClassType) clazz).getCls()));
+            } else if (clazz instanceof Type) {
+                ModelConverterContextImpl context = new ModelConverterContextImpl(Arrays.asList(converter));
+                context.resolve(clazz);
+                models.putAll(context.getDefinedModels());
+            } else {
+                models.putAll(converters.readAll(clazz, null));
+            }
         }
         swagger.setDefinitions(models);
 

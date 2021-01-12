@@ -8,7 +8,7 @@ package com.yahoo.elide.core.type;
 
 import java.lang.annotation.Annotation;
 
-public interface Type<T> {
+public interface Type<T> extends java.lang.reflect.Type {
     String getCanonicalName();
     String getSimpleName();
     String getName();
