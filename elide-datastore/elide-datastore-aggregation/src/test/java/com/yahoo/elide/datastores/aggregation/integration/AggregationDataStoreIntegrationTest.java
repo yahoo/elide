@@ -14,6 +14,7 @@ import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
@@ -881,7 +882,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
      */
     @Test
     public void testDynamicAggregationModel() {
-        String getPath = "/orderDetails?sort=customerRegion,orderMonth&"
+        String getPath = "/orderDetails?sort=customerRegion,orderMonth&page[totals]&"
                         + "fields[orderDetails]=orderTotal,customerRegion,orderMonth&filter=orderMonth>=2020-08";
         given()
             .when()
@@ -894,7 +895,11 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                             allOf(hasEntry("customerRegion", "NewYork"), hasEntry("orderMonth", "2020-08")),
                             allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderMonth", "2020-08")),
                             allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderMonth", "2020-09"))))
-            .body("data.attributes.orderTotal", hasItems(61.43F, 113.07F, 260.34F));
+            .body("data.attributes.orderTotal", hasItems(61.43F, 113.07F, 260.34F))
+            .body("meta.page.number", equalTo(1))
+            .body("meta.page.totalRecords", equalTo(3))
+            .body("meta.page.totalPages", equalTo(1))
+            .body("meta.page.limit", equalTo(500));
     }
 
     @Test
