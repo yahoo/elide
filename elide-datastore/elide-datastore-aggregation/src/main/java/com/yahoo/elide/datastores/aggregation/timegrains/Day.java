@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat;
 /**
  * Time Grain class for Day.
  */
-public class Day extends Date implements TimeGrainFormatter {
+public class Day extends Date {
 
     public static final String FORMAT = "yyyy-MM-dd";
     private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
@@ -25,7 +25,7 @@ public class Day extends Date implements TimeGrainFormatter {
     }
 
     @ElideTypeConverter(type = Day.class, name = "Day")
-    static public class DaySerde implements Serde<Object, Day> {
+    static public class DaySerde implements Serde<Object, Day>, TimeGrainFormatter {
         @Override
         public Day deserialize(Object val) {
 
@@ -33,9 +33,11 @@ public class Day extends Date implements TimeGrainFormatter {
 
             try {
                 if (val instanceof String) {
-                    date = new Day(TimeGrainFormatter.formatDateString(FORMATTER, (String) val));
+                    date = new Day(FORMATTER.parse(FORMATTER.format(TimeGrainFormatter.formatDateString(FORMATTER,
+                            (String) val))));
+                } else {
+                    date = new Day(FORMATTER.parse(FORMATTER.format(val)));
                 }
-                date = new Day(FORMATTER.parse(FORMATTER.format(val)));
             } catch (ParseException e) {
                 throw new IllegalArgumentException("String must be formatted as " + FORMAT
                         + " or " + TimeGrainFormatter.ISO_FORMAT);

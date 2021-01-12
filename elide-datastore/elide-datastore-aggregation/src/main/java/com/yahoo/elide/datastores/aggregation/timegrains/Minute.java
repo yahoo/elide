@@ -25,7 +25,7 @@ public class Minute extends Timestamp {
     }
 
     @ElideTypeConverter(type = Minute.class, name = "Minute")
-    static public class MinuteSerde implements Serde<Object, Minute> {
+    static public class MinuteSerde implements Serde<Object, Minute>, TimeGrainFormatter {
         @Override
         public Minute deserialize(Object val) {
 
@@ -33,12 +33,14 @@ public class Minute extends Timestamp {
 
             try {
                 if (val instanceof String) {
-                    date = new Minute(new Timestamp(FORMATTER.parse((String) val).getTime()));
+                    date = new Minute(FORMATTER.parse(FORMATTER.format(TimeGrainFormatter.formatDateString(FORMATTER,
+                            (String) val))));
                 } else {
                     date = new Minute(FORMATTER.parse(FORMATTER.format(val)));
                 }
             } catch (ParseException e) {
-                throw new IllegalArgumentException("String must be formatted as " + FORMAT);
+                throw new IllegalArgumentException("String must be formatted as " + FORMAT
+                        + " or " + TimeGrainFormatter.ISO_FORMAT);
             }
 
             return date;

@@ -9,7 +9,6 @@ import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 
 import java.sql.Date;
-import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -29,7 +28,7 @@ public class Quarter extends Date {
     }
 
     @ElideTypeConverter(type = Quarter.class, name = "Quarter")
-    static public class QuarterSerde implements Serde<Object, Quarter> {
+    static public class QuarterSerde implements Serde<Object, Quarter>, TimeGrainFormatter {
         private static final SimpleDateFormat MONTH_FORMATTER = new SimpleDateFormat("M");
         private static final Set<String> QUARTER_MONTHS = new HashSet<>(Arrays.asList("1", "4", "7", "10"));
 
@@ -40,12 +39,14 @@ public class Quarter extends Date {
 
             try {
                 if (val instanceof String) {
-                    date = new Quarter(new Timestamp(FORMATTER.parse((String) val).getTime()));
+                    date = new Quarter(FORMATTER.parse(FORMATTER.format(TimeGrainFormatter.formatDateString(FORMATTER,
+                            (String) val))));
                 } else {
                     date = new Quarter(FORMATTER.parse(FORMATTER.format(val)));
                 }
             } catch (ParseException e) {
-                throw new IllegalArgumentException("String must be formatted as " + FORMAT);
+                throw new IllegalArgumentException("String must be formatted as " + FORMAT
+                        + " or " + TimeGrainFormatter.ISO_FORMAT);
             }
 
             if (!QUARTER_MONTHS.contains(MONTH_FORMATTER.format(date))) {

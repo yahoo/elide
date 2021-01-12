@@ -9,7 +9,6 @@ import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 
 import java.sql.Date;
-import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -26,7 +25,7 @@ public class Week extends Date {
     }
 
     @ElideTypeConverter(type = Week.class, name = "Week")
-    static public class WeekSerde implements Serde<Object, Week> {
+    static public class WeekSerde implements Serde<Object, Week>, TimeGrainFormatter {
         private static final SimpleDateFormat WEEKDATE_FORMATTER = new SimpleDateFormat("u");
 
         @Override
@@ -36,12 +35,14 @@ public class Week extends Date {
 
             try {
                 if (val instanceof String) {
-                    date = new Week(new Timestamp(FORMATTER.parse((String) val).getTime()));
+                    date = new Week(FORMATTER.parse(FORMATTER.format(TimeGrainFormatter.formatDateString(FORMATTER,
+                            (String) val))));
                 } else {
                     date = new Week(FORMATTER.parse(FORMATTER.format(val)));
                 }
             } catch (ParseException e) {
-                throw new IllegalArgumentException("String must be formatted as " + FORMAT);
+                throw new IllegalArgumentException("String must be formatted as " + FORMAT
+                        + " or " + TimeGrainFormatter.ISO_FORMAT);
             }
 
             if (!WEEKDATE_FORMATTER.format(date).equals("7")) {

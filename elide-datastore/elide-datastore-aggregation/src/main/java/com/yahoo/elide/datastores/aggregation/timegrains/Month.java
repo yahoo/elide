@@ -9,7 +9,6 @@ import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 
 import java.sql.Date;
-import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -26,7 +25,7 @@ public class Month extends Date {
     }
 
     @ElideTypeConverter(type = Month.class, name = "Month")
-    static public class MonthSerde implements Serde<Object, Month> {
+    static public class MonthSerde implements Serde<Object, Month>, TimeGrainFormatter {
         @Override
         public Month deserialize(Object val) {
 
@@ -34,12 +33,14 @@ public class Month extends Date {
 
             try {
                 if (val instanceof String) {
-                    date = new Month(new Timestamp(FORMATTER.parse((String) val).getTime()));
+                    date = new Month(FORMATTER.parse(FORMATTER.format(TimeGrainFormatter.formatDateString(FORMATTER,
+                            (String) val))));
                 } else {
                     date = new Month(FORMATTER.parse(FORMATTER.format(val)));
                 }
             } catch (ParseException e) {
-                throw new IllegalArgumentException("String must be formatted as " + FORMAT);
+                throw new IllegalArgumentException("String must be formatted as " + FORMAT
+                        + " or " + TimeGrainFormatter.ISO_FORMAT);
             }
 
             return date;

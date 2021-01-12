@@ -25,7 +25,7 @@ public class Hour extends Timestamp {
     }
 
     @ElideTypeConverter(type = Hour.class, name = "Hour")
-    static public class HourSerde implements Serde<Object, Hour> {
+    static public class HourSerde implements Serde<Object, Hour>, TimeGrainFormatter {
         @Override
         public Hour deserialize(Object val) {
 
@@ -33,12 +33,14 @@ public class Hour extends Timestamp {
 
             try {
                 if (val instanceof String) {
-                    date = new Hour(new Timestamp(FORMATTER.parse((String) val).getTime()));
+                    date = new Hour(FORMATTER.parse(FORMATTER.format(TimeGrainFormatter.formatDateString(FORMATTER,
+                            (String) val))));
                 } else {
                     date = new Hour(FORMATTER.parse(FORMATTER.format(val)));
                 }
             } catch (ParseException e) {
-                throw new IllegalArgumentException("String must be formatted as " + FORMAT);
+                throw new IllegalArgumentException("String must be formatted as " + FORMAT
+                        + " or " + TimeGrainFormatter.ISO_FORMAT);
             }
 
             return date;
