@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.List;
 
 
-
 /**
  * This class tests a Presto SQL generation of the engine.
  * This class only covers known differences/ use cases and will continue to grow as relavent differences are discovered.
