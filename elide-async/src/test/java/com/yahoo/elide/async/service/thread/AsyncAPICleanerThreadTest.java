@@ -68,7 +68,7 @@ public class AsyncAPICleanerThreadTest {
         when(dateUtil.calculateFilterDate(Calendar.DATE, cleanerThread.getQueryCleanupDays())).thenReturn(testDate);
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
         cleanerThread.deleteAsyncAPI(AsyncQuery.class);
-        verify(asyncAPIDao, times(1)).deleteAsyncAPIAndResultCollection(filterCaptor.capture(), any());
+        verify(asyncAPIDao, times(1)).deleteAsyncAPIAndResultByFilter(filterCaptor.capture(), any());
         assertEquals("asyncQuery.createdOn LE [" + testDate + "]", filterCaptor.getValue().toString());
     }
 
@@ -77,7 +77,7 @@ public class AsyncAPICleanerThreadTest {
         when(dateUtil.calculateFilterDate(Calendar.MINUTE, cleanerThread.getMaxRunTimeMinutes())).thenReturn(testDate);
         ArgumentCaptor<FilterExpression> filterCaptor = ArgumentCaptor.forClass(FilterExpression.class);
         cleanerThread.timeoutAsyncAPI(AsyncQuery.class);
-        verify(asyncAPIDao, times(1)).updateStatusAsyncAPICollection(filterCaptor.capture(), any(QueryStatus.class), any());
-        assertEquals("(asyncQuery.status IN [[PROCESSING, QUEUED]] AND asyncQuery.createdOn LE [" + testDate + "])", filterCaptor.getValue().toString());
+        verify(asyncAPIDao, times(1)).updateStatusAsyncAPIByFilter(filterCaptor.capture(), any(QueryStatus.class), any());
+        assertEquals("(asyncQuery.status IN [PROCESSING, QUEUED] AND asyncQuery.createdOn LE [" + testDate + "])", filterCaptor.getValue().toString());
     }
 }

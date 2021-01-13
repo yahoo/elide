@@ -142,7 +142,7 @@ public class H2ExplainQueryTest extends SQLUnitTest {
     public void testExplainPagination() {
         String expectedQueryStr1 =
                 "SELECT COUNT(DISTINCT(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`)) "
+                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'))) "
                         + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats`";
         String expectedQueryStr2 =
                 "SELECT MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) AS "
@@ -247,7 +247,7 @@ public class H2ExplainQueryTest extends SQLUnitTest {
 
         String expectedQueryStr1 =
                 "SELECT COUNT(DISTINCT(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`)) "
+                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'))) "
                         + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` "
                         + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country` "
                         + "ON `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` = "
@@ -374,7 +374,7 @@ public class H2ExplainQueryTest extends SQLUnitTest {
         Query query = TestQuery.NESTED_METRIC_WITH_PAGINATION_QUERY.getQuery();
 
         String exptectedQueryStr1 = "SELECT COUNT(DISTINCT(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedMonth`)) "
+                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedMonth`, 'yyyy-MM'), 'yyyy-MM'))) "
                 + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
                 + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
                 + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate`,"
