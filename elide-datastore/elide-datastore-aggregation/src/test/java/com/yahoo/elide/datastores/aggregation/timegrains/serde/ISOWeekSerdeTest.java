@@ -18,6 +18,7 @@ import java.util.Date;
 
 public class ISOWeekSerdeTest {
     private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+    private SimpleDateFormat isoFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
     @Test
     public void testDateSerialize() throws ParseException {
@@ -70,5 +71,15 @@ public class ISOWeekSerdeTest {
         assertThrows(IllegalArgumentException.class, () -> {
             serde.deserialize(dateInString);
         });
+    }
+
+    @Test
+    public void testISODateString() throws ParseException {
+        String dateInString = "2021-01-11T00:00:00-0500";
+        ISOWeek expectedDate = new ISOWeek(isoFormatter.parse(dateInString));
+        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        Serde serde = new ISOWeek.ISOWeekSerde();
+        Object actualDate = serde.deserialize(timestamp);
+        assertEquals(expectedDate, actualDate);
     }
 }

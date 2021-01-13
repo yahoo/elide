@@ -18,6 +18,7 @@ import java.util.Date;
 
 public class HourSerdeTest {
     private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH");
+    private SimpleDateFormat isoFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
     @Test
     public void testDateSerialize() throws ParseException {
@@ -59,5 +60,15 @@ public class HourSerdeTest {
         assertThrows(IllegalArgumentException.class, () -> {
             serde.deserialize(dateInString);
         });
+    }
+
+    @Test
+    public void testISODateString() throws ParseException {
+        String dateInString = "2021-01-12T08:00:00-0500";
+        Hour expectedDate = new Hour(isoFormatter.parse(dateInString));
+        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        Serde serde = new Hour.HourSerde();
+        Object actualDate = serde.deserialize(timestamp);
+        assertEquals(expectedDate, actualDate);
     }
 }

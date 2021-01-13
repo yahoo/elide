@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.datastores.aggregation.timegrains.Month;
+
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
@@ -17,6 +18,7 @@ import java.text.SimpleDateFormat;
 
 public class MonthSerdeTest {
     private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM");
+    private SimpleDateFormat isoFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
     @Test
     public void testDateSerialize() throws ParseException {
@@ -58,5 +60,15 @@ public class MonthSerdeTest {
         assertThrows(IllegalArgumentException.class, () -> {
             serde.deserialize(dateInString);
         });
+    }
+
+    @Test
+    public void testISODateString() throws ParseException {
+        String dateInString = "2021-01-01T00:00:00-0500";
+        Month expectedDate = new Month(isoFormatter.parse(dateInString));
+        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        Serde serde = new Month.MonthSerde();
+        Object actualDate = serde.deserialize(timestamp);
+        assertEquals(expectedDate, actualDate);
     }
 }

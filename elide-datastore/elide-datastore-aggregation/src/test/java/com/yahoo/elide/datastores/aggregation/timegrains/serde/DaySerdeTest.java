@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.timegrains.serde;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.datastores.aggregation.timegrains.Day;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import java.text.SimpleDateFormat;
 
 public class DaySerdeTest {
     private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+    private SimpleDateFormat isoFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
     @Test
     public void testDateSerialize() throws ParseException {
@@ -58,5 +60,15 @@ public class DaySerdeTest {
         assertThrows(IllegalArgumentException.class, () -> {
             serde.deserialize(dateInString);
         });
+    }
+
+    @Test
+    public void testISODateString() throws ParseException {
+        String dateInString = "2021-01-12T00:00:00-0500";
+        Day expectedDate = new Day(isoFormatter.parse(dateInString));
+        String actual = "2021-01-12";
+        Serde serde = new Day.DaySerde();
+        Object actualDate = serde.deserialize(actual);
+        assertEquals(expectedDate, actualDate);
     }
 }
