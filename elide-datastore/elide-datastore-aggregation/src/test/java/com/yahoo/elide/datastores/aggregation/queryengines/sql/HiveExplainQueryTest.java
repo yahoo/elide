@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.List;
 
 
-
 /**
  * This class tests SQLQueryEngine.explain() with the Hive dialect.
  *
