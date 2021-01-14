@@ -11,7 +11,6 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
@@ -57,8 +56,8 @@ public class ElideAsyncConfiguration {
             AsyncAPIDAO asyncQueryDao, EntityDictionary dictionary,
             @Autowired(required = false) ResultStorageEngine resultStorageEngine) throws MalformedURLException {
         boolean baseURLPresent = settings.getBaseUrl() != null && !settings.getBaseUrl().isEmpty();
-        Object downloadURL = baseURLPresent ? new URL(settings.getBaseUrl() + settings.getAsync().getExport().getPath()
-                + "/") : settings.getAsync().getExport().getPath();
+        String downloadURL = baseURLPresent ? settings.getBaseUrl() + settings.getAsync().getExport().getPath()
+                + "/" : settings.getAsync().getExport().getPath();
 
         AsyncExecutorService.init(elide, settings.getAsync().getThreadPoolSize(),
                 asyncQueryDao, resultStorageEngine, downloadURL);

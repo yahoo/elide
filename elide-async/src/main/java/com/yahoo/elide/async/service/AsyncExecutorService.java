@@ -50,7 +50,7 @@ public class AsyncExecutorService {
     private static AsyncExecutorService asyncExecutorService = null;
     private ResultStorageEngine resultStorageEngine;
     private ThreadLocal<AsyncAPIResultFuture> asyncResultFutureThreadLocal = new ThreadLocal<>();
-    private Object downloadURL;
+    private String downloadURL;
     // TODO Update constructor to populate these.
     private boolean skipCSVHeader;
 
@@ -65,7 +65,7 @@ public class AsyncExecutorService {
 
     @Inject
     private AsyncExecutorService(Elide elide, Integer threadPoolSize, AsyncAPIDAO asyncAPIDao,
-            ResultStorageEngine resultStorageEngine, Object downloadURL) {
+            ResultStorageEngine resultStorageEngine, String downloadURL) {
         this.elide = elide;
         this.downloadURL = downloadURL;
         runners = new HashMap();
@@ -88,7 +88,7 @@ public class AsyncExecutorService {
      * @param asyncAPIDao DAO Object
      */
     public static void init(Elide elide, Integer threadPoolSize, AsyncAPIDAO asyncAPIDao,
-            ResultStorageEngine resultStorageEngine, Object downloadURL) {
+            ResultStorageEngine resultStorageEngine, String downloadURL) {
         if (asyncExecutorService == null) {
             asyncExecutorService = new AsyncExecutorService(elide, threadPoolSize, asyncAPIDao,
                     resultStorageEngine, downloadURL);

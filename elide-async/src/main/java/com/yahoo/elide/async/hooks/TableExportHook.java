@@ -58,7 +58,7 @@ public class TableExportHook extends AsyncAPIHook<TableExport> {
     private String retrieveDownloadURL(String baseURL) {
         String downloadURL = null;
         if (baseURLPresent) {
-            downloadURL = (String) getAsyncExecutorService().getDownloadURL();
+            downloadURL = getAsyncExecutorService().getDownloadURL();
         } else {
             downloadURL = getBasePath(baseURL) + getAsyncExecutorService().getDownloadURL() + "/";
         }
