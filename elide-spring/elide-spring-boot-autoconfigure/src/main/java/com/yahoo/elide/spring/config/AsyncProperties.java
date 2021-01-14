@@ -58,5 +58,5 @@ public class AsyncProperties {
     /**
      * Settings for the export controller.
      */
-    private ControllerProperties export;
+    private ControllerProperties export = new ControllerProperties();
 }
