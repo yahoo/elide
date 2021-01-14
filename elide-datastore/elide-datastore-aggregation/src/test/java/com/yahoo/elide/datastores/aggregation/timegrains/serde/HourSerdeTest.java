@@ -65,10 +65,10 @@ public class HourSerdeTest {
     @Test
     public void testISODateString() throws ParseException {
         String dateInString = "2021-01-12T08:00:00-0500";
-        Hour expectedDate = new Hour(isoFormatter.parse(dateInString));
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        String expectedDate = new Hour(isoFormatter.parse(dateInString)).toString();
+        Timestamp timestamp = new Timestamp(isoFormatter.parse(dateInString).getTime());
         Serde serde = new Hour.HourSerde();
-        Object actualDate = serde.deserialize(timestamp);
+        String actualDate = serde.deserialize(timestamp).toString();
         assertEquals(expectedDate, actualDate);
     }
 }

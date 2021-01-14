@@ -75,10 +75,10 @@ public class QuarterSerdeTest {
     @Test
     public void testISODateString() throws ParseException {
         String dateInString = "2021-01-01T00:00:00-0500";
-        Quarter expectedDate = new Quarter(isoFormatter.parse(dateInString));
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        Quarter expectedDate = new Quarter(formatter.parse(dateInString));
+        String actual = "2021-01";
         Serde serde = new Quarter.QuarterSerde();
-        Object actualDate = serde.deserialize(timestamp);
+        Object actualDate = serde.deserialize(actual);
         assertEquals(expectedDate, actualDate);
     }
 }

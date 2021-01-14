@@ -65,10 +65,10 @@ public class MinuteSerdeTest {
     @Test
     public void testISODateString() throws ParseException {
         String dateInString = "2021-01-12T08:10:00-0500";
-        Minute expectedDate = new Minute(isoFormatter.parse(dateInString));
+        String expectedDate = new Minute(isoFormatter.parse(dateInString)).toString();
         Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
         Serde serde = new Minute.MinuteSerde();
-        Object actualDate = serde.deserialize(timestamp);
+        String actualDate = serde.deserialize(timestamp).toString();
         assertEquals(expectedDate, actualDate);
     }
 }

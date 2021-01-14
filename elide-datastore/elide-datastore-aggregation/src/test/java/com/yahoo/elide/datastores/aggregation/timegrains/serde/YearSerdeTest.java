@@ -64,10 +64,10 @@ public class YearSerdeTest {
     @Test
     public void testISODateString() throws ParseException {
         String dateInString = "2021-01-01T00:00:00-0500";
-        Year expectedDate = new Year(isoFormatter.parse(dateInString));
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        Year expectedDate = new  Year(formatter.parse(dateInString));
+        String actual = "2021";
         Serde serde = new Year.YearSerde();
-        Object actualDate = serde.deserialize(timestamp);
+        Object actualDate = serde.deserialize(actual);
         assertEquals(expectedDate, actualDate);
     }
 }

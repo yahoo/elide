@@ -75,11 +75,11 @@ public class ISOWeekSerdeTest {
 
     @Test
     public void testISODateString() throws ParseException {
-        String dateInString = "2021-01-11T00:00:00-0500";
-        ISOWeek expectedDate = new ISOWeek(isoFormatter.parse(dateInString));
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        String dateInString = "2020-01-06T00:00:00-0500";
+        Date expectedDate = new Date(formatter.parse(dateInString).getTime());
+        String actual = "2020-01-06";
         Serde serde = new ISOWeek.ISOWeekSerde();
-        Object actualDate = serde.deserialize(timestamp);
+        Object actualDate = serde.deserialize(actual);
         assertEquals(expectedDate, actualDate);
     }
 }

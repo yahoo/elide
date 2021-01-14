@@ -64,11 +64,11 @@ public class SecondSerdeTest {
 
     @Test
     public void testISODateString() throws ParseException {
-        String dateInString = "2021-01-12T00:00:00-0500";
-        Second expectedDate = new Second(isoFormatter.parse(dateInString));
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        String dateInString = "2020-01-01T01:18:19-0000";
+        Date expectedDate = new Date(formatter.parse(dateInString).getTime());
+        String actual = "2020-01-01T01:18:19";
         Serde serde = new Second.SecondSerde();
-        Object actualDate = serde.deserialize(timestamp);
+        Object actualDate = serde.deserialize(actual);
         assertEquals(expectedDate, actualDate);
     }
 }

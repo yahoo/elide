@@ -64,9 +64,9 @@ public class DaySerdeTest {
 
     @Test
     public void testISODateString() throws ParseException {
-        String dateInString = "2021-01-12T00:00:00-0500";
-        Day expectedDate = new Day(isoFormatter.parse(dateInString));
-        String actual = "2021-01-12";
+        String dateInString = "2020-01-01T00:00:00-0500";
+        Day expectedDate = new Day(formatter.parse(dateInString));
+        String actual = "2020-01-01";
         Serde serde = new Day.DaySerde();
         Object actualDate = serde.deserialize(actual);
         assertEquals(expectedDate, actualDate);

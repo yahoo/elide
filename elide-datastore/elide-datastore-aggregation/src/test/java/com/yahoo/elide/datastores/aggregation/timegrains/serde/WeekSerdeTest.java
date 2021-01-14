@@ -76,10 +76,10 @@ public class WeekSerdeTest {
     @Test
     public void testISODateString() throws ParseException {
         String dateInString = "2021-01-10T00:00:00-0500";
-        Week expectedDate = new Week(isoFormatter.parse(dateInString));
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        Date expectedDate = new Date(formatter.parse(dateInString).getTime());
+        String actual = "2021-01-10";
         Serde serde = new Week.WeekSerde();
-        Object actualDate = serde.deserialize(timestamp);
+        Object actualDate = serde.deserialize(actual);
         assertEquals(expectedDate, actualDate);
     }
 }

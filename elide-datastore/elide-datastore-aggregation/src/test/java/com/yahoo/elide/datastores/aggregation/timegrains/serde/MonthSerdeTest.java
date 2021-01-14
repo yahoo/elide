@@ -64,11 +64,11 @@ public class MonthSerdeTest {
 
     @Test
     public void testISODateString() throws ParseException {
-        String dateInString = "2021-01-01T00:00:00-0500";
-        Month expectedDate = new Month(isoFormatter.parse(dateInString));
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        String dateInString = "2020-01-01T00:00:00-0500";
+        Month expectedDate = new Month(formatter.parse(dateInString));
+        String actual = "2020-01";
         Serde serde = new Month.MonthSerde();
-        Object actualDate = serde.deserialize(timestamp);
+        Object actualDate = serde.deserialize(actual);
         assertEquals(expectedDate, actualDate);
     }
 }
