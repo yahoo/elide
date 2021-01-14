@@ -10,8 +10,6 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 
-import java.net.MalformedURLException;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.hooks.TableExportHook;
@@ -54,7 +52,7 @@ public class ElideAsyncConfiguration {
     @ConditionalOnMissingBean
     public AsyncExecutorService buildAsyncExecutorService(Elide elide, ElideConfigProperties settings,
             AsyncAPIDAO asyncQueryDao, EntityDictionary dictionary,
-            @Autowired(required = false) ResultStorageEngine resultStorageEngine) throws MalformedURLException {
+            @Autowired(required = false) ResultStorageEngine resultStorageEngine) {
         boolean baseURLPresent = settings.getBaseUrl() != null && !settings.getBaseUrl().isEmpty();
         String downloadURL = baseURLPresent ? settings.getBaseUrl() + settings.getAsync().getExport().getPath()
                 + "/" : settings.getAsync().getExport().getPath();
