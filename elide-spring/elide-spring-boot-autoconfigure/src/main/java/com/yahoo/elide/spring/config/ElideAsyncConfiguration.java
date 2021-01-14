@@ -9,8 +9,13 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
+import com.yahoo.elide.async.hooks.TableExportHook;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
@@ -44,14 +49,19 @@ public class ElideAsyncConfiguration {
      * @param asyncQueryDao AsyncDao object.
      * @param dictionary EntityDictionary.
      * @return a AsyncExecutorService.
+     * @throws MalformedURLException MalformedURLException
      */
     @Bean
     @ConditionalOnMissingBean
     public AsyncExecutorService buildAsyncExecutorService(Elide elide, ElideConfigProperties settings,
             AsyncAPIDAO asyncQueryDao, EntityDictionary dictionary,
-            @Autowired(required = false) ResultStorageEngine resultStorageEngine) {
+            @Autowired(required = false) ResultStorageEngine resultStorageEngine) throws MalformedURLException {
+        boolean baseURLPresent = settings.getBaseUrl() != null && !settings.getBaseUrl().isEmpty();
+        Object downloadURL = baseURLPresent ? new URL(settings.getBaseUrl() + settings.getAsync().getExport().getPath()
+                + "/") : settings.getAsync().getExport().getPath();
+
         AsyncExecutorService.init(elide, settings.getAsync().getThreadPoolSize(),
-                asyncQueryDao, resultStorageEngine);
+                asyncQueryDao, resultStorageEngine, downloadURL);
         AsyncExecutorService asyncExecutorService = AsyncExecutorService.getInstance();
 
         // Binding AsyncQuery LifeCycleHook
@@ -61,7 +71,15 @@ public class ElideAsyncConfiguration {
         dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, asyncQueryHook, false);
         dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, asyncQueryHook, false);
 
-        return AsyncExecutorService.getInstance();
+        if (settings.getAsync().getExport().isEnabled()) {
+            // Binding TableExport LifeCycleHook
+            TableExportHook tableExportHook = new TableExportHook(asyncExecutorService,
+                    settings.getAsync().getMaxAsyncAfterSeconds(), baseURLPresent);
+            dictionary.bindTrigger(TableExportHook.class, READ, PRESECURITY, tableExportHook, false);
+            dictionary.bindTrigger(TableExportHook.class, CREATE, POSTCOMMIT, tableExportHook, false);
+            dictionary.bindTrigger(TableExportHook.class, CREATE, PRESECURITY, tableExportHook, false);
+        }
+        return asyncExecutorService;
     }
 
     /**

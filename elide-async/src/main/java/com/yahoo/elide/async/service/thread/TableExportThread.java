@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.opendevl.JFlat;
 
 import org.apache.http.NoHttpResponseException;
-import org.apache.http.client.utils.URIBuilder;
 
 import io.reactivex.Observable;
 
@@ -52,19 +51,17 @@ public class TableExportThread implements Callable<AsyncAPIResult> {
     private ResultStorageEngine resultStorageEngine;
     private ObjectMapper mapper = new ObjectMapper();
     private String baseURL;
-    private String downloadURI;
     private boolean skipCSVHeader;
     private String apiVersion;
     private User user;
 
     public TableExportThread(TableExport queryObj, TableExporter exporter,
             String baseURL, String apiVersion, User user,
-            ResultStorageEngine resultStorageEngine, String downloadURI, boolean skipCSVHeader) {
+            ResultStorageEngine resultStorageEngine, boolean skipCSVHeader) {
         this.queryObj = queryObj;
         this.exporter = exporter;
         this.resultStorageEngine = resultStorageEngine;
         this.baseURL = baseURL;
-        this.downloadURI = downloadURI;
         this.skipCSVHeader = skipCSVHeader;
         this.apiVersion = apiVersion;
         this.user = user;
@@ -90,32 +87,11 @@ public class TableExportThread implements Callable<AsyncAPIResult> {
         return queryResult;
     }
 
-    private String getBasePath(String URL) {
-        URIBuilder uri;
-        try {
-            uri = new URIBuilder(URL);
-        } catch (URISyntaxException e) {
-            log.debug("extracting base path from requestURL failure. {}", e.getMessage());
-            throw new IllegalStateException(e);
-        }
-        StringBuilder str = new StringBuilder(uri.getScheme() + "://" + uri.getHost());
-        if (uri.getPort() != -1) {
-            str.append(":" + uri.getPort());
-        }
-        return str.toString();
-    }
-
     private URL generateDownloadURL() {
         log.debug("generateDownloadUrl");
         String asyncQueryID = queryObj.getId();
-        String basePath = baseURL != null ? getBasePath(baseURL) : null;
-        String tempURL = basePath != null && downloadURI != null ? basePath + downloadURI : null;
 
-        String urlString = null;
-        if (tempURL != null) {
-            urlString = tempURL.endsWith(FORWARD_SLASH) ? tempURL + asyncQueryID
-                    : tempURL + FORWARD_SLASH + asyncQueryID;
-        }
+        String urlString = baseURL + asyncQueryID;
 
         URL url;
         try {

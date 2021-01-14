@@ -36,8 +36,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class TableExportThreadTest {
-    private static final String REQUEST_URL = "https://elide.io";
-    private static final String DOWNLOAD_URI = "/downloads";
+    //private static final String REQUEST_URL = "https://elide.io";
+    private static final String DOWNLOAD_URL = "https://elide.io/downloads/";
 
     private TableExporter exporter;
     private ResultStorageEngine engine;
@@ -75,7 +75,7 @@ public class TableExportThreadTest {
         when(exporter.getParser(any())).thenReturn(parser);
         when(engine.storeResults(any(), any())).thenReturn(queryObj);
 
-        TableExportThread queryThread = new TableExportThread(queryObj, exporter, REQUEST_URL, NO_VERSION, user, engine, DOWNLOAD_URI, false);
+        TableExportThread queryThread = new TableExportThread(queryObj, exporter, DOWNLOAD_URL, NO_VERSION, user, engine, false);
         TableExportResult queryResultObj = (TableExportResult) queryThread.call();
         assertEquals(queryResultObj.getHttpStatus(), 200);
         assertEquals(queryResultObj.getRecordCount(), 0);
@@ -101,7 +101,7 @@ public class TableExportThreadTest {
         GraphQLParser parser = mock(GraphQLParser.class);
         when(parser.parse(any(), any())).thenReturn(projection);
 
-        TableExportThread queryThread = new TableExportThread(queryObj, exporter, REQUEST_URL, NO_VERSION, user, engine, DOWNLOAD_URI, false);
+        TableExportThread queryThread = new TableExportThread(queryObj, exporter, DOWNLOAD_URL, NO_VERSION, user, engine, false);
         Observable<String> header = queryThread.generateCSVHeader(parser);
         assertEquals(header.blockingFirst(), "\"query\",\"queryType\"");
     }
@@ -122,7 +122,7 @@ public class TableExportThreadTest {
 
         PersistentResource resource = mock(PersistentResource.class);
         when(resource.getObject()).thenReturn(queryObj);
-        TableExportThread queryThread = new TableExportThread(queryObj, exporter, REQUEST_URL, NO_VERSION, user, engine, DOWNLOAD_URI, false);
+        TableExportThread queryThread = new TableExportThread(queryObj, exporter, DOWNLOAD_URL, NO_VERSION, user, engine, false);
         queryThread.incrementRecordCount();
         String output = queryThread.convertToCSV(resource);
         assertEquals(true, output.startsWith(row1));
@@ -146,7 +146,7 @@ public class TableExportThreadTest {
         PersistentResource resource = mock(PersistentResource.class);
         when(resource.getObject()).thenReturn(queryObj);
 
-        TableExportThread queryThread = new TableExportThread(queryObj, exporter, REQUEST_URL, NO_VERSION, user, engine, DOWNLOAD_URI, true);
+        TableExportThread queryThread = new TableExportThread(queryObj, exporter, DOWNLOAD_URL, NO_VERSION, user, engine, true);
         queryThread.incrementRecordCount();
         String output = queryThread.convertToCSV(resource);
         assertEquals(true, output.startsWith(row1));
@@ -169,7 +169,7 @@ public class TableExportThreadTest {
 
         PersistentResource resource = mock(PersistentResource.class);
         when(resource.getObject()).thenReturn(queryObj);
-        TableExportThread queryThread = new TableExportThread(queryObj, exporter, REQUEST_URL, NO_VERSION, user, engine, DOWNLOAD_URI, false);
+        TableExportThread queryThread = new TableExportThread(queryObj, exporter, DOWNLOAD_URL, NO_VERSION, user, engine, false);
         String output = queryThread.resourceToJsonStr(resource);
         System.out.println(output);
         assertEquals(true, output.startsWith(start));

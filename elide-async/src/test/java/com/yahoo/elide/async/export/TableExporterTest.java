@@ -57,21 +57,6 @@ public class TableExporterTest {
         user = mock(User.class);
     }
 
-    /*@Test
-    public void testExporterNonEmptyProjection() throws IOException {
-        dataPrep();
-        // Query
-        TableExport tableExport = new TableExport();
-        tableExport.setQueryType(QueryType.GRAPHQL_V1_0);
-        tableExport.setQuery("{\"query\":\"{ tableExport { edges { node { id principalName} } } }\",\"variables\":null}");
-
-        TableExporter exporter = new TableExporter(elide);
-        Observable<PersistentResource> results = exporter.export(tableExport, user, NO_VERSION);
-        //EntityProjection projection = exporter.getProjection();
-        assertNotEquals(Observable.empty(), results);
-        assertEquals(1, results.toList(LinkedHashSet::new).blockingGet().size());
-    }*/
-
     @Test
     public void testExporterJsonAPI() {
         TableExport tableExport = new TableExport();

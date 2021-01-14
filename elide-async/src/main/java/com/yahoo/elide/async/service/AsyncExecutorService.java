@@ -50,8 +50,8 @@ public class AsyncExecutorService {
     private static AsyncExecutorService asyncExecutorService = null;
     private ResultStorageEngine resultStorageEngine;
     private ThreadLocal<AsyncAPIResultFuture> asyncResultFutureThreadLocal = new ThreadLocal<>();
+    private Object downloadURL;
     // TODO Update constructor to populate these.
-    private String downloadURI;
     private boolean skipCSVHeader;
 
     /**
@@ -65,8 +65,9 @@ public class AsyncExecutorService {
 
     @Inject
     private AsyncExecutorService(Elide elide, Integer threadPoolSize, AsyncAPIDAO asyncAPIDao,
-            ResultStorageEngine resultStorageEngine) {
+            ResultStorageEngine resultStorageEngine, Object downloadURL) {
         this.elide = elide;
+        this.downloadURL = downloadURL;
         runners = new HashMap();
 
         for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
@@ -87,10 +88,10 @@ public class AsyncExecutorService {
      * @param asyncAPIDao DAO Object
      */
     public static void init(Elide elide, Integer threadPoolSize, AsyncAPIDAO asyncAPIDao,
-            ResultStorageEngine resultStorageEngine) {
+            ResultStorageEngine resultStorageEngine, Object downloadURL) {
         if (asyncExecutorService == null) {
             asyncExecutorService = new AsyncExecutorService(elide, threadPoolSize, asyncAPIDao,
-                    resultStorageEngine);
+                    resultStorageEngine, downloadURL);
         } else {
             log.debug("asyncExecutorService is already initialized.");
         }
