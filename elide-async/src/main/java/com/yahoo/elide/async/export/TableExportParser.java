@@ -17,8 +17,9 @@ public interface TableExportParser {
     /**
      * Parses the AsyncQuery to generate EntityProjection.
      * @param query TableExport Object.
+     * @param apiVersion Api Version
      * @return EntityProjection parsed.
      * @throws BadRequestException Exception thrown.
      */
-    public EntityProjection parse(TableExport query) throws BadRequestException;
+    public EntityProjection parse(TableExport query, String apiVersion) throws BadRequestException;
 }

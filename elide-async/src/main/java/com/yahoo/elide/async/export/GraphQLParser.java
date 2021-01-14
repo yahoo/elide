@@ -28,17 +28,15 @@ import java.util.Set;
 public class GraphQLParser implements TableExportParser {
 
     private Elide elide;
-    private String apiVersion;
     private Set<Validator> validators;
 
-    public GraphQLParser(Elide elide, String apiVersion) {
+    public GraphQLParser(Elide elide) {
         this.elide = elide;
-        this.apiVersion = apiVersion;
         //TODO Initialize static list of validators for GraphqlParser
     }
 
     @Override
-    public EntityProjection parse(TableExport query) throws BadRequestException {
+    public EntityProjection parse(TableExport query, String apiVersion) throws BadRequestException {
         EntityProjection projection;
         try {
             String graphQLDocument = query.getQuery();

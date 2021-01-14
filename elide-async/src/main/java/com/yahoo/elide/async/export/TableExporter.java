@@ -18,7 +18,6 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
 
 import io.reactivex.Observable;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -27,33 +26,25 @@ import java.util.UUID;
 
 /**
  * Class for Table Export functionality.
+ * Parses a TableExport request and returns an Observable of PersistentResource.
  */
 @Slf4j
 public class TableExporter {
 
     private Elide elide;
-    private String apiVersion;
-    private User user;
-    private GraphQLParser graphQLParser;
-    @Getter private EntityProjection projection = null;
 
-    public TableExporter(Elide elide, String apiVersion, User user) {
-        this(elide, apiVersion, user, new GraphQLParser(elide, apiVersion));
-    }
-
-    public TableExporter(Elide elide, String apiVersion, User user, GraphQLParser graphQLParser) {
+    public TableExporter(Elide elide) {
         this.elide = elide;
-        this.apiVersion = apiVersion;
-        this.user = user;
-        this.graphQLParser = graphQLParser;
     }
 
     /**
      * Exports the Data based on AsyncQuery.
      * @param query AsyncQuery object.
+     * @param user User object.
+     * @param apiVersion API Version to query.
      * @return Observable of PersistentResource.
      */
-    public Observable<PersistentResource> export(TableExport query) {
+    public Observable<PersistentResource> export(TableExport query, User user, String apiVersion) {
         Observable<PersistentResource> results = Observable.empty();
 
         UUID requestId = UUID.fromString(query.getRequestId());
@@ -63,8 +54,11 @@ public class TableExporter {
 
             RequestScope requestScope = null;
 
+            TableExportParser parser = getParser(query);
+
+            EntityProjection projection = parser.parse(query, apiVersion);
+
             if (query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
-                projection = graphQLParser.parse(query);
                 //TODO - we need to add the baseUrlEndpoint to the queryObject.
                 //TODO - Can we have projectionInfo as null?
                 requestScope = new GraphQLRequestScope("", tx, user, apiVersion, elide.getElideSettings(),
@@ -99,5 +93,17 @@ public class TableExporter {
         }
 
         return results;
+    }
+
+    public TableExportParser getParser(TableExport query) {
+        TableExportParser parser = null;
+        if (query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
+            parser = new GraphQLParser(elide);
+        } else {
+            //TODO - Add JSON Support
+            throw new InvalidValueException("QueryType not supported");
+        }
+
+        return parser;
     }
 }
