@@ -142,9 +142,9 @@ public class ElideResourceConfig extends ResourceConfig {
 
                     // TODO: If null, initialize with FileResultStorageEngine
                     ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
-                    // TODO: Add logic to generate baseURLPresent Flag
+                    // TODO: Add logic to generate download URL
                     AsyncExecutorService.init(elide, asyncProperties.getThreadSize(), asyncAPIDao,
-                            resultStorageEngine, false);
+                            resultStorageEngine, null);
                     bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                     // Binding AsyncQuery LifeCycleHook

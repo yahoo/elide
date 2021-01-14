@@ -9,7 +9,6 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
 import com.yahoo.elide.async.hooks.TableExportHook;
@@ -46,7 +45,6 @@ public class ElideAsyncConfiguration {
      * @param asyncQueryDao AsyncDao object.
      * @param dictionary EntityDictionary.
      * @return a AsyncExecutorService.
-     * @throws MalformedURLException MalformedURLException
      */
     @Bean
     @ConditionalOnMissingBean
