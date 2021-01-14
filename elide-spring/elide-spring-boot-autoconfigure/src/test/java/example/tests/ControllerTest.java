@@ -36,6 +36,7 @@ import com.yahoo.elide.test.graphql.GraphQLDSL;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 
@@ -52,6 +53,11 @@ import javax.ws.rs.core.MediaType;
 @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
         statements = "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;")
 @Import(IntegrationTestSetup.class)
+@TestPropertySource(
+        properties = {
+                "elide.json-api.enableLinks=true"
+        }
+)
 public class ControllerTest extends IntegrationTest {
     private String baseUrl;
 
@@ -59,7 +65,7 @@ public class ControllerTest extends IntegrationTest {
     @Override
     public void setUp() {
         super.setUp();
-        baseUrl = "http://localhost:" + port + "/json/";
+        baseUrl = "https://elide.io/json/";
     }
 
     /**
@@ -405,7 +411,7 @@ public class ControllerTest extends IntegrationTest {
                 .body("tags.name", containsInAnyOrder("group", "functionArgument", "metric",
                         "metricFunction", "dimension", "column", "table", "asyncQuery",
                         "timeDimensionGrain", "timeDimension", "product", "playerCountry", "version", "playerStats",
-                        "stats"));
+                        "stats", "tableExport"));
     }
 
     @Test

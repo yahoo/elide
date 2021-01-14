@@ -169,8 +169,8 @@ public class LifeCycleTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
-        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
-        ElideResponse response = elide.get(baseUrl, "/testModel/1", headers, null, NO_VERSION);
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        ElideResponse response = elide.get(baseUrl, "/testModel/1", queryParams, null, NO_VERSION);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         verify(mockModel, never()).classAllFieldsCallback(any(), any());
@@ -213,9 +213,9 @@ public class LifeCycleTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
-        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
-        headers.putSingle("fields[testModel]", "field");
-        ElideResponse response = elide.get(baseUrl, "/testModel/1", headers, null, NO_VERSION);
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.putSingle("fields[testModel]", "field");
+        ElideResponse response = elide.get(baseUrl, "/testModel/1", queryParams, null, NO_VERSION);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         verify(mockModel, never()).classAllFieldsCallback(any(), any());
@@ -243,6 +243,24 @@ public class LifeCycleTest {
     }
 
     @Test
+    public void testElideGetInvalidKey() throws Exception {
+        DataStore store = mock(DataStore.class);
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.putSingle("fields[testModel]", "field");
+        queryParams.putSingle("?filter", "field"); // Key starts with '?'
+        queryParams.putSingle("Sort", "field"); // Valid Key is sort
+        queryParams.putSingle("INCLUDE", "field"); // Valid Key is include
+        queryParams.putSingle("fields.testModel", "field"); // fields is not followed by [
+        queryParams.putSingle("page.size", "10"); // page is not followed by [
+        ElideResponse response = elide.get(baseUrl, "/testModel/1", queryParams, null, NO_VERSION);
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getResponseCode());
+        assertEquals("{\"errors\":[{\"detail\":\"Found undefined keys in request: fields.testModel, ?filter, Sort, page.size, INCLUDE\"}]}",
+                        response.getBody());
+    }
+
+    @Test
     public void testElideGetRelationship() throws Exception {
         DataStore store = mock(DataStore.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
@@ -256,8 +274,8 @@ public class LifeCycleTest {
         when(store.beginTransaction()).thenReturn(tx);
         when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
 
-        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
-        ElideResponse response = elide.get(baseUrl, "/testModel/1/relationships/models", headers, null, NO_VERSION);
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        ElideResponse response = elide.get(baseUrl, "/testModel/1/relationships/models", queryParams, null, NO_VERSION);
         assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         verify(mockModel, never()).classAllFieldsCallback(any(), any());

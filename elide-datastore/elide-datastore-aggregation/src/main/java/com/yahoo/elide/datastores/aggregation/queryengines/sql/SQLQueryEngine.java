@@ -34,6 +34,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLRefer
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryPlanTranslator;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryTranslator;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
@@ -393,9 +394,8 @@ public class SQLQueryEngine extends QueryEngine {
         String groupByDimensions =
                 query.getAllDimensionProjections()
                         .stream()
-                        .map(dimension -> queryReferenceTable.getResolvedReference(
-                                query.getSource(),
-                                dimension.getName()))
+                        .map(SQLColumnProjection.class::cast)
+                        .map((column) -> column.toSQL(queryReferenceTable))
                         .collect(Collectors.joining(", "));
 
         String projectionClause = sqlDialect.generateCountDistinctClause(groupByDimensions);

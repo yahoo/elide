@@ -52,7 +52,7 @@ public class EntityProjectionMaker
         private EntityProjection projection;
     }
 
-    private static final String INCLUDE = "include";
+    public static final String INCLUDE = "include";
 
     private EntityDictionary dictionary;
     private MultivaluedMap<String, String> queryParams;

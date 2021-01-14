@@ -7,6 +7,12 @@ package example;
 
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
@@ -17,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.util.Properties;
+import java.util.TimeZone;
 
 /**
  * Tests ElideStandalone starts and works.
@@ -27,6 +34,32 @@ public class ElideStandaloneDisableMetaDataStoreTest extends ElideStandaloneTest
     @BeforeAll
     public void init() throws Exception {
         elide = new ElideStandalone(new ElideStandaloneSettings() {
+
+            @Override
+            public ElideSettings getElideSettings(EntityDictionary dictionary, DataStore dataStore) {
+                String jsonApiBaseUrl = getBaseUrl()
+                        + getJsonApiPathSpec().replaceAll("/\\*", "")
+                        + "/";
+
+                ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
+                        .withEntityDictionary(dictionary)
+                        .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
+                        .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
+                        .withJSONApiLinks(new DefaultJSONApiLinks(jsonApiBaseUrl))
+                        .withBaseUrl("https://elide.io")
+                        .withAuditLogger(getAuditLogger());
+
+                if (enableISO8601Dates()) {
+                    builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
+                }
+
+                return builder.build();
+            }
+
+            @Override
+            public String getBaseUrl() {
+                return "https://elide.io";
+            }
 
             @Override
             public Properties getDatabaseProperties() {
@@ -132,6 +165,6 @@ public class ElideStandaloneDisableMetaDataStoreTest extends ElideStandaloneTest
         .get("/swagger/doc/test")
          .then()
          .statusCode(200)
-         .body("tags.name", containsInAnyOrder("post", "asyncQuery", "postView"));
+         .body("tags.name", containsInAnyOrder("post", "asyncQuery", "postView", "tableExport"));
     }
 }

@@ -77,10 +77,10 @@
         <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 
         <!-- dependency versions -->
-        <version.antlr4>4.8-1</version.antlr4>
+        <version.antlr4>4.9</version.antlr4>
         <version.logback>1.2.3</version.logback>
         <version.jetty>9.4.35.v20201120</version.jetty>
-        <version.restassured>4.3.2</version.restassured>
+        <version.restassured>4.3.3</version.restassured>
         <version.jackson>2.11.3</version.jackson>
         <version.jersey>2.32</version.jersey>
         <version.junit>5.7.0</version.junit>
@@ -122,7 +122,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>29.0-jre</version>
+                <version>30.1-jre</version>
             </dependency>
             <dependency>
                 <groupId>javax.inject</groupId>

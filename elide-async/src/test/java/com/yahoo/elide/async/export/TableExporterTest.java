@@ -12,8 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryType;
+import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.security.AsyncQueryInlineChecks;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -44,7 +44,7 @@ public class TableExporterTest {
 
     @BeforeEach
     public void beforeTest() {
-        dataStore = new HashMapDataStore(AsyncQuery.class.getPackage());
+        dataStore = new HashMapDataStore(TableExport.class.getPackage());
         Map<String, Class<? extends Check>> map = new HashMap<>();
         map.put(AsyncQueryInlineChecks.AsyncQueryOwner.PRINCIPAL_IS_OWNER,
                 AsyncQueryInlineChecks.AsyncQueryOwner.class);
@@ -66,12 +66,12 @@ public class TableExporterTest {
     public void testExporterNonEmptyProjection() throws IOException {
         dataPrep();
         // Query
-        AsyncQuery asyncQuery = new AsyncQuery();
-        asyncQuery.setQueryType(QueryType.GRAPHQL_V1_0);
-        asyncQuery.setQuery("{\"query\":\"{ asyncQuery { edges { node { id principalName} } } }\",\"variables\":null}");
+        TableExport tableExport = new TableExport();
+        tableExport.setQueryType(QueryType.GRAPHQL_V1_0);
+        tableExport.setQuery("{\"query\":\"{ tableExport { edges { node { id principalName} } } }\",\"variables\":null}");
 
         TableExporter exporter = new TableExporter(elide, NO_VERSION, user);
-        Observable<PersistentResource> results = exporter.export(asyncQuery);
+        Observable<PersistentResource> results = exporter.export(tableExport);
 
         assertNotEquals(Observable.empty(), results);
         assertEquals(1, results.toList(LinkedHashSet::new).blockingGet().size());
@@ -79,19 +79,19 @@ public class TableExporterTest {
 
     @Test
     public void testExporterJsonAPI() {
-        AsyncQuery asyncQuery = new AsyncQuery();
-        asyncQuery.setQueryType(QueryType.JSONAPI_V1_0);
+        TableExport tableExport = new TableExport();
+        tableExport.setQueryType(QueryType.JSONAPI_V1_0);
 
         TableExporter exporter = new TableExporter(elide, NO_VERSION, user);
-        assertThrows(InvalidValueException.class, () -> exporter.export(asyncQuery));
+        assertThrows(InvalidValueException.class, () -> exporter.export(tableExport));
     }
 
     /**
-     * Prepping and Storing an asyncQuery entry to be queried later on.
+     * Prepping and Storing an TableExport entry to be queried later on.
      * @throws IOException  IOException
      */
     private void dataPrep() throws IOException {
-        AsyncQuery temp = new AsyncQuery();
+        TableExport temp = new TableExport();
         DataStoreTransaction tx = dataStore.beginTransaction();
         RequestScope scope = new RequestScope(null, null, NO_VERSION, null, tx, user, null, Collections.emptyMap(), UUID.randomUUID(), elide.getElideSettings());
         tx.save(temp, scope);
