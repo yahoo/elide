@@ -10,8 +10,6 @@ import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 
-import java.util.Collection;
-
 /**
  * Utility interface which uses the elide datastore to modify and create AsyncAPI and AsyncAPIResult Objects.
  */
@@ -37,32 +35,32 @@ public interface AsyncAPIDAO {
             String asyncAPIId, Class<T> type);
 
     /**
-     * This method deletes a collection of AsyncAPI and its associated AsyncAPIResult objects from database and
-     * returns the objects deleted.
+     * This method deletes a Iterable of AsyncAPI and its associated AsyncAPIResult objects from database
+     * based on a filter expression, and returns the objects deleted.
      * @param filterExpression filter expression to delete AsyncAPI Objects based on
      * @param type AsyncAPI Type Implementation.
-     * @return query object list deleted
+     * @return query object Iterable deleted
      */
-    public <T extends AsyncAPI> Collection<T> deleteAsyncAPIAndResultCollection(
+    public <T extends AsyncAPI> Iterable<T> deleteAsyncAPIAndResultByFilter(
             FilterExpression filterExpression, Class<T> type);
 
     /**
-     * This method updates the status for a collection of AsyncAPI objects from database and
+     * This method updates the status for a Iterable of AsyncAPI objects from database based on a filter expression, and
      * returns the objects updated.
      * @param  filterExpression filter expression to update AsyncAPI Objects based on
      * @param status status to be updated
      * @param type AsyncAPI Type Implementation.
-     * @return query object list updated
+     * @return query object Iterable updated
      */
-    public <T extends AsyncAPI> Collection<T> updateStatusAsyncAPICollection(FilterExpression filterExpression,
+    public <T extends AsyncAPI> Iterable<T> updateStatusAsyncAPIByFilter(FilterExpression filterExpression,
             QueryStatus status, Class<T> type);
     /**
-     * This method gets a collection of AsyncAPI objects from database and
+     * This method gets a Iterable of AsyncAPI objects from database and
      * returns the objects.
      * @param filterExpression filter expression to cancel AsyncAPI Objects based on
      * @param type AsyncAPI Type Implementation.
-     * @return query object list updated
+     * @return query object Iterable loaded
      */
-    public <T extends AsyncAPI> Collection<T> loadAsyncAPICollection(FilterExpression filterExpression,
+    public <T extends AsyncAPI> Iterable<T> loadAsyncAPIByFilter(FilterExpression filterExpression,
             Class<T> type);
 }
