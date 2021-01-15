@@ -762,7 +762,13 @@ public class SwaggerBuilder {
             }
         }
 
-        /* Create a Model for each Elide entity */
+        /*
+         * Create a Model for each Elide entity.
+         * Elide entity could be of ClassType or DynamicType.
+         * For ClassType, extract the class and pass it to ModelConverters#readAll method.
+         * ModelConverters#readAll doesn't support Elide Dynamic Type, so calling the
+         * JsonApiModelResolver#resolve method directly when its not a ClassType.
+         */
         Map<String, Model> models = new HashMap<>();
         for (Type<?> clazz : allClasses) {
             if (clazz instanceof ClassType) {
@@ -772,7 +778,7 @@ public class SwaggerBuilder {
                 context.resolve(clazz);
                 models.putAll(context.getDefinedModels());
             } else {
-                models.putAll(converters.readAll(clazz, null));
+                models.putAll(converters.readAll(clazz));
             }
         }
         swagger.setDefinitions(models);
