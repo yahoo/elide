@@ -240,6 +240,12 @@ public class SQLQueryEngine extends QueryEngine {
         SQLDialect dialect = details.getDialect();
         String paginationSQL = toPageTotalSQL(query, sql, dialect).toString();
 
+        if (paginationSQL == null) {
+            // The query returns the aggregated metric without any dimension.
+            // Only 1 record will be returned.
+            return 1;
+        }
+
         NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(paginationSQL, dataSource);
 
         // Supply the query parameters to the query
@@ -297,7 +303,8 @@ public class SQLQueryEngine extends QueryEngine {
 
         Pagination pagination = query.getPagination();
         if (returnPageTotals(pagination)) {
-            queries.add(toPageTotalSQL(expandedQuery, sql, dialect).toString());
+            SQLQuery paginationSql = toPageTotalSQL(expandedQuery, sql, dialect);
+            queries.add(paginationSql == null ? "" : paginationSql.toString());
         }
         queries.add(sql.toString());
         return queries;
@@ -397,6 +404,10 @@ public class SQLQueryEngine extends QueryEngine {
                         .map(SQLColumnProjection.class::cast)
                         .map((column) -> column.toSQL(queryReferenceTable))
                         .collect(Collectors.joining(", "));
+
+        if (groupByDimensions.isEmpty()) {
+            return null;
+        }
 
         SQLQuery innerQuery =  SQLQuery.builder()
                 .projectionClause(groupByDimensions)
