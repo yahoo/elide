@@ -101,7 +101,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         book.setAuthors(Collections.singleton(author));
         author.setBooks(Collections.singleton(book));
 
-        PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
+        PersistentResource<Book> resource = new PersistentResource<>(book, "", scope);
 
         VerifyFieldAccessFilterExpressionVisitor visitor = new VerifyFieldAccessFilterExpressionVisitor(resource);
         // unrestricted fields
@@ -154,7 +154,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         Author author = new Author();
         book.setAuthors(Collections.singleton(author));
         author.setBooks(Collections.singleton(book));
-        PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
+        PersistentResource<Book> resource = new PersistentResource<>(book, "", scope);
 
         PermissionExecutor permissionExecutor = scope.getPermissionExecutor();
         when(permissionExecutor.checkSpecificFieldPermissions(resource, null, ReadPermission.class, HOME))
@@ -186,7 +186,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
                 dialect.parseFilterExpression("genre==foo", Book.class, true);
 
         Book book = new Book();
-        PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
+        PersistentResource<Book> resource = new PersistentResource<>(book, "", scope);
 
         PermissionExecutor permissionExecutor = scope.getPermissionExecutor();
 
@@ -215,7 +215,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         book.setAuthors(Collections.singleton(author));
         author.setBooks(Collections.singleton(book));
 
-        PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
+        PersistentResource<Book> resource = new PersistentResource<>(book, "", scope);
 
         PermissionExecutor permissionExecutor = scope.getPermissionExecutor();
         DataStoreTransaction tx = scope.getTransaction();
@@ -247,7 +247,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
                 dialect.parseFilterExpression("genre==foo", Book.class, true);
 
         Book book = new Book();
-        PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
+        PersistentResource<Book> resource = new PersistentResource<>(book, "", scope);
 
         PermissionExecutor permissionExecutor = scope.getPermissionExecutor();
 
@@ -274,7 +274,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
                 dialect.parseFilterExpression("authors.name==foo", Book.class, true);
 
         Book book = new Book();
-        PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
+        PersistentResource<Book> resource = new PersistentResource<>(book, "", scope);
 
         PermissionExecutor permissionExecutor = scope.getPermissionExecutor();
         DataStoreTransaction tx = scope.getTransaction();
@@ -308,8 +308,8 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         book.setAuthors(Collections.singleton(author));
         author.setBooks(Collections.singleton(book));
 
-        PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
-        PersistentResource<Author> resourceAuthor = new PersistentResource<>(author, null, "", scope);
+        PersistentResource<Book> resource = new PersistentResource<>(book, "", scope);
+        PersistentResource<Author> resourceAuthor = new PersistentResource<>(author, "", scope);
 
         PermissionExecutor permissionExecutor = scope.getPermissionExecutor();
         DataStoreTransaction tx = scope.getTransaction();
@@ -348,7 +348,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
                 dialect.parseFilterExpression("authors.name==foo", Book.class, true);
 
         Book book = new Book();
-        PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
+        PersistentResource<Book> resource = new PersistentResource<>(book, "", scope);
 
         PermissionExecutor permissionExecutor = scope.getPermissionExecutor();
         DataStoreTransaction tx = scope.getTransaction();
@@ -373,7 +373,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
                 dialect.parseFilterExpression("genre==foo", Book.class, true);
 
         Book book = new Book();
-        PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
+        PersistentResource<Book> resource = new PersistentResource<>(book, "", scope);
 
         PermissionExecutor permissionExecutor = scope.getPermissionExecutor();
         DataStoreTransaction tx = scope.getTransaction();

@@ -103,7 +103,7 @@ public class LogMessageImpl implements LogMessage {
             /* Create a new lineage which includes the passed in record */
             com.yahoo.elide.core.PersistentResource internalResource = (
                     com.yahoo.elide.core.PersistentResource) persistentResource;
-            ResourceLineage lineage = new ResourceLineage(internalResource.getLineage(), internalResource);
+            ResourceLineage lineage = new ResourceLineage(internalResource.getLineage(), internalResource, null);
 
             for (String name : lineage.getKeys()) {
                 List<com.yahoo.elide.core.PersistentResource> values = lineage.getRecord(name);

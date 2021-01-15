@@ -67,7 +67,7 @@ public class JsonApiTest {
         RequestScope userScope = new TestRequestScope(BASE_URL, tx, user, dictionary);
 
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
-        jsonApiDocument.setData(new Data<>(new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope).toResource()));
+        jsonApiDocument.setData(new Data<>(new PersistentResource<>(parent, userScope.getUUIDFor(parent), userScope).toResource()));
 
         String expected = "{\"data\":{"
                 + "\"type\":\"parent\","
@@ -104,7 +104,7 @@ public class JsonApiTest {
         RequestScope userScope = new TestRequestScope(BASE_URL, tx, user, dictionary);
 
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
-        jsonApiDocument.setData(new Data<>(new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope).toResource()));
+        jsonApiDocument.setData(new Data<>(new PersistentResource<>(parent, userScope.getUUIDFor(parent), userScope).toResource()));
 
         String expected = "{\"data\":{"
                 + "\"type\":\"parent\","
@@ -140,12 +140,12 @@ public class JsonApiTest {
 
         RequestScope userScope = new TestRequestScope(BASE_URL, tx, user, dictionary);
 
-        PersistentResource<Parent> pRec = new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope);
+        PersistentResource<Parent> pRec = new PersistentResource<>(parent, userScope.getUUIDFor(parent), userScope);
 
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         jsonApiDocument.setData(new Data<>(pRec.toResource()));
         jsonApiDocument.addIncluded(
-                new PersistentResource<>(child, pRec, userScope.getUUIDFor(child), userScope).toResource());
+                new PersistentResource<>(child, pRec, "children", userScope.getUUIDFor(child), userScope).toResource());
 
         String expected = "{\"data\":{"
                 + "\"type\":\"parent\","
@@ -165,12 +165,12 @@ public class JsonApiTest {
                 +   "\"attributes\":{\"name\":null},"
                 +   "\"relationships\":{"
                 +       "\"friends\":{"
-                +           "\"links\":{\"self\":\"http://localhost:8080/json/parent/123child/2/relationships/friends\",\"related\":\"http://localhost:8080/json/parent/123child/2/friends\"},"
+                +           "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/children/2/relationships/friends\",\"related\":\"http://localhost:8080/json/parent/123/children/2/friends\"},"
                 +           "\"data\":[]},"
                 +       "\"parents\":{"
-                +           "\"links\":{\"self\":\"http://localhost:8080/json/parent/123child/2/relationships/parents\",\"related\":\"http://localhost:8080/json/parent/123child/2/parents\"},"
+                +           "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/children/2/relationships/parents\",\"related\":\"http://localhost:8080/json/parent/123/children/2/parents\"},"
                 +           "\"data\":[{\"type\":\"parent\",\"id\":\"123\"}]}},"
-                +   "\"links\":{\"self\":\"http://localhost:8080/json/parent/123child/2\"}}]}";
+                +   "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/children/2\"}}]}";
 
         Data<Resource> data = jsonApiDocument.getData();
         String doc = mapper.writeJsonApiDocument(jsonApiDocument);
@@ -196,7 +196,7 @@ public class JsonApiTest {
 
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         jsonApiDocument.setData(
-            new Data<>(Collections.singletonList(new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope).toResource())));
+            new Data<>(Collections.singletonList(new PersistentResource<>(parent, userScope.getUUIDFor(parent), userScope).toResource())));
 
         String expected = "{\"data\":[{"
                 + "\"type\":\"parent\","
@@ -232,15 +232,15 @@ public class JsonApiTest {
 
         RequestScope userScope = new TestRequestScope(BASE_URL, tx, user, dictionary);
 
-        PersistentResource<Parent> pRec = new PersistentResource<>(parent, null, userScope.getUUIDFor(parent), userScope);
+        PersistentResource<Parent> pRec = new PersistentResource<>(parent, userScope.getUUIDFor(parent), userScope);
 
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         jsonApiDocument.setData(new Data<>(Collections.singletonList(pRec.toResource())));
         jsonApiDocument.addIncluded(new PersistentResource<>(child,
-                pRec, userScope.getUUIDFor(child), userScope).toResource());
+                pRec, "children", userScope.getUUIDFor(child), userScope).toResource());
         // duplicate will be ignored
         jsonApiDocument.addIncluded(
-                new PersistentResource<>(child, pRec, userScope.getUUIDFor(child), userScope).toResource());
+                new PersistentResource<>(child, pRec, "children", userScope.getUUIDFor(child), userScope).toResource());
 
         String expected = "{\"data\":[{"
                 + "\"type\":\"parent\","
@@ -260,12 +260,12 @@ public class JsonApiTest {
                 +   "\"attributes\":{\"name\":null},"
                 +   "\"relationships\":{"
                 +       "\"friends\":{"
-                +           "\"links\":{\"self\":\"http://localhost:8080/json/parent/123child/2/relationships/friends\",\"related\":\"http://localhost:8080/json/parent/123child/2/friends\"},"
+                +           "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/children/2/relationships/friends\",\"related\":\"http://localhost:8080/json/parent/123/children/2/friends\"},"
                 +           "\"data\":[]},"
                 +       "\"parents\":{"
-                +           "\"links\":{\"self\":\"http://localhost:8080/json/parent/123child/2/relationships/parents\",\"related\":\"http://localhost:8080/json/parent/123child/2/parents\"},"
+                +           "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/children/2/relationships/parents\",\"related\":\"http://localhost:8080/json/parent/123/children/2/parents\"},"
                 +           "\"data\":[{\"type\":\"parent\",\"id\":\"123\"}]}},"
-                +   "\"links\":{\"self\":\"http://localhost:8080/json/parent/123child/2\"}}]"
+                +   "\"links\":{\"self\":\"http://localhost:8080/json/parent/123/children/2\"}}]"
                 + "}";
 
         Data<Resource> data = jsonApiDocument.getData();
@@ -474,8 +474,8 @@ public class JsonApiTest {
 
         RequestScope userScope = new TestRequestScope(BASE_URL, tx, user, dictionary);
 
-        PersistentResource<Parent> pRec1 = new PersistentResource<>(parent1, null, userScope.getUUIDFor(parent1), userScope);
-        PersistentResource<Parent> pRec2 = new PersistentResource<>(parent2, null, userScope.getUUIDFor(parent2), userScope);
+        PersistentResource<Parent> pRec1 = new PersistentResource<>(parent1, userScope.getUUIDFor(parent1), userScope);
+        PersistentResource<Parent> pRec2 = new PersistentResource<>(parent2, userScope.getUUIDFor(parent2), userScope);
 
         JsonApiDocument jsonApiDocument1 = new JsonApiDocument();
         jsonApiDocument1.setData(new Data<>(Lists.newArrayList(pRec1.toResource(), pRec2.toResource())));

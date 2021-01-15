@@ -823,7 +823,7 @@ public class LifeCycleTest {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createNewObject(FieldTestModel.class)).thenReturn(mockModel);
         RequestScope scope = buildRequestScope(dictionary, tx);
-        PersistentResource resource = new PersistentResource(mockModel, null, "1", scope);
+        PersistentResource resource = new PersistentResource(mockModel, "1", scope);
 
         resource.getAttribute(Attribute.builder().type(String.class).name("field").build());
 
@@ -869,7 +869,7 @@ public class LifeCycleTest {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createNewObject(FieldTestModel.class)).thenReturn(mockModel);
         RequestScope scope = buildRequestScope(dictionary, tx);
-        PersistentResource resource = new PersistentResource(mockModel, null, "1", scope);
+        PersistentResource resource = new PersistentResource(mockModel, "1", scope);
 
         resource.deleteResource();
 
@@ -914,7 +914,7 @@ public class LifeCycleTest {
         when(tx.createNewObject(FieldTestModel.class)).thenReturn(mockModel);
         RequestScope scope = buildRequestScope(dictionary, tx);
 
-        PersistentResource resource = new PersistentResource(mockModel, null, scope.getUUIDFor(mockModel), scope);
+        PersistentResource resource = new PersistentResource(mockModel, scope.getUUIDFor(mockModel), scope);
         resource.updateAttribute("field", "new value");
 
         verify(mockModel, times(1)).classCallback(any(), any());
@@ -965,8 +965,8 @@ public class LifeCycleTest {
 
         FieldTestModel modelToAdd = mock(FieldTestModel.class);
 
-        PersistentResource resource = new PersistentResource(mockModel, null, scope.getUUIDFor(mockModel), scope);
-        PersistentResource resourceToAdd = new PersistentResource(modelToAdd, null, scope.getUUIDFor(mockModel), scope);
+        PersistentResource resource = new PersistentResource(mockModel, scope.getUUIDFor(mockModel), scope);
+        PersistentResource resourceToAdd = new PersistentResource(modelToAdd, scope.getUUIDFor(mockModel), scope);
 
         resource.addRelation("models", resourceToAdd);
 
@@ -1024,7 +1024,7 @@ public class LifeCycleTest {
 
         //First we test adding to a newly created object.
         PersistentResource resource = PersistentResource.createObject(PropertyTestModel.class, scope, Optional.of("1"));
-        PersistentResource resourceToAdd = new PersistentResource(modelToAdd, null, scope.getUUIDFor(mockModel), scope);
+        PersistentResource resourceToAdd = new PersistentResource(modelToAdd, scope.getUUIDFor(mockModel), scope);
 
         resource.updateRelation("models", new HashSet<>(Arrays.asList(resourceToAdd)));
 
@@ -1037,7 +1037,7 @@ public class LifeCycleTest {
 
         //Build another resource, scope & reset the mock to do a pure update (no create):
         scope = buildRequestScope(dictionary, tx);
-        resource = new PersistentResource(mockModel, null, scope.getUUIDFor(mockModel), scope);
+        resource = new PersistentResource(mockModel, scope.getUUIDFor(mockModel), scope);
         reset(mockModel);
 
         resource.updateRelation("models", new HashSet<>(Arrays.asList(resourceToAdd)));
@@ -1064,8 +1064,8 @@ public class LifeCycleTest {
 
         //First we test removing from a newly created object.
         PersistentResource resource = PersistentResource.createObject(PropertyTestModel.class, scope, Optional.of("1"));
-        PersistentResource childResource1 = new PersistentResource(childModel1, null, "2", scope);
-        PersistentResource childResource2 = new PersistentResource(childModel2, null, "3", scope);
+        PersistentResource childResource1 = new PersistentResource(childModel1, "2", scope);
+        PersistentResource childResource2 = new PersistentResource(childModel2, "3", scope);
 
         resource.updateRelation("models", new HashSet<>(Arrays.asList(childResource1, childResource2)));
 
@@ -1078,7 +1078,7 @@ public class LifeCycleTest {
 
         //Build another resource, scope & reset the mock to do a pure update (no create):
         scope = buildRequestScope(dictionary, tx);
-        resource = new PersistentResource(mockModel, null, scope.getUUIDFor(mockModel), scope);
+        resource = new PersistentResource(mockModel, scope.getUUIDFor(mockModel), scope);
         reset(mockModel);
         Relationship relationship = Relationship.builder()
                 .projection(EntityProjection.builder()
@@ -1109,7 +1109,7 @@ public class LifeCycleTest {
                 .attributeCallback(eq(UPDATE), eq(PRECOMMIT), any(ChangeSpec.class));
 
         RequestScope scope = buildRequestScope(dictionary, tx);
-        PersistentResource resource = new PersistentResource(testModel, null, "1", scope);
+        PersistentResource resource = new PersistentResource(testModel, "1", scope);
         resource.updateAttribute("field", "New value");
         scope.runQueuedPreSecurityTriggers();
         assertThrows(IllegalStateException.class, () -> scope.runQueuedPreCommitTriggers());
@@ -1125,7 +1125,7 @@ public class LifeCycleTest {
                 .attributeCallback(eq(UPDATE), eq(POSTCOMMIT), any(ChangeSpec.class));
 
         RequestScope scope = buildRequestScope(dictionary, tx);
-        PersistentResource resource = new PersistentResource(testModel, null, "1", scope);
+        PersistentResource resource = new PersistentResource(testModel, "1", scope);
         resource.updateAttribute("field", "New value");
         scope.runQueuedPreSecurityTriggers();
         scope.runQueuedPreCommitTriggers();
@@ -1142,7 +1142,7 @@ public class LifeCycleTest {
                 .attributeCallback(eq(UPDATE), eq(PRESECURITY), any(ChangeSpec.class));
 
         RequestScope scope = buildRequestScope(dictionary, tx);
-        PersistentResource resource = new PersistentResource(testModel, null, "1", scope);
+        PersistentResource resource = new PersistentResource(testModel, "1", scope);
 
         assertThrows(IllegalStateException.class, () -> resource.updateAttribute("field", "New value"));
     }
