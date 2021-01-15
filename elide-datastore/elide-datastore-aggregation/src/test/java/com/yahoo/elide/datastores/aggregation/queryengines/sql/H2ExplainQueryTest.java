@@ -487,4 +487,17 @@ public class H2ExplainQueryTest extends SQLUnitTest {
         compareQueryLists(expectedQueryStr, engine.explain(query));
         testQueryExecution(query);
     }
+
+    @Test
+    public void testPaginationMetricsOnly() throws Exception {
+        // pagination query should be empty since there is no dimension projection
+        Query query = TestQuery.PAGINATION_METRIC_ONLY.getQuery();
+        String expectedQueryStr =
+                "SELECT MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) AS `lowScore` "
+                        + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` "
+                        + "LIMIT 5 OFFSET 10\n";
+        compareQueryLists(expectedQueryStr, engine.explain(query));
+
+        testQueryExecution(TestQuery.PAGINATION_METRIC_ONLY.getQuery());
+    }
 }

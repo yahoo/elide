@@ -238,7 +238,7 @@ public class SQLQueryEngine extends QueryEngine {
         ConnectionDetails details = query.getConnectionDetails();
         DataSource dataSource = details.getDataSource();
         SQLDialect dialect = details.getDialect();
-        String paginationSQL = toPageTotalSQL(query, sql, dialect).toString();
+        SQLQuery paginationSQL = toPageTotalSQL(query, sql, dialect);
 
         if (paginationSQL == null) {
             // The query returns the aggregated metric without any dimension.
@@ -246,13 +246,13 @@ public class SQLQueryEngine extends QueryEngine {
             return 1;
         }
 
-        NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(paginationSQL, dataSource);
+        NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(paginationSQL.toString(), dataSource);
 
         // Supply the query parameters to the query
         supplyFilterQueryParameters(query, stmt);
 
         // Run the Pagination query and log the time spent.
-        Long result = CoerceUtil.coerce(runQuery(stmt, paginationSQL, SINGLE_RESULT_MAPPER), Long.class);
+        Long result = CoerceUtil.coerce(runQuery(stmt, paginationSQL.toString(), SINGLE_RESULT_MAPPER), Long.class);
 
         return (result != null) ? result : 0;
     }
