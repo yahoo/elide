@@ -98,7 +98,7 @@ public class NoopTransaction implements DataStoreTransaction {
         String uuid = scope.getUUIDFor(entity);
         // Side-effecting method of the PersistentResource :( however, it enables us to do this without reinventing
         // the wheel. Should probably be refactored eventually nonetheless.
-        new PersistentResource<>(entity, null, uuid, scope).setId(id.toString());
+        new PersistentResource<>(entity, uuid, scope).setId(id.toString());
 
         return entity;
     }

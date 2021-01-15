@@ -101,7 +101,7 @@ public class LogMessage {
 
         if (record != null) {
             /* Create a new lineage which includes the passed in record */
-            ResourceLineage lineage = new ResourceLineage(record.getLineage(), record);
+            ResourceLineage lineage = new ResourceLineage(record.getLineage(), record, null);
 
             for (String name : lineage.getKeys()) {
                 List<PersistentResource> values = lineage.getRecord(name);

@@ -103,15 +103,15 @@ public class IncludedProcessorTest {
         child4.setFriends(new HashSet<>(Collections.singletonList(child2)));
 
         //Create Persistent Resources
-        parentRecord1 = new PersistentResource<>(parent1, null, goodUserScope.getUUIDFor(parent1), goodUserScope);
-        parentRecord2 = new PersistentResource<>(parent2, null, goodUserScope.getUUIDFor(parent2), goodUserScope);
-        parentRecord3 = new PersistentResource<>(parent3, null, goodUserScope.getUUIDFor(parent3), goodUserScope);
-        childRecord1  = new PersistentResource<>(child1, null, goodUserScope.getUUIDFor(child1), goodUserScope);
-        childRecord2  = new PersistentResource<>(child2, null, goodUserScope.getUUIDFor(child2), goodUserScope);
-        childRecord3  = new PersistentResource<>(child3, null, goodUserScope.getUUIDFor(child3), goodUserScope);
-        childRecord4  = new PersistentResource<>(child4, null, goodUserScope.getUUIDFor(child4), goodUserScope);
+        parentRecord1 = new PersistentResource<>(parent1, goodUserScope.getUUIDFor(parent1), goodUserScope);
+        parentRecord2 = new PersistentResource<>(parent2, goodUserScope.getUUIDFor(parent2), goodUserScope);
+        parentRecord3 = new PersistentResource<>(parent3, goodUserScope.getUUIDFor(parent3), goodUserScope);
+        childRecord1  = new PersistentResource<>(child1, goodUserScope.getUUIDFor(child1), goodUserScope);
+        childRecord2  = new PersistentResource<>(child2, goodUserScope.getUUIDFor(child2), goodUserScope);
+        childRecord3  = new PersistentResource<>(child3, goodUserScope.getUUIDFor(child3), goodUserScope);
+        childRecord4  = new PersistentResource<>(child4, goodUserScope.getUUIDFor(child4), goodUserScope);
 
-        funWithPermissionsRecord = new PersistentResource<>(funWithPermissions, null, goodUserScope.getUUIDFor(funWithPermissions), badUserScope);
+        funWithPermissionsRecord = new PersistentResource<>(funWithPermissions, goodUserScope.getUUIDFor(funWithPermissions), badUserScope);
     }
 
     @Test

@@ -96,7 +96,23 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
     /**
      * Create a resource in the database.
+     * @param entityClass the entity class
+     * @param requestScope the request scope
+     * @param uuid the (optional) uuid
+     * @param <T> object type
+     * @return persistent resource
+     */
+    public static <T> PersistentResource<T> createObject(
+            Class<T> entityClass,
+            RequestScope requestScope,
+            Optional<String> uuid) {
+        return createObject(null, null, entityClass, requestScope, uuid);
+    }
+
+    /**
+     * Create a resource in the database.
      * @param parent - The immediate ancestor in the lineage or null if this is a root.
+     * @param parentRelationship - The name of the parent relationship traversed to create this object.
      * @param entityClass the entity class
      * @param requestScope the request scope
      * @param uuid the (optional) uuid
@@ -105,6 +121,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      */
     public static <T> PersistentResource<T> createObject(
             PersistentResource<?> parent,
+            String parentRelationship,
             Class<T> entityClass,
             RequestScope requestScope,
             Optional<String> uuid) {
@@ -114,7 +131,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
 
         String id = uuid.orElse(null);
 
-        PersistentResource<T> newResource = new PersistentResource<>(obj, parent, id, requestScope);
+        PersistentResource<T> newResource = new PersistentResource<>(obj, parent, parentRelationship, id, requestScope);
 
         //The ID must be assigned before we add it to the new resources set.  Persistent resource
         //hashcode and equals are only based on the ID/UUID & type.
@@ -146,18 +163,41 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      *
      * @param obj the obj
      * @param parent the parent
+     * @param parentRelationship The parent relationship traversed to this resource.
      * @param id the id
      * @param scope the request scope
      */
-    public PersistentResource(@NonNull T obj, PersistentResource parent, String id, @NonNull RequestScope scope) {
+    public PersistentResource(
+            @NonNull T obj,
+            PersistentResource parent,
+            String parentRelationship,
+            String id,
+            @NonNull RequestScope scope) {
         this.obj = obj;
         this.uuid = Optional.ofNullable(id);
-        this.lineage = parent != null ? new ResourceLineage(parent.lineage, parent) : new ResourceLineage();
+        this.lineage = parent != null
+                ? new ResourceLineage(parent.lineage, parent, parentRelationship)
+                : new ResourceLineage();
         this.dictionary = scope.getDictionary();
         this.type = dictionary.getJsonAliasFor(obj.getClass());
         this.transaction = scope.getTransaction();
         this.requestScope = scope;
         dictionary.initializeEntity(obj);
+    }
+
+    /**
+     * Construct a new resource from the ID provided.
+     *
+     * @param obj the obj
+     * @param id the id
+     * @param scope the request scope
+     */
+    public PersistentResource(
+            @NonNull T obj,
+            String id,
+            @NonNull RequestScope scope
+    ) {
+        this(obj, null, null, id, scope);
     }
 
     /**
@@ -215,7 +255,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         }
 
         PersistentResource<T> resource = new PersistentResource<>(
-                loadClass.cast(obj), null, requestScope.getUUIDFor(obj), requestScope);
+                loadClass.cast(obj), requestScope.getUUIDFor(obj), requestScope);
         // No need to have read access for a newly created object
         if (!requestScope.getNewResources().contains(resource)) {
             resource.checkFieldAwarePermissions(ReadPermission.class);
@@ -1027,12 +1067,13 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
         Set<PersistentResource> resources = Sets.newLinkedHashSet();
         if (val instanceof Iterable) {
             Iterable filteredVal = (Iterable) val;
-            resources = new PersistentResourceSet(this, filteredVal, requestScope);
+            resources = new PersistentResourceSet(this, relationName, filteredVal, requestScope);
         } else if (type.isToOne()) {
             resources = new SingleElementSet<>(
-                    new PersistentResource<>(val, this, requestScope.getUUIDFor(val), requestScope));
+                    new PersistentResource<>(val, this, relationName, requestScope.getUUIDFor(val), requestScope));
         } else {
-            resources.add(new PersistentResource<>(val, this, requestScope.getUUIDFor(val), requestScope));
+            resources.add(
+                    new PersistentResource<>(val, this, relationName, requestScope.getUUIDFor(val), requestScope));
         }
 
         return resources;
@@ -1475,7 +1516,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Class<?> inverseType = dictionary.getType(inverseEntity.getClass(), inverseField);
 
             String uuid = requestScope.getUUIDFor(inverseEntity);
-            PersistentResource inverseResource = new PersistentResource(inverseEntity, this, uuid, requestScope);
+            PersistentResource inverseResource =
+                    new PersistentResource(inverseEntity, this, relationName, uuid, requestScope);
             Object inverseRelation = inverseResource.getValueUnchecked(inverseField);
 
             if (inverseRelation == null) {
@@ -1526,7 +1568,8 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
             Class<?> inverseType = dictionary.getType(inverseObj.getClass(), inverseName);
 
             String uuid = requestScope.getUUIDFor(inverseObj);
-            PersistentResource inverseResource = new PersistentResource(inverseObj, this, uuid, requestScope);
+            PersistentResource inverseResource =
+                    new PersistentResource(inverseObj, this, relationName, uuid, requestScope);
             Object inverseRelation = inverseResource.getValueUnchecked(inverseName);
 
             if (Collection.class.isAssignableFrom(inverseType)) {
