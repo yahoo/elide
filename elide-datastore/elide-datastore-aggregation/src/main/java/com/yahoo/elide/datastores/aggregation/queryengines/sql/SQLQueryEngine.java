@@ -304,7 +304,9 @@ public class SQLQueryEngine extends QueryEngine {
         Pagination pagination = query.getPagination();
         if (returnPageTotals(pagination)) {
             SQLQuery paginationSql = toPageTotalSQL(expandedQuery, sql, dialect);
-            queries.add(paginationSql == null ? "" : paginationSql.toString());
+            if (paginationSql != null) {
+                queries.add(paginationSql.toString());
+            }
         }
         queries.add(sql.toString());
         return queries;
@@ -406,6 +408,8 @@ public class SQLQueryEngine extends QueryEngine {
                         .collect(Collectors.joining(", "));
 
         if (groupByDimensions.isEmpty()) {
+            // When no dimension projection is available, assume that metric projection is used.
+            // Metric projection without group by dimension will return onely 1 record.
             return null;
         }
 
