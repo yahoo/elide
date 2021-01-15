@@ -35,8 +35,7 @@ public class ISOWeek extends Date {
 
             try {
                 if (val instanceof String) {
-                    date = new ISOWeek(FORMATTER.parse(FORMATTER.format(TimeGrainFormatter.formatDateString(FORMATTER,
-                            (String) val))));
+                    date = new ISOWeek(TimeGrainFormatter.formatDateString(FORMATTER, (String) val));
                 } else {
                     date = new ISOWeek(FORMATTER.parse(FORMATTER.format(val)));
                 }

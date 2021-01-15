@@ -33,8 +33,7 @@ public class Minute extends Timestamp {
 
             try {
                 if (val instanceof String) {
-                    date = new Minute(FORMATTER.parse(FORMATTER.format(TimeGrainFormatter.formatDateString(FORMATTER,
-                            (String) val))));
+                    date = new Minute(TimeGrainFormatter.formatDateString(FORMATTER, (String) val));
                 } else {
                     date = new Minute(FORMATTER.parse(FORMATTER.format(val)));
                 }

@@ -39,8 +39,7 @@ public class Quarter extends Date {
 
             try {
                 if (val instanceof String) {
-                    date = new Quarter(FORMATTER.parse(FORMATTER.format(TimeGrainFormatter.formatDateString(FORMATTER,
-                            (String) val))));
+                    date = new Quarter(TimeGrainFormatter.formatDateString(FORMATTER, (String) val));
                 } else {
                     date = new Quarter(FORMATTER.parse(FORMATTER.format(val)));
                 }

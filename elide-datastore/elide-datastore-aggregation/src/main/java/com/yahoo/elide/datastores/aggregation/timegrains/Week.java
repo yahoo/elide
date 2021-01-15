@@ -35,8 +35,7 @@ public class Week extends Date {
 
             try {
                 if (val instanceof String) {
-                    date = new Week(FORMATTER.parse(FORMATTER.format(TimeGrainFormatter.formatDateString(FORMATTER,
-                            (String) val))));
+                    date = new Week(TimeGrainFormatter.formatDateString(FORMATTER, (String) val));
                 } else {
                     date = new Week(FORMATTER.parse(FORMATTER.format(val)));
                 }

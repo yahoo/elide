@@ -17,9 +17,9 @@ public interface TimeGrainFormatter {
 
     static Timestamp formatDateString(SimpleDateFormat formatter, String val) throws ParseException {
         try {
-            return new Timestamp(formatter.parse((String) val).getTime());
+            return new Timestamp(formatter.parse(val).getTime());
         } catch (ParseException pe) {
-            return new Timestamp(ISO_FORMATTER.parse((String) val).getTime());
+            return new Timestamp(ISO_FORMATTER.parse(val).getTime());
         }
     }
 }

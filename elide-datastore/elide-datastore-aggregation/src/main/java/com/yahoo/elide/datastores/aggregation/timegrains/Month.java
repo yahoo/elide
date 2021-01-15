@@ -33,8 +33,7 @@ public class Month extends Date {
 
             try {
                 if (val instanceof String) {
-                    date = new Month(FORMATTER.parse(FORMATTER.format(TimeGrainFormatter.formatDateString(FORMATTER,
-                            (String) val))));
+                    date = new Month(TimeGrainFormatter.formatDateString(FORMATTER, (String) val));
                 } else {
                     date = new Month(FORMATTER.parse(FORMATTER.format(val)));
                 }

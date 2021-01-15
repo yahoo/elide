@@ -33,8 +33,7 @@ public class Year extends Date {
 
             try {
                 if (val instanceof String) {
-                    date = new Year(FORMATTER.parse(FORMATTER.format(TimeGrainFormatter.formatDateString(FORMATTER,
-                            (String) val))));
+                    date = new Year(TimeGrainFormatter.formatDateString(FORMATTER, (String) val));
                 } else {
                     date = new Year(FORMATTER.parse(FORMATTER.format(val)));
                 }

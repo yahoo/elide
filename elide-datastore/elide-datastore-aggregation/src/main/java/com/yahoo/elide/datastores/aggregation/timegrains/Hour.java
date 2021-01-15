@@ -33,8 +33,7 @@ public class Hour extends Timestamp {
 
             try {
                 if (val instanceof String) {
-                    date = new Hour(FORMATTER.parse(FORMATTER.format(TimeGrainFormatter.formatDateString(FORMATTER,
-                            (String) val))));
+                    date = new Hour(TimeGrainFormatter.formatDateString(FORMATTER, (String) val));
                 } else {
                     date = new Hour(FORMATTER.parse(FORMATTER.format(val)));
                 }

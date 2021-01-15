@@ -39,8 +39,7 @@ public class Second extends Timestamp {
 
             try {
                 if (val instanceof String) {
-                    date = new Second(FORMATTER.parse(FORMATTER.format(TimeGrainFormatter.formatDateString(FORMATTER,
-                            (String) val))));
+                    date = new Second(TimeGrainFormatter.formatDateString(FORMATTER, (String) val));
                 } else {
                     date = new Second(FORMATTER.parse(FORMATTER.format(val)));
                 }

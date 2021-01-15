@@ -33,8 +33,7 @@ public class Day extends Date {
 
             try {
                 if (val instanceof String) {
-                    date = new Day(FORMATTER.parse(FORMATTER.format(TimeGrainFormatter.formatDateString(FORMATTER,
-                            (String) val))));
+                    date = new Day(TimeGrainFormatter.formatDateString(FORMATTER, (String) val));
                 } else {
                     date = new Day(FORMATTER.parse(FORMATTER.format(val)));
                 }
