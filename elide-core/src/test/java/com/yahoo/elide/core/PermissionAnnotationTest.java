@@ -56,9 +56,9 @@ public class PermissionAnnotationTest {
                 .build();
 
         RequestScope goodScope = new RequestScope(null, null, null, null, GOOD_USER, null, elideSettings);
-        funRecord = new PersistentResource<>(fun, null, goodScope.getUUIDFor(fun), goodScope);
+        funRecord = new PersistentResource<>(fun, goodScope.getUUIDFor(fun), goodScope);
         RequestScope badScope = new RequestScope(null, null, null, null, BAD_USER, null, elideSettings);
-        badRecord = new PersistentResource<>(fun, null, badScope.getUUIDFor(fun), badScope);
+        badRecord = new PersistentResource<>(fun, badScope.getUUIDFor(fun), badScope);
     }
 
     @Test

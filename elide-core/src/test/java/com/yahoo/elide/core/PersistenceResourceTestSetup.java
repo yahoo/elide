@@ -113,7 +113,6 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     public PersistenceResourceTestSetup() {
         super(
                 new Child(),
-                null,
                 null, // new request scope + new Child == cannot possibly be a UUID for this object
                 new RequestScope(null, null, null, null, null, null,
                         initSettings()
@@ -152,7 +151,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     protected <T> PersistentResource<T> bootstrapPersistentResource(T obj, DataStoreTransaction tx) {
         User goodUser = new User(1);
         RequestScope requestScope = new RequestScope(null, null, null, tx, goodUser, null, elideSettings);
-        return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
+        return new PersistentResource<>(obj, requestScope.getUUIDFor(obj), requestScope);
     }
 
     protected RequestScope getUserScope(User user, AuditLogger auditLogger) {

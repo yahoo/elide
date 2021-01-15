@@ -7,6 +7,7 @@ package com.yahoo.elide.core;
 
 import com.google.common.collect.ImmutableMap;
 
+import java.util.List;
 import java.util.Map;
 
 /***
@@ -54,10 +55,34 @@ public class DefaultJSONApiLinks implements JSONApiLinks {
         } else {
             result.append(baseUrl);
         }
-        for (PersistentResource resourcePath : resource.getLineage().getResourcePath()) {
-            result.append(String.join("/", resourcePath.getType(), resourcePath.getId()));
+
+        List<ResourceLineage.LineagePath> path = resource.getLineage().getResourcePath();
+        if (path.size() > 0) {
+            result.append(String.join("/", getPathSegment(path), resource.getId()));
+        } else {
+            result.append(String.join("/", resource.getType(), resource.getId()));
         }
-        result.append(String.join("/", resource.getType(), resource.getId()));
+
+        return result.toString();
+    }
+
+    private String getPathSegment(List<ResourceLineage.LineagePath> path) {
+        StringBuilder result = new StringBuilder();
+
+        int pathSegmentCount = 0;
+        for (ResourceLineage.LineagePath pathElement : path) {
+            PersistentResource resource = pathElement.getResource();
+            if (pathSegmentCount > 0) {
+                result.append("/");
+                result.append(String.join("/",
+                        resource.getId(), pathElement.getRelationship()));
+            } else {
+                result.append(String.join("/",
+                        resource.getType(), resource.getId(), pathElement.getRelationship()));
+            }
+            pathSegmentCount++;
+        }
+
         return result.toString();
     }
 }
