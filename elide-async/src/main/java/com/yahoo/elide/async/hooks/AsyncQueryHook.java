@@ -41,6 +41,10 @@ public class AsyncQueryHook extends AsyncAPIHook<AsyncQuery> {
         super.validateOptions(query, requestScope);
 
         if (query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
+            if (!getAsyncExecutorService().isEnableGraphQL()) {
+                throw new InvalidOperationException("GraphQL is disabled. Please enable GraphQL in settings.");
+            }
+
             QueryRunner runner = getAsyncExecutorService().getRunners().get(requestScope.getApiVersion());
             if (runner == null) {
                 throw new InvalidOperationException("Invalid API Version");
