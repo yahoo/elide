@@ -79,9 +79,19 @@ public class GraphQLEndpoint {
         if (runner == null) {
             response = buildErrorResponse(elide, new InvalidOperationException("Invalid API Version"), false);
         } else {
-            response = runner.run(uriInfo.getBaseUri().toString(),
+            response = runner.run(getBaseUrlEndpoint(uriInfo),
                                   graphQLDocument, user, UUID.randomUUID(), requestHeaders);
         }
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
+    }
+
+    protected String getBaseUrlEndpoint(UriInfo uriInfo) {
+        String baseUrl = elide.getElideSettings().getBaseUrl();
+
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            baseUrl = uriInfo.getBaseUri().toString();
+        }
+
+        return baseUrl;
     }
 }

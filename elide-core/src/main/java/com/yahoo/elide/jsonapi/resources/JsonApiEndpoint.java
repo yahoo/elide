@@ -168,8 +168,6 @@ public class JsonApiEndpoint {
 
         if (baseUrl == null || baseUrl.isEmpty()) {
             baseUrl = uriInfo.getBaseUri().toString();
-        } else {
-            baseUrl += uriInfo.getBaseUri().getPath();
         }
 
         return baseUrl;
