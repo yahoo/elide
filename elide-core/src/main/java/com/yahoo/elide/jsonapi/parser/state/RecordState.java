@@ -10,6 +10,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadCollectionContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionReadEntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.SubCollectionRelationshipContext;
@@ -39,20 +40,16 @@ public class RecordState extends BaseState {
         String subCollection = ctx.term().getText();
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
 
-        Class<?> entityClass;
+        Type<?> entityClass;
         String entityName;
 
         RelationshipType type = dictionary.getRelationshipType(resource.getObject(), subCollection);
 
-        Class<?> paramType = dictionary.getParameterizedType(resource.getObject(), subCollection);
-        if (dictionary.isMappedInterface(paramType)) {
-            entityName = EntityDictionary.getSimpleName(paramType);
-            entityClass = paramType;
-        } else {
-            entityName = dictionary.getJsonAliasFor(paramType);
+        Type<?> paramType = dictionary.getParameterizedType(resource.getObject(), subCollection);
 
-            entityClass = dictionary.getEntityClass(entityName, state.getRequestScope().getApiVersion());
-        }
+        entityName = dictionary.getJsonAliasFor(paramType);
+        entityClass = dictionary.getEntityClass(entityName, state.getRequestScope().getApiVersion());
+
         if (entityClass == null) {
             throw new IllegalArgumentException("Unknown type " + entityName);
         }

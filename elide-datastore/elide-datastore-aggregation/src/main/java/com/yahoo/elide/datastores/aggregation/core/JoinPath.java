@@ -7,6 +7,8 @@ package com.yahoo.elide.datastores.aggregation.core;
 
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.google.common.collect.ImmutableList;
@@ -26,12 +28,12 @@ public class JoinPath extends Path {
         super(pathElements);
     }
 
-    public JoinPath(Class<?> entityClass, EntityDictionary dictionary, String dotSeparatedPath) {
+    public JoinPath(Type<?> entityClass, EntityDictionary dictionary, String dotSeparatedPath) {
         pathElements = resolvePathElements(entityClass, dictionary, dotSeparatedPath);
     }
 
     @Override
-    protected boolean needNavigation(Class<?> entityClass, String fieldName, EntityDictionary dictionary) {
+    protected boolean needNavigation(Type<?> entityClass, String fieldName, EntityDictionary dictionary) {
         return dictionary.isRelation(entityClass, fieldName)
                 || MetaDataStore.isTableJoin(entityClass, fieldName, dictionary);
     }
@@ -71,16 +73,16 @@ public class JoinPath extends Path {
      * @param dotSeparatedPath path e.g. "bar.baz"
      * @return list of path elements e.g. ["foo.bar", "bar.baz"]
      */
-    private List<PathElement> resolvePathElements(Class<?> entityClass,
+    private List<PathElement> resolvePathElements(Type<?> entityClass,
                                                   EntityDictionary dictionary,
                                                   String dotSeparatedPath) {
         List<PathElement> elements = new ArrayList<>();
         String[] fieldNames = dotSeparatedPath.split("\\.");
 
-        Class<?> currentClass = entityClass;
+        Type<?> currentClass = entityClass;
         for (String fieldName : fieldNames) {
             if (needNavigation(currentClass, fieldName, dictionary)) {
-                Class<?> joinClass = dictionary.getParameterizedType(currentClass, fieldName);
+                Type<?> joinClass = dictionary.getParameterizedType(currentClass, fieldName);
                 elements.add(new PathElement(currentClass, joinClass, fieldName));
                 currentClass = joinClass;
             } else {
@@ -91,10 +93,10 @@ public class JoinPath extends Path {
         return ImmutableList.copyOf(elements);
     }
 
-    private PathElement resolvePathAttribute(Class<?> entityClass,
+    private PathElement resolvePathAttribute(Type<?> entityClass,
                                              EntityDictionary dictionary,
                                              String fieldName) {
-        Class<?> attributeClass = Object.class;
+        Type<?> attributeClass = ClassType.OBJECT_TYPE;
         if (dictionary.isAttribute(entityClass, fieldName)
                         || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
             attributeClass = dictionary.getType(entityClass, fieldName);

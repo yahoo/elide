@@ -145,7 +145,7 @@
       <property name="severity" value="error"/>
     </module>
     <module name="MethodCount">
-      <property name="severity" value="error"/>
+      <property name="severity" value="warning"/>
     </module>
     <module name="ParameterNumber">
       <property name="severity" value="warning"/>

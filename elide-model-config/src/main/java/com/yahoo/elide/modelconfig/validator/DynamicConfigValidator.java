@@ -6,6 +6,7 @@
 package com.yahoo.elide.modelconfig.validator;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static com.yahoo.elide.modelconfig.DynamicConfigHelpers.isNullOrEmpty;
 import static com.yahoo.elide.modelconfig.parser.handlebars.HandlebarsHelper.REFERENCE_PARENTHESES;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -128,7 +129,7 @@ public class DynamicConfigValidator {
         annotatedClasses.forEach(cls -> {
             if (cls.getAnnotation(Include.class) != null) {
                 dictionary.bindEntity(cls);
-                staticModelDetails.add(dictionary, cls);
+                staticModelDetails.add(dictionary, getClassType(cls));
             } else {
                 dictionary.addSecurityCheck(cls);
             }

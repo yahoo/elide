@@ -9,7 +9,6 @@ package com.yahoo.elide.core.datastore.wrapped;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -36,20 +35,6 @@ public class TransactionWrapperTest {
 
         wrapper.preCommit(null);
         verify(wrapped, times(1)).preCommit(any());
-    }
-
-    @Test
-    public void testCreateNewObject() {
-        DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
-        DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
-
-        Object expected = new Object();
-        when(wrapped.createNewObject(eq(Object.class))).thenReturn(expected);
-
-        Object actual = wrapper.createNewObject(Object.class);
-
-        verify(wrapped, times(1)).createNewObject(eq(Object.class));
-        assertEquals(expected, actual);
     }
 
     @Test

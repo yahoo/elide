@@ -13,6 +13,7 @@ import com.yahoo.elide.core.security.CheckInstantiator;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.UserCheck;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.generated.parsers.ExpressionBaseVisitor;
 import com.yahoo.elide.generated.parsers.ExpressionParser;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -231,7 +232,7 @@ public class CanPaginateVisitor
      * @param scope Contains the request info including any sparse fields that were requested
      * @return true if the data store can paginate.  false otherwise.
      */
-    public static boolean canPaginate(Class<?> resourceClass, EntityDictionary dictionary, RequestScope scope) {
+    public static boolean canPaginate(Type<?> resourceClass, EntityDictionary dictionary, RequestScope scope) {
 
         CanPaginateVisitor visitor = new CanPaginateVisitor(dictionary, scope);
 

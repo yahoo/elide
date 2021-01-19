@@ -33,11 +33,6 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     }
 
     @Override
-    public <T> T createNewObject(Class<T> entityClass) {
-        return tx.createNewObject(entityClass);
-    }
-
-    @Override
     public Object loadObject(EntityProjection projection, Serializable id,
                              RequestScope scope) {
         return tx.loadObject(projection, id, scope);

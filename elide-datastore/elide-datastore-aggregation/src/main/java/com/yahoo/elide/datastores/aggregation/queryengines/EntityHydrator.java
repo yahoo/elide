@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
@@ -92,7 +93,7 @@ public class EntityHydrator {
      */
     protected Object coerceObjectToEntity(Map<String, Object> result, MutableInt counter) {
         Table table = getBaseTable(query);
-        Class<?> entityClass = entityDictionary.getEntityClass(table.getName(), table.getVersion());
+        Type<?> entityClass = entityDictionary.getEntityClass(table.getName(), table.getVersion());
 
         //Construct the object.
         Object entityInstance;

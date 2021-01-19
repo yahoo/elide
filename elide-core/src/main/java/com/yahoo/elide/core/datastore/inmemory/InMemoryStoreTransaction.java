@@ -19,6 +19,8 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
+import com.yahoo.elide.core.type.Type;
+
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
@@ -154,7 +156,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> T createNewObject(Class<T> entityClass) {
+    public <T> T createNewObject(Type<T> entityClass) {
         return tx.createNewObject(entityClass);
     }
 

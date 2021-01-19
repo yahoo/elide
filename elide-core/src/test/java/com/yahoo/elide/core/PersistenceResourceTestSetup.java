@@ -23,6 +23,7 @@ import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.google.common.collect.Sets;
 import example.Author;
@@ -256,12 +257,12 @@ public class PersistenceResourceTestSetup extends PersistentResource {
 
     public Set<PersistentResource> getRelation(PersistentResource resource, String relation) {
         Observable<PersistentResource> resources =
-                resource.getRelationCheckedFiltered(getRelationship(resource.getResourceClass(), relation));
+                resource.getRelationCheckedFiltered(getRelationship(resource.getResourceType(), relation));
 
         return resources.toList(LinkedHashSet::new).blockingGet();
     }
 
-    public com.yahoo.elide.core.request.Relationship getRelationship(Class<?> type, String name) {
+    public com.yahoo.elide.core.request.Relationship getRelationship(Type<?> type, String name) {
         return com.yahoo.elide.core.request.Relationship.builder()
                 .name(name)
                 .alias(name)

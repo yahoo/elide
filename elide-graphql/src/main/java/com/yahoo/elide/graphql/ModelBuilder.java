@@ -12,6 +12,9 @@ import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLObjectType.newObject;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
+
 import org.apache.commons.collections4.CollectionUtils;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
@@ -60,10 +63,10 @@ public class ModelBuilder {
     private GraphQLObjectType pageInfoObject;
     private final String apiVersion;
 
-    private Map<Class<?>, MutableGraphQLInputObjectType> inputObjectRegistry;
-    private Map<Class<?>, GraphQLObjectType> queryObjectRegistry;
-    private Map<Class<?>, GraphQLObjectType> connectionObjectRegistry;
-    private Set<Class<?>> excludedEntities;
+    private Map<Type<?>, MutableGraphQLInputObjectType> inputObjectRegistry;
+    private Map<Type<?>, GraphQLObjectType> queryObjectRegistry;
+    private Map<Type<?>, GraphQLObjectType> connectionObjectRegistry;
+    private Set<Type<?>> excludedEntities;
 
     /**
      * Class constructor, constructs the custom arguments to handle mutations
@@ -82,7 +85,7 @@ public class ModelBuilder {
 
         relationshipOpArg = newArgument()
                 .name(ARGUMENT_OPERATION)
-                .type(generator.classToEnumType(RelationshipOp.class))
+                .type(generator.classToEnumType(new ClassType(RelationshipOp.class)))
                 .defaultValue(RelationshipOp.FETCH)
                 .build();
 
@@ -137,7 +140,7 @@ public class ModelBuilder {
         excludedEntities = new HashSet<>();
     }
 
-    public void withExcludedEntities(Set<Class<?>> excludedEntities) {
+    public void withExcludedEntities(Set<Type<?>> excludedEntities) {
         this.excludedEntities = excludedEntities;
     }
 
@@ -146,13 +149,13 @@ public class ModelBuilder {
      * @return The built schema.
      */
     public GraphQLSchema build() {
-        Set<Class<?>> allClasses = entityDictionary.getBoundClassesByVersion(apiVersion);
+        Set<Type<?>> allClasses = entityDictionary.getBoundClassesByVersion(apiVersion);
 
         if (allClasses.isEmpty()) {
             throw new IllegalArgumentException("None of the provided classes are exported by Elide");
         }
 
-        Set<Class<?>> rootClasses =  allClasses.stream().filter(entityDictionary::isRoot).collect(Collectors.toSet());
+        Set<Type<?>> rootClasses =  allClasses.stream().filter(entityDictionary::isRoot).collect(Collectors.toSet());
 
         /*
          * Walk the object graph (avoiding cycles) and construct the GraphQL input object types.
@@ -162,7 +165,7 @@ public class ModelBuilder {
 
         /* Construct root object */
         GraphQLObjectType.Builder root = newObject().name(OBJECT_QUERY);
-        for (Class<?> clazz : rootClasses) {
+        for (Type<?> clazz : rootClasses) {
             String entityName = entityDictionary.getJsonAliasFor(clazz);
             root.field(newFieldDefinition()
                     .name(entityName)
@@ -203,7 +206,7 @@ public class ModelBuilder {
      * @param entityClass The class to use to construct the output object
      * @return The GraphQL object.
      */
-    private GraphQLObjectType buildConnectionObject(Class<?> entityClass) {
+    private GraphQLObjectType buildConnectionObject(Type<?> entityClass) {
         if (connectionObjectRegistry.containsKey(entityClass)) {
             return connectionObjectRegistry.get(entityClass);
         }
@@ -232,7 +235,7 @@ public class ModelBuilder {
      * @param entityClass The class to use to construct the output object.
      * @return The graphQL object
      */
-    private GraphQLObjectType buildQueryObject(Class<?> entityClass) {
+    private GraphQLObjectType buildQueryObject(Type<?> entityClass) {
         if (queryObjectRegistry.containsKey(entityClass)) {
             return queryObjectRegistry.get(entityClass);
         }
@@ -251,7 +254,7 @@ public class ModelBuilder {
                 .type(GraphQLScalars.GRAPHQL_DEFERRED_ID));
 
         for (String attribute : entityDictionary.getAttributes(entityClass)) {
-            Class<?> attributeClass = entityDictionary.getType(entityClass, attribute);
+            Type<?> attributeClass = entityDictionary.getType(entityClass, attribute);
             if (excludedEntities.contains(attributeClass)) {
                 continue;
             }
@@ -278,7 +281,7 @@ public class ModelBuilder {
         }
 
         for (String relationship : entityDictionary.getElideBoundRelationships(entityClass)) {
-            Class<?> relationshipClass = entityDictionary.getParameterizedType(entityClass, relationship);
+            Type<?> relationshipClass = entityDictionary.getParameterizedType(entityClass, relationship);
             if (excludedEntities.contains(relationshipClass)) {
                 continue;
             }
@@ -315,7 +318,7 @@ public class ModelBuilder {
         return queryObject;
     }
 
-    private GraphQLList buildEdgesObject(Class<?> relationClass, GraphQLOutputType entityType) {
+    private GraphQLList buildEdgesObject(Type<?> relationClass, GraphQLOutputType entityType) {
         return new GraphQLList(newObject()
                 .name(nameUtils.toEdgesName(relationClass))
                 .field(newFieldDefinition()
@@ -331,7 +334,7 @@ public class ModelBuilder {
      * @param asList Whether or not the argument is a single instance or a list.
      * @return The constructed argument.
      */
-    private GraphQLArgument buildInputObjectArgument(Class<?> entityClass, boolean asList) {
+    private GraphQLArgument buildInputObjectArgument(Type<?> entityClass, boolean asList) {
         GraphQLInputType argumentType = inputObjectRegistry.get(entityClass);
 
         if (asList) {
@@ -351,7 +354,7 @@ public class ModelBuilder {
      * @param clazz The class to translate into an input object.
      * @return The constructed input object stub.
      */
-    private GraphQLInputType buildInputObjectStub(Class<?> clazz) {
+    private GraphQLInputType buildInputObjectStub(Type<?> clazz) {
         log.debug("Building input object for {}", clazz.getName());
 
         MutableGraphQLInputObjectType.Builder builder = MutableGraphQLInputObjectType.newMutableInputObject();
@@ -365,7 +368,7 @@ public class ModelBuilder {
         }
 
         for (String attribute : entityDictionary.getAttributes(clazz)) {
-            Class<?> attributeClass = entityDictionary.getType(clazz, attribute);
+            Type<?> attributeClass = entityDictionary.getType(clazz, attribute);
 
             if (excludedEntities.contains(attributeClass)) {
                 continue;
@@ -396,7 +399,7 @@ public class ModelBuilder {
         inputObjectRegistry.forEach((clazz, inputObj) -> {
             for (String relationship : entityDictionary.getElideBoundRelationships(clazz)) {
                 log.debug("Resolving relationship {} for {}", relationship, clazz.getName());
-                Class<?> relationshipClass = entityDictionary.getParameterizedType(clazz, relationship);
+                Type<?> relationshipClass = entityDictionary.getParameterizedType(clazz, relationship);
                 if (excludedEntities.contains(relationshipClass)) {
                     continue;
                 }

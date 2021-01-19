@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
@@ -32,7 +33,7 @@ import java.util.Set;
 public class AggregationDataStore implements DataStore {
     @NonNull private final QueryEngine queryEngine;
     private final Cache cache;
-    private final Set<Class<?>> dynamicCompiledClasses;
+    private final Set<Type<?>> dynamicCompiledClasses;
     private final QueryLogger queryLogger;
 
     /**

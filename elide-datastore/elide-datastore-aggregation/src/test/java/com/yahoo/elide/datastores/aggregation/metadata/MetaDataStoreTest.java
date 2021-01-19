@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.utils.ClassScanner;
@@ -22,8 +23,8 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 
 public class MetaDataStoreTest {
-    private static MetaDataStore dataStore =
-            new MetaDataStore(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example"), true);
+    private static MetaDataStore dataStore = new MetaDataStore(
+                    getClassType(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example")), true);
 
     @BeforeAll
     public static void setup() {

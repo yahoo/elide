@@ -18,6 +18,7 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.yahoo.elide.core.security.checks.UserCheck;
+import com.yahoo.elide.core.type.Type;
 
 import java.security.Principal;
 import java.util.Collections;
@@ -50,7 +51,7 @@ public class AsyncQueryInlineChecks {
          * query principalName == owner.
          */
         @Override
-        public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Type entityClass, RequestScope requestScope) {
             Principal principal = requestScope.getUser().getPrincipal();
             if (principal == null || principal.getName() == null) {
                  return getPredicateOfPrincipalNameNull();

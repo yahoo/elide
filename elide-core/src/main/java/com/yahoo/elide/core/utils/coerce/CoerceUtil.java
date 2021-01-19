@@ -8,10 +8,13 @@ package com.yahoo.elide.core.utils.coerce;
 import static com.yahoo.elide.core.utils.TypeHelper.isNumberType;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.converters.FromMapConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.core.utils.coerce.converters.ToEnumConverter;
 import com.yahoo.elide.core.utils.coerce.converters.ToUUIDConverter;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.MapMaker;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.ConversionException;
@@ -37,6 +40,12 @@ public class CoerceUtil {
     private static final BeanUtilsBean BEAN_UTILS_BEAN_INSTANCE = setup();
     private static final Set<ClassLoader> INITIALIZED_CLASSLOADERS =
             Collections.newSetFromMap(new MapMaker().weakKeys().makeMap());
+
+    public static <T> T coerce(Object value, Type<T> type) {
+        Preconditions.checkState(type instanceof ClassType);
+        Class<T> cls = ((ClassType) type).getCls();
+        return coerce(value, cls);
+    }
 
     /**
      * Convert value to target class.

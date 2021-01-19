@@ -9,6 +9,7 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.DELETE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
+import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
@@ -40,6 +41,7 @@ import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import com.yahoo.elide.core.security.visitors.CanPaginateVisitor;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -80,7 +82,9 @@ import java.util.stream.Collectors;
  */
 public class PersistentResource<T> implements com.yahoo.elide.core.security.PersistentResource<T> {
     protected T obj;
-    private final String type;
+
+    private final Type type;
+    private final String typeName;
     private final ResourceLineage lineage;
     private final Optional<String> uuid;
     private final DataStoreTransaction transaction;
@@ -102,7 +106,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     @Override
     public String toString() {
-        return String.format("PersistentResource{type=%s, id=%s}", type, uuid.orElseGet(this::getId));
+        return String.format("PersistentResource{type=%s, id=%s}", typeName, uuid.orElseGet(this::getId));
     }
 
     /**
@@ -114,7 +118,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      * @return persistent resource
      */
     public static <T> PersistentResource<T> createObject(
-            Class<T> entityClass,
+            Type<T> entityClass,
             RequestScope requestScope,
             Optional<String> uuid) {
         return createObject(null, null, entityClass, requestScope, uuid);
@@ -133,11 +137,10 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     public static <T> PersistentResource<T> createObject(
             PersistentResource<?> parent,
             String parentRelationship,
-            Class<T> entityClass,
+            Type<T> entityClass,
             RequestScope requestScope,
             Optional<String> uuid) {
 
-        //instead of calling transaction.createObject, create the new object here.
         T obj = requestScope.getTransaction().createNewObject(entityClass);
 
         String id = uuid.orElse(null);
@@ -156,7 +159,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
         requestScope.publishLifecycleEvent(newResource, CREATE);
 
-        requestScope.setUUIDForObject(newResource.getResourceClass(), id, newResource.getObject());
+        requestScope.setUUIDForObject(newResource.type, id, newResource.getObject());
 
         // Initialize null ToMany collections
         requestScope.getDictionary().getRelationships(entityClass).stream()
@@ -185,12 +188,13 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             @NonNull RequestScope scope
     ) {
         this.obj = obj;
+        this.type = EntityDictionary.getType(obj);
         this.uuid = Optional.ofNullable(id);
         this.lineage = parent != null
                 ? new ResourceLineage(parent.lineage, parent, parentRelationship)
                 : new ResourceLineage();
         this.dictionary = scope.getDictionary();
-        this.type = dictionary.getJsonAliasFor(obj.getClass());
+        this.typeName = dictionary.getJsonAliasFor(type);
         this.transaction = scope.getTransaction();
         this.requestScope = scope;
         dictionary.initializeEntity(obj);
@@ -252,7 +256,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
         DataStoreTransaction tx = requestScope.getTransaction();
         EntityDictionary dictionary = requestScope.getDictionary();
-        Class<?> loadClass = projection.getType();
+        Type<?> loadClass = projection.getType();
 
         // Check the resource cache if exists
         Object obj = requestScope.getObjectById(loadClass, id);
@@ -260,7 +264,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             // try to load object
             Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(loadClass,
                     requestScope);
-            Class<?> idType = dictionary.getIdType(loadClass);
+            Type<?> idType = dictionary.getIdType(loadClass);
 
             projection = projection
                 .copyOf()
@@ -294,7 +298,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      * @param requestScope the request scope
      * @return a FilterExpression defined by FilterExpressionCheck.
      */
-    private static <T> Optional<FilterExpression> getPermissionFilterExpression(Class<T> loadClass,
+    private static <T> Optional<FilterExpression> getPermissionFilterExpression(Type<T> loadClass,
             RequestScope requestScope) {
         try {
             return requestScope.getPermissionExecutor().getReadPermissionFilter(loadClass);
@@ -316,7 +320,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             List<String> ids,
             RequestScope requestScope) {
 
-        Class<?> loadClass = projection.getType();
+        Type<?> loadClass = projection.getType();
         Pagination pagination = projection.getPagination();
         Sorting sorting = projection.getSorting();
 
@@ -344,7 +348,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         if (!ids.isEmpty()) {
             String typeAlias = dictionary.getJsonAliasFor(loadClass);
             newResources = requestScope.getNewPersistentResources().stream()
-                        .filter(resource -> typeAlias.equals(resource.getType())
+                        .filter(resource -> typeAlias.equals(resource.getTypeName())
                                 && ids.contains(resource.getUUID().orElse("")))
                         .collect(Collectors.toSet());
             FilterExpression idExpression = buildIdFilterExpression(ids, loadClass, dictionary, requestScope);
@@ -409,7 +413,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      * @return true if object updated, false otherwise
      */
     public boolean updateAttribute(String fieldName, Object newVal) {
-        Class<?> fieldClass = dictionary.getType(getResourceClass(), fieldName);
+        Type<?> fieldClass = dictionary.getType(getResourceType(), fieldName);
         newVal =  dictionary.coerce(obj, newVal, fieldName, fieldClass);
         Object val = getValueUnchecked(fieldName);
         checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newVal, val);
@@ -417,7 +421,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             this.setValueChecked(fieldName, newVal);
             this.markDirty();
             //Hooks for customize logic for setAttribute/Relation
-            if (dictionary.isAttribute(obj.getClass(), fieldName)) {
+            if (dictionary.isAttribute(EntityDictionary.getType(obj), fieldName)) {
                 transaction.setAttribute(obj, Attribute.builder()
                         .name(fieldName)
                         .type(fieldClass)
@@ -786,7 +790,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
         for (PersistentResource persistentResource : resourceIdentifiers) {
             if (!newResources.contains(persistentResource)
-                    && !lineage.getRecord(persistentResource.getType()).contains(persistentResource)) {
+                    && !lineage.getRecord(persistentResource.getTypeName()).contains(persistentResource)) {
                 checkPermission(NonTransferable.class, persistentResource);
             }
         }
@@ -804,7 +808,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
          * we need to remove ourselves from that relationship
          */
 
-        Class<?> resourceClass = getResourceClass();
+        Type<?> resourceClass = getResourceType();
         List<String> relationships = dictionary.getRelationships(resourceClass);
         for (String relationName : relationships) {
 
@@ -855,9 +859,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      * @return Boolean
      */
     public boolean isIdGenerated() {
-        return dictionary.getEntityBinding(
-            getObject().getClass()
-        ).isIdGenerated();
+        return dictionary.getEntityBinding(type).isIdGenerated();
     }
 
 
@@ -910,7 +912,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 .orElse(null);
 
         assertRelationshipExists(relationship.getName());
-        Class<?> entityType = dictionary.getParameterizedType(getResourceClass(), relationship.getName());
+        Type<?> entityType = dictionary.getParameterizedType(getResourceType(), relationship.getName());
 
         Set<PersistentResource> newResources = new LinkedHashSet<>();
 
@@ -918,7 +920,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         if (!ids.isEmpty()) {
             // Fetch our set of new resources that we know about since we can't find them in the datastore
             newResources = requestScope.getNewPersistentResources().stream()
-                    .filter(resource -> entityType.isAssignableFrom(resource.getResourceClass())
+                    .filter(resource -> entityType.isAssignableFrom(resource.getResourceType())
                             && ids.contains(resource.getUUID().orElse("")))
                     .collect(Collectors.toSet());
 
@@ -973,10 +975,10 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      * @return Filter expression for given ids and type.
      */
     private static FilterExpression buildIdFilterExpression(List<String> ids,
-            Class<?> entityType,
+            Type<?> entityType,
             EntityDictionary dictionary,
             RequestScope scope) {
-        Class<?> idType = dictionary.getIdType(entityType);
+        Type<?> idType = dictionary.getIdType(entityType);
         String idField = dictionary.getIdFieldName(entityType);
 
         List<Object> coercedIds = ids.stream()
@@ -1014,7 +1016,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 .name(relationName)
                 .alias(relationName)
                 .projection(EntityProjection.builder()
-                        .type(dictionary.getParameterizedType(getResourceClass(), relationName))
+                        .type(dictionary.getParameterizedType(getResourceType(), relationName))
                         .build())
                 .build(), false);
     }
@@ -1025,14 +1027,14 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 .name(relationName)
                 .alias(relationName)
                 .projection(EntityProjection.builder()
-                        .type(dictionary.getParameterizedType(getResourceClass(), relationName))
+                        .type(dictionary.getParameterizedType(getResourceType(), relationName))
                         .build())
                 .build(), true);
     }
 
     private void assertRelationshipExists(String relationName) {
         if (relationName == null || dictionary.getParameterizedType(obj, relationName) == null) {
-            throw new InvalidAttributeException(relationName, this.getType());
+            throw new InvalidAttributeException(relationName, this.getTypeName());
         }
     }
 
@@ -1049,7 +1051,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             return Observable.empty();
         }
 
-        final Class<?> relationClass = dictionary.getParameterizedType(obj, relationship.getName());
+        Type<?> relationClass = dictionary.getParameterizedType(obj, relationship.getName());
 
         Optional<Pagination> pagination = Optional.ofNullable(relationship.getProjection().getPagination());
 
@@ -1108,9 +1110,9 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         Sorting sorting = relationship.getProjection().getSorting();
 
         RelationshipType type = getRelationshipType(relationName);
-        final Class<?> relationClass = dictionary.getParameterizedType(obj, relationName);
+        final Type<?> relationClass = dictionary.getParameterizedType(obj, relationName);
         if (relationClass == null) {
-            throw new InvalidAttributeException(relationName, this.getType());
+            throw new InvalidAttributeException(relationName, this.getTypeName());
         }
 
         //Invoke filterExpressionCheck and then merge with filterExpression.
@@ -1161,7 +1163,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      * @param requestScope Request scope
      * @return True if collection should be skipped (i.e. denied access), false otherwise
      */
-    private static boolean shouldSkipCollection(Class<?> resourceClass, Class<? extends Annotation> annotationClass,
+    private static boolean shouldSkipCollection(Type<?> resourceClass, Class<? extends Annotation> annotationClass,
             RequestScope requestScope) {
         try {
             requestScope.getPermissionExecutor().checkUserPermissions(resourceClass, annotationClass);
@@ -1225,8 +1227,8 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      */
     @Override
     @JsonIgnore
-    public Class<T> getResourceClass() {
-        return (Class) dictionary.lookupBoundClass(obj.getClass());
+    public Type<T> getResourceType() {
+        return (Type) dictionary.lookupBoundClass(EntityDictionary.getType(obj));
     }
 
     /**
@@ -1234,8 +1236,8 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      * @return the type
      */
     @Override
-    public String getType() {
-        return type;
+    public String getTypeName() {
+        return typeName;
     }
 
     @Override
@@ -1270,7 +1272,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 return true;
             }
             String theirId = dictionary.getId(that.getObject());
-            return this.matchesId(theirId) && Objects.equals(this.type, that.type);
+            return this.matchesId(theirId) && Objects.equals(this.typeName, that.typeName);
         }
         return false;
     }
@@ -1333,7 +1335,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      */
     private Resource toResource(final Supplier<Map<String, Relationship>> relationshipSupplier,
                                final Supplier<Map<String, Object>> attributeSupplier) {
-        final Resource resource = new Resource(type, (obj == null)
+        final Resource resource = new Resource(typeName, (obj == null)
                 ? uuid.orElseThrow(
                 () -> new InvalidEntityBodyException("No id found on object"))
                 : dictionary.getId(obj));
@@ -1352,14 +1354,14 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      */
     protected Map<String, Relationship> getRelationships() {
         return getRelationshipsWithRelationshipFunction((relationName) -> {
-            Optional<FilterExpression> filterExpression = requestScope.getExpressionForRelation(getResourceClass(),
+            Optional<FilterExpression> filterExpression = requestScope.getExpressionForRelation(getResourceType(),
                     relationName);
 
             return getRelationCheckedFiltered(com.yahoo.elide.core.request.Relationship.builder()
                     .alias(relationName)
                     .name(relationName)
                     .projection(EntityProjection.builder()
-                            .type(dictionary.getParameterizedType(getResourceClass(), relationName))
+                            .type(dictionary.getParameterizedType(getResourceType(), relationName))
                             .filterExpression(filterExpression.orElse(null))
                             .build())
                     .build());
@@ -1394,7 +1396,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             TreeMap<String, Resource> orderedById = new TreeMap<>(lengthFirstComparator);
             for (PersistentResource relationship : relationshipFunction.apply(field).toList().blockingGet()) {
                 orderedById.put(relationship.getId(),
-                        new ResourceIdentifier(relationship.getType(), relationship.getId()).castToResource());
+                        new ResourceIdentifier(relationship.getTypeName(), relationship.getId()).castToResource());
 
             }
             Observable<Resource> resources = Observable.fromIterable(orderedById.values());
@@ -1623,7 +1625,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         String inverseField = getInverseRelationField(relationName);
 
         if (!"".equals(inverseField)) {
-            Class<?> inverseType = dictionary.getType(inverseEntity.getClass(), inverseField);
+            Type<?> inverseType = dictionary.getType(inverseEntity, inverseField);
 
             String uuid = requestScope.getUUIDFor(inverseEntity);
             PersistentResource inverseResource = new PersistentResource(inverseEntity,
@@ -1636,7 +1638,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
             if (inverseRelation instanceof Collection) {
                 inverseResource.delFromCollection((Collection) inverseRelation, inverseField, this, true);
-            } else if (inverseType.isAssignableFrom(this.getResourceClass())) {
+            } else if (inverseType.isAssignableFrom(this.getResourceType())) {
                 inverseResource.nullValue(inverseField, this);
             } else {
                 throw new InternalServerErrorException("Relationship type mismatch");
@@ -1662,7 +1664,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     }
 
     private String getInverseRelationField(String relationName) {
-        return dictionary.getRelationInverse(obj.getClass(), relationName);
+        return dictionary.getRelationInverse(type, relationName);
     }
 
     /**
@@ -1672,23 +1674,23 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      * @param inverseObj The value (B) which has been added to this object.
      */
     protected void addInverseRelation(String relationName, Object inverseObj) {
-        String inverseName = dictionary.getRelationInverse(obj.getClass(), relationName);
+        String inverseName = dictionary.getRelationInverse(type, relationName);
 
         if (!"".equals(inverseName)) {
-            Class<?> inverseType = dictionary.getType(inverseObj.getClass(), inverseName);
+            Type<?> inverseType = dictionary.getType(inverseObj, inverseName);
 
             String uuid = requestScope.getUUIDFor(inverseObj);
             PersistentResource inverseResource = new PersistentResource(inverseObj,
                     this, relationName, uuid, requestScope);
             Object inverseRelation = inverseResource.getValueUnchecked(inverseName);
 
-            if (Collection.class.isAssignableFrom(inverseType)) {
+            if (COLLECTION_TYPE.isAssignableFrom(inverseType)) {
                 if (inverseRelation != null) {
                     inverseResource.addToCollection((Collection) inverseRelation, inverseName, this);
                 } else {
                     inverseResource.setValueChecked(inverseName, Collections.singleton(this.getObject()));
                 }
-            } else if (inverseType.isAssignableFrom(this.getResourceClass())) {
+            } else if (inverseType.isAssignableFrom(this.getResourceType())) {
                 inverseResource.setValueChecked(inverseName, this.getObject());
             } else {
                 throw new InternalServerErrorException("Relationship type mismatch");
@@ -1755,7 +1757,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         Set<String> filteredSet = new LinkedHashSet<>();
         for (String field : fields) {
             try {
-                if (checkIncludeSparseField(requestScope.getSparseFields(), type, field)) {
+                if (checkIncludeSparseField(requestScope.getSparseFields(), typeName, field)) {
                     checkFieldAwareReadPermissions(field);
                     filteredSet.add(field);
                 }
@@ -1787,7 +1789,8 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     private static <A extends Annotation> ExpressionResult checkUserPermission(
             Class<A> annotationClass, Object obj, RequestScope requestScope) {
-        return requestScope.getPermissionExecutor().checkUserPermissions(obj.getClass(), annotationClass);
+        return requestScope.getPermissionExecutor()
+                .checkUserPermissions(EntityDictionary.getType(obj), annotationClass);
     }
 
     private <A extends Annotation> ExpressionResult checkFieldAwarePermissions(Class<A> annotationClass) {
@@ -1834,7 +1837,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      */
     protected void auditField(final ChangeSpec changeSpec) {
         final String fieldName = changeSpec.getFieldName();
-        Audit[] annotations = dictionary.getAttributeOrRelationAnnotations(getResourceClass(),
+        Audit[] annotations = dictionary.getAttributeOrRelationAnnotations(getResourceType(),
                 Audit.class,
                 fieldName
         );
@@ -1861,7 +1864,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      * @param changeSpec the change that occurred
      */
     protected void auditClass(Audit.Action action, ChangeSpec changeSpec) {
-        Audit[] annotations = getResourceClass().getAnnotationsByType(Audit.class);
+        Audit[] annotations = getResourceType().getAnnotationsByType(Audit.class);
 
         if (annotations == null) {
             return;
@@ -1914,7 +1917,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             } else {
                 //If expecting id to persist and id is not present, throw exception
                 throw new BadRequestException(
-                        "No id provided, cannot persist " + persistentResource.getType());
+                        "No id provided, cannot persist " + persistentResource.getTypeName());
             }
         }
     }

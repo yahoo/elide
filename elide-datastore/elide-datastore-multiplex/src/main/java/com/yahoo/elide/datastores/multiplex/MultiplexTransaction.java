@@ -20,6 +20,7 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
+import com.yahoo.elide.core.type.Type;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -49,7 +50,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
 
     @Override
     public void createObject(Object entity, RequestScope scope) {
-        getTransaction(entity).createObject(entity, scope);
+        getTransaction(EntityDictionary.getType(entity)).createObject(entity, scope);
     }
 
     @Override
@@ -116,7 +117,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         return getTransaction(object.getClass());
     }
 
-    protected DataStoreTransaction getTransaction(Class<?> cls) {
+    protected DataStoreTransaction getTransaction(Type<?> cls) {
         DataStore lookupDataStore = this.multiplexManager.getSubManager(cls);
 
         DataStoreTransaction transaction = transactions.get(lookupDataStore);
@@ -137,7 +138,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
 
     protected DataStoreTransaction getRelationTransaction(Object object, String relationName) {
         EntityDictionary dictionary = multiplexManager.getDictionary();
-        Class<?> relationClass = dictionary.getParameterizedType(object, relationName);
+        Type<?> relationClass = dictionary.getParameterizedType(EntityDictionary.getType(object), relationName);
         return getTransaction(relationClass);
     }
 
@@ -152,16 +153,17 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         Pagination pagination = relation.getProjection().getPagination();
 
         relationTx = getRelationTransaction(entity, relation.getName());
-        DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
+        Type<Object> entityType = EntityDictionary.getType(entity);
+        DataStoreTransaction entityTransaction = getTransaction(entityType);
 
         EntityDictionary dictionary = scope.getDictionary();
-        Class<?> relationClass = dictionary.getParameterizedType(entity, relation.getName());
+        Type<?> relationClass = dictionary.getParameterizedType(entityType, relation.getName());
         String idFieldName = dictionary.getIdFieldName(relationClass);
 
         // If different transactions, check if bridgeable and try to bridge
         if (entityTransaction != relationTx && relationTx instanceof BridgeableTransaction) {
             BridgeableTransaction bridgeableTx = (BridgeableTransaction) relationTx;
-            RelationshipType relationType = dictionary.getRelationshipType(entity.getClass(), relation.getName());
+            RelationshipType relationType = dictionary.getRelationshipType(entityType, relation.getName());
             Serializable id = (filter != null) ? extractId(filter, idFieldName, relationClass) : null;
 
             if (relationType.isToMany()) {
@@ -191,7 +193,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
                                      Set<Object> deletedRelationships,
                                      RequestScope scope) {
         relationTx = getRelationTransaction(entity, relationName);
-        DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
+        DataStoreTransaction entityTransaction = getTransaction(EntityDictionary.getType(entity));
         entityTransaction.updateToManyRelation(relationTx, entity, relationName,
                 newRelationships, deletedRelationships, scope);
     }
@@ -200,43 +202,43 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     public void updateToOneRelation(DataStoreTransaction relationTx, Object entity,
                                     String relationName, Object relationshipValue, RequestScope scope) {
         relationTx = getRelationTransaction(entity, relationName);
-        DataStoreTransaction entityTransaction = getTransaction(entity.getClass());
+        DataStoreTransaction entityTransaction = getTransaction(EntityDictionary.getType(entity));
         entityTransaction.updateToOneRelation(relationTx, entity, relationName, relationshipValue, scope);
     }
 
     @Override
     public Object getAttribute(Object entity, Attribute attribute, RequestScope scope) {
-        DataStoreTransaction transaction = getTransaction(entity.getClass());
+        DataStoreTransaction transaction = getTransaction(EntityDictionary.getType(entity));
         return transaction.getAttribute(entity, attribute, scope);
     }
 
     @Override
     public void setAttribute(Object entity, Attribute attribute, RequestScope scope) {
-        DataStoreTransaction transaction = getTransaction(entity.getClass());
+        DataStoreTransaction transaction = getTransaction(EntityDictionary.getType(entity));
         transaction.setAttribute(entity, attribute, scope);
     }
 
     @Override
     public FeatureSupport supportsFiltering(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
-        Class<?> entityClass = projection.getType();
+        Type<?> entityClass = projection.getType();
         return getTransaction(entityClass).supportsFiltering(scope, parent, projection);
     }
 
     @Override
     public boolean supportsSorting(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
-        Class<?> entityClass = projection.getType();
+        Type<?> entityClass = projection.getType();
         return getTransaction(entityClass).supportsSorting(scope, parent, projection);
     }
 
     @Override
     public boolean supportsPagination(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
-        Class<?> entityClass = projection.getType();
+        Type<?> entityClass = projection.getType();
         return getTransaction(entityClass).supportsPagination(scope, parent, projection);
     }
 
     private Serializable extractId(FilterExpression filterExpression,
                                    String idFieldName,
-                                   Class<?> relationClass) {
+                                   Type<?> relationClass) {
         Collection<FilterPredicate> predicates = filterExpression.accept(new PredicateExtractionVisitor());
         return predicates.stream()
                 .filter(p -> p.getEntityType() == relationClass && p.getOperator() == Operator.IN)

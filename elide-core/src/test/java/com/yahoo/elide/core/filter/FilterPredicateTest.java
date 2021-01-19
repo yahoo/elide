@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.filter;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -21,6 +22,9 @@ import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
+
 import example.Author;
 import example.Book;
 import org.junit.jupiter.api.BeforeAll;
@@ -45,19 +49,21 @@ public class FilterPredicateTest {
     @BeforeAll
     static void setup() {
         EntityDictionary entityDictionary = mock(EntityDictionary.class);
-        when(entityDictionary.getJsonAliasFor(String.class)).thenReturn("string");
-        when(entityDictionary.getJsonAliasFor(Book.class)).thenReturn("book");
-        when(entityDictionary.getJsonAliasFor(Author.class)).thenReturn("author");
+        Type<?> bookClassType = getClassType(Book.class);
+        Type<?> authorClassType = getClassType(Author.class);
+        when(entityDictionary.getJsonAliasFor(ClassType.STRING_TYPE)).thenReturn("string");
+        when(entityDictionary.getJsonAliasFor(bookClassType)).thenReturn("book");
+        when(entityDictionary.getJsonAliasFor(authorClassType)).thenReturn("author");
 
-        doReturn(Book.class).when(entityDictionary).getEntityClass("book", NO_VERSION);
-        doReturn(Author.class).when(entityDictionary).getEntityClass("author", NO_VERSION);
-        doReturn(String.class).when(entityDictionary).getParameterizedType(Book.class, "title");
-        doReturn(String.class).when(entityDictionary).getParameterizedType(Book.class, "genre");
-        doReturn(Integer.class).when(entityDictionary).getIdType(Book.class);
+        doReturn(bookClassType).when(entityDictionary).getEntityClass("book", NO_VERSION);
+        doReturn(authorClassType).when(entityDictionary).getEntityClass("author", NO_VERSION);
+        doReturn(ClassType.STRING_TYPE).when(entityDictionary).getParameterizedType(bookClassType, "title");
+        doReturn(ClassType.STRING_TYPE).when(entityDictionary).getParameterizedType(bookClassType, "genre");
+        doReturn(ClassType.INTEGER_TYPE).when(entityDictionary).getIdType(bookClassType);
 
-        when(entityDictionary.getRelationshipType(Book.class, "title")).thenReturn(RelationshipType.NONE);
-        when(entityDictionary.getRelationshipType(Book.class, "genre")).thenReturn(RelationshipType.NONE);
-        when(entityDictionary.getRelationshipType(Book.class, "id")).thenReturn(RelationshipType.NONE);
+        when(entityDictionary.getRelationshipType(bookClassType, "title")).thenReturn(RelationshipType.NONE);
+        when(entityDictionary.getRelationshipType(bookClassType, "genre")).thenReturn(RelationshipType.NONE);
+        when(entityDictionary.getRelationshipType(bookClassType, "id")).thenReturn(RelationshipType.NONE);
 
         strategy = new DefaultFilterDialect(entityDictionary);
     }

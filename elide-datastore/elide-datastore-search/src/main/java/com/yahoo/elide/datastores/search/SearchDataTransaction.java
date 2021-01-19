@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.search;
 
 import static com.yahoo.elide.core.datastore.DataStoreTransaction.FeatureSupport.FULL;
 import static com.yahoo.elide.core.datastore.DataStoreTransaction.FeatureSupport.NONE;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
@@ -23,6 +24,10 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Sorting;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
+
+import com.google.common.base.Preconditions;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.hibernate.search.annotations.Field;
@@ -103,7 +108,7 @@ public class SearchDataTransaction extends TransactionWrapper {
      * @param entityClass The entity being sorted.
      * @return true if Lucene can sort.  False otherwise.
      */
-    private boolean canSort(Sorting sorting, Class<?> entityClass) {
+    private boolean canSort(Sorting sorting, Type<?> entityClass) {
 
         for (Map.Entry<Path, Sorting.SortOrder> entry
                 : sorting.getSortingPaths().entrySet()) {
@@ -128,10 +133,15 @@ public class SearchDataTransaction extends TransactionWrapper {
     /**
      * Builds a lucene Sort object from and Elide Sorting object.
      * @param sorting Elide sorting object
-     * @param entityClass The entity being sorted.
+     * @param entityType The entity being sorted.
      * @return A lucene Sort object
      */
-    private Sort buildSort(Sorting sorting, Class<?> entityClass) {
+    private Sort buildSort(Sorting sorting, Type<?> entityType) {
+        Class<?> entityClass = null;
+        if (entityType != null) {
+            Preconditions.checkState(entityType instanceof ClassType);
+            entityClass = ((ClassType) entityType).getCls();
+        }
         QueryBuilder builder = em.getSearchFactory().buildQueryBuilder().forEntity(entityClass).get();
 
         SortFieldContext context = null;
@@ -141,7 +151,7 @@ public class SearchDataTransaction extends TransactionWrapper {
             String fieldName = entry.getKey().lastElement().get().getFieldName();
 
             SortableField sortableField =
-                    dictionary.getAttributeOrRelationAnnotation(entityClass, SortableField.class, fieldName);
+                    dictionary.getAttributeOrRelationAnnotation(entityType, SortableField.class, fieldName);
 
             fieldName = sortableField.forField().isEmpty() ? fieldName : sortableField.forField();
 
@@ -168,7 +178,7 @@ public class SearchDataTransaction extends TransactionWrapper {
 
     @Override
     public FeatureSupport supportsFiltering(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
-        Class<?> entityClass = projection.getType();
+        Type<?> entityClass = projection.getType();
         FilterExpression expression = projection.getFilterExpression();
 
         /* Return the least support among all the predicates */
@@ -181,7 +191,7 @@ public class SearchDataTransaction extends TransactionWrapper {
         return support;
     }
 
-    private DataStoreTransaction.FeatureSupport canSearch(Class<?> entityClass, FilterExpression expression) {
+    private DataStoreTransaction.FeatureSupport canSearch(Type<?> entityClass, FilterExpression expression) {
 
         /* Collapse the filter expression to a list of leaf predicates */
         Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
@@ -209,7 +219,7 @@ public class SearchDataTransaction extends TransactionWrapper {
         return support;
     }
 
-    private DataStoreTransaction.FeatureSupport canSearch(Class<?> entityClass, FilterPredicate predicate) {
+    private DataStoreTransaction.FeatureSupport canSearch(Type<?> entityClass, FilterPredicate predicate) {
 
         boolean isIndexed = fieldIsIndexed(entityClass, predicate);
 
@@ -227,15 +237,20 @@ public class SearchDataTransaction extends TransactionWrapper {
 
     /**
      * Perform the full-text search.
-     * @param entityClass The class to search
+     * @param entityType The class to search
      * @param filterExpression The filter expression to apply
      * @param sorting Optional sorting
      * @param pagination Optional pagination
      * @return A list of records of type entityClass.
      */
-    private List<Object> search(Class<?> entityClass, FilterExpression filterExpression, Optional<Sorting> sorting,
+    private List<Object> search(Type<?> entityType, FilterExpression filterExpression, Optional<Sorting> sorting,
                                 Optional<Pagination> pagination) {
             Query query;
+            Class<?> entityClass = null;
+            if (entityType != null) {
+                Preconditions.checkState(entityType instanceof ClassType);
+                entityClass = ((ClassType) entityType).getCls();
+            }
             try {
                 query = filterExpression.accept(new FilterExpressionToLuceneQuery(em, entityClass));
             } catch (IllegalArgumentException e) {
@@ -245,7 +260,7 @@ public class SearchDataTransaction extends TransactionWrapper {
             FullTextQuery fullTextQuery = em.createFullTextQuery(query, entityClass);
 
             if (mustSort(sorting)) {
-                fullTextQuery = fullTextQuery.setSort(buildSort(sorting.get(), entityClass));
+                fullTextQuery = fullTextQuery.setSort(buildSort(sorting.get(), entityType));
             }
 
             if (pagination.isPresent()) {
@@ -271,7 +286,7 @@ public class SearchDataTransaction extends TransactionWrapper {
                     }).collect(Collectors.toList());
     }
 
-    private boolean fieldIsIndexed(Class<?> entityClass, FilterPredicate predicate) {
+    private boolean fieldIsIndexed(Type<?> entityClass, FilterPredicate predicate) {
         String fieldName = predicate.getField();
 
         List<Field> fields = new ArrayList<>();
@@ -300,7 +315,7 @@ public class SearchDataTransaction extends TransactionWrapper {
         return indexed;
     }
 
-    private DataStoreTransaction.FeatureSupport operatorSupport(Class<?> entityClass, FilterPredicate predicate)
+    private DataStoreTransaction.FeatureSupport operatorSupport(Type<?> entityClass, FilterPredicate predicate)
             throws HttpStatusException {
 
         Operator op = predicate.getOperator();

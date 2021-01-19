@@ -33,6 +33,7 @@ import com.yahoo.elide.core.filter.predicates.PostfixPredicate;
 import com.yahoo.elide.core.filter.predicates.PrefixInsensitivePredicate;
 import com.yahoo.elide.core.filter.predicates.PrefixPredicate;
 import com.yahoo.elide.core.filter.predicates.TruePredicate;
+import com.yahoo.elide.core.type.Type;
 import example.Author;
 import example.Book;
 import org.junit.jupiter.api.Test;
@@ -70,7 +71,7 @@ public class InMemoryFilterExecutorTest {
             super(checks);
         }
         @Override
-        public Class<?> lookupBoundClass(Class<?> objClass) {
+        public Type<?> lookupBoundClass(Type<?> objClass) {
             // Special handling for mocked Book class which has Entity annotation
             if (objClass.getName().contains("$MockitoMock$")) {
                 objClass = objClass.getSuperclass();

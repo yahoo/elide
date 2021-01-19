@@ -10,6 +10,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
+import com.yahoo.elide.core.type.Type;
 
 import java.lang.annotation.Annotation;
 import java.util.Optional;
@@ -44,18 +45,18 @@ public class BypassPermissionExecutor implements PermissionExecutor {
     }
 
     @Override
-    public <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass,
+    public <A extends Annotation> ExpressionResult checkUserPermissions(Type<?> resourceClass,
                                                                         Class<A> annotationClass) {
         return ExpressionResult.PASS;
     }
 
     @Override
-    public Optional<FilterExpression> getReadPermissionFilter(Class<?> resourceClass) {
+    public Optional<FilterExpression> getReadPermissionFilter(Type<?> resourceClass) {
         return Optional.empty();
     }
 
     @Override
-    public <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass,
+    public <A extends Annotation> ExpressionResult checkUserPermissions(Type<?> resourceClass,
                                                                         Class<A> annotationClass,
                                                                         String field) {
         return ExpressionResult.PASS;

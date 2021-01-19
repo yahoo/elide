@@ -7,6 +7,7 @@
 package com.yahoo.elide.core.dictionary;
 
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.type.Type;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Module;
@@ -32,7 +33,7 @@ public class TestDictionary extends EntityDictionary {
     }
 
     @Override
-    public Class<?> lookupBoundClass(Class<?> objClass) {
+    public Type<?> lookupBoundClass(Type<?> objClass) {
         // Special handling for mocked Book class which has Entity annotation
         if (objClass.getName().contains("$MockitoMock$")) {
             objClass = objClass.getSuperclass();

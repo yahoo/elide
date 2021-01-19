@@ -9,6 +9,7 @@ package com.yahoo.elide.core.filter.dialect.graphql;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.request.Attribute;
+import com.yahoo.elide.core.type.Type;
 
 import java.util.Set;
 
@@ -26,7 +27,7 @@ public interface FilterDialect {
      * @return A filter expression.
      * @throws ParseException If the filter text is invalid.
      */
-    FilterExpression parse(Class<?> entityClass,
+    FilterExpression parse(Type<?> entityClass,
                            Set<Attribute> attributes,
                            String filterText,
                            String apiVersion) throws ParseException;
