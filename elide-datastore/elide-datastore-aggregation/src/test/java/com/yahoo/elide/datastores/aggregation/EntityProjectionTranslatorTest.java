@@ -73,7 +73,7 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
     @Test
     public void testWherePromotion() throws ParseException {
         FilterExpression originalFilter = filterParser.parseFilterExpression("overallRating==Good,lowScore<45",
-                PlayerStats.class, false);
+                playerStatsType, false);
 
         EntityProjection projection = basicProjection.copyOf()
                 .filterExpression(originalFilter)

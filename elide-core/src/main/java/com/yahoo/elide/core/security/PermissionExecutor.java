@@ -12,6 +12,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.visitors.VerifyFieldAccessFilterExpressionVisitor;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
+import com.yahoo.elide.core.type.Type;
 
 import java.lang.annotation.Annotation;
 import java.util.Optional;
@@ -91,7 +92,7 @@ public interface PermissionExecutor {
      * @param annotationClass Annotation class
      * @return the results of evaluating the permission
      */
-    <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass, Class<A> annotationClass);
+    <A extends Annotation> ExpressionResult checkUserPermissions(Type<?> resourceClass, Class<A> annotationClass);
 
     /**
      * Check strictly user permissions on an entity field.
@@ -101,7 +102,7 @@ public interface PermissionExecutor {
      * @param annotationClass Annotation class
      * @param field The entity field
      */
-    public <A extends Annotation> ExpressionResult checkUserPermissions(Class<?> resourceClass,
+    public <A extends Annotation> ExpressionResult checkUserPermissions(Type<?> resourceClass,
             Class<A> annotationClass,
             String field);
 
@@ -111,7 +112,7 @@ public interface PermissionExecutor {
      * @param resourceClass the class to check for a filter
      * @return the an optional containg the filter
      */
-    Optional<FilterExpression> getReadPermissionFilter(Class<?> resourceClass);
+    Optional<FilterExpression> getReadPermissionFilter(Type<?> resourceClass);
 
     /**
      * Execute commit checks.

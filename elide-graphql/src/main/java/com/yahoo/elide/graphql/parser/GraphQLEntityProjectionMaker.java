@@ -32,6 +32,7 @@ import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.GraphQLNameUtils;
 import com.yahoo.elide.graphql.ModelBuilder;
 import graphql.language.Argument;
@@ -160,7 +161,7 @@ public class GraphQLEntityProjectionMaker {
                 // '__schema' and '__type' would not be handled by entity projection
                 return;
             }
-            Class<?> entityType = entityDictionary.getEntityClass(rootSelectionField.getName(), apiVersion);
+            Type<?> entityType = entityDictionary.getEntityClass(rootSelectionField.getName(), apiVersion);
             if (entityType == null) {
                 throw new InvalidEntityBodyException(String.format("Unknown entity {%s}.",
                         rootSelectionField.getName()));
@@ -186,7 +187,7 @@ public class GraphQLEntityProjectionMaker {
      * @param entityField graphQL field definition
      * @return constructed {@link EntityProjection}
      */
-    private EntityProjection createProjection(Class<?> entityType, Field entityField) {
+    private EntityProjection createProjection(Type<?> entityType, Field entityField) {
         final EntityProjectionBuilder projectionBuilder = EntityProjection.builder()
                 .type(entityType)
                 .pagination(PaginationImpl.getDefaultPagination(entityType, elideSettings));
@@ -249,7 +250,7 @@ public class GraphQLEntityProjectionMaker {
      * @param projectionBuilder projection that is being built
      */
     private void addField(Field field, EntityProjectionBuilder projectionBuilder) {
-        Class<?> parentType = projectionBuilder.getType();
+        Type<?> parentType = projectionBuilder.getType();
         String fieldName = field.getName();
 
         // this field would either be a relationship field or an attribute field
@@ -278,12 +279,12 @@ public class GraphQLEntityProjectionMaker {
      * @param projectionBuilder projection that is being built
      */
     private void addRelationship(Field relationshipField, EntityProjectionBuilder projectionBuilder) {
-        Class<?> parentType = projectionBuilder.getType();
+        Type<?> parentType = projectionBuilder.getType();
         String relationshipName = relationshipField.getName();
         String relationshipAlias =
                 relationshipField.getAlias() == null ? relationshipName : relationshipField.getAlias();
 
-        final Class<?> relationshipType = entityDictionary.getParameterizedType(parentType, relationshipName);
+        final Type<?> relationshipType = entityDictionary.getParameterizedType(parentType, relationshipName);
 
         // build new entity projection with only entity type and entity dictionary
         EntityProjection relationshipProjection = createProjection(relationshipType, relationshipField);
@@ -306,11 +307,11 @@ public class GraphQLEntityProjectionMaker {
      * @param projectionBuilder projection that is being built
      */
     private void addAttributeField(Field attributeField, EntityProjectionBuilder projectionBuilder) {
-        Class<?> parentType = projectionBuilder.getType();
+        Type<?> parentType = projectionBuilder.getType();
         String attributeName = attributeField.getName();
         String attributeAlias = attributeField.getAlias() == null ? attributeName : attributeField.getAlias();
 
-        Class<?> attributeType = entityDictionary.getType(parentType, attributeName);
+        Type<?> attributeType = entityDictionary.getType(parentType, attributeName);
         if (attributeType != null) {
             Attribute attribute = Attribute.builder()
                     .type(attributeType)
@@ -523,7 +524,7 @@ public class GraphQLEntityProjectionMaker {
      */
     private void addAttributeArgument(Argument argument, EntityProjectionBuilder projectionBuilder) {
         String argumentName = argument.getName();
-        Class<?> entityType = projectionBuilder.getType();
+        Type<?> entityType = projectionBuilder.getType();
 
         Attribute existingAttribute = projectionBuilder.getAttributeByAlias(argumentName);
 
@@ -543,7 +544,7 @@ public class GraphQLEntityProjectionMaker {
 
             projectionBuilder.attribute(toAdd);
         } else {
-            Class<?> attributeType = entityDictionary.getType(entityType, argumentName);
+            Type<?> attributeType = entityDictionary.getType(entityType, argumentName);
             if (attributeType == null) {
                 throw new InvalidEntityBodyException(
                         String.format("Invalid attribute field/alias for argument: {%s}.{%s}",

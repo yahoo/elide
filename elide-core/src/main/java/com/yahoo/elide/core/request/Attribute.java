@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.core.request;
 
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
@@ -22,7 +24,7 @@ import java.util.Set;
 public class Attribute {
     @NonNull
     @ToString.Exclude
-    private Class<?> type;
+    private Type<?> type;
 
     @NonNull
     private String name;
@@ -34,10 +36,23 @@ public class Attribute {
     @ToString.Exclude
     private Set<Argument> arguments;
 
-    private Attribute(@NonNull Class<?> type, @NonNull String name, String alias, Set<Argument> arguments) {
+    private Attribute(@NonNull Type<?> type, @NonNull String name, String alias, Set<Argument> arguments) {
         this.type = type;
         this.name = name;
         this.alias = alias == null ? name : alias;
         this.arguments = arguments;
+    }
+
+    public static class AttributeBuilder {
+
+        public Attribute.AttributeBuilder type(Type<?> type) {
+            this.type = type;
+            return this;
+        }
+
+        public Attribute.AttributeBuilder type(Class<?> type) {
+            this.type = new ClassType(type);
+            return this;
+        }
     }
 }

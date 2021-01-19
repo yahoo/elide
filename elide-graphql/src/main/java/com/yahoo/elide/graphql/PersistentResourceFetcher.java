@@ -15,6 +15,8 @@ import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
 import com.yahoo.elide.graphql.containers.MapEntryContainer;
 import com.google.common.collect.Sets;
@@ -142,8 +144,8 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
 
         GraphQLType parent = environment.parentType;
         if (log.isDebugEnabled()) {
-            log.debug("{} {} fields with parent {}<{}>",
-                    operation, requestedFields, EntityDictionary.getSimpleName(parent.getClass()), parent.getName());
+            log.debug("{} {} fields with parent {}<{}>", operation, requestedFields,
+                    EntityDictionary.getSimpleName(EntityDictionary.getType(parent)), parent.getName());
         }
     }
 
@@ -205,7 +207,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
             Optional<List<String>> ids
     ) {
         EntityDictionary dictionary = parentResource.getRequestScope().getDictionary();
-        Class relationshipClass = dictionary.getParameterizedType(parentResource.getObject(), relationship.getName());
+        Type relationshipClass = dictionary.getParameterizedType(parentResource.getObject(), relationship.getName());
         String relationshipType = dictionary.getJsonAliasFor(relationshipClass);
 
         Set<PersistentResource> relationResources;
@@ -258,14 +260,14 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
             throw new BadRequestException(operation + " must include data argument");
         }
 
-        Class<?> entityClass;
+        Type<?> entityClass;
         EntityDictionary dictionary = context.requestScope.getDictionary();
         if (context.isRoot()) {
             entityClass = dictionary.getEntityClass(context.field.getName(), context.requestScope.getApiVersion());
         } else {
             assert context.parentResource != null;
             entityClass = dictionary.getParameterizedType(
-                    context.parentResource.getResourceClass(),
+                    context.parentResource.getResourceType(),
                     context.field.getName());
         }
 
@@ -276,7 +278,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
             parentEntity = Optional.of(new Entity(
                     Optional.empty(),
                     null,
-                    context.parentResource.getResourceClass(),
+                    context.parentResource.getResourceType(),
                     context.requestScope));
         } else {
             parentEntity = Optional.empty();
@@ -455,15 +457,15 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
                                                 Entity entity,
                                                 Set<Entity.Attribute> attributes) {
         EntityDictionary dictionary = entity.getRequestScope().getDictionary();
-        Class<?> entityClass = entity.getEntityClass();
+        Type<?> entityClass = entity.getEntityClass();
         String idFieldName = dictionary.getIdFieldName(entityClass);
 
         /* iterate through each attribute provided */
         for (Entity.Attribute attribute : attributes) {
             if (dictionary.isAttribute(entityClass, attribute.getName())) {
-                Class<?> attributeType = dictionary.getType(entityClass, attribute.getName());
+                Type<?> attributeType = dictionary.getType(entityClass, attribute.getName());
                 Object attributeValue;
-                if (Map.class.isAssignableFrom(attributeType)) {
+                if (ClassType.MAP_TYPE.isAssignableFrom(attributeType)) {
                     attributeValue = MapEntryContainer.translateFromGraphQLMap(attribute);
                 } else {
                     attributeValue = attribute.getValue();

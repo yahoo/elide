@@ -13,6 +13,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.TypeHelper;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
@@ -42,7 +43,7 @@ import javax.persistence.OneToMany;
 @Getter
 @EqualsAndHashCode
 @ToString
-public abstract class Table implements Versioned  {
+public abstract class Table implements Versioned {
 
     @Id
     private final String id;
@@ -90,7 +91,7 @@ public abstract class Table implements Versioned  {
     @Exclude
     private final String alias;
 
-    public Table(Class<?> cls, EntityDictionary dictionary) {
+    public Table(Type<?> cls, EntityDictionary dictionary) {
         if (!dictionary.getBoundClasses().contains(cls)) {
             throw new IllegalArgumentException(
                     String.format("Table class {%s} is not defined in dictionary.", cls));
@@ -140,7 +141,7 @@ public abstract class Table implements Versioned  {
         }
     }
 
-    private boolean isFact(Class<?> cls, TableMeta meta) {
+    private boolean isFact(Type<?> cls, TableMeta meta) {
         if (meta != null) {
             return meta.isFact();
         }
@@ -159,7 +160,7 @@ public abstract class Table implements Versioned  {
      * @param dictionary dictionary contains the table class
      * @return all resolved column metadata
      */
-    private Set<Column> constructColumns(Class<?> cls, EntityDictionary dictionary) {
+    private Set<Column> constructColumns(Type<?> cls, EntityDictionary dictionary) {
         Set<Column> columns =  dictionary.getAllFields(cls).stream()
                 .filter(field -> {
                     ValueType valueType = getValueType(cls, field, dictionary);
@@ -276,7 +277,7 @@ public abstract class Table implements Versioned  {
     }
 
     public FilterExpression getRequiredFilter(EntityDictionary dictionary) {
-        Class<?> cls = dictionary.getEntityClass(name, version);
+        Type<?> cls = dictionary.getEntityClass(name, version);
         RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
 
         if (requiredFilter != null && !requiredFilter.isEmpty()) {

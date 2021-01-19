@@ -62,12 +62,13 @@ public class DefaultJSONApiLinks implements JSONApiLinks {
         } else {
             result.append(baseUrl);
         }
+//<<<<<<< HEAD
 
         List<ResourceLineage.LineagePath> path = resource.getLineage().getResourcePath();
         if (path.size() > 0) {
             result.append(String.join("/", getPathSegment(path), resource.getId()));
         } else {
-            result.append(String.join("/", resource.getType(), resource.getId()));
+            result.append(String.join("/", resource.getTypeName(), resource.getId()));
         }
 
         return result.toString();
@@ -85,7 +86,7 @@ public class DefaultJSONApiLinks implements JSONApiLinks {
                         resource.getId(), pathElement.getRelationship()));
             } else {
                 result.append(String.join("/",
-                        resource.getType(), resource.getId(), pathElement.getRelationship()));
+                        resource.getTypeName(), resource.getId(), pathElement.getRelationship()));
             }
             pathSegmentCount++;
         }

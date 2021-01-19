@@ -39,6 +39,7 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.jsonapi.extensions.PatchRequestScope;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -309,13 +310,13 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertNotNull(dictionary);
         NoCreateEntity noCreate = new NoCreateEntity();
 
-        when(tx.createNewObject(NoCreateEntity.class)).thenReturn(noCreate);
+        when(tx.createNewObject(new ClassType(NoCreateEntity.class))).thenReturn(noCreate);
 
         RequestScope goodScope = buildRequestScope(tx, goodUser);
         assertThrows(
                 ForbiddenAccessException.class,
                 () -> PersistentResource.createObject(
-                        NoCreateEntity.class, goodScope, Optional.of("1"))); // should throw here
+                        new ClassType(NoCreateEntity.class), goodScope, Optional.of("1"))); // should throw here
     }
 
     @Test
@@ -577,7 +578,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         goodScope.saveOrCreateObjects();
         verify(tx, times(1)).save(left, goodScope);
         verify(tx, times(1)).save(right, goodScope);
-        verify(tx, times(1)).getRelation(tx, left, getRelationship(Right.class, "one2one"), goodScope);
+        verify(tx, times(1)).getRelation(tx, left, getRelationship(new ClassType(Right.class), "one2one"), goodScope);
 
         assertTrue(updated, "The one-2-one relationship should be added.");
         assertEquals(3, left.getOne2one().getId(), "The correct object was set in the one-2-one relationship");
@@ -857,7 +858,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", scope);
 
-        PersistentResource childResource = parentResource.getRelation(getRelationship(Parent.class, "children"), "2");
+        PersistentResource childResource = parentResource.getRelation(getRelationship(new ClassType(Parent.class), "children"), "2");
 
         assertEquals("2", childResource.getId());
         assertEquals("john buzzard", ((Child) childResource.getObject()).getName());
@@ -953,7 +954,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope goodScope = buildRequestScope(tx, goodUser);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, "3", goodScope);
 
-        PersistentResource<?> result = funResource.getRelation(getRelationship(FunWithPermissions.class, "relation2"), "1");
+        PersistentResource<?> result = funResource.getRelation(getRelationship(new ClassType(FunWithPermissions.class), "relation2"), "1");
 
         assertEquals(1, ((Child) result.getObject()).getId(), "The correct relationship element should be returned");
     }
@@ -972,7 +973,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, "3", goodScope);
 
         assertThrows(InvalidObjectIdentifierException.class,
-                () -> funResource.getRelation(getRelationship(FunWithPermissions.class, "relation2"), "-1000"));
+                () -> funResource.getRelation(getRelationship(new ClassType(FunWithPermissions.class), "relation2"), "-1000"));
     }
 
     @Test
@@ -1716,10 +1717,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test()
     public void testCreateObjectSuccess() {
         Parent parent = newParent(1);
-        when(tx.createNewObject(Parent.class)).thenReturn(parent);
+        when(tx.createNewObject(new ClassType(Parent.class))).thenReturn(parent);
 
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-        PersistentResource<Parent> created = PersistentResource.createObject(Parent.class, goodScope, Optional.of("uuid"));
+        PersistentResource<Parent> created = PersistentResource.createObject(new ClassType(Parent.class), goodScope, Optional.of("uuid"));
         parent.setChildren(new HashSet<>());
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
 
@@ -1735,10 +1736,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         job.setTitle("day job");
         job.setParent(newParent(1));
 
-        when(tx.createNewObject(Job.class)).thenReturn(job);
+        when(tx.createNewObject(new ClassType(Job.class))).thenReturn(job);
 
         final RequestScope goodScope = buildRequestScope(tx, new TestUser("1"));
-        PersistentResource<Job> created = PersistentResource.createObject(Job.class, goodScope, Optional.empty());
+        PersistentResource<Job> created = PersistentResource.createObject(new ClassType(Job.class), goodScope, Optional.empty());
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
 
         assertEquals("day job", created.getObject().getTitle(),
@@ -1746,7 +1747,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         );
         assertNull(created.getObject().getJobId(), "The create function should not override the ID");
 
-        created = PersistentResource.createObject(Job.class, goodScope, Optional.of("1234"));
+        created = PersistentResource.createObject(new ClassType(Job.class), goodScope, Optional.of("1234"));
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
 
         assertEquals("day job", created.getObject().getTitle(),
@@ -1760,14 +1761,14 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         NoCreateEntity noCreate = new NoCreateEntity();
         noCreate.setId(1);
 
-        when(tx.createNewObject(NoCreateEntity.class)).thenReturn(noCreate);
+        when(tx.createNewObject(new ClassType(NoCreateEntity.class))).thenReturn(noCreate);
 
         RequestScope goodScope = buildRequestScope(tx, goodUser);
 
         assertThrows(
                 ForbiddenAccessException.class,
                 () -> {
-                    PersistentResource<NoCreateEntity> created = PersistentResource.createObject(NoCreateEntity.class, goodScope, Optional.of("1"));
+                    PersistentResource<NoCreateEntity> created = PersistentResource.createObject(new ClassType(NoCreateEntity.class), goodScope, Optional.of("1"));
                     created.getRequestScope().getPermissionExecutor().executeCommitChecks();
                 }
         );
@@ -2256,7 +2257,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope scope = buildRequestScope("/", mock(DataStoreTransaction.class),
                 new TestUser("1"), queryParams);
 
-        Optional<FilterExpression> filter = scope.getLoadFilterExpression(Author.class);
+        Optional<FilterExpression> filter = scope.getLoadFilterExpression(new ClassType(Author.class));
         FilterPredicate predicate = (FilterPredicate) filter.get();
         assertEquals("name", predicate.getField());
         assertEquals("name", predicate.getFieldPath());
@@ -2277,7 +2278,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         RequestScope scope = buildRequestScope("/", mock(DataStoreTransaction.class), new TestUser("1"),
                 queryParams);
 
-        Optional<FilterExpression> filter = scope.getLoadFilterExpression(Book.class);
+        Optional<FilterExpression> filter = scope.getLoadFilterExpression(new ClassType(Book.class));
         FilterPredicate predicate = (FilterPredicate) filter.get();
         assertEquals("name", predicate.getField());
         assertEquals("authors.name", predicate.getFieldPath());

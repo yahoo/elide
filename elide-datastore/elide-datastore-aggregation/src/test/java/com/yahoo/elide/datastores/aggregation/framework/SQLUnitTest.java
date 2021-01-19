@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.framework;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -20,6 +21,7 @@ import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -85,6 +87,9 @@ public abstract class SQLUnitTest {
 
     protected QueryEngine.Transaction transaction;
     private static SQLTable videoGameTable;
+
+    protected static Type<?> playerStatsType = getClassType(PlayerStats.class);
+    protected static Type<?> playerStatsViewType = getClassType(PlayerStatsView.class);
 
     // Standard set of test queries used in dialect tests
     protected enum TestQuery {
@@ -266,8 +271,7 @@ public abstract class SQLUnitTest {
                     .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                     .havingFilter(predicate)
                     // force a join to look up countryIsoCode
-                    .whereFilter(parseFilterExpression("countryIsoCode==USA",
-                            PlayerStats.class, false))
+                    .whereFilter(parseFilterExpression("countryIsoCode==USA", playerStatsType, false))
                     .build();
         }),
         NESTED_METRIC_QUERY (() -> {
@@ -299,8 +303,7 @@ public abstract class SQLUnitTest {
                     .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
                     .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                     .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
-                    .whereFilter(parseFilterExpression("countryIsoCode==USA",
-                            PlayerStats.class, false))
+                    .whereFilter(parseFilterExpression("countryIsoCode==USA", playerStatsType, false))
                     .build();
         }),
         NESTED_METRIC_WITH_PAGINATION_QUERY (() -> {
@@ -374,7 +377,7 @@ public abstract class SQLUnitTest {
             throw new IllegalStateException(e);
         }
 
-        metaDataStore = new MetaDataStore(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example"), false);
+        metaDataStore = new MetaDataStore(getClassType(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example")), false);
 
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(PlayerStatsWithView.class);
@@ -488,7 +491,7 @@ public abstract class SQLUnitTest {
      * Because this is for unit testing, the only time a ParseException should occur
      * is when a test is incorrectly configured.
      */
-    private static FilterExpression parseFilterExpression(String expressionText, Class<?> entityType,
+    private static FilterExpression parseFilterExpression(String expressionText, Type<?> entityType,
                                                           boolean allowNestedToManyAssociations) {
         try {
             return filterParser.parseFilterExpression(expressionText, entityType, allowNestedToManyAssociations);

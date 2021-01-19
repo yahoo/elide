@@ -79,6 +79,10 @@ public class ResourceLineage {
         return resourcePath;
     }
 
+    private void addRecord(PersistentResource latest) {
+        addRecord(latest, latest.getTypeName());
+    }
+
     @Override
     public int hashCode() {
         return new HashCodeBuilder(13, 123)
@@ -105,7 +109,7 @@ public class ResourceLineage {
     }
 
     private void addRecord(PersistentResource latest, String relationship) {
-        String alias = latest.getType();
+        String alias = latest.getTypeName();
         List<PersistentResource> resources;
         if (resourceMap.containsKey(alias)) {
             resources = resourceMap.get(alias);

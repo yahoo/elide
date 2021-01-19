@@ -77,8 +77,7 @@ public class SubselectTest extends SQLUnitTest {
                 .source(playerStatsTable)
                 .metricProjection(playerStatsTable.getMetricProjection("highScore"))
                 .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
-                .whereFilter(filterParser.parseFilterExpression("subCountryIsoCode==USA",
-                        PlayerStats.class, false))
+                .whereFilter(filterParser.parseFilterExpression("subCountryIsoCode==USA", playerStatsType, false))
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());

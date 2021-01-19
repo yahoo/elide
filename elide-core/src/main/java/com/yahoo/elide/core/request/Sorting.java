@@ -7,6 +7,7 @@
 package com.yahoo.elide.core.request;
 
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.type.Type;
 
 import java.util.Map;
 
@@ -31,7 +32,7 @@ public interface Sorting {
      * Get the type of the collection to sort.
      * @return the collection type.
      */
-    public Class<?> getType();
+    public Type<?> getType();
 
     /**
      * Is this sorting the default instance (not present).

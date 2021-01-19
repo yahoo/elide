@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.datastore.inmemory;
 
+import com.yahoo.elide.core.type.Type;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -18,6 +19,6 @@ class Operation {
 
     @Getter private final String id;
     @Getter private final Object instance;
-    @Getter private final Class<?> type;
+    @Getter private final Type<?> type;
     @Getter private final OpType opType;
 }

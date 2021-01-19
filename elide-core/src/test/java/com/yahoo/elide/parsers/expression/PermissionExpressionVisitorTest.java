@@ -22,6 +22,8 @@ import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import com.yahoo.elide.core.security.permissions.expressions.Expression;
 import com.yahoo.elide.core.security.visitors.PermissionExpressionVisitor;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -78,23 +80,23 @@ public class PermissionExpressionVisitorTest {
 
     @Test
     public void testComplexModelCreate() {
-        Expression expression = getExpressionForPermission(CreatePermission.class, ComplexEntity.class);
+        Expression expression = getExpressionForPermission(CreatePermission.class, new ClassType(ComplexEntity.class));
         assertEquals(ExpressionResult.PASS, expression.evaluate(Expression.EvaluationMode.ALL_CHECKS));
     }
 
     @Test
     public void testNamesWithSpaces() {
-        Expression expression = getExpressionForPermission(DeletePermission.class, ComplexEntity.class);
-        Expression expression2 = getExpressionForPermission(UpdatePermission.class, ComplexEntity.class);
+        Expression expression = getExpressionForPermission(DeletePermission.class, new ClassType(ComplexEntity.class));
+        Expression expression2 = getExpressionForPermission(UpdatePermission.class, new ClassType(ComplexEntity.class));
         assertEquals(ExpressionResult.PASS, expression.evaluate(Expression.EvaluationMode.ALL_CHECKS));
         assertEquals(ExpressionResult.PASS, expression2.evaluate(Expression.EvaluationMode.ALL_CHECKS));
     }
 
     private Expression getExpressionForPermission(Class<? extends Annotation> permission) {
-        return getExpressionForPermission(permission, Model.class);
+        return getExpressionForPermission(permission, new ClassType(Model.class));
     }
 
-    private Expression getExpressionForPermission(Class<? extends Annotation> permission, Class model) {
+    private Expression getExpressionForPermission(Class<? extends Annotation> permission, Type model) {
         PermissionExpressionVisitor v = new PermissionExpressionVisitor(dictionary, DummyExpression::new);
         ParseTree permissions = dictionary.getPermissionsForClass(model, permission);
 

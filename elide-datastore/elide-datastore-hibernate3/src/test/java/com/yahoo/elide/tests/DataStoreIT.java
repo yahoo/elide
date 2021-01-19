@@ -6,6 +6,7 @@
 package com.yahoo.elide.tests;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.linkage;
@@ -79,9 +80,9 @@ public class DataStoreIT extends IntegrationTest {
     public void setUp() throws IOException {
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {
 
-            tx.save(tx.createNewObject(Filtered.class), null);
-            tx.save(tx.createNewObject(Filtered.class), null);
-            tx.save(tx.createNewObject(Filtered.class), null);
+            tx.save(tx.createNewObject(getClassType(Filtered.class)), null);
+            tx.save(tx.createNewObject(getClassType(Filtered.class)), null);
+            tx.save(tx.createNewObject(getClassType(Filtered.class)), null);
 
             Author georgeMartin = new Author();
             georgeMartin.setName("George R. R. Martin");

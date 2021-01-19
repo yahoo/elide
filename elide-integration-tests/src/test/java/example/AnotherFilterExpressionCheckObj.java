@@ -13,6 +13,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
+import com.yahoo.elide.core.type.Type;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -71,7 +72,7 @@ public class AnotherFilterExpressionCheckObj extends BaseId {
     public static class CheckActsLikeFilter extends FilterExpressionCheck {
 
         @Override
-        public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Type entityClass, RequestScope requestScope) {
             return createFilterPredicate();
         }
 

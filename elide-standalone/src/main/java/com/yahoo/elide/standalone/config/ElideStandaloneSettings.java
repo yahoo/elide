@@ -6,6 +6,7 @@
 package com.yahoo.elide.standalone.config;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.SecurityCheck;
@@ -54,6 +55,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
@@ -403,7 +405,7 @@ public interface ElideStandaloneSettings {
         if (getAnalyticProperties().enableDynamicModelConfig()) {
             Set<Class<?>> annotatedClasses = getDynamicClassesIfAvailable(optionalCompiler, FromTable.class);
             annotatedClasses.addAll(getDynamicClassesIfAvailable(optionalCompiler, FromSubquery.class));
-            aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClasses);
+            aggregationDataStoreBuilder.dynamicCompiledClasses(getClassType(annotatedClasses));
         }
         aggregationDataStoreBuilder.cache(getQueryCache());
         return aggregationDataStoreBuilder.build();
