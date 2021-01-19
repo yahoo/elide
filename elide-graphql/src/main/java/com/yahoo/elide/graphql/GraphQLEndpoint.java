@@ -13,8 +13,11 @@ import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.resources.SecurityContextUser;
 import com.yahoo.elide.utils.HeaderUtils;
+import com.yahoo.elide.utils.ResourceUtils;
+
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,7 +92,8 @@ public class GraphQLEndpoint {
         String baseUrl = elide.getElideSettings().getBaseUrl();
 
         if (baseUrl == null || baseUrl.isEmpty()) {
-            baseUrl = uriInfo.getBaseUri().toString();
+            //UriInfo has full path appended here already.
+            baseUrl = ResourceUtils.resolveBaseUrl(uriInfo);
         }
 
         return baseUrl;

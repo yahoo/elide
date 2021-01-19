@@ -12,7 +12,9 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.annotation.PATCH;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.utils.HeaderUtils;
+import com.yahoo.elide.utils.ResourceUtils;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -167,7 +169,8 @@ public class JsonApiEndpoint {
         String baseUrl = elide.getElideSettings().getBaseUrl();
 
         if (baseUrl == null || baseUrl.isEmpty()) {
-            baseUrl = uriInfo.getBaseUri().toString();
+            //UriInfo has full path appended here already.
+            baseUrl = ResourceUtils.resolveBaseUrl(uriInfo);
         }
 
         return baseUrl;

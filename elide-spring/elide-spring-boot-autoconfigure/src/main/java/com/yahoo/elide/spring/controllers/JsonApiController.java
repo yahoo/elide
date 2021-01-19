@@ -188,6 +188,6 @@ public class JsonApiController {
             baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
         }
 
-        return baseUrl + "/";
+        return baseUrl;
     }
 }
