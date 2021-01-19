@@ -59,12 +59,12 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     }
 
     @Override
-    public Object getAttribute(Object entity, Attribute attribute, RequestScope scope) {
+    public <T, R> R getAttribute(T entity, Attribute attribute, RequestScope scope) {
         return tx.getAttribute(entity, attribute, scope);
     }
 
     @Override
-    public void setAttribute(Object entity, Attribute attribute, RequestScope scope) {
+    public <T> void setAttribute(T entity, Attribute attribute, RequestScope scope) {
         tx.setAttribute(entity, attribute, scope);
     }
 
@@ -109,7 +109,7 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     }
 
     @Override
-    public Iterable<Object> loadObjects(EntityProjection projection, RequestScope scope) {
+    public <T> Iterable<T> loadObjects(EntityProjection projection, RequestScope scope) {
         return tx.loadObjects(projection, scope);
     }
 

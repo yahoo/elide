@@ -216,10 +216,10 @@ public interface DataStoreTransaction extends Closeable {
      * @param scope - contains request level metadata.
      * @return the value of the attribute
      */
-    default <T> T getAttribute(T entity,
+    default <T, R> R getAttribute(T entity,
                                Attribute attribute,
                                RequestScope scope) {
-        return (T) PersistentResource.getValue(entity, attribute.getName(), scope);
+        return (R) PersistentResource.getValue(entity, attribute.getName(), scope);
 
     }
 

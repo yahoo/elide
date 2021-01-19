@@ -24,12 +24,12 @@ public class MultiplexReadTransaction extends MultiplexTransaction {
     }
 
     @Override
-    public void save(Object entity, RequestScope scope) {
+    public <T> void save(T entity, RequestScope scope) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void delete(Object entity, RequestScope scope) {
+    public <T> void delete(T entity, RequestScope scope) {
         throw new UnsupportedOperationException();
     }
 }

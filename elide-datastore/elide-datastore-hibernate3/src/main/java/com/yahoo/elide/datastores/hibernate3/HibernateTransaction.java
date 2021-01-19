@@ -66,12 +66,12 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void delete(Object object, RequestScope scope) {
+    public <T> void delete(T object, RequestScope scope) {
         deferredTasks.add(() -> session.delete(object));
     }
 
     @Override
-    public void save(Object object, RequestScope scope) {
+    public <T> void save(T object, RequestScope scope) {
         deferredTasks.add(() -> session.saveOrUpdate(object));
     }
 
@@ -105,7 +105,7 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void createObject(Object entity, RequestScope scope) {
+    public <T> void createObject(T entity, RequestScope scope) {
         deferredTasks.add(() -> session.persist(entity));
     }
 
@@ -117,7 +117,7 @@ public class HibernateTransaction implements DataStoreTransaction {
      * @param scope Request scope associated with specific request
      */
     @Override
-    public Object loadObject(EntityProjection projection,
+    public <T> T loadObject(EntityProjection projection,
                              Serializable id,
                              RequestScope scope) {
 
@@ -150,14 +150,14 @@ public class HibernateTransaction implements DataStoreTransaction {
             QueryWrapper query =
                     (QueryWrapper) new RootCollectionFetchQueryBuilder(projection, dictionary, sessionWrapper).build();
 
-            return query.getQuery().uniqueResult();
+            return (T) query.getQuery().uniqueResult();
         } catch (ObjectNotFoundException e) {
             return null;
         }
     }
 
     @Override
-    public Iterable<Object> loadObjects(
+    public <T> Iterable<T> loadObjects(
             EntityProjection projection,
             RequestScope scope) {
         Pagination pagination = projection.getPagination();
@@ -187,9 +187,9 @@ public class HibernateTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public Object getRelation(
+    public <T, R> R getRelation(
             DataStoreTransaction relationTx,
-            Object entity,
+            T entity,
             Relationship relation,
             RequestScope scope) {
 
@@ -209,7 +209,7 @@ public class HibernateTransaction implements DataStoreTransaction {
                  */
                 if (filterExpression == null && sorting == null
                         && (pagination == null || (pagination.isDefaultInstance()))) {
-                    return val;
+                    return (R) val;
                 }
 
                 RelationshipImpl relationship = new RelationshipImpl(
@@ -233,11 +233,11 @@ public class HibernateTransaction implements DataStoreTransaction {
                                 .build();
 
                 if (query != null) {
-                    return query.getQuery().list();
+                    return (R) query.getQuery().list();
                 }
             }
         }
-        return val;
+        return (R) val;
     }
 
     /**
