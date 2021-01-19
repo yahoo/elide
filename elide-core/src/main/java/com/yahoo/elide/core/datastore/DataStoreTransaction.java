@@ -94,7 +94,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param <T> the class to create
      * @return a new instance of type T
      */
-     default <T> T createNewObject(Type<T> entityClass) {
+    default <T> T createNewObject(Type<T> entityClass) {
         T obj;
         try {
             obj = entityClass.newInstance();
@@ -102,7 +102,7 @@ public interface DataStoreTransaction extends Closeable {
             obj = null;
         }
         return obj;
-     }
+    }
 
     /**
      * Loads an object by ID.  The reason we support both load by ID and load by filter is that
