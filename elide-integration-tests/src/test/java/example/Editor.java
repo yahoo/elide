@@ -16,6 +16,8 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.predicates.NotNullPredicate;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
+import com.yahoo.elide.core.type.Type;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -83,7 +85,7 @@ public class Editor {
 
     public static class FieldPathFilterExpression extends FilterExpressionCheck {
         @Override
-        public FilterPredicate getFilterExpression(Class entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
+        public FilterPredicate getFilterExpression(Type entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
             Path path = super.getFieldPath(entityClass, requestScope, "getEditor", "editor");
             return new NotNullPredicate(path);
         }

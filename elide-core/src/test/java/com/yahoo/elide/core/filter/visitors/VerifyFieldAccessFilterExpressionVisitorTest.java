@@ -32,6 +32,7 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
+import com.yahoo.elide.core.type.ClassType;
 import example.Author;
 import example.Book;
 import org.junit.jupiter.api.BeforeEach;
@@ -101,7 +102,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         book.setAuthors(Collections.singleton(author));
         author.setBooks(Collections.singleton(book));
 
-        PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
+        PersistentResource<Book> resource = new PersistentResource<>(book, "", scope);
 
         VerifyFieldAccessFilterExpressionVisitor visitor = new VerifyFieldAccessFilterExpressionVisitor(resource);
         // unrestricted fields
@@ -122,7 +123,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
     }
 
     @Test
-    public void testReject() throws Exception {
+    public void testReject() {
         Path p1Path = new Path(Arrays.asList(
                 new PathElement(Book.class, Author.class, AUTHORS),
                 new PathElement(Author.class, String.class, NAME)
@@ -154,7 +155,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         Author author = new Author();
         book.setAuthors(Collections.singleton(author));
         author.setBooks(Collections.singleton(book));
-        PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
+        PersistentResource<Book> resource = new PersistentResource<>(book, "", scope);
 
         PermissionExecutor permissionExecutor = scope.getPermissionExecutor();
         when(permissionExecutor.checkSpecificFieldPermissions(resource, null, ReadPermission.class, HOME))
@@ -183,14 +184,14 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
     public void testShortCircuitReject() throws Exception {
         RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
         FilterExpression expression =
-                dialect.parseFilterExpression("genre==foo", Book.class, true);
+                dialect.parseFilterExpression("genre==foo", new ClassType(Book.class), true);
 
         Book book = new Book();
-        PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
+        PersistentResource<Book> resource = new PersistentResource<>(book, "", scope);
 
         PermissionExecutor permissionExecutor = scope.getPermissionExecutor();
 
-        when(permissionExecutor.checkUserPermissions(Book.class, ReadPermission.class, GENRE))
+        when(permissionExecutor.checkUserPermissions(new ClassType(Book.class), ReadPermission.class, GENRE))
                 .thenThrow(ForbiddenAccessException.class);
 
         VerifyFieldAccessFilterExpressionVisitor visitor = new VerifyFieldAccessFilterExpressionVisitor(resource);
@@ -198,7 +199,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         assertFalse(expression.accept(visitor));
 
         verify(permissionExecutor, times(1)).evaluateFilterJoinUserChecks(any(), any());
-        verify(permissionExecutor, times(1)).checkUserPermissions(Book.class, ReadPermission.class, GENRE);
+        verify(permissionExecutor, times(1)).checkUserPermissions(new ClassType(Book.class), ReadPermission.class, GENRE);
         verify(permissionExecutor, never()).checkSpecificFieldPermissions(resource, null, ReadPermission.class, GENRE);
         verify(permissionExecutor, times(1)).checkUserPermissions(any(), any(), any());
         verify(permissionExecutor, times(1)).handleFilterJoinReject(any(), any(), any());
@@ -208,21 +209,21 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
     public void testShortCircuitRejectDeferThenFail() throws Exception {
         RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
         FilterExpression expression =
-                dialect.parseFilterExpression("authors.homeAddress==main", Book.class, true);
+                dialect.parseFilterExpression("authors.homeAddress==main", new ClassType(Book.class), true);
 
         Book book = new Book();
         Author author = new Author();
         book.setAuthors(Collections.singleton(author));
         author.setBooks(Collections.singleton(book));
 
-        PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
+        PersistentResource<Book> resource = new PersistentResource<>(book, "", scope);
 
         PermissionExecutor permissionExecutor = scope.getPermissionExecutor();
         DataStoreTransaction tx = scope.getTransaction();
 
-        when(permissionExecutor.checkUserPermissions(Book.class, ReadPermission.class, AUTHORS))
+        when(permissionExecutor.checkUserPermissions(new ClassType(Book.class), ReadPermission.class, AUTHORS))
                 .thenReturn(ExpressionResult.DEFERRED);
-        when(permissionExecutor.checkUserPermissions(Author.class, ReadPermission.class, HOME))
+        when(permissionExecutor.checkUserPermissions(new ClassType(Author.class), ReadPermission.class, HOME))
                 .thenThrow(ForbiddenAccessException.class);
 
         VerifyFieldAccessFilterExpressionVisitor visitor = new VerifyFieldAccessFilterExpressionVisitor(resource);
@@ -230,9 +231,9 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         assertFalse(expression.accept(visitor));
 
         verify(permissionExecutor, times(1)).evaluateFilterJoinUserChecks(any(), any());
-        verify(permissionExecutor, times(1)).checkUserPermissions(Book.class, ReadPermission.class, AUTHORS);
-        verify(permissionExecutor, never()).getReadPermissionFilter(Author.class);
-        verify(permissionExecutor, times(1)).checkUserPermissions(Author.class, ReadPermission.class, HOME);
+        verify(permissionExecutor, times(1)).checkUserPermissions(new ClassType(Book.class), ReadPermission.class, AUTHORS);
+        verify(permissionExecutor, never()).getReadPermissionFilter(new ClassType(Author.class));
+        verify(permissionExecutor, times(1)).checkUserPermissions(new ClassType(Author.class), ReadPermission.class, HOME);
         verify(permissionExecutor, never()).checkSpecificFieldPermissions(any(), any(), any(), any());
         verify(permissionExecutor, never()).checkSpecificFieldPermissionsDeferred(any(), any(), any(), any());
         verify(permissionExecutor, times(2)).checkUserPermissions(any(), any(), any());
@@ -244,14 +245,14 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
     public void testShortCircuitDeferred() throws Exception {
         RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
         FilterExpression expression =
-                dialect.parseFilterExpression("genre==foo", Book.class, true);
+                dialect.parseFilterExpression("genre==foo", new ClassType(Book.class), true);
 
         Book book = new Book();
-        PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
+        PersistentResource<Book> resource = new PersistentResource<>(book, "", scope);
 
         PermissionExecutor permissionExecutor = scope.getPermissionExecutor();
 
-        when(permissionExecutor.checkUserPermissions(Book.class, ReadPermission.class, GENRE))
+        when(permissionExecutor.checkUserPermissions(new ClassType(Book.class), ReadPermission.class, GENRE))
                 .thenReturn(ExpressionResult.DEFERRED);
         when(permissionExecutor.checkSpecificFieldPermissions(resource, null, ReadPermission.class, GENRE))
                 .thenThrow(ForbiddenAccessException.class);
@@ -261,7 +262,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         assertFalse(expression.accept(visitor));
 
         verify(permissionExecutor, times(1)).evaluateFilterJoinUserChecks(any(), any());
-        verify(permissionExecutor, times(1)).checkUserPermissions(Book.class, ReadPermission.class, GENRE);
+        verify(permissionExecutor, times(1)).checkUserPermissions(new ClassType(Book.class), ReadPermission.class, GENRE);
         verify(permissionExecutor, times(1)).checkSpecificFieldPermissions(resource, null, ReadPermission.class, GENRE);
         verify(permissionExecutor, times(1)).checkUserPermissions(any(), any(), any());
         verify(permissionExecutor, times(1)).handleFilterJoinReject(any(), any(), any());
@@ -271,17 +272,17 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
     public void testShortCircuitPass() throws Exception {
         RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
         FilterExpression expression =
-                dialect.parseFilterExpression("authors.name==foo", Book.class, true);
+                dialect.parseFilterExpression("authors.name==foo", new ClassType(Book.class), true);
 
         Book book = new Book();
-        PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
+        PersistentResource<Book> resource = new PersistentResource<>(book, "", scope);
 
         PermissionExecutor permissionExecutor = scope.getPermissionExecutor();
         DataStoreTransaction tx = scope.getTransaction();
 
-        when(permissionExecutor.checkUserPermissions(Book.class, ReadPermission.class, AUTHORS))
+        when(permissionExecutor.checkUserPermissions(new ClassType(Book.class), ReadPermission.class, AUTHORS))
                 .thenReturn(ExpressionResult.PASS);
-        when(permissionExecutor.checkUserPermissions(Author.class, ReadPermission.class, NAME))
+        when(permissionExecutor.checkUserPermissions(new ClassType(Author.class), ReadPermission.class, NAME))
                 .thenReturn(ExpressionResult.PASS);
 
         VerifyFieldAccessFilterExpressionVisitor visitor = new VerifyFieldAccessFilterExpressionVisitor(resource);
@@ -289,8 +290,8 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         assertTrue(expression.accept(visitor));
 
         verify(permissionExecutor, times(1)).evaluateFilterJoinUserChecks(any(), any());
-        verify(permissionExecutor, times(1)).checkUserPermissions(Book.class, ReadPermission.class, AUTHORS);
-        verify(permissionExecutor, times(1)).checkUserPermissions(Author.class, ReadPermission.class, NAME);
+        verify(permissionExecutor, times(1)).checkUserPermissions(new ClassType(Book.class), ReadPermission.class, AUTHORS);
+        verify(permissionExecutor, times(1)).checkUserPermissions(new ClassType(Author.class), ReadPermission.class, NAME);
         verify(permissionExecutor, never()).checkSpecificFieldPermissions(resource, null, ReadPermission.class, GENRE);
         verify(permissionExecutor, times(2)).checkUserPermissions(any(), any(), any());
         verify(permissionExecutor, never()).handleFilterJoinReject(any(), any(), any());
@@ -301,26 +302,26 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
     public void testUserChecksDeferred() throws Exception {
         RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
         FilterExpression expression =
-                dialect.parseFilterExpression("authors.homeAddress==main", Book.class, true);
+                dialect.parseFilterExpression("authors.homeAddress==main", new ClassType(Book.class), true);
 
         Book book = new Book();
         Author author = new Author();
         book.setAuthors(Collections.singleton(author));
         author.setBooks(Collections.singleton(book));
 
-        PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
-        PersistentResource<Author> resourceAuthor = new PersistentResource<>(author, null, "", scope);
+        PersistentResource<Book> resource = new PersistentResource<>(book, "", scope);
+        PersistentResource<Author> resourceAuthor = new PersistentResource<>(author, "", scope);
 
         PermissionExecutor permissionExecutor = scope.getPermissionExecutor();
         DataStoreTransaction tx = scope.getTransaction();
 
-        when(permissionExecutor.checkUserPermissions(Book.class, ReadPermission.class, AUTHORS))
+        when(permissionExecutor.checkUserPermissions(new ClassType(Book.class), ReadPermission.class, AUTHORS))
                 .thenReturn(ExpressionResult.PASS);
         when(permissionExecutor.checkSpecificFieldPermissionsDeferred(resource, null, ReadPermission.class, AUTHORS))
                 .thenReturn(ExpressionResult.PASS);
-        when(permissionExecutor.getReadPermissionFilter(Author.class)).thenReturn(Optional.empty());
+        when(permissionExecutor.getReadPermissionFilter(new ClassType(Author.class))).thenReturn(Optional.empty());
 
-        when(permissionExecutor.checkUserPermissions(Author.class, ReadPermission.class, HOME))
+        when(permissionExecutor.checkUserPermissions(new ClassType(Author.class), ReadPermission.class, HOME))
                 .thenReturn(ExpressionResult.DEFERRED);
         when(permissionExecutor.checkSpecificFieldPermissions(resourceAuthor, null, ReadPermission.class, HOME))
                 .thenThrow(ForbiddenAccessException.class);
@@ -332,9 +333,9 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         assertFalse(expression.accept(visitor));
 
         verify(permissionExecutor, times(1)).evaluateFilterJoinUserChecks(any(), any());
-        verify(permissionExecutor, times(1)).checkUserPermissions(Book.class, ReadPermission.class, AUTHORS);
-        verify(permissionExecutor, times(1)).getReadPermissionFilter(Author.class);
-        verify(permissionExecutor, times(1)).checkUserPermissions(Author.class, ReadPermission.class, HOME);
+        verify(permissionExecutor, times(1)).checkUserPermissions(new ClassType(Book.class), ReadPermission.class, AUTHORS);
+        verify(permissionExecutor, times(1)).getReadPermissionFilter(new ClassType(Author.class));
+        verify(permissionExecutor, times(1)).checkUserPermissions(new ClassType(Author.class), ReadPermission.class, HOME);
         verify(permissionExecutor, times(1)).checkSpecificFieldPermissions(resourceAuthor, null, ReadPermission.class, HOME);
         verify(permissionExecutor, times(2)).checkUserPermissions(any(), any(), any());
         verify(permissionExecutor, times(1)).handleFilterJoinReject(any(), any(), any());
@@ -345,10 +346,10 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
     public void testBypassReadonlyFilterRestriction() throws Exception {
         RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
         FilterExpression expression =
-                dialect.parseFilterExpression("authors.name==foo", Book.class, true);
+                dialect.parseFilterExpression("authors.name==foo", new ClassType(Book.class), true);
 
         Book book = new Book();
-        PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
+        PersistentResource<Book> resource = new PersistentResource<>(book, "", scope);
 
         PermissionExecutor permissionExecutor = scope.getPermissionExecutor();
         DataStoreTransaction tx = scope.getTransaction();
@@ -370,15 +371,15 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
     public void testCustomFilterJoin() throws Exception {
         RSQLFilterDialect dialect = new RSQLFilterDialect(scope.getDictionary());
         FilterExpression expression =
-                dialect.parseFilterExpression("genre==foo", Book.class, true);
+                dialect.parseFilterExpression("genre==foo", new ClassType(Book.class), true);
 
         Book book = new Book();
-        PersistentResource<Book> resource = new PersistentResource<>(book, null, "", scope);
+        PersistentResource<Book> resource = new PersistentResource<>(book, "", scope);
 
         PermissionExecutor permissionExecutor = scope.getPermissionExecutor();
         DataStoreTransaction tx = scope.getTransaction();
 
-        when(permissionExecutor.checkUserPermissions(Book.class, ReadPermission.class, GENRE))
+        when(permissionExecutor.checkUserPermissions(new ClassType(Book.class), ReadPermission.class, GENRE))
                 .thenReturn(ExpressionResult.DEFERRED);
         when(permissionExecutor.checkSpecificFieldPermissions(resource, null, ReadPermission.class, GENRE))
                 .thenThrow(new ForbiddenAccessException(ReadPermission.class));

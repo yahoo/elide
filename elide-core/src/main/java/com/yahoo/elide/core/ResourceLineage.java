@@ -8,6 +8,8 @@ package com.yahoo.elide.core;
 import org.apache.commons.collections4.map.LinkedMap;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import lombok.Value;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -20,7 +22,18 @@ import java.util.List;
  */
 public class ResourceLineage {
     private final LinkedMap<String, List<PersistentResource>> resourceMap;
-    private final List<PersistentResource> resourcePath;
+    private final List<LineagePath> resourcePath;
+
+    /**
+     * A node in the lineage that includes the resource and the link to the next node.
+     */
+    @Value
+    public static class LineagePath {
+        private PersistentResource resource;
+
+        //The relationship that links this path element to the next.
+        private String relationship;
+    }
 
     /**
      * Empty lineage for objects rooted in the URL.
@@ -34,27 +47,12 @@ public class ResourceLineage {
      * Extends a lineage with a new resource.
      * @param sharedLineage the shared lineage
      * @param next the next
+     * @param relationship The relationship name that links the lineage with the next element.
      */
-    public ResourceLineage(ResourceLineage sharedLineage, PersistentResource next) {
+    public ResourceLineage(ResourceLineage sharedLineage, PersistentResource next, String relationship) {
         resourceMap = new LinkedMap<>(sharedLineage.resourceMap);
         resourcePath = new LinkedList<>(sharedLineage.resourcePath);
-        addRecord(next);
-    }
-
-    /**
-     * Extends a lineage with a new resource that has an alias.  An alias is useful if
-     * there are two objects in the lineage with the same type or class.  The resource
-     * lineage does not allow two resources to have the same name.  As long as one of the two
-     * resources can be given an alias (by annotation), then two objects with the same type/class
-     * can exist in the lineage.  This case is likely to be uncommon.
-     * @param sharedLineage the shared lineage
-     * @param next the next
-     * @param nextAlias the next alias
-     */
-    public ResourceLineage(ResourceLineage sharedLineage, PersistentResource next, String nextAlias) {
-        resourceMap = new LinkedMap<>(sharedLineage.resourceMap);
-        resourcePath = new LinkedList<>(sharedLineage.resourcePath);
-        addRecord(next, nextAlias);
+        addRecord(next, relationship);
     }
 
     /**
@@ -77,12 +75,12 @@ public class ResourceLineage {
         return resourceMap.asList();
     }
 
-    public List<PersistentResource> getResourcePath() {
+    public List<LineagePath> getResourcePath() {
         return resourcePath;
     }
 
     private void addRecord(PersistentResource latest) {
-        addRecord(latest, latest.getType());
+        addRecord(latest, latest.getTypeName());
     }
 
     @Override
@@ -110,7 +108,8 @@ public class ResourceLineage {
         return other.resourcePath.equals(this.resourcePath);
     }
 
-    private void addRecord(PersistentResource latest, String alias) {
+    private void addRecord(PersistentResource latest, String relationship) {
+        String alias = latest.getTypeName();
         List<PersistentResource> resources;
         if (resourceMap.containsKey(alias)) {
             resources = resourceMap.get(alias);
@@ -119,6 +118,6 @@ public class ResourceLineage {
             resourceMap.put(alias, resources);
         }
         resources.add(latest);
-        resourcePath.add(latest);
+        resourcePath.add(new ResourceLineage.LineagePath(latest, relationship));
     }
 }

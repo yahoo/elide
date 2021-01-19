@@ -9,6 +9,10 @@ package com.yahoo.elide.datastores.search;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
+
+import com.google.common.base.Preconditions;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.jpa.FullTextEntityManager;
 import org.hibernate.search.jpa.Search;
@@ -56,8 +60,10 @@ public class SearchDataStore implements DataStore {
 
             FullTextEntityManager em = Search.getFullTextEntityManager(entityManagerFactory.createEntityManager());
             try {
-                for (Class<?> entityClass : entityDictionary.getBoundClasses()) {
-                    if (entityDictionary.getAnnotation(entityClass, Indexed.class) != null) {
+                for (Type<?> entityType : entityDictionary.getBoundClasses()) {
+                    if (entityDictionary.getAnnotation(entityType, Indexed.class) != null) {
+                        Preconditions.checkState(entityType instanceof ClassType);
+                        Class<?> entityClass = ((ClassType) entityType).getCls();
                         em.createIndexer(entityClass).startAndWait();
                     }
                 }

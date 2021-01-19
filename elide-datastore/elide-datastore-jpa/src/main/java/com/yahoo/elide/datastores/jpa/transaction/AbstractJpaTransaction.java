@@ -24,6 +24,7 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.jpa.porting.EntityManagerWrapper;
 import com.yahoo.elide.datastores.jpa.porting.QueryWrapper;
 import com.yahoo.elide.datastores.jpa.transaction.checker.PersistentCollectionChecker;
@@ -147,12 +148,12 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                              Serializable id,
                              RequestScope scope) {
 
-        Class<?> entityClass = projection.getType();
+        Type<?> entityClass = projection.getType();
         FilterExpression filterExpression = projection.getFilterExpression();
 
         try {
             EntityDictionary dictionary = scope.getDictionary();
-            Class<?> idType = dictionary.getIdType(entityClass);
+            Type<?> idType = dictionary.getIdType(entityClass);
             String idField = dictionary.getIdFieldName(entityClass);
 
             //Construct a predicate that selects an individual element of the relationship's parent.
@@ -232,7 +233,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                 }
 
                 RelationshipImpl relationship = new RelationshipImpl(
-                        dictionary.lookupEntityClass(entity.getClass()),
+                        dictionary.lookupEntityClass(EntityDictionary.getType(entity)),
                         entity,
                         relation
                 );

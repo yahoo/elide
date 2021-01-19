@@ -10,6 +10,7 @@ import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.TimedFunction;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -34,6 +35,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLRefer
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryPlanTranslator;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryTranslator;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
@@ -108,7 +110,7 @@ public class SQLQueryEngine extends QueryEngine {
     };
 
     @Override
-    protected Table constructTable(Class<?> entityClass, EntityDictionary metaDataDictionary) {
+    protected Table constructTable(Type<?> entityClass, EntityDictionary metaDataDictionary) {
 
         String dbConnectionName = null;
         Annotation annotation = EntityDictionary.getFirstAnnotation(entityClass,
@@ -237,15 +239,21 @@ public class SQLQueryEngine extends QueryEngine {
         ConnectionDetails details = query.getConnectionDetails();
         DataSource dataSource = details.getDataSource();
         SQLDialect dialect = details.getDialect();
-        String paginationSQL = toPageTotalSQL(query, sql, dialect).toString();
+        SQLQuery paginationSQL = toPageTotalSQL(query, sql, dialect);
 
-        NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(paginationSQL, dataSource);
+        if (paginationSQL == null) {
+            // The query returns the aggregated metric without any dimension.
+            // Only 1 record will be returned.
+            return 1;
+        }
+
+        NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(paginationSQL.toString(), dataSource);
 
         // Supply the query parameters to the query
         supplyFilterQueryParameters(query, stmt);
 
         // Run the Pagination query and log the time spent.
-        Long result = CoerceUtil.coerce(runQuery(stmt, paginationSQL, SINGLE_RESULT_MAPPER), Long.class);
+        Long result = CoerceUtil.coerce(runQuery(stmt, paginationSQL.toString(), SINGLE_RESULT_MAPPER), Long.class);
 
         return (result != null) ? result : 0;
     }
@@ -255,7 +263,7 @@ public class SQLQueryEngine extends QueryEngine {
 
         String tableVersion = null;
         SQLTable sqlTable = (SQLTable) table;
-        Class<?> tableClass = metadataDictionary.getEntityClass(table.getName(), table.getVersion());
+        Type<?> tableClass = metadataDictionary.getEntityClass(table.getName(), table.getVersion());
         VersionQuery versionAnnotation = tableClass.getAnnotation(VersionQuery.class);
         if (versionAnnotation != null) {
             String versionQueryString = versionAnnotation.sql();
@@ -296,7 +304,10 @@ public class SQLQueryEngine extends QueryEngine {
 
         Pagination pagination = query.getPagination();
         if (returnPageTotals(pagination)) {
-            queries.add(toPageTotalSQL(expandedQuery, sql, dialect).toString());
+            SQLQuery paginationSql = toPageTotalSQL(expandedQuery, sql, dialect);
+            if (paginationSql != null) {
+                queries.add(paginationSql.toString());
+            }
         }
         queries.add(sql.toString());
         return queries;
@@ -393,19 +404,29 @@ public class SQLQueryEngine extends QueryEngine {
         String groupByDimensions =
                 query.getAllDimensionProjections()
                         .stream()
-                        .map(dimension -> queryReferenceTable.getResolvedReference(
-                                query.getSource(),
-                                dimension.getName()))
+                        .map(SQLColumnProjection.class::cast)
+                        .map((column) -> column.toSQL(queryReferenceTable))
                         .collect(Collectors.joining(", "));
 
-        String projectionClause = sqlDialect.generateCountDistinctClause(groupByDimensions);
+        if (groupByDimensions.isEmpty()) {
+            // When no dimension projection is available, assume that metric projection is used.
+            // Metric projection without group by dimension will return onely 1 record.
+            return null;
+        }
 
-        return SQLQuery.builder()
-                .projectionClause(projectionClause)
+        SQLQuery innerQuery =  SQLQuery.builder()
+                .projectionClause(groupByDimensions)
                 .fromClause(sql.getFromClause())
                 .joinClause(sql.getJoinClause())
                 .whereClause(sql.getWhereClause())
+                .groupByClause(String.format("GROUP BY %s", groupByDimensions))
                 .havingClause(sql.getHavingClause())
+                .build();
+
+        return SQLQuery.builder()
+                .projectionClause("COUNT(*)")
+                .fromClause(String.format("(%s) AS %spagination_subquery%s",
+                        innerQuery.toString(), sqlDialect.getBeginQuote(), sqlDialect.getEndQuote()))
                 .build();
     }
 

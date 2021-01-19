@@ -13,6 +13,7 @@ import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
+import com.yahoo.elide.core.type.Type;
 
 import java.util.Collection;
 import java.util.function.Function;
@@ -32,14 +33,14 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
     }
 
     @Override
-    protected String extractToOneMergeJoins(Class<?> entityClass, String alias) {
+    protected String extractToOneMergeJoins(Type<?> entityClass, String alias) {
         Function<String, Boolean> shouldSkip = (relationshipName) -> {
             String inverseRelationName = dictionary.getRelationInverse(entityClass, relationshipName);
             if (inverseRelationName.isEmpty()) {
                 return false;
             }
 
-            Class<?> relationshipClass = dictionary.getParameterizedType(entityClass, relationshipName);
+            Type<?> relationshipClass = dictionary.getParameterizedType(entityClass, relationshipName);
 
             //We don't need (or want) to fetch join the parent object.
             return relationshipClass.equals(relationship.getParentType())

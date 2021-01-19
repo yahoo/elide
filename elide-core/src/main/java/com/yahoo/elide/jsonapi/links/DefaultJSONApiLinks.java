@@ -6,8 +6,10 @@
 package com.yahoo.elide.jsonapi.links;
 
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.ResourceLineage;
 import com.google.common.collect.ImmutableMap;
 
+import java.util.List;
 import java.util.Map;
 
 /***
@@ -16,6 +18,16 @@ import java.util.Map;
  * Ad the subclass object in ElideAutoConfiguration.
  */
 public class DefaultJSONApiLinks implements JSONApiLinks {
+
+    private final String baseUrl;
+
+    public DefaultJSONApiLinks() {
+        this("");
+    }
+
+    public DefaultJSONApiLinks(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
 
     @Override
     public Map<String, String> getResourceLevelLinks(PersistentResource resource) {
@@ -37,13 +49,43 @@ public class DefaultJSONApiLinks implements JSONApiLinks {
      */
     protected String getResourceUrl(PersistentResource resource) {
         StringBuilder result = new StringBuilder();
-        if (resource.getRequestScope().getBaseUrlEndPoint() != null) {
-            result.append(resource.getRequestScope().getBaseUrlEndPoint());
+
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            if (resource.getRequestScope().getBaseUrlEndPoint() != null) {
+                result.append(resource.getRequestScope().getBaseUrlEndPoint());
+            }
+        } else {
+            result.append(baseUrl);
         }
-        for (PersistentResource resourcePath : resource.getLineage().getResourcePath()) {
-            result.append(String.join("/", resourcePath.getType(), resourcePath.getId()));
+//<<<<<<< HEAD
+
+        List<ResourceLineage.LineagePath> path = resource.getLineage().getResourcePath();
+        if (path.size() > 0) {
+            result.append(String.join("/", getPathSegment(path), resource.getId()));
+        } else {
+            result.append(String.join("/", resource.getTypeName(), resource.getId()));
         }
-        result.append(String.join("/", resource.getType(), resource.getId()));
+
+        return result.toString();
+    }
+
+    private String getPathSegment(List<ResourceLineage.LineagePath> path) {
+        StringBuilder result = new StringBuilder();
+
+        int pathSegmentCount = 0;
+        for (ResourceLineage.LineagePath pathElement : path) {
+            PersistentResource resource = pathElement.getResource();
+            if (pathSegmentCount > 0) {
+                result.append("/");
+                result.append(String.join("/",
+                        resource.getId(), pathElement.getRelationship()));
+            } else {
+                result.append(String.join("/",
+                        resource.getTypeName(), resource.getId(), pathElement.getRelationship()));
+            }
+            pathSegmentCount++;
+        }
+
         return result.toString();
     }
 }

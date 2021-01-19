@@ -18,6 +18,7 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 
 import java.util.ArrayList;
@@ -54,8 +55,8 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
      */
     @Override
     public Query build() {
-        Class<?> parentType = dictionary.lookupEntityClass(relationship.getParentType());
-        Class<?> idType = dictionary.getIdType(parentType);
+        Type<?> parentType = dictionary.lookupEntityClass(relationship.getParentType());
+        Type<?> idType = dictionary.getIdType(parentType);
         Object idVal = CoerceUtil.coerce(dictionary.getId(relationship.getParent()), idType);
         String idField = dictionary.getIdFieldName(parentType);
 

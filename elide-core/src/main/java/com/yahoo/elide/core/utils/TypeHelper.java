@@ -7,10 +7,14 @@
 package com.yahoo.elide.core.utils;
 
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Dynamic;
+import com.yahoo.elide.core.type.Type;
 import com.google.common.collect.Sets;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Utilities for handling types and aliases.
@@ -30,8 +34,12 @@ public class TypeHelper {
      * @param type type to check
      * @return True is the type is primitive number type
      */
-    public static boolean isPrimitiveNumberType(Class<?> type) {
-        return PRIMITIVE_NUMBER_TYPES.contains(type);
+    public static boolean isPrimitiveNumberType(Type<?> type) {
+        if (type instanceof Dynamic) {
+            return false;
+        }
+
+        return PRIMITIVE_NUMBER_TYPES.contains(((ClassType) type).getCls());
     }
 
     /**
@@ -96,7 +104,7 @@ public class TypeHelper {
      * @param type The type to alias
      * @return type name alias that will likely not conflict with other types or with reserved keywords.
      */
-    public static String getTypeAlias(Class<?> type) {
+    public static String getTypeAlias(Type<?> type) {
         return type.getCanonicalName().replace(PERIOD, UNDERSCORE);
     }
 
@@ -130,5 +138,15 @@ public class TypeHelper {
      */
     private static boolean nullOrEmpty(String alias) {
         return alias == null || alias.equals("");
+    }
+
+    public static Type<?> getClassType(Class<?> cls) {
+        return (cls == null) ? null : new ClassType<>(cls);
+    }
+
+    public static Set<Type<?>> getClassType(Set<Class<?>> cls) {
+        return cls.stream()
+                        .map(TypeHelper::getClassType)
+                        .collect(Collectors.toSet());
     }
 }

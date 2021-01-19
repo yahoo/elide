@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.inmemory;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -55,7 +56,7 @@ public class HashMapDataStoreTest {
 
     @Test
     public void dataStoreTestInheritance() throws IOException, InstantiationException, IllegalAccessException {
-        Map<String, Object> entry = inMemoryDataStore.get(FirstBean.class);
+        Map<String, Object> entry = inMemoryDataStore.get(getClassType(FirstBean.class));
         assertEquals(0, entry.size());
 
         FirstChildBean child = createNewInheritanceObject(FirstChildBean.class);
@@ -86,7 +87,7 @@ public class HashMapDataStoreTest {
 
     @Test
     public void dataStoreTestInheritanceDelete() throws IOException, InstantiationException, IllegalAccessException {
-        Map<String, Object> entry = inMemoryDataStore.get(FirstBean.class);
+        Map<String, Object> entry = inMemoryDataStore.get(getClassType(FirstBean.class));
         assertEquals(0, entry.size());
 
         FirstChildBean child = createNewInheritanceObject(FirstChildBean.class);
@@ -112,7 +113,7 @@ public class HashMapDataStoreTest {
 
     @Test
     public void dataStoreTestInheritanceUpdate() throws IOException, InstantiationException, IllegalAccessException {
-        Map<String, Object> entry = inMemoryDataStore.get(FirstBean.class);
+        Map<String, Object> entry = inMemoryDataStore.get(getClassType(FirstBean.class));
         assertEquals(0, entry.size());
 
         FirstChildBean child = createNewInheritanceObject(FirstChildBean.class);
@@ -141,10 +142,10 @@ public class HashMapDataStoreTest {
     @Test
     public void checkLoading() {
         final EntityDictionary entityDictionary = inMemoryDataStore.getDictionary();
-        assertNotNull(entityDictionary.getJsonAliasFor(FirstBean.class));
-        assertNotNull(entityDictionary.getJsonAliasFor(SecondBean.class));
-        assertThrows(IllegalArgumentException.class, () -> entityDictionary.getJsonAliasFor(NonEntity.class));
-        assertThrows(IllegalArgumentException.class, () -> entityDictionary.getJsonAliasFor(ExcludedBean.class));
+        assertNotNull(entityDictionary.getJsonAliasFor(getClassType(FirstBean.class)));
+        assertNotNull(entityDictionary.getJsonAliasFor(getClassType(SecondBean.class)));
+        assertThrows(IllegalArgumentException.class, () -> entityDictionary.getJsonAliasFor(getClassType(NonEntity.class)));
+        assertThrows(IllegalArgumentException.class, () -> entityDictionary.getJsonAliasFor(getClassType(ExcludedBean.class)));
     }
 
     @Test

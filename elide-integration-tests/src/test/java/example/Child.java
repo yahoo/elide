@@ -18,6 +18,7 @@ import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.yahoo.elide.core.type.Type;
 
 import java.util.Optional;
 import java.util.Set;
@@ -123,7 +124,7 @@ public class Child extends BaseId {
 
     static public class InitCheckFilter extends FilterExpressionCheck<Child> {
         @Override
-        public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Type entityClass, RequestScope requestScope) {
             return new NotNullPredicate(new Path.PathElement(Child.class, Long.class, "id"));
         }
     }

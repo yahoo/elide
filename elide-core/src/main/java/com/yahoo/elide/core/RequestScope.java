@@ -12,7 +12,6 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
-import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -23,6 +22,7 @@ import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import io.reactivex.Observable;
@@ -276,7 +276,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
      * @param entityClass The class to lookup
      * @return The filter expression for the given type
      */
-    public Optional<FilterExpression> getFilterExpressionByType(Class<?> entityClass) {
+    public Optional<FilterExpression> getFilterExpressionByType(Type<?> entityClass) {
         return Optional.ofNullable(expressionsByType.get(dictionary.getJsonAliasFor(entityClass)));
     }
 
@@ -285,7 +285,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
      * @param loadClass Entity class
      * @return The global filter expression evaluated at the first load
      */
-    public Optional<FilterExpression> getLoadFilterExpression(Class<?> loadClass) {
+    public Optional<FilterExpression> getLoadFilterExpression(Type<?> loadClass) {
         Optional<FilterExpression> filterExpression;
         if (globalFilterExpression == null) {
             String typeName = dictionary.getJsonAliasFor(loadClass);
@@ -302,35 +302,15 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
      * @param relationName The relationship name
      * @return A type specific filter expression for the given relationship
      */
-    public Optional<FilterExpression> getExpressionForRelation(Class<?> parentType, String relationName) {
-        final Class<?> entityClass = dictionary.getParameterizedType(parentType, relationName);
+    public Optional<FilterExpression> getExpressionForRelation(Type<?> parentType, String relationName) {
+        final Type<?> entityClass = dictionary.getParameterizedType(parentType, relationName);
         if (entityClass == null) {
             throw new InvalidAttributeException(relationName, dictionary.getJsonAliasFor(parentType));
         }
-        if (dictionary.isMappedInterface(entityClass) && interfaceHasFilterExpression(entityClass)) {
-            throw new InvalidOperationException(
-                    "Cannot apply filters to polymorphic relations mapped with MappedInterface");
-        }
+
         final String valType = dictionary.getJsonAliasFor(entityClass);
         return getFilterExpressionByType(valType);
     }
-
-    /**
-     * Checks to see if any filters are meant to to applied to a polymorphic Any/ManyToAny relationship.
-     * @param entityInterface a @MappedInterface
-     * @return whether or not there are any typed filter expressions meant for this polymorphic interface
-     */
-    private boolean interfaceHasFilterExpression(Class<?> entityInterface) {
-        for (String filterType : expressionsByType.keySet()) {
-            String version = EntityDictionary.getModelVersion(entityInterface);
-            Class<?> polyMorphicClass = dictionary.getEntityClass(filterType, version);
-            if (entityInterface.isAssignableFrom(polyMorphicClass)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
 
     /**
      * Extracts any query params that start with 'filter'.
@@ -471,13 +451,13 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         return objectEntityCache.getUUID(o);
     }
 
-    public Object getObjectById(Class<?> type, String id) {
-        Class<?> boundType = dictionary.lookupBoundClass(type);
+    public Object getObjectById(Type<?> type, String id) {
+        Type<?> boundType = dictionary.lookupBoundClass(type);
 
         Object result = objectEntityCache.get(boundType.getName(), id);
 
         // Check inheritance too
-        Iterator<Class<?>> it = dictionary.getSubclassingEntities(boundType).iterator();
+        Iterator<Type<?>> it = dictionary.getSubclassingEntities(boundType).iterator();
         while (result == null && it.hasNext()) {
             String newType = getInheritanceKey(it.next().getName(), boundType.getName());
             result = objectEntityCache.get(newType, id);
@@ -486,8 +466,8 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         return result;
     }
 
-    public void setUUIDForObject(Class<?> type, String id, Object object) {
-        Class<?> boundType = dictionary.lookupBoundClass(type);
+    public void setUUIDForObject(Type<?> type, String id, Object object) {
+        Type<?> boundType = dictionary.lookupBoundClass(type);
 
         objectEntityCache.put(boundType.getName(), id, object);
 

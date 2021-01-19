@@ -21,6 +21,7 @@ import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
+import com.yahoo.elide.core.type.ClassType;
 import example.TestCheckMappings;
 import org.junit.jupiter.api.Test;
 
@@ -414,7 +415,7 @@ public class PermissionExecutorTest {
     public void testUserCheckOnFieldSuccess() {
         PersistentResource resource = newResource(OpenBean.class, false);
         RequestScope requestScope = resource.getRequestScope();
-        ExpressionResult result = requestScope.getPermissionExecutor().checkUserPermissions(OpenBean.class,
+        ExpressionResult result = requestScope.getPermissionExecutor().checkUserPermissions(new ClassType(OpenBean.class),
                 ReadPermission.class,
                 "open");
 
@@ -427,7 +428,7 @@ public class PermissionExecutorTest {
         RequestScope requestScope = resource.getRequestScope();
         assertThrows(
                 ForbiddenAccessException.class,
-                () -> requestScope.getPermissionExecutor().checkUserPermissions(SampleBean.class,
+                () -> requestScope.getPermissionExecutor().checkUserPermissions(new ClassType(SampleBean.class),
                 ReadPermission.class,
                 "cannotSeeMe"));
     }
@@ -437,7 +438,7 @@ public class PermissionExecutorTest {
         PersistentResource resource = newResource(SampleBean.class, false);
         RequestScope requestScope = resource.getRequestScope();
 
-        ExpressionResult result = requestScope.getPermissionExecutor().checkUserPermissions(SampleBean.class,
+        ExpressionResult result = requestScope.getPermissionExecutor().checkUserPermissions(new ClassType(SampleBean.class),
                 ReadPermission.class,
                 "allVisible");
 
@@ -448,7 +449,7 @@ public class PermissionExecutorTest {
         EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
         dictionary.bindEntity(cls);
         RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, null, null, null, null, UUID.randomUUID(), getElideSettings(dictionary));
-        PersistentResource resource = new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
+        PersistentResource resource = new PersistentResource<>(obj, requestScope.getUUIDFor(obj), requestScope);
         if (markNew) {
             requestScope.getNewPersistentResources().add(resource);
         }

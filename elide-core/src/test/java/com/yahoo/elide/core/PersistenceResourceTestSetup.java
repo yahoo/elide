@@ -23,6 +23,7 @@ import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.google.common.collect.Sets;
 import example.Author;
@@ -115,7 +116,6 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     public PersistenceResourceTestSetup() {
         super(
                 new Child(),
-                null,
                 null, // new request scope + new Child == cannot possibly be a UUID for this object
                 new RequestScope(null, null, NO_VERSION, null, null, null, null, null, UUID.randomUUID(),
                         initSettings()
@@ -154,7 +154,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     protected <T> PersistentResource<T> bootstrapPersistentResource(T obj, DataStoreTransaction tx) {
         User goodUser = new TestUser("1");
         RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, null, UUID.randomUUID(), elideSettings);
-        return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
+        return new PersistentResource<>(obj, requestScope.getUUIDFor(obj), requestScope);
     }
 
     protected RequestScope getUserScope(User user, AuditLogger auditLogger) {
@@ -257,12 +257,12 @@ public class PersistenceResourceTestSetup extends PersistentResource {
 
     public Set<PersistentResource> getRelation(PersistentResource resource, String relation) {
         Observable<PersistentResource> resources =
-                resource.getRelationCheckedFiltered(getRelationship(resource.getResourceClass(), relation));
+                resource.getRelationCheckedFiltered(getRelationship(resource.getResourceType(), relation));
 
         return resources.toList(LinkedHashSet::new).blockingGet();
     }
 
-    public com.yahoo.elide.core.request.Relationship getRelationship(Class<?> type, String name) {
+    public com.yahoo.elide.core.request.Relationship getRelationship(Type<?> type, String name) {
         return com.yahoo.elide.core.request.Relationship.builder()
                 .name(name)
                 .alias(name)

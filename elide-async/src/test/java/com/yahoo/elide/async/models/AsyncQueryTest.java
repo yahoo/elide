@@ -3,10 +3,9 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.async.service;
+package com.yahoo.elide.async.models;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import com.yahoo.elide.async.models.AsyncQuery;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;

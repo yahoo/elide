@@ -10,6 +10,8 @@ import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.F
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
@@ -22,7 +24,6 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Id;
@@ -71,7 +72,7 @@ public abstract class Column implements Versioned {
 
     protected Column(Table table, String fieldName, EntityDictionary dictionary) {
         this.table = table;
-        Class<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
+        Type<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
 
         this.id = constructColumnName(tableClass, fieldName, dictionary);
         this.name = fieldName;
@@ -127,7 +128,7 @@ public abstract class Column implements Versioned {
      * @param dictionary entity dictionary to use
      * @return <code>tableAlias.fieldName</code>
      */
-    protected static String constructColumnName(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
+    protected static String constructColumnName(Type<?> tableClass, String fieldName, EntityDictionary dictionary) {
         return dictionary.getJsonAliasFor(tableClass) + "." + fieldName;
     }
 
@@ -139,15 +140,15 @@ public abstract class Column implements Versioned {
      * @param dictionary meta data dictionary
      * @return field value type
      */
-    public static ValueType getValueType(Class<?> tableClass, String fieldName, EntityDictionary dictionary) {
+    public static ValueType getValueType(Type<?> tableClass, String fieldName, EntityDictionary dictionary) {
         if (dictionary.isRelation(tableClass, fieldName)) {
             return ValueType.RELATIONSHIP;
         } else {
-            Class<?> fieldClass = dictionary.getType(tableClass, fieldName);
+            Type<?> fieldClass = dictionary.getType(tableClass, fieldName);
 
             if (fieldName.equals(dictionary.getIdFieldName(tableClass))) {
                 return ValueType.ID;
-            } else if (Date.class.isAssignableFrom(fieldClass)) {
+            } else if (ClassType.DATE_TYPE.isAssignableFrom(fieldClass)) {
                 return ValueType.TIME;
             } else {
                 return ValueType.getScalarType(fieldClass);

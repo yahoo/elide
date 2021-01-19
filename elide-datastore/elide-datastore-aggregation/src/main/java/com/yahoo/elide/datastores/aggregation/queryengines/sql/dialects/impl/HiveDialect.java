@@ -19,16 +19,6 @@ public class HiveDialect extends AbstractSqlDialect {
         return "Hive";
     }
 
-    /**
-     * Omit parentheses on the inner DISTINCT clause.
-     * @param dimensions
-     * @return
-     */
-    @Override
-    public String generateCountDistinctClause(String dimensions) {
-        return String.format("COUNT(DISTINCT %s)", dimensions);
-    }
-
     @Override
     public String generateOffsetLimitClause(int offset, int limit) {
         return LIMIT + offset + COMMA + limit;

@@ -29,11 +29,6 @@ public abstract class AbstractSqlDialect implements SQLDialect {
     }
 
     @Override
-    public String generateCountDistinctClause(String dimensions) {
-        return String.format("COUNT(DISTINCT(%s))", dimensions);
-    }
-
-    @Override
     public String generateOffsetLimitClause(int offset, int limit) {
         return OFFSET + offset + SPACE + LIMIT + limit;
     }

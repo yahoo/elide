@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.type.ClassType;
 import example.Author;
 import example.Book;
 import example.Job;
@@ -334,7 +335,7 @@ public class RSQLFilterDialectTest {
 
         assertEquals(
                 "author.id INFIX [20]",
-                visitor.visit(comparisonNode, Author.class).toString()
+                visitor.visit(comparisonNode, new ClassType(Author.class)).toString()
         );
     }
 

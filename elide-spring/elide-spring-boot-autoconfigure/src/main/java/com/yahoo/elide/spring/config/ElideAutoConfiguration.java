@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.spring.config;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.SecurityCheck;
@@ -29,6 +30,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
+import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.modelconfig.model.DBConfig;
@@ -55,6 +57,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -140,7 +143,21 @@ public class ElideAutoConfiguration {
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
                 .withAuditLogger(new Slf4jLogger())
+                .withBaseUrl(settings.getBaseUrl())
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
+
+        if (settings.getJsonApi() != null
+                && settings.getJsonApi().isEnabled()
+                && settings.getJsonApi().isEnableLinks()) {
+            String baseUrl = settings.getBaseUrl();
+
+            if (baseUrl == null || baseUrl.isEmpty()) {
+                builder.withJSONApiLinks(new DefaultJSONApiLinks());
+            } else {
+                String jsonApiBaseUrl = baseUrl + settings.getJsonApi().getPath() + "/";
+                builder.withJSONApiLinks(new DefaultJSONApiLinks(jsonApiBaseUrl));
+            }
+        }
 
         return new Elide(builder.build());
     }
@@ -249,9 +266,9 @@ public class ElideAutoConfiguration {
             AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder =
                             AggregationDataStore.builder().queryEngine(queryEngine);
             if (isDynamicConfigEnabled(settings)) {
-                Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(FromTable.class);
-                annotatedClass.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
-                aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClass);
+                Set<Class<?>> annotatedClasses = compiler.findAnnotatedClasses(FromTable.class);
+                annotatedClasses.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
+                aggregationDataStoreBuilder.dynamicCompiledClasses(getClassType(annotatedClasses));
             }
             aggregationDataStoreBuilder.cache(cache);
             aggregationDataStoreBuilder.queryLogger(querylogger);
@@ -304,6 +321,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
+    @ConditionalOnProperty(name = "elide.swagger.enabled", havingValue = "true")
     public Swagger buildSwagger(EntityDictionary dictionary, ElideConfigProperties settings) {
         Info info = new Info()
                 .title(settings.getSwagger().getName())
