@@ -45,7 +45,7 @@ public class ElideStandaloneDisableMetaDataStoreTest extends ElideStandaloneTest
                         .withEntityDictionary(dictionary)
                         .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                         .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
-                        .withJSONApiLinks(new DefaultJSONApiLinks())
+                        .withJSONApiLinks(new DefaultJSONApiLinks(jsonApiBaseUrl))
                         .withBaseUrl("https://elide.io")
                         .withAuditLogger(getAuditLogger())
                         .withJsonApiPath(getJsonApiPathSpec().replaceAll("/\\*", ""))
