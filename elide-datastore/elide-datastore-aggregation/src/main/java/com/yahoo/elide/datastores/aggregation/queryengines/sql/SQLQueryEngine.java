@@ -238,15 +238,21 @@ public class SQLQueryEngine extends QueryEngine {
         ConnectionDetails details = query.getConnectionDetails();
         DataSource dataSource = details.getDataSource();
         SQLDialect dialect = details.getDialect();
-        String paginationSQL = toPageTotalSQL(query, sql, dialect).toString();
+        SQLQuery paginationSQL = toPageTotalSQL(query, sql, dialect);
 
-        NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(paginationSQL, dataSource);
+        if (paginationSQL == null) {
+            // The query returns the aggregated metric without any dimension.
+            // Only 1 record will be returned.
+            return 1;
+        }
+
+        NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(paginationSQL.toString(), dataSource);
 
         // Supply the query parameters to the query
         supplyFilterQueryParameters(query, stmt);
 
         // Run the Pagination query and log the time spent.
-        Long result = CoerceUtil.coerce(runQuery(stmt, paginationSQL, SINGLE_RESULT_MAPPER), Long.class);
+        Long result = CoerceUtil.coerce(runQuery(stmt, paginationSQL.toString(), SINGLE_RESULT_MAPPER), Long.class);
 
         return (result != null) ? result : 0;
     }
@@ -297,7 +303,10 @@ public class SQLQueryEngine extends QueryEngine {
 
         Pagination pagination = query.getPagination();
         if (returnPageTotals(pagination)) {
-            queries.add(toPageTotalSQL(expandedQuery, sql, dialect).toString());
+            SQLQuery paginationSql = toPageTotalSQL(expandedQuery, sql, dialect);
+            if (paginationSql != null) {
+                queries.add(paginationSql.toString());
+            }
         }
         queries.add(sql.toString());
         return queries;
@@ -398,14 +407,25 @@ public class SQLQueryEngine extends QueryEngine {
                         .map((column) -> column.toSQL(queryReferenceTable))
                         .collect(Collectors.joining(", "));
 
-        String projectionClause = sqlDialect.generateCountDistinctClause(groupByDimensions);
+        if (groupByDimensions.isEmpty()) {
+            // When no dimension projection is available, assume that metric projection is used.
+            // Metric projection without group by dimension will return onely 1 record.
+            return null;
+        }
 
-        return SQLQuery.builder()
-                .projectionClause(projectionClause)
+        SQLQuery innerQuery =  SQLQuery.builder()
+                .projectionClause(groupByDimensions)
                 .fromClause(sql.getFromClause())
                 .joinClause(sql.getJoinClause())
                 .whereClause(sql.getWhereClause())
+                .groupByClause(String.format("GROUP BY %s", groupByDimensions))
                 .havingClause(sql.getHavingClause())
+                .build();
+
+        return SQLQuery.builder()
+                .projectionClause("COUNT(*)")
+                .fromClause(String.format("(%s) AS %spagination_subquery%s",
+                        innerQuery.toString(), sqlDialect.getBeginQuote(), sqlDialect.getEndQuote()))
                 .build();
     }
 

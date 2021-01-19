@@ -241,6 +241,13 @@ public abstract class SQLUnitTest {
                     .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                     .build();
         }),
+        PAGINATION_METRIC_ONLY (() -> {
+            return Query.builder()
+                    .source(playerStatsTable)
+                    .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
+                    .pagination(new ImmutablePagination(10, 5, false, true))
+                    .build();
+        }),
         COMPLICATED (() -> {
             // Sorting
             Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
