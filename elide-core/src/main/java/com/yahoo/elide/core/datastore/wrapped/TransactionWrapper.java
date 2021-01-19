@@ -33,28 +33,28 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     }
 
     @Override
-    public Object loadObject(EntityProjection projection, Serializable id,
+    public <T> T loadObject(EntityProjection projection, Serializable id,
                              RequestScope scope) {
         return tx.loadObject(projection, id, scope);
     }
 
     @Override
-    public Object getRelation(DataStoreTransaction relationTx, Object entity,
+    public <T, R> R getRelation(DataStoreTransaction relationTx, T entity,
                               Relationship relationship, RequestScope scope) {
         return tx.getRelation(relationTx, entity, relationship, scope);
     }
 
     @Override
-    public void updateToManyRelation(DataStoreTransaction relationTx, Object entity, String relationName,
-                                     Set<Object> newRelationships, Set<Object> deletedRelationships,
+    public <T, R> void updateToManyRelation(DataStoreTransaction relationTx, T entity, String relationName,
+                                     Set<R> newRelationships, Set<R> deletedRelationships,
                                      RequestScope scope) {
         tx.updateToManyRelation(relationTx, entity, relationName, newRelationships, deletedRelationships, scope);
 
     }
 
     @Override
-    public void updateToOneRelation(DataStoreTransaction relationTx, Object entity,
-                                    String relationName, Object relationshipValue, RequestScope scope) {
+    public <T, R> void updateToOneRelation(DataStoreTransaction relationTx, T entity,
+                                    String relationName, R relationshipValue, RequestScope scope) {
         tx.updateToOneRelation(relationTx, entity, relationName, relationshipValue, scope);
     }
 
@@ -69,29 +69,28 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     }
 
     @Override
-    public FeatureSupport supportsFiltering(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
         return tx.supportsFiltering(scope, parent, projection);
     }
 
     @Override
-    public boolean supportsSorting(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+    public <T> boolean supportsSorting(RequestScope scope, Optional<T> parent, EntityProjection projection) {
         return tx.supportsSorting(scope, parent, projection);
     }
 
     @Override
-    public boolean supportsPagination(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+    public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
         return tx.supportsPagination(scope, parent, projection);
     }
 
     @Override
-    public void save(Object o, RequestScope requestScope) {
+    public <T> void save(T o, RequestScope requestScope) {
         tx.save(o, requestScope);
     }
 
     @Override
-    public void delete(Object o, RequestScope requestScope) {
+    public <T> void delete(T o, RequestScope requestScope) {
         tx.delete(o, requestScope);
-
     }
 
     @Override

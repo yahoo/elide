@@ -41,7 +41,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param entity - the object to save.
      * @param scope - contains request level metadata.
      */
-    void save(Object entity, RequestScope scope);
+    <T> void save(T entity, RequestScope scope);
 
     /**
      * Delete the object.
@@ -49,7 +49,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param entity - the object to delete.
      * @param scope - contains request level metadata.
      */
-    void delete(Object entity, RequestScope scope);
+    <T> void delete(T entity, RequestScope scope);
 
     /**
      * Write any outstanding entities before processing response.
@@ -85,7 +85,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param entity - the object to create in the data store.
      * @param scope - contains request level metadata.
      */
-    void createObject(Object entity, RequestScope scope);
+    <T> void createObject(T entity, RequestScope scope);
 
     /**
      * Create a new instance of an object.
@@ -114,7 +114,7 @@ public interface DataStoreTransaction extends Closeable {
      * It is optional for the data store to attempt evaluation.
      * @return the loaded object if it exists AND any provided security filters pass.
      */
-    default Object loadObject(EntityProjection entityProjection,
+    default <T> T loadObject(EntityProjection entityProjection,
                               Serializable id,
                               RequestScope scope) {
         Type<?> entityClass = entityProjection.getType();
@@ -131,12 +131,12 @@ public interface DataStoreTransaction extends Closeable {
                 ? new AndFilterExpression(idFilter, filterExpression)
                 : idFilter;
 
-        Iterable<Object> results = loadObjects(entityProjection.copyOf()
+        Iterable<T> results = loadObjects(entityProjection.copyOf()
                 .filterExpression(joinedFilterExpression)
                 .build(),
                 scope);
 
-        Iterator<Object> it = results == null ? null : results.iterator();
+        Iterator<T> it = results == null ? null : results.iterator();
         if (it != null && it.hasNext()) {
             return it.next();
         }
@@ -150,7 +150,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param scope - contains request level metadata.
      * @return a collection of the loaded objects
      */
-    Iterable<Object> loadObjects(
+    <T> Iterable<T> loadObjects(
             EntityProjection entityProjection,
             RequestScope scope);
 
@@ -163,13 +163,13 @@ public interface DataStoreTransaction extends Closeable {
      * @param scope - contains request level metadata.
      * @return the object in the relation
      */
-    default Object getRelation(
+    default <T, R> R getRelation(
             DataStoreTransaction relationTx,
-            Object entity,
+            T entity,
             Relationship relationship,
             RequestScope scope) {
 
-        return PersistentResource.getValue(entity, relationship.getName(), scope);
+        return (R) PersistentResource.getValue(entity, relationship.getName(), scope);
     }
 
     /**
@@ -183,11 +183,11 @@ public interface DataStoreTransaction extends Closeable {
      * @param deletedRelationships - the set of the deleted relationship to the collection.
      * @param scope - contains request level metadata.
      */
-    default void updateToManyRelation(DataStoreTransaction relationTx,
-                                      Object entity,
+    default <T, R> void updateToManyRelation(DataStoreTransaction relationTx,
+                                      T entity,
                                       String relationName,
-                                      Set<Object> newRelationships,
-                                      Set<Object> deletedRelationships,
+                                      Set<R> newRelationships,
+                                      Set<R> deletedRelationships,
                                       RequestScope scope) {
     }
 
@@ -201,10 +201,10 @@ public interface DataStoreTransaction extends Closeable {
      * @param relationshipValue - the new value of the updated one-to-one relationship
      * @param scope - contains request level metadata.
      */
-    default void updateToOneRelation(DataStoreTransaction relationTx,
-                                     Object entity,
+    default <T, R> void updateToOneRelation(DataStoreTransaction relationTx,
+                                     T entity,
                                      String relationName,
-                                     Object relationshipValue,
+                                     R relationshipValue,
                                      RequestScope scope) {
     }
 
@@ -216,10 +216,10 @@ public interface DataStoreTransaction extends Closeable {
      * @param scope - contains request level metadata.
      * @return the value of the attribute
      */
-    default Object getAttribute(Object entity,
-                                Attribute attribute,
-                                RequestScope scope) {
-        return PersistentResource.getValue(entity, attribute.getName(), scope);
+    default <T> T getAttribute(T entity,
+                               Attribute attribute,
+                               RequestScope scope) {
+        return (T) PersistentResource.getValue(entity, attribute.getName(), scope);
 
     }
 
@@ -233,7 +233,7 @@ public interface DataStoreTransaction extends Closeable {
      * @param attribute - the attribute to set.
      * @param scope - contains request level metadata.
       */
-    default void setAttribute(Object entity,
+    default <T> void setAttribute(T entity,
                               Attribute attribute,
                               RequestScope scope) {
     }
@@ -245,8 +245,8 @@ public interface DataStoreTransaction extends Closeable {
      * @param parent Are we filtering a root collection or a relationship
      * @return FULL, PARTIAL, or NONE
      */
-    default FeatureSupport supportsFiltering(RequestScope scope,
-                                             Optional<Object> parent,
+    default <T> FeatureSupport supportsFiltering(RequestScope scope,
+                                             Optional<T> parent,
                                              EntityProjection projection) {
         return FeatureSupport.FULL;
     }
@@ -258,8 +258,8 @@ public interface DataStoreTransaction extends Closeable {
      * @param parent Are we filtering a root collection or a relationship
      * @return true if sorting is possible
      */
-    default boolean supportsSorting(RequestScope scope,
-                                    Optional<Object> parent,
+    default <T> boolean supportsSorting(RequestScope scope,
+                                    Optional<T> parent,
                                     EntityProjection projection) {
         return true;
     }
@@ -271,8 +271,8 @@ public interface DataStoreTransaction extends Closeable {
      * @param parent Are we filtering a root collection or a relationship
      * @return true if pagination is possible
      */
-    default boolean supportsPagination(RequestScope scope,
-                                       Optional<Object> parent,
+    default <T> boolean supportsPagination(RequestScope scope,
+                                       Optional<T> parent,
                                        EntityProjection projection) {
         return true;
     }

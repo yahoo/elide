@@ -164,17 +164,17 @@ public class HashMapStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public FeatureSupport supportsFiltering(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
         return FeatureSupport.NONE;
     }
 
     @Override
-    public boolean supportsSorting(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+    public <T> boolean supportsSorting(RequestScope scope, Optional<T> parent, EntityProjection projection) {
         return false;
     }
 
     @Override
-    public boolean supportsPagination(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+    public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
         return false;
     }
 
