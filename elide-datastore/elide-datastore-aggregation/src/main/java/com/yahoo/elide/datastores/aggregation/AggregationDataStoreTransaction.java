@@ -48,12 +48,12 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void save(Object entity, RequestScope scope) {
+    public <T> void save(T entity, RequestScope scope) {
 
     }
 
     @Override
-    public void delete(Object entity, RequestScope scope) {
+    public <T> void delete(T entity, RequestScope scope) {
 
     }
 
@@ -68,12 +68,12 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void createObject(Object entity, RequestScope scope) {
+    public <T> void createObject(T entity, RequestScope scope) {
 
     }
 
     @Override
-    public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
+    public <T> Iterable<T> loadObjects(EntityProjection entityProjection, RequestScope scope) {
         QueryResult result = null;
         QueryResponse response = null;
         String cacheKey = null;
