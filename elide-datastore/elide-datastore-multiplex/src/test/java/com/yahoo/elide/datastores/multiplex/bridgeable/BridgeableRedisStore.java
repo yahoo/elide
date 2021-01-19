@@ -63,7 +63,7 @@ public class BridgeableRedisStore implements DataStore {
     public class ExampleRedisTransaction implements BridgeableTransaction, DataStoreTransaction {
 
         @Override
-        public Object loadObject(EntityProjection projection,
+        public <T> T loadObject(EntityProjection projection,
                                  Serializable id,
                                  RequestScope scope) {
             if (!projection.getType().equals(getClassType(RedisActions.class))) {
@@ -80,17 +80,17 @@ public class BridgeableRedisStore implements DataStore {
                     Iterable<?> values = fetchValues(key,
                             v -> v.equals("user" + filter.getValues().get(0) + ":" + id));
                     for (Object value : values) {
-                        return value;
+                        return (T) value;
                     }
                 }
                 return null;
             }
 
-            return fetchValues(key, v -> id.equals(v.split(":")[1]));
+            return (T) fetchValues(key, v -> id.equals(v.split(":")[1]));
         }
 
         @Override
-        public Iterable<Object> loadObjects(EntityProjection projection,
+        public <T> Iterable<T> loadObjects(EntityProjection projection,
                                             RequestScope scope) {
             if (!projection.getType().equals(getClassType(RedisActions.class))) {
                 log.debug("Tried to load unexpected object from redis: {}", projection.getType());
@@ -99,7 +99,7 @@ public class BridgeableRedisStore implements DataStore {
 
             String key = RedisActions.class.getCanonicalName();
 
-            return Optional.ofNullable(projection.getFilterExpression())
+            return (Iterable<T>) Optional.ofNullable(projection.getFilterExpression())
                     .map(fe -> {
                         RedisFilter filter = fe.accept(new FilterExpressionParser());
                         if ("user_id".equals(filter.getFieldName())) {
@@ -190,18 +190,18 @@ public class BridgeableRedisStore implements DataStore {
         // ---- Unsupported operations ----
 
         @Override
-        public Object getRelation(DataStoreTransaction relationTx,
-                                  Object entity, Relationship relationship, RequestScope scope) {
+        public <T, R> R getRelation(DataStoreTransaction relationTx,
+                                    T entity, Relationship relationship, RequestScope scope) {
             throw new UnsupportedOperationException("No redis relationships currently supported.");
         }
 
         @Override
-        public void updateToManyRelation(DataStoreTransaction relationTx, Object entity, String relationName, Set<Object> newRelationships, Set<Object> deletedRelationships, RequestScope scope) {
+        public <T, R> void updateToManyRelation(DataStoreTransaction relationTx, T entity, String relationName, Set<R> newRelationships, Set<R> deletedRelationships, RequestScope scope) {
 
         }
 
         @Override
-        public void updateToOneRelation(DataStoreTransaction relationTx, Object entity, String relationName, Object relationshipValue, RequestScope scope) {
+        public <T, R> void updateToOneRelation(DataStoreTransaction relationTx, T entity, String relationName, R relationshipValue, RequestScope scope) {
 
         }
 
@@ -211,12 +211,12 @@ public class BridgeableRedisStore implements DataStore {
         }
 
         @Override
-        public void save(Object entity, RequestScope scope) {
+        public <T> void save(T entity, RequestScope scope) {
 
         }
 
         @Override
-        public void delete(Object entity, RequestScope scope) {
+        public <T> void delete(T entity, RequestScope scope) {
 
         }
 
@@ -236,7 +236,7 @@ public class BridgeableRedisStore implements DataStore {
         }
 
         @Override
-        public void createObject(Object entity, RequestScope scope) {
+        public <T> void createObject(T entity, RequestScope scope) {
 
         }
 

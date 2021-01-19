@@ -26,7 +26,7 @@ public class NoopTransaction implements DataStoreTransaction {
      * @param scope - contains request level metadata.
      */
     @Override
-    public void save(Object entity, RequestScope scope) {
+    public <T> void save(T entity, RequestScope scope) {
         // No-op transaction, do nothing.
     }
 
@@ -36,7 +36,7 @@ public class NoopTransaction implements DataStoreTransaction {
      * @param scope - contains request level metadata.
      */
     @Override
-    public void delete(Object entity, RequestScope scope) {
+    public <T> void delete(T entity, RequestScope scope) {
         // No-op transaction, do nothing.
     }
 
@@ -64,7 +64,7 @@ public class NoopTransaction implements DataStoreTransaction {
      * @param scope - contains request level metadata.
      */
     @Override
-    public void createObject(Object entity, RequestScope scope) {
+    public <T> void createObject(T entity, RequestScope scope) {
         // No-op transaction, do nothing.
     }
 
@@ -76,7 +76,7 @@ public class NoopTransaction implements DataStoreTransaction {
      * @return a new persistent resource with a new instance of {@code entityClass}
      */
     @Override
-    public Object loadObject(EntityProjection projection,
+    public <T> T loadObject(EntityProjection projection,
                              Serializable id,
                              RequestScope scope) {
         // Loads are supported but empty object (with specified id) is returned.
@@ -94,7 +94,7 @@ public class NoopTransaction implements DataStoreTransaction {
         // the wheel. Should probably be refactored eventually nonetheless.
         new PersistentResource<>(entity, uuid, scope).setId(id.toString());
 
-        return entity;
+        return (T) entity;
     }
 
     /**
@@ -104,7 +104,7 @@ public class NoopTransaction implements DataStoreTransaction {
      * @return a {@link Collections#singletonList} with a new persistent resource with id 1
      */
     @Override
-    public Iterable<Object> loadObjects(EntityProjection projection,
+    public <T> Iterable<T> loadObjects(EntityProjection projection,
                                         RequestScope scope) {
         // Default behavior: load object 1 and return as an array
         return Collections.singletonList(this.loadObject(projection, 1L, scope));
