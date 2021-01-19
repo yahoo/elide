@@ -117,12 +117,13 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             Class<T> entityClass,
             RequestScope requestScope,
             Optional<String> uuid) {
-        return createObject(null, entityClass, requestScope, uuid);
+        return createObject(null, null, entityClass, requestScope, uuid);
     }
 
     /**
      * Create a resource in the database.
      * @param parent - The immediate ancestor in the lineage or null if this is a root.
+     * @param parentRelationship - The name of the parent relationship traversed to create this object.
      * @param entityClass the entity class
      * @param requestScope the request scope
      * @param uuid the (optional) uuid
@@ -131,6 +132,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      */
     public static <T> PersistentResource<T> createObject(
             PersistentResource<?> parent,
+            String parentRelationship,
             Class<T> entityClass,
             RequestScope requestScope,
             Optional<String> uuid) {
@@ -140,7 +142,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
         String id = uuid.orElse(null);
 
-        PersistentResource<T> newResource = new PersistentResource<>(obj, parent, id, requestScope);
+        PersistentResource<T> newResource = new PersistentResource<>(obj, parent, parentRelationship, id, requestScope);
 
         //The ID must be assigned before we add it to the new resources set.  Persistent resource
         //hashcode and equals are only based on the ID/UUID & type.
@@ -172,22 +174,41 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      * @param obj the obj
      * @param parent the parent
      * @param id the id
+     * @param parentRelationship The parent relationship traversed to this resource.
      * @param scope the request scope
      */
     public PersistentResource(
             @NonNull T obj,
             PersistentResource parent,
+            String parentRelationship,
             String id,
             @NonNull RequestScope scope
     ) {
         this.obj = obj;
         this.uuid = Optional.ofNullable(id);
-        this.lineage = parent != null ? new ResourceLineage(parent.lineage, parent) : new ResourceLineage();
+        this.lineage = parent != null
+                ? new ResourceLineage(parent.lineage, parent, parentRelationship)
+                : new ResourceLineage();
         this.dictionary = scope.getDictionary();
         this.type = dictionary.getJsonAliasFor(obj.getClass());
         this.transaction = scope.getTransaction();
         this.requestScope = scope;
         dictionary.initializeEntity(obj);
+    }
+
+    /**
+     * Construct a new resource from the ID provided.
+     *
+     * @param obj the obj
+     * @param id the id
+     * @param scope the request scope
+     */
+    public PersistentResource(
+            @NonNull T obj,
+            String id,
+            @NonNull RequestScope scope
+    ) {
+        this(obj, null, null, id, scope);
     }
 
    /**
@@ -254,7 +275,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
         PersistentResource<T> resource = new PersistentResource<>(
                 (T) obj,
-                null,
                 requestScope.getUUIDFor(obj),
                 requestScope);
 
@@ -1123,9 +1143,10 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
         if (val instanceof Iterable) {
             Iterable filteredVal = (Iterable) val;
-            resources = Observable.fromIterable(new PersistentResourceSet(this, filteredVal, requestScope));
+            resources = Observable.fromIterable(
+                    new PersistentResourceSet(this, relationName, filteredVal, requestScope));
         } else {
-            resources = Observable.fromArray(new PersistentResource(val, this,
+            resources = Observable.fromArray(new PersistentResource(val, this, relationName,
                     requestScope.getUUIDFor(val), requestScope));
         }
 
@@ -1606,7 +1627,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
             String uuid = requestScope.getUUIDFor(inverseEntity);
             PersistentResource inverseResource = new PersistentResource(inverseEntity,
-                    this, uuid, requestScope);
+                    this, relationName, uuid, requestScope);
             Object inverseRelation = inverseResource.getValueUnchecked(inverseField);
 
             if (inverseRelation == null) {
@@ -1657,7 +1678,8 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             Class<?> inverseType = dictionary.getType(inverseObj.getClass(), inverseName);
 
             String uuid = requestScope.getUUIDFor(inverseObj);
-            PersistentResource inverseResource = new PersistentResource(inverseObj, this, uuid, requestScope);
+            PersistentResource inverseResource = new PersistentResource(inverseObj,
+                    this, relationName, uuid, requestScope);
             Object inverseRelation = inverseResource.getValueUnchecked(inverseName);
 
             if (Collection.class.isAssignableFrom(inverseType)) {

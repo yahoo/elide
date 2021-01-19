@@ -91,15 +91,15 @@ public class IncludedProcessorTest {
         child4.setFriends(new HashSet<>(Collections.singletonList(child2)));
 
         //Create Persistent Resource
-        parentRecord1 = new PersistentResource<>(parent1, null, String.valueOf(parent1.getId()), testScope);
-        parentRecord2 = new PersistentResource<>(parent2, null, String.valueOf(parent2.getId()), testScope);
-        parentRecord3 = new PersistentResource<>(parent3, null, String.valueOf(parent3.getId()), testScope);
-        childRecord1  = new PersistentResource<>(child1, null, String.valueOf(child1.getId()), testScope);
-        childRecord2  = new PersistentResource<>(child2, null, String.valueOf(child2.getId()), testScope);
-        childRecord3  = new PersistentResource<>(child3, null, String.valueOf(child3.getId()), testScope);
-        childRecord4  = new PersistentResource<>(child4, null, String.valueOf(child4.getId()), testScope);
+        parentRecord1 = new PersistentResource<>(parent1, String.valueOf(parent1.getId()), testScope);
+        parentRecord2 = new PersistentResource<>(parent2, String.valueOf(parent2.getId()), testScope);
+        parentRecord3 = new PersistentResource<>(parent3, String.valueOf(parent3.getId()), testScope);
+        childRecord1  = new PersistentResource<>(child1, String.valueOf(child1.getId()), testScope);
+        childRecord2  = new PersistentResource<>(child2, String.valueOf(child2.getId()), testScope);
+        childRecord3  = new PersistentResource<>(child3, String.valueOf(child3.getId()), testScope);
+        childRecord4  = new PersistentResource<>(child4, String.valueOf(child4.getId()), testScope);
 
-        funWithPermissionsRecord = new PersistentResource<>(funWithPermissions, null,
+        funWithPermissionsRecord = new PersistentResource<>(funWithPermissions,
                 String.valueOf(funWithPermissions.getId()), testScope);
     }
 

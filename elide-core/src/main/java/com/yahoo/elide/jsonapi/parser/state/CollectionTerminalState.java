@@ -190,7 +190,10 @@ public class CollectionTerminalState extends BaseState {
                     + " to type: " + entityClass);
         }
 
-        PersistentResource pResource = PersistentResource.createObject(parent.orElse(null), newObjectClass,
+        PersistentResource pResource = PersistentResource.createObject(
+                parent.orElse(null),
+                relationName.orElse(null),
+                newObjectClass,
                 requestScope, Optional.ofNullable(id));
 
         Map<String, Object> attributes = resource.getAttributes();
