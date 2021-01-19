@@ -660,13 +660,12 @@ public class EntityBinding {
     private List<Type<?>> getInheritedTypes(Type<?> entityCls) {
         ArrayList<Type<?>> results = new ArrayList<>();
 
-        for (Type<?> cls = entityCls.getSuperclass(); cls.hasSuperType(); cls = cls.getSuperclass()) {
+        for (Type<?> cls = entityCls.getSuperclass(); cls != null && cls.hasSuperType(); cls = cls.getSuperclass()) {
             results.add(cls);
         }
 
         return results;
     }
-
 
     /**
      * Add a collection of arguments to the attributes of this Entity.
