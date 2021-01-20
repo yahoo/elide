@@ -47,7 +47,9 @@ public class ElideStandaloneDisableMetaDataStoreTest extends ElideStandaloneTest
                         .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
                         .withJSONApiLinks(new DefaultJSONApiLinks(jsonApiBaseUrl))
                         .withBaseUrl("https://elide.io")
-                        .withAuditLogger(getAuditLogger());
+                        .withAuditLogger(getAuditLogger())
+                        .withJsonApiPath(getJsonApiPathSpec().replaceAll("/\\*", ""))
+                        .withGraphQLApiPath(getGraphQLApiPathSpec().replaceAll("/\\*", ""));
 
                 if (enableISO8601Dates()) {
                     builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));

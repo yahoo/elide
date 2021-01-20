@@ -63,12 +63,12 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     }
 
     @Override
-    public void delete(Object object, RequestScope scope) {
+    public <T> void delete(T object, RequestScope scope) {
         deferredTasks.add(() -> em.remove(object));
     }
 
     @Override
-    public void save(Object object, RequestScope scope) {
+    public <T> void save(T object, RequestScope scope) {
         deferredTasks.add(() -> {
             if (!em.contains(object)) {
                 em.merge(object);
@@ -127,7 +127,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     }
 
     @Override
-    public void createObject(Object entity, RequestScope scope) {
+    public <T> void createObject(T entity, RequestScope scope) {
 
          deferredTasks.add(() -> {
             if (!em.contains(entity)) {
@@ -144,7 +144,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
      * @param scope            Request scope associated with specific request
      */
     @Override
-    public Object loadObject(EntityProjection projection,
+    public <T> T loadObject(EntityProjection projection,
                              Serializable id,
                              RequestScope scope) {
 
@@ -178,14 +178,14 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                     (QueryWrapper) new RootCollectionFetchQueryBuilder(projection, dictionary, emWrapper)
                             .build();
 
-            return query.getQuery().getSingleResult();
+            return (T) query.getQuery().getSingleResult();
         } catch (NoResultException e) {
             return null;
         }
     }
 
     @Override
-    public Iterable<Object> loadObjects(
+    public <T> Iterable<T> loadObjects(
             EntityProjection projection,
             RequestScope scope) {
         Pagination pagination = projection.getPagination();
@@ -207,9 +207,9 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     }
 
     @Override
-    public Object getRelation(
+    public <T, R> R getRelation(
             DataStoreTransaction relationTx,
-            Object entity,
+            T entity,
             Relationship relation,
             RequestScope scope) {
 
@@ -229,7 +229,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                  */
                 if (filterExpression == null && sorting == null
                         && (pagination == null || (pagination.isDefaultInstance()))) {
-                    return val;
+                    return (R) val;
                 }
 
                 RelationshipImpl relationship = new RelationshipImpl(
@@ -247,11 +247,11 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                                 .build();
 
                 if (query != null) {
-                    return query.getQuery().getResultList();
+                    return (R) query.getQuery().getResultList();
                 }
             }
         }
-        return val;
+        return (R) val;
     }
 
     /**

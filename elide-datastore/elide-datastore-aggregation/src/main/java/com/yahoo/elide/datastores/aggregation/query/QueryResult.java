@@ -13,12 +13,13 @@ import lombok.Value;
 
 /**
  * A {@link QueryResult} contains the results from {@link QueryEngine#executeQuery(Query, QueryEngine.Transaction)}.
+ * @param <T> The type/model of data being returned.
  */
 @Value
 @Builder
-public class QueryResult {
+public class QueryResult<T> {
     @NonNull
-    private Iterable<Object> data;
+    private Iterable<T> data;
 
     /**
      * Total record count. Null unless Query had Pagination with {@link Pagination#returnPageTotals()} set.
