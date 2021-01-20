@@ -14,7 +14,6 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.utils.HeaderUtils;
 import com.yahoo.elide.utils.ResourceUtils;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;

@@ -97,7 +97,7 @@ public interface ElideStandaloneSettings {
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
                 .withBaseUrl(getBaseUrl())
                 .withJsonApiPath(getJsonApiPathSpec().replaceAll("/\\*", ""))
-                .withGraphqlApiPath(getGraphQLApiPathSpec().replaceAll("/\\*", ""))
+                .withGraphQLApiPath(getGraphQLApiPathSpec().replaceAll("/\\*", ""))
                 .withAuditLogger(getAuditLogger());
 
         if (enableISO8601Dates()) {
