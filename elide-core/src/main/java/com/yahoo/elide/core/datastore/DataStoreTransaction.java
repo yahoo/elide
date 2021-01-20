@@ -40,16 +40,18 @@ public interface DataStoreTransaction extends Closeable {
      *
      * @param entity - the object to save.
      * @param scope - contains request level metadata.
+     * @param <T> The model type being saved.
      */
-    void save(Object entity, RequestScope scope);
+    <T> void save(T entity, RequestScope scope);
 
     /**
      * Delete the object.
      *
      * @param entity - the object to delete.
      * @param scope - contains request level metadata.
+     * @param <T> The model type being deleted.
      */
-    void delete(Object entity, RequestScope scope);
+    <T> void delete(T entity, RequestScope scope);
 
     /**
      * Write any outstanding entities before processing response.
@@ -84,14 +86,15 @@ public interface DataStoreTransaction extends Closeable {
      *
      * @param entity - the object to create in the data store.
      * @param scope - contains request level metadata.
+     * @param <T> The model type being created.
      */
-    void createObject(Object entity, RequestScope scope);
+    <T> void createObject(T entity, RequestScope scope);
 
     /**
      * Create a new instance of an object.
      *
      * @param entityClass the class
-     * @param <T> the class to create
+     * @param <T> the model type to create
      * @return a new instance of type T
      */
     default <T> T createNewObject(Type<T> entityClass) {
@@ -111,12 +114,13 @@ public interface DataStoreTransaction extends Closeable {
      * @param entityProjection the collection to load.
      * @param id - the ID of the object to load.
      * @param scope - the current request scope
+     * @param <T> The model type being loaded.
      * It is optional for the data store to attempt evaluation.
      * @return the loaded object if it exists AND any provided security filters pass.
      */
-    default Object loadObject(EntityProjection entityProjection,
-                              Serializable id,
-                              RequestScope scope) {
+    default <T> T loadObject(EntityProjection entityProjection,
+                             Serializable id,
+                             RequestScope scope) {
         Type<?> entityClass = entityProjection.getType();
         FilterExpression filterExpression = entityProjection.getFilterExpression();
 
@@ -131,12 +135,12 @@ public interface DataStoreTransaction extends Closeable {
                 ? new AndFilterExpression(idFilter, filterExpression)
                 : idFilter;
 
-        Iterable<Object> results = loadObjects(entityProjection.copyOf()
+        Iterable<T> results = loadObjects(entityProjection.copyOf()
                 .filterExpression(joinedFilterExpression)
                 .build(),
                 scope);
 
-        Iterator<Object> it = results == null ? null : results.iterator();
+        Iterator<T> it = results == null ? null : results.iterator();
         if (it != null && it.hasNext()) {
             return it.next();
         }
@@ -148,9 +152,10 @@ public interface DataStoreTransaction extends Closeable {
      *
      * @param entityProjection - the class to load
      * @param scope - contains request level metadata.
+     * @param <T> - The model type being loaded.
      * @return a collection of the loaded objects
      */
-    Iterable<Object> loadObjects(
+    <T> Iterable<T> loadObjects(
             EntityProjection entityProjection,
             RequestScope scope);
 
@@ -161,15 +166,17 @@ public interface DataStoreTransaction extends Closeable {
      * @param entity - The object which owns the relationship.
      * @param relationship - the relationship to fetch.
      * @param scope - contains request level metadata.
+     * @param <T> - The model type which owns the relationship.
+     * @param <R> - The model type of the relationship.
      * @return the object in the relation
      */
-    default Object getRelation(
+    default <T, R> R getRelation(
             DataStoreTransaction relationTx,
-            Object entity,
+            T entity,
             Relationship relationship,
             RequestScope scope) {
 
-        return PersistentResource.getValue(entity, relationship.getName(), scope);
+        return (R) PersistentResource.getValue(entity, relationship.getName(), scope);
     }
 
     /**
@@ -182,12 +189,14 @@ public interface DataStoreTransaction extends Closeable {
      * @param newRelationships - the set of the added relationship to the collection.
      * @param deletedRelationships - the set of the deleted relationship to the collection.
      * @param scope - contains request level metadata.
+     * @param <T> - The model type which owns the relationship.
+     * @param <R> - The model type of the relationship.
      */
-    default void updateToManyRelation(DataStoreTransaction relationTx,
-                                      Object entity,
+    default <T, R> void updateToManyRelation(DataStoreTransaction relationTx,
+                                      T entity,
                                       String relationName,
-                                      Set<Object> newRelationships,
-                                      Set<Object> deletedRelationships,
+                                      Set<R> newRelationships,
+                                      Set<R> deletedRelationships,
                                       RequestScope scope) {
     }
 
@@ -200,11 +209,13 @@ public interface DataStoreTransaction extends Closeable {
      * @param relationName - name of the relationship.
      * @param relationshipValue - the new value of the updated one-to-one relationship
      * @param scope - contains request level metadata.
+     * @param <T> - The model type which owns the relationship.
+     * @param <R> - The model type of the relationship.
      */
-    default void updateToOneRelation(DataStoreTransaction relationTx,
-                                     Object entity,
+    default <T, R> void updateToOneRelation(DataStoreTransaction relationTx,
+                                     T entity,
                                      String relationName,
-                                     Object relationshipValue,
+                                     R relationshipValue,
                                      RequestScope scope) {
     }
 
@@ -214,12 +225,14 @@ public interface DataStoreTransaction extends Closeable {
      * @param entity - The object which owns the attribute.
      * @param attribute - The attribute to fetch
      * @param scope - contains request level metadata.
+     * @param <T> - The model type which owns the attribute.
+     * @param <R> - The type of the attribute.
      * @return the value of the attribute
      */
-    default Object getAttribute(Object entity,
-                                Attribute attribute,
-                                RequestScope scope) {
-        return PersistentResource.getValue(entity, attribute.getName(), scope);
+    default <T, R> R getAttribute(T entity,
+                                  Attribute attribute,
+                                  RequestScope scope) {
+        return (R) PersistentResource.getValue(entity, attribute.getName(), scope);
 
     }
 
@@ -232,10 +245,11 @@ public interface DataStoreTransaction extends Closeable {
      * @param entity - The object which owns the attribute.
      * @param attribute - the attribute to set.
      * @param scope - contains request level metadata.
-      */
-    default void setAttribute(Object entity,
-                              Attribute attribute,
-                              RequestScope scope) {
+     * @param <T> - The model type which owns the attribute.
+     */
+    default <T> void setAttribute(T entity,
+                                  Attribute attribute,
+                                  RequestScope scope) {
     }
 
     /**
@@ -243,11 +257,12 @@ public interface DataStoreTransaction extends Closeable {
      * @param scope The request scope
      * @param projection The projection being loaded
      * @param parent Are we filtering a root collection or a relationship
+     * @param <T> - The model type of the parent model (if a relationship is being filtered).
      * @return FULL, PARTIAL, or NONE
      */
-    default FeatureSupport supportsFiltering(RequestScope scope,
-                                             Optional<Object> parent,
-                                             EntityProjection projection) {
+    default <T> FeatureSupport supportsFiltering(RequestScope scope,
+                                                 Optional<T> parent,
+                                                 EntityProjection projection) {
         return FeatureSupport.FULL;
     }
 
@@ -256,11 +271,12 @@ public interface DataStoreTransaction extends Closeable {
      * @param scope The request scope
      * @param projection The projection being loaded
      * @param parent Are we filtering a root collection or a relationship
+     * @param <T> - The model type of the parent model (if a relationship is being sorted).
      * @return true if sorting is possible
      */
-    default boolean supportsSorting(RequestScope scope,
-                                    Optional<Object> parent,
-                                    EntityProjection projection) {
+    default <T> boolean supportsSorting(RequestScope scope,
+                                        Optional<T> parent,
+                                        EntityProjection projection) {
         return true;
     }
 
@@ -269,11 +285,12 @@ public interface DataStoreTransaction extends Closeable {
      * @param scope The request scope
      * @param projection The projection being loaded
      * @param parent Are we filtering a root collection or a relationship
+     * @param <T> - The model type of the parent model (if a relationship is being paginated).
      * @return true if pagination is possible
      */
-    default boolean supportsPagination(RequestScope scope,
-                                       Optional<Object> parent,
-                                       EntityProjection projection) {
+    default <T> boolean supportsPagination(RequestScope scope,
+                                           Optional<T> parent,
+                                           EntityProjection projection) {
         return true;
     }
 

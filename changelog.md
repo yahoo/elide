@@ -1,5 +1,79 @@
 # Change Log
 
+## 5.0.0-pr30
+2nd public release candidate for Elide 5.0.
+
+**Features**
+   * New Apache Druid dialect for the Aggregation data store.
+
+**Interface Changes**
+We hope this will be the last round of interface changes:
+   * Fixing #698 - Migrating from Object to Java Generics for DataStoreTransaction.
+   * Introducing a new `Type` abstraction for Elide models to eventually allow dynamic model registration at runtime.  The new Type abstraction changes some core interfaces for Security and Data Stores.
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/7583e0633d31cbbc561ec7253c19a42c4f07cee3) [Security] Bump hibernate-validator from 6.0.2.Final to 6.1.0.Final 
+   * [view commit](https://github.com/yahoo/elide/commit/b95380261a97f46eac99420b606dcd12b438e11b) Bump guice from 4.2.2 to 4.2.3 
+   * [view commit](https://github.com/yahoo/elide/commit/b45bce669cc7beb1ae03044f78f647e13fb75d52) Bump classgraph from 4.8.90 to 4.8.95 
+   * [view commit](https://github.com/yahoo/elide/commit/2b46cb4c9b1392553e67d0e9f94112c867199fac) Bump groovy.version from 3.0.6 to 3.0.7 
+   * [view commit](https://github.com/yahoo/elide/commit/a6e66f40c73a27ecc9ac806d51e199b0725f2aa7) Bump version.junit from 5.6.2 to 5.7.0 
+   * [view commit](https://github.com/yahoo/elide/commit/ecc73c6719030d5fdf1393b6de7c7afd894a4425) Upgrade spring.boot version 
+   * [view commit](https://github.com/yahoo/elide/commit/6bef7a67718a8cb4df7d14dce5a307acfe36f8c9) Bump metrics.version from 4.1.14 to 4.1.16 
+   * [view commit](https://github.com/yahoo/elide/commit/c458e53f829586b81f7f896bf32e6a1526358b99) Bump mockito-core from 3.6.0 to 3.6.28 
+   * [view commit](https://github.com/yahoo/elide/commit/29064bbf520f2259f5df5bf122bb1fef65c4accb) Updating jetty version for security issue 
+   * [view commit](https://github.com/yahoo/elide/commit/703927eb86d02ceed5916e05bc303b7635d189ef) Closes #1740 More meaningful handling of constraint violations 
+   * [view commit](https://github.com/yahoo/elide/commit/d286bca4ff68b630dec6f5ea5cbe10ab88b6c674) Add suppresion for hibernate 3 CVE 
+   * [view commit](https://github.com/yahoo/elide/commit/03cbd10231cf444968c020453215a46d68ee83e0) SD Build Status Badge 
+   * [view commit](https://github.com/yahoo/elide/commit/d4205b4ac5d70be4edb89b8b5ad4ec9841b8632b) Issue#1697 Validate Query Parameters 
+   * [view commit](https://github.com/yahoo/elide/commit/b3a904f5c830d2d14df18a7a77820cd588b78cb5) Bump version.antlr4 from 4.8-1 to 4.9 
+   * [view commit](https://github.com/yahoo/elide/commit/392a5df115726de79c4c38025266adf3e68e7de2) Bump version.restassured from 4.3.2 to 4.3.3 
+   * [view commit](https://github.com/yahoo/elide/commit/7f61879e6666cc041c5535ec36f5e1fef54ff6c7) Bump classgraph from 4.8.95 to 4.8.98 
+   * [view commit](https://github.com/yahoo/elide/commit/fbc06b8e090d1d7438794b879ebbb3f16c59e66a) Speeding up swagger builder on service boot 
+   * [view commit](https://github.com/yahoo/elide/commit/7dcb449ad9bf24c3c12601209803a0f05420e380) Only build swagger if the controller is activated 
+   * [view commit](https://github.com/yahoo/elide/commit/6ce117b6c68f6a2fc484e3c9ba7b76ace9c596ff) Added baseUrl configuration setting for Spring and Standalone
+   * [view commit](https://github.com/yahoo/elide/commit/172f3833738466c50648a2f4c3644eae46706aa2) Issue#1750 Fix SQL query generation for record count 
+   * [view commit](https://github.com/yahoo/elide/commit/ff9d0524ff9895196010c130a9ecdb2e6de71177) Bump commons-io from 2.6 to 2.8.0 
+
+## 5.0.0-pr29
+For 4.x line release notes, please check out this file on the [elide-4.x branch](https://github.com/yahoo/elide/blob/elide-4.x/changelog.md).
+
+PR29 is the first public release candidate for Elide 5.0
+
+**Features**
+Elide 5 introduces three primary new features:
+
+   * A new semantic modeling layer and analytic query API for OLAP style queries against your database.
+   * An asynchronous API for API read requests with long durations.
+   * A mechanism to version elide models and the corresponding API.
+
+**API Changes**
+The only notable API change are:
+
+   * Improved error responses that are more compatible with the JSON-API specification.
+   * FIQL operators are now case sensitive by default. New case insensitive operators have been introduced allowing greater flexibility. It is possible to revert to elide 4 semantics through configuration.
+
+**Interface Changes**
+In addition to new features, Elide 5 streamlines a number of public interfaces to simplify concepts. This includes:
+
+   * A simpler Check class hierarchy.
+   * A new NonTransferable permission (which replaces SharePermission).
+   * Changes to Elide’s User abstraction for authentication.
+   * Lifecycle hooks have been restructured to better decouple their logic from Elide models.
+   * Initializers have been removed. Dependency Injection is available for models, checks, lifecycle hooks, and serdes.
+   * A simpler and more powerful DataStoreTransaction interface.
+   * GraphQL has its own FilterDialect interface.
+   * The Include annotation now defaults to marking models as root level.
+   * Elide settings has been stripped of unnecessary configuration options.
+ 
+**Module & Package Changes**
+Because Elide 5 is a major release, we took time to reorganize the module & package structure including:
+
+   * elide-example has been removed. The only Elide examples we plan to maintain are the spring boot and standalone examples.
+   * elide-contrib submodules have been promoted to mainline modules elide-swagger and elide-test.
+   * elide-annotations has been absorbed into elide-core.
+   * New modules were created for elide-async (async API), elide-model-config (the semantic layer), and elide-datastore/elide-datastore-aggregation (the analytics module).
+   * Some classes in elide-core were reorganized into new packages.
+
 ## 4.6.8
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/3d3c831696401e26a24d254fa1158675a23adca1) H2 MVCC setting is removed (#1483) 

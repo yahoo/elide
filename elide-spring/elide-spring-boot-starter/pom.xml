@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-spring-parent-pom</artifactId>
-        <version>5.0.0-pr30-SNAPSHOT</version>
+        <version>5.0.0-pr31-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -44,37 +44,37 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>5.0.0-pr30-SNAPSHOT</version>
+            <version>5.0.0-pr31-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>5.0.0-pr30-SNAPSHOT</version>
+            <version>5.0.0-pr31-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>5.0.0-pr30-SNAPSHOT</version>
+            <version>5.0.0-pr31-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-aggregation</artifactId>
-            <version>5.0.0-pr30-SNAPSHOT</version>
+            <version>5.0.0-pr31-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>5.0.0-pr30-SNAPSHOT</version>
+            <version>5.0.0-pr31-SNAPSHOT</version>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-async</artifactId>
-            <version>5.0.0-pr30-SNAPSHOT</version>
+            <version>5.0.0-pr31-SNAPSHOT</version>
         </dependency>
 
         <!-- Jetty -->
@@ -94,7 +94,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-spring-boot-autoconfigure</artifactId>
-            <version>5.0.0-pr30-SNAPSHOT</version>
+            <version>5.0.0-pr31-SNAPSHOT</version>
         </dependency>
 
         <dependency>

@@ -49,19 +49,19 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     protected abstract DataStoreTransaction beginTransaction(DataStore dataStore);
 
     @Override
-    public void createObject(Object entity, RequestScope scope) {
+    public <T> void createObject(T entity, RequestScope scope) {
         getTransaction(EntityDictionary.getType(entity)).createObject(entity, scope);
     }
 
     @Override
-    public Object loadObject(EntityProjection projection,
+    public <T> T loadObject(EntityProjection projection,
                              Serializable id,
                              RequestScope scope) {
         return getTransaction(projection.getType()).loadObject(projection, id, scope);
     }
 
     @Override
-    public Iterable<Object> loadObjects(
+    public <T> Iterable<T> loadObjects(
             EntityProjection projection,
             RequestScope scope) {
         return getTransaction(projection.getType()).loadObjects(projection, scope);
@@ -143,8 +143,8 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public Object getRelation(DataStoreTransaction relationTx,
-                              Object entity,
+    public <T, R> R getRelation(DataStoreTransaction relationTx,
+                              T entity,
                               Relationship relation,
                               RequestScope scope) {
 
@@ -167,17 +167,17 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
             Serializable id = (filter != null) ? extractId(filter, idFieldName, relationClass) : null;
 
             if (relationType.isToMany()) {
-                return id == null ? bridgeableTx.bridgeableLoadObjects(
+                return id == null ? (R) bridgeableTx.bridgeableLoadObjects(
                                 this, entity, relation.getName(),
                         Optional.ofNullable(filter),
                         Optional.ofNullable(relation.getProjection().getSorting()),
                         Optional.ofNullable(relation.getProjection().getPagination()),
                         scope)
-                        : bridgeableTx.bridgeableLoadObject(this, entity, relation.getName(),
+                        : (R) bridgeableTx.bridgeableLoadObject(this, entity, relation.getName(),
                         id, Optional.ofNullable(filter), scope);
             }
 
-            return bridgeableTx.bridgeableLoadObject(this, entity, relation.getName(), id,
+            return (R) bridgeableTx.bridgeableLoadObject(this, entity, relation.getName(), id,
                     Optional.ofNullable(filter), scope);
 
         }
@@ -187,10 +187,10 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void updateToManyRelation(DataStoreTransaction relationTx,
-                                     Object entity, String relationName,
-                                     Set<Object> newRelationships,
-                                     Set<Object> deletedRelationships,
+    public <T, R> void updateToManyRelation(DataStoreTransaction relationTx,
+                                     T entity, String relationName,
+                                     Set<R> newRelationships,
+                                     Set<R> deletedRelationships,
                                      RequestScope scope) {
         relationTx = getRelationTransaction(entity, relationName);
         DataStoreTransaction entityTransaction = getTransaction(EntityDictionary.getType(entity));
@@ -199,39 +199,39 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void updateToOneRelation(DataStoreTransaction relationTx, Object entity,
-                                    String relationName, Object relationshipValue, RequestScope scope) {
+    public <T, R> void updateToOneRelation(DataStoreTransaction relationTx, T entity,
+                                    String relationName, R relationshipValue, RequestScope scope) {
         relationTx = getRelationTransaction(entity, relationName);
         DataStoreTransaction entityTransaction = getTransaction(EntityDictionary.getType(entity));
         entityTransaction.updateToOneRelation(relationTx, entity, relationName, relationshipValue, scope);
     }
 
     @Override
-    public Object getAttribute(Object entity, Attribute attribute, RequestScope scope) {
+    public <T, R> R getAttribute(T entity, Attribute attribute, RequestScope scope) {
         DataStoreTransaction transaction = getTransaction(EntityDictionary.getType(entity));
         return transaction.getAttribute(entity, attribute, scope);
     }
 
     @Override
-    public void setAttribute(Object entity, Attribute attribute, RequestScope scope) {
+    public <T> void setAttribute(T entity, Attribute attribute, RequestScope scope) {
         DataStoreTransaction transaction = getTransaction(EntityDictionary.getType(entity));
         transaction.setAttribute(entity, attribute, scope);
     }
 
     @Override
-    public FeatureSupport supportsFiltering(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
         Type<?> entityClass = projection.getType();
         return getTransaction(entityClass).supportsFiltering(scope, parent, projection);
     }
 
     @Override
-    public boolean supportsSorting(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+    public <T> boolean supportsSorting(RequestScope scope, Optional<T> parent, EntityProjection projection) {
         Type<?> entityClass = projection.getType();
         return getTransaction(entityClass).supportsSorting(scope, parent, projection);
     }
 
     @Override
-    public boolean supportsPagination(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+    public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
         Type<?> entityClass = projection.getType();
         return getTransaction(entityClass).supportsPagination(scope, parent, projection);
     }

@@ -13,6 +13,8 @@ import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.resources.SecurityContextUser;
 import com.yahoo.elide.utils.HeaderUtils;
+import com.yahoo.elide.utils.ResourceUtils;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
@@ -79,9 +81,20 @@ public class GraphQLEndpoint {
         if (runner == null) {
             response = buildErrorResponse(elide, new InvalidOperationException("Invalid API Version"), false);
         } else {
-            response = runner.run(uriInfo.getBaseUri().toString(),
+            response = runner.run(getBaseUrlEndpoint(uriInfo),
                                   graphQLDocument, user, UUID.randomUUID(), requestHeaders);
         }
         return Response.status(response.getResponseCode()).entity(response.getBody()).build();
+    }
+
+    protected String getBaseUrlEndpoint(UriInfo uriInfo) {
+        String baseUrl = elide.getElideSettings().getBaseUrl();
+
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            //UriInfo has full path appended here already.
+            baseUrl = ResourceUtils.resolveBaseUrl(uriInfo);
+        }
+
+        return baseUrl;
     }
 }

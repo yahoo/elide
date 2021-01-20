@@ -102,6 +102,6 @@ public class GraphqlController {
         if (baseUrl == null || baseUrl.isEmpty()) {
             baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
         }
-        return baseUrl + settings.getGraphql().getPath() + "/";
+        return baseUrl;
     }
 }
