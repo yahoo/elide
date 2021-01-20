@@ -113,8 +113,8 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
         clonedObjects.put(entity, NEWLY_CREATED_OBJECT);
     }
 
-    private Iterable<Object> hold(DataStoreTransaction transaction, Iterable<Object> list) {
-        ArrayList<Object> newList = new ArrayList<>();
+    private <T> Iterable<T> hold(DataStoreTransaction transaction, Iterable<T> list) {
+        ArrayList<T> newList = new ArrayList<>();
         list.forEach(newList::add);
         for (Object object : newList) {
             hold(transaction, object);
@@ -128,7 +128,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
      * @param object entity to clone
      * @return original object
      */
-    private Object hold(DataStoreTransaction subTransaction, Object object) {
+    private <T> T hold(DataStoreTransaction subTransaction, T object) {
         clonedObjects.put(object, cloneObject(object));
         return object;
     }
@@ -178,7 +178,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
             EntityProjection projection,
             RequestScope scope) {
         DataStoreTransaction transaction = getTransaction(projection.getType());
-        return (Iterable<T>) hold(transaction, transaction.loadObjects(projection, scope));
+        return hold(transaction, transaction.loadObjects(projection, scope));
     }
 
     @Override
