@@ -19,17 +19,20 @@ import java.util.Spliterators;
 public class PersistentResourceSet<T> extends AbstractSet<PersistentResource<T>> {
 
     final private PersistentResource<?> parent;
+    final private String parentRelationship;
     final private Iterable<T> list;
     final private RequestScope requestScope;
 
-    public PersistentResourceSet(PersistentResource<?> parent, Iterable<T> list, RequestScope requestScope) {
+    public PersistentResourceSet(PersistentResource<?> parent, String parentRelationship,
+                                 Iterable<T> list, RequestScope requestScope) {
         this.parent = parent;
+        this.parentRelationship = parentRelationship;
         this.list = list;
         this.requestScope = requestScope;
     }
 
     public PersistentResourceSet(Iterable<T> list, RequestScope requestScope) {
-        this(null, list, requestScope);
+        this(null, null, list, requestScope);
     }
 
     @Override
@@ -44,7 +47,8 @@ public class PersistentResourceSet<T> extends AbstractSet<PersistentResource<T>>
             @Override
             public PersistentResource<T> next() {
                 T obj = iterator.next();
-                return new PersistentResource<>(obj, parent, requestScope.getUUIDFor(obj), requestScope);
+                return new PersistentResource<>(obj, parent, parentRelationship,
+                        requestScope.getUUIDFor(obj), requestScope);
             }
         };
     }

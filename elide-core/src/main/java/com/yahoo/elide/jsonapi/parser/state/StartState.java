@@ -9,6 +9,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.generated.parsers.CoreParser.EntityContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntitiesContext;
 import com.yahoo.elide.generated.parsers.CoreParser.RootCollectionLoadEntityContext;
@@ -26,7 +27,7 @@ public class StartState extends BaseState {
         String entityName = ctx.term().getText();
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
 
-        Class<?> entityClass = dictionary.getEntityClass(entityName, state.getRequestScope().getApiVersion());
+        Type<?> entityClass = dictionary.getEntityClass(entityName, state.getRequestScope().getApiVersion());
 
         state.setState(new CollectionTerminalState(entityClass, Optional.empty(), Optional.empty(),
                 state.getRequestScope().getEntityProjection()));
@@ -67,7 +68,7 @@ public class StartState extends BaseState {
         String id = entity.id().getText();
         String entityName = entity.term().getText();
         EntityDictionary dictionary = state.getRequestScope().getDictionary();
-        Class<?> entityClass = dictionary.getEntityClass(entityName, state.getRequestScope().getApiVersion());
+        Type<?> entityClass = dictionary.getEntityClass(entityName, state.getRequestScope().getApiVersion());
 
         if (entityClass == null || !dictionary.isRoot(entityClass)) {
             throw new InvalidCollectionException(entityName);

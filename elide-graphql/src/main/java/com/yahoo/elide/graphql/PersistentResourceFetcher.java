@@ -15,6 +15,8 @@ import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
 import com.yahoo.elide.graphql.containers.MapEntryContainer;
 import com.google.common.collect.Sets;
@@ -142,8 +144,8 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
 
         GraphQLType parent = environment.parentType;
         if (log.isDebugEnabled()) {
-            log.debug("{} {} fields with parent {}<{}>",
-                    operation, requestedFields, EntityDictionary.getSimpleName(parent.getClass()), parent.getName());
+            log.debug("{} {} fields with parent {}<{}>", operation, requestedFields,
+                    EntityDictionary.getSimpleName(EntityDictionary.getType(parent)), parent.getName());
         }
     }
 
@@ -205,7 +207,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
             Optional<List<String>> ids
     ) {
         EntityDictionary dictionary = parentResource.getRequestScope().getDictionary();
-        Class relationshipClass = dictionary.getParameterizedType(parentResource.getObject(), relationship.getName());
+        Type relationshipClass = dictionary.getParameterizedType(parentResource.getObject(), relationship.getName());
         String relationshipType = dictionary.getJsonAliasFor(relationshipClass);
 
         Set<PersistentResource> relationResources;
@@ -258,14 +260,14 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
             throw new BadRequestException(operation + " must include data argument");
         }
 
-        Class<?> entityClass;
+        Type<?> entityClass;
         EntityDictionary dictionary = context.requestScope.getDictionary();
         if (context.isRoot()) {
             entityClass = dictionary.getEntityClass(context.field.getName(), context.requestScope.getApiVersion());
         } else {
             assert context.parentResource != null;
             entityClass = dictionary.getParameterizedType(
-                    context.parentResource.getResourceClass(),
+                    context.parentResource.getResourceType(),
                     context.field.getName());
         }
 
@@ -276,7 +278,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
             parentEntity = Optional.of(new Entity(
                     Optional.empty(),
                     null,
-                    context.parentResource.getResourceClass(),
+                    context.parentResource.getResourceType(),
                     context.requestScope));
         } else {
             parentEntity = Optional.empty();
@@ -288,12 +290,12 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
 
         /* apply function to upsert/update the object */
         for (Entity entity : entitySet) {
-            graphWalker(entity, updateFunc);
+            graphWalker(entity, updateFunc, context);
         }
 
         /* fixup relationships */
         for (Entity entity : entitySet) {
-            graphWalker(entity, this::updateRelationship);
+            graphWalker(entity, this::updateRelationship, context);
             PersistentResource<?> childResource = entity.toPersistentResource();
             if (!context.isRoot()) {
                 /* add relation between parent and nested entity */
@@ -313,19 +315,27 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
 
     /**
      * A function to handle upserting (update/create) objects.
+     * @param <T> The return type of the function.
      */
     @FunctionalInterface
     private interface Executor<T> {
-        T execute(Entity entity);
+        /**
+         * Execute a function on the current entity with the current context.
+         * @param entity The current entity.
+         * @param context The request context.
+         * @return Depends on the function.
+         */
+        T execute(Entity entity, Environment context);
     }
 
     /**
      * Forms the graph from data {@param input} and executes a function {@param function} on all the nodes
      * @param entity Resource entity
      * @param function Function to process nodes
+     * @param context the request context
      * @return set of {@link PersistentResource} objects
      */
-    private void graphWalker(Entity entity, Executor<?> function) {
+    private void graphWalker(Entity entity, Executor<?> function, Environment context) {
         Queue<Entity> toVisit = new ArrayDeque<>();
         Set<Entity> visited = new LinkedHashSet<>();
         toVisit.add(entity);
@@ -336,7 +346,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
                 continue;
             }
             visited.add(currentEntity);
-            function.execute(currentEntity);
+            function.execute(currentEntity, context);
             Set<Entity.Relationship> relationshipEntities = currentEntity.getRelationships();
             /* loop over relationships */
             for (Entity.Relationship relationship : relationshipEntities) {
@@ -350,7 +360,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
      * @param entity Resource entity
      * @return {@link PersistentResource} object
      */
-    private PersistentResource<?> updateRelationship(Entity entity) {
+    private PersistentResource<?> updateRelationship(Entity entity, Environment context) {
         Set<Entity.Relationship> relationshipEntities = entity.getRelationships();
         PersistentResource<?> resource = entity.toPersistentResource();
         Set<PersistentResource> toUpdate;
@@ -369,9 +379,10 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
     /**
      * updates or creates existing/new entities
      * @param entity Resource entity
+     * @param context The request context
      * @return {@link PersistentResource} object
      */
-    private PersistentResource upsertObject(Entity entity) {
+    private PersistentResource upsertObject(Entity entity, Environment context) {
         Set<Entity.Attribute> attributes = entity.getAttributes();
         Optional<String> id = entity.getId();
         RequestScope requestScope = entity.getRequestScope();
@@ -390,7 +401,10 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
             }
 
             upsertedResource = PersistentResource.createObject(
-                    parentResource, entity.getEntityClass(), requestScope, id);
+                    parentResource,
+                    context.field.getName(),
+                    entity.getEntityClass(),
+                    requestScope, id);
         } else {
             try {
                 Set<PersistentResource> loadedResource = fetchObject(
@@ -403,14 +417,16 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
             // The ID doesn't exist yet.  Let's create the object.
             } catch (InvalidObjectIdentifierException | InvalidValueException e) {
                 upsertedResource = PersistentResource.createObject(
-                        parentResource, entity.getEntityClass(), requestScope, id);
+                        parentResource,
+                        context.field.getName(),
+                        entity.getEntityClass(), requestScope, id);
             }
         }
 
         return updateAttributes(upsertedResource, entity, attributes);
     }
 
-    private PersistentResource updateObject(Entity entity) {
+    private PersistentResource updateObject(Entity entity, Environment context) {
         Set<Entity.Attribute> attributes = entity.getAttributes();
         Optional<String> id = entity.getId();
         RequestScope requestScope = entity.getRequestScope();
@@ -441,15 +457,15 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
                                                 Entity entity,
                                                 Set<Entity.Attribute> attributes) {
         EntityDictionary dictionary = entity.getRequestScope().getDictionary();
-        Class<?> entityClass = entity.getEntityClass();
+        Type<?> entityClass = entity.getEntityClass();
         String idFieldName = dictionary.getIdFieldName(entityClass);
 
         /* iterate through each attribute provided */
         for (Entity.Attribute attribute : attributes) {
             if (dictionary.isAttribute(entityClass, attribute.getName())) {
-                Class<?> attributeType = dictionary.getType(entityClass, attribute.getName());
+                Type<?> attributeType = dictionary.getType(entityClass, attribute.getName());
                 Object attributeValue;
-                if (Map.class.isAssignableFrom(attributeType)) {
+                if (ClassType.MAP_TYPE.isAssignableFrom(attributeType)) {
                     attributeValue = MapEntryContainer.translateFromGraphQLMap(attribute);
                 } else {
                     attributeValue = attribute.getValue();

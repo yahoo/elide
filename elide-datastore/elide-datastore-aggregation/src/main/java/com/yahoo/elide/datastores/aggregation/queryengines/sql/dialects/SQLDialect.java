@@ -25,13 +25,6 @@ public interface SQLDialect {
     boolean useAliasForOrderByClause();
 
     /**
-     * Generates an SQL clause that requests the count of distinct values for the input dimensions.
-     * @param dimensions for which to request a distinct count.
-     * @return the SQL clause as a string.
-     */
-    String generateCountDistinctClause(String dimensions);
-
-    /**
      * Generates required offset and limit clause.
      * @param offset position of the first record.
      * @param limit maximum number of record.

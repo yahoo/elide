@@ -8,6 +8,8 @@ package com.yahoo.elide.core.request;
 
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,7 +30,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class EntityProjection {
     @NonNull
-    private Class<?> type;
+    private Type<?> type;
 
     private Set<Attribute> attributes;
 
@@ -130,7 +132,7 @@ public class EntityProjection {
      */
     public static class EntityProjectionBuilder {
         @Getter
-        private Class<?> type;
+        private Type<?> type;
 
         private Set<Relationship> relationships = new LinkedHashSet<>();
 
@@ -145,6 +147,16 @@ public class EntityProjection {
 
         @Getter
         private Pagination pagination;
+
+        public EntityProjectionBuilder type(Type<?> type) {
+            this.type = type;
+            return this;
+        }
+
+        public EntityProjectionBuilder type(Class<?> cls) {
+            this.type = new ClassType(cls);
+            return this;
+        }
 
         public EntityProjectionBuilder relationships(Set<Relationship> relationships) {
             this.relationships = relationships;

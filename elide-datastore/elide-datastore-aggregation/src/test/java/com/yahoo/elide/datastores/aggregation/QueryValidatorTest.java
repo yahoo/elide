@@ -94,7 +94,7 @@ public class QueryValidatorTest extends SQLUnitTest {
     @Test
     public void testHavingFilterPromotionUngroupedDimension() throws ParseException {
         FilterExpression originalFilter = filterParser.parseFilterExpression("countryIsoCode==USA,lowScore<45",
-                PlayerStats.class, false);
+                playerStatsType, false);
         SplitFilterExpressionVisitor visitor = new SplitFilterExpressionVisitor(playerStatsTable);
         FilterConstraints constraints = originalFilter.accept(visitor);
         FilterExpression whereFilter = constraints.getWhereExpression();
@@ -118,7 +118,7 @@ public class QueryValidatorTest extends SQLUnitTest {
 
     @Test
     public void testHavingFilterNoAggregatedMetric() throws ParseException {
-        FilterExpression originalFilter = filterParser.parseFilterExpression("lowScore<45", PlayerStats.class, false);
+        FilterExpression originalFilter = filterParser.parseFilterExpression("lowScore<45", playerStatsType, false);
         SplitFilterExpressionVisitor visitor = new SplitFilterExpressionVisitor(playerStatsTable);
         FilterConstraints constraints = originalFilter.accept(visitor);
         FilterExpression whereFilter = constraints.getWhereExpression();
@@ -143,7 +143,7 @@ public class QueryValidatorTest extends SQLUnitTest {
     @Test
     public void testHavingFilterOnDimensionTable() throws ParseException {
         FilterExpression originalFilter = filterParser.parseFilterExpression("country.isoCode==USA,lowScore<45",
-                PlayerStats.class, false);
+                playerStatsType, false);
         SplitFilterExpressionVisitor visitor = new SplitFilterExpressionVisitor(playerStatsTable);
         FilterConstraints constraints = originalFilter.accept(visitor);
         FilterExpression whereFilter = constraints.getWhereExpression();

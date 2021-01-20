@@ -103,7 +103,7 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
                 fieldName);
         Object entity = resource.getObject();
         if (entity == null || resource.getDictionary()
-                .getRelationshipType(entity.getClass(), fieldName) == RelationshipType.NONE) {
+                .getRelationshipType(resource.getResourceType(), fieldName) == RelationshipType.NONE) {
             return Observable.empty();
         }
 
@@ -111,7 +111,7 @@ public class VerifyFieldAccessFilterExpressionVisitor implements FilterExpressio
                 .name(fieldName)
                 .alias(fieldName)
                 .projection(EntityProjection.builder()
-                        .type(dictionary.getParameterizedType(resource.getResourceClass(), fieldName))
+                        .type(dictionary.getParameterizedType(resource.getResourceType(), fieldName))
                         .build())
                 .build();
         // use no filter to allow the read directly from loaded resource

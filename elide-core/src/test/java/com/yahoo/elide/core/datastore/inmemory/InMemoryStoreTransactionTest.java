@@ -30,6 +30,7 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
+import com.yahoo.elide.core.type.ClassType;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import example.Author;
@@ -361,7 +362,7 @@ public class InMemoryStoreTransactionTest {
 
     @Test
     public void testPaginationPushDown() {
-        PaginationImpl pagination = PaginationImpl.getDefaultPagination(Book.class, elideSettings);
+        PaginationImpl pagination = PaginationImpl.getDefaultPagination(new ClassType(Book.class), elideSettings);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -391,7 +392,7 @@ public class InMemoryStoreTransactionTest {
 
     @Test
     public void testDataStoreRequiresInMemoryPagination() {
-        PaginationImpl pagination = PaginationImpl.getDefaultPagination(Book.class, elideSettings);
+        PaginationImpl pagination = PaginationImpl.getDefaultPagination(new ClassType(Book.class), elideSettings);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -427,7 +428,7 @@ public class InMemoryStoreTransactionTest {
         FilterExpression expression =
                 new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
 
-        PaginationImpl pagination = PaginationImpl.getDefaultPagination(Book.class, elideSettings);
+        PaginationImpl pagination = PaginationImpl.getDefaultPagination(new ClassType(Book.class), elideSettings);
 
         EntityProjection projection = EntityProjection.builder()
                 .type(Book.class)
@@ -460,7 +461,7 @@ public class InMemoryStoreTransactionTest {
 
     @Test
     public void testSortingRequiresInMemoryPagination() {
-        PaginationImpl pagination = PaginationImpl.getDefaultPagination(Book.class, elideSettings);
+        PaginationImpl pagination = PaginationImpl.getDefaultPagination(new ClassType(Book.class), elideSettings);
 
         Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
         sortOrder.put("title", Sorting.SortOrder.asc);
@@ -509,30 +510,30 @@ public class InMemoryStoreTransactionTest {
 
         String tos = store.toString();
         assertTrue(tos.contains("Data store contents"));
-        assertTrue(tos.contains("Table class example.NoReadEntity contents"));
-        assertTrue(tos.contains("Table class example.Author contents"));
-        assertTrue(tos.contains("Table class example.Book contents"));
-        assertTrue(tos.contains("Table class example.Child contents"));
-        assertTrue(tos.contains("Table class example.ComputedBean contents"));
-        assertTrue(tos.contains("Table class example.Editor contents"));
-        assertTrue(tos.contains("Table class example.FieldAnnotations contents"));
-        assertTrue(tos.contains("Table class example.FirstClassFields contents"));
-        assertTrue(tos.contains("Table class example.FunWithPermissions contents"));
-        assertTrue(tos.contains("Table class example.Invoice contents"));
-        assertTrue(tos.contains("Table class example.Job contents"));
-        assertTrue(tos.contains("Table class example.Left contents"));
-        assertTrue(tos.contains("Table class example.LineItem contents"));
-        assertTrue(tos.contains("Table class example.MapColorShape contents"));
-        assertTrue(tos.contains("Table class example.NoDeleteEntity contents"));
-        assertTrue(tos.contains("Table class example.NoShareEntity contents"));
-        assertTrue(tos.contains("Table class example.NoUpdateEntity contents"));
-        assertTrue(tos.contains("Table class example.Parent contents"));
-        assertTrue(tos.contains("Table class example.Post contents"));
-        assertTrue(tos.contains("Table class example.PrimitiveId contents"));
-        assertTrue(tos.contains("Table class example.Publisher contents"));
-        assertTrue(tos.contains("Table class example.Right contents"));
-        assertTrue(tos.contains("Table class example.StringId contents"));
-        assertTrue(tos.contains("Table class example.UpdateAndCreate contents"));
-        assertTrue(tos.contains("Table class example.User contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.NoReadEntity} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.Author} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.Book} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.Child} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.ComputedBean} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.Editor} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.FieldAnnotations} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.FirstClassFields} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.FunWithPermissions} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.Invoice} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.Job} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.Left} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.LineItem} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.MapColorShape} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.NoDeleteEntity} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.NoShareEntity} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.NoUpdateEntity} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.Parent} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.Post} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.PrimitiveId} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.Publisher} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.Right} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.StringId} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.UpdateAndCreate} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.User} contents"));
     }
 }

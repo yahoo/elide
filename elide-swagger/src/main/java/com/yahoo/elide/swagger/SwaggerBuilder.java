@@ -10,12 +10,15 @@ import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.swagger.model.Data;
 import com.yahoo.elide.swagger.model.Datum;
 import com.yahoo.elide.swagger.property.Relationship;
-
 import com.google.common.collect.Sets;
 
+import io.swagger.converter.ModelConverter;
+import io.swagger.converter.ModelConverterContextImpl;
 import io.swagger.converter.ModelConverters;
 import io.swagger.models.Info;
 import io.swagger.models.Model;
@@ -51,8 +54,8 @@ import java.util.stream.Collectors;
  */
 public class SwaggerBuilder {
     protected EntityDictionary dictionary;
-    protected Set<Class<?>> rootClasses;
-    protected Set<Class<?>> allClasses;
+    protected Set<Type<?>> rootClasses;
+    protected Set<Type<?>> allClasses;
     protected Swagger swagger;
     protected Map<Integer, Response> globalResponses;
     protected Set<Parameter> globalParams;
@@ -86,7 +89,7 @@ public class SwaggerBuilder {
          * Either the type of the root collection of the relationship.
          */
         @Getter
-        private Class<?> type;
+        private Type<?> type;
 
         /**
          * The unique identifying instance URL for the path.
@@ -98,7 +101,7 @@ public class SwaggerBuilder {
          * Constructs a PathMetaData for a 'root' entity.
          * @param type the 'root' entity type of the first segment of the URL.
          */
-        public PathMetaData(Class<?> type) {
+        public PathMetaData(Type<?> type) {
             this(new Stack<>(), dictionary.getJsonAliasFor(type), type);
         }
 
@@ -109,7 +112,7 @@ public class SwaggerBuilder {
          * @param name The relationship of the path element.
          * @param type The type associated with the relationship.
          */
-        public PathMetaData(Stack<PathMetaData> lineage, String name, Class<?> type) {
+        public PathMetaData(Stack<PathMetaData> lineage, String name, Type<?> type) {
             this.lineage = lineage;
             this.type = type;
             this.name = name;
@@ -120,7 +123,7 @@ public class SwaggerBuilder {
          * Returns the root type (first collection) of this path.
          * @return The class that represents the root collection of the path.
          */
-        public Class<?> getRootType() {
+        public Type<?> getRootType() {
             if (lineage.isEmpty()) {
                 return type;
             }
@@ -225,7 +228,7 @@ public class SwaggerBuilder {
             Response okEmptyResponse = new Response()
                     .description("Successful response");
 
-            Class<?> parentClass = lineage.peek().getType();
+            Type<?> parentClass = lineage.peek().getType();
             RelationshipType relationshipType = dictionary.getRelationshipType(parentClass, name);
 
             if (relationshipType.isToMany()) {
@@ -513,8 +516,8 @@ public class SwaggerBuilder {
         private Parameter getSortParameter() {
             List<String> filterAttributes = dictionary.getAttributes(type).stream()
                     .filter((name) -> {
-                        Class<?> attributeClass = dictionary.getType(type, name);
-                        return (attributeClass.isPrimitive() || String.class.isAssignableFrom(attributeClass));
+                        Type<?> attributeClass = dictionary.getType(type, name);
+                        return (attributeClass.isPrimitive() || ClassType.STRING_TYPE.isAssignableFrom(attributeClass));
                     })
                     .map((name) -> Arrays.asList(name, "-" + name))
                     .flatMap(Collection::stream)
@@ -562,10 +565,10 @@ public class SwaggerBuilder {
             if (supportLegacyDialect) {
                 for (Operator op : filterOperators) {
                     attributeNames.forEach((name) -> {
-                        Class<?> attributeClass = dictionary.getType(type, name);
+                        Type<?> attributeClass = dictionary.getType(type, name);
 
                         /* Only filter attributes that can be assigned to strings or primitives */
-                        if (attributeClass.isPrimitive() || String.class.isAssignableFrom(attributeClass)) {
+                        if (attributeClass.isPrimitive() || ClassType.STRING_TYPE.isAssignableFrom(attributeClass)) {
                             params.add(new QueryParameter()
                                     .type("string")
                                     .name("filter[" + typeName + "." + name + "][" + op.getNotation() + "]")
@@ -719,7 +722,7 @@ public class SwaggerBuilder {
      * @param classes A subset of the entities in the entity dictionary.
      * @return the builder
      */
-    public SwaggerBuilder withExplicitClassList(Set<Class<?>> classes) {
+    public SwaggerBuilder withExplicitClassList(Set<Type<?>> classes) {
         allClasses = new HashSet<>(classes);
         return this;
     }
@@ -742,7 +745,8 @@ public class SwaggerBuilder {
 
         /* Used to convert Elide POJOs into Swagger Model objects */
         ModelConverters converters = ModelConverters.getInstance();
-        converters.addConverter(new JsonApiModelResolver(dictionary));
+        ModelConverter converter = new JsonApiModelResolver(dictionary);
+        converters.addConverter(converter);
 
         String apiVersion = swagger.getInfo().getVersion();
         if (apiVersion == null) {
@@ -758,10 +762,24 @@ public class SwaggerBuilder {
             }
         }
 
-        /* Create a Model for each Elide entity */
+        /*
+         * Create a Model for each Elide entity.
+         * Elide entity could be of ClassType or DynamicType.
+         * For ClassType, extract the class and pass it to ModelConverters#readAll method.
+         * ModelConverters#readAll doesn't support Elide Dynamic Type, so calling the
+         * JsonApiModelResolver#resolve method directly when its not a ClassType.
+         */
         Map<String, Model> models = new HashMap<>();
-        for (Class<?> clazz : allClasses) {
-            models.putAll(converters.readAll(clazz));
+        for (Type<?> clazz : allClasses) {
+            if (clazz instanceof ClassType) {
+                models.putAll(converters.readAll(((ClassType) clazz).getCls()));
+            } else if (clazz instanceof Type) {
+                ModelConverterContextImpl context = new ModelConverterContextImpl(Arrays.asList(converter));
+                context.resolve(clazz);
+                models.putAll(context.getDefinedModels());
+            } else {
+                models.putAll(converters.readAll(clazz));
+            }
         }
         swagger.setDefinitions(models);
 
@@ -832,7 +850,7 @@ public class SwaggerBuilder {
      * @param rootClass the starting node of the graph
      * @return set of discovered paths.
      */
-    protected Set<PathMetaData> find(Class<?> rootClass) {
+    protected Set<PathMetaData> find(Type<?> rootClass) {
         Queue<PathMetaData> toVisit = new ArrayDeque<>();
         Set<PathMetaData> paths = new HashSet<>();
 
@@ -851,7 +869,7 @@ public class SwaggerBuilder {
             }
 
             for (String relationshipName : relationshipNames) {
-                Class<?> relationshipClass = dictionary.getParameterizedType(current.getType(), relationshipName);
+                Type<?> relationshipClass = dictionary.getParameterizedType(current.getType(), relationshipName);
 
                 PathMetaData next = new PathMetaData(current.getFullLineage(), relationshipName, relationshipClass);
 

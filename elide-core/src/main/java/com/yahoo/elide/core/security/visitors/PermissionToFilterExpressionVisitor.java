@@ -19,6 +19,7 @@ import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.UserCheck;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.generated.parsers.ExpressionBaseVisitor;
 import com.yahoo.elide.generated.parsers.ExpressionParser;
 
@@ -36,7 +37,7 @@ import java.util.Objects;
 public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<FilterExpression>
         implements CheckInstantiator {
     private final EntityDictionary dictionary;
-    private final Class entityClass;
+    private final Type entityClass;
     private final RequestScope requestScope;
 
     /**
@@ -83,7 +84,7 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
     };
 
     public PermissionToFilterExpressionVisitor(EntityDictionary dictionary, RequestScope requestScope,
-            Class entityClass) {
+            Type entityClass) {
         this.dictionary = dictionary;
         this.requestScope = requestScope;
         this.entityClass = entityClass;

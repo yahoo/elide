@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.spring.config;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.SecurityCheck;
@@ -56,6 +57,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -264,9 +266,9 @@ public class ElideAutoConfiguration {
             AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder =
                             AggregationDataStore.builder().queryEngine(queryEngine);
             if (isDynamicConfigEnabled(settings)) {
-                Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(FromTable.class);
-                annotatedClass.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
-                aggregationDataStoreBuilder.dynamicCompiledClasses(annotatedClass);
+                Set<Class<?>> annotatedClasses = compiler.findAnnotatedClasses(FromTable.class);
+                annotatedClasses.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
+                aggregationDataStoreBuilder.dynamicCompiledClasses(getClassType(annotatedClasses));
             }
             aggregationDataStoreBuilder.cache(cache);
             aggregationDataStoreBuilder.queryLogger(querylogger);

@@ -16,23 +16,22 @@ import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.core.lifecycle.LifeCycleHook;
+import com.yahoo.elide.core.type.AccessibleObject;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Field;
+import com.yahoo.elide.core.type.Member;
+import com.yahoo.elide.core.type.Method;
+import com.yahoo.elide.core.type.Type;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.reflect.TypeUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.lang.reflect.Member;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -67,13 +66,15 @@ import javax.persistence.Transient;
  */
 public class EntityBinding {
 
-    private static final List<Method> OBJ_METHODS = ImmutableList.copyOf(Object.class.getMethods());
+    private static final List<Method> OBJ_METHODS = ImmutableList.copyOf(
+            Arrays.stream(Object.class.getMethods()).map(ClassType::constructMethod).collect(Collectors.toList()));
+
     private static final List<Class<? extends Annotation>> RELATIONSHIP_TYPES =
             Arrays.asList(ManyToMany.class, ManyToOne.class, OneToMany.class, OneToOne.class,
                     ToOne.class, ToMany.class);
 
     @Getter
-    public final Class<?> entityClass;
+    public final Type<?> entityClass;
     public final String jsonApiType;
     @Getter
     public boolean idGenerated;
@@ -82,7 +83,7 @@ public class EntityBinding {
     @Getter
     private String idFieldName;
     @Getter
-    private Class<?> idType;
+    private Type<?> idType;
     @Getter
     private AccessType accessType;
 
@@ -97,7 +98,7 @@ public class EntityBinding {
     public final EntityPermissions entityPermissions;
     public final List<String> apiAttributes;
     public final List<String> apiRelationships;
-    public final List<Class<?>> inheritedTypes;
+    public final List<Type<?>> inheritedTypes;
     public final ConcurrentLinkedDeque<String> attributesDeque = new ConcurrentLinkedDeque<>();
     public final ConcurrentLinkedDeque<String> relationshipsDeque = new ConcurrentLinkedDeque<>();
 
@@ -109,7 +110,7 @@ public class EntityBinding {
             LifeCycleHook> fieldTriggers = new HashSetValuedHashMap<>();
     public final MultiValuedMap<Pair<LifeCycleHookBinding.Operation, LifeCycleHookBinding.TransactionPhase>,
             LifeCycleHook> classTriggers = new HashSetValuedHashMap<>();
-    public final ConcurrentHashMap<String, Class<?>> fieldsToTypes = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<String, Type<?>> fieldsToTypes = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<String, String> aliasesToFields = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<Method, Boolean> requestScopeableMethods = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<AccessibleObject, Set<ArgumentType>> attributeArguments = new ConcurrentHashMap<>();
@@ -144,7 +145,7 @@ public class EntityBinding {
      * @param type Declared Elide type name
      */
     public EntityBinding(EntityDictionary dictionary,
-                         Class<?> cls,
+                         Type<?> cls,
                          String type) {
         this(dictionary, cls, type, NO_VERSION, new HashSet<>());
     }
@@ -158,7 +159,7 @@ public class EntityBinding {
      * @param hiddenAnnotations Annotations for hiding a field in API
      */
     public EntityBinding(EntityDictionary dictionary,
-                         Class<?> cls,
+                         Type<?> cls,
                          String type,
                          String apiVersion,
                          Set<Class<? extends Annotation>> hiddenAnnotations) {
@@ -241,7 +242,7 @@ public class EntityBinding {
         List<AccessibleObject> fields = new ArrayList<>();
 
         fields.addAll(getInstanceMembers(entityClass.getDeclaredFields(), (field) -> !field.isSynthetic()));
-        for (Class<?> type : inheritedTypes) {
+        for (Type<?> type : inheritedTypes) {
             fields.addAll(getInstanceMembers(type.getDeclaredFields(), (field) -> !field.isSynthetic()));
         }
 
@@ -252,7 +253,7 @@ public class EntityBinding {
         List<AccessibleObject> methods = new ArrayList<>();
 
         methods.addAll(getInstanceMembers(entityClass.getDeclaredMethods(), (method) -> !method.isSynthetic()));
-        for (Class<?> type : inheritedTypes) {
+        for (Type<?> type : inheritedTypes) {
             methods.addAll(getInstanceMembers(type.getDeclaredMethods(), (method) -> !method.isSynthetic()));
         }
 
@@ -267,7 +268,7 @@ public class EntityBinding {
      * @param fieldOrMethodList List of fields and methods on entity
      * @param hiddenAnnotations Annotations for hiding a field in API
      */
-    private void bindEntityFields(Class<?> cls, String type,
+    private void bindEntityFields(Type<?> cls, String type,
                                   Collection<AccessibleObject> fieldOrMethodList,
                                   Set<Class<? extends Annotation>> hiddenAnnotations) {
         for (AccessibleObject fieldOrMethod : fieldOrMethodList) {
@@ -305,9 +306,9 @@ public class EntityBinding {
      * @param type          JSON API type identifier
      * @param fieldOrMethod Field or method to bind
      */
-    private void bindEntityId(Class<?> cls, String type, AccessibleObject fieldOrMethod) {
+    private void bindEntityId(Type<?> cls, String type, AccessibleObject fieldOrMethod) {
         String fieldName = getFieldName(fieldOrMethod);
-        Class<?> fieldType = getFieldType(cls, fieldOrMethod);
+        Type<?> fieldType = getFieldType(cls, fieldOrMethod);
 
         //Add id field to type map for the entity
         fieldsToTypes.put(fieldName, fieldType);
@@ -350,7 +351,7 @@ public class EntityBinding {
         boolean isRelation = RELATIONSHIP_TYPES.stream().anyMatch(fieldOrMethod::isAnnotationPresent);
 
         String fieldName = getFieldName(fieldOrMethod);
-        Class<?> fieldType = getFieldType(entityClass, fieldOrMethod);
+        Type<?> fieldType = getFieldType(entityClass, fieldOrMethod);
 
         if (fieldName == null || REGULAR_ID_NAME.equals(fieldName) || "class".equals(fieldName)
                 || OBJ_METHODS.contains(fieldOrMethod)) {
@@ -377,7 +378,7 @@ public class EntityBinding {
      * @param fieldType Field type
      * @param isHidden Whether this field is hidden from API
      */
-    private void bindRelation(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType, boolean isHidden) {
+    private void bindRelation(AccessibleObject fieldOrMethod, String fieldName, Type<?> fieldType, boolean isHidden) {
         boolean manyToMany = fieldOrMethod.isAnnotationPresent(ManyToMany.class);
         boolean manyToOne = fieldOrMethod.isAnnotationPresent(ManyToOne.class);
         boolean oneToMany = fieldOrMethod.isAnnotationPresent(OneToMany.class);
@@ -434,7 +435,7 @@ public class EntityBinding {
      * @param fieldType Field type
      * @param isHidden Whether this field is hidden from API
      */
-    private void bindAttr(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType, boolean isHidden) {
+    private void bindAttr(AccessibleObject fieldOrMethod, String fieldName, Type<?> fieldType, boolean isHidden) {
         if (!isHidden) {
             attributesDeque.push(fieldName);
         }
@@ -495,7 +496,7 @@ public class EntityBinding {
      * @param fieldOrMethod field or method
      * @return field type
      */
-    public static Class<?> getFieldType(Class<?> parentClass,
+    public static Type<?> getFieldType(Type<?> parentClass,
                                          AccessibleObject fieldOrMethod) {
         return getFieldType(parentClass, fieldOrMethod, Optional.empty());
     }
@@ -510,21 +511,15 @@ public class EntityBinding {
      *              parameterized type.
      * @return field type
      */
-    public static Class<?> getFieldType(Class<?> parentClass,
-                                         AccessibleObject fieldOrMethod,
-                                         Optional<Integer> index) {
+    public static Type<?> getFieldType(Type<?> parentClass,
+                                       AccessibleObject fieldOrMethod,
+                                       Optional<Integer> index) {
         Type type;
         if (fieldOrMethod instanceof Field) {
-            type = ((Field) fieldOrMethod).getGenericType();
+            return ((Field) fieldOrMethod).getParameterizedType(parentClass, index);
         } else {
-            type = ((Method) fieldOrMethod).getGenericReturnType();
+            return ((Method) fieldOrMethod).getParameterizedReturnType(parentClass, index);
         }
-
-        if (type instanceof ParameterizedType && index.isPresent()) {
-            type = ((ParameterizedType) type).getActualTypeArguments()[index.get().intValue()];
-        }
-
-        return TypeUtils.getRawType(type, parentClass);
     }
 
     private void bindTriggerIfPresent(AccessibleObject fieldOrMethod) {
@@ -662,16 +657,15 @@ public class EntityBinding {
         return hasConstructor;
     }
 
-    private List<Class<?>> getInheritedTypes(Class<?> entityCls) {
-        ArrayList<Class<?>> results = new ArrayList<>();
+    private List<Type<?>> getInheritedTypes(Type<?> entityCls) {
+        ArrayList<Type<?>> results = new ArrayList<>();
 
-        for (Class<?> cls = entityCls.getSuperclass(); null != cls && Object.class != cls; cls = cls.getSuperclass()) {
+        for (Type<?> cls = entityCls.getSuperclass(); cls != null && cls.hasSuperType(); cls = cls.getSuperclass()) {
             results.add(cls);
         }
 
         return results;
     }
-
 
     /**
      * Add a collection of arguments to the attributes of this Entity.

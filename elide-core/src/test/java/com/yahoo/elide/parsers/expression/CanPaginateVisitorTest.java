@@ -23,6 +23,8 @@ import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.visitors.CanPaginateVisitor;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -64,7 +66,7 @@ public class CanPaginateVisitorTest {
 
     public static final class TestFilterExpressionCheck extends FilterExpressionCheck<Object> {
         @Override
-        public FilterExpression getFilterExpression(Class entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Type entityClass, com.yahoo.elide.core.security.RequestScope requestScope) {
             return null;
         }
     }
@@ -95,7 +97,7 @@ public class CanPaginateVisitorTest {
 
         RequestScope scope = mock(RequestScope.class);
 
-        assertTrue(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(new ClassType(Book.class), dictionary, scope));
     }
 
     @Test
@@ -113,7 +115,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertFalse(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(new ClassType(Book.class), dictionary, scope));
     }
 
     @Test
@@ -131,7 +133,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertTrue(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(new ClassType(Book.class), dictionary, scope));
     }
 
     @Test
@@ -150,7 +152,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertTrue(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(new ClassType(Book.class), dictionary, scope));
     }
 
     @Test
@@ -170,7 +172,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertTrue(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(new ClassType(Book.class), dictionary, scope));
     }
 
     @Test
@@ -189,7 +191,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertFalse(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(new ClassType(Book.class), dictionary, scope));
     }
 
     @Test
@@ -208,7 +210,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertTrue(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(new ClassType(Book.class), dictionary, scope));
     }
 
     @Test
@@ -227,7 +229,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertTrue(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(new ClassType(Book.class), dictionary, scope));
     }
 
     @Test
@@ -246,7 +248,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertFalse(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(new ClassType(Book.class), dictionary, scope));
     }
 
     @Test
@@ -265,7 +267,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertFalse(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(new ClassType(Book.class), dictionary, scope));
     }
 
     @Test
@@ -287,7 +289,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertFalse(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(new ClassType(Book.class), dictionary, scope));
     }
 
     @Test
@@ -310,7 +312,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertTrue(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(new ClassType(Book.class), dictionary, scope));
     }
 
     @Test
@@ -338,14 +340,14 @@ public class CanPaginateVisitorTest {
         Map<String, Set<String>> sparseFields = new HashMap<>();
         when(scope.getSparseFields()).thenReturn(sparseFields);
 
-        assertFalse(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(new ClassType(Book.class), dictionary, scope));
 
         sparseFields.put("book", Sets.newHashSet("title", "publicationDate"));
 
-        assertTrue(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(new ClassType(Book.class), dictionary, scope));
 
         sparseFields.put("book", Sets.newHashSet("outOfPrint"));
 
-        assertFalse(CanPaginateVisitor.canPaginate(Book.class, dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(new ClassType(Book.class), dictionary, scope));
     }
 }

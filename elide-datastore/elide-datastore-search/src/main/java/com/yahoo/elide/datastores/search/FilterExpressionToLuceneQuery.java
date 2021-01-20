@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.search;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
@@ -40,7 +41,7 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
     @Override
     public Query visitPredicate(FilterPredicate filterPredicate) {
         Preconditions.checkArgument(filterPredicate.getPath().getPathElements().size() == 1);
-        Preconditions.checkArgument(filterPredicate.getEntityType().equals(entityClass));
+        Preconditions.checkArgument(filterPredicate.getEntityType().equals(getClassType(entityClass)));
 
         Analyzer analyzer = new KeywordAnalyzer();
         QueryParser queryParser = new QueryParser(filterPredicate.getField(), analyzer);

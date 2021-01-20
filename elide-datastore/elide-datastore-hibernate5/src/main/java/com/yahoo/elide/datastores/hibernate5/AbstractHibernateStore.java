@@ -5,9 +5,12 @@
  */
 package com.yahoo.elide.datastores.hibernate5;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.JPQLDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.Type;
+
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -108,7 +111,7 @@ public abstract class AbstractHibernateStore implements JPQLDataStore {
     }
 
     protected void bindEntity(EntityDictionary dictionary, EntityType<?> type) {
-        Class<?> mappedClass = type.getJavaType();
+        Type<?> mappedClass = getClassType(type.getJavaType());
 
         bindEntityClass(mappedClass, dictionary);
     }

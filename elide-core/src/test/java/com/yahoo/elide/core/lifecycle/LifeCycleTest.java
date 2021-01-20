@@ -47,6 +47,7 @@ import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.core.type.ClassType;
 import com.google.common.collect.ImmutableSet;
 import org.junit.jupiter.api.Test;
 
@@ -83,7 +84,7 @@ public class LifeCycleTest {
         String body = "{\"data\": {\"type\":\"testModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.createNewObject(FieldTestModel.class)).thenReturn(mockModel);
+        when(tx.createNewObject(new ClassType(FieldTestModel.class))).thenReturn(mockModel);
 
         ElideResponse response = elide.post(baseUrl, "/testModel", body, null, NO_VERSION);
         assertEquals(HttpStatus.SC_CREATED, response.getResponseCode());
@@ -137,7 +138,7 @@ public class LifeCycleTest {
         String body = "{\"data\": {\"type\":\"testModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.createNewObject(FieldTestModel.class)).thenReturn(mockModel);
+        when(tx.createNewObject(new ClassType(FieldTestModel.class))).thenReturn(mockModel);
 
         ElideResponse response = elide.post(baseUrl, "/testModel", body, null, NO_VERSION);
         assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getResponseCode());
@@ -772,9 +773,9 @@ public class LifeCycleTest {
     public void testCreate() {
         FieldTestModel mockModel = mock(FieldTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.createNewObject(FieldTestModel.class)).thenReturn(mockModel);
+        when(tx.createNewObject(new ClassType(FieldTestModel.class))).thenReturn(mockModel);
         RequestScope scope = buildRequestScope(dictionary, tx);
-        PersistentResource resource = PersistentResource.createObject(FieldTestModel.class, scope, Optional.of("1"));
+        PersistentResource resource = PersistentResource.createObject(new ClassType(FieldTestModel.class), scope, Optional.of("1"));
         resource.updateAttribute("field", "should not affect calls since this is create!");
 
         verify(mockModel, never()).classCallback(any(), any());
@@ -821,9 +822,9 @@ public class LifeCycleTest {
     public void testRead() {
         FieldTestModel mockModel = mock(FieldTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.createNewObject(FieldTestModel.class)).thenReturn(mockModel);
+        when(tx.createNewObject(new ClassType(FieldTestModel.class))).thenReturn(mockModel);
         RequestScope scope = buildRequestScope(dictionary, tx);
-        PersistentResource resource = new PersistentResource(mockModel, null, "1", scope);
+        PersistentResource resource = new PersistentResource(mockModel, "1", scope);
 
         resource.getAttribute(Attribute.builder().type(String.class).name("field").build());
 
@@ -867,9 +868,9 @@ public class LifeCycleTest {
     public void testDelete() {
         FieldTestModel mockModel = mock(FieldTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.createNewObject(FieldTestModel.class)).thenReturn(mockModel);
+        when(tx.createNewObject(new ClassType(FieldTestModel.class))).thenReturn(mockModel);
         RequestScope scope = buildRequestScope(dictionary, tx);
-        PersistentResource resource = new PersistentResource(mockModel, null, "1", scope);
+        PersistentResource resource = new PersistentResource(mockModel, "1", scope);
 
         resource.deleteResource();
 
@@ -911,10 +912,10 @@ public class LifeCycleTest {
     public void testAttributeUpdate() {
         FieldTestModel mockModel = mock(FieldTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.createNewObject(FieldTestModel.class)).thenReturn(mockModel);
+        when(tx.createNewObject(new ClassType(FieldTestModel.class))).thenReturn(mockModel);
         RequestScope scope = buildRequestScope(dictionary, tx);
 
-        PersistentResource resource = new PersistentResource(mockModel, null, scope.getUUIDFor(mockModel), scope);
+        PersistentResource resource = new PersistentResource(mockModel, scope.getUUIDFor(mockModel), scope);
         resource.updateAttribute("field", "new value");
 
         verify(mockModel, times(1)).classCallback(any(), any());
@@ -960,13 +961,13 @@ public class LifeCycleTest {
     public void testRelationshipUpdate() {
         FieldTestModel mockModel = mock(FieldTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.createNewObject(FieldTestModel.class)).thenReturn(mockModel);
+        when(tx.createNewObject(new ClassType(FieldTestModel.class))).thenReturn(mockModel);
         RequestScope scope = buildRequestScope(dictionary, tx);
 
         FieldTestModel modelToAdd = mock(FieldTestModel.class);
 
-        PersistentResource resource = new PersistentResource(mockModel, null, scope.getUUIDFor(mockModel), scope);
-        PersistentResource resourceToAdd = new PersistentResource(modelToAdd, null, scope.getUUIDFor(mockModel), scope);
+        PersistentResource resource = new PersistentResource(mockModel, scope.getUUIDFor(mockModel), scope);
+        PersistentResource resourceToAdd = new PersistentResource(modelToAdd, scope.getUUIDFor(mockModel), scope);
 
         resource.addRelation("models", resourceToAdd);
 
@@ -1017,14 +1018,14 @@ public class LifeCycleTest {
     public void testAddToCollectionTrigger() {
         PropertyTestModel mockModel = mock(PropertyTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.createNewObject(PropertyTestModel.class)).thenReturn(mockModel);
+        when(tx.createNewObject(new ClassType(PropertyTestModel.class))).thenReturn(mockModel);
         RequestScope scope = buildRequestScope(dictionary, tx);
 
         PropertyTestModel modelToAdd = mock(PropertyTestModel.class);
 
         //First we test adding to a newly created object.
-        PersistentResource resource = PersistentResource.createObject(PropertyTestModel.class, scope, Optional.of("1"));
-        PersistentResource resourceToAdd = new PersistentResource(modelToAdd, null, scope.getUUIDFor(mockModel), scope);
+        PersistentResource resource = PersistentResource.createObject(new ClassType(PropertyTestModel.class), scope, Optional.of("1"));
+        PersistentResource resourceToAdd = new PersistentResource(modelToAdd, scope.getUUIDFor(mockModel), scope);
 
         resource.updateRelation("models", new HashSet<>(Arrays.asList(resourceToAdd)));
 
@@ -1037,7 +1038,7 @@ public class LifeCycleTest {
 
         //Build another resource, scope & reset the mock to do a pure update (no create):
         scope = buildRequestScope(dictionary, tx);
-        resource = new PersistentResource(mockModel, null, scope.getUUIDFor(mockModel), scope);
+        resource = new PersistentResource(mockModel, scope.getUUIDFor(mockModel), scope);
         reset(mockModel);
 
         resource.updateRelation("models", new HashSet<>(Arrays.asList(resourceToAdd)));
@@ -1054,7 +1055,7 @@ public class LifeCycleTest {
     public void testRemoveFromCollectionTrigger() {
         PropertyTestModel mockModel = mock(PropertyTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.createNewObject(PropertyTestModel.class)).thenReturn(mockModel);
+        when(tx.createNewObject(new ClassType(PropertyTestModel.class))).thenReturn(mockModel);
         RequestScope scope = buildRequestScope(dictionary, tx);
 
         PropertyTestModel childModel1 = mock(PropertyTestModel.class);
@@ -1063,9 +1064,9 @@ public class LifeCycleTest {
         when(childModel2.getId()).thenReturn("3");
 
         //First we test removing from a newly created object.
-        PersistentResource resource = PersistentResource.createObject(PropertyTestModel.class, scope, Optional.of("1"));
-        PersistentResource childResource1 = new PersistentResource(childModel1, null, "2", scope);
-        PersistentResource childResource2 = new PersistentResource(childModel2, null, "3", scope);
+        PersistentResource resource = PersistentResource.createObject(new ClassType(PropertyTestModel.class), scope, Optional.of("1"));
+        PersistentResource childResource1 = new PersistentResource(childModel1, "2", scope);
+        PersistentResource childResource2 = new PersistentResource(childModel2, "3", scope);
 
         resource.updateRelation("models", new HashSet<>(Arrays.asList(childResource1, childResource2)));
 
@@ -1078,7 +1079,7 @@ public class LifeCycleTest {
 
         //Build another resource, scope & reset the mock to do a pure update (no create):
         scope = buildRequestScope(dictionary, tx);
-        resource = new PersistentResource(mockModel, null, scope.getUUIDFor(mockModel), scope);
+        resource = new PersistentResource(mockModel, scope.getUUIDFor(mockModel), scope);
         reset(mockModel);
         Relationship relationship = Relationship.builder()
                 .projection(EntityProjection.builder()
@@ -1109,7 +1110,7 @@ public class LifeCycleTest {
                 .attributeCallback(eq(UPDATE), eq(PRECOMMIT), any(ChangeSpec.class));
 
         RequestScope scope = buildRequestScope(dictionary, tx);
-        PersistentResource resource = new PersistentResource(testModel, null, "1", scope);
+        PersistentResource resource = new PersistentResource(testModel, "1", scope);
         resource.updateAttribute("field", "New value");
         scope.runQueuedPreSecurityTriggers();
         assertThrows(IllegalStateException.class, () -> scope.runQueuedPreCommitTriggers());
@@ -1125,7 +1126,7 @@ public class LifeCycleTest {
                 .attributeCallback(eq(UPDATE), eq(POSTCOMMIT), any(ChangeSpec.class));
 
         RequestScope scope = buildRequestScope(dictionary, tx);
-        PersistentResource resource = new PersistentResource(testModel, null, "1", scope);
+        PersistentResource resource = new PersistentResource(testModel, "1", scope);
         resource.updateAttribute("field", "New value");
         scope.runQueuedPreSecurityTriggers();
         scope.runQueuedPreCommitTriggers();
@@ -1142,7 +1143,7 @@ public class LifeCycleTest {
                 .attributeCallback(eq(UPDATE), eq(PRESECURITY), any(ChangeSpec.class));
 
         RequestScope scope = buildRequestScope(dictionary, tx);
-        PersistentResource resource = new PersistentResource(testModel, null, "1", scope);
+        PersistentResource resource = new PersistentResource(testModel, "1", scope);
 
         assertThrows(IllegalStateException.class, () -> resource.updateAttribute("field", "New value"));
     }

@@ -7,10 +7,13 @@ package com.yahoo.elide.core;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.getSimpleName;
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static com.yahoo.elide.core.utils.TypeHelper.getTypeAlias;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.request.Argument;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import lombok.AllArgsConstructor;
@@ -41,13 +44,17 @@ public class Path {
     @ToString
     @EqualsAndHashCode
     public static class PathElement {
-        @Getter private Class type;
-        @Getter private Class fieldType;
+        @Getter private Type type;
+        @Getter private Type fieldType;
         @Getter private String fieldName;
         @Getter private String alias;
         @Getter private Set<Argument> arguments;
 
-        public PathElement(Class type, Class fieldType, String fieldName) {
+        public PathElement(Class<?> type, Class<?> fieldType, String fieldName) {
+            this(getClassType(type), getClassType(fieldType), fieldName);
+        }
+
+        public PathElement(Type type, Type fieldType, String fieldName) {
             this.type = type;
             this.fieldType = fieldType;
             this.fieldName = fieldName;
@@ -68,10 +75,19 @@ public class Path {
     }
 
     public Path(Class<?> entityClass, EntityDictionary dictionary, String dotSeparatedPath) {
+        this(new ClassType(entityClass), dictionary, dotSeparatedPath);
+    }
+
+    public Path(Type<?> entityClass, EntityDictionary dictionary, String dotSeparatedPath) {
         pathElements = resolvePathElements(entityClass, dictionary, dotSeparatedPath);
     }
 
     public Path(Class<?> entityClass, EntityDictionary dictionary, String fieldName,
+                String alias, Set<Argument> arguments) {
+        this(new ClassType(entityClass), dictionary, fieldName, alias, arguments);
+    }
+
+    public Path(Type<?> entityClass, EntityDictionary dictionary, String fieldName,
                 String alias, Set<Argument> arguments) {
         pathElements = Lists.newArrayList(resolvePathAttribute(entityClass, fieldName, alias, arguments, dictionary));
     }
@@ -84,16 +100,16 @@ public class Path {
      * @param dotSeparatedPath path e.g. "bar.baz"
      * @return list of path elements e.g. ["foo.bar", "bar.baz"]
      */
-    private List<PathElement> resolvePathElements(Class<?> entityClass,
+    private List<PathElement> resolvePathElements(Type<?> entityClass,
                                                   EntityDictionary dictionary,
                                                   String dotSeparatedPath) {
         List<PathElement> elements = new ArrayList<>();
         String[] fieldNames = dotSeparatedPath.split("\\.");
 
-        Class<?> currentClass = entityClass;
+        Type<?> currentClass = entityClass;
         for (String fieldName : fieldNames) {
             if (needNavigation(currentClass, fieldName, dictionary)) {
-                Class<?> joinClass = dictionary.getParameterizedType(currentClass, fieldName);
+                Type<?> joinClass = dictionary.getParameterizedType(currentClass, fieldName);
                 elements.add(new PathElement(currentClass, joinClass, fieldName));
                 currentClass = joinClass;
             } else {
@@ -105,14 +121,14 @@ public class Path {
         return ImmutableList.copyOf(elements);
     }
 
-    private PathElement resolvePathAttribute(Class<?> entityClass,
+    private PathElement resolvePathAttribute(Type<?> entityClass,
                                              String fieldName,
                                              String alias,
                                              Set<Argument> arguments,
                                              EntityDictionary dictionary) {
         if (dictionary.isAttribute(entityClass, fieldName)
                 || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
-            Class<?> attributeClass = dictionary.getType(entityClass, fieldName);
+            Type<?> attributeClass = dictionary.getType(entityClass, fieldName);
             return new PathElement(entityClass, attributeClass, fieldName, alias, arguments);
         } else if ("this".equals(fieldName)) {
             return new PathElement(entityClass, null, fieldName);
@@ -130,7 +146,7 @@ public class Path {
      * @param dictionary dictionary
      * @return True if the field requires navigation.
      */
-    protected boolean needNavigation(Class<?> entityClass, String fieldName, EntityDictionary dictionary) {
+    protected boolean needNavigation(Type<?> entityClass, String fieldName, EntityDictionary dictionary) {
         return dictionary.isRelation(entityClass, fieldName);
     }
 

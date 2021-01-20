@@ -127,10 +127,12 @@ public class PrestoDBExplainQueryTest extends SQLUnitTest {
      */
     @Test
     public void testExplainPagination() {
-        String expectedQueryStr1 =
-                "SELECT COUNT(DISTINCT(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd'))) FROM "
-                        + "\"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\"";
+        String expectedQueryStr1 = "SELECT COUNT(*) FROM "
+                        + "(SELECT \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
+                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') FROM "
+                        + "\"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
+                        + "GROUP BY \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
+                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') ) AS \"pagination_subquery\"";
         String expectedQueryStr2 =
                 "SELECT MIN(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"lowScore\") AS "
                         + "\"lowScore\",\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS "
@@ -221,16 +223,18 @@ public class PrestoDBExplainQueryTest extends SQLUnitTest {
     public void testExplainComplicated() {
         Query query = TestQuery.COMPLICATED.getQuery();
 
-        String expectedQueryStr1 =
-                "SELECT COUNT(DISTINCT(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd'))) "
+        String expectedQueryStr1 = "SELECT COUNT(*) FROM "
+                        + "(SELECT \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
+                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') "
                         + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
                         + "LEFT OUTER JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\" "
                         + "ON \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"country_id\" = "
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"id\" "
                         + "WHERE \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"iso_code\" "
                         + "IN (:XXX) "
-                        + "HAVING MIN(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"lowScore\") > :XXX";
+                        + "GROUP BY \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
+                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') "
+                        + "HAVING MIN(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"lowScore\") > :XXX ) AS \"pagination_subquery\"";
 
         String expectedQueryStr2 =
                 "SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
@@ -341,9 +345,9 @@ public class PrestoDBExplainQueryTest extends SQLUnitTest {
     @Test
     public void testNestedMetricWithPaginationQuery() {
         Query query = TestQuery.NESTED_METRIC_WITH_PAGINATION_QUERY.getQuery();
-
-        String exptectedQueryStr1 = "SELECT COUNT(DISTINCT(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\", "
-                + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedMonth\", 'yyyy-MM'), 'yyyy-MM'))) "
+        String exptectedQueryStr1 = "SELECT COUNT(*) FROM "
+                + "(SELECT \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\", "
+                + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedMonth\", 'yyyy-MM'), 'yyyy-MM') "
                 + "FROM (SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
                 + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS \"overallRating\","
                 + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate\","
@@ -352,7 +356,9 @@ public class PrestoDBExplainQueryTest extends SQLUnitTest {
                 + "GROUP BY \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
                 + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
                 + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') ) "
-                + "AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\"\n";
+                + "AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\" "
+                + "GROUP BY \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\", "
+                + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedMonth\", 'yyyy-MM'), 'yyyy-MM') ) AS \"pagination_subquery\"\n";
 
         String exptectedQueryStr2 = "SELECT AVG(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"highScore\") "
                 + "AS \"dailyAverageScorePerPeriod\",\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\" AS \"overallRating\","
@@ -437,5 +443,18 @@ public class PrestoDBExplainQueryTest extends SQLUnitTest {
                                         + " CROSS JOIN \"players\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerCrossJoin\"";
 
         compareQueryLists(expectedQueryStr, engine.explain(query));
+    }
+
+    @Test
+    public void testPaginationMetricsOnly() throws Exception {
+        // pagination query should be empty since there is no dimension projection
+        Query query = TestQuery.PAGINATION_METRIC_ONLY.getQuery();
+        String expectedQueryStr =
+                "SELECT MIN(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"lowScore\") AS \"lowScore\" "
+                        + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
+                        + "LIMIT 5\n";
+        compareQueryLists(expectedQueryStr, engine.explain(query));
+
+        testQueryExecution(TestQuery.PAGINATION_METRIC_ONLY.getQuery());
     }
 }

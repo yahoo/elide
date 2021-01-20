@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.noop;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.beans.NoopBean;
@@ -23,7 +24,7 @@ public class NoopDataStoreTest {
         DataStore store = new NoopDataStore(Arrays.asList(NoopBean.class));
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
         store.populateEntityDictionary(dictionary);
-        assertEquals(NoopBean.class, dictionary.getEntityClass("theNoopBean", EntityDictionary.NO_VERSION));
+        assertEquals(getClassType(NoopBean.class), dictionary.getEntityClass("theNoopBean", EntityDictionary.NO_VERSION));
     }
 
     @Test
