@@ -33,6 +33,7 @@ public class TestRequestScope extends RequestScope {
                 new ElideSettingsBuilder(null)
                         .withEntityDictionary(dictionary)
                         .withJSONApiLinks(new DefaultJSONApiLinks())
+                        .withJsonApiPath("/json")
                         .build());
     }
 

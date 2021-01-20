@@ -53,6 +53,11 @@ public class DefaultJSONApiLinks implements JSONApiLinks {
         if (baseUrl == null || baseUrl.isEmpty()) {
             if (resource.getRequestScope().getBaseUrlEndPoint() != null) {
                 result.append(resource.getRequestScope().getBaseUrlEndPoint());
+                String jsonApiPath = resource.getRequestScope().getElideSettings().getJsonApiPath();
+                if (jsonApiPath != null && !jsonApiPath.isEmpty()) {
+                    result.append(jsonApiPath);
+                }
+                result.append("/");
             }
         } else {
             result.append(baseUrl);

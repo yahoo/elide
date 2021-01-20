@@ -77,7 +77,7 @@ public class AsyncExecutorServiceTest {
        when(queryObj.getAsyncAfterSeconds()).thenReturn(10);
 
        Callable<AsyncAPIResult> mockCallable = mock(Callable.class);
-       when(mockCallable.call()).thenThrow(new NoHttpResponseException(null));
+       when(mockCallable.call()).thenThrow(new NoHttpResponseException(""));
 
        service.executeQuery(queryObj, mockCallable);
        verify(queryObj, times(1)).setStatus(QueryStatus.PROCESSING);
