@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.6.10
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/f0b3e00049800431b361d9b6f66436dde37f0161) Fixed generated relationship URLs for JSON-API Links in Elide 4 
+
 ## 4.6.9
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/e1be594a896dad79cc7c8011e3ba92750d36455a) Adding simple setting to enable JSON-API links 
