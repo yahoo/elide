@@ -166,20 +166,20 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public void updateToManyRelation(DataStoreTransaction relationTx,
-                                     Object entity,
+    public <T, R> void updateToManyRelation(DataStoreTransaction relationTx,
+                                     T entity,
                                      String relationName,
-                                     Set<Object> newRelationships,
-                                     Set<Object> deletedRelationships,
+                                     Set<R> newRelationships,
+                                     Set<R> deletedRelationships,
                                      RequestScope scope) {
         tx.updateToManyRelation(relationTx, entity, relationName, newRelationships, deletedRelationships, scope);
     }
 
     @Override
-    public void updateToOneRelation(DataStoreTransaction relationTx,
-                                    Object entity,
+    public <T, R> void updateToOneRelation(DataStoreTransaction relationTx,
+                                    T entity,
                                     String relationName,
-                                    Object relationshipValue,
+                                    R relationshipValue,
                                     RequestScope scope) {
         tx.updateToOneRelation(relationTx, entity, relationName, relationshipValue, scope);
     }
