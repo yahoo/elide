@@ -22,7 +22,7 @@ import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
 import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
 import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
-import com.yahoo.elide.async.service.thread.AsyncQueryThread;
+import com.yahoo.elide.async.service.thread.AsyncQueryCallable;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.User;
@@ -96,7 +96,7 @@ public class AsyncExecutorServiceTest {
         when(queryObj.getRequestId()).thenReturn(id);
         when(queryObj.getQueryType()).thenReturn(QueryType.JSONAPI_V1_0);
         when(queryObj.getAsyncAfterSeconds()).thenReturn(10);
-        AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, testUser, service, NO_VERSION);
+        AsyncQueryCallable queryThread = new AsyncQueryCallable(queryObj, testUser, service, NO_VERSION);
         service.executeQuery(queryObj, queryThread);
         verify(queryObj, times(1)).setStatus(QueryStatus.PROCESSING);
         verify(queryObj, times(1)).setStatus(QueryStatus.COMPLETE);

@@ -11,7 +11,7 @@ import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.service.AsyncExecutorService;
-import com.yahoo.elide.async.service.thread.AsyncQueryThread;
+import com.yahoo.elide.async.service.thread.AsyncQueryCallable;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
@@ -31,8 +31,8 @@ public class AsyncQueryHook extends AsyncAPIHook<AsyncQuery> {
     @Override
     public void execute(Operation operation, TransactionPhase phase, AsyncQuery query, RequestScope requestScope,
             Optional<ChangeSpec> changes) {
-        AsyncQueryThread queryWorker = new AsyncQueryThread(query, requestScope.getUser(), getAsyncExecutorService(),
-                requestScope.getApiVersion());
+        AsyncQueryCallable queryWorker = new AsyncQueryCallable(query, requestScope.getUser(),
+                getAsyncExecutorService(), requestScope.getApiVersion());
         executeHook(operation, phase, query, requestScope, queryWorker);
     }
 

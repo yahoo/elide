@@ -11,7 +11,7 @@ import com.yahoo.elide.async.export.TableExporter;
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.service.AsyncExecutorService;
-import com.yahoo.elide.async.service.thread.TableExportThread;
+import com.yahoo.elide.async.service.thread.TableExportCallable;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 
@@ -32,7 +32,7 @@ public class TableExportHook extends AsyncAPIHook<TableExport> {
         AsyncExecutorService service = getAsyncExecutorService();
         TableExporter exporter = new TableExporter(service.getElide(), requestScope.getApiVersion(),
                 requestScope.getUser());
-        TableExportThread queryWorker = new TableExportThread(query, service.getResultStorageEngine(), exporter);
+        TableExportCallable queryWorker = new TableExportCallable(query, service.getResultStorageEngine(), exporter);
         executeHook(operation, phase, query, requestScope, queryWorker);
     }
 

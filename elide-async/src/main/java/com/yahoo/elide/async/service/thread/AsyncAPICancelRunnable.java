@@ -36,13 +36,13 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * Runnable thread for cancelling AsyncAPI transactions
+ * Runnable for cancelling AsyncAPI transactions
  * beyond the max run time or if it has status CANCELLED.
  */
 @Slf4j
 @Data
 @AllArgsConstructor
-public class AsyncAPICancelThread implements Runnable {
+public class AsyncAPICancelRunnable implements Runnable {
 
     private int maxRunTimeSeconds;
     private Elide elide;

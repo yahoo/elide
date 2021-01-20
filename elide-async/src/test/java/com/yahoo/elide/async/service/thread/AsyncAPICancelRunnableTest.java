@@ -37,9 +37,9 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 
-public class AsyncAPICancelThreadTest {
+public class AsyncAPICancelRunnableTest {
 
-    private AsyncAPICancelThread cancelThread;
+    private AsyncAPICancelRunnable cancelThread;
     private Elide elide;
     private AsyncAPIDAO asyncAPIDao;
     private TransactionRegistry transactionRegistry;
@@ -56,7 +56,7 @@ public class AsyncAPICancelThreadTest {
                         .build());
 
         asyncAPIDao = mock(DefaultAsyncAPIDAO.class);
-        cancelThread = new AsyncAPICancelThread(7, elide, asyncAPIDao);
+        cancelThread = new AsyncAPICancelRunnable(7, elide, asyncAPIDao);
         transactionRegistry = elide.getTransactionRegistry();
 
     }

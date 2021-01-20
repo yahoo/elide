@@ -35,14 +35,14 @@ import java.util.concurrent.Callable;
  * It will also update the query status and result object at different stages of execution.
  */
 @Slf4j
-public class TableExportThread implements Callable<AsyncAPIResult> {
+public class TableExportCallable implements Callable<AsyncAPIResult> {
     private TableExport queryObj;
     private TableExporter exporter;
     private Integer downloadRecordCount = 0;
     private ResultStorageEngine resultStorageEngine;
     private ObjectMapper mapper = new ObjectMapper();
 
-    public TableExportThread(TableExport queryObj, ResultStorageEngine resultStorageEngine, TableExporter exporter) {
+    public TableExportCallable(TableExport queryObj, ResultStorageEngine resultStorageEngine, TableExporter exporter) {
         this.queryObj = queryObj;
         this.exporter = exporter;
         this.resultStorageEngine = resultStorageEngine;
