@@ -49,6 +49,7 @@ public class AsyncExecutorService {
     private AsyncAPIDAO asyncAPIDao;
     private static AsyncExecutorService asyncExecutorService = null;
     private ResultStorageEngine resultStorageEngine;
+    private boolean enableGraphQL;
     private ThreadLocal<AsyncAPIResultFuture> asyncResultFutureThreadLocal = new ThreadLocal<>();
 
     /**
@@ -62,9 +63,10 @@ public class AsyncExecutorService {
 
     @Inject
     private AsyncExecutorService(Elide elide, Integer threadPoolSize, AsyncAPIDAO asyncAPIDao,
-            ResultStorageEngine resultStorageEngine) {
+            ResultStorageEngine resultStorageEngine, boolean enableGraphQL) {
         this.elide = elide;
         runners = new HashMap();
+        this.enableGraphQL = enableGraphQL;
 
         for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
             runners.put(apiVersion, new QueryRunner(elide, apiVersion));
@@ -84,10 +86,10 @@ public class AsyncExecutorService {
      * @param asyncAPIDao DAO Object
      */
     public static void init(Elide elide, Integer threadPoolSize, AsyncAPIDAO asyncAPIDao,
-            ResultStorageEngine resultStorageEngine) {
+            ResultStorageEngine resultStorageEngine, boolean enableGraphQL) {
         if (asyncExecutorService == null) {
             asyncExecutorService = new AsyncExecutorService(elide, threadPoolSize, asyncAPIDao,
-                    resultStorageEngine);
+                    resultStorageEngine, enableGraphQL);
         } else {
             log.debug("asyncExecutorService is already initialized.");
         }
