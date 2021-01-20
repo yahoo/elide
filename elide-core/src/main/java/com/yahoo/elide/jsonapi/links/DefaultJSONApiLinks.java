@@ -62,7 +62,6 @@ public class DefaultJSONApiLinks implements JSONApiLinks {
         } else {
             result.append(baseUrl);
         }
-//<<<<<<< HEAD
 
         List<ResourceLineage.LineagePath> path = resource.getLineage().getResourcePath();
         if (path.size() > 0) {

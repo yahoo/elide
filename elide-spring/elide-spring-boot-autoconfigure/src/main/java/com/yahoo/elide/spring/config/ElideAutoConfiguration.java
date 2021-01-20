@@ -146,7 +146,7 @@ public class ElideAutoConfiguration {
                 .withBaseUrl(settings.getBaseUrl())
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                 .withJsonApiPath(settings.getJsonApi().getPath())
-                .withGraphqlApiPath(settings.getGraphql().getPath());
+                .withGraphQLApiPath(settings.getGraphql().getPath());
 
         if (settings.getJsonApi() != null
                 && settings.getJsonApi().isEnabled()
