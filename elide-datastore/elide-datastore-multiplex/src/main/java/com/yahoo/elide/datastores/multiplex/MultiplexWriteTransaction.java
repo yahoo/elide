@@ -46,14 +46,14 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
     }
 
     @Override
-    public void save(Object entity, RequestScope requestScope) {
+    public <T> void save(T entity, RequestScope requestScope) {
         Type<Object> entityType = EntityDictionary.getType(entity);
         getTransaction(entityType).save(entity, requestScope);
         dirtyObjects.add(this.multiplexManager.getSubManager(entityType), entity);
     }
 
     @Override
-    public void delete(Object entity, RequestScope requestScope) {
+    public <T> void delete(T entity, RequestScope requestScope) {
         Type<Object> entityType = EntityDictionary.getType(entity);
         getTransaction(entityType).delete(entity, requestScope);
         dirtyObjects.add(this.multiplexManager.getSubManager(entityType), entity);
@@ -106,7 +106,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
 
     @SuppressWarnings("resource")
     @Override
-    public void createObject(Object entity, RequestScope scope) {
+    public <T> void createObject(T entity, RequestScope scope) {
         DataStoreTransaction transaction = getTransaction(EntityDictionary.getType(entity));
         transaction.createObject(entity, scope);
         // mark this object as newly created to be deleted on reverse transaction
@@ -166,15 +166,15 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
     }
 
     @Override
-    public Object loadObject(EntityProjection projection,
+    public <T> T loadObject(EntityProjection projection,
                              Serializable id,
                              RequestScope scope) {
         DataStoreTransaction transaction = getTransaction(projection.getType());
-        return hold(transaction, transaction.loadObject(projection, id, scope));
+        return (T) hold(transaction, (Object) transaction.loadObject(projection, id, scope));
     }
 
     @Override
-    public Iterable<Object> loadObjects(
+    public <T> Iterable<T> loadObjects(
             EntityProjection projection,
             RequestScope scope) {
         DataStoreTransaction transaction = getTransaction(projection.getType());
@@ -182,17 +182,17 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
     }
 
     @Override
-    public Object getRelation(DataStoreTransaction relationTx,
-                              Object entity,
+    public <T, R> R getRelation(DataStoreTransaction relationTx,
+                              T entity,
                               Relationship relationship,
                               RequestScope scope) {
         DataStoreTransaction transaction = getTransaction(EntityDictionary.getType(entity));
         Object relation = super.getRelation(relationTx, entity, relationship, scope);
 
         if (relation instanceof Iterable) {
-            return hold(transaction, (Iterable<?>) relation);
+            return (R) hold(transaction, (Iterable<R>) relation);
         }
 
-        return hold(transaction, relation);
+        return (R) hold(transaction, relation);
     }
 }

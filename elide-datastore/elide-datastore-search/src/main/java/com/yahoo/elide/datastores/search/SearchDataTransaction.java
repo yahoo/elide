@@ -72,7 +72,7 @@ public class SearchDataTransaction extends TransactionWrapper {
     }
 
     @Override
-    public Iterable<Object> loadObjects(EntityProjection projection,
+    public <T> Iterable<T> loadObjects(EntityProjection projection,
                                         RequestScope requestScope) {
         if (projection.getFilterExpression() == null) {
             return super.loadObjects(projection, requestScope);
@@ -177,7 +177,7 @@ public class SearchDataTransaction extends TransactionWrapper {
     }
 
     @Override
-    public FeatureSupport supportsFiltering(RequestScope scope, Optional<Object> parent, EntityProjection projection) {
+    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
         Type<?> entityClass = projection.getType();
         FilterExpression expression = projection.getFilterExpression();
 
@@ -243,7 +243,7 @@ public class SearchDataTransaction extends TransactionWrapper {
      * @param pagination Optional pagination
      * @return A list of records of type entityClass.
      */
-    private List<Object> search(Type<?> entityType, FilterExpression filterExpression, Optional<Sorting> sorting,
+    private <T> List<T> search(Type<?> entityType, FilterExpression filterExpression, Optional<Sorting> sorting,
                                 Optional<Pagination> pagination) {
             Query query;
             Class<?> entityClass = null;
@@ -268,7 +268,7 @@ public class SearchDataTransaction extends TransactionWrapper {
                 fullTextQuery = fullTextQuery.setFirstResult(pagination.get().getOffset());
             }
 
-            List<Object[]> results = fullTextQuery
+            List<T[]> results = fullTextQuery
                     .setProjection(ProjectionConstants.THIS)
                     .getResultList();
 

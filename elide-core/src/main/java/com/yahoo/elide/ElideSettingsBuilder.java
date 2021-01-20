@@ -54,6 +54,8 @@ public class ElideSettingsBuilder {
     private boolean enableJsonLinks;
     private boolean strictQueryParams = true;
     private String baseUrl = "";
+    private String jsonApiPath;
+    private String graphQLApiPath;
 
     /**
      * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
@@ -106,7 +108,9 @@ public class ElideSettingsBuilder {
                 serdes,
                 enableJsonLinks,
                 strictQueryParams,
-                baseUrl);
+                baseUrl,
+                jsonApiPath,
+                graphQLApiPath);
     }
 
     public ElideSettingsBuilder withAuditLogger(AuditLogger auditLogger) {
@@ -193,6 +197,16 @@ public class ElideSettingsBuilder {
     public ElideSettingsBuilder withJSONApiLinks(JSONApiLinks links) {
         this.enableJsonLinks = true;
         this.jsonApiLinks = links;
+        return this;
+    }
+
+    public ElideSettingsBuilder withJsonApiPath(String jsonApiPath) {
+        this.jsonApiPath = jsonApiPath;
+        return this;
+    }
+
+    public ElideSettingsBuilder withGraphQLApiPath(String graphQLApiPath) {
+        this.graphQLApiPath = graphQLApiPath;
         return this;
     }
 
