@@ -142,7 +142,6 @@ public class InMemoryStoreTransactionTest {
 
         when(wrappedTransaction.supportsFiltering(eq(scope), any(), eq(projection))).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
         when(wrappedTransaction.loadObjects(eq(projection), eq(scope))).thenReturn(books);
-        when(wrappedTransaction.loadObjects(eq(projection), eq(scope))).thenReturn(books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(projection, scope);
 

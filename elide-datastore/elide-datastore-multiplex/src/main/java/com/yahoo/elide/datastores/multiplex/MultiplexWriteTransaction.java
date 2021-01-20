@@ -116,7 +116,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
     private <T> Iterable<T> hold(DataStoreTransaction transaction, Iterable<T> list) {
         ArrayList<T> newList = new ArrayList<>();
         list.forEach(newList::add);
-        for (Object object : newList) {
+        for (T object : newList) {
             hold(transaction, object);
         }
         return newList;
