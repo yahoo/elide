@@ -57,13 +57,7 @@ public class ElideStandaloneDisableGraphQLTest {
                         .withJSONApiLinks(new DefaultJSONApiLinks(jsonApiBaseUrl))
                         .withBaseUrl("https://elide.io")
                         .withAuditLogger(getAuditLogger())
-                        .withJsonApiPath(getJsonApiPathSpec().replaceAll("/\\*", ""))
-                        .withGraphQLApiPath(getGraphQLApiPathSpec().replaceAll("/\\*", ""));
-
-//                if (enableISO8601Dates()) {
-//                    builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
-//                }
-
+                        .withJsonApiPath(getJsonApiPathSpec().replaceAll("/\\*", ""));
                 return builder.build();
             }
 
