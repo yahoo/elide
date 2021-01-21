@@ -28,6 +28,9 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.standalone.Util;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
+
+import lombok.extern.slf4j.Slf4j;
+
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import org.glassfish.hk2.api.ServiceLocator;
@@ -48,6 +51,7 @@ import javax.ws.rs.core.Context;
 /**
  * Elide application resource configuration file.
  */
+@Slf4j
 public class ElideResourceConfig extends ResourceConfig {
     private final ElideStandaloneSettings settings;
     private final ServiceLocator injector;
@@ -142,6 +146,8 @@ public class ElideResourceConfig extends ResourceConfig {
                     ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
                     AsyncExecutorService.init(elide, asyncProperties.getThreadSize(), asyncAPIDao,
                             resultStorageEngine, settings.enableGraphQL());
+                    log.info("ElideResourceConfig --> AsyncExecutorService.init --> settings.enableGraphQL() --> "
+                            + settings.enableGraphQL());
                     bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                     // Binding AsyncQuery LifeCycleHook
