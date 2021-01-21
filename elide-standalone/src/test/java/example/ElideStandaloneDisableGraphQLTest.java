@@ -19,15 +19,11 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.standalone.ElideStandalone;
-import com.yahoo.elide.standalone.config.ElideResourceConfig;
-import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import example.models.Post;
-import lombok.extern.slf4j.Slf4j;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -35,13 +31,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.util.Properties;
-import java.util.TimeZone;
 
 /**
  * Tests ElideStandalone starts and works.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Slf4j
 public class ElideStandaloneDisableGraphQLTest {
 
     protected ElideStandalone elide;
@@ -66,9 +60,9 @@ public class ElideStandaloneDisableGraphQLTest {
                         .withJsonApiPath(getJsonApiPathSpec().replaceAll("/\\*", ""))
                         .withGraphQLApiPath(getGraphQLApiPathSpec().replaceAll("/\\*", ""));
 
-                if (enableISO8601Dates()) {
-                    builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
-                }
+//                if (enableISO8601Dates()) {
+//                    builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
+//                }
 
                 return builder.build();
             }
@@ -101,18 +95,8 @@ public class ElideStandaloneDisableGraphQLTest {
             }
 
             @Override
-            public boolean enableSwagger() {
-                return true;
-            }
-
-            @Override
             public boolean enableGraphQL() {
                 return false;
-            }
-
-            @Override
-            public boolean enableJSONAPI() {
-                return true;
             }
 
             @Override
@@ -145,37 +129,6 @@ public class ElideStandaloneDisableGraphQLTest {
                 };
                 return asyncPropeties;
             }
-
-            @Override
-            public ElideStandaloneAnalyticSettings getAnalyticProperties() {
-                ElideStandaloneAnalyticSettings analyticPropeties = new ElideStandaloneAnalyticSettings() {
-                    @Override
-                    public boolean enableDynamicModelConfig() {
-                        return true;
-                    }
-
-                    @Override
-                    public boolean enableAggregationDataStore() {
-                        return true;
-                    }
-
-                    @Override
-                    public boolean enableMetaDataStore() {
-                        return true;
-                    }
-
-                    @Override
-                    public String getDefaultDialect() {
-                        return SQLDialectFactory.getDefaultDialect().getDialectType();
-                    }
-
-                    @Override
-                    public String getDynamicConfigPath() {
-                        return "src/test/resources/configs/";
-                    }
-                };
-                return analyticPropeties;
-            }
         });
         elide.start(false);
     }
@@ -187,8 +140,7 @@ public class ElideStandaloneDisableGraphQLTest {
 
     @Test
     public void testAsyncApiEndpoint() throws InterruptedException {
-        log.info("DisableGraphQLTest --> check graphql setting --> \n\n");
-    	String expected = "{\"errors\":[{\"detail\":\"Invalid operation: GraphQL is disabled. Please enable GraphQL in settings.\"}]}";
+        String expected = "{\"errors\":[{\"detail\":\"Invalid operation: GraphQL is disabled. Please enable GraphQL in settings.\"}]}";
 
         //Create Async Request
         given()
