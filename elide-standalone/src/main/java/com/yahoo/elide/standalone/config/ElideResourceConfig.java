@@ -144,6 +144,7 @@ public class ElideResourceConfig extends ResourceConfig {
                     ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
                     AsyncExecutorService.init(elide, asyncProperties.getThreadSize(), asyncAPIDao,
                             resultStorageEngine, settings.enableGraphQL());
+                    log.info("reousrce setting --> settings.enableGraphQL() --> " + settings.enableGraphQL());
                     bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                     // Binding AsyncQuery LifeCycleHook

@@ -13,7 +13,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
-//import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.equalTo;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.DataStore;
@@ -22,10 +22,13 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.standalone.ElideStandalone;
+import com.yahoo.elide.standalone.config.ElideResourceConfig;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 import example.models.Post;
+import lombok.extern.slf4j.Slf4j;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -38,6 +41,7 @@ import java.util.TimeZone;
  * Tests ElideStandalone starts and works.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Slf4j
 public class ElideStandaloneDisableGraphQLTest {
 
     protected ElideStandalone elide;
@@ -100,6 +104,7 @@ public class ElideStandaloneDisableGraphQLTest {
             public boolean enableSwagger() {
                 return true;
             }
+
             @Override
             public boolean enableGraphQL() {
                 return false;
@@ -182,7 +187,8 @@ public class ElideStandaloneDisableGraphQLTest {
 
     @Test
     public void testAsyncApiEndpoint() throws InterruptedException {
-//        String expected = "{\"errors\":[{\"detail\":\"Invalid operation: GraphQL is disabled. Please enable GraphQL in settings.\"}]}";
+        log.info("DisableGraphQLTest --> check graphql setting --> \n\n");
+    	String expected = "{\"errors\":[{\"detail\":\"Invalid operation: GraphQL is disabled. Please enable GraphQL in settings.\"}]}";
 
         //Create Async Request
         given()
@@ -200,8 +206,8 @@ public class ElideStandaloneDisableGraphQLTest {
                                 )
                         ).toJSON())
         .when()
-        .post("/api/v1/asyncQuery");
-//        .then()
-//        .body(equalTo(expected));
+        .post("/api/v1/asyncQuery")
+        .then()
+        .body(equalTo(expected));
     }
 }
