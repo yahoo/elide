@@ -17,19 +17,10 @@ import static org.hamcrest.Matchers.equalTo;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.jdbc.SqlMergeMode;
 
 /**
  * Executes Async tests with Aggregation Store disabled.
  */
-@SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
-@Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-statements = "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
-        + "\t\t('com.example.repository','Example Repository','The code for this project', false);")
-@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-statements = "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;")
-
 @ActiveProfiles("disableGraphQL")
 public class DisableGraphQLAsyncTest extends IntegrationTest {
 

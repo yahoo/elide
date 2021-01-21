@@ -7,7 +7,6 @@ elide:
     path: /json
     enabled: true
   graphql:
-    path: /graphql
     enabled: false
   swagger:
     path: /doc
