@@ -31,6 +31,8 @@ public class PatchRequestScope extends RequestScope {
      * @param transaction current database transaction
      * @param user        request user
      * @param requestId   request ID
+     * @param queryParams request query parameters
+     * @param requestHeaders request headers
      * @param elideSettings Elide settings object
      */
     public PatchRequestScope(
