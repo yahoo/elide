@@ -19,8 +19,6 @@ import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -38,7 +36,6 @@ import org.springframework.context.annotation.Configuration;
 @EntityScan(basePackageClasses = AsyncQuery.class)
 @EnableConfigurationProperties(ElideConfigProperties.class)
 @ConditionalOnExpression("${elide.async.enabled:false}")
-@Slf4j
 public class ElideAsyncConfiguration {
 
     /**
@@ -54,7 +51,6 @@ public class ElideAsyncConfiguration {
     public AsyncExecutorService buildAsyncExecutorService(Elide elide, ElideConfigProperties settings,
             AsyncAPIDAO asyncQueryDao, EntityDictionary dictionary,
             @Autowired(required = false) ResultStorageEngine resultStorageEngine) {
-    	log.info("ElideAsyncConfiguration --> graphQl setting --> " + settings.getGraphql().isEnabled());
         AsyncExecutorService.init(elide, settings.getAsync().getThreadPoolSize(),
                 asyncQueryDao, resultStorageEngine, settings.getGraphql().isEnabled());
         AsyncExecutorService asyncExecutorService = AsyncExecutorService.getInstance();

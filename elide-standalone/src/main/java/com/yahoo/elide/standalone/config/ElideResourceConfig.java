@@ -34,7 +34,6 @@ import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Optional;
@@ -49,7 +48,6 @@ import javax.ws.rs.core.Context;
 /**
  * Elide application resource configuration file.
  */
-@Slf4j
 public class ElideResourceConfig extends ResourceConfig {
     private final ElideStandaloneSettings settings;
     private final ServiceLocator injector;
@@ -144,7 +142,6 @@ public class ElideResourceConfig extends ResourceConfig {
                     ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
                     AsyncExecutorService.init(elide, asyncProperties.getThreadSize(), asyncAPIDao,
                             resultStorageEngine, settings.enableGraphQL());
-                    log.info("reousrce setting --> settings.enableGraphQL() --> " + settings.enableGraphQL());
                     bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                     // Binding AsyncQuery LifeCycleHook

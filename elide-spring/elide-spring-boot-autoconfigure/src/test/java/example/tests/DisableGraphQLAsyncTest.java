@@ -16,20 +16,20 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ActiveProfiles;
-
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * Executes Async tests with Aggregation Store disabled.
  */
-@ActiveProfiles("disableGraphQL")
-@Slf4j
+@TestPropertySource(
+        properties = {
+                "elide.graphql.enabled=false"
+        }
+)
 public class DisableGraphQLAsyncTest extends IntegrationTest {
 
     @Test
     public void testAsyncGraphQL() throws InterruptedException {
-    	log.info("Disable GraphQL test --> \n\n\n");
         String expected = "{\"errors\":[{\"detail\":\"Invalid operation: GraphQL is disabled. Please enable GraphQL in settings.\"}]}";
         //Create Async Request
         given()
