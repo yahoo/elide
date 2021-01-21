@@ -312,7 +312,8 @@ public class Elide {
         Handler<DataStoreTransaction, User, HandlerResult> handler;
         if (JsonApiPatch.isPatchExtension(contentType) && JsonApiPatch.isPatchExtension(accept)) {
             handler = (tx, user) -> {
-                PatchRequestScope requestScope = new PatchRequestScope(baseUrlEndPoint, path, tx, user, elideSettings);
+                PatchRequestScope requestScope = new PatchRequestScope(baseUrlEndPoint, path, tx,
+                        user, queryParams, elideSettings);
                 try {
                     Supplier<Pair<Integer, JsonNode>> responder =
                             JsonApiPatch.processJsonPatch(dataStore, path, jsonApiDocument, requestScope);

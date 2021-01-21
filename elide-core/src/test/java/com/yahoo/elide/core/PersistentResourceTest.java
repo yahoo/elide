@@ -2197,7 +2197,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testPatchRequestScope() {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         PatchRequestScope parentScope =
-                new PatchRequestScope(null, null, tx, new User(1), elideSettings);
+                new PatchRequestScope(null, null, tx, new User(1), null, elideSettings);
         PatchRequestScope scope = new PatchRequestScope(
                 parentScope.getPath(), parentScope.getJsonApiDocument(), parentScope);
         // verify wrap works
