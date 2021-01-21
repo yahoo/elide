@@ -7,6 +7,7 @@ package com.yahoo.elide.core.dictionary;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.REGULAR_ID_NAME;
+import static com.yahoo.elide.core.type.ClassType.OBJ_METHODS;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
@@ -65,9 +66,6 @@ import javax.persistence.Transient;
  * @see com.yahoo.elide.annotation.Include#type
  */
 public class EntityBinding {
-
-    private static final List<Method> OBJ_METHODS = ImmutableList.copyOf(
-            Arrays.stream(Object.class.getMethods()).map(ClassType::constructMethod).collect(Collectors.toList()));
 
     private static final List<Class<? extends Annotation>> RELATIONSHIP_TYPES =
             Arrays.asList(ManyToMany.class, ManyToOne.class, OneToMany.class, OneToOne.class,
