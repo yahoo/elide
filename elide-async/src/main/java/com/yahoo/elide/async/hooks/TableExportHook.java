@@ -10,6 +10,7 @@ import com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase;
 import com.yahoo.elide.async.export.TableExporter;
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.TableExport;
+import com.yahoo.elide.async.operation.AsyncAPIOperation;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.thread.TableExportCallable;
 import com.yahoo.elide.core.security.ChangeSpec;
