@@ -25,6 +25,7 @@ public class PatchRequestScope extends RequestScope {
      * @param path the URL path
      * @param transaction current database transaction
      * @param user        request user
+     * @param queryParams  request query parameters
      * @param elideSettings Elide settings object
      */
     public PatchRequestScope(
@@ -32,6 +33,7 @@ public class PatchRequestScope extends RequestScope {
             String path,
             DataStoreTransaction transaction,
             User user,
+            MultivaluedMap<String, String> queryParams,
             ElideSettings elideSettings) {
         super(
                 baseUrlEndPoint,
@@ -39,7 +41,7 @@ public class PatchRequestScope extends RequestScope {
                 (JsonApiDocument) null,
                 transaction,
                 user,
-                (MultivaluedMap<String, String>) null,
+                queryParams,
                 elideSettings
         );
     }
