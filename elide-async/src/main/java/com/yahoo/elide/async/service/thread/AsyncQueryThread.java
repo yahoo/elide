@@ -46,7 +46,7 @@ public class AsyncQueryThread implements Callable<AsyncAPIResult> {
     }
 
     @Override
-    public AsyncAPIResult call() throws URISyntaxException, NoHttpResponseException {
+    public AsyncAPIResult call() throws URISyntaxException, NoHttpResponseException, IllegalAccessException {
         ElideResponse response = null;
         log.debug("AsyncQuery Object from request: {}", this);
         UUID requestUUID = UUID.fromString(queryObj.getRequestId());
@@ -105,13 +105,17 @@ public class AsyncQueryThread implements Callable<AsyncAPIResult> {
     }
 
     private ElideResponse executeGraphqlRequest(Map<String, QueryRunner> runners, User user, String apiVersion,
-            UUID requestUUID) throws URISyntaxException {
-        QueryRunner runner = runners.get(apiVersion);
-        //TODO - we need to add the baseUrlEndpoint to the queryObject.
-        ElideResponse response = runner.run("", queryObj.getQuery(), user, requestUUID);
-        log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
-                response.getResponseCode(), response.getBody());
-        return response;
+            UUID requestUUID) throws URISyntaxException, IllegalAccessException {
+        if (service.isEnableGraphQL()) {
+            QueryRunner runner = runners.get(apiVersion);
+            //TODO - we need to add the baseUrlEndpoint to the queryObject.
+            ElideResponse response = runner.run("", queryObj.getQuery(), user, requestUUID);
+            log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
+                    response.getResponseCode(), response.getBody());
+            return response;
+        } else {
+            throw new IllegalAccessException("GraphQL is disabled. Please enable GraphQL in settings.");
+        }
     }
 
     private void nullResponseCheck(ElideResponse response) throws NoHttpResponseException {
