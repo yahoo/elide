@@ -220,7 +220,7 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
                         .body("data.attributes.status", equalTo("COMPLETE"))
                         .body("data.attributes.result.contentLength", notNullValue())
-                        .body("data.attributes.result.recordCount", nullValue())
+                        .body("data.attributes.result.recordCount", equalTo(3))
                         .body("data.attributes.result.responseBody", equalTo("{\"data\":"
                                 + "[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}}"
                                 + ",{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},"
@@ -275,7 +275,7 @@ public class AsyncIT extends IntegrationTest {
                 .body("data.type", equalTo("asyncQuery"))
                 .body("data.attributes.status", equalTo("COMPLETE"))
                 .body("data.attributes.result.contentLength", notNullValue())
-                .body("data.attributes.result.recordCount", nullValue())
+                .body("data.attributes.result.recordCount", equalTo(3))
                 .body("data.attributes.result.responseBody", equalTo("{\"data\":"
                         + "[{\"type\":\"book\",\"id\":\"3\",\"attributes\":{\"title\":\"For Whom the Bell Tolls\"}}"
                         + ",{\"type\":\"book\",\"id\":\"2\",\"attributes\":{\"title\":\"Song of Ice and Fire\"}},"
@@ -629,7 +629,7 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.type", equalTo("asyncQuery"))
                         .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
                         .body("data.attributes.status", equalTo("COMPLETE"))
-                        .body("data.attributes.result.recordCount", nullValue())
+                        .body("data.attributes.result.recordCount", equalTo(0))
                         .body("data.attributes.result.contentLength", notNullValue())
                         .body("data.attributes.result.responseBody", equalTo("{\"data\":[]}"))
                         .body("data.attributes.result.httpStatus", equalTo(200));

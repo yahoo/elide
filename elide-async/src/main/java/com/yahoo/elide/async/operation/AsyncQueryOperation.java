@@ -7,11 +7,21 @@ package com.yahoo.elide.async.operation;
 
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.service.AsyncExecutorService;
+
+import org.apache.http.NoHttpResponseException;
+
+import lombok.Getter;
 
 /**
  * AsyncQuery Execute Operation Interface.
  */
-public interface AsyncQueryOperation extends AsyncAPIOperation<AsyncQuery> {
+public abstract class AsyncQueryOperation implements AsyncAPIOperation<AsyncQuery> {
+    @Getter private AsyncExecutorService service;
+
+    public AsyncQueryOperation(AsyncExecutorService service) {
+        this.service = service;
+    }
 
     /**
      * Calculate Record Count in the response.
@@ -21,4 +31,14 @@ public interface AsyncQueryOperation extends AsyncAPIOperation<AsyncQuery> {
      */
     public abstract Integer calculateRecordCount(AsyncQuery queryObj, ElideResponse response);
 
+    /**
+     * Check if Elide Response is NULL.
+     * @param response ElideResponse object.
+     * @throws NoHttpResponseException NoHttpResponseException Exception.
+     */
+    public void nullResponseCheck(ElideResponse response) throws NoHttpResponseException {
+        if (response == null) {
+            throw new NoHttpResponseException("Response for request returned as null");
+        }
+    }
 }

@@ -7,9 +7,7 @@ package com.yahoo.elide.async.operation;
 
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncAPIResult;
-import com.yahoo.elide.async.service.AsyncExecutorService;
-import com.yahoo.elide.core.security.RequestScope;
-import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.core.RequestScope;
 
 /**
  * AsyncAPI Execute Operation Interface.
@@ -21,11 +19,7 @@ public interface AsyncAPIOperation<T extends AsyncAPI> {
      * Execute the AsyncAPI request.
      * @param queryObj AsyncAPI type object.
      * @param scope RequestScope object.
-     * @param user User object.
-     * @param service AsyncExecutorService instance.
-     * @param apiVersion API Version.
      * @return AsyncAPIResult object
      */
-    public abstract AsyncAPIResult execute(AsyncAPI queryObj, RequestScope scope,
-            User user, AsyncExecutorService service, String apiVersion);
+    public abstract AsyncAPIResult execute(AsyncAPI queryObj, RequestScope scope);
 }
