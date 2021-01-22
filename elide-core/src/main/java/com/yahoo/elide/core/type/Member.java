@@ -6,6 +6,14 @@
 
 package com.yahoo.elide.core.type;
 
+/**
+ * Base class of fields and methods.
+ */
 public interface Member {
+
+    /**
+     * Get the permission modifiers of the field/method.
+     * @return The permission modifiers.
+     */
     int getModifiers();
 }

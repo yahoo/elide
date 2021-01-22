@@ -14,6 +14,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.util.Optional;
 
+/**
+ * Elide field that wraps a Java field.
+ */
 @AllArgsConstructor
 @EqualsAndHashCode
 public class FieldType implements Field {
