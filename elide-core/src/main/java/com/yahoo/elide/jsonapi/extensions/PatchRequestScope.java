@@ -12,7 +12,8 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
-import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -30,6 +31,8 @@ public class PatchRequestScope extends RequestScope {
      * @param transaction current database transaction
      * @param user        request user
      * @param requestId   request ID
+     * @param queryParams request query parameters
+     * @param requestHeaders request headers
      * @param elideSettings Elide settings object
      */
     public PatchRequestScope(
@@ -39,6 +42,8 @@ public class PatchRequestScope extends RequestScope {
             DataStoreTransaction transaction,
             User user,
             UUID requestId,
+            MultivaluedMap<String, String> queryParams,
+            Map<String, List<String>> requestHeaders,
             ElideSettings elideSettings) {
         super(
                 baseUrlEndPoint,
@@ -47,8 +52,8 @@ public class PatchRequestScope extends RequestScope {
                 (JsonApiDocument) null,
                 transaction,
                 user,
-                (MultivaluedMap<String, String>) null,
-                Collections.emptyMap(),
+                queryParams,
+                requestHeaders,
                 requestId,
                 elideSettings
         );
