@@ -346,6 +346,12 @@ public abstract class SQLUnitTest {
                     .source(videoGameTable)
                     .dimensionProjection(videoGameTable.getDimensionProjection("playerNameCrossJoin"))
                     .build();
+        }),
+        METRIC_JOIN(() -> {
+            return Query.builder()
+                    .source(videoGameTable)
+                    .metricProjection(videoGameTable.getMetricProjection("normalizedHighScore"))
+                    .build();
         });
 
         private Provider<Query> queryProvider;

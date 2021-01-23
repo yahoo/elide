@@ -38,7 +38,13 @@ public class VideoGame {
     private Float timeSpentPerGame;
 
     @Setter
+    private Float normalizedHighScore;
+
+    @Setter
     private Player player;
+
+    @Setter
+    private PlayerStats playerStats;
 
     @Setter
     private Player playerInnerJoin;
@@ -81,9 +87,20 @@ public class VideoGame {
         return timeSpentPerGame;
     }
 
+
+    @MetricFormula("{{playerStats.highScore}} / {{timeSpent}}")
+    public Float getNormalizedHighScore() {
+        return normalizedHighScore;
+    }
+
     @Join(value = "{{player_id}} = {{player.id}}", type = JoinType.LEFT)
     public Player getPlayer() {
         return player;
+    }
+
+    @Join(value = "{{player_id}} = {{playerStats.id}}", type = JoinType.LEFT)
+    public PlayerStats getPlayerStats() {
+        return playerStats;
     }
 
     @Join(value = "{{player_id}} = {{playerInnerJoin.id}}", type = JoinType.INNER)
