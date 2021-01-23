@@ -5,15 +5,19 @@
  */
 package com.yahoo.elide.async.export.formatter;
 
+import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.request.Attribute;
+import com.yahoo.elide.core.request.EntityProjection;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.opendevl.JFlat;
+
+import io.reactivex.Observable;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -21,7 +25,10 @@ import java.util.List;
  */
 @Slf4j
 public class CSVExportFormatter implements TableExportFormatter {
-    private ObjectMapper mapper = new ObjectMapper();
+    private static final String COMMA = ",";
+    private static final String DOUBLE_QUOTES = "\"";
+
+    public static boolean skipCSVHeader = false;
 
     @Override
     public String format(PersistentResource resource, Integer recordNumber) {
@@ -34,7 +41,7 @@ public class CSVExportFormatter implements TableExportFormatter {
         List<Object[]> json2Csv;
 
         try {
-            String jsonStr = resourceToJSON(resource);
+            String jsonStr = JSONExportFormatter.resourceToJSON(resource);
 
             JFlat flat = new JFlat(jsonStr);
 
@@ -64,15 +71,46 @@ public class CSVExportFormatter implements TableExportFormatter {
         return str.toString();
     }
 
-    private String resourceToJSON(PersistentResource resource) {
+    /**
+     * Generate CSV Header when Observable is Empty.
+     * @param projection EntityProjection object.
+     * @return returns Header string which is in CSV format.
+     */
+    protected Observable<String> generateCSVHeader(EntityProjection projection) {
+        Observable<String> header = Observable.empty();
+        Iterator itr = projection.getAttributes().iterator();
         StringBuilder str = new StringBuilder();
-
-        try {
-            str.append(mapper.writeValueAsString(resource.getObject()));
-        } catch (JsonProcessingException e) {
-            log.error("Exception when converting to JSON {}", e.getMessage());
-            throw new IllegalStateException(e);
+        int columnCount = 0;
+        while (itr.hasNext()) {
+            if (columnCount > 0) {
+                // Add "," to separate column from 2nd column onwards.
+                str.append(COMMA);
+            }
+            // Append DoubleQuotes around column names.
+            str.append(DOUBLE_QUOTES);
+            Attribute atr = (Attribute) itr.next();
+            String alias = atr.getAlias();
+            str.append(alias != null && !alias.isEmpty() ? alias : atr.getName());
+            str.append(DOUBLE_QUOTES);
+            columnCount++;
         }
-        return str.toString();
+        header = Observable.just(str.toString());
+        return header;
+    }
+
+    @Override
+    public String preFormat(EntityProjection projection, TableExport query) {
+        if (!skipCSVHeader) {
+            StringBuilder str = new StringBuilder();
+            str.append(generateCSVHeader(projection));
+            str.append(System.getProperty("line.separator"));
+            return str.toString();
+        };
+        return null;
+    }
+
+    @Override
+    public String postFormat(EntityProjection projection, TableExport query) {
+        return null;
     }
 }
