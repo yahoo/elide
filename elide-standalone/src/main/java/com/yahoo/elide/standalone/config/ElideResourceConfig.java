@@ -151,7 +151,7 @@ public class ElideResourceConfig extends ResourceConfig {
 
                     // Binding AsyncQuery LifeCycleHook
                     AsyncQueryHook asyncQueryHook = new AsyncQueryHook(AsyncExecutorService.getInstance(),
-                            asyncProperties.getMaxAsyncAfterSeconds());
+                            asyncProperties.getMaxAsyncAfterSeconds(), settings.enableGraphQL());
 
                     dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, asyncQueryHook, false);
                     dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, asyncQueryHook, false);
