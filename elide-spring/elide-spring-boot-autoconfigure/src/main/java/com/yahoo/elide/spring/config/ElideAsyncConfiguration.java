@@ -62,7 +62,7 @@ public class ElideAsyncConfiguration {
 
         // Binding AsyncQuery LifeCycleHook
         AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService,
-                settings.getAsync().getMaxAsyncAfterSeconds());
+                settings.getAsync().getMaxAsyncAfterSeconds(), settings.getGraphql().isEnabled());
         dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, asyncQueryHook, false);
         dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, asyncQueryHook, false);
         dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, asyncQueryHook, false);

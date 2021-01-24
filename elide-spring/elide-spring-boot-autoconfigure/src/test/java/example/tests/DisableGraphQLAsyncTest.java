@@ -22,9 +22,9 @@ import org.springframework.test.context.TestPropertySource;
  * Executes Async tests with Aggregation Store disabled.
  */
 @TestPropertySource(
-        properties = {
-                "elide.graphql.enabled=false"
-        }
+    properties = {
+        "elide.graphql.enabled=false"
+    }
 )
 public class DisableGraphQLAsyncTest extends IntegrationTest {
 

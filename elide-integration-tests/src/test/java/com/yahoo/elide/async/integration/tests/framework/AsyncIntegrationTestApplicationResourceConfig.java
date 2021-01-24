@@ -107,7 +107,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 bind(billingService).to(BillingService.class);
 
                 // Binding AsyncQuery LifeCycleHook
-                AsyncQueryHook asyncQueryHook = new AsyncQueryHook(AsyncExecutorService.getInstance(), 10);
+                AsyncQueryHook asyncQueryHook = new AsyncQueryHook(AsyncExecutorService.getInstance(), 10, true);
 
                 InvoiceCompletionHook invoiceCompletionHook = new InvoiceCompletionHook(billingService);
 

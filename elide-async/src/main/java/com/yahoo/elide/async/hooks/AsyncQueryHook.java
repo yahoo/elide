@@ -27,8 +27,11 @@ import java.util.Optional;
 @Slf4j
 public class AsyncQueryHook extends AsyncAPIHook<AsyncQuery> {
 
-    public AsyncQueryHook (AsyncExecutorService asyncExecutorService, Integer maxAsyncAfterSeconds) {
+    private boolean enableGraphQL;
+    public AsyncQueryHook (AsyncExecutorService asyncExecutorService, Integer maxAsyncAfterSeconds,
+            boolean enableGraphQL) {
         super(asyncExecutorService, maxAsyncAfterSeconds);
+        this.enableGraphQL = enableGraphQL;
     }
 
     @Override
@@ -42,7 +45,8 @@ public class AsyncQueryHook extends AsyncAPIHook<AsyncQuery> {
     @Override
     public void validateOptions(AsyncAPI query, RequestScope requestScope) {
         super.validateOptions(query, requestScope);
-        log.info("AsyncExecutorService().isEnableGraphQL() --> " + getAsyncExecutorService().isEnableGraphQL());
+        log.info("AsyncExecutorService.enableGraphQL --> " + getAsyncExecutorService().isEnableGraphQL());
+        log.info("AsyncQueryHook.enableGraphQL --> " + enableGraphQL);
         if (query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
             if (!getAsyncExecutorService().isEnableGraphQL()) {
                 throw new InvalidOperationException("GraphQL is disabled. Please enable GraphQL in settings.");
