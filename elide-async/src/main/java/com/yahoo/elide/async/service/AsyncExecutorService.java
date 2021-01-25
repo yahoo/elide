@@ -66,6 +66,7 @@ public class AsyncExecutorService {
             ResultStorageEngine resultStorageEngine, boolean enableGraphQL) {
         this.elide = elide;
         runners = new HashMap();
+        this.enableGraphQL = enableGraphQL;
 
         for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
             runners.put(apiVersion, new QueryRunner(elide, apiVersion));
