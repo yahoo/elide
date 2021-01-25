@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.6.11
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/9ada9013455397b64ce113d9129cbfa67e941467) Adding request query parameters to patch extension request scope (#1782) 
+
 ## 4.6.10
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/f0b3e00049800431b361d9b6f66436dde37f0161) Fixed generated relationship URLs for JSON-API Links in Elide 4 
