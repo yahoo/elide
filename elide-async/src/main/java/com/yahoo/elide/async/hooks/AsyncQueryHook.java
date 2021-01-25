@@ -20,8 +20,11 @@ import com.yahoo.elide.async.operation.AsyncAPIOperation;
 import com.yahoo.elide.async.operation.GraphQLAsyncQueryOperation;
 import com.yahoo.elide.async.operation.JSONAPIAsyncQueryOperation;
 import com.yahoo.elide.async.service.AsyncExecutorService;
+<<<<<<< HEAD
 import com.yahoo.elide.async.service.thread.AsyncAPICallable;
 >>>>>>> Refactor part 2
+=======
+>>>>>>> Review Comments
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
@@ -43,6 +46,7 @@ public class AsyncQueryHook extends AsyncAPIHook<AsyncQuery> {
     public void execute(Operation operation, TransactionPhase phase, AsyncQuery query, RequestScope requestScope,
             Optional<ChangeSpec> changes) {
         Callable<AsyncAPIResult> callable = getOperation(query, requestScope);
+        executeHook(operation, phase, query, requestScope, callable);
     }
 
     @Override
