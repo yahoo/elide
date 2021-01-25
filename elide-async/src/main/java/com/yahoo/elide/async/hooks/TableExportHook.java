@@ -38,8 +38,7 @@ public class TableExportHook extends AsyncAPIHook<TableExport> {
     @Override
     public void execute(Operation operation, TransactionPhase phase, TableExport query, RequestScope requestScope,
             Optional<ChangeSpec> changes) {
-        com.yahoo.elide.core.RequestScope scope = (com.yahoo.elide.core.RequestScope) requestScope;
-        Callable<AsyncAPIResult> callable = new AsyncAPICallable(query, getOperation(query, scope), scope);
+        Callable<AsyncAPIResult> callable = getOperation(query, requestScope);
         executeHook(operation, phase, query, requestScope, callable);
     }
 
@@ -58,7 +57,8 @@ public class TableExportHook extends AsyncAPIHook<TableExport> {
         }
 
         if (query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
-            operation = new GraphQLTableExportOperation(formatter, getAsyncExecutorService());
+            operation = new GraphQLTableExportOperation(formatter, getAsyncExecutorService(), query,
+                    (com.yahoo.elide.core.RequestScope) requestScope);
         } else {
             throw new InvalidOperationException(query.getQueryType() + "is not supported");
         }

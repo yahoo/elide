@@ -42,16 +42,21 @@ public abstract class TableExportCallableOperation implements Callable<AsyncAPIR
     private TableExportFormatter formatter;
     @Getter private AsyncExecutorService service;
     private Integer recordNumber = 0;
+    private TableExport queryObj;
+    private RequestScope scope;
 
-    public TableExportCallableOperation (TableExportFormatter formatter, AsyncExecutorService service) {
+    public TableExportCallableOperation (TableExportFormatter formatter, AsyncExecutorService service, AsyncAPI queryObj,
+            RequestScope scope) {
         this.formatter = formatter;
         this.service = service;
+        this.queryObj = (TableExport) queryObj;
+        this.scope = scope;
     }
 
     @Override
-    public AsyncAPIResult execute(AsyncAPI queryObj, RequestScope scope) {
+    public AsyncAPIResult call() {
         String apiVersion = scope.getApiVersion();
-        TableExport query = (TableExport) queryObj;
+        TableExport query = queryObj;
 
         EntityProjection projection = getProjection(query, apiVersion);
 
@@ -95,12 +100,11 @@ public abstract class TableExportCallableOperation implements Callable<AsyncAPIR
         queryResult.setRecordCount(recordNumber);
         return queryResult;
     }
->>>>>>> Refactor 3:elide-async/src/main/java/com/yahoo/elide/async/operation/TableExportOperation.java
 
     /**
      * Export Table Data.
      * @param query TableExport type object.
-     * @param scope RequestScope object.
+     * @param requestScope RequestScope object.
      * @param projection Entity projection.
      * @return Observable PersistentResource
      */

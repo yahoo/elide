@@ -7,6 +7,7 @@ package com.yahoo.elide.async.operation;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
+import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
@@ -36,10 +37,11 @@ import java.util.UUID;
  * TableExport Execute Operation Interface.
  */
 @Slf4j
-public class GraphQLTableExportOperation extends TableExportOperation {
+public class GraphQLTableExportOperation extends TableExportCallableOperation {
 
-    public GraphQLTableExportOperation(TableExportFormatter formatter, AsyncExecutorService service) {
-        super(formatter, service);
+    public GraphQLTableExportOperation(TableExportFormatter formatter, AsyncExecutorService service, AsyncAPI queryObj,
+            RequestScope scope) {
+        super(formatter, service, queryObj, scope);
     }
 
     @Override
