@@ -15,8 +15,16 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.TestPropertySource;
+
+import io.restassured.RestAssured;
+
+import java.util.TimeZone;
 
 /**
  * Executes Async tests with Aggregation Store disabled.
@@ -26,7 +34,19 @@ import org.springframework.test.context.TestPropertySource;
         "elide.graphql.enabled=false"
     }
 )
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class DisableGraphQLAsyncTest extends IntegrationTest {
+
+    @LocalServerPort
+    protected int port;
+
+    @BeforeAll
+    public void setUp() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+        RestAssured.port = port;
+        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+    }
 
     @Test
     public void testAsyncGraphQL() throws InterruptedException {
