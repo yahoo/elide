@@ -6,7 +6,6 @@
 package com.yahoo.elide.async.service.thread;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -73,30 +72,10 @@ public class AsyncQueryThreadTest {
         queryObj.setId(id);
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
-        when(asyncExecutorService.isEnableGraphQL()).thenReturn(true);
         when(runner.run(anyString(), eq(query), eq(user), any())).thenReturn(response);
         AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, asyncExecutorService, "v1");
         AsyncQueryResult queryResultObj = (AsyncQueryResult) queryThread.call();
         assertEquals(queryResultObj.getResponseBody(), "ResponseBody");
         assertEquals(queryResultObj.getHttpStatus(), 200);
-    }
-
-    @Test
-    public void testProcessQueryDisableGraphQl() throws NoHttpResponseException, URISyntaxException, IllegalAccessException {
-        AsyncQuery queryObj = new AsyncQuery();
-        ElideResponse response = new ElideResponse(200, "ResponseBody");
-        String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
-        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
-        queryObj.setId(id);
-        queryObj.setQuery(query);
-        queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
-        //when GraphQL is disabled.
-        when(asyncExecutorService.isEnableGraphQL()).thenReturn(false);
-        when(runner.run(anyString(), eq(query), eq(user), any())).thenReturn(response);
-
-        assertThrows(IllegalAccessException.class, () -> {
-            AsyncQueryThread queryThread = new AsyncQueryThread(queryObj, user, asyncExecutorService, "v1");
-            queryThread.call();
-        });
     }
 }

@@ -17,14 +17,11 @@ import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.graphql.QueryRunner;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Optional;
 
 /**
  * LifeCycle Hook for execution of AsyncQuery.
  */
-@Slf4j
 public class AsyncQueryHook extends AsyncAPIHook<AsyncQuery> {
 
     private boolean enableGraphQL;
@@ -45,10 +42,8 @@ public class AsyncQueryHook extends AsyncAPIHook<AsyncQuery> {
     @Override
     public void validateOptions(AsyncAPI query, RequestScope requestScope) {
         super.validateOptions(query, requestScope);
-        log.info("AsyncExecutorService.enableGraphQL --> " + getAsyncExecutorService().isEnableGraphQL());
-        log.info("AsyncQueryHook.enableGraphQL --> " + enableGraphQL);
         if (query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
-            if (!getAsyncExecutorService().isEnableGraphQL()) {
+            if (!this.enableGraphQL) {
                 throw new InvalidOperationException("GraphQL is disabled. Please enable GraphQL in settings.");
             }
             QueryRunner runner = getAsyncExecutorService().getRunners().get(requestScope.getApiVersion());
