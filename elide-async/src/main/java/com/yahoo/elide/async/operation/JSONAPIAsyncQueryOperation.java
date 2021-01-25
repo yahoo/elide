@@ -8,9 +8,7 @@ package com.yahoo.elide.async.operation;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.async.models.AsyncAPI;
-import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.AsyncQuery;
-import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.security.User;
@@ -18,13 +16,11 @@ import com.yahoo.elide.core.security.User;
 import com.jayway.jsonpath.JsonPath;
 
 import org.apache.http.NameValuePair;
-import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
-import java.util.Date;
 import java.util.UUID;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -36,32 +32,14 @@ import javax.ws.rs.core.MultivaluedMap;
 @Slf4j
 public class JSONAPIAsyncQueryOperation extends AsyncQueryOperation {
 
-    public JSONAPIAsyncQueryOperation(AsyncExecutorService service) {
-        super(service);
+    public JSONAPIAsyncQueryOperation(AsyncExecutorService service, AsyncAPI queryObj, RequestScope scope) {
+        super(service, queryObj, scope);
     }
 
     @Override
-    public AsyncAPIResult execute(AsyncAPI queryObj, RequestScope scope) {
-        ElideResponse response = null;
-        log.debug("AsyncQuery Object from request: {}", this);
-        try {
-            response = executeJsonApiRequest(queryObj, getService().getElide(), scope.getUser(), scope.getApiVersion());
-            nullResponseCheck(response);
-        } catch (URISyntaxException | NoHttpResponseException e) {
-            throw new IllegalStateException(e);
-        }
-
-        AsyncQueryResult queryResult = new AsyncQueryResult();
-        queryResult.setHttpStatus(response.getResponseCode());
-        queryResult.setCompletedOn(new Date());
-        queryResult.setResponseBody(response.getBody());
-        queryResult.setContentLength(response.getBody().length());
-        queryResult.setRecordCount(calculateRecordCount((AsyncQuery) queryObj, response));
-        return queryResult;
-    }
-
-    private ElideResponse executeJsonApiRequest(AsyncAPI queryObj, Elide elide, User user, String apiVersion)
+    public ElideResponse execute(AsyncAPI queryObj, User user, String apiVersion)
             throws URISyntaxException {
+        Elide elide = getService().getElide();
         UUID requestUUID = UUID.fromString(queryObj.getRequestId());
         URIBuilder uri = new URIBuilder(queryObj.getQuery());
         MultivaluedMap<String, String> queryParams = getQueryParams(uri);
