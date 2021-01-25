@@ -91,7 +91,7 @@ public class AsyncExecutorService {
             asyncExecutorService = new AsyncExecutorService(elide, threadPoolSize, asyncAPIDao,
                     resultStorageEngine, enableGraphQL);
         } else {
-            log.debug("asyncExecutorService is already initialized.");
+            log.info("asyncExecutorService is already initialized.");
         }
     }
 
