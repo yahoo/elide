@@ -9,7 +9,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>4.6.11-SNAPSHOT</version>
+        <version>4.6.11</version>
     </parent>
 
     <licenses>
@@ -35,7 +35,7 @@
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
         <url>https://github.com/yahoo/elide.git</url>
-        <tag>HEAD</tag>
+        <tag>4.6.11</tag>
     </scm>
 
     <dependencies>

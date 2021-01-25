@@ -13,7 +13,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-example-parent-pom</artifactId>
-        <version>4.6.11-SNAPSHOT</version>
+        <version>4.6.11</version>
     </parent>
 
     <properties>
@@ -46,12 +46,12 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>4.6.11-SNAPSHOT</version>
+            <version>4.6.11</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-hibernate5</artifactId>
-            <version>4.6.11-SNAPSHOT</version>
+            <version>4.6.11</version>
         </dependency>
 
         <!-- Jetty -->
