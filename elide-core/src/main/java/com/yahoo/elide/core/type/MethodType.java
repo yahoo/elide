@@ -15,6 +15,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.util.Optional;
 
+/**
+ * Elide Method that wraps a Java Method.
+ */
 @AllArgsConstructor
 @EqualsAndHashCode
 public class MethodType implements Method {

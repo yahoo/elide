@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.core.type;
 
+import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 
 import java.lang.annotation.Annotation;
@@ -13,11 +14,19 @@ import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * An elide type that wraps a Java class.
+ * @param <T> The Java class.
+ */
 public class ClassType<T> implements Type<T> {
+    public static final List<Method> OBJ_METHODS = ImmutableList.copyOf(
+            Arrays.stream(Object.class.getMethods()).map(ClassType::constructMethod).collect(Collectors.toList()));
 
     public static final ClassType MAP_TYPE = new ClassType(Map.class);
     public static final ClassType COLLECTION_TYPE = new ClassType(Collection.class);
@@ -31,6 +40,10 @@ public class ClassType<T> implements Type<T> {
     @Getter
     private Class<T> cls;
 
+    /**
+     * Constructor.
+     * @param cls The underlying java class.
+     */
     public ClassType(Class<T> cls) {
         this.cls = cls;
     }
@@ -159,7 +172,7 @@ public class ClassType<T> implements Type<T> {
         return constructMethod(cls.getMethod(name, typeParams));
     }
 
-    public static Field constructField(java.lang.reflect.Field field) {
+    private static Field constructField(java.lang.reflect.Field field) {
         if (field == null) {
             return null;
         }
@@ -167,7 +180,7 @@ public class ClassType<T> implements Type<T> {
         return new FieldType(field);
     }
 
-    public static Method constructMethod(java.lang.reflect.Executable method) {
+    private static Method constructMethod(java.lang.reflect.Executable method) {
         if (method == null) {
             return null;
         }
@@ -175,7 +188,7 @@ public class ClassType<T> implements Type<T> {
         return new MethodType(method);
     }
 
-    public static Package constructPackage(java.lang.Package pkg) {
+    private static Package constructPackage(java.lang.Package pkg) {
         if (pkg == null) {
             return null;
         }
@@ -230,5 +243,10 @@ public class ClassType<T> implements Type<T> {
     @Override
     public T[] getEnumConstants() {
         return cls.getEnumConstants();
+    }
+
+    @Override
+    public Optional<Class<T>> getUnderlyingClass() {
+        return Optional.of(getCls());
     }
 }
