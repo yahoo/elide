@@ -47,7 +47,7 @@ public class AsyncQueryThreadTest {
     }
 
     @Test
-    public void testProcessQueryJsonApi() throws NoHttpResponseException, URISyntaxException, IllegalAccessException {
+    public void testProcessQueryJsonApi() throws NoHttpResponseException, URISyntaxException {
         AsyncQuery queryObj = new AsyncQuery();
         ElideResponse response = new ElideResponse(200, "ResponseBody");
         String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
@@ -64,7 +64,7 @@ public class AsyncQueryThreadTest {
     }
 
     @Test
-    public void testProcessQueryGraphQl() throws NoHttpResponseException, URISyntaxException, IllegalAccessException {
+    public void testProcessQueryGraphQl() throws NoHttpResponseException, URISyntaxException {
         AsyncQuery queryObj = new AsyncQuery();
         ElideResponse response = new ElideResponse(200, "ResponseBody");
         String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";

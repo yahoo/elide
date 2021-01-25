@@ -94,7 +94,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
 
                 ResultStorageEngine resultStorageEngine =
                         new FileResultStorageEngine(System.getProperty("java.io.tmpDir"));
-                AsyncExecutorService.init(elide, 5, asyncAPIDao, resultStorageEngine, true);
+                AsyncExecutorService.init(elide, 5, asyncAPIDao, resultStorageEngine);
                 bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                 BillingService billingService = new BillingService() {

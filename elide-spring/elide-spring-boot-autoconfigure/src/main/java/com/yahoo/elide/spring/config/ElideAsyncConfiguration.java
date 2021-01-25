@@ -28,8 +28,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * Async Configuration For Elide Services.  Override any of the beans (by defining your own)
  * and setting flags to disable in properties to change the default behavior.
@@ -38,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 @EntityScan(basePackageClasses = AsyncQuery.class)
 @EnableConfigurationProperties(ElideConfigProperties.class)
 @ConditionalOnExpression("${elide.async.enabled:false}")
-@Slf4j
 public class ElideAsyncConfiguration {
 
     /**
@@ -54,10 +51,7 @@ public class ElideAsyncConfiguration {
     public AsyncExecutorService buildAsyncExecutorService(Elide elide, ElideConfigProperties settings,
             AsyncAPIDAO asyncQueryDao, EntityDictionary dictionary,
             @Autowired(required = false) ResultStorageEngine resultStorageEngine) {
-        log.info("ElideResourceConfig --> AsyncExecutorService.init --> settings.enableGraphQL() --> "
-                + settings.getGraphql().isEnabled());
-        AsyncExecutorService.init(elide, settings.getAsync().getThreadPoolSize(),
-                asyncQueryDao, resultStorageEngine, settings.getGraphql().isEnabled());
+        AsyncExecutorService.init(elide, settings.getAsync().getThreadPoolSize(), asyncQueryDao, resultStorageEngine);
         AsyncExecutorService asyncExecutorService = AsyncExecutorService.getInstance();
 
         // Binding AsyncQuery LifeCycleHook

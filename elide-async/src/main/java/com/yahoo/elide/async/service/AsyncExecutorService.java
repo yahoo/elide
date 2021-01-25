@@ -84,7 +84,7 @@ public class AsyncExecutorService {
      * @param asyncAPIDao DAO Object
      */
     public static void init(Elide elide, Integer threadPoolSize, AsyncAPIDAO asyncAPIDao,
-            ResultStorageEngine resultStorageEngine, boolean enableGraphQL) {
+            ResultStorageEngine resultStorageEngine) {
         if (asyncExecutorService == null) {
             asyncExecutorService = new AsyncExecutorService(elide, threadPoolSize, asyncAPIDao,
                     resultStorageEngine);
