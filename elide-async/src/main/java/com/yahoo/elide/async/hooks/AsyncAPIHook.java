@@ -112,7 +112,7 @@ public abstract class AsyncAPIHook<T extends AsyncAPI> implements LifeCycleHook<
     }
 
     /**
-     * Get AsyncAPIOperation to use.
+     * Get Callable operation to submit.
      * @param query AsyncAPI object to complete.
      * @param requestScope RequestScope object.
      * @return Callable initialized.

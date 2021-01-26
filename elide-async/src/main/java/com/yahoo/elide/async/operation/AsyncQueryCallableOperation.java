@@ -39,7 +39,7 @@ public abstract class AsyncQueryCallableOperation implements Callable<AsyncAPIRe
     @Override
     public AsyncAPIResult call() throws URISyntaxException {
         ElideResponse response = null;
-        log.debug("AsyncQuery Object from request: {}", this);
+        log.debug("AsyncQuery Object from request: {}", queryObj);
         response = execute(queryObj, scope.getUser(), scope.getApiVersion());
         nullResponseCheck(response);
 
