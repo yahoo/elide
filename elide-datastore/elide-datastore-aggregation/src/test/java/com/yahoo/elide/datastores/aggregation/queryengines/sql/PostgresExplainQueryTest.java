@@ -482,6 +482,20 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
     }
 
     @Test
+    public void testJoinWithMetrics() throws Exception {
+        Query query = TestQuery.METRIC_JOIN.getQuery();
+
+        String expectedQueryStr = "SELECT "
+                + "MAX(\"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerStats\".\"highScore\") / SUM(\"com_yahoo_elide_datastores_aggregation_example_VideoGame\".\"timeSpent\") AS \"normalizedHighScore\" "
+                + "FROM \"videoGames\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame\" "
+                + "LEFT OUTER JOIN \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerStats\" "
+                + "ON \"com_yahoo_elide_datastores_aggregation_example_VideoGame\".\"player_id\" = \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerStats\".\"id\"";
+
+        compareQueryLists(expectedQueryStr, engine.explain(query));
+        testQueryExecution(query);
+    }
+
+    @Test
     public void testPaginationMetricsOnly() throws Exception {
         // pagination query should be empty since there is no dimension projection
         Query query = TestQuery.PAGINATION_METRIC_ONLY.getQuery();
