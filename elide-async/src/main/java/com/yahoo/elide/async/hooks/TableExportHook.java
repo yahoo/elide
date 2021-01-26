@@ -13,7 +13,7 @@ import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
-import com.yahoo.elide.async.operation.GraphQLTableExportOperation;
+import com.yahoo.elide.async.operation.GraphQLTableExportCallableOperation;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.ChangeSpec;
@@ -49,7 +49,7 @@ public class TableExportHook extends AsyncAPIHook<TableExport> {
 
     @Override
     public Callable<AsyncAPIResult> getOperation(AsyncAPI query, RequestScope requestScope) {
-    	Callable operation = null;
+        Callable operation = null;
         TableExportFormatter formatter = supportedFormatters.get(((TableExport) query).getResultType());
 
         if (formatter == null) {
@@ -57,7 +57,7 @@ public class TableExportHook extends AsyncAPIHook<TableExport> {
         }
 
         if (query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
-            operation = new GraphQLTableExportOperation(formatter, getAsyncExecutorService(), query,
+            operation = new GraphQLTableExportCallableOperation(formatter, getAsyncExecutorService(), query,
                     (com.yahoo.elide.core.RequestScope) requestScope);
         } else {
             throw new InvalidOperationException(query.getQueryType() + "is not supported");

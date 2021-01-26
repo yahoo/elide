@@ -45,8 +45,8 @@ public abstract class TableExportCallableOperation implements Callable<AsyncAPIR
     private TableExport queryObj;
     private RequestScope scope;
 
-    public TableExportCallableOperation (TableExportFormatter formatter, AsyncExecutorService service, AsyncAPI queryObj,
-            RequestScope scope) {
+    public TableExportCallableOperation (TableExportFormatter formatter, AsyncExecutorService service,
+            AsyncAPI queryObj, RequestScope scope) {
         this.formatter = formatter;
         this.service = service;
         this.queryObj = (TableExport) queryObj;
