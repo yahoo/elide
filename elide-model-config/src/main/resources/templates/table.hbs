@@ -21,6 +21,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.yahoo.elide.core.type.ParameterizedModel;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -52,7 +53,7 @@ import javax.persistence.Id;
     isFact=<%isFact%>
 )
 <%#if hidden%>@Exclude<%else%>@Include(type = "<%name%>")<%/if%>
-public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%>{
+public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> extends ParameterizedModel {
 
     private String id;
 

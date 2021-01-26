@@ -38,7 +38,7 @@ public abstract class ParameterizedModel implements ParameterizedAttribute {
 
     @Override
     public <T> T invoke(Attribute attribute) {
-        if (parameterizedAttributes.containsKey(attribute)) {
+        if (! parameterizedAttributes.containsKey(attribute)) {
             throw new InvalidParameterizedAttributeException(attribute);
         }
         return parameterizedAttributes.get(attribute).invoke(attribute);

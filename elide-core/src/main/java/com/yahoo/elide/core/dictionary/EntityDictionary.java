@@ -1563,8 +1563,9 @@ public class EntityDictionary {
     /**
      * Coerce provided value into expected class type.
      *
-     * @param value provided value
-     * @param fieldName the field name
+     * @param target The model instance which owns the field being coerced.
+     * @param value The value being coerced.
+     * @param fieldName the field name in the owning model instance.
      * @param fieldType expected class type
      * @return coerced value
      */

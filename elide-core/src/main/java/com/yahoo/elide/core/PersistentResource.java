@@ -911,7 +911,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         FilterExpression filterExpression = Optional.ofNullable(relationship.getProjection().getFilterExpression())
                 .orElse(null);
 
-        assertRelationshipExists(relationship.getName());
+        assertPropertyExists(relationship.getName());
         Type<?> entityType = dictionary.getParameterizedType(getResourceType(), relationship.getName());
 
         Set<PersistentResource> newResources = new LinkedHashSet<>();
@@ -1011,7 +1011,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     }
 
     private Observable<PersistentResource> getRelationUncheckedUnfiltered(String relationName) {
-        assertRelationshipExists(relationName);
+        assertPropertyExists(relationName);
         return getRelation(com.yahoo.elide.core.request.Relationship.builder()
                 .name(relationName)
                 .alias(relationName)
@@ -1022,7 +1022,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     }
 
     private Observable<PersistentResource> getRelationCheckedUnfiltered(String relationName) {
-        assertRelationshipExists(relationName);
+        assertPropertyExists(relationName);
         return getRelation(com.yahoo.elide.core.request.Relationship.builder()
                 .name(relationName)
                 .alias(relationName)
@@ -1032,9 +1032,9 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 .build(), true);
     }
 
-    private void assertRelationshipExists(String relationName) {
-        if (relationName == null || dictionary.getParameterizedType(obj, relationName) == null) {
-            throw new InvalidAttributeException(relationName, this.getTypeName());
+    private void assertPropertyExists(String propertyName) {
+        if (propertyName == null || dictionary.getParameterizedType(obj, propertyName) == null) {
+            throw new InvalidAttributeException(propertyName, this.getTypeName());
         }
     }
 
@@ -1075,7 +1075,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         String realName = dictionary.getNameFromAlias(obj, relationName);
         relationName = (realName == null) ? relationName : realName;
 
-        assertRelationshipExists(relationName);
+        assertPropertyExists(relationName);
 
         checkFieldAwareDeferPermissions(ReadPermission.class, relationName, null, null);
 
@@ -1190,7 +1190,14 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      */
     @Deprecated
     public Object getAttribute(String attr) {
-        return this.getValueChecked(attr);
+        assertPropertyExists(attr);
+
+        return this.getAttribute(
+                Attribute.builder()
+                        .name(attr)
+                        .alias(attr)
+                        .type(dictionary.getParameterizedType(getResourceType(), attr))
+                        .build());
     }
 
     /**
@@ -1466,19 +1473,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             oldValue.checkFieldAwareDeferPermissions(UpdatePermission.class, inverseField, null, getObject());
         }
         this.setValueChecked(fieldName, null);
-    }
-
-    /**
-     * Gets a value from an entity and checks read permissions.
-     * @param fieldName the field name
-     * @return value value
-     */
-    @Deprecated
-    protected Object getValueChecked(String fieldName) {
-        requestScope.publishLifecycleEvent(this, READ);
-        requestScope.publishLifecycleEvent(this, fieldName, READ, Optional.empty());
-        checkFieldAwareDeferPermissions(ReadPermission.class, fieldName, (Object) null, (Object) null);
-        return getValue(getObject(), fieldName, requestScope);
     }
 
     /**

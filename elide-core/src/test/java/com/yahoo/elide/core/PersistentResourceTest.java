@@ -327,6 +327,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         fun.setField2(null);
         fun.setField4("bar");
 
+        when(tx.getAttribute(any(), any(), any())).thenCallRealMethod();
+
         RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, "3", scope);
 
@@ -737,6 +739,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         FunWithPermissions fun = new FunWithPermissions();
         fun.setField2("blah");
         fun.setField3(null);
+
+        when(tx.getAttribute(any(), any(), any())).thenCallRealMethod();
 
         RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
 
