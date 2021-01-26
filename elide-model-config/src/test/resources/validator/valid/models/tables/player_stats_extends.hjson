@@ -16,7 +16,7 @@
             tags: ['PUBLIC']
           },
           {
-            name : AvgScore
+            name : avgScore
             type : INTEGER
             description : Avg score
             definition: 'Avg({{score}})'
