@@ -6,18 +6,41 @@
 
 package com.yahoo.elide.core.type;
 
+import com.yahoo.elide.core.exceptions.InvalidParameterizedAttributeException;
 import com.yahoo.elide.core.request.Attribute;
 
-/**
- * An elide model that supports parameterized attributes.
- */
-public interface ParameterizedModel {
+import java.util.HashMap;
+import java.util.Map;
 
-    /**
-     * Fetch the attribute value with the specified parameters.
-     * @param attribute The attribute to fetch.
-     * @param <T> The return type of the attribute.
-     * @return The attribute value.
-     */
-    public <T> T invoke(Attribute attribute);
+/**
+ * Base class that contains one or more parameterized attributes.
+ */
+public abstract class ParameterizedModel implements ParameterizedAttribute {
+    private Map<Attribute, ParameterizedAttribute> parameterizedAttributes;
+
+    public ParameterizedModel() {
+        this(new HashMap<>());
+    }
+
+    public ParameterizedModel(Map<Attribute, ParameterizedAttribute> attributes) {
+        this.parameterizedAttributes = attributes;
+    }
+
+    public <T> void addAttributeValue(Attribute attribute, T value) {
+        parameterizedAttributes.put(attribute,
+            new ParameterizedAttribute() {
+                @Override
+                public <T> T invoke(Attribute attribute) {
+                    return (T) value;
+                }
+            });
+    }
+
+    @Override
+    public <T> T invoke(Attribute attribute) {
+        if (parameterizedAttributes.containsKey(attribute)) {
+            throw new InvalidParameterizedAttributeException(attribute);
+        }
+        return parameterizedAttributes.get(attribute).invoke(attribute);
+    }
 }
