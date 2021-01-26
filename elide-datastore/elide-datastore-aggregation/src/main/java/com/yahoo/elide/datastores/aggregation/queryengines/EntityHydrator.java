@@ -6,7 +6,10 @@
 package com.yahoo.elide.datastores.aggregation.queryengines;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.Attribute;
+import com.yahoo.elide.core.type.ParameterizedModel;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
@@ -104,12 +107,20 @@ public class EntityHydrator {
         }
 
         result.forEach((fieldName, value) -> {
-            ColumnProjection dim = query.getSource().getDimensionProjection(fieldName);
+            ColumnProjection dim = query.getSource().getColumnProjection(fieldName);
+            Type<?> fieldType = entityDictionary.getType(entityClass, fieldName);
+            Attribute attribute = projectionToAttribute(dim, fieldType);
 
             if (dim != null && dim.getValueType().equals(ValueType.RELATIONSHIP)) {
                 // We don't hydrate relationships here.
             } else {
-                getEntityDictionary().setValue(entityInstance, fieldName, value);
+                if (entityInstance instanceof ParameterizedModel) {
+                    ((ParameterizedModel) entityInstance).addAttributeValue(
+                            attribute,
+                            CoerceUtil.coerce(value, fieldType));
+                } else {
+                    getEntityDictionary().setValue(entityInstance, fieldName, value);
+                }
             }
         });
 
@@ -130,5 +141,14 @@ public class EntityHydrator {
         }
 
         return (Table) next.getSource();
+    }
+
+    private Attribute projectionToAttribute(ColumnProjection projection, Type valueType) {
+        return Attribute.builder()
+                .alias(projection.getAlias())
+                .name(projection.getName())
+                .arguments(projection.getArguments().values())
+                .type(valueType)
+                .build();
     }
 }

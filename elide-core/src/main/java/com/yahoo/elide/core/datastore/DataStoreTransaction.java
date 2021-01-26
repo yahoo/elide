@@ -15,6 +15,7 @@ import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.type.ParameterizedModel;
 import com.yahoo.elide.core.type.Type;
 
 import java.io.Closeable;
@@ -232,6 +233,9 @@ public interface DataStoreTransaction extends Closeable {
     default <T, R> R getAttribute(T entity,
                                   Attribute attribute,
                                   RequestScope scope) {
+        if (entity instanceof ParameterizedModel) {
+            return ((ParameterizedModel) entity).invoke(attribute);
+        }
         return (R) PersistentResource.getValue(entity, attribute.getName(), scope);
 
     }
