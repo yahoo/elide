@@ -14,8 +14,6 @@ import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.security.User;
 
-import org.apache.http.NoHttpResponseException;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,7 +37,7 @@ public abstract class AsyncQueryCallableOperation implements Callable<AsyncAPIRe
     }
 
     @Override
-    public AsyncAPIResult call() throws URISyntaxException, NoHttpResponseException {
+    public AsyncAPIResult call() throws URISyntaxException {
         ElideResponse response = null;
         log.debug("AsyncQuery Object from request: {}", this);
         response = execute(queryObj, scope.getUser(), scope.getApiVersion());
@@ -65,11 +63,11 @@ public abstract class AsyncQueryCallableOperation implements Callable<AsyncAPIRe
     /**
      * Check if Elide Response is NULL.
      * @param response ElideResponse object.
-     * @throws NoHttpResponseException NoHttpResponseException Exception.
+     * @throws IllegalStateException IllegalStateException Exception.
      */
-    public void nullResponseCheck(ElideResponse response) throws NoHttpResponseException {
+    public void nullResponseCheck(ElideResponse response) {
         if (response == null) {
-            throw new NoHttpResponseException("Response for request returned as null");
+            throw new IllegalStateException("No Response for request returned");
         }
     }
 
