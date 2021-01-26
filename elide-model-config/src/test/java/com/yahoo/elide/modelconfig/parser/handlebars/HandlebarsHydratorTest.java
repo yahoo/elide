@@ -447,7 +447,7 @@ public class HandlebarsHydratorTest {
         assertTrue(tableClasses.keySet().contains("PlayerStatsChild"));
         assertTrue(tableClasses.get("PlayerStatsChild").contains("private String highScore")); // overridden measure
         assertTrue(tableClasses.get("PlayerStatsChild").contains("private Long newHighScore;")); // parent measure
-        assertTrue(tableClasses.get("PlayerStatsChild").contains("private Long AvgScore;")); // child measure
+        assertTrue(tableClasses.get("PlayerStatsChild").contains("private Long avgScore;")); // child measure
         assertTrue(tableClasses.get("PlayerStatsChild").contains("private Set<Team> playerTeam;")); // join
         assertTrue(tableClasses.get("PlayerStatsChild").contains("private"
                 + " com.yahoo.elide.datastores.aggregation.timegrains.Month createdOn")); // overridden dim
