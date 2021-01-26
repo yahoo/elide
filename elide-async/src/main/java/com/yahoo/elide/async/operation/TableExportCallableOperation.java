@@ -57,6 +57,7 @@ public abstract class TableExportCallableOperation implements Callable<AsyncAPIR
     public AsyncAPIResult call() {
         String apiVersion = scope.getApiVersion();
         TableExport query = queryObj;
+        log.debug("TableExport Object from request: {}", queryObj);
 
         EntityProjection projection = getProjection(query, apiVersion);
 
