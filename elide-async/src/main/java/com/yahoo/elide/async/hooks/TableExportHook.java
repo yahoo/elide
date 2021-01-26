@@ -10,13 +10,13 @@ import com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase;
 import com.yahoo.elide.async.export.TableExporter;
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.TableExport;
-import com.yahoo.elide.async.operation.AsyncAPIOperation;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.thread.TableExportCallable;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 
 import java.util.Optional;
+import java.util.concurrent.Callable;
 
 /**
  * LifeCycle Hook for execution of TableExpoer.
@@ -43,7 +43,7 @@ public class TableExportHook extends AsyncAPIHook<TableExport> {
     }
 
     @Override
-    public AsyncAPIOperation getOperation(AsyncAPI query, RequestScope requestScope) {
+    public Callable getOperation(AsyncAPI query, RequestScope requestScope) {
         // TODO Auto-generated method stub
         return null;
     }

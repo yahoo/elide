@@ -30,9 +30,9 @@ import javax.ws.rs.core.MultivaluedMap;
  * JSON API implementation of AsyncQueryOperation for executing the query provided in AsyncQuery.
  */
 @Slf4j
-public class JSONAPIAsyncQueryOperation extends AsyncQueryOperation {
+public class JSONAPIAsyncQueryCallableOperation extends AsyncQueryCallableOperation {
 
-    public JSONAPIAsyncQueryOperation(AsyncExecutorService service, AsyncAPI queryObj, RequestScope scope) {
+    public JSONAPIAsyncQueryCallableOperation(AsyncExecutorService service, AsyncAPI queryObj, RequestScope scope) {
         super(service, queryObj, scope);
     }
 

@@ -11,9 +11,8 @@ import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryType;
-import com.yahoo.elide.async.operation.AsyncAPIOperation;
-import com.yahoo.elide.async.operation.GraphQLAsyncQueryOperation;
-import com.yahoo.elide.async.operation.JSONAPIAsyncQueryOperation;
+import com.yahoo.elide.async.operation.GraphQLAsyncQueryCallableOperation;
+import com.yahoo.elide.async.operation.JSONAPIAsyncQueryCallableOperation;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.ChangeSpec;
@@ -52,13 +51,13 @@ public class AsyncQueryHook extends AsyncAPIHook<AsyncQuery> {
     }
 
     @Override
-    public AsyncAPIOperation<?> getOperation(AsyncAPI query, RequestScope requestScope) {
-        AsyncAPIOperation<?> operation = null;
+    public Callable<AsyncAPIResult> getOperation(AsyncAPI query, RequestScope requestScope) {
+        Callable<AsyncAPIResult> operation = null;
         if (query.getQueryType().equals(QueryType.JSONAPI_V1_0)) {
-            operation = new JSONAPIAsyncQueryOperation(getAsyncExecutorService(), query,
+            operation = new JSONAPIAsyncQueryCallableOperation(getAsyncExecutorService(), query,
                     (com.yahoo.elide.core.RequestScope) requestScope);
         } else {
-            operation = new GraphQLAsyncQueryOperation(getAsyncExecutorService(), query,
+            operation = new GraphQLAsyncQueryCallableOperation(getAsyncExecutorService(), query,
                     (com.yahoo.elide.core.RequestScope) requestScope);
         }
         return operation;

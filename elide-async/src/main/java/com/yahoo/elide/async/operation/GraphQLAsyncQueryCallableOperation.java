@@ -25,9 +25,9 @@ import java.util.UUID;
  * GrapqhQL implementation of AsyncQueryOperation for executing the query provided in AsyncQuery.
  */
 @Slf4j
-public class GraphQLAsyncQueryOperation extends AsyncQueryOperation {
+public class GraphQLAsyncQueryCallableOperation extends AsyncQueryCallableOperation {
 
-    public GraphQLAsyncQueryOperation(AsyncExecutorService service, AsyncAPI queryObj, RequestScope scope) {
+    public GraphQLAsyncQueryCallableOperation(AsyncExecutorService service, AsyncAPI queryObj, RequestScope scope) {
         super(service, queryObj, scope);
     }
 

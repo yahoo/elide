@@ -21,19 +21,20 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
 import java.util.Date;
+import java.util.concurrent.Callable;
 
 /**
  * AsyncQuery Execute Operation Interface.
  */
 @Slf4j
-public abstract class AsyncQueryOperation implements AsyncAPIOperation<AsyncQuery> {
+public abstract class AsyncQueryCallableOperation implements Callable<AsyncAPIResult> {
     @Getter private AsyncExecutorService service;
-    private AsyncAPI queryObj;
+    private AsyncQuery queryObj;
     private RequestScope scope;
 
-    public AsyncQueryOperation(AsyncExecutorService service, AsyncAPI queryObj, RequestScope scope) {
+    public AsyncQueryCallableOperation(AsyncExecutorService service, AsyncAPI queryObj, RequestScope scope) {
         this.service = service;
-        this.queryObj = queryObj;
+        this.queryObj = (AsyncQuery) queryObj;
         this.scope = scope;
     }
 
