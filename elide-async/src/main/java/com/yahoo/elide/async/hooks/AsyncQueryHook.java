@@ -11,20 +11,9 @@ import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryType;
-<<<<<<< HEAD
 import com.yahoo.elide.async.operation.GraphQLAsyncQueryCallableOperation;
 import com.yahoo.elide.async.operation.JSONAPIAsyncQueryCallableOperation;
 import com.yahoo.elide.async.service.AsyncExecutorService;
-=======
-import com.yahoo.elide.async.operation.AsyncAPIOperation;
-import com.yahoo.elide.async.operation.GraphQLAsyncQueryOperation;
-import com.yahoo.elide.async.operation.JSONAPIAsyncQueryOperation;
-import com.yahoo.elide.async.service.AsyncExecutorService;
-<<<<<<< HEAD
-import com.yahoo.elide.async.service.thread.AsyncAPICallable;
->>>>>>> Refactor part 2
-=======
->>>>>>> Review Comments
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;

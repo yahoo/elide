@@ -13,7 +13,6 @@ import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.QueryStatus;
-import com.yahoo.elide.async.operation.AsyncAPIOperation;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
