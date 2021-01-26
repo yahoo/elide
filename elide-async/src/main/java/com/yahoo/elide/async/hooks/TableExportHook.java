@@ -36,31 +36,31 @@ public class TableExportHook extends AsyncAPIHook<TableExport> {
     }
 
     @Override
-    public void execute(Operation operation, TransactionPhase phase, TableExport query, RequestScope requestScope,
+    public void execute(Operation operation, TransactionPhase phase, TableExport export, RequestScope requestScope,
             Optional<ChangeSpec> changes) {
-        Callable<AsyncAPIResult> callable = getOperation(query, requestScope);
-        executeHook(operation, phase, query, requestScope, callable);
+        Callable<AsyncAPIResult> callable = getOperation(export, requestScope);
+        executeHook(operation, phase, export, requestScope, callable);
     }
 
     @Override
-    public void validateOptions(AsyncAPI query, RequestScope requestScope) {
-        super.validateOptions(query, requestScope);
+    public void validateOptions(AsyncAPI export, RequestScope requestScope) {
+        super.validateOptions(export, requestScope);
     }
 
     @Override
-    public Callable<AsyncAPIResult> getOperation(AsyncAPI query, RequestScope requestScope) {
+    public Callable<AsyncAPIResult> getOperation(AsyncAPI export, RequestScope requestScope) {
         Callable operation = null;
-        TableExportFormatter formatter = supportedFormatters.get(((TableExport) query).getResultType());
+        TableExportFormatter formatter = supportedFormatters.get(((TableExport) export).getResultType());
 
         if (formatter == null) {
-            throw new InvalidOperationException("Formatter unavailable for " + ((TableExport) query).getResultType());
+            throw new InvalidOperationException("Formatter unavailable for " + ((TableExport) export).getResultType());
         }
 
-        if (query.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
-            operation = new GraphQLTableExportCallableOperation(formatter, getAsyncExecutorService(), query,
+        if (export.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
+            operation = new GraphQLTableExportCallableOperation(formatter, getAsyncExecutorService(), export,
                     (com.yahoo.elide.core.RequestScope) requestScope);
         } else {
-            throw new InvalidOperationException(query.getQueryType() + "is not supported");
+            throw new InvalidOperationException(export.getQueryType() + "is not supported");
         }
         return operation;
     }

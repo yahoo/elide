@@ -42,34 +42,33 @@ public abstract class TableExportCallableOperation implements Callable<AsyncAPIR
     private TableExportFormatter formatter;
     @Getter private AsyncExecutorService service;
     private Integer recordNumber = 0;
-    private TableExport queryObj;
+    private TableExport exportObj;
     private RequestScope scope;
 
     public TableExportCallableOperation (TableExportFormatter formatter, AsyncExecutorService service,
-            AsyncAPI queryObj, RequestScope scope) {
+            AsyncAPI exportObj, RequestScope scope) {
         this.formatter = formatter;
         this.service = service;
-        this.queryObj = (TableExport) queryObj;
+        this.exportObj = (TableExport) exportObj;
         this.scope = scope;
     }
 
     @Override
     public AsyncAPIResult call() {
         String apiVersion = scope.getApiVersion();
-        TableExport query = queryObj;
-        log.debug("TableExport Object from request: {}", queryObj);
+        log.debug("TableExport Object from request: {}", exportObj);
 
-        EntityProjection projection = getProjection(query, apiVersion);
+        EntityProjection projection = getProjection(exportObj, apiVersion);
 
-        Observable<PersistentResource> observableResults = export(query, scope, projection);
+        Observable<PersistentResource> observableResults = export(exportObj, scope, projection);
 
         Observable<String> results = Observable.empty();
-        String preResult = formatter.preFormat(projection, query);
+        String preResult = formatter.preFormat(projection, exportObj);
         results = observableResults.map(resource -> {
             this.recordNumber++;
             return formatter.format(resource, recordNumber);
         });
-        String postResult = formatter.postFormat(projection, query);
+        String postResult = formatter.postFormat(projection, exportObj);
 
         // Stitch together Pre-Formatted, Formatted, Post-Formatted results of Formatter in single observable.
         Observable<String> finalResults = Observable.empty();
@@ -84,11 +83,11 @@ public abstract class TableExportCallableOperation implements Callable<AsyncAPIR
             finalResults.concatWith(Observable.just(postResult));
         }
 
-        storeResults(query, service.getResultStorageEngine(), results);
+        storeResults(exportObj, service.getResultStorageEngine(), results);
 
         URL downloadURL;
         try {
-            downloadURL = new URL(generateDownloadURL(query, (RequestScope) scope));
+            downloadURL = new URL(generateDownloadURL(exportObj, (RequestScope) scope));
         } catch (MalformedURLException e) {
             log.debug("Generating download url failure. {}", e.getMessage());
             throw new IllegalStateException(e);
@@ -104,24 +103,24 @@ public abstract class TableExportCallableOperation implements Callable<AsyncAPIR
 
     /**
      * Export Table Data.
-     * @param query TableExport type object.
+     * @param exportObj TableExport type object.
      * @param requestScope RequestScope object.
      * @param projection Entity projection.
      * @return Observable PersistentResource
      */
-    public Observable<PersistentResource> export(TableExport query, RequestScope requestScope,
+    public Observable<PersistentResource> export(TableExport exportObj, RequestScope requestScope,
             EntityProjection projection) {
         Observable<PersistentResource> results = Observable.empty();
         Elide elide = service.getElide();
 
-        UUID requestId = UUID.fromString(query.getRequestId());
+        UUID requestId = UUID.fromString(exportObj.getRequestId());
 
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
 
             //TODO - we need to add the baseUrlEndpoint to the queryObject.
             //TODO - Can we have projectionInfo as null?
-            RequestScope exportRequestScope = getRequestScope(query, requestScope.getUser(),
+            RequestScope exportRequestScope = getRequestScope(exportObj, requestScope.getUser(),
                     requestScope.getApiVersion(), tx);
 
             if (projection != null) {
@@ -153,47 +152,47 @@ public abstract class TableExportCallableOperation implements Callable<AsyncAPIR
 
     /**
      * Initialize and get RequestScope.
-     * @param query TableExport type object.
+     * @param exportObj TableExport type object.
      * @param user User Object.
      * @param apiVersion API Version.
      * @param tx DataStoreTransaction.
      * @return RequestScope Type Object
      */
-    public abstract RequestScope getRequestScope(TableExport query, User user,
+    public abstract RequestScope getRequestScope(TableExport exportObj, User user,
             String apiVersion, DataStoreTransaction tx);
 
     /**
      * Generate Download URL.
-     * @param query TableExport type object.
+     * @param exportObj TableExport type object.
      * @param scope RequestScope.
      * @return URL generated.
      */
-    public String generateDownloadURL(TableExport query, RequestScope scope) {
+    public String generateDownloadURL(TableExport exportObj, RequestScope scope) {
         String downloadPath =  scope.getElideSettings().getDownloadApiPath();
         String baseURL = scope.getBaseUrlEndPoint();
-        return baseURL + downloadPath + "/" + query.getId();
+        return baseURL + downloadPath + "/" + exportObj.getId();
     }
 
     /**
      * Store Export Results using the ResultStorageEngine.
-     * @param query TableExport type object.
+     * @param exportObj TableExport type object.
      * @param resultStorageEngine ResultStorageEngine instance.
      * @param result Observable of String Results to store.
      * @return TableExport object.
      */
-    protected TableExport storeResults(TableExport query, ResultStorageEngine resultStorageEngine,
+    protected TableExport storeResults(TableExport exportObj, ResultStorageEngine resultStorageEngine,
             Observable<String> result) {
-        return resultStorageEngine.storeResults(query, result);
+        return resultStorageEngine.storeResults(exportObj, result);
     }
 
     /**
      * Generate Entity Projection from the query.
-     * @param query TableExport type object.
+     * @param exportObj TableExport type object.
      * @param apiVersion API Version.
      * @return EntityProjection object.
      * @throws BadRequestException BadRequestException.
      */
-    public abstract EntityProjection getProjection(TableExport query, String apiVersion)
+    public abstract EntityProjection getProjection(TableExport exportObj, String apiVersion)
             throws BadRequestException;
 
 }

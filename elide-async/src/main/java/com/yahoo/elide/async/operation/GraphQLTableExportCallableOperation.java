@@ -23,7 +23,6 @@ import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -40,24 +39,24 @@ import java.util.UUID;
 public class GraphQLTableExportCallableOperation extends TableExportCallableOperation {
 
     public GraphQLTableExportCallableOperation(TableExportFormatter formatter, AsyncExecutorService service,
-            AsyncAPI queryObj, RequestScope scope) {
-        super(formatter, service, queryObj, scope);
+            AsyncAPI export, RequestScope scope) {
+        super(formatter, service, export, scope);
     }
 
     @Override
-    public RequestScope getRequestScope(TableExport query, User user, String apiVersion,
+    public RequestScope getRequestScope(TableExport export, User user, String apiVersion,
             DataStoreTransaction tx) {
-        UUID requestId = UUID.fromString(query.getRequestId());
+        UUID requestId = UUID.fromString(export.getRequestId());
         return new GraphQLRequestScope("", tx, user, apiVersion, getService().getElide().getElideSettings(),
                 null, requestId, Collections.emptyMap());
     }
 
     @Override
-    public EntityProjection getProjection(TableExport query, String apiVersion)
+    public EntityProjection getProjection(TableExport export, String apiVersion)
             throws BadRequestException {
         EntityProjection projection;
         try {
-            String graphQLDocument = query.getQuery();
+            String graphQLDocument = export.getQuery();
             Elide elide = getService().getElide();
             ObjectMapper mapper = elide.getMapper().getObjectMapper();
 

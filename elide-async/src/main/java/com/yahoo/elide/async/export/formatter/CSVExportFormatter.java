@@ -30,6 +30,10 @@ public class CSVExportFormatter implements TableExportFormatter {
 
     public static boolean skipCSVHeader = false;
 
+    public CSVExportFormatter(boolean skipCSVHeader) {
+        this.skipCSVHeader = skipCSVHeader;
+    }
+
     @Override
     public String format(PersistentResource resource, Integer recordNumber) {
         if (resource == null) {
