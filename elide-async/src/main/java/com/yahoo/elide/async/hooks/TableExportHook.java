@@ -16,6 +16,7 @@ import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
 
 import java.util.Optional;
+import java.util.concurrent.Callable;
 
 /**
  * LifeCycle Hook for execution of TableExpoer.
@@ -39,5 +40,11 @@ public class TableExportHook extends AsyncAPIHook<TableExport> {
     @Override
     public void validateOptions(AsyncAPI query, RequestScope requestScope) {
         super.validateOptions(query, requestScope);
+    }
+
+    @Override
+    public Callable getOperation(AsyncAPI query, RequestScope requestScope) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

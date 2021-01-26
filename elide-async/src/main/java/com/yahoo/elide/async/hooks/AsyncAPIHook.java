@@ -110,4 +110,12 @@ public abstract class AsyncAPIHook<T extends AsyncAPI> implements LifeCycleHook<
             query.setPrincipalName(principal.getName());
         }
     }
+
+    /**
+     * Get Callable operation to submit.
+     * @param query AsyncAPI object to complete.
+     * @param requestScope RequestScope object.
+     * @return Callable initialized.
+     */
+    public abstract Callable<AsyncAPIResult> getOperation(AsyncAPI query, RequestScope requestScope);
 }

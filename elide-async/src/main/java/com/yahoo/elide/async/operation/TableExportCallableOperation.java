@@ -6,6 +6,7 @@
 package com.yahoo.elide.async.operation;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.security.RequestScope;
@@ -13,10 +14,12 @@ import com.yahoo.elide.core.security.User;
 
 import io.reactivex.Observable;
 
+import java.util.concurrent.Callable;
+
 /**
  * TableExport Execute Operation Interface.
  */
-public abstract class TableExportOperation implements AsyncAPIOperation<TableExport> {
+public abstract class TableExportCallableOperation implements Callable<AsyncAPIResult> {
 
     /**
      * Export Table Data.
