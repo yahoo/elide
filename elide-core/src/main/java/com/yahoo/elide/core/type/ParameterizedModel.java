@@ -7,10 +7,12 @@
 package com.yahoo.elide.core.type;
 
 import com.yahoo.elide.core.exceptions.InvalidParameterizedAttributeException;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Base class that contains one or more parameterized attributes.
@@ -30,17 +32,22 @@ public abstract class ParameterizedModel implements ParameterizedAttribute {
         parameterizedAttributes.put(attribute,
             new ParameterizedAttribute() {
                 @Override
-                public <T> T invoke(Attribute attribute) {
+                public <T> T invoke(Set<Argument> arguments) {
                     return (T) value;
                 }
             });
     }
 
-    @Override
+    /**
+     * Fetch the attribute value with the specified parameters.
+     * @param attribute The attribute to fetch.
+     * @param <T> The return type of the attribute.
+     * @return The attribute value.
+     */
     public <T> T invoke(Attribute attribute) {
         if (! parameterizedAttributes.containsKey(attribute)) {
             throw new InvalidParameterizedAttributeException(attribute);
         }
-        return parameterizedAttributes.get(attribute).invoke(attribute);
+        return parameterizedAttributes.get(attribute).invoke(attribute.getArguments());
     }
 }

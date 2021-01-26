@@ -12,7 +12,7 @@ import com.yahoo.elide.core.request.Attribute;
  */
 public class InvalidParameterizedAttributeException extends HttpStatusException {
     public InvalidParameterizedAttributeException(Attribute attribute) {
-        super(HttpStatus.SC_BAD_REQUEST, "Not attribute found with matching parameters for attribute: "
+        super(HttpStatus.SC_BAD_REQUEST, "No attribute found with matching parameters for attribute: "
                 + attribute.toString());
     }
 }
