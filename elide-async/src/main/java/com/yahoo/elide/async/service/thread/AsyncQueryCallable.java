@@ -32,13 +32,13 @@ import javax.ws.rs.core.MultivaluedMap;
  * It will also update the query status and result object at different stages of execution.
  */
 @Slf4j
-public class AsyncQueryThread implements Callable<AsyncAPIResult> {
+public class AsyncQueryCallable implements Callable<AsyncAPIResult> {
     private AsyncAPI queryObj;
     private User user;
     private AsyncExecutorService service;
     private String apiVersion;
 
-    public AsyncQueryThread(AsyncAPI queryObj, User user, AsyncExecutorService service, String apiVersion) {
+    public AsyncQueryCallable(AsyncAPI queryObj, User user, AsyncExecutorService service, String apiVersion) {
         this.queryObj = queryObj;
         this.user = user;
         this.service = service;

@@ -19,9 +19,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.Future;
 
-public class AsyncAPIUpdateThreadTest {
+public class AsyncAPIUpdateRunnableTest {
 
-    private AsyncAPIUpdateThread updateThread;
+    private AsyncAPIUpdateRunnable updateThread;
     private Elide elide;
     private AsyncAPI queryObj;
     private AsyncAPIResult queryResultObj;
@@ -33,11 +33,11 @@ public class AsyncAPIUpdateThreadTest {
         elide = mock(Elide.class);
         queryObj = mock(AsyncAPI.class);
         queryResultObj = mock(AsyncAPIResult.class);
-        updateThread = new AsyncAPIUpdateThread(elide, task, queryObj, asyncAPIDao);
+        updateThread = new AsyncAPIUpdateRunnable(elide, task, queryObj, asyncAPIDao);
     }
 
     @Test
-    public void testAsyncAPIUpdateThreadSet() {
+    public void testAsyncAPIUpdateRunnableSet() {
         assertEquals(elide, updateThread.getElide());
         assertEquals(task, updateThread.getTask());
         assertEquals(queryObj, updateThread.getQueryObj());

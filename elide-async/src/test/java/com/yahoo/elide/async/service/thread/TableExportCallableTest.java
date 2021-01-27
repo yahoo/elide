@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 
-public class TableExportThreadTest {
+public class TableExportCallableTest {
 
     private TableExporter exporter;
     private ResultStorageEngine engine;
@@ -53,7 +53,7 @@ public class TableExportThreadTest {
         when(exporter.export(any())).thenReturn(Observable.empty());
         when(engine.storeResults(any(), any())).thenReturn(queryObj);
 
-        TableExportThread queryThread = new TableExportThread(queryObj, engine, exporter);
+        TableExportCallable queryThread = new TableExportCallable(queryObj, engine, exporter);
         TableExportResult queryResultObj = (TableExportResult) queryThread.call();
         assertEquals(queryResultObj.getHttpStatus(), 200);
         assertEquals(queryResultObj.getRecordCount(), 0);
@@ -74,7 +74,7 @@ public class TableExportThreadTest {
 
         PersistentResource resource = mock(PersistentResource.class);
         when(resource.getObject()).thenReturn(queryObj);
-        TableExportThread queryThread = new TableExportThread(queryObj, engine, exporter);
+        TableExportCallable queryThread = new TableExportCallable(queryObj, engine, exporter);
         queryThread.incrementRecordCount();
         String output = queryThread.convertToCSV(resource);
         assertEquals(true, output.startsWith(row1));
@@ -97,7 +97,7 @@ public class TableExportThreadTest {
 
         PersistentResource resource = mock(PersistentResource.class);
         when(resource.getObject()).thenReturn(queryObj);
-        TableExportThread queryThread = new TableExportThread(queryObj, engine, exporter);
+        TableExportCallable queryThread = new TableExportCallable(queryObj, engine, exporter);
         String output = queryThread.resourceToJsonStr(resource);
         assertEquals(true, output.startsWith(start));
         assertEquals(true, output.endsWith(end));

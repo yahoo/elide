@@ -32,9 +32,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
-public class AsyncAPICleanerThreadTest {
+public class AsyncAPICleanerRunnableTest {
 
-    private AsyncAPICleanerThread cleanerThread;
+    private AsyncAPICleanerRunnable cleanerThread;
     private Elide elide;
     private AsyncAPIDAO asyncAPIDao;
     private DateUtil dateUtil;
@@ -52,7 +52,7 @@ public class AsyncAPICleanerThreadTest {
                         .build());
         asyncAPIDao = mock(DefaultAsyncAPIDAO.class);
         dateUtil = mock(DateUtil.class);
-        cleanerThread = new AsyncAPICleanerThread(7, elide, 7, asyncAPIDao, dateUtil);
+        cleanerThread = new AsyncAPICleanerRunnable(7, elide, 7, asyncAPIDao, dateUtil);
     }
 
     @Test

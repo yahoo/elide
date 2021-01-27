@@ -46,4 +46,5 @@ public class ElideSettings {
     @Getter private final String baseUrl;
     @Getter private final String jsonApiPath;
     @Getter private final String graphQLApiPath;
+    @Getter private final String downloadApiPath;
 }

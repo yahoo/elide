@@ -17,12 +17,12 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.Future;
 
 /**
- * Runnable thread for updating AsyncQueryResult.
+ * Runnable for updating AsyncQueryResult.
  */
 @Slf4j
 @Data
 @AllArgsConstructor
-public class AsyncAPIUpdateThread implements Runnable {
+public class AsyncAPIUpdateRunnable implements Runnable {
 
     private Elide elide;
     private Future<AsyncAPIResult> task;

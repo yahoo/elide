@@ -25,14 +25,14 @@ import java.util.Calendar;
 import java.util.Date;
 
 /**
- * Runnable thread for updating AsyncAPIThread status.
+ * Runnable for updating AsyncAPIThread status.
  * beyond the max run time and if not terminated by interrupt process
  * due to app/host crash or restart.
  */
 @Slf4j
 @Data
 @AllArgsConstructor
-public class AsyncAPICleanerThread implements Runnable {
+public class AsyncAPICleanerRunnable implements Runnable {
 
     private int maxRunTimeMinutes;
     private Elide elide;

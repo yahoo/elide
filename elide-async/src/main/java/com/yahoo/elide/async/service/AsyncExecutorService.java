@@ -11,7 +11,7 @@ import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
-import com.yahoo.elide.async.service.thread.AsyncAPIUpdateThread;
+import com.yahoo.elide.async.service.thread.AsyncAPIUpdateRunnable;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.QueryRunner;
 import lombok.Data;
@@ -143,7 +143,7 @@ public class AsyncExecutorService {
         AsyncAPIResultFuture asyncAPIResultFuture = asyncResultFutureThreadLocal.get();
         if (asyncAPIResultFuture.isSynchronousTimeout()) {
             log.debug("Task has not completed");
-            updater.execute(new AsyncAPIUpdateThread(elide, asyncAPIResultFuture.getAsyncFuture(), query,
+            updater.execute(new AsyncAPIUpdateRunnable(elide, asyncAPIResultFuture.getAsyncFuture(), query,
                     asyncAPIDao));
             asyncResultFutureThreadLocal.remove();
         } else {
