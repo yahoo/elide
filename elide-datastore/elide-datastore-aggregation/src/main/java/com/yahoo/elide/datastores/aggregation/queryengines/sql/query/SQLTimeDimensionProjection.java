@@ -20,6 +20,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -60,7 +61,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
         this.expression = column.getExpression();
         this.name = column.getName();
         this.source = (SQLTable) column.getTable();
-        this.grain = column.getSupportedGrain();
+        this.grain = getGrainFromArguments(arguments, column);
         this.arguments = arguments;
         this.alias = alias;
         this.timeZone = timeZone;
@@ -106,5 +107,27 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
                 .grain(grain)
                 .timeZone(timeZone)
                 .build();
+    }
+
+    private TimeDimensionGrain getGrainFromArguments(Map<String, Argument> arguments, TimeDimension column) {
+        Argument grainArgument = arguments.get("grain");
+
+        if (grainArgument == null) {
+            return column.getSupportedGrains().stream()
+                    .findFirst()
+                    .orElseThrow(
+                            () -> new IllegalStateException(String.format(
+                                    "Requested default grain, no grain defined on %s",
+                                    column.getName())));
+
+        }
+
+        String grainName = grainArgument.getValue().toString().toLowerCase(Locale.ENGLISH);
+
+        return column.getSupportedGrains().stream()
+                .filter(grain -> grain.getGrain().name().toLowerCase().equals(grainName))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException(String.format(
+                        "Unsupported grain %s for field %s", grainName, column.getName())));
     }
 }

@@ -26,6 +26,7 @@ public class HandlebarsHelper {
 
     private static final String EMPTY_STRING = "";
     private static final String STRING = "String";
+    private static final String DATE = "Date";
     private static final String DAY = "Day";
     private static final String HOUR = "Hour";
     private static final String ISOWEEK = "ISOWeek";
@@ -141,6 +142,8 @@ public class HandlebarsHelper {
                 return BIGDECIMAL;
             case MONEY:
                 return BIGDECIMAL;
+            case TIME:
+                return DATE;
             default:
                 return STRING;
         }

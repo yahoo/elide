@@ -7,12 +7,17 @@ package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
+import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import lombok.Builder;
@@ -57,6 +62,16 @@ public class AggregationDataStore implements DataStore {
         ClassScanner.getAnnotatedClasses(AGGREGATION_STORE_CLASSES).forEach(
                 cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class))
         );
+
+        /* Add 'grain' argument to each TimeDimensionColumn */
+        for (Table table : queryEngine.getMetaDataStore().getMetaData(new ClassType<>(Table.class))) {
+            for (TimeDimensionProjection timeDim : table.getColumns(TimeDimensionProjection.class)) {
+                dictionary.addArgumentToAttribute(
+                        dictionary.getEntityClass(table.getName(), table.getVersion()),
+                        timeDim.getName(),
+                        new ArgumentType("grain", ClassType.STRING_TYPE));
+            }
+        }
     }
 
     @Override
