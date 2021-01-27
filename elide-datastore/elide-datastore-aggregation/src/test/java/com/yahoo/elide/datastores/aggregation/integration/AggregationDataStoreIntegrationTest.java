@@ -903,6 +903,18 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     }
 
     @Test
+    public void testInvalidSparseFields() {
+        String expectedError = "Invalid value: orderDetails does not contain the fields: [orderValue, customerState]";
+        String getPath = "/orderDetails?fields[orderDetails]=orderValue,customerState,orderMonth";
+        given()
+            .when()
+            .get(getPath)
+            .then()
+            .statusCode(HttpStatus.SC_BAD_REQUEST)
+            .body("errors.detail", hasItems(expectedError));
+    }
+
+    @Test
     public void missingClientFilterTest() {
         String expectedError = "Querying deliveryDetails requires a mandatory filter:"
                 + " month&gt;={{start}};month&lt;{{end}}";
