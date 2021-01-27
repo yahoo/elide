@@ -64,6 +64,9 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
 
         builder.projectionClause(constructProjectionWithReference(query));
 
+        //Handles join for all type of column projects - dimensions, metrics and time dimention
+        joinExpressions.addAll(extractJoinExpressions(query.getColumnProjections(), query.getSource()));
+
         Set<ColumnProjection> groupByDimensions = query.getAllDimensionProjections();
 
         if (!groupByDimensions.isEmpty()) {
@@ -73,8 +76,6 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
                         .map((column) -> column.toSQL(referenceTable))
                         .collect(Collectors.joining(", ")));
             }
-
-            joinExpressions.addAll(extractJoinExpressions(groupByDimensions, query.getSource()));
         }
 
         if (query.getWhereFilter() != null) {
@@ -255,16 +256,17 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
     }
 
     /**
-     * Given the set of group by dimensions, extract any entity relationship traversals that require joins.
+     * Given the set of group by dimensions or projection metrics,
+     * extract any entity relationship traversals that require joins.
      * This method takes in a {@link Table} because the sql join path meta data is stored in it.
      *
-     * @param groupByDimensions The list of dimensions we are grouping on.
+     * @param columnProjections The list of dimensions we are grouping on.
      * @param source queried table
      * @return A set of Join expressions that capture a relationship traversal.
      */
-    private Set<String> extractJoinExpressions(Set<ColumnProjection> groupByDimensions,
+    private Set<String> extractJoinExpressions(Set<ColumnProjection> columnProjections,
                                            Queryable source) {
-        return groupByDimensions.stream()
+        return columnProjections.stream()
                 .map(column -> referenceTable.getResolvedJoinExpressions(source, column.getName()))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toCollection(LinkedHashSet::new));

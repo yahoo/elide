@@ -19,14 +19,14 @@ import com.github.fge.msgsimple.bundle.MessageBundle;
  * </p>
  */
 public class ElideFieldNameFormatAttr extends AbstractFormatAttribute {
-    private static final String FIELD_NAME_FORMAT_REGEX = "^[A-Za-z][0-9A-Za-z_]*$";
+    private static final String FIELD_NAME_FORMAT_REGEX = "^[a-z][0-9A-Za-z_]*$";
 
     public static final String FORMAT_NAME = "elideFieldName";
     public static final String NAME_KEY = "elideFieldName.error.name";
     public static final String NAME_MSG = "Field name [%s] is not allowed. Field name cannot be 'id'";
     public static final String FORMAT_KEY = "elideFieldName.error.format";
     public static final String FORMAT_MSG = "Field name [%s] is not allowed. Field name must start with "
-                    + "an alphabet and can include alaphabets, numbers and '_' only.";
+                    + "lower case alphabet and can include alaphabets, numbers and '_' only.";
 
     public ElideFieldNameFormatAttr() {
         super(FORMAT_NAME, NodeType.STRING);

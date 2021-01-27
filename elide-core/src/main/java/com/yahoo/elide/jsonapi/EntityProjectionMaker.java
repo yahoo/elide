@@ -10,6 +10,7 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidCollectionException;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.request.Attribute;
@@ -23,6 +24,7 @@ import com.yahoo.elide.generated.parsers.CoreBaseVisitor;
 import com.yahoo.elide.generated.parsers.CoreParser;
 import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.google.common.collect.Sets;
+
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.Builder;
 import lombok.Data;
@@ -330,9 +332,13 @@ public class EntityProjectionMaker
         Set<String> sparseFieldsForEntity = sparseFields.get(dictionary.getJsonAliasFor(entityClass));
         if (sparseFieldsForEntity == null || sparseFieldsForEntity.isEmpty()) {
             sparseFieldsForEntity = allAttributes;
+        } else {
+            Set<String> allRelationships = new LinkedHashSet<>(dictionary.getRelationships(entityClass));
+            validateSparseFields(sparseFieldsForEntity, allAttributes, allRelationships, entityClass);
+            sparseFieldsForEntity = Sets.intersection(allAttributes, sparseFieldsForEntity);
         }
 
-        return Sets.intersection(allAttributes, sparseFieldsForEntity).stream()
+        return sparseFieldsForEntity.stream()
                 .map(attributeName -> Attribute.builder()
                     .name(attributeName)
                     .type(dictionary.getType(entityClass, attributeName))
@@ -346,9 +352,11 @@ public class EntityProjectionMaker
 
         if (sparseFieldsForEntity == null || sparseFieldsForEntity.isEmpty()) {
             sparseFieldsForEntity = allRelationships;
+        } else {
+            Set<String> allAttributes = new LinkedHashSet<>(dictionary.getAttributes(entityClass));
+            validateSparseFields(sparseFieldsForEntity, allAttributes, allRelationships, entityClass);
+            sparseFieldsForEntity = Sets.intersection(allRelationships, sparseFieldsForEntity);
         }
-
-        sparseFieldsForEntity = Sets.intersection(allRelationships, sparseFieldsForEntity);
 
         return sparseFieldsForEntity.stream()
                 .collect(Collectors.toMap(
@@ -363,6 +371,18 @@ public class EntityProjectionMaker
                                     .build();
                         }
                 ));
+    }
+
+    private void validateSparseFields(Set<String> sparseFieldsForEntity, Set<String> allAttributes,
+                    Set<String> allRelationships, Type<?> entityClass) {
+        String unknownSparseFields = sparseFieldsForEntity.stream()
+                        .filter(field -> !(allAttributes.contains(field) || allRelationships.contains(field)))
+                        .collect(Collectors.joining(", "));
+
+        if (!unknownSparseFields.isEmpty()) {
+            throw new InvalidValueException(String.format("%s does not contain the fields: [%s]",
+                            dictionary.getJsonAliasFor(entityClass), unknownSparseFields));
+        }
     }
 
     private Map<String, EntityProjection> getRequiredRelationships(Type<?> entityClass) {

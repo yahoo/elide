@@ -144,6 +144,7 @@ public class HandlebarsHydratorTest {
             + "import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;\n"
             + "import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;\n"
             + "import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;\n"
+            + "import com.yahoo.elide.core.type.ParameterizedModel;\n"
             + "\n"
             + "import lombok.Data;\n"
             + "import lombok.EqualsAndHashCode;\n"
@@ -174,7 +175,7 @@ public class HandlebarsHydratorTest {
             + "    isFact=true\n"
             + ")\n"
             + "@Include(type = \"PlayerStats\")\n"
-            + "public class PlayerStats{\n"
+            + "public class PlayerStats extends ParameterizedModel {\n"
             + "\n"
             + "    private String id;\n"
             + "\n"
@@ -447,7 +448,7 @@ public class HandlebarsHydratorTest {
         assertTrue(tableClasses.keySet().contains("PlayerStatsChild"));
         assertTrue(tableClasses.get("PlayerStatsChild").contains("private String highScore")); // overridden measure
         assertTrue(tableClasses.get("PlayerStatsChild").contains("private Long newHighScore;")); // parent measure
-        assertTrue(tableClasses.get("PlayerStatsChild").contains("private Long AvgScore;")); // child measure
+        assertTrue(tableClasses.get("PlayerStatsChild").contains("private Long avgScore;")); // child measure
         assertTrue(tableClasses.get("PlayerStatsChild").contains("private Set<Team> playerTeam;")); // join
         assertTrue(tableClasses.get("PlayerStatsChild").contains("private"
                 + " com.yahoo.elide.datastores.aggregation.timegrains.Month createdOn")); // overridden dim

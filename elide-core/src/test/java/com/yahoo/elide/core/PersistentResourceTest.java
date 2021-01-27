@@ -327,6 +327,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         fun.setField2(null);
         fun.setField4("bar");
 
+        when(tx.getAttribute(any(), any(), any())).thenCallRealMethod();
+
         RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, "3", scope);
 
@@ -737,6 +739,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         FunWithPermissions fun = new FunWithPermissions();
         fun.setField2("blah");
         fun.setField3(null);
+
+        when(tx.getAttribute(any(), any(), any())).thenCallRealMethod();
 
         RequestScope scope = new TestRequestScope(tx, goodUser, dictionary);
 
@@ -2227,7 +2231,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test
     public void testPatchRequestScope() {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        PatchRequestScope parentScope = new PatchRequestScope(null, "/book", NO_VERSION, tx, new TestUser("1"), UUID.randomUUID(), elideSettings);
+        PatchRequestScope parentScope = new PatchRequestScope(null, "/book", NO_VERSION, tx, new TestUser("1"), UUID.randomUUID(), null, Collections.emptyMap(), elideSettings);
         PatchRequestScope scope = new PatchRequestScope(
                 parentScope.getPath(), parentScope.getJsonApiDocument(), parentScope);
         // verify wrap works
