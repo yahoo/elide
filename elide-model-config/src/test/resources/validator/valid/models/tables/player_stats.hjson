@@ -74,13 +74,13 @@
            friendlyName : Created On
            type : TIME
            definition : '{{create_on}}'
-           grain:
-            {
+           grains:
+            [{
              type : DaY
              sql :  '''
              PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
              '''
-            }
+            }]
          },
          {
            name : updatedOn
