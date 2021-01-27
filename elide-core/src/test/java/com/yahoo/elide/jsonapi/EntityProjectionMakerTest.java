@@ -8,10 +8,13 @@ package com.yahoo.elide.jsonapi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.TestRequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.pagination.PaginationImpl;
@@ -754,6 +757,34 @@ public class EntityProjectionMakerTest {
         EntityProjection actual = maker.parsePath(path);
 
         projectionEquals(expected, actual);
+    }
+
+    @Test
+    public void testInvalidSparseFields() {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.add("fields[book]", "publisher,bookTitle,bookName"); // Invalid Fields: bookTitle & bookName
+        String path = "/book";
+
+        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
+
+        Exception e = assertThrows(InvalidValueException.class, () -> maker.parsePath(path));
+        assertEquals("Invalid value: book does not contain the fields: [bookTitle, bookName]", e.getMessage());
+    }
+
+    @Test
+    public void testInvalidSparseFieldsNested() {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.add("fields[book]", "publisher,title");
+        queryParams.add("fields[publisher]", "name,cost"); // Invalid Fields: cost
+        queryParams.add("include", "publisher");
+        String path = "/book";
+
+        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
+        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
+
+        Exception e = assertThrows(InvalidValueException.class, () -> maker.parsePath(path));
+        assertEquals("Invalid value: publisher does not contain the fields: [cost]", e.getMessage());
     }
 
     private void projectionEquals(EntityProjection projection1, EntityProjection projection2) {
