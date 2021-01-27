@@ -28,6 +28,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.util.Set;
 import javax.persistence.Id;
 
@@ -67,11 +68,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> extends P
     }
 
 <%#each dimensions%>
-<%#ifTypeMatches type "TIME"%>
-    private com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%> <%name%>;
-<%else%>
     private <%#getJavaType type%><%/getJavaType%> <%name%>;
-<%/ifTypeMatches%>
 <%#ifTypeMatches type "TIME"%>
     @Temporal(grains = {
     <%#each grains%>

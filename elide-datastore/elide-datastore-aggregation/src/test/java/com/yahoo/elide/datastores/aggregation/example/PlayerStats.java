@@ -302,7 +302,7 @@ public class PlayerStats {
      *
      * @return the date of the player session.
      */
-    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DATE_FORMAT), timeZone = "UTC")
+    @Temporal(grains = { @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DATE_FORMAT) }, timeZone = "UTC")
     @DimensionFormula("{{recordedDate}}")
     public Day getRecordedDate() {
         return recordedDate;
@@ -317,7 +317,7 @@ public class PlayerStats {
      *
      * @return the date of the player session.
      */
-    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT), timeZone = "UTC")
+    @Temporal(grains = { @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT) }, timeZone = "UTC")
     @DimensionFormula("{{recordedDate}}")
     public Month getRecordedMonth() {
         return recordedMonth;
@@ -332,7 +332,7 @@ public class PlayerStats {
      *
      * @return the date of the player session.
      */
-    @Temporal(grain = @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DATE_FORMAT), timeZone = "UTC")
+    @Temporal(grains = { @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DATE_FORMAT) }, timeZone = "UTC")
     public Day getUpdatedDate() {
         return updatedDate;
     }

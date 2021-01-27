@@ -125,7 +125,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
         String grainName = grainArgument.getValue().toString().toLowerCase(Locale.ENGLISH);
 
         return column.getSupportedGrains().stream()
-                .filter(grain -> grain.getGrain().name().toLowerCase().equals(grainName))
+                .filter(grain -> grain.getGrain().name().toLowerCase(Locale.ENGLISH).equals(grainName))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException(String.format(
                         "Unsupported grain %s for field %s", grainName, column.getName())));

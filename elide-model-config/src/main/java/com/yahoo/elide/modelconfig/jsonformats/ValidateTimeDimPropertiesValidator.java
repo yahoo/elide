@@ -28,7 +28,7 @@ import java.util.Set;
  */
 public class ValidateTimeDimPropertiesValidator extends AbstractKeywordValidator {
 
-    private static final Set<String> ADDITIONAL_TIME_DIM_PROPERTIES = new HashSet<>(Arrays.asList("grain"));
+    private static final Set<String> ADDITIONAL_TIME_DIM_PROPERTIES = new HashSet<>(Arrays.asList("grains"));
 
     public static final String KEYWORD = "validateTimeDimensionProperties";
     public static final String ADDITIONAL_KEY = "validateTimeDimensionProperties.error.addtional";
