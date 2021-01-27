@@ -13,7 +13,7 @@ import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
-import com.yahoo.elide.async.operation.GraphQLTableExportCallableOperation;
+import com.yahoo.elide.async.operation.GraphQLTableExportOperation;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.ChangeSpec;
@@ -49,18 +49,23 @@ public class TableExportHook extends AsyncAPIHook<TableExport> {
 
     @Override
     public Callable<AsyncAPIResult> getOperation(AsyncAPI export, RequestScope requestScope) {
-        Callable operation = null;
-        TableExportFormatter formatter = supportedFormatters.get(((TableExport) export).getResultType());
+        Callable<AsyncAPIResult> operation = null;
+        TableExport exportObj = (TableExport) export;
+        ResultType resultType = exportObj.getResultType();
+        QueryType queryType = exportObj.getQueryType();
+        com.yahoo.elide.core.RequestScope scope = (com.yahoo.elide.core.RequestScope) requestScope;
+
+        TableExportFormatter formatter = supportedFormatters.get(resultType);
 
         if (formatter == null) {
-            throw new InvalidOperationException("Formatter unavailable for " + ((TableExport) export).getResultType());
+            throw new InvalidOperationException("Formatter unavailable for " + resultType);
         }
 
-        if (export.getQueryType().equals(QueryType.GRAPHQL_V1_0)) {
-            operation = new GraphQLTableExportCallableOperation(formatter, getAsyncExecutorService(), export,
-                    (com.yahoo.elide.core.RequestScope) requestScope);
+        if (queryType.equals(QueryType.GRAPHQL_V1_0)) {
+            operation = new GraphQLTableExportOperation(formatter, getAsyncExecutorService(), export, scope);
         } else {
-            throw new InvalidOperationException(export.getQueryType() + "is not supported");
+            // TODO - Support JSONAPI
+            throw new InvalidOperationException(queryType + "is not supported");
         }
         return operation;
     }

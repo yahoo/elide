@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class JSONExportFormatter implements TableExportFormatter {
     private static final String COMMA = ",";
-    private static ObjectMapper mapper = new ObjectMapper();
+    private ObjectMapper mapper = new ObjectMapper();
 
     @Override
     public String format(PersistentResource resource, Integer recordNumber) {
@@ -33,11 +33,11 @@ public class JSONExportFormatter implements TableExportFormatter {
             str.append(COMMA);
         }
 
-        str.append(resourceToJSON(resource));
+        str.append(resourceToJSON(mapper, resource));
         return str.toString();
     }
 
-    public static String resourceToJSON(PersistentResource resource) {
+    public static String resourceToJSON(ObjectMapper mapper, PersistentResource resource) {
         StringBuilder str = new StringBuilder();
 
         try {

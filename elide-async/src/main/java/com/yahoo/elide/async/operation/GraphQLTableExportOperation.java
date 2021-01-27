@@ -36,9 +36,9 @@ import java.util.UUID;
  * TableExport Execute Operation Interface.
  */
 @Slf4j
-public class GraphQLTableExportCallableOperation extends TableExportCallableOperation {
+public class GraphQLTableExportOperation extends TableExportOperation {
 
-    public GraphQLTableExportCallableOperation(TableExportFormatter formatter, AsyncExecutorService service,
+    public GraphQLTableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
             AsyncAPI export, RequestScope scope) {
         super(formatter, service, export, scope);
     }
