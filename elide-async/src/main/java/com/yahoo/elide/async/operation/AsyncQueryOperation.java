@@ -25,12 +25,12 @@ import java.util.concurrent.Callable;
  * AsyncQuery Execute Operation Interface.
  */
 @Slf4j
-public abstract class AsyncQueryCallableOperation implements Callable<AsyncAPIResult> {
+public abstract class AsyncQueryOperation implements Callable<AsyncAPIResult> {
     @Getter private AsyncExecutorService service;
     private AsyncQuery queryObj;
     private RequestScope scope;
 
-    public AsyncQueryCallableOperation(AsyncExecutorService service, AsyncAPI queryObj, RequestScope scope) {
+    public AsyncQueryOperation(AsyncExecutorService service, AsyncAPI queryObj, RequestScope scope) {
         this.service = service;
         this.queryObj = (AsyncQuery) queryObj;
         this.scope = scope;

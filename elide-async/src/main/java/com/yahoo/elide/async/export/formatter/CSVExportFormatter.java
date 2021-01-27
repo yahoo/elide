@@ -5,23 +5,35 @@
  */
 package com.yahoo.elide.async.export.formatter;
 
+import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.PersistentResource;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.yahoo.elide.core.request.EntityProjection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.opendevl.JFlat;
+
+import io.reactivex.Observable;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * JSON output format implementation.
  */
 @Slf4j
 public class CSVExportFormatter implements TableExportFormatter {
+    private static final String COMMA = ",";
+    private static final String DOUBLE_QUOTES = "\"";
+
+    public static boolean skipCSVHeader = false;
     private ObjectMapper mapper = new ObjectMapper();
+
+    public CSVExportFormatter(boolean skipCSVHeader) {
+        this.skipCSVHeader = skipCSVHeader;
+    }
 
     @Override
     public String format(PersistentResource resource, Integer recordNumber) {
@@ -34,7 +46,7 @@ public class CSVExportFormatter implements TableExportFormatter {
         List<Object[]> json2Csv;
 
         try {
-            String jsonStr = resourceToJSON(resource);
+            String jsonStr = JSONExportFormatter.resourceToJSON(mapper, resource);
 
             JFlat flat = new JFlat(jsonStr);
 
@@ -64,15 +76,47 @@ public class CSVExportFormatter implements TableExportFormatter {
         return str.toString();
     }
 
-    private String resourceToJSON(PersistentResource resource) {
-        StringBuilder str = new StringBuilder();
+    /**
+     * Generate CSV Header when Observable is Empty.
+     * @param projection EntityProjection object.
+     * @return returns Header string which is in CSV format.
+     */
+    protected Observable<String> generateCSVHeader(EntityProjection projection) {
+        Observable<String> header = Observable.empty();
 
-        try {
-            str.append(mapper.writeValueAsString(resource.getObject()));
-        } catch (JsonProcessingException e) {
-            log.error("Exception when converting to JSON {}", e.getMessage());
-            throw new IllegalStateException(e);
-        }
-        return str.toString();
+        String headerString = projection.getAttributes().stream()
+        .map(attr -> {
+            StringBuilder column = new StringBuilder();
+            String alias = attr.getAlias();
+            column.append(alias != null && !alias.isEmpty() ? alias : attr.getName());
+            return column;
+        })
+        .map(quotable -> {
+            // Quotes at the beginning
+            quotable.insert(0, DOUBLE_QUOTES);
+            // Quotes at the end
+            quotable.append(DOUBLE_QUOTES);
+            return quotable;
+        })
+        .collect(Collectors.joining(COMMA));
+
+        header = Observable.just(headerString);
+        return header;
+    }
+
+    @Override
+    public String preFormat(EntityProjection projection, TableExport query) {
+        if (!skipCSVHeader) {
+            StringBuilder str = new StringBuilder();
+            str.append(generateCSVHeader(projection));
+            str.append(System.getProperty("line.separator"));
+            return str.toString();
+        };
+        return null;
+    }
+
+    @Override
+    public String postFormat(EntityProjection projection, TableExport query) {
+        return null;
     }
 }
