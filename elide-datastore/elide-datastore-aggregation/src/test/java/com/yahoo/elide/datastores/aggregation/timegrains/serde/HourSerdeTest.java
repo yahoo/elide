@@ -15,6 +15,7 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class HourSerdeTest {
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH");
@@ -34,9 +35,8 @@ public class HourSerdeTest {
 
         String dateInString = "2020-01-01T01";
         Hour expectedDate = new Hour(LocalDateTime.from(formatter.parse(dateInString)));
-        String actual = "2020-01-01T01:18";
         Serde serde = new Hour.HourSerde();
-        Object actualDate = serde.deserialize(actual);
+        Object actualDate = serde.deserialize(dateInString);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -56,7 +56,7 @@ public class HourSerdeTest {
 
         String dateInString = "00 2020-01-01";
         Serde serde = new Hour.HourSerde();
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(DateTimeParseException.class, () -> {
             serde.deserialize(dateInString);
         });
     }

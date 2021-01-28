@@ -9,6 +9,7 @@ import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -35,7 +36,9 @@ public class Day extends Time {
             if (val instanceof Date) {
                 return new Day((Date) val);
             }
-            return new Day(LocalDateTime.parse(val.toString(), DateTimeFormatter.ISO_LOCAL_DATE));
+            LocalDate localDate = LocalDate.parse(val.toString(), DateTimeFormatter.ISO_LOCAL_DATE);
+            LocalDateTime localDateTime = localDate.atTime(0, 0);
+            return new Day(localDateTime);
         }
 
         @Override
