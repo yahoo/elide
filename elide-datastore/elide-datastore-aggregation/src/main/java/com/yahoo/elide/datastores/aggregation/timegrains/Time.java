@@ -41,12 +41,12 @@ public class Time extends Date {
         private static final String MONTH_PATTERN = "yyyy-MM";
         private static final String YEAR_PATTERN = "yyyy";
         private static final String ALL_PATTERNS = String.format("[%s][%s][%s][%s][%s][%s]",
-                YEAR_PATTERN,
-                MONTH_PATTERN,
-                DATE_PATTERN,
-                HOUR_PATTERN,
+                SECOND_PATTERN,
                 MINUTE_PATTERN,
-                SECOND_PATTERN);
+                HOUR_PATTERN,
+                DATE_PATTERN,
+                MONTH_PATTERN,
+                YEAR_PATTERN);
 
         private DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ALL_PATTERNS);
 
