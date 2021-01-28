@@ -18,6 +18,8 @@ import java.time.format.DateTimeFormatter;
  */
 public class Day extends Time {
 
+    public static final String FORMAT = "yyyy-MM-dd";
+
     public Day(Date date) {
         super(date, getSerializer(TimeGrain.DAY));
     }

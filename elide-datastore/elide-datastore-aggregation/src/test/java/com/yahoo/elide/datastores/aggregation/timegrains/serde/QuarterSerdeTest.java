@@ -13,16 +13,17 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class QuarterSerdeTest {
-    private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM");
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
 
     @Test
     public void testDateSerialize() throws ParseException {
 
         String expected = "2020-01";
-        Quarter expectedDate = new Quarter(formatter.parse(expected));
+        Quarter expectedDate = new Quarter(LocalDateTime.from(formatter.parse(expected)));
         Serde serde = new Quarter.QuarterSerde();
         Object actual = serde.serialize(expectedDate);
         assertEquals(expected, actual);
@@ -32,7 +33,7 @@ public class QuarterSerdeTest {
     public void testDateDeserialize() throws ParseException {
 
         String dateInString = "2020-01";
-        Quarter expectedDate = new Quarter(formatter.parse(dateInString));
+        Quarter expectedDate = new Quarter(LocalDateTime.from(formatter.parse(dateInString)));
         String actual = "2020-01";
         Serde serde = new Quarter.QuarterSerde();
         Object actualDate = serde.deserialize(actual);
@@ -43,10 +44,10 @@ public class QuarterSerdeTest {
     public void testDeserializeTimestampNotQuarterMonth() throws ParseException {
 
         String dateInString = "2020-02";
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        Quarter quarter = new Quarter(LocalDateTime.from(formatter.parse(dateInString)));
         Serde serde = new Quarter.QuarterSerde();
         assertThrows(IllegalArgumentException.class, () -> {
-            serde.deserialize(timestamp);
+            serde.deserialize(quarter);
         });
     }
 
@@ -54,8 +55,8 @@ public class QuarterSerdeTest {
     public void testDeserializeTimestamp() throws ParseException {
 
         String dateInString = "2020-01";
-        Quarter expectedDate = new Quarter(formatter.parse(dateInString));
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        Quarter expectedDate = new Quarter(LocalDateTime.from(formatter.parse(dateInString)));
+        Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Quarter.QuarterSerde();
         Object actualDate = serde.deserialize(timestamp);
         assertEquals(expectedDate, actualDate);

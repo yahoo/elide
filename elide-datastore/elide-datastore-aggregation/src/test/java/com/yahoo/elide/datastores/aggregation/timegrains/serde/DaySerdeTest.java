@@ -13,16 +13,17 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class DaySerdeTest {
-    private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+    private DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
 
     @Test
     public void testDateSerialize() throws ParseException {
 
         String expected = "2020-01-01";
-        Day expectedDate = new Day(formatter.parse(expected));
+        Day expectedDate = new Day(LocalDateTime.from(formatter.parse(expected)));
         Serde serde = new Day.DaySerde();
         Object actual = serde.serialize(expectedDate);
         assertEquals(expected, actual);
@@ -32,7 +33,7 @@ public class DaySerdeTest {
     public void testDateDeserialize() throws ParseException {
 
         String dateInString = "2020-01-01";
-        Day expectedDate = new Day(formatter.parse(dateInString));
+        Day expectedDate = new Day(LocalDateTime.from(formatter.parse(dateInString)));
         String actual = "2020-01-01";
         Serde serde = new Day.DaySerde();
         Object actualDate = serde.deserialize(actual);
@@ -43,8 +44,8 @@ public class DaySerdeTest {
     public void testDeserializeTimestamp() throws ParseException {
 
         String dateInString = "2020-01-01";
-        Day expectedDate = new Day(formatter.parse(dateInString));
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        Day expectedDate = new Day(LocalDateTime.from(formatter.parse(dateInString)));
+        Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Day.DaySerde();
         Object actualDate = serde.deserialize(timestamp);
         assertEquals(expectedDate, actualDate);

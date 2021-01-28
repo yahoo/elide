@@ -21,7 +21,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-import com.yahoo.elide.datastores.aggregation.timegrains.Time
+import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import com.yahoo.elide.core.type.ParameterizedModel;
 
 import lombok.Data;
@@ -66,7 +66,6 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> extends P
     public void setId(String id) {
         this.id = id;
     }
-
 <%#each dimensions%>
 <%#ifTypeMatches type "TIME"%>
     private Time <%name%>;
@@ -90,8 +89,8 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> extends P
         tags={<%#collectionToString tags%><%/collectionToString%>},
         tableSource="<%tableSource%>"
     )
-    <%#if hidden%>@Exclude<%/if%>
-    @DimensionFormula("<%#trimColumnReferences definition%><%/trimColumnReferences%>"
+<%#if hidden%>@Exclude<%/if%>
+    @DimensionFormula("<%#trimColumnReferences definition%><%/trimColumnReferences%>")
 <%#ifTypeMatches type "TIME"%>
     public Time get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
         return <%name%>;

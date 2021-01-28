@@ -13,16 +13,16 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class YearSerdeTest {
-    private SimpleDateFormat formatter = new SimpleDateFormat("yyyy");
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy");
 
     @Test
     public void testDateSerialize() throws ParseException {
-
         String expected = "2020";
-        Year expectedDate = new  Year(formatter.parse(expected));
+        Year expectedDate = new Year(LocalDateTime.from(formatter.parse(expected)));
         Serde serde = new Year.YearSerde();
         Object actual = serde.serialize(expectedDate);
         assertEquals(expected, actual);
@@ -32,7 +32,7 @@ public class YearSerdeTest {
     public void testDateDeserialize() throws ParseException {
 
         String dateInString = "2020";
-        Year expectedDate = new  Year(formatter.parse(dateInString));
+        Year expectedDate = new  Year(LocalDateTime.from(formatter.parse(dateInString)));
         String actual = "2020";
         Serde serde = new Year.YearSerde();
         Object actualDate = serde.deserialize(actual);
@@ -43,8 +43,8 @@ public class YearSerdeTest {
     public void testDeserializeTimestamp() throws ParseException {
 
         String dateInString = "2020";
-        Year expectedDate = new Year(formatter.parse(dateInString));
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        Year expectedDate = new Year(LocalDateTime.from(formatter.parse(dateInString)));
+        Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Year.YearSerde();
         Object actualDate = serde.deserialize(timestamp);
         assertEquals(expectedDate, actualDate);

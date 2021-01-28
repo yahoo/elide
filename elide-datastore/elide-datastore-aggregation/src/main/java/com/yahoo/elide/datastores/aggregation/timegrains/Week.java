@@ -20,6 +20,8 @@ import java.time.format.DateTimeFormatter;
  */
 public class Week extends Time {
 
+    public static final String FORMAT = "yyyy-MM-dd";
+
     public Week(Date date) {
         super(date, getSerializer(TimeGrain.WEEK));
     }

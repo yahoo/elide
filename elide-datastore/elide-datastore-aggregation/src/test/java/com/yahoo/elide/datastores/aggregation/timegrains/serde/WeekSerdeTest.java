@@ -13,17 +13,17 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class WeekSerdeTest {
-    private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+    private DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
 
     @Test
     public void testDateSerialize() throws ParseException {
 
         String expected = "2020-01-05";
-        Week expectedDate = new Week(formatter.parse(expected));
+        Week expectedDate = new Week(LocalDateTime.from(formatter.parse(expected)));
         Serde serde = new Week.WeekSerde();
         Object actual = serde.serialize(expectedDate);
         assertEquals(expected, actual);
@@ -31,9 +31,8 @@ public class WeekSerdeTest {
 
     @Test
     public void testDateDeserializeString() throws ParseException {
-
         String dateInString = "2020-01-05";
-        Date expectedDate = new Date(formatter.parse(dateInString).getTime());
+        Week expectedDate = new Week(LocalDateTime.from(formatter.parse(dateInString)));
         String actual = "2020-01-05";
         Serde serde = new Week.WeekSerde();
         Object actualDate = serde.deserialize(actual);
@@ -44,10 +43,10 @@ public class WeekSerdeTest {
     public void testDeserializeTimestampNotSunday() throws ParseException {
 
         String dateInString = "2020-01-06";
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        Week expectedDate = new Week(LocalDateTime.from(formatter.parse(dateInString)));
         Serde serde = new Week.WeekSerde();
         assertThrows(IllegalArgumentException.class, () -> {
-            serde.deserialize(timestamp);
+            serde.deserialize(expectedDate);
         });
     }
 
@@ -55,8 +54,8 @@ public class WeekSerdeTest {
     public void testDeserializeTimestamp() throws ParseException {
 
         String dateInString = "2020-01-05";
-        Week expectedDate = new Week(formatter.parse(dateInString));
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        Week expectedDate = new Week(LocalDateTime.from(formatter.parse(dateInString)));
+        Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Week.WeekSerde();
         Object actualDate = serde.deserialize(timestamp);
         assertEquals(expectedDate, actualDate);

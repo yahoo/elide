@@ -13,17 +13,17 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class HourSerdeTest {
-    private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH");
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH");
 
     @Test
     public void testDateSerialize() throws ParseException {
 
         String expected = "2020-01-01T01";
-        Hour expectedDate = new Hour(formatter.parse(expected));
+        Hour expectedDate = new Hour(LocalDateTime.from(formatter.parse(expected)));
         Serde serde = new Hour.HourSerde();
         Object actual = serde.serialize(expectedDate);
         assertEquals(expected, actual);
@@ -33,7 +33,7 @@ public class HourSerdeTest {
     public void testDateDeserializeString() throws ParseException {
 
         String dateInString = "2020-01-01T01";
-        Date expectedDate = new Date(formatter.parse(dateInString).getTime());
+        Hour expectedDate = new Hour(LocalDateTime.from(formatter.parse(dateInString)));
         String actual = "2020-01-01T01:18";
         Serde serde = new Hour.HourSerde();
         Object actualDate = serde.deserialize(actual);
@@ -44,8 +44,8 @@ public class HourSerdeTest {
     public void testDeserializeTimestamp() throws ParseException {
 
         String dateInString = "2020-01-01T01";
-        Hour expectedDate = new Hour(formatter.parse(dateInString));
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        Hour expectedDate = new Hour(LocalDateTime.from(formatter.parse(dateInString)));
+        Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Hour.HourSerde();
         Object actualDate = serde.deserialize(timestamp);
         assertEquals(expectedDate, actualDate);

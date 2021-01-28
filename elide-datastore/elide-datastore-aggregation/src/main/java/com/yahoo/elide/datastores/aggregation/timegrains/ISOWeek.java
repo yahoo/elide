@@ -20,6 +20,8 @@ import java.time.format.DateTimeFormatter;
  */
 public class ISOWeek extends Time {
 
+    public static final String FORMAT = "yyyy-MM-dd";
+
     public ISOWeek(Date date) {
         super(date, getSerializer(TimeGrain.ISOWEEK));
     }

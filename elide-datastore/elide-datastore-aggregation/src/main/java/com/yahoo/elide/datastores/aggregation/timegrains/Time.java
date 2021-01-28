@@ -14,6 +14,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 
 /**
@@ -51,7 +53,20 @@ public class Time extends Date {
         @Override
         public Time deserialize(Object val) {
             try {
-                return new Time(LocalDateTime.parse(val.toString(), formatter), (time) -> val.toString());
+                TemporalAccessor parsed = formatter.parse(val.toString());
+                return new Time(LocalDateTime.of(
+                        parsed.get(ChronoField.YEAR),
+                        parsed.isSupported(ChronoField.MONTH_OF_YEAR)
+                                ? parsed.get(ChronoField.MONTH_OF_YEAR) : 1,
+                        parsed.isSupported(ChronoField.DAY_OF_MONTH)
+                                ? parsed.get(ChronoField.DAY_OF_MONTH) : 1,
+                        parsed.isSupported(ChronoField.HOUR_OF_DAY)
+                                ? parsed.get(ChronoField.HOUR_OF_DAY) : 0,
+                        parsed.isSupported(ChronoField.MINUTE_OF_HOUR)
+                                ? parsed.get(ChronoField.MINUTE_OF_HOUR) : 0,
+                        parsed.isSupported(ChronoField.SECOND_OF_MINUTE)
+                                ? parsed.get(ChronoField.SECOND_OF_MINUTE) : 0),
+                        (time) -> val.toString());
             } catch (DateTimeParseException e) {
                 throw new IllegalArgumentException("String must be formatted as " + ALL_PATTERNS);
             }
@@ -64,7 +79,7 @@ public class Time extends Date {
     }
 
     public Time(LocalDateTime copy, Serializer formatter) {
-        super(copy.toEpochSecond(ZoneOffset.UTC));
+        super(copy.toEpochSecond(ZoneOffset.UTC) * 1000);
         this.serializer = formatter;
     }
 

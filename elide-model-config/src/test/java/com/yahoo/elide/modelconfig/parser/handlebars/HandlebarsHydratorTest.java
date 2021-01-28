@@ -192,6 +192,7 @@ public class HandlebarsHydratorTest {
             + "\n"
             + "    private String countryIsoCode;\n"
             + "\n"
+            + "\n"
             + "    @ReadPermission(expression = \"Prefab.Role.All\")\n"
             + "    @ColumnMeta(\n"
             + "        friendlyName = \"Country ISO Code\",\n"
@@ -202,8 +203,9 @@ public class HandlebarsHydratorTest {
             + "        tags={\"PRIVATE\"},\n"
             + "        tableSource=\"\"\n"
             + "    )\n"
-            + "    \n"
+            + "\n"
             + "    @DimensionFormula(\"{{playerCountry.isoCode}}\")\n"
+            + "\n"
             + "    public String getCountryIsoCode() {\n"
             + "        return countryIsoCode;\n"
             + "    }\n"
@@ -212,7 +214,10 @@ public class HandlebarsHydratorTest {
             + "        this.countryIsoCode = countryIsoCode;\n"
             + "    }\n"
             + "\n"
+            + "\n"
+            + "\n"
             + "    private String teamRegion;\n"
+            + "\n"
             + "\n"
             + "    @ReadPermission(expression = \"Prefab.Role.All\")\n"
             + "    @ColumnMeta(\n"
@@ -224,8 +229,9 @@ public class HandlebarsHydratorTest {
             + "        tags={},\n"
             + "        tableSource=\"PlayerStatsChild.teamRegion\"\n"
             + "    )\n"
-            + "    \n"
+            + "\n"
             + "    @DimensionFormula(\"{{playerTeam.region}}\")\n"
+            + "\n"
             + "    public String getTeamRegion() {\n"
             + "        return teamRegion;\n"
             + "    }\n"
@@ -234,7 +240,10 @@ public class HandlebarsHydratorTest {
             + "        this.teamRegion = teamRegion;\n"
             + "    }\n"
             + "\n"
+            + "\n"
+            + "\n"
             + "    private Time createdOn;\n"
+            + "\n"
             + "\n"
             + "    @Temporal(grains = {\n"
             + "    \n"
@@ -253,8 +262,9 @@ public class HandlebarsHydratorTest {
             + "        tags={},\n"
             + "        tableSource=\"\"\n"
             + "    )\n"
-            + "    \n"
+            + "\n"
             + "    @DimensionFormula(\"{{create_on}}\")\n"
+            + "\n"
             + "    public Time getCreatedOn() {\n"
             + "        return createdOn;\n"
             + "    }\n"
@@ -263,7 +273,10 @@ public class HandlebarsHydratorTest {
             + "        this.createdOn = createdOn;\n"
             + "    }\n"
             + "\n"
+            + "\n"
+            + "\n"
             + "    private Time updatedOn;\n"
+            + "\n"
             + "\n"
             + "    @Temporal(grains = {\n"
             + "    \n"
@@ -280,8 +293,9 @@ public class HandlebarsHydratorTest {
             + "        tags={},\n"
             + "        tableSource=\"\"\n"
             + "    )\n"
-            + "    \n"
+            + "\n"
             + "    @DimensionFormula(\"{{updated_on}}\")\n"
+            + "\n"
             + "    public Time getUpdatedOn() {\n"
             + "        return updatedOn;\n"
             + "    }\n"
@@ -289,6 +303,7 @@ public class HandlebarsHydratorTest {
             + "    public void setUpdatedOn(Time updatedOn) {\n"
             + "        this.updatedOn = updatedOn;\n"
             + "    }\n"
+            + "\n"
             + "\n"
             + "\n"
             + "\n"
@@ -439,9 +454,9 @@ public class HandlebarsHydratorTest {
         assertTrue(tableClasses.get("PlayerStatsChild").contains("private Long newHighScore;")); // parent measure
         assertTrue(tableClasses.get("PlayerStatsChild").contains("private Long avgScore;")); // child measure
         assertTrue(tableClasses.get("PlayerStatsChild").contains("private Set<Team> playerTeam;")); // join
-        assertTrue(tableClasses.get("PlayerStatsChild").contains("private" + " Date createdOn")); // overridden dim
-        assertTrue(tableClasses.get("PlayerStatsChild").contains("private" + " Date updatedOn")); // parent dim
-        assertTrue(tableClasses.get("PlayerStatsChild").contains("private" + " Date updatedMonth")); // child dim
+        assertTrue(tableClasses.get("PlayerStatsChild").contains("private" + " Time createdOn")); // overridden dim
+        assertTrue(tableClasses.get("PlayerStatsChild").contains("private" + " Time updatedOn")); // parent dim
+        assertTrue(tableClasses.get("PlayerStatsChild").contains("private" + " Time updatedMonth")); // child dim
     }
 
     @Test
