@@ -15,35 +15,36 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class YearSerdeTest {
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy");
 
     @Test
     public void testDateSerialize() throws ParseException {
-        String expected = "2020";
-        Year expectedDate = new Year(LocalDateTime.from(formatter.parse(expected)));
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
+
+        Year expectedDate = new Year(localDate);
         Serde serde = new Year.YearSerde();
         Object actual = serde.serialize(expectedDate);
-        assertEquals(expected, actual);
+        assertEquals("2020", actual);
     }
 
     @Test
     public void testDateDeserialize() throws ParseException {
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
 
-        String dateInString = "2020";
-        Year expectedDate = new  Year(LocalDateTime.from(formatter.parse(dateInString)));
-        String actual = "2020";
+        Year expectedDate = new Year(localDate);
         Serde serde = new Year.YearSerde();
-        Object actualDate = serde.deserialize(actual);
+        Object actualDate = serde.deserialize("2020");
         assertEquals(expectedDate, actualDate);
     }
 
     @Test
     public void testDeserializeTimestamp() throws ParseException {
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
 
-        String dateInString = "2020";
-        Year expectedDate = new Year(LocalDateTime.from(formatter.parse(dateInString)));
+        Year expectedDate = new Year(localDate);
         Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Year.YearSerde();
         Object actualDate = serde.deserialize(timestamp);
@@ -55,7 +56,7 @@ public class YearSerdeTest {
 
         String dateInString = "January";
         Serde serde = new Year.YearSerde();
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(DateTimeParseException.class, () -> {
             serde.deserialize(dateInString);
         });
     }

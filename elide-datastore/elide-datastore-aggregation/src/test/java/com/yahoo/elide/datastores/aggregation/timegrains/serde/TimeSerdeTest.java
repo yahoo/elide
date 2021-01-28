@@ -8,16 +8,11 @@ package com.yahoo.elide.datastores.aggregation.timegrains.serde;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
-import com.yahoo.elide.datastores.aggregation.timegrains.Day;
-import com.yahoo.elide.datastores.aggregation.timegrains.Month;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import org.junit.jupiter.api.Test;
 
-import java.sql.Timestamp;
 import java.text.ParseException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 
 public class TimeSerdeTest {
 

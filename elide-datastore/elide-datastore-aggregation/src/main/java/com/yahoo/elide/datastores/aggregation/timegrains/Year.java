@@ -9,9 +9,10 @@ import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 
-import java.sql.Date;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 /**
  * Time Grain class for Year.
@@ -36,7 +37,9 @@ public class Year extends Time {
             if (val instanceof Date) {
                 return new Year((Date) val);
             }
-            return new Year(LocalDateTime.parse(val.toString(), FORMATTER));
+            java.time.Year year = java.time.Year.parse(val.toString(), FORMATTER);
+            LocalDateTime localDateTime = LocalDateTime.of(year.getValue(), Month.of(1), 1, 0, 0);
+            return new Year(localDateTime);
         }
 
         @Override
