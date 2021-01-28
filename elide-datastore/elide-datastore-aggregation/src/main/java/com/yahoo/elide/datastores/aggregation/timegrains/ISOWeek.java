@@ -10,6 +10,7 @@ import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -38,7 +39,8 @@ public class ISOWeek extends Time {
             if (val instanceof Date) {
                 date = LocalDateTime.ofInstant(((Date) val).toInstant(), ZoneOffset.UTC);
             } else {
-                date = LocalDateTime.parse(val.toString(), DateTimeFormatter.ISO_LOCAL_DATE);
+                LocalDate localDate = LocalDate.parse(val.toString(), DateTimeFormatter.ISO_LOCAL_DATE);
+                date = localDate.atTime(0, 0);
             }
 
             if (date.getDayOfWeek() != DayOfWeek.MONDAY) {
