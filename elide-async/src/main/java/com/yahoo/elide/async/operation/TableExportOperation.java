@@ -107,11 +107,11 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
     /**
      * Export Table Data.
      * @param exportObj TableExport type object.
-     * @param requestScope RequestScope object.
+     * @param prevScope RequestScope object.
      * @param projection Entity projection.
      * @return Observable PersistentResource
      */
-    public Observable<PersistentResource> export(TableExport exportObj, RequestScope requestScope,
+    public Observable<PersistentResource> export(TableExport exportObj, RequestScope prevScope,
             EntityProjection projection) {
         Observable<PersistentResource> results = Observable.empty();
         Elide elide = service.getElide();
@@ -123,25 +123,25 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
 
             //TODO - we need to add the baseUrlEndpoint to the queryObject.
             //TODO - Can we have projectionInfo as null?
-            RequestScope exportRequestScope = getRequestScope(exportObj, requestScope.getUser(),
-                    requestScope.getApiVersion(), tx);
+            RequestScope exportRequestScope = getRequestScope(exportObj, prevScope.getUser(),
+                    prevScope.getApiVersion(), tx);
 
             if (projection != null) {
                 results = PersistentResource.loadRecords(projection, Collections.emptyList(), exportRequestScope);
             }
 
-            tx.preCommit(requestScope);
-            requestScope.runQueuedPreSecurityTriggers();
-            requestScope.getPermissionExecutor().executeCommitChecks();
+            tx.preCommit(exportRequestScope);
+            exportRequestScope.runQueuedPreSecurityTriggers();
+            exportRequestScope.getPermissionExecutor().executeCommitChecks();
 
-            tx.flush(requestScope);
+            tx.flush(exportRequestScope);
 
-            requestScope.runQueuedPreCommitTriggers();
+            exportRequestScope.runQueuedPreCommitTriggers();
 
             elide.getAuditLogger().commit();
-            tx.commit(requestScope);
+            tx.commit(exportRequestScope);
 
-            requestScope.runQueuedPostCommitTriggers();
+            exportRequestScope.runQueuedPostCommitTriggers();
         } catch (IOException e) {
             log.error("IOException during TableExport", e);
             throw new TransactionException(e);

@@ -12,8 +12,6 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.opendevl.JFlat;
 
-import io.reactivex.Observable;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
@@ -81,10 +79,8 @@ public class CSVExportFormatter implements TableExportFormatter {
      * @param projection EntityProjection object.
      * @return returns Header string which is in CSV format.
      */
-    protected Observable<String> generateCSVHeader(EntityProjection projection) {
-        Observable<String> header = Observable.empty();
-
-        String headerString = projection.getAttributes().stream()
+    protected String generateCSVHeader(EntityProjection projection) {
+        String header = projection.getAttributes().stream()
         .map(attr -> {
             StringBuilder column = new StringBuilder();
             String alias = attr.getAlias();
@@ -100,17 +96,13 @@ public class CSVExportFormatter implements TableExportFormatter {
         })
         .collect(Collectors.joining(COMMA));
 
-        header = Observable.just(headerString);
         return header;
     }
 
     @Override
     public String preFormat(EntityProjection projection, TableExport query) {
         if (!skipCSVHeader) {
-            StringBuilder str = new StringBuilder();
-            str.append(generateCSVHeader(projection));
-            str.append(System.getProperty("line.separator"));
-            return str.toString();
+            return generateCSVHeader(projection);
         };
         return null;
     }

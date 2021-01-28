@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.async.service.thread;
+package com.yahoo.elide.async.operation;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.AsyncAPI;
@@ -17,12 +17,12 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.Future;
 
 /**
- * Runnable for updating AsyncQueryResult.
+ * Runnable Operation for updating AsyncQueryResult.
  */
 @Slf4j
 @Data
 @AllArgsConstructor
-public class AsyncAPIUpdateRunnable implements Runnable {
+public class AsyncAPIUpdateOperation implements Runnable {
 
     private Elide elide;
     private Future<AsyncAPIResult> task;
@@ -30,7 +30,7 @@ public class AsyncAPIUpdateRunnable implements Runnable {
     private AsyncAPIDAO asyncAPIDao;
 
     /**
-     * This is the main method which updates the Async Query request.
+     * This is the main method which updates the Async API request.
      */
     @Override
     public void run() {
