@@ -10,6 +10,7 @@ import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -38,7 +39,8 @@ public class Quarter extends Time {
             if (val instanceof Date) {
                 date = LocalDateTime.ofInstant(((Date) val).toInstant(), ZoneOffset.UTC);
             } else {
-                date = LocalDateTime.parse(val.toString(), FORMATTER);
+                YearMonth yearMonth = YearMonth.parse(val.toString(), FORMATTER);
+                date = LocalDateTime.of(yearMonth.getYear(), yearMonth.getMonth(), 1, 0, 0);
             }
 
             int month = date.getMonthValue();

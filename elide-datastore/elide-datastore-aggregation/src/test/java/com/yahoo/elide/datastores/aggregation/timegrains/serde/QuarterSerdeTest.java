@@ -15,36 +15,33 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class QuarterSerdeTest {
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
 
     @Test
     public void testDateSerialize() throws ParseException {
-
-        String expected = "2020-01";
-        Quarter expectedDate = new Quarter(LocalDateTime.from(formatter.parse(expected)));
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
+        Quarter expectedDate = new Quarter(localDate);
         Serde serde = new Quarter.QuarterSerde();
         Object actual = serde.serialize(expectedDate);
-        assertEquals(expected, actual);
+        assertEquals("2020-01", actual);
     }
 
     @Test
     public void testDateDeserialize() throws ParseException {
-
-        String dateInString = "2020-01";
-        Quarter expectedDate = new Quarter(LocalDateTime.from(formatter.parse(dateInString)));
-        String actual = "2020-01";
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
+        Quarter expectedDate = new Quarter(localDate);
         Serde serde = new Quarter.QuarterSerde();
-        Object actualDate = serde.deserialize(actual);
+        Object actualDate = serde.deserialize("2020-01");
         assertEquals(expectedDate, actualDate);
     }
 
     @Test
     public void testDeserializeTimestampNotQuarterMonth() throws ParseException {
-
-        String dateInString = "2020-02";
-        Quarter quarter = new Quarter(LocalDateTime.from(formatter.parse(dateInString)));
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(02), 01, 00, 00, 00);
+        Quarter quarter = new Quarter(localDate);
         Serde serde = new Quarter.QuarterSerde();
         assertThrows(IllegalArgumentException.class, () -> {
             serde.deserialize(quarter);
@@ -53,9 +50,8 @@ public class QuarterSerdeTest {
 
     @Test
     public void testDeserializeTimestamp() throws ParseException {
-
-        String dateInString = "2020-01";
-        Quarter expectedDate = new Quarter(LocalDateTime.from(formatter.parse(dateInString)));
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
+        Quarter expectedDate = new Quarter(localDate);
         Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Quarter.QuarterSerde();
         Object actualDate = serde.deserialize(timestamp);
@@ -67,7 +63,7 @@ public class QuarterSerdeTest {
 
         String dateInString = "January-2020";
         Serde serde = new Quarter.QuarterSerde();
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(DateTimeParseException.class, () -> {
             serde.deserialize(dateInString);
         });
     }
