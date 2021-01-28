@@ -7,57 +7,51 @@ package com.yahoo.elide.datastores.aggregation.timegrains;
 
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 
 import java.sql.Date;
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Time Grain class for Quarter.
  */
-public class Quarter extends Date {
+public class Quarter extends Time {
 
     public static final String FORMAT = "yyyy-MM";
-    private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
+    public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(FORMAT);
 
-    public Quarter(java.util.Date date) {
-        super(date.getTime());
+    public Quarter(Date date) {
+        super(date, getSerializer(TimeGrain.QUARTER));
+    }
+
+    public Quarter(LocalDateTime date) {
+        super(date, getSerializer(TimeGrain.QUARTER));
     }
 
     @ElideTypeConverter(type = Quarter.class, name = "Quarter")
     static public class QuarterSerde implements Serde<Object, Quarter> {
-        private static final SimpleDateFormat MONTH_FORMATTER = new SimpleDateFormat("M");
-        private static final Set<String> QUARTER_MONTHS = new HashSet<>(Arrays.asList("1", "4", "7", "10"));
-
         @Override
         public Quarter deserialize(Object val) {
-
-            Quarter date = null;
-
-            try {
-                if (val instanceof String) {
-                    date = new Quarter(new Timestamp(FORMATTER.parse((String) val).getTime()));
-                } else {
-                    date = new Quarter(FORMATTER.parse(FORMATTER.format(val)));
-                }
-            } catch (ParseException e) {
-                throw new IllegalArgumentException("String must be formatted as " + FORMAT);
+            LocalDateTime date;
+            if (val instanceof Date) {
+                date = LocalDateTime.ofInstant(((Date) val).toInstant(), ZoneOffset.UTC);
+            } else {
+                date = LocalDateTime.parse(val.toString(), FORMATTER);
             }
 
-            if (!QUARTER_MONTHS.contains(MONTH_FORMATTER.format(date))) {
+            int month = date.getMonthValue();
+            if (month != 1 && month != 4 && month != 7 && month != 10) {
                 throw new IllegalArgumentException("Date string not a quarter month");
             }
 
-            return date;
+            return new Quarter(date);
         }
 
         @Override
         public String serialize(Quarter val) {
-            return FORMATTER.format(val);
+            return val.serializer.format(val);
         }
     }
 }

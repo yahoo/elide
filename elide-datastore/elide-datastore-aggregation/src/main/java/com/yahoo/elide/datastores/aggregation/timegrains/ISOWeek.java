@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Yahoo Inc.
+ * Copyright 2021, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -7,53 +7,47 @@ package com.yahoo.elide.datastores.aggregation.timegrains;
 
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 
 import java.sql.Date;
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Time Grain class for ISOWeek.
  */
-public class ISOWeek extends Date {
+public class ISOWeek extends Time {
 
-    public static final String FORMAT = "yyyy-MM-dd";
-    private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
+    public ISOWeek(Date date) {
+        super(date, getSerializer(TimeGrain.ISOWEEK));
+    }
 
-    public ISOWeek(java.util.Date date) {
-        super(date.getTime());
+    public ISOWeek(LocalDateTime date) {
+        super(date, getSerializer(TimeGrain.ISOWEEK));
     }
 
     @ElideTypeConverter(type = ISOWeek.class, name = "ISOWeek")
     static public class ISOWeekSerde implements Serde<Object, ISOWeek> {
-        private static final SimpleDateFormat WEEKDATE_FORMATTER = new SimpleDateFormat("u");
-
         @Override
         public ISOWeek deserialize(Object val) {
-
-            ISOWeek date = null;
-
-            try {
-                if (val instanceof String) {
-                    date = new ISOWeek(new Timestamp(FORMATTER.parse((String) val).getTime()));
-                } else {
-                    date = new ISOWeek(FORMATTER.parse(FORMATTER.format(val)));
-                }
-            } catch (ParseException e) {
-                throw new IllegalArgumentException("String must be formatted as " + FORMAT);
+            LocalDateTime date;
+            if (val instanceof Date) {
+                date = LocalDateTime.ofInstant(((Date) val).toInstant(), ZoneOffset.UTC);
+            } else {
+                date = LocalDateTime.parse(val.toString(), DateTimeFormatter.ISO_LOCAL_DATE);
             }
 
-            if (!WEEKDATE_FORMATTER.format(date).equals("1")) {
+            if (date.getDayOfWeek() != DayOfWeek.MONDAY) {
                 throw new IllegalArgumentException("Date string not a Monday");
             }
-
-            return date;
+            return new ISOWeek(date);
         }
 
         @Override
         public String serialize(ISOWeek val) {
-            return FORMATTER.format(val);
+            return val.serializer.format(val);
         }
     }
 }

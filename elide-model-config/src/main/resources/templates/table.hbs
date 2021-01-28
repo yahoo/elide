@@ -21,6 +21,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.yahoo.elide.datastores.aggregation.timegrains.Time
 import com.yahoo.elide.core.type.ParameterizedModel;
 
 import lombok.Data;
@@ -28,7 +29,6 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.math.BigDecimal;
-import java.sql.Date;
 import java.util.Set;
 import javax.persistence.Id;
 
@@ -68,7 +68,11 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> extends P
     }
 
 <%#each dimensions%>
+<%#ifTypeMatches type "TIME"%>
+    private Time <%name%>;
+<%else%>
     private <%#getJavaType type%><%/getJavaType%> <%name%>;
+<%/ifTypeMatches%>
 <%#ifTypeMatches type "TIME"%>
     @Temporal(grains = {
     <%#each grains%>
@@ -87,7 +91,16 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> extends P
         tableSource="<%tableSource%>"
     )
     <%#if hidden%>@Exclude<%/if%>
-    @DimensionFormula("<%#trimColumnReferences definition%><%/trimColumnReferences%>")
+    @DimensionFormula("<%#trimColumnReferences definition%><%/trimColumnReferences%>"
+<%#ifTypeMatches type "TIME"%>
+    public Time get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
+        return <%name%>;
+    }
+
+    public void set<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(Time <%name%>) {
+        this.<%name%> = <%name%>;
+    }
+<%else%>
     public <%#getJavaType type%><%/getJavaType%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
         return <%name%>;
     }
@@ -95,6 +108,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> extends P
     public void set<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(<%#getJavaType type%><%/getJavaType%> <%name%>) {
         this.<%name%> = <%name%>;
     }
+<%/ifTypeMatches%>
 <%/each%>
 
 <%#each joins%>

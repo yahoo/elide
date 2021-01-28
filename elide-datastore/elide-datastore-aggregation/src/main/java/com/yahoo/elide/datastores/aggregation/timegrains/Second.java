@@ -7,52 +7,41 @@ package com.yahoo.elide.datastores.aggregation.timegrains;
 
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.sql.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Time Grain class for Second.
  */
-public class Second extends Timestamp {
+public class Second extends Time {
 
     public static final String FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
-    private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
+    public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(FORMAT);
 
-
-    public Second(java.util.Date date) {
-        super(date.getTime());
+    public Second(Date date) {
+        super(date, getSerializer(TimeGrain.SECOND));
     }
 
-    @Override
-    public String toString() {
-        return FORMATTER.format(this);
+    public Second(LocalDateTime date) {
+        super(date, getSerializer(TimeGrain.SECOND));
     }
 
     @ElideTypeConverter(type = Second.class, name = "Second")
     static public class SecondSerde implements Serde<Object, Second> {
         @Override
         public Second deserialize(Object val) {
-
-            Second date = null;
-
-            try {
-                if (val instanceof String) {
-                    date = new Second(new Timestamp(FORMATTER.parse((String) val).getTime()));
-                } else {
-                    date = new Second(FORMATTER.parse(FORMATTER.format(val)));
-                }
-            } catch (ParseException e) {
-                throw new IllegalArgumentException("String must be formatted as " + FORMAT);
+            if (val instanceof Date) {
+                return new Second((Date) val);
             }
-
-            return date;
+            return new Second(LocalDateTime.parse(val.toString(), FORMATTER));
         }
 
         @Override
         public String serialize(Second val) {
-            return FORMATTER.format(val);
+            return val.serializer.format(val);
         }
     }
 }
