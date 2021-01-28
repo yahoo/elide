@@ -169,7 +169,7 @@ public class QueryValidator {
         projections.stream().forEach(clientDimension -> {
             queriedTable.getTimeDimensionProjections().stream()
                     .map(TimeDimensionProjection::getGrain)
-                    .filter(clientDimension::equals)
+                    .filter((tableDimensionGrain) -> tableDimensionGrain.equals(clientDimension.getGrain()))
                     .findAny()
                     .orElseThrow(() ->
                             new InvalidOperationException("Invalid time grain: " + clientDimension.getGrain()));
