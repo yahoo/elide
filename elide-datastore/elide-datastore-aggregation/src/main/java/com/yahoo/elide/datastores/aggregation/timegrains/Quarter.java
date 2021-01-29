@@ -11,6 +11,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -21,7 +22,8 @@ import java.util.Date;
 public class Quarter extends Time {
 
     public static final String FORMAT = "yyyy-MM";
-    public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(FORMAT);
+    public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(FORMAT)
+            .withZone(ZoneId.systemDefault());
 
     public Quarter(Date date) {
         super(date, getSerializer(TimeGrain.QUARTER));

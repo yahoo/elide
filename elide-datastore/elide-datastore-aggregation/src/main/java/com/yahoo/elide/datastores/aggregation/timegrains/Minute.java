@@ -10,6 +10,7 @@ import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
@@ -19,7 +20,8 @@ import java.util.Date;
 public class Minute extends Time {
 
     public static final String FORMAT = "yyyy-MM-dd'T'HH:mm";
-    public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(FORMAT);
+    public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(FORMAT)
+            .withZone(ZoneOffset.systemDefault());
 
     public Minute(Date date) {
         super(date, getSerializer(TimeGrain.MINUTE));

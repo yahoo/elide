@@ -11,6 +11,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
@@ -20,7 +21,8 @@ import java.util.Date;
 public class Month extends Time {
 
     public static final String FORMAT = "yyyy-MM";
-    public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(FORMAT);
+    public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(FORMAT)
+            .withZone(ZoneOffset.systemDefault());
 
     public Month(Date date) {
         super(date, getSerializer(TimeGrain.MONTH));

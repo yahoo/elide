@@ -79,8 +79,6 @@ public class Time extends Date {
     }
 
     public Time(LocalDateTime copy, Serializer formatter) {
-        //super(copy.toEpochSecond(ZoneOffset.UTC) * 1000);
-        //time.atZone(zoneId).toEpochSecond();
         super(copy.atZone(ZoneOffset.systemDefault()).toEpochSecond() * 1000);
         this.serializer = formatter;
     }
@@ -92,7 +90,7 @@ public class Time extends Date {
 
     public static Serializer getSerializer(TimeGrain grain) {
         return (time) -> {
-            LocalDateTime localDateTime = LocalDateTime.ofInstant(time.toInstant(), ZoneOffset.UTC);
+            LocalDateTime localDateTime = LocalDateTime.ofInstant(time.toInstant(), ZoneOffset.systemDefault());
             DateTimeFormatter formatter;
             switch (grain) {
                 case SECOND:
