@@ -95,4 +95,31 @@ public interface ElideStandaloneAsyncSettings {
     default ResultStorageEngine getResultStorageEngine() {
         return null;
     }
+
+    /**
+     * API root path specification for the export endpoint
+     *
+     * @return Default: /export
+     */
+    default String getExportApiPathSpec() {
+        return "/export/*";
+    }
+
+    /**
+     * Enable the Export endpoint. If false, the endpoint and export support will be disabled.
+     *
+     * @return Default: False
+     */
+    default boolean enableExport() {
+        return false;
+    }
+
+    /**
+     * Skip generating Header when exporting in CSV format.
+     *
+     * @return Default: False
+     */
+    default boolean skipCSVHeader() {
+        return false;
+    }
 }

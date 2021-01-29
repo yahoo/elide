@@ -100,8 +100,12 @@ public interface ElideStandaloneSettings {
                 .withGraphQLApiPath(getGraphQLApiPathSpec().replaceAll("/\\*", ""))
                 .withAuditLogger(getAuditLogger());
 
+        if (getAsyncProperties().enableExport()) {
+            builder.withDownloadApiPath(getAsyncProperties().getExportApiPathSpec().replaceAll("/\\*", ""));
+        }
+
         if (enableISO8601Dates()) {
-            builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
+            builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
         }
 
         return builder.build();
