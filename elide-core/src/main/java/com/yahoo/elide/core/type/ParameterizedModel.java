@@ -12,6 +12,7 @@ import com.yahoo.elide.core.request.Attribute;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -45,9 +46,16 @@ public abstract class ParameterizedModel {
      * @return The attribute value.
      */
     public <T> T invoke(Attribute attribute) {
-        if (! parameterizedAttributes.containsKey(attribute)) {
+        Optional<Attribute> match = parameterizedAttributes.keySet().stream()
+
+                //Only filter by alias required.  (Filtering by type may not work with inheritance).
+                .filter((modelAttribute) -> attribute.getAlias().equals(modelAttribute.getAlias()))
+                .findFirst();
+
+        if (! match.isPresent()) {
             throw new InvalidParameterizedAttributeException(attribute);
         }
-        return parameterizedAttributes.get(attribute).invoke(attribute.getArguments());
+
+        return parameterizedAttributes.get(match.get()).invoke(attribute.getArguments());
     }
 }

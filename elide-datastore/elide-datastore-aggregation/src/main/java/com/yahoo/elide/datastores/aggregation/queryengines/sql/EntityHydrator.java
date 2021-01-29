@@ -119,7 +119,7 @@ public class EntityHydrator {
         }
 
         result.forEach((fieldName, value) -> {
-            ColumnProjection dim = query.getSource().getColumnProjection(fieldName);
+            ColumnProjection dim = query.getColumnProjection(fieldName);
             Type<?> fieldType = getType(entityClass, dim);
             Attribute attribute = projectionToAttribute(dim, fieldType);
 

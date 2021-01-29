@@ -8,18 +8,25 @@ package com.yahoo.elide.core.dictionary;
 import com.yahoo.elide.core.type.Type;
 
 import lombok.Getter;
+import lombok.Value;
 
 /**
  * Argument Type wraps an argument to the type of value it accepts.
  */
+@Value
 public class ArgumentType {
-    @Getter
     private String name;
-    @Getter
     private Type<?> type;
+    private Object defaultValue;
 
     public ArgumentType(String name, Type<?> type) {
+        this(name, type, null);
+    }
+
+    public ArgumentType(String name, Type<?> type, Object defaultValue) {
         this.name = name;
         this.type = type;
+        this.defaultValue = defaultValue;
     }
+
 }

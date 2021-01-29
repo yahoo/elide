@@ -15,6 +15,7 @@ import static com.yahoo.elide.graphql.KeyWord.SCHEMA;
 import static com.yahoo.elide.graphql.KeyWord.TYPE;
 import static com.yahoo.elide.graphql.KeyWord.TYPENAME;
 import com.yahoo.elide.ElideSettings;
+import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.exceptions.BadRequestException;
@@ -45,12 +46,16 @@ import graphql.language.Selection;
 import graphql.language.SelectionSet;
 import graphql.language.SourceLocation;
 import graphql.parser.Parser;
+import graphql.schema.GraphQLArgument;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -317,15 +322,8 @@ public class GraphQLEntityProjectionMaker {
                     .type(attributeType)
                     .name(attributeName)
                     .alias(attributeAlias)
-                    .arguments(
-                            attributeField.getArguments().stream()
-                                    .map(graphQLArgument -> com.yahoo.elide.core.request.Argument.builder()
-                                            .name(graphQLArgument.getName())
-                                            .value(
-                                                    variableResolver.resolveValue(
-                                                            graphQLArgument.getValue()))
-                                            .build())
-                                    .collect(Collectors.toList()))
+                    .arguments(getArguments(attributeField,
+                            entityDictionary.getAttributeArguments(parentType, attributeName)))
                     .build();
 
             projectionBuilder.attribute(attribute);
@@ -563,5 +561,37 @@ public class GraphQLEntityProjectionMaker {
 
             projectionBuilder.attribute(toAdd);
         }
+    }
+
+    private List<com.yahoo.elide.core.request.Argument> getArguments(Field attributeField,
+                                                                     Set<ArgumentType> availableArguments) {
+        List<com.yahoo.elide.core.request.Argument> arguments = new ArrayList<>();
+
+        //Loop through all the arguments available for this field.
+        availableArguments.forEach((argumentType -> {
+
+            //Search to see if the client provided a matching argument.
+            Optional<Argument> clientArgument = attributeField.getArguments().stream()
+                    .filter(arg -> arg.getName() == argumentType.getName())
+                    .findFirst();
+
+            //If so, use it.
+            if (clientArgument.isPresent()) {
+                arguments.add(com.yahoo.elide.core.request.Argument.builder()
+                        .name(clientArgument.get().getName())
+                        .value(
+                                variableResolver.resolveValue(
+                                        clientArgument.get().getValue()))
+                        .build());
+
+            //If not, check if there is a default value for this argument.
+            } else if (argumentType.getDefaultValue() != null){
+                arguments.add(com.yahoo.elide.core.request.Argument.builder()
+                        .name(argumentType.getName())
+                        .value(argumentType.getDefaultValue())
+                        .build());
+            }
+        }));
+        return arguments;
     }
 }

@@ -242,7 +242,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/playerStats/timeDimensions/playerStats.recordedDate?include=supportedGrain")
+                .get("/table/playerStats/timeDimensions/playerStats.recordedDate?include=supportedGrains")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("recordedDate"))
@@ -251,7 +251,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.expression",  equalTo("{{recordedDate}}"))
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
-                .body("data.relationships.supportedGrain.data.id", containsInAnyOrder("playerStats.recordedDate.day"))
+                .body("data.relationships.supportedGrains.data.id", containsInAnyOrder("playerStats.recordedDate.day"))
                 .body("included.id", containsInAnyOrder("playerStats.recordedDate.day"))
                 .body("included.attributes.grain", containsInAnyOrder("DAY"))
                 .body("included.attributes.expression",

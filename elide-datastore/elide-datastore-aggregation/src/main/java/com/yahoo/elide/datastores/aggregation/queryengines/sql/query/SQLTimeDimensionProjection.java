@@ -113,13 +113,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
         Argument grainArgument = arguments.get("grain");
 
         if (grainArgument == null) {
-            return column.getSupportedGrains().stream()
-                    .findFirst()
-                    .orElseThrow(
-                            () -> new IllegalStateException(String.format(
-                                    "Requested default grain, no grain defined on %s",
-                                    column.getName())));
-
+            return column.getDefaultGrain();
         }
 
         String grainName = grainArgument.getValue().toString().toLowerCase(Locale.ENGLISH);

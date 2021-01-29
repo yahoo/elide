@@ -32,7 +32,7 @@ import javax.persistence.ManyToMany;
 public class TimeDimension extends Column {
     @ManyToMany
     @ToString.Exclude
-    Set<TimeDimensionGrain> supportedGrains;
+    LinkedHashSet<TimeDimensionGrain> supportedGrains;
 
     TimeZone timezone;
 
@@ -46,11 +46,15 @@ public class TimeDimension extends Column {
                 fieldName);
 
         if (temporal.grains().length == 0) {
-            this.supportedGrains = Collections.singleton(new TimeDimensionGrain(getId(), TimeGrain.DAY));
+            this.supportedGrains = new LinkedHashSet<>(Arrays.asList(new TimeDimensionGrain(getId(), TimeGrain.DAY)));
         } else {
             this.supportedGrains = Arrays.stream(temporal.grains())
                     .map(grain -> new TimeDimensionGrain(getId(), grain))
                     .collect(Collectors.toCollection(LinkedHashSet::new));
         }
+    }
+
+    public TimeDimensionGrain getDefaultGrain() {
+        return supportedGrains.iterator().next();
     }
 }

@@ -16,6 +16,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
@@ -64,11 +65,11 @@ public class AggregationDataStore implements DataStore {
 
         /* Add 'grain' argument to each TimeDimensionColumn */
         for (Table table : queryEngine.getMetaDataStore().getMetaData(new ClassType<>(Table.class))) {
-            for (TimeDimensionProjection timeDim : table.getColumns(TimeDimensionProjection.class)) {
+            for (TimeDimension timeDim : table.getTimeDimensions()) {
                 dictionary.addArgumentToAttribute(
                         dictionary.getEntityClass(table.getName(), table.getVersion()),
                         timeDim.getName(),
-                        new ArgumentType("grain", ClassType.STRING_TYPE));
+                        new ArgumentType("grain", ClassType.STRING_TYPE, timeDim.getDefaultGrain().getGrain()));
             }
         }
     }
