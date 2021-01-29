@@ -37,7 +37,7 @@ public class ISOWeek extends Time {
         public ISOWeek deserialize(Object val) {
             LocalDateTime date;
             if (val instanceof Date) {
-                date = LocalDateTime.ofInstant(((Date) val).toInstant(), ZoneOffset.UTC);
+                date = LocalDateTime.ofInstant(((Date) val).toInstant(), ZoneOffset.systemDefault());
             } else {
                 LocalDate localDate = LocalDate.parse(val.toString(), DateTimeFormatter.ISO_LOCAL_DATE);
                 date = localDate.atTime(0, 0);

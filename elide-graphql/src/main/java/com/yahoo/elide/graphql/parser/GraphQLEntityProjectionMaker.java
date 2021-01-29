@@ -46,7 +46,6 @@ import graphql.language.Selection;
 import graphql.language.SelectionSet;
 import graphql.language.SourceLocation;
 import graphql.parser.Parser;
-import graphql.schema.GraphQLArgument;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigInteger;
@@ -56,7 +55,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * This class converts a GraphQL query string into an Elide {@link EntityProjection} using
@@ -585,7 +583,7 @@ public class GraphQLEntityProjectionMaker {
                         .build());
 
             //If not, check if there is a default value for this argument.
-            } else if (argumentType.getDefaultValue() != null){
+            } else if (argumentType.getDefaultValue() != null) {
                 arguments.add(com.yahoo.elide.core.request.Argument.builder()
                         .name(argumentType.getName())
                         .value(argumentType.getDefaultValue())

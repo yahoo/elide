@@ -39,7 +39,7 @@ public class Quarter extends Time {
         public Quarter deserialize(Object val) {
             LocalDateTime date;
             if (val instanceof Date) {
-                date = LocalDateTime.ofInstant(((Date) val).toInstant(), ZoneOffset.UTC);
+                date = LocalDateTime.ofInstant(((Date) val).toInstant(), ZoneOffset.systemDefault());
             } else {
                 YearMonth yearMonth = YearMonth.parse(val.toString(), FORMATTER);
                 date = LocalDateTime.of(yearMonth.getYear(), yearMonth.getMonth(), 1, 0, 0);
