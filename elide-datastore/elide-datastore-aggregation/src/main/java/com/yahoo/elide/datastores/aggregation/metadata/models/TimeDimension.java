@@ -8,11 +8,14 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
+import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TimeZone;
@@ -42,8 +45,12 @@ public class TimeDimension extends Column {
                 Temporal.class,
                 fieldName);
 
-        this.supportedGrains = Arrays.stream(temporal.grains())
-                .map(grain -> new TimeDimensionGrain(getId(), grain))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+        if (temporal.grains().length == 0) {
+            this.supportedGrains = Collections.singleton(new TimeDimensionGrain(getId(), TimeGrain.DAY));
+        } else {
+            this.supportedGrains = Arrays.stream(temporal.grains())
+                    .map(grain -> new TimeDimensionGrain(getId(), grain))
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+        }
     }
 }

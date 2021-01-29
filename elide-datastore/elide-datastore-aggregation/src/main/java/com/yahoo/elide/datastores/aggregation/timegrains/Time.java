@@ -79,7 +79,9 @@ public class Time extends Date {
     }
 
     public Time(LocalDateTime copy, Serializer formatter) {
-        super(copy.toEpochSecond(ZoneOffset.UTC) * 1000);
+        //super(copy.toEpochSecond(ZoneOffset.UTC) * 1000);
+        //time.atZone(zoneId).toEpochSecond();
+        super(copy.atZone(ZoneOffset.systemDefault()).toEpochSecond() * 1000);
         this.serializer = formatter;
     }
 
