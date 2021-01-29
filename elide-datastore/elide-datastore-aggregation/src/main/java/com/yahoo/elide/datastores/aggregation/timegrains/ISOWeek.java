@@ -23,12 +23,8 @@ public class ISOWeek extends Time {
 
     public static final String FORMAT = "yyyy-MM-dd";
 
-    public ISOWeek(Date date) {
-        super(date, getSerializer(TimeGrain.ISOWEEK));
-    }
-
     public ISOWeek(LocalDateTime date) {
-        super(date, getSerializer(TimeGrain.ISOWEEK));
+        super(date, true, true, true, false, false, false, getSerializer(TimeGrain.ISOWEEK));
     }
 
     @ElideTypeConverter(type = ISOWeek.class, name = "ISOWeek")

@@ -25,11 +25,11 @@ public class Year extends Time {
             .withZone(ZoneOffset.systemDefault());
 
     public Year(Date date) {
-        super(date, getSerializer(TimeGrain.YEAR));
+        super(date, true, false, false, false, false, false, getSerializer(TimeGrain.YEAR));
     }
 
     public Year(LocalDateTime date) {
-        super(date, getSerializer(TimeGrain.YEAR));
+        super(date, true, false, false, false, false, false, getSerializer(TimeGrain.YEAR));
     }
 
     @ElideTypeConverter(type = Year.class, name = "Year")

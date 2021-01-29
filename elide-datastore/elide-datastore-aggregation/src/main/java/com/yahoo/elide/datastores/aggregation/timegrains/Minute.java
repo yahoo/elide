@@ -24,11 +24,11 @@ public class Minute extends Time {
             .withZone(ZoneOffset.systemDefault());
 
     public Minute(Date date) {
-        super(date, getSerializer(TimeGrain.MINUTE));
+        super(date, true, true, true, true, true, false, getSerializer(TimeGrain.MINUTE));
     }
 
     public Minute(LocalDateTime date) {
-        super(date, getSerializer(TimeGrain.MINUTE));
+        super(date, true, true, true, true, true, false, getSerializer(TimeGrain.MINUTE));
     }
 
     @ElideTypeConverter(type = Minute.class, name = "Minute")

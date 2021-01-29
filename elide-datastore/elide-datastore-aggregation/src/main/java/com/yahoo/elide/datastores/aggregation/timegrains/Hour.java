@@ -24,11 +24,11 @@ public class Hour extends Time {
             .withZone(ZoneOffset.systemDefault());
 
     public Hour(Date date) {
-        super(date, getSerializer(TimeGrain.HOUR));
+        super(date, true, true, true, true, false, false, getSerializer(TimeGrain.HOUR));
     }
 
     public Hour(LocalDateTime date) {
-        super(date, getSerializer(TimeGrain.HOUR));
+        super(date, true, true, true, true, false, false, getSerializer(TimeGrain.HOUR));
     }
 
     @ElideTypeConverter(type = Hour.class, name = "Hour")

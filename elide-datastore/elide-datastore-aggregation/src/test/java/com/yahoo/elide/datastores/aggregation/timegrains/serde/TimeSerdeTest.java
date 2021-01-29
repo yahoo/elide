@@ -26,7 +26,7 @@ public class TimeSerdeTest {
     @Test
     public void testTimeDeserializeYear() throws ParseException {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
-        Time expectedDate = new Time(localDate, (unused) -> "");
+        Time expectedDate = new Time(localDate, true, false, false, false, false, false, (unused) -> "");
         Serde serde = new Time.TimeSerde();
         Object actualDate = serde.deserialize(YEAR);
         assertEquals(expectedDate, actualDate);
@@ -36,7 +36,7 @@ public class TimeSerdeTest {
     @Test
     public void testTimeDeserializeMonth() throws ParseException {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
-        Time expectedDate = new Time(localDate, (unused) -> "");
+        Time expectedDate = new Time(localDate, true, true, false, false, false, false, (unused) -> "");
         Serde serde = new Time.TimeSerde();
         Object actualDate = serde.deserialize(MONTH);
         assertEquals(expectedDate, actualDate);
@@ -46,7 +46,7 @@ public class TimeSerdeTest {
     @Test
     public void testTimeDeserializeDate() throws ParseException {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
-        Time expectedDate = new Time(localDate, (unused) -> "");
+        Time expectedDate = new Time(localDate, true, true, true, false, false, false, (unused) -> "");
         Serde serde = new Time.TimeSerde();
         Object actualDate = serde.deserialize(DATE);
         assertEquals(expectedDate, actualDate);
@@ -56,7 +56,7 @@ public class TimeSerdeTest {
     @Test
     public void testTimeDeserializeHour() throws ParseException {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
-        Time expectedDate = new Time(localDate, (unused) -> "");
+        Time expectedDate = new Time(localDate, true, true, true, true, true, true, (unused) -> "");
         Serde serde = new Time.TimeSerde();
         Object actualDate = serde.deserialize(HOUR);
         assertEquals(expectedDate, actualDate);
@@ -66,7 +66,7 @@ public class TimeSerdeTest {
     @Test
     public void testTimeDeserializeMinute() throws ParseException {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
-        Time expectedDate = new Time(localDate, (unused) -> "");
+        Time expectedDate = new Time(localDate, true, true, true, true, true, true, (unused) -> "");
         Serde serde = new Time.TimeSerde();
         Object actualDate = serde.deserialize(MINUTE);
         assertEquals(expectedDate, actualDate);
@@ -76,7 +76,7 @@ public class TimeSerdeTest {
     @Test
     public void testTimeDeserializeSecond() throws ParseException {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
-        Time expectedDate = new Time(localDate, (unused) -> "");
+        Time expectedDate = new Time(localDate, true, true, true, true, true, true, (unused) -> "");
         Serde serde = new Time.TimeSerde();
         Object actualDate = serde.deserialize(SECOND);
         assertEquals(expectedDate, actualDate);

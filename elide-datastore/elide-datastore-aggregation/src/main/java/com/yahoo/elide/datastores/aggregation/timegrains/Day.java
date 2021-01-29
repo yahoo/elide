@@ -22,11 +22,11 @@ public class Day extends Time {
     public static final String FORMAT = "yyyy-MM-dd";
 
     public Day(Date date) {
-        super(date, getSerializer(TimeGrain.DAY));
+        super(date, true, true, true, false, false, false, getSerializer(TimeGrain.DAY));
     }
 
     public Day(LocalDateTime date) {
-        super(date, getSerializer(TimeGrain.DAY));
+        super(date, true, true, true, false, false, false, getSerializer(TimeGrain.DAY));
     }
 
     @ElideTypeConverter(type = Day.class, name = "Day")

@@ -25,12 +25,8 @@ public class Quarter extends Time {
     public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(FORMAT)
             .withZone(ZoneId.systemDefault());
 
-    public Quarter(Date date) {
-        super(date, getSerializer(TimeGrain.QUARTER));
-    }
-
     public Quarter(LocalDateTime date) {
-        super(date, getSerializer(TimeGrain.QUARTER));
+        super(date, true, true, true, false, false, false, getSerializer(TimeGrain.QUARTER));
     }
 
     @ElideTypeConverter(type = Quarter.class, name = "Quarter")

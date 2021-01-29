@@ -10,6 +10,7 @@ import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.TimedFunction;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
@@ -39,6 +40,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensio
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -225,7 +227,7 @@ public class SQLQueryEngine extends QueryEngine {
         stmt = sqlTransaction.initializeStatement(queryString, dataSource);
 
         // Supply the query parameters to the query
-        supplyFilterQueryParameters(query, stmt);
+        supplyFilterQueryParameters(query, stmt, dialect);
 
         // Run the primary query and log the time spent.
         ResultSet resultSet = runQuery(stmt, queryString, Function.identity());
@@ -249,7 +251,7 @@ public class SQLQueryEngine extends QueryEngine {
         NamedParamPreparedStatement stmt = sqlTransaction.initializeStatement(paginationSQL.toString(), dataSource);
 
         // Supply the query parameters to the query
-        supplyFilterQueryParameters(query, stmt);
+        supplyFilterQueryParameters(query, stmt, dialect);
 
         // Run the Pagination query and log the time spent.
         Long result = CoerceUtil.coerce(runQuery(stmt, paginationSQL.toString(), SINGLE_RESULT_MAPPER), Long.class);
@@ -361,8 +363,9 @@ public class SQLQueryEngine extends QueryEngine {
      *
      * @param query The client query
      * @param stmt Customized Prepared Statement
+     * @param dialect the SQL dialect
      */
-    private void supplyFilterQueryParameters(Query query, NamedParamPreparedStatement stmt) {
+    private void supplyFilterQueryParameters(Query query, NamedParamPreparedStatement stmt, SQLDialect dialect) {
 
         Collection<FilterPredicate> predicates = new ArrayList<>();
         if (query.getWhereFilter() != null) {
@@ -374,11 +377,16 @@ public class SQLQueryEngine extends QueryEngine {
         }
 
         for (FilterPredicate filterPredicate : predicates) {
+            boolean isTimeFilter = filterPredicate.getFieldType().equals(new ClassType(Time.class));
             if (filterPredicate.getOperator().isParameterized()) {
                 boolean shouldEscape = filterPredicate.isMatchingOperator();
                 filterPredicate.getParameters().forEach(param -> {
                     try {
-                        stmt.setObject(param.getName(), shouldEscape ? param.escapeMatching() : param.getValue());
+                        Object value = param.getValue();
+                        if (isTimeFilter) {
+                            value = dialect.translateTimeToJDBC((Time) value);
+                        }
+                        stmt.setObject(param.getName(), shouldEscape ? param.escapeMatching() : value);
                     } catch (SQLException e) {
                         throw new IllegalStateException(e);
                     }

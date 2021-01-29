@@ -24,11 +24,11 @@ public class Second extends Time {
                .withZone(ZoneOffset.systemDefault());
 
     public Second(Date date) {
-        super(date, getSerializer(TimeGrain.SECOND));
+        super(date, true, true, true, true, true, true, getSerializer(TimeGrain.SECOND));
     }
 
     public Second(LocalDateTime date) {
-        super(date, getSerializer(TimeGrain.SECOND));
+        super(date, true, true, true, true, true, true, getSerializer(TimeGrain.SECOND));
     }
 
     @ElideTypeConverter(type = Second.class, name = "Second")

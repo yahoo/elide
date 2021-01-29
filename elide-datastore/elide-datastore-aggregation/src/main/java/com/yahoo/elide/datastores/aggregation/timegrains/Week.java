@@ -23,12 +23,8 @@ public class Week extends Time {
 
     public static final String FORMAT = "yyyy-MM-dd";
 
-    public Week(Date date) {
-        super(date, getSerializer(TimeGrain.WEEK));
-    }
-
     public Week(LocalDateTime date) {
-        super(date, getSerializer(TimeGrain.WEEK));
+        super(date, true, true, true, false, false, false, getSerializer(TimeGrain.WEEK));
     }
 
     @ElideTypeConverter(type = Week.class, name = "Week")
