@@ -31,24 +31,14 @@ import java.util.Optional;
 public class AsyncAPIInlineChecks {
     private static final String PRINCIPAL_NAME = "principalName";
 
-    static private FilterPredicate getPredicateOfPrincipalName(String principalName, Class<?> clazz) {
-        Path.PathElement path = new Path.PathElement(clazz, String.class, PRINCIPAL_NAME);
+    static private FilterPredicate getPredicateOfPrincipalName(String principalName, Type entityClass) {
+        Path.PathElement path = new Path.PathElement(entityClass, new ClassType(String.class), PRINCIPAL_NAME);
         return new FilterPredicate(path, Operator.IN, Collections.singletonList(principalName));
     }
 
-    static private FilterPredicate getPredicateOfPrincipalNameNull(Class<?> clazz) {
-        Path.PathElement path = new Path.PathElement(clazz, String.class, PRINCIPAL_NAME);
+    static private FilterPredicate getPredicateOfPrincipalNameNull(Type entityClass) {
+        Path.PathElement path = new Path.PathElement(entityClass, new ClassType(String.class), PRINCIPAL_NAME);
         return new FilterPredicate(path, Operator.ISNULL, Collections.emptyList());
-    }
-
-    static Class<?> checkAsyncAPIClass(Type<?> entityClass) {
-        if (entityClass instanceof ClassType)  {
-            if (AsyncAPI.class.isAssignableFrom(((ClassType<?>) entityClass).getCls())) {
-                return ((ClassType<?>) entityClass).getCls();
-            }
-        }
-
-        throw new IllegalStateException(String.format("Cannot cast to %s", AsyncAPI.class));
     }
 
     /**
@@ -63,12 +53,11 @@ public class AsyncAPIInlineChecks {
          */
         @Override
         public FilterExpression getFilterExpression(Type entityClass, RequestScope requestScope) {
-            Class<?> clazz = checkAsyncAPIClass(entityClass);
             Principal principal = requestScope.getUser().getPrincipal();
             if (principal == null || principal.getName() == null) {
-                 return getPredicateOfPrincipalNameNull(clazz);
+                 return getPredicateOfPrincipalNameNull(entityClass);
             } else {
-                return getPredicateOfPrincipalName(principal.getName(), clazz);
+                return getPredicateOfPrincipalName(principal.getName(), entityClass);
             }
         }
     }

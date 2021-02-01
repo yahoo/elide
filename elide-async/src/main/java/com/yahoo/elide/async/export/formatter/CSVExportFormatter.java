@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.async.export.formatter;
 
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.PersistentResource;
 
@@ -27,10 +28,11 @@ public class CSVExportFormatter implements TableExportFormatter {
     private static final String DOUBLE_QUOTES = "\"";
 
     public static boolean skipCSVHeader = false;
-    private ObjectMapper mapper = new ObjectMapper();
+    private ObjectMapper mapper;
 
-    public CSVExportFormatter(boolean skipCSVHeader) {
+    public CSVExportFormatter(Elide elide, boolean skipCSVHeader) {
         this.skipCSVHeader = skipCSVHeader;
+        this.mapper = elide.getMapper().getObjectMapper();
     }
 
     @Override
@@ -79,7 +81,7 @@ public class CSVExportFormatter implements TableExportFormatter {
      * @param projection EntityProjection object.
      * @return returns Header string which is in CSV format.
      */
-    protected String generateCSVHeader(EntityProjection projection) {
+    private String generateCSVHeader(EntityProjection projection) {
         String header = projection.getAttributes().stream()
         .map(attr -> {
             StringBuilder column = new StringBuilder();
@@ -101,9 +103,14 @@ public class CSVExportFormatter implements TableExportFormatter {
 
     @Override
     public String preFormat(EntityProjection projection, TableExport query) {
+        if (projection == null) {
+            return null;
+        }
+
         if (!skipCSVHeader) {
             return generateCSVHeader(projection);
         };
+
         return null;
     }
 

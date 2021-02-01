@@ -92,7 +92,7 @@ public class GraphQLTableExportOperationTest {
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
         queryObj.setResultType(ResultType.CSV);
 
-        GraphQLTableExportOperation graphQLOperation = new GraphQLTableExportOperation(new JSONExportFormatter(), asyncExecutorService,
+        GraphQLTableExportOperation graphQLOperation = new GraphQLTableExportOperation(new JSONExportFormatter(elide), asyncExecutorService,
                 queryObj, requestScope);
         TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
 
