@@ -168,8 +168,9 @@ public class ElideResourceConfig extends ResourceConfig {
                     // Initialize the Formatters.
                     Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<ResultType,
                         TableExportFormatter>();
-                    supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(asyncProperties.skipCSVHeader()));
-                    supportedFormatters.put(ResultType.JSON, new JSONExportFormatter());
+                    supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide,
+                            asyncProperties.skipCSVHeader()));
+                    supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
 
                     // Binding TableExport LifeCycleHook
                     TableExportHook tableExportHook = getTableExportHook(AsyncExecutorService.getInstance(),

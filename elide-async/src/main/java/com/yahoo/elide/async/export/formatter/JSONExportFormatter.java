@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.async.export.formatter;
 
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.request.EntityProjection;
@@ -19,7 +20,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class JSONExportFormatter implements TableExportFormatter {
     private static final String COMMA = ",";
-    private ObjectMapper mapper = new ObjectMapper();
+    private ObjectMapper mapper;
+
+    public JSONExportFormatter(Elide elide) {
+        this.mapper = elide.getMapper().getObjectMapper();
+    }
 
     @Override
     public String format(PersistentResource resource, Integer recordNumber) {
@@ -38,6 +43,10 @@ public class JSONExportFormatter implements TableExportFormatter {
     }
 
     public static String resourceToJSON(ObjectMapper mapper, PersistentResource resource) {
+        if (resource == null || resource.getObject() == null) {
+            return null;
+        }
+
         StringBuilder str = new StringBuilder();
 
         try {

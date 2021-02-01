@@ -18,11 +18,12 @@ import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.models.QueryType;
+import com.yahoo.elide.async.operation.JSONAPIAsyncQueryOperation;
 import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
 import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
 import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
-import com.yahoo.elide.async.service.thread.AsyncQueryCallable;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.User;
@@ -43,6 +44,7 @@ public class AsyncExecutorServiceTest {
     private Elide elide;
     private AsyncAPIDAO asyncAPIDao;
     private User testUser;
+    private RequestScope scope;
     private ResultStorageEngine resultStorageEngine;
 
     @BeforeAll
@@ -55,6 +57,7 @@ public class AsyncExecutorServiceTest {
                         .build());
         asyncAPIDao = mock(DefaultAsyncAPIDAO.class);
         testUser = mock(User.class);
+        scope = mock(RequestScope.class);
         resultStorageEngine = mock(FileResultStorageEngine.class);
         AsyncExecutorService.init(elide, 5, asyncAPIDao, resultStorageEngine);
         service = AsyncExecutorService.getInstance();
@@ -96,8 +99,10 @@ public class AsyncExecutorServiceTest {
         when(queryObj.getRequestId()).thenReturn(id);
         when(queryObj.getQueryType()).thenReturn(QueryType.JSONAPI_V1_0);
         when(queryObj.getAsyncAfterSeconds()).thenReturn(10);
-        AsyncQueryCallable queryThread = new AsyncQueryCallable(queryObj, testUser, service, NO_VERSION);
-        service.executeQuery(queryObj, queryThread);
+        when(scope.getApiVersion()).thenReturn(NO_VERSION);
+        when(scope.getUser()).thenReturn(testUser);
+        JSONAPIAsyncQueryOperation jsonOperation = new JSONAPIAsyncQueryOperation(service, queryObj, scope);
+        service.executeQuery(queryObj, jsonOperation);
         verify(queryObj, times(1)).setStatus(QueryStatus.PROCESSING);
         verify(queryObj, times(1)).setStatus(QueryStatus.COMPLETE);
     }

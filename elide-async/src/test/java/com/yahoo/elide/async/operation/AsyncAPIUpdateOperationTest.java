@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.async.service.thread;
+package com.yahoo.elide.async.operation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -19,9 +19,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.Future;
 
-public class AsyncAPIUpdateRunnableTest {
+public class AsyncAPIUpdateOperationTest {
 
-    private AsyncAPIUpdateRunnable updateThread;
+    private AsyncAPIUpdateOperation updateThread;
     private Elide elide;
     private AsyncAPI queryObj;
     private AsyncAPIResult queryResultObj;
@@ -33,7 +33,7 @@ public class AsyncAPIUpdateRunnableTest {
         elide = mock(Elide.class);
         queryObj = mock(AsyncAPI.class);
         queryResultObj = mock(AsyncAPIResult.class);
-        updateThread = new AsyncAPIUpdateRunnable(elide, task, queryObj, asyncAPIDao);
+        updateThread = new AsyncAPIUpdateOperation(elide, task, queryObj, asyncAPIDao);
     }
 
     @Test
