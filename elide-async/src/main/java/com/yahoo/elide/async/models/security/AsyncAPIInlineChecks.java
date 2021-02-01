@@ -32,12 +32,12 @@ public class AsyncAPIInlineChecks {
     private static final String PRINCIPAL_NAME = "principalName";
 
     static private FilterPredicate getPredicateOfPrincipalName(String principalName, Type entityClass) {
-        Path.PathElement path = new Path.PathElement(entityClass, new ClassType(String.class), PRINCIPAL_NAME);
+        Path.PathElement path = new Path.PathElement(entityClass, ClassType.STRING_TYPE, PRINCIPAL_NAME);
         return new FilterPredicate(path, Operator.IN, Collections.singletonList(principalName));
     }
 
     static private FilterPredicate getPredicateOfPrincipalNameNull(Type entityClass) {
-        Path.PathElement path = new Path.PathElement(entityClass, new ClassType(String.class), PRINCIPAL_NAME);
+        Path.PathElement path = new Path.PathElement(entityClass, ClassType.STRING_TYPE, PRINCIPAL_NAME);
         return new FilterPredicate(path, Operator.ISNULL, Collections.emptyList());
     }
 
