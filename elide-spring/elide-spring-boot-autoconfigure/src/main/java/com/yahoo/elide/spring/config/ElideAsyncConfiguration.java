@@ -80,8 +80,8 @@ public class ElideAsyncConfiguration {
         boolean skipCSVHeader = asyncProperties.getExport() != null ? asyncProperties.getExport().isSkipCSVHeader()
             : false;
         Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<ResultType, TableExportFormatter>();
-        supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(skipCSVHeader));
-        supportedFormatters.put(ResultType.JSON, new JSONExportFormatter());
+        supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide,skipCSVHeader));
+        supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
 
         // Binding TableExport LifeCycleHook
         TableExportHook tableExportHook = getTableExportHook(asyncExecutorService, settings, supportedFormatters);
