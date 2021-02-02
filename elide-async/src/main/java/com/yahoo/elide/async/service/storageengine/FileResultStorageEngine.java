@@ -31,9 +31,6 @@ import javax.inject.Singleton;
 public class FileResultStorageEngine implements ResultStorageEngine {
     @Setter private String basePath;
 
-    public FileResultStorageEngine() {
-    }
-
     /**
      * Constructor.
      * @param basePath basePath for storing the files. Can be absolute or relative.
@@ -106,7 +103,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
             return Files.newBufferedReader(Paths.get(basePath + File.separator + asyncQueryID));
         } catch (IOException e) {
             log.debug(e.getMessage());
-            throw new IllegalStateException("Unable to retrieve results.");
+            throw new IllegalStateException(RETRIEVE_ERROR);
         }
     }
 
@@ -115,7 +112,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
             return Files.newBufferedWriter(Paths.get(basePath + File.separator + asyncQueryID));
         } catch (IOException e) {
             log.debug(e.getMessage());
-            throw new IllegalStateException("Unable to store results.");
+            throw new IllegalStateException(STORE_ERROR);
         }
     }
 }

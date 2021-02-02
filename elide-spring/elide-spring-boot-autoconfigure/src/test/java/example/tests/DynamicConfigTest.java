@@ -25,9 +25,11 @@ import org.springframework.test.context.jdbc.SqlMergeMode;
  */
 @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
 @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-        statements = "CREATE TABLE PlayerStats (name varchar(255) not null,"
+        statements = "DROP TABLE PlayerStats IF EXISTS;"
+                + "CREATE TABLE PlayerStats (name varchar(255) not null,"
                 + "\t\t countryId varchar(255), createdOn timestamp, updatedOn timestamp,"
                 + "\t\t highScore bigint, primary key (name));"
+                + "DROP TABLE PlayerCountry IF EXISTS;"
                 + "CREATE TABLE PlayerCountry (id varchar(255) not null,"
                 + "\t\t isoCode varchar(255), primary key (id));"
                 + "INSERT INTO PlayerStats (name,countryId,createdOn,updatedOn) VALUES\n"

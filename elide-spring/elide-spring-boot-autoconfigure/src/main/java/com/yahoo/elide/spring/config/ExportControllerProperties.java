@@ -22,4 +22,14 @@ public class ExportControllerProperties extends ControllerProperties {
      * The URL path prefix for the controller.
      */
     private String path = "/export";
+
+    /**
+     *  Maximum Download Run time before TIMEOUT.
+     */
+    private int maxDownloadRunTimeSeconds = 60;
+
+    /**
+     * Storage engine destination .
+     */
+    private String storageDestination = "/tmp";
 }

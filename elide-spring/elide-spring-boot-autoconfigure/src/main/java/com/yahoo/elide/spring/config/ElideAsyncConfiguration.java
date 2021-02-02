@@ -24,11 +24,14 @@ import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
 import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
+import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.RequestScope;
 
+import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
+import org.springframework.aop.interceptor.SimpleAsyncUncaughtExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -37,9 +40,19 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.scheduling.annotation.AsyncConfigurer;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.context.request.async.CallableProcessingInterceptor;
+import org.springframework.web.context.request.async.TimeoutCallableProcessingInterceptor;
+import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * Async Configuration For Elide Services.  Override any of the beans (by defining your own)
@@ -49,7 +62,9 @@ import java.util.Map;
 @EntityScan(basePackageClasses = AsyncQuery.class)
 @EnableConfigurationProperties(ElideConfigProperties.class)
 @ConditionalOnExpression("${elide.async.enabled:false}")
-public class ElideAsyncConfiguration {
+@EnableAsync
+@EnableScheduling
+public class ElideAsyncConfiguration implements AsyncConfigurer {
 
     /**
      * Configure the AsyncExecutorService used for submitting async query requests.
@@ -64,7 +79,7 @@ public class ElideAsyncConfiguration {
     public AsyncExecutorService buildAsyncExecutorService(Elide elide, ElideConfigProperties settings,
             AsyncAPIDAO asyncQueryDao, EntityDictionary dictionary,
             @Autowired(required = false) ResultStorageEngine resultStorageEngine) {
-        AsyncProperties asyncProperties = settings.getAsync();
+    AsyncProperties asyncProperties = settings.getAsync();
         AsyncExecutorService.init(elide, asyncProperties.getThreadPoolSize(),
                 asyncQueryDao, resultStorageEngine);
         AsyncExecutorService asyncExecutorService = AsyncExecutorService.getInstance();
@@ -153,10 +168,71 @@ public class ElideAsyncConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "elide.async.download", name = "enabled", matchIfMissing = false)
+    @ConditionalOnProperty(prefix = "elide.async.export", name = "enabled", matchIfMissing = false)
     public ResultStorageEngine buildResultStorageEngine(Elide elide, ElideConfigProperties settings,
             AsyncAPIDAO asyncQueryDAO) {
-        // TODO: Initialize with FileResultStorageEngine
-        return null;
+        FileResultStorageEngine resultStorageEngine = new FileResultStorageEngine(settings.getAsync().getExport()
+                .getStorageDestination());
+        return resultStorageEngine;
+    }
+
+    /**
+     * Configure a task executor to use by the export controller.
+     * We re-use the Executor we initialize as part of AsyncExecutorService for running export controller requests.
+     * @param asyncExecutorService AsyncExecutorService instance.
+     * @return AsyncTaskExecutor object
+     */
+    @Bean(name = "asyncExportTaskExecutor")
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "elide.async.export", name = "enabled", matchIfMissing = false)
+    public AsyncTaskExecutor asyncDownloadTaskExecutor(AsyncExecutorService asyncExecutorService) {
+        return (AsyncTaskExecutor) asyncExecutorService.getExecutor();
+    }
+
+    @Override
+    public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
+        return new SimpleAsyncUncaughtExceptionHandler();
+    }
+
+    /**
+     * Configure WebMVC with settings.
+     * @param asyncTaskExecutor AsyncTaskExecutor to execute requests asynchronously.
+     * @param callableProcessingInterceptor CallableProcessingInterceptor instance.
+     * @param settings Elide Spring Settings.
+     * @return WebMvcConfigurer object.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "elide.async.export", name = "enabled", matchIfMissing = false)
+    public WebMvcConfigurer webMvcConfigurerConfigurer(AsyncTaskExecutor asyncTaskExecutor,
+            CallableProcessingInterceptor callableProcessingInterceptor, ElideConfigProperties settings) {
+        return new WebMvcConfigurer() {
+            @Override
+            public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+                long downloadRunTimeMilliSeconds = settings.getAsync().getExport()
+                        .getMaxDownloadRunTimeSeconds() * 1000;
+                configurer
+                        .setDefaultTimeout(downloadRunTimeMilliSeconds)
+                        .setTaskExecutor(asyncTaskExecutor)
+                        .registerCallableInterceptors(callableProcessingInterceptor);
+                WebMvcConfigurer.super.configureAsyncSupport(configurer);
+            }
+        };
+    }
+
+    /**
+     * Handles Concurrent Calls for the Export controller in the background.
+     * @return CallableProcessingInterceptor
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "elide.async.export", name = "enabled", matchIfMissing = false)
+    public CallableProcessingInterceptor callableProcessingInterceptor() {
+        return new TimeoutCallableProcessingInterceptor() {
+            @Override
+            public <T> Object handleTimeout(NativeWebRequest webRequest, Callable<T> task) throws Exception {
+                return super.handleTimeout(webRequest, task);
+            }
+        };
     }
 }

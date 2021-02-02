@@ -36,6 +36,7 @@ import com.yahoo.elide.test.graphql.GraphQLDSL;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
@@ -55,9 +56,11 @@ import javax.ws.rs.core.MediaType;
 @Import(IntegrationTestSetup.class)
 @TestPropertySource(
         properties = {
-                "elide.json-api.enableLinks=true"
+                "elide.json-api.enableLinks=true",
+                "elide.async.export.enabled=false"
         }
 )
+@ActiveProfiles("default")
 public class ControllerTest extends IntegrationTest {
     private String baseUrl;
 
@@ -462,5 +465,14 @@ public class ControllerTest extends IntegrationTest {
                 .then()
                 .body("errors.message", contains("CreatePermission Denied"))
                 .statusCode(200);
+    }
+
+    // Controller disabled by default.
+    @Test
+    public void exportControllerTest() {
+        when()
+                .get("/export/asyncQueryId")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 }

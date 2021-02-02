@@ -10,7 +10,7 @@ import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.PersistentResource;
 
 import com.yahoo.elide.core.request.EntityProjection;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.github.opendevl.JFlat;
 
 import lombok.extern.slf4j.Slf4j;
@@ -28,11 +28,11 @@ public class CSVExportFormatter implements TableExportFormatter {
     private static final String DOUBLE_QUOTES = "\"";
 
     public static boolean skipCSVHeader = false;
-    private ObjectMapper mapper;
+    private JsonApiMapper jsonMapper;
 
     public CSVExportFormatter(Elide elide, boolean skipCSVHeader) {
         this.skipCSVHeader = skipCSVHeader;
-        this.mapper = elide.getMapper().getObjectMapper();
+        this.jsonMapper = elide.getMapper();
     }
 
     @Override
@@ -46,7 +46,7 @@ public class CSVExportFormatter implements TableExportFormatter {
         List<Object[]> json2Csv;
 
         try {
-            String jsonStr = JSONExportFormatter.resourceToJSON(mapper, resource);
+            String jsonStr = JSONExportFormatter.resourceToJSON(jsonMapper, resource);
 
             JFlat flat = new JFlat(jsonStr);
 
