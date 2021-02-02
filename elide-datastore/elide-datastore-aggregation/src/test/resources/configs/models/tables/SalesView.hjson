@@ -77,35 +77,20 @@
           definition: '{{created_on}}'
           readAccess: guest user
           grains:
-          [{
-            type: SECOND
-            // sql: '{{}}' OR
-            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd HH:mm:ss'), 'yyyy-MM-dd HH:mm:ss')
-          }]
-        }
-        {
-          name: orderDate
-          type: TIME
-          // Logical Column Reference in same table, which references Physical column in same table
-          definition: '{{orderTime}}'
-          readAccess: guest user
-          grains:
-          [{
-            type: DAY
-            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
-          }]
-        }
-        {
-          name: orderMonth
-          type: TIME
-          // Logical Column Reference in same table, which references another Logical column in same table, which references Physical column in same table
-          definition: '{{orderDate}}'
-          readAccess: guest user
-          grains:
-          [{
-            type: MONTH
-            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
-          }]
+          [
+            {
+              type: MONTH
+              sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
+            },
+            {
+              type: SECOND
+              sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd HH:mm:ss'), 'yyyy-MM-dd HH:mm:ss')
+            },
+            {
+              type: DAY
+              sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+            }
+          ]
         }
         {
           name: deliveryTime

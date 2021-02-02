@@ -883,8 +883,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
      */
     @Test
     public void testDynamicAggregationModel() {
-        String getPath = "/orderDetails?sort=customerRegion,orderMonth&page[totals]&"
-                        + "fields[orderDetails]=orderTotal,customerRegion,orderMonth&filter=orderMonth>=2020-08";
+        String getPath = "/orderDetails?sort=customerRegion,orderTime&page[totals]&"
+                        + "fields[orderDetails]=orderTotal,customerRegion,orderTime&filter=orderTime>=2020-08";
         given()
             .when()
             .get(getPath)
@@ -893,9 +893,9 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
             .body("data", hasSize(3))
             .body("data.id", hasItems("0", "1", "2"))
             .body("data.attributes", hasItems(
-                            allOf(hasEntry("customerRegion", "NewYork"), hasEntry("orderMonth", "2020-08")),
-                            allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderMonth", "2020-08")),
-                            allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderMonth", "2020-09"))))
+                            allOf(hasEntry("customerRegion", "NewYork"), hasEntry("orderTime", "2020-08")),
+                            allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderTime", "2020-08")),
+                            allOf(hasEntry("customerRegion", "Virginia"), hasEntry("orderTime", "2020-09"))))
             .body("data.attributes.orderTotal", hasItems(61.43F, 113.07F, 260.34F))
             .body("meta.page.number", equalTo(1))
             .body("meta.page.totalRecords", equalTo(3))
@@ -906,7 +906,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     @Test
     public void testInvalidSparseFields() {
         String expectedError = "Invalid value: orderDetails does not contain the fields: [orderValue, customerState]";
-        String getPath = "/orderDetails?fields[orderDetails]=orderValue,customerState,orderMonth";
+        String getPath = "/orderDetails?fields[orderDetails]=orderValue,customerState,orderTime";
         given()
             .when()
             .get(getPath)
@@ -953,13 +953,15 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
-                                        argument("filter", "\"orderMonth=='2020-08'\"")
+                                        argument("filter", "\"orderTime=='2020-08'\"")
                                 ),
                                 selections(
                                         field("orderTotal"),
                                         field("customerRegion"),
                                         field("customerRegionRegion"),
-                                        field("orderMonth")
+                                        field("orderTime", arguments(
+                                                argument("grain", TimeGrain.MONTH)
+                                        ))
                                 )
                         )
                 )
@@ -973,13 +975,13 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("orderTotal", 61.43F),
                                         field("customerRegion", "NewYork"),
                                         field("customerRegionRegion", "NewYork"),
-                                        field("orderMonth", "2020-08")
+                                        field("orderTime", "2020-08")
                                 ),
                                 selections(
                                         field("orderTotal", 113.07F),
                                         field("customerRegion", "Virginia"),
                                         field("customerRegionRegion", "Virginia"),
-                                        field("orderMonth", "2020-08")
+                                        field("orderTime", "2020-08")
                                 )
                         )
                 )
@@ -1024,9 +1026,15 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("deliveryMonth"),
                                         field("deliveryYear"),
                                         field("deliveryDefault"),
-                                        field("orderTime"),
-                                        field("orderDate"),
-                                        field("orderMonth"),
+                                        field("orderTime", "bySecond", arguments(
+                                                argument("grain", TimeGrain.SECOND)
+                                        )),
+                                        field("orderTime", "byDay", arguments(
+                                                argument("grain", TimeGrain.DAY)
+                                        )),
+                                        field("orderTime", "byMonth", arguments(
+                                                argument("grain", TimeGrain.MONTH)
+                                        )),
                                         field("customerRegion"),
                                         field("customerRegionRegion"),
                                         field("orderTotal"),
@@ -1048,10 +1056,10 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("deliveryDate", "2020-09-11"),
                                         field("deliveryMonth", "2020-09"),
                                         field("deliveryYear", "2020"),
-                                        field("orderTime", "2020-09-08T16:30:11"),
+                                        field("bySecond", "2020-09-08T16:30:11"),
                                         field("deliveryDefault", "2020-09-11"),
-                                        field("orderDate", "2020-09-08"),
-                                        field("orderMonth", "2020-09"),
+                                        field("byDay", "2020-09-08"),
+                                        field("byMonth", "2020-09"),
                                         field("customerRegion", "Virginia"),
                                         field("customerRegionRegion", "Virginia"),
                                         field("orderTotal", 84.11F),
@@ -1065,10 +1073,10 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("deliveryDate", "2020-09-11"),
                                         field("deliveryMonth", "2020-09"),
                                         field("deliveryYear", "2020"),
-                                        field("orderTime", "2020-09-08T16:30:11"),
+                                        field("bySecond", "2020-09-08T16:30:11"),
                                         field("deliveryDefault", "2020-09-11"),
-                                        field("orderDate", "2020-09-08"),
-                                        field("orderMonth", "2020-09"),
+                                        field("byDay", "2020-09-08"),
+                                        field("byMonth", "2020-09"),
                                         field("customerRegion", "Virginia"),
                                         field("customerRegionRegion", "Virginia"),
                                         field("orderTotal", 97.36F),
@@ -1082,10 +1090,10 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("deliveryDate", "2020-09-05"),
                                         field("deliveryMonth", "2020-09"),
                                         field("deliveryYear", "2020"),
-                                        field("orderTime", "2020-08-30T16:30:11"),
+                                        field("bySecond", "2020-08-30T16:30:11"),
                                         field("deliveryDefault", "2020-09-05"),
-                                        field("orderDate", "2020-08-30"),
-                                        field("orderMonth", "2020-08"),
+                                        field("byDay", "2020-08-30"),
+                                        field("byMonth", "2020-08"),
                                         field("customerRegion", "Virginia"),
                                         field("customerRegionRegion", "Virginia"),
                                         field("orderTotal", 103.72F),
@@ -1099,10 +1107,10 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("deliveryDate", "2020-09-13"),
                                         field("deliveryMonth", "2020-09"),
                                         field("deliveryYear", "2020"),
-                                        field("orderTime", "2020-09-09T16:30:11"),
+                                        field("bySecond", "2020-09-09T16:30:11"),
                                         field("deliveryDefault", "2020-09-13"),
-                                        field("orderDate", "2020-09-09"),
-                                        field("orderMonth", "2020-09"),
+                                        field("byDay", "2020-09-09"),
+                                        field("byMonth", "2020-09"),
                                         field("customerRegion", "Virginia"),
                                         field("customerRegionRegion", "Virginia"),
                                         field("orderTotal", 78.87F),
@@ -1124,13 +1132,17 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
-                                        argument("filter", "\"orderTime=='2020-09-08T16:30:11'\"")
+                                        argument("filter", "\"bySecond=='2020-09-08T16:30:11'\"")
                                 ),
                                 selections(
                                         field("orderTotal"),
                                         field("customerRegion"),
-                                        field("orderMonth"),
-                                        field("orderTime")
+                                        field("orderTime", "byMonth", arguments(
+                                                argument("grain", TimeGrain.MONTH)
+                                        )),
+                                        field("orderTime", "bySecond", arguments(
+                                                argument("grain", TimeGrain.SECOND)
+                                        ))
                                 )
                         )
                 )
@@ -1143,8 +1155,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 selections(
                                         field("orderTotal", 181.47F),
                                         field("customerRegion", "Virginia"),
-                                        field("orderMonth", "2020-09"),
-                                        field("orderTime", "2020-09-08T16:30:11")
+                                        field("byMonth", "2020-09"),
+                                        field("bySecond", "2020-09-08T16:30:11")
                                 )
                         )
                 )
@@ -1162,12 +1174,14 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
-                                        argument("filter", "\"orderMonth=='2020-08'\"")
+                                        argument("filter", "\"orderTime=='2020-08'\"")
                                 ),
                                 selections(
                                         field("orderTotal"),
                                         field("customerRegion"),
-                                        field("orderMonth")
+                                        field("orderTime", arguments(
+                                                argument("grain", TimeGrain.MONTH)
+                                        ))
                                 )
                         )
                 )
@@ -1180,12 +1194,12 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 selections(
                                         field("orderTotal", 61.43F),
                                         field("customerRegion", "NewYork"),
-                                        field("orderMonth", "2020-08")
+                                        field("orderTime", "2020-08")
                                 ),
                                 selections(
                                         field("orderTotal", 113.07F),
                                         field("customerRegion", "Virginia"),
-                                        field("orderMonth", "2020-08")
+                                        field("orderTime", "2020-08")
                                 )
                         )
                 )
@@ -1205,11 +1219,13 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
-                                        argument("filter", "\"orderMonth=='2020-08'\"")
+                                        argument("filter", "\"orderTime=='2020-08'\"")
                                 ),
                                 selections(
                                         field("customerRegion"),
-                                        field("orderMonth")
+                                        field("orderTime", arguments(
+                                                argument("grain", TimeGrain.MONTH)
+                                        ))
                                 )
                         )
                 )
@@ -1221,11 +1237,11 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "orderDetails",
                                 selections(
                                         field("customerRegion", "NewYork"),
-                                        field("orderMonth", "2020-08")
+                                        field("orderTime", "2020-08")
                                 ),
                                 selections(
                                         field("customerRegion", "Virginia"),
-                                        field("orderMonth", "2020-08")
+                                        field("orderTime", "2020-08")
                                 )
                         )
                 )
@@ -1246,11 +1262,13 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
-                                        argument("filter", "\"orderMonth=='2020-08'\"")
+                                        argument("filter", "\"orderTime=='2020-08'\"")
                                 ),
                                 selections(
                                         field("customerRegion"),
-                                        field("orderMonth")
+                                        field("orderTime", arguments(
+                                                argument("grain", TimeGrain.MONTH)
+                                        ))
                                 )
                         )
                 )
