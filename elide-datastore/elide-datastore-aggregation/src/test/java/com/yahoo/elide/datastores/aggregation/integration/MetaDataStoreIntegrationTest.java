@@ -160,7 +160,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.relationships.metrics.data.id", containsInAnyOrder("playerStats.lowScore",
                         "playerStats.highScore", "playerStats.dailyAverageScorePerPeriod"))
                 .body("data.relationships.timeDimensions.data.id", containsInAnyOrder("playerStats.recordedDate",
-                        "playerStats.updatedDate", "playerStats.recordedMonth"));
+                        "playerStats.updatedDate"));
     }
 
     @Test
@@ -251,11 +251,14 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.expression",  equalTo("{{recordedDate}}"))
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
-                .body("data.relationships.supportedGrains.data.id", containsInAnyOrder("playerStats.recordedDate.day"))
-                .body("included.id", containsInAnyOrder("playerStats.recordedDate.day"))
-                .body("included.attributes.grain", containsInAnyOrder("DAY"))
+                .body("data.relationships.supportedGrains.data.id", containsInAnyOrder("playerStats.recordedDate.day", "playerStats.recordedDate.month"))
+                .body("included.id", containsInAnyOrder("playerStats.recordedDate.day", "playerStats.recordedDate.month"))
+                .body("included.attributes.grain", containsInAnyOrder("DAY", "MONTH"))
                 .body("included.attributes.expression",
-                        containsInAnyOrder("PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')"));
+                        containsInAnyOrder(
+                                "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')",
+                                        "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')"
+                        ));
     }
 
     @Test

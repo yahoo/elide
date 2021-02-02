@@ -302,7 +302,10 @@ public class PlayerStats {
      *
      * @return the date of the player session.
      */
-    @Temporal(grains = { @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DATE_FORMAT) }, timeZone = "UTC")
+    @Temporal(grains = {
+            @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DATE_FORMAT),
+            @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT)
+    }, timeZone = "UTC")
     @DimensionFormula("{{recordedDate}}")
     public Day getRecordedDate() {
         return recordedDate;
@@ -311,22 +314,6 @@ public class PlayerStats {
     public void setRecordedDate(final Day recordedDate) {
         this.recordedDate = recordedDate;
     }
-
-    /**
-     * <b>DO NOT put {@link Cardinality} annotation on this field</b>. See
-     *
-     * @return the date of the player session.
-     */
-    @Temporal(grains = { @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT) }, timeZone = "UTC")
-    @DimensionFormula("{{recordedDate}}")
-    public Month getRecordedMonth() {
-        return recordedMonth;
-    }
-
-    public void setRecordedMonth(final Month recordedMonth) {
-        this.recordedMonth = recordedMonth;
-    }
-
     /**
      * <b>DO NOT put {@link Cardinality} annotation on this field</b>. See
      *

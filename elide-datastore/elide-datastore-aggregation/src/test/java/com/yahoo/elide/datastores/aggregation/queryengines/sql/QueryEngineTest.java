@@ -10,24 +10,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.timegrains.Day;
-import com.yahoo.elide.datastores.aggregation.timegrains.Month;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -603,10 +605,14 @@ public class QueryEngineTest extends SQLUnitTest {
     @Test
     public void testMetricFormulaWithQueryPlan() throws Exception {
 
+        Map<String, Argument> arguments = new HashMap<>();
+        arguments.put("grain", Argument.builder().name("grain").value(TimeGrain.MONTH).build());
+
         Query query = Query.builder()
                 .source(playerStatsTable)
                 .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
-                .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
+                .timeDimensionProjection(
+                        playerStatsTable.getTimeDimensionProjection("recordedDate", arguments))
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
@@ -614,7 +620,7 @@ public class QueryEngineTest extends SQLUnitTest {
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
         stats0.setDailyAverageScorePerPeriod(1549);
-        stats0.setRecordedMonth(new Month(Date.valueOf("2019-07-01")));
+        stats0.setRecordedDate(new Day(Date.valueOf("2019-07-01")));
 
         assertEquals(ImmutableList.of(stats0), results);
     }
