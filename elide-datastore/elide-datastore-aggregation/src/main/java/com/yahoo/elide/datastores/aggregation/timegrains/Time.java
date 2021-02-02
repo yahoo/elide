@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.timegrains;
 
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
@@ -24,6 +26,8 @@ import java.util.Objects;
  */
 @Data
 public class Time extends Date {
+
+    public static Type<Time> TIME_TYPE = new ClassType<>(Time.class);
 
     protected final Serializer serializer;
     protected final boolean supportsYear;
