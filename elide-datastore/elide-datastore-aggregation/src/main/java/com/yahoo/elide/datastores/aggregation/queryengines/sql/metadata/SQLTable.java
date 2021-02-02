@@ -135,6 +135,18 @@ public class SQLTable extends Table implements Queryable {
                 arguments);
     }
 
+    public TimeDimensionProjection getTimeDimensionProjection(String fieldName, String alias,
+                                                              Map<String, Argument> arguments) {
+        TimeDimension dimension = super.getTimeDimension(fieldName);
+        if (dimension == null) {
+            return null;
+        }
+        return new SQLTimeDimensionProjection(dimension,
+                dimension.getTimezone(),
+                alias,
+                arguments);
+    }
+
     @Override
     public Set<TimeDimensionProjection> getTimeDimensionProjections() {
         return super.getTimeDimensions()

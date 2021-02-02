@@ -23,6 +23,7 @@ import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.timegrains.Day;
+import com.yahoo.elide.datastores.aggregation.timegrains.Month;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.BeforeAll;
@@ -600,6 +601,41 @@ public class QueryEngineTest extends SQLUnitTest {
         stats2.setCountryUnSeats(0);
 
         assertEquals(ImmutableList.of(stats1, stats2), results);
+    }
+
+    @Test
+    public void testMultipleTimeGrains() throws Exception {
+        Map<String, Argument> dayArguments = new HashMap<>();
+        dayArguments.put("grain", Argument.builder().name("grain").value(TimeGrain.DAY).build());
+
+        Map<String, Argument> monthArguments = new HashMap<>();
+        monthArguments.put("grain", Argument.builder().name("grain").value(TimeGrain.MONTH).build());
+
+        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+        sortMap.put("highScore", Sorting.SortOrder.asc);
+
+        Query query = Query.builder()
+                .source(playerStatsTable)
+                .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                .timeDimensionProjection(
+                        playerStatsTable.getTimeDimensionProjection("recordedDate", "byDay", dayArguments))
+                .timeDimensionProjection(
+                        playerStatsTable.getTimeDimensionProjection("recordedDate", "byMonth", monthArguments))
+                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
+                .build();
+        PlayerStats stats0 = new PlayerStats();
+
+        List<PlayerStats> results = toList(engine.executeQuery(query, transaction).getData());
+        assertEquals(3, results.size());
+        assertEquals(1000, results.get(0).getHighScore());
+        assertEquals(new Day(Date.valueOf("2019-07-11")), results.get(0).fetch("byDay", null));
+        assertEquals(new Month(Date.valueOf("2019-07-01")), results.get(0).fetch("byMonth", null));
+        assertEquals(1234, results.get(1).getHighScore());
+        assertEquals(new Day(Date.valueOf("2019-07-12")), results.get(1).fetch("byDay", null));
+        assertEquals(new Month(Date.valueOf("2019-07-01")), results.get(1).fetch("byMonth", null));
+        assertEquals(2412, results.get(2).getHighScore());
+        assertEquals(new Day(Date.valueOf("2019-07-13")), results.get(2).fetch("byDay", null));
+        assertEquals(new Month(Date.valueOf("2019-07-01")), results.get(2).fetch("byMonth", null));
     }
 
     @Test

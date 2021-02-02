@@ -11,6 +11,7 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -57,5 +58,26 @@ public abstract class ParameterizedModel {
         }
 
         return parameterizedAttributes.get(match.get()).invoke(attribute.getArguments());
+    }
+
+    /**
+     * Fetch the attribute value by name.
+     * @param alias The field name to fetch.
+     * @param defaultValue Returned if the field name is not found
+     * @param <T> The return type of the attribute.
+     * @return The attribute value or the provided default value.
+     */
+    public <T> T fetch(String alias, T defaultValue) {
+        Optional<Attribute> match = parameterizedAttributes.keySet().stream()
+
+                //Only filter by alias required.  (Filtering by type may not work with inheritance).
+                .filter((modelAttribute) -> alias.equals(modelAttribute.getAlias()))
+                .findFirst();
+
+        if (! match.isPresent()) {
+            return defaultValue;
+        }
+
+        return parameterizedAttributes.get(match.get()).invoke(new HashSet<>());
     }
 }
