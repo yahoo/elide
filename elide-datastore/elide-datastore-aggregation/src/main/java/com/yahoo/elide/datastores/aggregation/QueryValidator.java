@@ -19,7 +19,6 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 
 import java.util.List;
 import java.util.Map;
@@ -52,7 +51,6 @@ public class QueryValidator {
     public void validate() {
         validateWhereClause(query.getWhereFilter());
         validateHavingClause(query.getHavingFilter());
-        validateTimeDimensions(query.getTimeDimensionProjections());
         validateSorting();
     }
 
@@ -163,16 +161,5 @@ public class QueryValidator {
                 || currentField.equals(EntityDictionary.REGULAR_ID_NAME)) {
             throw new InvalidOperationException("Sorting on id field is not permitted");
         }
-    }
-
-    private void validateTimeDimensions(Set<TimeDimensionProjection> projections) {
-        projections.stream().forEach(clientDimension -> {
-            queriedTable.getTimeDimensionProjections().stream()
-                    .map(TimeDimensionProjection::getGrain)
-                    .filter((tableDimensionGrain) -> tableDimensionGrain.equals(clientDimension.getGrain()))
-                    .findAny()
-                    .orElseThrow(() ->
-                            new InvalidOperationException("Invalid time grain: " + clientDimension.getGrain()));
-        });
     }
 }

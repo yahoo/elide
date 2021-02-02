@@ -570,7 +570,7 @@ public class GraphQLEntityProjectionMaker {
 
             //Search to see if the client provided a matching argument.
             Optional<Argument> clientArgument = attributeField.getArguments().stream()
-                    .filter(arg -> arg.getName() == argumentType.getName())
+                    .filter(arg -> arg.getName().equals(argumentType.getName()))
                     .findFirst();
 
             //If so, use it.

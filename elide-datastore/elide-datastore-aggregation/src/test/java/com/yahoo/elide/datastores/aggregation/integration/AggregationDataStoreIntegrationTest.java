@@ -31,6 +31,7 @@ import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.checks.OperatorCheck;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.DataSourceConfiguration;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
@@ -1258,5 +1259,50 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String expected = "\"Exception while fetching data (/orderDetails/edges[0]/node/customerRegion) : ReadPermission Denied\"";
 
         runQueryWithExpectedError(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testTimeDimensionAliases() throws Exception {
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("filter", "\"byDay>='2019-07-12'\""),
+                                        argument("sort", "\"byDay\"")
+                                ),
+                                selections(
+                                        field("highScore"),
+                                        field("recordedDate", "byDay", arguments(
+                                                argument("grain", TimeGrain.DAY)
+                                        )),
+                                        field("recordedDate", "byMonth", arguments(
+                                                argument("grain", TimeGrain.MONTH)
+                                        ))
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("highScore", 1234),
+                                        field("byDay", "2019-07-12"),
+                                        field("byMonth", "2019-07")
+                                ),
+                                selections(
+                                        field("highScore", 1000),
+                                        field("byDay", "2019-07-13"),
+                                        field("byMonth", "2019-07")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
     }
 }
