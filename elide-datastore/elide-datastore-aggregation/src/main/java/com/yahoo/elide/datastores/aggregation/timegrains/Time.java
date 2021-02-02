@@ -35,17 +35,23 @@ public class Time extends Date {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
         Time time = (Time) o;
-        return supportsYear == time.supportsYear &&
-                supportsMonth == time.supportsMonth &&
-                supportsDay == time.supportsDay &&
-                supportsHour == time.supportsHour &&
-                supportsMinute == time.supportsMinute &&
-                supportsSecond == time.supportsSecond &&
-                getTime() == time.getTime();
+        return supportsYear == time.supportsYear
+                && supportsMonth == time.supportsMonth
+                && supportsDay == time.supportsDay
+                && supportsHour == time.supportsHour
+                && supportsMinute == time.supportsMinute
+                && supportsSecond == time.supportsSecond
+                && getTime() == time.getTime();
     }
 
     @Override

@@ -296,7 +296,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
     private String generatePredicatePathReference(Path path, Query query) {
         Path.PathElement last = path.lastElement().get();
 
-        SQLColumnProjection projection = fieldToColumnProjection(query, last.getFieldName());
+        SQLColumnProjection projection = fieldToColumnProjection(query, last.getAlias());
         return projection.toSQL(referenceTable);
     }
 
