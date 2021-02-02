@@ -121,7 +121,7 @@ public class PlayerStats extends ParameterizedModel {
 
     private String player2Name;
 
-    private Day recordedDate;
+    private Time recordedDate;
 
     private Month recordedMonth;
 
@@ -313,7 +313,7 @@ public class PlayerStats extends ParameterizedModel {
         return fetch("recordedDate", recordedDate);
     }
 
-    public void setRecordedDate(final Day recordedDate) {
+    public void setRecordedDate(final Time recordedDate) {
         this.recordedDate = recordedDate;
     }
     /**

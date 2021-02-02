@@ -9,7 +9,6 @@ import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -18,6 +17,7 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * Time date type for all analytic model time dimensions.
@@ -25,7 +25,6 @@ import java.util.Date;
 @Data
 public class Time extends Date {
 
-    @EqualsAndHashCode.Exclude
     protected final Serializer serializer;
     protected final boolean supportsYear;
     protected final boolean supportsMonth;
@@ -33,6 +32,27 @@ public class Time extends Date {
     protected final boolean supportsHour;
     protected final boolean supportsMinute;
     protected final boolean supportsSecond;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Time time = (Time) o;
+        return supportsYear == time.supportsYear &&
+                supportsMonth == time.supportsMonth &&
+                supportsDay == time.supportsDay &&
+                supportsHour == time.supportsHour &&
+                supportsMinute == time.supportsMinute &&
+                supportsSecond == time.supportsSecond &&
+                getTime() == time.getTime();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), supportsYear, supportsMonth, supportsDay,
+                supportsHour, supportsMinute, supportsSecond, getTime());
+    }
 
     @FunctionalInterface
     public interface Serializer {
@@ -128,6 +148,11 @@ public class Time extends Date {
         this.supportsMinute = supportsMinute;
         this.supportsSecond = supportsSecond;
         this.serializer = serializer;
+    }
+
+    @Override
+    public String toString() {
+        return serializer.format(this);
     }
 
     public static Serializer getSerializer(TimeGrain grain) {

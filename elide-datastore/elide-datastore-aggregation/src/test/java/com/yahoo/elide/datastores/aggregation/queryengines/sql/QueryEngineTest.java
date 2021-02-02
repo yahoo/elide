@@ -629,13 +629,13 @@ public class QueryEngineTest extends SQLUnitTest {
         List<PlayerStats> results = toList(engine.executeQuery(query, transaction).getData());
         assertEquals(3, results.size());
         assertEquals(1000, results.get(0).getHighScore());
-        assertEquals(new Day(Date.valueOf("2019-07-11")), results.get(0).fetch("byDay", null));
+        assertEquals(new Day(Date.valueOf("2019-07-13")), results.get(0).fetch("byDay", null));
         assertEquals(new Month(Date.valueOf("2019-07-01")), results.get(0).fetch("byMonth", null));
         assertEquals(1234, results.get(1).getHighScore());
         assertEquals(new Day(Date.valueOf("2019-07-12")), results.get(1).fetch("byDay", null));
         assertEquals(new Month(Date.valueOf("2019-07-01")), results.get(1).fetch("byMonth", null));
         assertEquals(2412, results.get(2).getHighScore());
-        assertEquals(new Day(Date.valueOf("2019-07-13")), results.get(2).fetch("byDay", null));
+        assertEquals(new Day(Date.valueOf("2019-07-11")), results.get(2).fetch("byDay", null));
         assertEquals(new Month(Date.valueOf("2019-07-01")), results.get(2).fetch("byMonth", null));
     }
 
@@ -669,7 +669,7 @@ public class QueryEngineTest extends SQLUnitTest {
 
         List<PlayerStats> results = toList(engine.executeQuery(query, transaction).getData());
         assertEquals(1, results.size());
-        assertEquals(1000, results.get(0).getHighScore());
+        assertEquals(2412, results.get(0).getHighScore());
         assertEquals(new Day(Date.valueOf("2019-07-11")), results.get(0).fetch("byDay", null));
         assertEquals(new Month(Date.valueOf("2019-07-01")), results.get(0).fetch("byMonth", null));
     }
@@ -727,7 +727,7 @@ public class QueryEngineTest extends SQLUnitTest {
         PlayerStats stats0 = new PlayerStats();
         stats0.setId("0");
         stats0.setDailyAverageScorePerPeriod(1549);
-        stats0.setRecordedDate(new Day(Date.valueOf("2019-07-01")));
+        stats0.setRecordedDate(new Month(Date.valueOf("2019-07-01")));
 
         assertEquals(ImmutableList.of(stats0), results);
     }
