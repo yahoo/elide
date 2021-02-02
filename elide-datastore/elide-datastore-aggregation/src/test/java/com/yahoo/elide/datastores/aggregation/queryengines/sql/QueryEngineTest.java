@@ -13,6 +13,7 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
@@ -31,6 +32,7 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -623,7 +625,6 @@ public class QueryEngineTest extends SQLUnitTest {
                         playerStatsTable.getTimeDimensionProjection("recordedDate", "byMonth", monthArguments))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
-        PlayerStats stats0 = new PlayerStats();
 
         List<PlayerStats> results = toList(engine.executeQuery(query, transaction).getData());
         assertEquals(3, results.size());
@@ -636,6 +637,76 @@ public class QueryEngineTest extends SQLUnitTest {
         assertEquals(2412, results.get(2).getHighScore());
         assertEquals(new Day(Date.valueOf("2019-07-13")), results.get(2).fetch("byDay", null));
         assertEquals(new Month(Date.valueOf("2019-07-01")), results.get(2).fetch("byMonth", null));
+    }
+
+    @Test
+    public void testMultipleTimeGrainsFilteredByDayAlias() throws Exception {
+        Map<String, Argument> dayArguments = new HashMap<>();
+        dayArguments.put("grain", Argument.builder().name("grain").value(TimeGrain.DAY).build());
+
+        Map<String, Argument> monthArguments = new HashMap<>();
+        monthArguments.put("grain", Argument.builder().name("grain").value(TimeGrain.MONTH).build());
+
+        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+        sortMap.put("highScore", Sorting.SortOrder.asc);
+
+        FilterPredicate predicate = new FilterPredicate(
+                new Path(new ClassType(PlayerStats.class), dictionary, "recordedDate", "byDay",
+                        new HashSet<>(dayArguments.values())),
+                Operator.IN,
+                Lists.newArrayList(Date.valueOf("2019-07-11")));
+
+        Query query = Query.builder()
+                .source(playerStatsTable)
+                .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                .whereFilter(predicate)
+                .timeDimensionProjection(
+                        playerStatsTable.getTimeDimensionProjection("recordedDate", "byDay", dayArguments))
+                .timeDimensionProjection(
+                        playerStatsTable.getTimeDimensionProjection("recordedDate", "byMonth", monthArguments))
+                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
+                .build();
+
+        List<PlayerStats> results = toList(engine.executeQuery(query, transaction).getData());
+        assertEquals(1, results.size());
+        assertEquals(1000, results.get(0).getHighScore());
+        assertEquals(new Day(Date.valueOf("2019-07-11")), results.get(0).fetch("byDay", null));
+        assertEquals(new Month(Date.valueOf("2019-07-01")), results.get(0).fetch("byMonth", null));
+    }
+
+    @Test
+    public void testMultipleTimeGrainsFilteredByMonthAlias() throws Exception {
+        Map<String, Argument> dayArguments = new HashMap<>();
+        dayArguments.put("grain", Argument.builder().name("grain").value(TimeGrain.DAY).build());
+
+        Map<String, Argument> monthArguments = new HashMap<>();
+        monthArguments.put("grain", Argument.builder().name("grain").value(TimeGrain.MONTH).build());
+
+        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+        sortMap.put("highScore", Sorting.SortOrder.asc);
+
+        FilterPredicate predicate = new FilterPredicate(
+                new Path(new ClassType(PlayerStats.class), dictionary, "recordedDate", "byMonth",
+                        new HashSet<>(monthArguments.values())),
+                Operator.IN,
+                Lists.newArrayList(Date.valueOf("2019-07-01")));
+
+        Query query = Query.builder()
+                .source(playerStatsTable)
+                .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                .whereFilter(predicate)
+                .timeDimensionProjection(
+                        playerStatsTable.getTimeDimensionProjection("recordedDate", "byDay", dayArguments))
+                .timeDimensionProjection(
+                        playerStatsTable.getTimeDimensionProjection("recordedDate", "byMonth", monthArguments))
+                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
+                .build();
+
+        List<PlayerStats> results = toList(engine.executeQuery(query, transaction).getData());
+        assertEquals(1, results.size());
+        assertEquals(1000, results.get(0).getHighScore());
+        assertEquals(new Day(Date.valueOf("2019-07-11")), results.get(0).fetch("byDay", null));
+        assertEquals(new Month(Date.valueOf("2019-07-01")), results.get(0).fetch("byMonth", null));
     }
 
     @Test
