@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.core.type;
 
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.core.exceptions.InvalidParameterizedAttributeException;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
@@ -20,6 +21,8 @@ import java.util.Set;
  * Base class that contains one or more parameterized attributes.
  */
 public abstract class ParameterizedModel {
+
+    @Exclude
     protected Map<Attribute, ParameterizedAttribute> parameterizedAttributes;
 
     public ParameterizedModel() {

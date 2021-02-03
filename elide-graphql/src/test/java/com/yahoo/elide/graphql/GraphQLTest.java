@@ -6,11 +6,14 @@
 
 package com.yahoo.elide.graphql;
 
+import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.type.ClassType;
 import example.Address;
 import example.Author;
 import example.Book;
+import example.ParameterizedExample;
 import example.Pseudonym;
 import example.Publisher;
 
@@ -34,5 +37,9 @@ public abstract class GraphQLTest {
         dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(Pseudonym.class);
         dictionary.bindEntity(Address.class);
+        dictionary.bindEntity(ParameterizedExample.class);
+
+        dictionary.addArgumentToAttribute(new ClassType(ParameterizedExample.class), "attribute",
+                new ArgumentType("argument", ClassType.STRING_TYPE, "defaultValue"));
     }
 }
