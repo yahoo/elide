@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import com.yahoo.elide.core.exceptions.InvalidParameterizedAttributeException;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
@@ -121,7 +122,6 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
         return column.getSupportedGrains().stream()
                 .filter(grain -> grain.getGrain().name().toLowerCase(Locale.ENGLISH).equals(grainName))
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException(String.format(
-                        "Unsupported grain %s for field %s", grainName, column.getName())));
+                .orElseThrow(() -> new InvalidParameterizedAttributeException(name, grainArgument));
     }
 }

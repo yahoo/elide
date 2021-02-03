@@ -8,7 +8,9 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.datastores.aggregation.timegrains.Time.TIME_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.exceptions.InvalidParameterizedAttributeException;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Argument;
@@ -785,5 +787,15 @@ public class QueryEngineTest extends SQLUnitTest {
         stats0.setRecordedDate(new Month(Date.valueOf("2019-07-01")));
 
         assertEquals(ImmutableList.of(stats0), results);
+    }
+
+    @Test
+    public void testInvalidTimeGrain() {
+        Map<String, Argument> arguments = new HashMap<>();
+        arguments.put("grain", Argument.builder().name("grain").value(TimeGrain.YEAR).build());
+
+
+        assertThrows(InvalidParameterizedAttributeException.class,
+                () -> playerStatsTable.getTimeDimensionProjection("recordedDate", arguments));
     }
 }
