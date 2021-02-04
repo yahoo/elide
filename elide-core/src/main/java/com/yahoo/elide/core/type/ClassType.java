@@ -11,6 +11,7 @@ import lombok.Getter;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -31,6 +32,9 @@ public class ClassType<T> implements Type<T> {
     public static final ClassType MAP_TYPE = new ClassType(Map.class);
     public static final ClassType COLLECTION_TYPE = new ClassType(Collection.class);
     public static final ClassType STRING_TYPE = new ClassType(String.class);
+    public static final ClassType BOOLEAN_TYPE = new ClassType(Boolean.class);
+    public static final ClassType LONG_TYPE = new ClassType(Long.class);
+    public static final ClassType BIGDECIMAL_TYPE = new ClassType(BigDecimal.class);
     public static final ClassType NUMBER_TYPE = new ClassType(Number.class);
     public static final ClassType DATE_TYPE = new ClassType(Date.class);
     public static final ClassType OBJECT_TYPE = new ClassType(Object.class);
