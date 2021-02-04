@@ -9,23 +9,29 @@ import static com.yahoo.elide.core.type.ClassType.BIGDECIMAL_TYPE;
 import static com.yahoo.elide.core.type.ClassType.BOOLEAN_TYPE;
 import static com.yahoo.elide.core.type.ClassType.LONG_TYPE;
 import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
+import static com.yahoo.elide.datastores.aggregation.timegrains.Time.TIME_TYPE;
+import static com.yahoo.elide.modelconfig.model.Type.TIME;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.Method;
 import com.yahoo.elide.core.type.Package;
-import com.yahoo.elide.core.type.ParameterizedModel;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
+import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
+import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
+import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import com.yahoo.elide.modelconfig.model.Dimension;
+import com.yahoo.elide.modelconfig.model.Grain;
 import com.yahoo.elide.modelconfig.model.Table;
 
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.persistence.Id;
@@ -338,82 +344,57 @@ public class TableType implements Type {
             });
         }
 
+        if (dimension.getType() == TIME) {
+            annotations.put(Temporal.class, new Temporal() {
+
+                @Override
+                public Class<? extends Annotation> annotationType() {
+                    return Temporal.class;
+                }
+
+                @Override
+                public TimeGrainDefinition[] grains() {
+                    TimeGrainDefinition[] definitions = new TimeGrainDefinition[dimension.getGrains().size()];
+                    for (int idx = 0; idx < dimension.getGrains().size(); idx++) {
+                        Grain grain = dimension.getGrains().get(idx);
+                        definitions[idx] = new TimeGrainDefinition() {
+
+                            @Override
+                            public Class<? extends Annotation> annotationType() {
+                                return TimeGrainDefinition.class;
+                            }
+
+                            @Override
+                            public TimeGrain grain() {
+                                return TimeGrain.valueOf(grain.getType().name());
+                            }
+
+                            @Override
+                            public String expression() {
+                                return grain.getSql();
+                            }
+                        };
+                    }
+                    return definitions;
+                }
+
+                @Override
+                public String timeZone() {
+                    return "UTC";
+                }
+            });
+        }
+
         return annotations;
     }
 
     private static Map<String, Field> buildFields(Table table) {
         Map<String, Field> fields = new HashMap<>();
+        fields.put("id", buildIdField());
 
         table.getDimensions().forEach(dimension -> {
-            fields.put(dimension.getName(), new Field() {
-
-                private Map<Class<? extends Annotation>, Annotation> annotations = buildAnnotations(dimension);
-
-                @Override
-                public Object get(Object obj) throws IllegalArgumentException, IllegalAccessException {
-                    if (! ParameterizedModel.class.isAssignableFrom(obj.getClass())) {
-                        throw new IllegalArgumentException("Class is not a dynamic type: " + obj.getClass());
-                    }
-
-                    ParameterizedModel model = (ParameterizedModel) obj;
-
-                    return model.invoke(Attribute.builder()
-                            .name(dimension.getName())
-                            .alias(dimension.getName())
-                            .build());
-                }
-
-                @Override
-                public Type<?> getType() {
-                    return getFieldType(dimension.getType());
-                }
-
-                @Override
-                public Type<?> getParameterizedType(Type<?> parentType, Optional<Integer> index) {
-                    return null;
-                }
-
-                @Override
-                public void set(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException {
-                    throw new UnsupportedOperationException();
-                }
-
-                @Override
-                public String getName() {
-                    return dimension.getName();
-                }
-
-                @Override
-                public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-                    return false;
-                }
-
-                @Override
-                public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-                    return null;
-                }
-
-                @Override
-                public <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass) {
-                    return null;
-                }
-
-                @Override
-                public Annotation[] getDeclaredAnnotations() {
-                    return new Annotation[0];
-                }
-
-                @Override
-                public Annotation[] getAnnotations() {
-                    return new Annotation[0];
-                }
-
-                @Override
-                public int getModifiers() {
-                    return 0;
-                }
-            });
-
+            fields.put(dimension.getName(),
+                    new FieldType(dimension.getName(), getFieldType(dimension.getType()), buildAnnotations(dimension)));
         });
 
         return fields;
@@ -435,7 +416,7 @@ public class TableType implements Type {
     private static Type getFieldType(com.yahoo.elide.modelconfig.model.Type inputType) {
         switch (inputType) {
             case TIME:
-                //TODO
+                return TIME_TYPE;
             case TEXT:
                 return STRING_TYPE;
             case MONEY:
