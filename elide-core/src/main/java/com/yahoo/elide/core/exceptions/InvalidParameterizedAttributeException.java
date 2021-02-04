@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.exceptions;
 
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 
 /**
@@ -14,5 +15,10 @@ public class InvalidParameterizedAttributeException extends HttpStatusException 
     public InvalidParameterizedAttributeException(Attribute attribute) {
         super(HttpStatus.SC_BAD_REQUEST, "No attribute found with matching parameters for attribute: "
                 + attribute.toString());
+    }
+
+    public InvalidParameterizedAttributeException(String attributeName, Argument argument) {
+        super(HttpStatus.SC_BAD_REQUEST, String.format("Invalid argument : %s for attribute: %s",
+                argument, attributeName));
     }
 }

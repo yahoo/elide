@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects;
 
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
+import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 
 /**
  * Interface for SQL Dialects used to customize SQL queries for specific persistent storage.
@@ -50,4 +51,18 @@ public interface SQLDialect {
      * @return the keyword for provided Join type.
      */
     String getJoinKeyword(JoinType joinType);
+
+    /**
+     * Translates Elide's {@link Time} object to the native JDBC date/time object supported
+     * by the underlying driver.
+     *
+     * @param time The elide time object.
+     * @return A type compatible with JDBC.
+     */
+    default Object translateTimeToJDBC(Time time) {
+        if (time.isSupportsHour()) {
+            return new java.sql.Timestamp(time.getTime());
+        }
+        return new java.sql.Date(time.getTime());
+    }
 }

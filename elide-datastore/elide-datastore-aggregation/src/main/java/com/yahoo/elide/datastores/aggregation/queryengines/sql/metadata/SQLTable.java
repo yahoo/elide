@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
@@ -27,6 +28,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -119,6 +121,10 @@ public class SQLTable extends Table implements Queryable {
 
     @Override
     public TimeDimensionProjection getTimeDimensionProjection(String fieldName) {
+        return getTimeDimensionProjection(fieldName, new HashMap<>());
+    }
+
+    public TimeDimensionProjection getTimeDimensionProjection(String fieldName, Map<String, Argument> arguments) {
         TimeDimension dimension = super.getTimeDimension(fieldName);
         if (dimension == null) {
             return null;
@@ -126,7 +132,19 @@ public class SQLTable extends Table implements Queryable {
         return new SQLTimeDimensionProjection(dimension,
                 dimension.getTimezone(),
                 dimension.getName(),
-                new HashMap<>());
+                arguments);
+    }
+
+    public TimeDimensionProjection getTimeDimensionProjection(String fieldName, String alias,
+                                                              Map<String, Argument> arguments) {
+        TimeDimension dimension = super.getTimeDimension(fieldName);
+        if (dimension == null) {
+            return null;
+        }
+        return new SQLTimeDimensionProjection(dimension,
+                dimension.getTimezone(),
+                alias,
+                arguments);
     }
 
     @Override
@@ -159,6 +177,10 @@ public class SQLTable extends Table implements Queryable {
 
         if (column == null) {
             return null;
+        }
+
+        if (column instanceof TimeDimension) {
+            return getTimeDimensionProjection(name);
         }
 
         return new SQLColumnProjection() {

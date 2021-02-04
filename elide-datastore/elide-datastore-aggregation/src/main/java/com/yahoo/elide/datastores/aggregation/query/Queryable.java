@@ -62,12 +62,12 @@ public interface Queryable {
 
     /**
      * Retrieves a column by name.
-     * @param name The name of the column.
+     * @param name The alias of the column.
      * @return The column.
      */
     default ColumnProjection getColumnProjection(String name) {
         return getColumnProjections().stream()
-                .filter(dim -> dim.getName().equals(name))
+                .filter(dim -> dim.getAlias().equals(name))
                 .findFirst()
                 .orElse(null);
     }
@@ -79,7 +79,7 @@ public interface Queryable {
      */
     default ColumnProjection getDimensionProjection(String name) {
         return getDimensionProjections().stream()
-                .filter(dim -> dim.getName().equals(name))
+                .filter(dim -> dim.getAlias().equals(name))
                 .findFirst()
                 .orElse(null);
     }
@@ -97,7 +97,7 @@ public interface Queryable {
      */
     default MetricProjection getMetricProjection(String name) {
         return getMetricProjections().stream()
-                .filter(metric -> metric.getName().equals(name))
+                .filter(metric -> metric.getAlias().equals(name))
                 .findFirst()
                 .orElse(null);
     }
@@ -115,7 +115,7 @@ public interface Queryable {
      */
     default TimeDimensionProjection getTimeDimensionProjection(String name) {
         return getTimeDimensionProjections().stream()
-                .filter(dim -> dim.getName().equals(name))
+                .filter(dim -> dim.getAlias().equals(name))
                 .findFirst()
                 .orElse(null);
     }

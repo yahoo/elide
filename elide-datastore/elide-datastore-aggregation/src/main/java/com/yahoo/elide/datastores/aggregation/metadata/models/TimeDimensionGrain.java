@@ -25,9 +25,20 @@ public class TimeDimensionGrain {
     private final String format;
 
     public TimeDimensionGrain(String fieldName, TimeGrainDefinition definition) {
-        this.id = fieldName + "." + definition.grain().name().toLowerCase(Locale.ENGLISH);
+        this.id = getId(fieldName, definition.grain());
         this.grain = definition.grain();
         this.expression = definition.expression();
         this.format = definition.grain().getFormat();
+    }
+
+    public TimeDimensionGrain(String fieldName, TimeGrain grain) {
+        this.id = getId(fieldName, grain);
+        this.grain = grain;
+        this.expression = "{{}}";
+        this.format = grain.getFormat();
+    }
+
+    private static String getId(String fieldName, TimeGrain grain) {
+        return fieldName + "." + grain.name().toLowerCase(Locale.ENGLISH);
     }
 }

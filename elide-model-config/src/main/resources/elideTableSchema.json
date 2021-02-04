@@ -230,24 +230,30 @@
                             "type": "string",
                             "format": "elideTimeFieldType"
                         },
-                        "grain": {
-                            "title": "Grains",
-                            "description": "Grains can have SQL expressions that can substitute column with the dimension definition expression",
-                            "type": "object",
-                            "properties": {
-                                "type": {
-                                    "title": "Time granularity",
-                                    "description": "Indicates grain time granularity",
-                                    "type": "string",
-                                    "format": "elideGrainType"
+                        "grains" : {
+                            "title" : "Time Dimension grains",
+                            "description" : "Time Dimension granularity and Sqls",
+                            "type" : "array",
+                            "items" : {
+                                "title": "Grains",
+                                "description": "Grains can have SQL expressions that can substitute column with the dimension definition expression",
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "title": "Time granularity",
+                                        "description": "Indicates grain time granularity",
+                                        "type": "string",
+                                        "format": "elideGrainType"
+                                    },
+                                    "sql": {
+                                        "title": "Grain SQL",
+                                        "description": "Grain SQL query",
+                                        "type": "string"
+                                    }
                                 },
-                                "sql": {
-                                    "title": "Grain SQL",
-                                    "description": "Grain SQL query",
-                                    "type": "string"
-                                }
+                                "additionalProperties": false
                             },
-                            "additionalProperties": false
+                            "default" : []
                         }
                     }
                 }

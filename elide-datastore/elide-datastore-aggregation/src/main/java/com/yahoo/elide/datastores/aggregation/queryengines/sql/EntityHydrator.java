@@ -3,10 +3,11 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.queryengines;
+package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.Attribute;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.ParameterizedModel;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
@@ -17,6 +18,16 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.timegrains.Day;
+import com.yahoo.elide.datastores.aggregation.timegrains.Hour;
+import com.yahoo.elide.datastores.aggregation.timegrains.ISOWeek;
+import com.yahoo.elide.datastores.aggregation.timegrains.Minute;
+import com.yahoo.elide.datastores.aggregation.timegrains.Month;
+import com.yahoo.elide.datastores.aggregation.timegrains.Quarter;
+import com.yahoo.elide.datastores.aggregation.timegrains.Second;
+import com.yahoo.elide.datastores.aggregation.timegrains.Week;
+import com.yahoo.elide.datastores.aggregation.timegrains.Year;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.mutable.MutableInt;
 import lombok.AccessLevel;
@@ -107,8 +118,8 @@ public class EntityHydrator {
         }
 
         result.forEach((fieldName, value) -> {
-            ColumnProjection dim = query.getSource().getColumnProjection(fieldName);
-            Type<?> fieldType = entityDictionary.getType(entityClass, fieldName);
+            ColumnProjection dim = query.getColumnProjection(fieldName);
+            Type<?> fieldType = getType(entityClass, dim);
             Attribute attribute = projectionToAttribute(dim, fieldType);
 
             if (dim != null && dim.getValueType().equals(ValueType.RELATIONSHIP)) {
@@ -150,5 +161,34 @@ public class EntityHydrator {
                 .arguments(projection.getArguments().values())
                 .type(valueType)
                 .build();
+    }
+
+    private Type getType(Type modelType, ColumnProjection column) {
+        if (! (column instanceof TimeDimensionProjection)) {
+            return entityDictionary.getType(modelType, column.getName());
+        }
+
+        switch (((TimeDimensionProjection) column).getGrain()) {
+            case SECOND:
+                return new ClassType(Second.class);
+            case MINUTE:
+                return new ClassType(Minute.class);
+            case HOUR:
+                return new ClassType(Hour.class);
+            case DAY:
+                return new ClassType(Day.class);
+            case ISOWEEK:
+                return new ClassType(ISOWeek.class);
+            case WEEK:
+                return new ClassType(Week.class);
+            case MONTH:
+                return new ClassType(Month.class);
+            case QUARTER:
+                return new ClassType(Quarter.class);
+            case YEAR:
+                return new ClassType(Year.class);
+            default:
+                throw new IllegalStateException("Invalid grain type");
+        }
     }
 }

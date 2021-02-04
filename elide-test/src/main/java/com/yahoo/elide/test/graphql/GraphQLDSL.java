@@ -433,8 +433,25 @@ public final class GraphQLDSL {
         return Field.scalarField(name);
     }
 
+    /**
+     * Creates an attribute field selection with arguments.
+     * @param name The name of the field.
+     * @param arguments The arguments.
+     * @return a field that represents an non-reltionship entity attribute
+     */
     public static Selection field(String name, Arguments arguments) {
         return new Field(null, name, arguments, null);
+    }
+
+    /**
+     * Creates an attribute field selection with arguments and an alias.
+     * @param name The name of the field.
+     * @param alias The alias name of the field.
+     * @param arguments The arguments.
+     * @return a field that represents an non-reltionship entity attribute
+     */
+    public static Selection field(String name, String alias, Arguments arguments) {
+        return new Field(alias, name, arguments, null);
     }
 
     /**

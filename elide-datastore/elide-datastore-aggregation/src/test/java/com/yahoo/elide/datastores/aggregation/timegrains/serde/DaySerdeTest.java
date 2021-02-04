@@ -13,38 +13,38 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class DaySerdeTest {
-    private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+    private DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
 
     @Test
     public void testDateSerialize() throws ParseException {
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
 
-        String expected = "2020-01-01";
-        Day expectedDate = new Day(formatter.parse(expected));
+        Day expectedDate = new Day(localDate);
         Serde serde = new Day.DaySerde();
         Object actual = serde.serialize(expectedDate);
-        assertEquals(expected, actual);
+        assertEquals("2020-01-01", actual);
     }
 
     @Test
     public void testDateDeserialize() throws ParseException {
-
-        String dateInString = "2020-01-01";
-        Day expectedDate = new Day(formatter.parse(dateInString));
-        String actual = "2020-01-01";
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
+        Day expectedDate = new Day(localDate);
         Serde serde = new Day.DaySerde();
-        Object actualDate = serde.deserialize(actual);
+        Object actualDate = serde.deserialize("2020-01-01");
         assertEquals(expectedDate, actualDate);
     }
 
     @Test
     public void testDeserializeTimestamp() throws ParseException {
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
 
-        String dateInString = "2020-01-01";
-        Day expectedDate = new Day(formatter.parse(dateInString));
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        Day expectedDate = new Day(localDate);
+        Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Day.DaySerde();
         Object actualDate = serde.deserialize(timestamp);
         assertEquals(expectedDate, actualDate);
@@ -55,7 +55,7 @@ public class DaySerdeTest {
 
         String dateInString = "January-01-2020";
         Serde serde = new Day.DaySerde();
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(DateTimeParseException.class, () -> {
             serde.deserialize(dateInString);
         });
     }
