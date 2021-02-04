@@ -61,7 +61,6 @@ public class ExportController {
         Observable<String> observableResults = resultStorageEngine.getResultsByID(asyncQueryId);
         StreamingResponseBody streamingOutput = outputStream -> {
             observableResults
-            .map(record -> record)
             .subscribe(
                     resultString -> {
                         outputStream.write(resultString.concat(System.getProperty("line.separator")).getBytes());
