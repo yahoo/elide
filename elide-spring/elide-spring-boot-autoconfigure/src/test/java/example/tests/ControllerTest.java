@@ -471,8 +471,10 @@ public class ControllerTest extends IntegrationTest {
     // Controller disabled by default.
     @Test
     public void exportControllerDisabledTest() {
+        // Though post is not supported for export we can use it to test if controller is disabled.
+        // post returns with 404 if controller is disabled and 404 when enabled.
         when()
-                .get("/export/asyncQueryId")
+                .post("/export/asyncQueryId")
                 .then()
                 .body("error", equalTo("Not Found"))
                 .statusCode(HttpStatus.SC_NOT_FOUND);

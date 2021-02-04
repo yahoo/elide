@@ -46,8 +46,9 @@ import javax.ws.rs.core.MediaType;
 )
 public class DisableAggStoreAsyncTest extends IntegrationTest {
 
+    // Test if AsyncQuery is functional with AggregationStore disabled.
     @Test
-    public void testAsyncApiEndpoint() throws InterruptedException {
+    public void testAsyncApiFunctionDisabledAggStore() throws InterruptedException {
         //Create Async Request
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)

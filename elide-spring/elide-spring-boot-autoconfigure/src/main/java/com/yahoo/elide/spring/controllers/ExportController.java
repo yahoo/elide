@@ -6,11 +6,11 @@
 package com.yahoo.elide.spring.controllers;
 
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
+import com.yahoo.elide.core.exceptions.HttpStatus;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -70,9 +70,9 @@ public class ExportController {
                         try {
                             log.debug(message);
                             if (message != null && message.equals(ResultStorageEngine.RETRIEVE_ERROR)) {
-                                response.sendError(HttpStatus.NOT_FOUND.value(), asyncQueryId + "not found");
+                                response.sendError(HttpStatus.SC_NOT_FOUND, asyncQueryId + "not found");
                             } else {
-                                response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value());
+                                response.sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR);
                             }
                         } catch (IOException | IllegalStateException e) {
                             // If stream was flushed, Attachment download has already started.

@@ -279,4 +279,12 @@ public class AsyncTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND);
     }
+
+    @Test
+    public void postExportControllerTest() {
+        when()
+                .post("/export/asyncQueryId")
+                .then()
+                .statusCode(HttpStatus.SC_METHOD_NOT_ALLOWED);
+    }
 }
