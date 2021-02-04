@@ -510,7 +510,7 @@ public class QueryEngineTest extends SQLUnitTest {
         FilterPredicate predicate = new FilterPredicate(
                 new Path(PlayerStats.class, dictionary, "recordedDate"),
                 Operator.IN,
-                Lists.newArrayList(Date.valueOf("2019-07-11")));
+                Lists.newArrayList(new Day(Date.valueOf("2019-07-11"))));
 
         Query query = Query.builder()
                 .source(playerStatsTable)
@@ -660,7 +660,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 new Path(new ClassType(PlayerStats.class), dictionary, "recordedDate", "byDay",
                         new HashSet<>(dayArguments.values())),
                 Operator.IN,
-                Lists.newArrayList(Date.valueOf("2019-07-11")));
+                Lists.newArrayList(new Day(Date.valueOf("2019-07-11"))));
 
         Query query = Query.builder()
                 .source(playerStatsTable)
@@ -695,7 +695,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 new Path(new ClassType(PlayerStats.class), dictionary, "recordedDate", "byMonth",
                         new HashSet<>(monthArguments.values())),
                 Operator.IN,
-                Lists.newArrayList(Date.valueOf("2019-07-01")));
+                Lists.newArrayList(new Day(Date.valueOf("2019-07-01"))));
 
         Query query = Query.builder()
                 .source(playerStatsTable)

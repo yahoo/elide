@@ -87,7 +87,7 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
                 .map(PathElement::getFieldName)
                 .collect(Collectors.joining(PERIOD));
         this.fieldType = path.lastElement()
-                .map(PathElement::getType)
+                .map(PathElement::getFieldType)
                 .orElse(null);
     }
 
