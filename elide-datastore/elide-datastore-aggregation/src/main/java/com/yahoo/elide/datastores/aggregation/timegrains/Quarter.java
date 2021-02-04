@@ -26,7 +26,7 @@ public class Quarter extends Time {
             .withZone(ZoneId.systemDefault());
 
     public Quarter(LocalDateTime date) {
-        super(date, true, true, true, false, false, false, getSerializer(TimeGrain.QUARTER));
+        super(date, true, true, false, false, false, false, getSerializer(TimeGrain.QUARTER));
     }
 
     @ElideTypeConverter(type = Quarter.class, name = "Quarter")

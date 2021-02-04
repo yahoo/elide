@@ -25,11 +25,11 @@ public class Month extends Time {
             .withZone(ZoneOffset.systemDefault());
 
     public Month(Date date) {
-        super(date, true, true, true, false, false, false, getSerializer(TimeGrain.MONTH));
+        super(date, true, true, false, false, false, false, getSerializer(TimeGrain.MONTH));
     }
 
     public Month(LocalDateTime date) {
-        super(date, true, true, true, false, false, false, getSerializer(TimeGrain.MONTH));
+        super(date, true, true, false, false, false, false, getSerializer(TimeGrain.MONTH));
     }
 
     @ElideTypeConverter(type = Month.class, name = "Month")
