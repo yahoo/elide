@@ -20,6 +20,7 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
+import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
@@ -28,6 +29,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
 import com.yahoo.elide.modelconfig.model.Dimension;
 import com.yahoo.elide.modelconfig.model.Grain;
+import com.yahoo.elide.modelconfig.model.Join;
 import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Table;
 
@@ -37,15 +39,24 @@ import java.util.Map;
 import java.util.Optional;
 import javax.persistence.Id;
 
+/**
+ * A dynamic Elide model that wraps a deserialized HJSON table.
+ */
 public class TableType implements Type {
     protected Table table;
     private Map<Class<? extends Annotation>, Annotation> annotations;
     private Map<String, Field> fields;
+    private Map<String, Table> tableMap;
 
-    public TableType(Table table) {
+    public TableType(Table table, Map<String, Table> tables) {
         this.table = table;
         this.annotations = buildAnnotations(table);
-        this.fields = buildFields(table);
+        this.fields = buildFields(table, tables);
+        this.tableMap = tables;
+    }
+
+    public TableType(Table table) {
+        this(table, new HashMap<>());
     }
 
     @Override
@@ -192,6 +203,28 @@ public class TableType implements Type {
     @Override
     public Method getMethod(String name, Type[] parameterTypes) throws NoSuchMethodException {
         throw new NoSuchMethodException();
+    }
+
+    private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Join join) {
+        Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
+        annotations.put(com.yahoo.elide.datastores.aggregation.annotation.Join.class,
+                new com.yahoo.elide.datastores.aggregation.annotation.Join() {
+                    @Override
+                    public Class<? extends Annotation> annotationType() {
+                        return com.yahoo.elide.datastores.aggregation.annotation.Join.class;
+                    }
+
+                    @Override
+                    public String value() {
+                        return join.getDefinition();
+                    }
+
+                    @Override
+                    public JoinType type() {
+                        return JoinType.valueOf(join.getType().name());
+                    }
+                });
+        return annotations;
     }
 
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Table table) {
@@ -478,7 +511,7 @@ public class TableType implements Type {
         return annotations;
     }
 
-    private static Map<String, Field> buildFields(Table table) {
+    private static Map<String, Field> buildFields(Table table, Map<String, Table> tables) {
         Map<String, Field> fields = new HashMap<>();
         fields.put("id", buildIdField());
 
@@ -490,6 +523,12 @@ public class TableType implements Type {
         table.getMeasures().forEach(measure -> {
             fields.put(measure.getName(),
                     new FieldType(measure.getName(), getFieldType(measure.getType()), buildAnnotations(measure)));
+        });
+
+        table.getJoins().forEach(join -> {
+            Table joinTable = tables.get(join.getTo());
+            fields.put(join.getName(),
+                    new FieldType(join.getName(), new TableType(joinTable, tables), buildAnnotations(join)));
         });
 
         return fields;
