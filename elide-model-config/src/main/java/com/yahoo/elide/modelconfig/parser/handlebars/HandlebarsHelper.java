@@ -8,7 +8,6 @@ package com.yahoo.elide.modelconfig.parser.handlebars;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
 import com.yahoo.elide.modelconfig.StaticModelsDetails;
-import com.yahoo.elide.modelconfig.model.Grain;
 import com.yahoo.elide.modelconfig.model.Type;
 import com.github.jknack.handlebars.Options;
 
@@ -36,6 +35,7 @@ public class HandlebarsHelper {
     private static final String SECOND = "Second";
     private static final String WEEK = "Week";
     private static final String YEAR = "Year";
+    private static final String TIME = "Time";
     private static final String BIGDECIMAL = "BigDecimal";
     private static final String LONG = "Long";
     private static final String BOOLEAN = "Boolean";
@@ -143,41 +143,9 @@ public class HandlebarsHelper {
             case MONEY:
                 return BIGDECIMAL;
             case TIME:
-                return DATE;
+                return TIME;
             default:
                 return STRING;
-        }
-    }
-
-    /**
-     * Get java type name corresponding to the Grain type.
-     * @param grain Grain object
-     * @return The corresponding java type name
-     */
-    public String getGrainType(Grain grain) {
-
-        Grain.GrainType switchGrain = (grain.getType() == null) ? Grain.GrainType.DAY : grain.getType();
-        switch (switchGrain) {
-            case DAY:
-                return DAY;
-            case HOUR:
-                return HOUR;
-            case ISOWEEK:
-                return ISOWEEK;
-            case MINUTE:
-                return MINUTE;
-            case MONTH:
-                return MONTH;
-            case QUARTER:
-                return QUARTER;
-            case SECOND:
-                return SECOND;
-            case WEEK:
-                return WEEK;
-            case YEAR:
-                return YEAR;
-            default:
-                return DAY;
         }
     }
 

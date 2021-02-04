@@ -67,11 +67,10 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> extends P
         this.id = id;
     }
 <%#each dimensions%>
-<%#ifTypeMatches type "TIME"%>
-    private Time <%name%>;
-<%else%>
+
+
     private <%#getJavaType type%><%/getJavaType%> <%name%>;
-<%/ifTypeMatches%>
+
 <%#ifTypeMatches type "TIME"%>
     @Temporal(grains = {
     <%#each grains%>
@@ -91,15 +90,7 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> extends P
     )
 <%#if hidden%>@Exclude<%/if%>
     @DimensionFormula("<%#trimColumnReferences definition%><%/trimColumnReferences%>")
-<%#ifTypeMatches type "TIME"%>
-    public Time get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
-        return <%name%>;
-    }
 
-    public void set<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(Time <%name%>) {
-        this.<%name%> = <%name%>;
-    }
-<%else%>
     public <%#getJavaType type%><%/getJavaType%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
         return <%name%>;
     }
@@ -107,7 +98,6 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> extends P
     public void set<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(<%#getJavaType type%><%/getJavaType%> <%name%>) {
         this.<%name%> = <%name%>;
     }
-<%/ifTypeMatches%>
 <%/each%>
 
 <%#each joins%>
