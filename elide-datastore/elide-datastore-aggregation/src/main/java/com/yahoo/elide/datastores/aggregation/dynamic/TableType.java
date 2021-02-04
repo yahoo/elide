@@ -5,6 +5,10 @@
  */
 package com.yahoo.elide.datastores.aggregation.dynamic;
 
+import static com.yahoo.elide.core.type.ClassType.BIGDECIMAL_TYPE;
+import static com.yahoo.elide.core.type.ClassType.BOOLEAN_TYPE;
+import static com.yahoo.elide.core.type.ClassType.LONG_TYPE;
+import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.request.Attribute;
@@ -14,11 +18,14 @@ import com.yahoo.elide.core.type.Package;
 import com.yahoo.elide.core.type.ParameterizedModel;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
+import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
+import com.yahoo.elide.modelconfig.model.Dimension;
+import com.yahoo.elide.modelconfig.model.Grain;
 import com.yahoo.elide.modelconfig.model.Table;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -176,7 +183,7 @@ public class TableType implements Type {
         return null;
     }
 
-    private Map<Class<? extends Annotation>, Annotation> buildAnnotations(Table table) {
+    private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Table table) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
         annotations.put(Include.class, new Include() {
 
@@ -257,16 +264,94 @@ public class TableType implements Type {
         return annotations;
     }
 
+    private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Dimension dimension) {
+        Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
-    private Map<String, Field> buildFields(Table table) {
+        annotations.put(ColumnMeta.class, new ColumnMeta() {
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return ColumnMeta.class;
+            }
+
+            @Override
+            public String friendlyName() {
+                return dimension.getFriendlyName();
+            }
+
+            @Override
+            public String description() {
+                return dimension.getDescription();
+            }
+
+            @Override
+            public String category() {
+                return dimension.getCategory();
+            }
+
+            @Override
+            public String tableSource() {
+                return dimension.getTableSource();
+            }
+
+            @Override
+            public String[] tags() {
+                return dimension.getTags().toArray(new String[0]);
+            }
+
+            @Override
+            public String[] values() {
+                return dimension.getValues().toArray(new String[0]);
+            }
+
+            @Override
+            public CardinalitySize size() {
+                return CardinalitySize.valueOf(dimension.getCardinality());
+            }
+        });
+
+        annotations.put(DimensionFormula.class, new DimensionFormula() {
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return DimensionFormula.class;
+            }
+
+            @Override
+            public String value() {
+                return dimension.getDefinition();
+            }
+        });
+
+        String readPermission = dimension.getReadAccess();
+        if (readPermission != null && !readPermission.isEmpty()) {
+            annotations.put(ReadPermission.class, new ReadPermission() {
+
+                @Override
+                public Class<? extends Annotation> annotationType() {
+                    return ReadPermission.class;
+                }
+
+                @Override
+                public String expression() {
+                    return readPermission;
+                }
+            });
+        }
+
+        return annotations;
+    }
+
+    private static Map<String, Field> buildFields(Table table) {
         Map<String, Field> fields = new HashMap<>();
 
         table.getDimensions().forEach(dimension -> {
             fields.put(dimension.getName(), new Field() {
 
+                private Map<Class<? extends Annotation>, Annotation> annotations = buildAnnotations(dimension);
+
                 @Override
                 public Object get(Object obj) throws IllegalArgumentException, IllegalAccessException {
-                    if (! ParameterizedModel.class.isAssignableFrom(obj.getClass()) {
+                    if (! ParameterizedModel.class.isAssignableFrom(obj.getClass())) {
                         throw new IllegalArgumentException("Class is not a dynamic type: " + obj.getClass());
                     }
 
@@ -275,14 +360,12 @@ public class TableType implements Type {
                     return model.invoke(Attribute.builder()
                             .name(dimension.getName())
                             .alias(dimension.getName())
-                            .type()
                             .build());
-                    return null;
                 }
 
                 @Override
                 public Type<?> getType() {
-                    return null;
+                    return getFieldType(dimension.getType());
                 }
 
                 @Override
@@ -292,12 +375,12 @@ public class TableType implements Type {
 
                 @Override
                 public void set(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException {
-
+                    throw new UnsupportedOperationException();
                 }
 
                 @Override
                 public String getName() {
-                    return null;
+                    return dimension.getName();
                 }
 
                 @Override
@@ -334,5 +417,26 @@ public class TableType implements Type {
         });
 
         return fields;
+    }
+
+    private static Type getFieldType(com.yahoo.elide.modelconfig.model.Type inputType) {
+        switch (inputType) {
+            case TIME:
+                //TODO
+            case TEXT:
+                return STRING_TYPE;
+            case MONEY:
+                return BIGDECIMAL_TYPE;
+            case BOOLEAN:
+                return BOOLEAN_TYPE;
+            case DECIMAL:
+                return BIGDECIMAL_TYPE;
+            case INTEGER:
+                return LONG_TYPE;
+            case COORDINATE:
+                return STRING_TYPE;
+            default:
+                return STRING_TYPE;
+        }
     }
 }
