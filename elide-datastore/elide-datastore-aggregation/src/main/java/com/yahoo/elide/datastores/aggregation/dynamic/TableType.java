@@ -22,13 +22,13 @@ import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.modelconfig.model.Dimension;
-import com.yahoo.elide.modelconfig.model.Grain;
 import com.yahoo.elide.modelconfig.model.Table;
 
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import javax.persistence.Id;
 
 public class TableType implements Type {
     protected Table table;
@@ -417,6 +417,19 @@ public class TableType implements Type {
         });
 
         return fields;
+    }
+
+    private static Field buildIdField() {
+        Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
+        annotations.put(Id.class, new Id() {
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return Id.class;
+            }
+        });
+
+        return new FieldType("id", LONG_TYPE, annotations);
     }
 
     private static Type getFieldType(com.yahoo.elide.modelconfig.model.Type inputType) {
