@@ -46,17 +46,11 @@ public class TableType implements Type {
     protected Table table;
     private Map<Class<? extends Annotation>, Annotation> annotations;
     private Map<String, Field> fields;
-    private Map<String, Table> tableMap;
-
-    public TableType(Table table, Map<String, Table> tables) {
-        this.table = table;
-        this.annotations = buildAnnotations(table);
-        this.fields = buildFields(table, tables);
-        this.tableMap = tables;
-    }
 
     public TableType(Table table) {
-        this(table, new HashMap<>());
+        this.table = table;
+        this.annotations = buildAnnotations(table);
+        this.fields = buildFields(table);
     }
 
     @Override
@@ -203,6 +197,18 @@ public class TableType implements Type {
     @Override
     public Method getMethod(String name, Type[] parameterTypes) throws NoSuchMethodException {
         throw new NoSuchMethodException();
+    }
+
+    /**
+     * Must be called post construction of all the dynamic types to initialize table join fields..
+     * @param tableTypes A map of table name to type.
+     */
+    public void resolveJoins(Map<String, Type> tableTypes) {
+        table.getJoins().forEach(join -> {
+            Type joinTableType = tableTypes.get(join.getTo());
+            fields.put(join.getName(),
+                    new FieldType(join.getName(), joinTableType, buildAnnotations(join)));
+        });
     }
 
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Join join) {
@@ -511,7 +517,7 @@ public class TableType implements Type {
         return annotations;
     }
 
-    private static Map<String, Field> buildFields(Table table, Map<String, Table> tables) {
+    private static Map<String, Field> buildFields(Table table) {
         Map<String, Field> fields = new HashMap<>();
         fields.put("id", buildIdField());
 
@@ -523,12 +529,6 @@ public class TableType implements Type {
         table.getMeasures().forEach(measure -> {
             fields.put(measure.getName(),
                     new FieldType(measure.getName(), getFieldType(measure.getType()), buildAnnotations(measure)));
-        });
-
-        table.getJoins().forEach(join -> {
-            Table joinTable = tables.get(join.getTo());
-            fields.put(join.getName(),
-                    new FieldType(join.getName(), new TableType(joinTable, tables), buildAnnotations(join)));
         });
 
         return fields;

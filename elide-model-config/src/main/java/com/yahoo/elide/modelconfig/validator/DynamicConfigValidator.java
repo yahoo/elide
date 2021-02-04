@@ -523,7 +523,6 @@ public class DynamicConfigValidator {
 
     /**
      * Validate table configs.
-     * @param elideTableConfig ElideTableConfig
      * @return boolean true if all provided table properties passes validation
      */
     private boolean validateTableConfig() {
@@ -566,7 +565,7 @@ public class DynamicConfigValidator {
             return; // Nothing to validate
         }
 
-        Set<String> staticChecks = dictionary.getCheckMappings().keySet();
+        Set<String> staticChecks = dictionary.getCheckIdentifiers();
 
         List<String> undefinedChecks = checks
                         .stream()
@@ -734,7 +733,7 @@ public class DynamicConfigValidator {
      */
     private boolean validateSecurityConfig() {
         Set<String> alreadyDefinedRoles = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
-        alreadyDefinedRoles.addAll(dictionary.getCheckMappings().keySet());
+        alreadyDefinedRoles.addAll(dictionary.getCheckIdentifiers());
 
         elideSecurityConfig.getRoles().forEach(role -> {
             if (alreadyDefinedRoles.contains(role)) {

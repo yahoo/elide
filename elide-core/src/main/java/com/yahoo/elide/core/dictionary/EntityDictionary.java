@@ -25,6 +25,7 @@ import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
+import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.core.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.core.security.checks.prefab.Role;
@@ -57,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -94,6 +96,7 @@ public class EntityDictionary {
     protected final CopyOnWriteArrayList<Type<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
     protected final ConcurrentHashMap<Type<?>, List<Type<?>>> subclassingEntities = new ConcurrentHashMap<>();
     protected final BiMap<String, Class<? extends Check>> checkNames;
+    protected final Map<String, UserCheck> roleChecks;
 
     @Getter
     protected final Set<String> apiVersions;
@@ -117,6 +120,7 @@ public class EntityDictionary {
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks) {
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
+        this.roleChecks = new HashMap<>();
         this.apiVersions = new HashSet<>();
         this.serdeLookup = CoerceUtil::lookup;
         initializeChecks();
@@ -158,14 +162,21 @@ public class EntityDictionary {
                             Function<Class, Serde> serdeLookup) {
         this.serdeLookup = serdeLookup;
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
+        this.roleChecks = new HashMap<>();
         this.apiVersions = new HashSet<>();
         initializeChecks();
         this.injector = injector;
     }
 
     private void initializeChecks() {
-        addPrefabCheck("Prefab.Role.All", Role.ALL.class);
-        addPrefabCheck("Prefab.Role.None", Role.NONE.class);
+        UserCheck all = new Role.ALL();
+        UserCheck none = new Role.NONE();
+
+        addRoleCheck("Prefab.Role.All", all);
+        addRoleCheck("ALL", all);
+        addRoleCheck("Prefab.Role.None", none);
+        addRoleCheck("NONE", none);
+
         addPrefabCheck("Prefab.Collections.AppendOnly", AppendOnly.class);
         addPrefabCheck("Prefab.Collections.RemoveOnly", RemoveOnly.class);
     }
@@ -181,6 +192,32 @@ public class EntityDictionary {
 
     private static Package getParentPackage(Package pkg) {
         return pkg.getParentPackage();
+    }
+
+    /**
+     * Adds a user check for a given role to the dictionary.
+     * @param role The role associated with the check.
+     * @param check The instantiated check class.
+     */
+    public void addRoleCheck(String role, UserCheck check) {
+        roleChecks.put(role, check);
+    }
+
+    /**
+     * Returns an instantiated role check for the given role.
+     * @param role The role associated with the check.
+     * @return The user check associated with the role.
+     */
+    public UserCheck getRoleCheck(String role) {
+        return roleChecks.get(role);
+    }
+
+    /**
+     * Gets all the registered check identifiers.
+     * @return A set of check identifier strings.
+     */
+    public Set<String> getCheckIdentifiers() {
+        return Sets.union(roleChecks.keySet(), checkNames.keySet());
     }
 
     /**
@@ -376,10 +413,21 @@ public class EntityDictionary {
     public String getCheckIdentifier(Class<? extends Check> checkClass) {
         String identifier = checkNames.inverse().get(checkClass);
 
-        if (identifier == null) {
-            return checkClass.getName();
+        if (identifier != null) {
+            return identifier;
         }
-        return identifier;
+
+        if (UserCheck.class.isAssignableFrom(checkClass)) {
+            for (Map.Entry<String, UserCheck> entry : roleChecks.entrySet()) {
+                UserCheck check = entry.getValue();
+                String name = entry.getKey();
+                if (check.getClass().equals(checkClass)) {
+                    return name;
+                }
+            }
+        }
+
+        return checkClass.getName();
     }
 
     /**

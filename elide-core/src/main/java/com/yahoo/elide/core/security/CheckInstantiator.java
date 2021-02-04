@@ -9,6 +9,7 @@ package com.yahoo.elide.core.security;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.security.checks.UserCheck;
 
 import java.util.Objects;
 
@@ -26,6 +27,10 @@ public interface CheckInstantiator {
      *         a canonical identifier
      */
     default Check getCheck(EntityDictionary dictionary, String checkName) {
+        UserCheck roleCheck = dictionary.getRoleCheck(checkName);
+        if (roleCheck != null) {
+            return roleCheck;
+        }
         Class<? extends Check> checkCls = dictionary.getCheck(checkName);
         return instantiateCheck(checkCls, dictionary.getInjector());
     }
