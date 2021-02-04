@@ -20,18 +20,19 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
+import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
-import com.yahoo.elide.datastores.aggregation.timegrains.Time;
+import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
 import com.yahoo.elide.modelconfig.model.Dimension;
 import com.yahoo.elide.modelconfig.model.Grain;
+import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Table;
 
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.persistence.Id;
@@ -44,6 +45,7 @@ public class TableType implements Type {
     public TableType(Table table) {
         this.table = table;
         this.annotations = buildAnnotations(table);
+        this.fields = buildFields(table);
     }
 
     @Override
@@ -103,16 +105,19 @@ public class TableType implements Type {
 
     @Override
     public Field[] getFields() {
-        return new Field[0];
+        return fields.values().toArray(new Field[0]);
     }
 
     @Override
     public Field[] getDeclaredFields() {
-        return new Field[0];
+        return getFields();
     }
 
     @Override
     public Field getDeclaredField(String name) throws NoSuchFieldException {
+        if (fields.containsKey(name)) {
+            return fields.get(name);
+        }
         return null;
     }
 
@@ -186,7 +191,7 @@ public class TableType implements Type {
 
     @Override
     public Method getMethod(String name, Type[] parameterTypes) throws NoSuchMethodException {
-        return null;
+        throw new NoSuchMethodException();
     }
 
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Table table) {
@@ -267,6 +272,91 @@ public class TableType implements Type {
                 }
             });
         }
+        return annotations;
+    }
+
+    private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Measure measure) {
+        Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
+
+        annotations.put(ColumnMeta.class, new ColumnMeta() {
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return ColumnMeta.class;
+            }
+
+            @Override
+            public String friendlyName() {
+                return measure.getFriendlyName();
+            }
+
+            @Override
+            public String description() {
+                return measure.getDescription();
+            }
+
+            @Override
+            public String category() {
+                return measure.getCategory();
+            }
+
+            @Override
+            public String tableSource() {
+                return "";
+            }
+
+            @Override
+            public String[] tags() {
+                return measure.getTags().toArray(new String[0]);
+            }
+
+            @Override
+            public String[] values() {
+                return new String[0];
+            }
+
+            @Override
+            public CardinalitySize size() {
+                return CardinalitySize.UNKNOWN;
+            }
+        });
+
+        annotations.put(MetricFormula.class, new MetricFormula() {
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return MetricFormula.class;
+            }
+
+            @Override
+            public String value() {
+                return measure.getDefinition();
+            }
+
+            @Override
+            public Class<? extends QueryPlanResolver> queryPlan() {
+                try {
+                    return (Class<? extends QueryPlanResolver>) Class.forName(measure.getQueryPlanResolver());
+                } catch (ClassNotFoundException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+        });
+
+        String readPermission = measure.getReadAccess();
+        if (readPermission != null && !readPermission.isEmpty()) {
+            annotations.put(ReadPermission.class, new ReadPermission() {
+
+                @Override
+                public Class<? extends Annotation> annotationType() {
+                    return ReadPermission.class;
+                }
+
+                @Override
+                public String expression() {
+                    return readPermission;
+                }
+            });
+        }
+
         return annotations;
     }
 
@@ -395,6 +485,11 @@ public class TableType implements Type {
         table.getDimensions().forEach(dimension -> {
             fields.put(dimension.getName(),
                     new FieldType(dimension.getName(), getFieldType(dimension.getType()), buildAnnotations(dimension)));
+        });
+
+        table.getMeasures().forEach(measure -> {
+            fields.put(measure.getName(),
+                    new FieldType(measure.getName(), getFieldType(measure.getType()), buildAnnotations(measure)));
         });
 
         return fields;
