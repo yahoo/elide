@@ -13,38 +13,37 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class MonthSerdeTest {
-    private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM");
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
 
     @Test
     public void testDateSerialize() throws ParseException {
 
-        String expected = "2020-01";
-        Month expectedDate = new Month(formatter.parse(expected));
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
+        Month expectedDate = new Month(localDate);
         Serde serde = new Month.MonthSerde();
         Object actual = serde.serialize(expectedDate);
-        assertEquals(expected, actual);
+        assertEquals("2020-01", actual);
     }
 
     @Test
     public void testDateDeserialize() throws ParseException {
-
-        String dateInString = "2020-01";
-        Month expectedDate = new Month(formatter.parse(dateInString));
-        String actual = "2020-01";
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
+        Month expectedDate = new Month(localDate);
         Serde serde = new Month.MonthSerde();
-        Object actualDate = serde.deserialize(actual);
+        Object actualDate = serde.deserialize("2020-01");
         assertEquals(expectedDate, actualDate);
     }
 
     @Test
     public void testDeserializeTimestamp() throws ParseException {
-
-        String dateInString = "2020-01";
-        Month expectedDate = new Month(formatter.parse(dateInString));
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
+        Month expectedDate = new Month(localDate);
+        Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Month.MonthSerde();
         Object actualDate = serde.deserialize(timestamp);
         assertEquals(expectedDate, actualDate);
@@ -52,10 +51,9 @@ public class MonthSerdeTest {
 
     @Test
     public void testDeserializeDateInvalidFormat() throws ParseException {
-
         String dateInString = "January-2020";
         Serde serde = new Month.MonthSerde();
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(DateTimeParseException.class, () -> {
             serde.deserialize(dateInString);
         });
     }

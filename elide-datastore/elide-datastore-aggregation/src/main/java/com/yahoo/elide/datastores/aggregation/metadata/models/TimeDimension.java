@@ -8,11 +8,15 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 import javax.persistence.ManyToMany;
 
 /**
@@ -25,7 +29,7 @@ import javax.persistence.ManyToMany;
 public class TimeDimension extends Column {
     @ManyToMany
     @ToString.Exclude
-    TimeDimensionGrain supportedGrain;
+    LinkedHashSet<TimeDimensionGrain> supportedGrains;
 
     TimeZone timezone;
 
@@ -38,6 +42,16 @@ public class TimeDimension extends Column {
                 Temporal.class,
                 fieldName);
 
-        this.supportedGrain = new TimeDimensionGrain(getId(), temporal.grain());
+        if (temporal.grains().length == 0) {
+            this.supportedGrains = new LinkedHashSet<>(Arrays.asList(new TimeDimensionGrain(getId(), TimeGrain.DAY)));
+        } else {
+            this.supportedGrains = Arrays.stream(temporal.grains())
+                    .map(grain -> new TimeDimensionGrain(getId(), grain))
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+        }
+    }
+
+    public TimeDimensionGrain getDefaultGrain() {
+        return supportedGrains.iterator().next();
     }
 }

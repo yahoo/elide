@@ -231,7 +231,10 @@ public class MetaDataStore implements DataStore {
         addMetaData(column, version);
 
         if (column instanceof TimeDimension) {
-            addTimeDimensionGrain(((TimeDimension) column).getSupportedGrain(), version);
+            TimeDimension timeDimension = (TimeDimension) column;
+            for (TimeDimensionGrain grain : timeDimension.getSupportedGrains()) {
+                addTimeDimensionGrain(grain, version);
+            }
         } else if (column instanceof Metric) {
             addMetricFunction(((Metric) column).getMetricFunction(), version);
         }

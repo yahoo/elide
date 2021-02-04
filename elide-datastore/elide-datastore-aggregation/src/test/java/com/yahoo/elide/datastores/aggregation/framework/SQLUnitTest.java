@@ -19,6 +19,7 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.Type;
@@ -275,21 +276,25 @@ public abstract class SQLUnitTest {
                     .build();
         }),
         NESTED_METRIC_QUERY (() -> {
+            Map<String, Argument> arguments = new HashMap<>();
+            arguments.put("grain", Argument.builder().name("grain").value(TimeGrain.MONTH).build());
             // Sorting
             return Query.builder()
                     .source(playerStatsTable)
                     .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
                     .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
-                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
+                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate", arguments))
                     .build();
         }),
         NESTED_METRIC_WITH_HAVING_QUERY (() -> {
+            Map<String, Argument> arguments = new HashMap<>();
+            arguments.put("grain", Argument.builder().name("grain").value(TimeGrain.MONTH).build());
             // Sorting
             return Query.builder()
                     .source(playerStatsTable)
                     .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
                     .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
-                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
+                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate", arguments))
                     .havingFilter(new FilterPredicate(
                             new Path(PlayerStats.class, dictionary, "dailyAverageScorePerPeriod"),
                             Operator.GT,
@@ -297,22 +302,26 @@ public abstract class SQLUnitTest {
                     .build();
         }),
         NESTED_METRIC_WITH_WHERE_QUERY (() -> {
+            Map<String, Argument> arguments = new HashMap<>();
+            arguments.put("grain", Argument.builder().name("grain").value(TimeGrain.MONTH).build());
             // Sorting
             return Query.builder()
                     .source(playerStatsTable)
                     .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
                     .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
-                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
+                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate", arguments))
                     .whereFilter(parseFilterExpression("countryIsoCode==USA", playerStatsType, false))
                     .build();
         }),
         NESTED_METRIC_WITH_PAGINATION_QUERY (() -> {
+            Map<String, Argument> arguments = new HashMap<>();
+            arguments.put("grain", Argument.builder().name("grain").value(TimeGrain.MONTH).build());
             // Sorting
             return Query.builder()
                     .source(playerStatsTable)
                     .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
                     .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
-                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
+                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate", arguments))
                     .pagination(new ImmutablePagination(0, 1, false, true))
                     .build();
         }),
@@ -320,12 +329,15 @@ public abstract class SQLUnitTest {
             Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
             sortMap.put("overallRating", Sorting.SortOrder.desc);
             sortMap.put("dailyAverageScorePerPeriod", Sorting.SortOrder.desc);
+
+            Map<String, Argument> arguments = new HashMap<>();
+            arguments.put("grain", Argument.builder().name("grain").value(TimeGrain.MONTH).build());
             // Sorting
             return Query.builder()
                     .source(playerStatsTable)
                     .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
                     .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
-                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedMonth"))
+                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate", arguments))
                     .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                     .build();
         }),

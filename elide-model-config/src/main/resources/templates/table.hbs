@@ -21,6 +21,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import com.yahoo.elide.core.type.ParameterizedModel;
 
 import lombok.Data;
@@ -65,17 +66,17 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> extends P
     public void setId(String id) {
         this.id = id;
     }
-
 <%#each dimensions%>
-<%#ifTypeMatches type "TIME"%>
-    private com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%> <%name%>;
-<%else%>
+
+
     private <%#getJavaType type%><%/getJavaType%> <%name%>;
-<%/ifTypeMatches%>
+
 <%#ifTypeMatches type "TIME"%>
-<%#with grain%>
-    @Temporal(grain = @TimeGrainDefinition(<%#if type%>grain = TimeGrain.<%type%><%#if sql%>, <%/if%><%/if%><%#if sql%>expression = "<%sql%>"<%/if%>), timeZone = "UTC")
-<%/with%>
+    @Temporal(grains = {
+    <%#each grains%>
+            @TimeGrainDefinition(<%#if type%>grain = TimeGrain.<%type%><%#if sql%>, <%/if%><%/if%><%#if sql%>expression = "<%sql%>"<%/if%>)<%#if @last%><%else%>, <%/if%>
+    <%/each%>
+    }, timeZone = "UTC")
 <%/ifTypeMatches%>
     <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
     @ColumnMeta(
@@ -87,17 +88,9 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> extends P
         tags={<%#collectionToString tags%><%/collectionToString%>},
         tableSource="<%tableSource%>"
     )
-    <%#if hidden%>@Exclude<%/if%>
+<%#if hidden%>@Exclude<%/if%>
     @DimensionFormula("<%#trimColumnReferences definition%><%/trimColumnReferences%>")
-<%#ifTypeMatches type "TIME"%>
-    public com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
-        return <%name%>;
-    }
 
-    public void set<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(com.yahoo.elide.datastores.aggregation.timegrains.<%#getGrainType grain%><%/getGrainType%> <%name%>) {
-        this.<%name%> = <%name%>;
-    }
-<%else%>
     public <%#getJavaType type%><%/getJavaType%> get<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>() {
         return <%name%>;
     }
@@ -105,7 +98,6 @@ public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> extends P
     public void set<%#capitalizeFirstLetter name%> <%/capitalizeFirstLetter%>(<%#getJavaType type%><%/getJavaType%> <%name%>) {
         this.<%name%> = <%name%>;
     }
-<%/ifTypeMatches%>
 <%/each%>
 
 <%#each joins%>

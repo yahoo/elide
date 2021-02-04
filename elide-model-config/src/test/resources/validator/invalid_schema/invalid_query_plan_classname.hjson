@@ -51,13 +51,13 @@
            name : createdOn
            type : TIME
            definition : '{{create_on}}'
-           grain:
-            {
+           grains:
+            [{
              type : DAY
              sql :  '''
              PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
              '''
-            }
+            }]
          }
       ]
   }]

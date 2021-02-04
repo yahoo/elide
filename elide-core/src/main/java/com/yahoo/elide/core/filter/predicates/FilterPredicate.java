@@ -43,6 +43,7 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     @Getter @NonNull private List<Object> values;
     @Getter @NonNull private String field;
     @Getter @NonNull private String fieldPath;
+    @Getter @NonNull private Type fieldType;
 
     public static boolean toManyInPath(EntityDictionary dictionary, Path path) {
         return path.getPathElements().stream()
@@ -85,6 +86,9 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
         this.fieldPath = path.getPathElements().stream()
                 .map(PathElement::getFieldName)
                 .collect(Collectors.joining(PERIOD));
+        this.fieldType = path.lastElement()
+                .map(PathElement::getType)
+                .orElse(null);
     }
 
     /**

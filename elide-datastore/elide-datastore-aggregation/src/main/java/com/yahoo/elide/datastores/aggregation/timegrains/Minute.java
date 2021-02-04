@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Yahoo Inc.
+ * Copyright 2021, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -7,46 +7,43 @@ package com.yahoo.elide.datastores.aggregation.timegrains;
 
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 /**
  * Time Grain class for Minute.
  */
-public class Minute extends Timestamp {
+public class Minute extends Time {
 
     public static final String FORMAT = "yyyy-MM-dd'T'HH:mm";
-    private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
+    public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(FORMAT)
+            .withZone(ZoneOffset.systemDefault());
 
-    public Minute(java.util.Date date) {
-        super(date.getTime());
+    public Minute(Date date) {
+        super(date, true, true, true, true, true, false, getSerializer(TimeGrain.MINUTE));
+    }
+
+    public Minute(LocalDateTime date) {
+        super(date, true, true, true, true, true, false, getSerializer(TimeGrain.MINUTE));
     }
 
     @ElideTypeConverter(type = Minute.class, name = "Minute")
     static public class MinuteSerde implements Serde<Object, Minute> {
         @Override
         public Minute deserialize(Object val) {
-
-            Minute date = null;
-
-            try {
-                if (val instanceof String) {
-                    date = new Minute(new Timestamp(FORMATTER.parse((String) val).getTime()));
-                } else {
-                    date = new Minute(FORMATTER.parse(FORMATTER.format(val)));
-                }
-            } catch (ParseException e) {
-                throw new IllegalArgumentException("String must be formatted as " + FORMAT);
+            if (val instanceof Date) {
+                return new Minute((Date) val);
             }
-
-            return date;
+            return new Minute(LocalDateTime.parse(val.toString(), FORMATTER));
         }
 
         @Override
         public String serialize(Minute val) {
-            return FORMATTER.format(val);
+            return val.serializer.format(val);
         }
     }
 }
