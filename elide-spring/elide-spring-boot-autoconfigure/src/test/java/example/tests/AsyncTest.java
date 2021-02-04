@@ -13,6 +13,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,28 +32,19 @@ import javax.ws.rs.core.MediaType;
  * Basic functional tests to test Async service setup, JSONAPI and GRAPHQL endpoints.
  */
 @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
-@Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-        statements = "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
-                + "\t\t('com.example.repository','Example Repository','The code for this project', false);")
-@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-        statements = "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;"
-                + "DELETE FROM Stats; DELETE FROM PlayerStats;")
-@Sql(statements = {
-        "DROP TABLE Stats IF EXISTS;",
-        "CREATE TABLE Stats(id int, measure int, dimension VARCHAR(255));",
-        "INSERT INTO Stats (id, measure, dimension) VALUES\n"
-                + "\t\t(1,100,'Foo'),"
-                + "\t\t(2,150,'Bar');"
-})
-@Sql(statements = {
-        "DROP TABLE PlayerStats IF EXISTS;",
-        "CREATE TABLE PlayerStats(name VARCHAR(255), highScore int, countryId int, createdOn Date, updatedOn Date);",
-        "INSERT INTO PlayerStats (name, highScore, countryId, createdOn, updatedOn) VALUES\n"
-                + "\t\t('Sachin',100, 1, '2020-01-01', now());",
-        "DROP TABLE PlayerCountry IF EXISTS;",
-        "CREATE TABLE PlayerCountry(id int, isoCode VARCHAR(3));",
-        "INSERT INTO PlayerCountry (id, isoCode) VALUES\n"
-                + "\t\t(1, 'IND');"
+@Sql(
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+        scripts = "classpath:db/test_init.sql",
+        statements = {
+                "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
+                    + "\t\t('com.example.repository','Example Repository','The code for this project', false);",
+                "INSERT INTO Stats (id, measure, dimension) VALUES\n"
+                    + "\t\t(1,100,'Foo'),"
+                    + "\t\t(2,150,'Bar');",
+                "INSERT INTO PlayerStats (name, highScore, countryId, createdOn, updatedOn) VALUES\n"
+                    + "\t\t('Sachin',100, 1, '2020-01-01', now());",
+                "INSERT INTO PlayerCountry (id, isoCode) VALUES\n"
+                    + "\t\t(1, 'IND');"
 })
 public class AsyncTest extends IntegrationTest {
 
@@ -280,4 +272,11 @@ public class AsyncTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK);
     }
 */
+    @Test
+    public void exportControllerTest() {
+        when()
+                .get("/export/asyncQueryId")
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
+    }
 }

@@ -24,22 +24,15 @@ import org.springframework.test.context.jdbc.SqlMergeMode;
  * Dynamic Configuration functional test.
  */
 @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
-@Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-        statements = "DROP TABLE PlayerStats IF EXISTS;"
-                + "CREATE TABLE PlayerStats (name varchar(255) not null,"
-                + "\t\t countryId varchar(255), createdOn timestamp, updatedOn timestamp,"
-                + "\t\t highScore bigint, primary key (name));"
-                + "DROP TABLE PlayerCountry IF EXISTS;"
-                + "CREATE TABLE PlayerCountry (id varchar(255) not null,"
-                + "\t\t isoCode varchar(255), primary key (id));"
-                + "INSERT INTO PlayerStats (name,countryId,createdOn,updatedOn) VALUES\n"
-                + "\t\t('SerenaWilliams','1','2000-10-10','2001-10-10');"
-                + "INSERT INTO PlayerCountry (id,isoCode) VALUES\n"
-                + "\t\t('2','IND');"
-                + "INSERT INTO PlayerCountry (id,isoCode) VALUES\n"
-                + "\t\t('1','USA');")
-@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-statements = "DROP TABLE PlayerStats; DROP TABLE PlayerCountry;")
+@Sql(
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+        scripts = "classpath:db/test_init.sql",
+        statements = "INSERT INTO PlayerStats (name,countryId,createdOn,updatedOn) VALUES\n"
+            + "\t\t('SerenaWilliams','1','2000-10-10','2001-10-10');"
+            + "INSERT INTO PlayerCountry (id,isoCode) VALUES\n"
+            + "\t\t('2','IND');"
+            + "INSERT INTO PlayerCountry (id,isoCode) VALUES\n"
+            + "\t\t('1','USA');")
 public class DynamicConfigTest extends IntegrationTest {
     /**
      * This test demonstrates an example test using the JSON-API DSL.

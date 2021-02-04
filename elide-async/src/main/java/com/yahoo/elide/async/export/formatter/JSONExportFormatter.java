@@ -10,13 +10,10 @@ import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
-import com.yahoo.elide.jsonapi.JsonApiMapper;
-import com.yahoo.elide.jsonapi.models.Data;
-import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Resource;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,10 +28,10 @@ import java.util.Set;
 @Slf4j
 public class JSONExportFormatter implements TableExportFormatter {
     private static final String COMMA = ",";
-    private JsonApiMapper jsonMapper;
+    private ObjectMapper mapper;
 
     public JSONExportFormatter(Elide elide) {
-        this.jsonMapper = elide.getMapper();
+        this.mapper = elide.getMapper().getObjectMapper();
     }
 
     @Override
@@ -49,28 +46,20 @@ public class JSONExportFormatter implements TableExportFormatter {
             str.append(COMMA);
         }
 
-        str.append(resourceToJSON(jsonMapper, resource));
+        str.append(resourceToJSON(mapper, resource));
         return str.toString();
     }
 
-    public static String resourceToJSON(JsonApiMapper jsonMapper, PersistentResource resource) {
+    public static String resourceToJSON(ObjectMapper mapper, PersistentResource resource) {
         if (resource == null || resource.getObject() == null) {
             return null;
         }
 
         StringBuilder str = new StringBuilder();
         try {
-            JsonApiDocument jsonApiDocument = new JsonApiDocument();
-            //TODO Make this a document processor
-            Data<Resource> data = resource == null ? null
-                    : new Data<>(resource.toResource(getRelationships(resource), getAttributes(resource)));
-            jsonApiDocument.setData(data);
+            Resource jsonResource = resource.toResource(getRelationships(resource), getAttributes(resource));
 
-            // jsonApiDcocument translates to
-            // {"data": {"type": <name>, "id": <id>, "attributes": {"attr1": <value>, <attr2>: value ... }}}
-            // So extracting only attributes from it.
-            JsonNode node = jsonMapper.toJsonObject(jsonApiDocument).get("data").get("attributes");
-            str.append(jsonMapper.writeJsonApiDocument(node));
+            str.append(mapper.writeValueAsString(jsonResource.getAttributes()));
         } catch (JsonProcessingException e) {
             log.error("Exception when converting to JSON {}", e.getMessage());
             throw new IllegalStateException(e);

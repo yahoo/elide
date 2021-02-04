@@ -23,13 +23,15 @@ import io.reactivex.Observable;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.HttpServletResponse;
 
 /**
  * Spring rest controller for Elide Export.
+ * When enabled it is highly recommended to
+ * configure explicitly the TaskExecutor used in Spring MVC for executing
+ * asynchronous requests using StreamingResponseBody. Refer
+ * {@link org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody}.
  */
 @Slf4j
 @Configuration
@@ -46,58 +48,61 @@ public class ExportController {
         this.resultStorageEngine = resultStorageEngine;
     }
 
+    /**
+     * Single entry point for export requests.
+     * @param asyncQueryId Id of results to download
+     * @param response HttpServletResponse instance
+     * @return ResponseEntity
+     */
     @GetMapping(path = "/{asyncQueryId}")
-    public Callable<ResponseEntity<StreamingResponseBody>> export(@PathVariable String asyncQueryId,
-            HttpServletResponse response) throws IOException {
+    public ResponseEntity<StreamingResponseBody> export(@PathVariable String asyncQueryId,
+            HttpServletResponse response) {
 
-        return () -> {
-            Observable<String> observableResults = resultStorageEngine.getResultsByID(asyncQueryId);
-            AtomicInteger recordCount = new AtomicInteger(0);
-
-            StreamingResponseBody streamingOutput = outputStream -> {
-                observableResults
-                    .map(record -> record)
-                    .subscribe(
-                        resultString -> {
-                            outputStream.write(resultString.concat(System.getProperty("line.separator")).getBytes());
-                            recordCount.getAndIncrement();
-                        },
-                        error -> {
-                            if (recordCount.get() != 0) {
-                                // Add error message in the attachment as a way to signal errors.
-                                // Attachment download has already started.
-                                // sendError can not be called,
-                                // as it will result in "Cannot call sendError() after the response has been committed".
-                                // This will return 200 status.
-                                outputStream.write(
-                                        "Error Occured...."
-                                        .concat(System.getProperty("line.separator"))
-                                        .getBytes()
-                                );
-                                outputStream.flush();
-                                outputStream.close();
-                                return;
-                            }
-
-                            String message = error.getMessage();
+        Observable<String> observableResults = resultStorageEngine.getResultsByID(asyncQueryId);
+        StreamingResponseBody streamingOutput = outputStream -> {
+            observableResults
+            .map(record -> record)
+            .subscribe(
+                    resultString -> {
+                        outputStream.write(resultString.concat(System.getProperty("line.separator")).getBytes());
+                    },
+                    error -> {
+                        String message = error.getMessage();
+                        try {
+                            log.debug(message);
                             if (message != null && message.equals(ResultStorageEngine.RETRIEVE_ERROR)) {
-                                response.sendError(HttpStatus.NOT_FOUND.value());
+                                response.sendError(HttpStatus.NOT_FOUND.value(), asyncQueryId + "not found");
                             } else {
                                 response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value());
                             }
-                        },
-                        () -> {
+                        } catch (IOException | IllegalStateException e) {
+                            // If stream was flushed, Attachment download has already started.
+                            // response.sendError causes java.lang.IllegalStateException:
+                            // Cannot call sendError() after the response has been committed.
+                            // This will return 200 status.
+                            // Add error message in the attachment as a way to signal errors.
+                            outputStream.write(
+                                    "Error Occured...."
+                                    .concat(System.getProperty("line.separator"))
+                                    .getBytes()
+                            );
+                            log.debug(e.getMessage());
+                        } finally {
                             outputStream.flush();
                             outputStream.close();
                         }
+                    },
+                    () -> {
+                        outputStream.flush();
+                        outputStream.close();
+                    }
                     );
-            };
-
-           return ResponseEntity
-                    .ok()
-                    .header("Content-Disposition", "attachment; filename=" + asyncQueryId)
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .body(streamingOutput);
         };
+
+        return ResponseEntity
+                .ok()
+                .header("Content-Disposition", "attachment; filename=" + asyncQueryId)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(streamingOutput);
     }
 }

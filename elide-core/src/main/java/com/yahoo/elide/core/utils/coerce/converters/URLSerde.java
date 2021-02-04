@@ -3,11 +3,9 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.async.models;
+package com.yahoo.elide.core.utils.coerce.converters;
 
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
-import com.yahoo.elide.core.utils.coerce.converters.Serde;
 
 import java.net.MalformedURLException;
 import java.net.URL;

@@ -48,11 +48,12 @@ import javax.ws.rs.core.MediaType;
  * Example functional test.
  */
 @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
-@Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+@Sql(
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+        scripts = "classpath:db/test_init.sql",
         statements = "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
-                + "\t\t('com.example.repository','Example Repository','The code for this project', false);")
-@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-        statements = "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;")
+            + "\t\t('com.example.repository','Example Repository','The code for this project', false);"
+)
 @Import(IntegrationTestSetup.class)
 @TestPropertySource(
         properties = {
@@ -469,10 +470,11 @@ public class ControllerTest extends IntegrationTest {
 
     // Controller disabled by default.
     @Test
-    public void exportControllerTest() {
+    public void exportControllerDisabledTest() {
         when()
                 .get("/export/asyncQueryId")
                 .then()
+                .body("error", equalTo("Not Found"))
                 .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 }

@@ -866,6 +866,7 @@ public class EntityDictionary {
 
         String type = getEntityName(declaredClass);
         String version = getModelVersion(declaredClass);
+
         bindJsonApiToEntity.put(Pair.of(type, version), declaredClass);
         apiVersions.add(version);
         entityBindings.put(declaredClass, new EntityBinding(this, declaredClass,

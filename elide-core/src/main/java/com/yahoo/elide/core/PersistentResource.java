@@ -1370,7 +1370,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      *
      * @return Relationship mapping
      */
-    public Map<String, Relationship> getRelationships() {
+    protected Map<String, Relationship> getRelationships() {
         return getRelationshipsWithRelationshipFunction((relationName) -> {
             Optional<FilterExpression> filterExpression = requestScope.getExpressionForRelation(getResourceType(),
                     relationName);
