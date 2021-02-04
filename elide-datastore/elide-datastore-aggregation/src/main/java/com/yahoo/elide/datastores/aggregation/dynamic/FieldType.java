@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.dynamic;
 
+import static java.lang.reflect.Modifier.PUBLIC;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.ParameterizedModel;
@@ -14,6 +15,9 @@ import java.lang.annotation.Annotation;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * A dynamic Elide model field that wraps a deserialized HJSON measure or dimension.
+ */
 public class FieldType implements Field {
     private Map<Class<? extends Annotation>, Annotation> annotations;
     private String name;
@@ -94,6 +98,6 @@ public class FieldType implements Field {
 
     @Override
     public int getModifiers() {
-        return 0;
+        return PUBLIC;
     }
 }
