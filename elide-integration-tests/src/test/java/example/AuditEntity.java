@@ -22,10 +22,10 @@ import javax.persistence.OneToOne;
         logStatement = "Created with value: {0}",
         logExpressions = {"${auditEntity.value}"})
 @Include
-@ReadPermission(expression = "allow all")
-@CreatePermission(expression = "allow all")
-@DeletePermission(expression = "allow all")
-@UpdatePermission(expression = "allow all")
+@ReadPermission(expression = "Prefab.Role.All")
+@CreatePermission(expression = "Prefab.Role.All")
+@DeletePermission(expression = "Prefab.Role.All")
+@UpdatePermission(expression = "Prefab.Role.All")
 public class AuditEntity extends BaseId {
     private AuditEntity otherEntity;
     private String value;

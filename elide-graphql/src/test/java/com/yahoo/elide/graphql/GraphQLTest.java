@@ -28,7 +28,7 @@ public abstract class GraphQLTest {
 
     public GraphQLTest() {
         Map<String, Class<? extends Check>> checks = new HashMap<>();
-        checks.put("allow all", com.yahoo.elide.core.security.checks.prefab.Role.ALL.class);
+        checks.put("Prefab.Role.All", com.yahoo.elide.core.security.checks.prefab.Role.ALL.class);
 
         dictionary = new EntityDictionary(checks);
 

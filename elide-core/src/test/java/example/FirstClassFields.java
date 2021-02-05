@@ -32,10 +32,10 @@ public class FirstClassFields {
     public Left private2;
 
     // Public vars
-    @ReadPermission(expression = "allow all")
+    @ReadPermission(expression = "Prefab.Role.All")
     public String public1;
 
-    @ReadPermission(expression = "allow all")
+    @ReadPermission(expression = "Prefab.Role.All")
     @OneToOne
     public Left public2;
 }

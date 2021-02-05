@@ -17,12 +17,12 @@ import javax.persistence.ManyToOne;
  */
 @Include
 @Entity
-@CreatePermission(expression = "allow all")
+@CreatePermission(expression = "Prefab.Role.All")
 public class CreateButNoReadChild extends BaseId {
     private CreateButNoRead otherObject;
 
     @ManyToOne()
-    @ReadPermission(expression = "allow all")
+    @ReadPermission(expression = "Prefab.Role.All")
     public CreateButNoRead getOtherObject() {
         return otherObject;
     }
