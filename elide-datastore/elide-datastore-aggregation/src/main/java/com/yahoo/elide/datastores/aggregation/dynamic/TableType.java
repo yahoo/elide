@@ -564,6 +564,10 @@ public class TableType implements Type<DynamicModelInstance> {
 
                             @Override
                             public String expression() {
+                                String sql = grain.getSql();
+                                if (sql == null || sql.isEmpty()) {
+                                    return "{{}}";
+                                }
                                 return grain.getSql();
                             }
                         };

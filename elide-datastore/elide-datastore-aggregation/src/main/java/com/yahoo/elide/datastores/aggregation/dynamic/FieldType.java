@@ -45,7 +45,7 @@ public class FieldType implements Field {
                     .alias(name)
                     .build());
         } catch (InvalidParameterizedAttributeException e) {
-
+            return null;
         }
     }
 
@@ -111,9 +111,5 @@ public class FieldType implements Field {
     @Override
     public int getModifiers() {
         return PUBLIC;
-    }
-
-    public static Object getDefaultValue(FieldType field) {
-
     }
 }
