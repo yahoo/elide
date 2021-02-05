@@ -34,6 +34,7 @@ import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Table;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -42,7 +43,7 @@ import javax.persistence.Id;
 /**
  * A dynamic Elide model that wraps a deserialized HJSON table.
  */
-public class TableType implements Type {
+public class TableType<T> implements Type<T> {
     protected Table table;
     private Map<Class<? extends Annotation>, Annotation> annotations;
     private Map<String, Field> fields;
@@ -142,8 +143,8 @@ public class TableType implements Type {
     }
 
     @Override
-    public Object newInstance() throws InstantiationException, IllegalAccessException {
-        return new DynamicModelInstance(this);
+    public T newInstance() throws InstantiationException, IllegalAccessException {
+        return (T) new DynamicModelInstance(this);
     }
 
     @Override
@@ -152,12 +153,12 @@ public class TableType implements Type {
     }
 
     @Override
-    public Object[] getEnumConstants() {
-        return new Object[0];
+    public T[] getEnumConstants() {
+        return null;
     }
 
     @Override
-    public Optional<Class> getUnderlyingClass() {
+    public Optional<Class<T>> getUnderlyingClass() {
         return Optional.empty();
     }
 
@@ -185,13 +186,13 @@ public class TableType implements Type {
     }
 
     @Override
-    public Annotation[] getAnnotationsByType(Class annotationClass) {
+    public <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationClass) {
         if (annotations.containsKey(annotationClass)) {
-            Annotation [] result = new Annotation[1];
-            result[0] = annotations.get(annotationClass);
+            A[] result = (A[]) Array.newInstance(annotationClass, 1);
+            result[0] = (A) annotations.get(annotationClass);
             return result;
         }
-        return new Annotation[0];
+        return (A[]) Array.newInstance(annotationClass, 0);
     }
 
     @Override

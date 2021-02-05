@@ -5,21 +5,20 @@
  */
 package com.yahoo.elide.datastores.aggregation.framework;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.core.Slf4jQueryLogger;
+import com.yahoo.elide.datastores.aggregation.dynamic.TableType;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
-import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
+import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import org.hibernate.Session;
 import lombok.AllArgsConstructor;
 
@@ -28,6 +27,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -37,7 +37,7 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
     private EntityManagerFactory entityManagerFactory;
     private ConnectionDetails defaultConnectionDetails;
     private Map<String, ConnectionDetails> connectionDetailsMap;
-    private ElideDynamicEntityCompiler compiler;
+    private DynamicConfigValidator validator;
 
     public AggregationDataStoreTestHarness(EntityManagerFactory entityManagerFactory, DataSource defaultDataSource) {
         this(entityManagerFactory, new ConnectionDetails(defaultDataSource, SQLDialectFactory.getDefaultDialect()));
@@ -54,16 +54,15 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
         AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder();
 
         MetaDataStore metaDataStore;
-        if (compiler != null) {
-            try {
-                metaDataStore = new MetaDataStore(compiler, true);
-                Set<Class<?>> annotatedClasses = new HashSet<>();
-                annotatedClasses.addAll(compiler.findAnnotatedClasses(FromTable.class));
-                annotatedClasses.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
-                aggregationDataStoreBuilder.dynamicCompiledClasses(getClassType(annotatedClasses));
-            } catch (ClassNotFoundException e) {
-                throw new IllegalStateException(e);
-            }
+        if (validator != null) {
+            Set<Type<?>> dynamicTypes = new HashSet<>();
+            validator.getElideTableConfig().getTables().forEach(table ->{
+                dynamicTypes.add(new TableType(table));
+            });
+
+            metaDataStore = new MetaDataStore(new HashSet<>(dynamicTypes), true);
+
+            aggregationDataStoreBuilder.dynamicCompiledClasses(new HashSet<>(dynamicTypes));
         } else {
             metaDataStore = new MetaDataStore(true);
         }

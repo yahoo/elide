@@ -12,6 +12,7 @@ import com.yahoo.elide.core.type.ParameterizedModel;
 import com.yahoo.elide.core.type.Type;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.util.Map;
 import java.util.Optional;
 
@@ -79,11 +80,11 @@ public class FieldType implements Field {
     @Override
     public <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass) {
         if (annotations.containsKey(annotationClass)) {
-            Annotation[] result = new Annotation[1];
-            result[0] = annotations.get(annotationClass);
-            return (T[]) result;
+            T[] result = (T[]) Array.newInstance(annotationClass, 1);
+            result[0] = (T) annotations.get(annotationClass);
+            return result;
         }
-        return null;
+        return (T[]) Array.newInstance(annotationClass, 0);
     }
 
     @Override
