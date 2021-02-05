@@ -16,10 +16,10 @@ import javax.persistence.Entity;
 /**
  * Post test bean.
  */
-@CreatePermission(expression = "allow all")
-@ReadPermission(expression = "allow all")
-@UpdatePermission(expression = "allow all OR Prefab.Role.None")
-@DeletePermission(expression = "allow all OR Prefab.Role.None")
+@CreatePermission(expression = "Prefab.Role.All")
+@ReadPermission(expression = "Prefab.Role.All")
+@UpdatePermission(expression = "Prefab.Role.All OR Prefab.Role.None")
+@DeletePermission(expression = "Prefab.Role.All OR Prefab.Role.None")
 @Include(type = "post") // optional here because class has this name
 // Hibernate
 @Entity

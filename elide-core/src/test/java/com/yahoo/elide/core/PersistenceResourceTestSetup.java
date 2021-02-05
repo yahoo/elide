@@ -185,10 +185,10 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     /* ChangeSpec-specific test elements */
     @Entity
     @Include(rootLevel = false)
-    @CreatePermission(expression = "allow all")
-    @ReadPermission(expression = "allow all")
+    @CreatePermission(expression = "Prefab.Role.All")
+    @ReadPermission(expression = "Prefab.Role.All")
     @UpdatePermission(expression = "Prefab.Role.None")
-    @DeletePermission(expression = "allow all")
+    @DeletePermission(expression = "Prefab.Role.All")
     public static final class ChangeSpecModel {
         @Id
         public long id;
@@ -220,10 +220,10 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     @Include(rootLevel = false)
     @EqualsAndHashCode
     @AllArgsConstructor
-    @CreatePermission(expression = "allow all")
-    @ReadPermission(expression = "allow all")
-    @UpdatePermission(expression = "allow all")
-    @DeletePermission(expression = "allow all")
+    @CreatePermission(expression = "Prefab.Role.All")
+    @ReadPermission(expression = "Prefab.Role.All")
+    @UpdatePermission(expression = "Prefab.Role.All")
+    @DeletePermission(expression = "Prefab.Role.All")
     public static final class ChangeSpecChild {
         @Id
         public long id;
