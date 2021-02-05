@@ -262,7 +262,7 @@ public class PermissionExecutorTest {
             @Id
             public Long id;
 
-            @UpdatePermission(expression = "allow all AND FailOp")
+            @UpdatePermission(expression = "Prefab.Role.All AND FailOp")
             public String field = "some data";
         }
 
@@ -297,12 +297,12 @@ public class PermissionExecutorTest {
     public void testFailAllSpecificFieldAwareSuccessOperationFailCommit() {
         @Entity
         @Include(rootLevel = false)
-        @UpdatePermission(expression = "allow all")
+        @UpdatePermission(expression = "Prefab.Role.All")
         class Model {
             @Id
             public Long id;
 
-            @UpdatePermission(expression = "allow all AND FailOp")
+            @UpdatePermission(expression = "Prefab.Role.All AND FailOp")
             public String field = "some data";
         }
 
@@ -494,14 +494,14 @@ public class PermissionExecutorTest {
         @Id
         public Long id;
 
-        @ReadPermission(expression = "allow all AND sampleOperation")
-        @UpdatePermission(expression = "allow all AND sampleOperation")
+        @ReadPermission(expression = "Prefab.Role.All AND sampleOperation")
+        @UpdatePermission(expression = "Prefab.Role.All AND sampleOperation")
         public String allVisible = "You should see me!";
 
         public String defaultHidden = "I'm invisible. muwahaha...";
 
-        @ReadPermission(expression = "allow all AND Prefab.Role.None")
-        @UpdatePermission(expression = "allow all AND Prefab.Role.None")
+        @ReadPermission(expression = "Prefab.Role.All AND Prefab.Role.None")
+        @UpdatePermission(expression = "Prefab.Role.All AND Prefab.Role.None")
         public String cannotSeeMe = "hidden";
 
         @ReadPermission(expression = "sampleOperation")
@@ -509,8 +509,8 @@ public class PermissionExecutorTest {
         public String mayFailInCommit = "aw :(";
     }
 
-    @ReadPermission(expression = "allow all")
-    @UpdatePermission(expression = "allow all")
+    @ReadPermission(expression = "Prefab.Role.All")
+    @UpdatePermission(expression = "Prefab.Role.All")
     @Include(rootLevel = false)
     @Entity
     public static final class OpenBean {
@@ -519,8 +519,8 @@ public class PermissionExecutorTest {
 
         public String open;
 
-        @ReadPermission(expression = "allow all AND sampleOperation")
-        @UpdatePermission(expression = "allow all AND sampleOperation")
+        @ReadPermission(expression = "Prefab.Role.All AND sampleOperation")
+        @UpdatePermission(expression = "Prefab.Role.All AND sampleOperation")
         public String openAll = "all";
 
         @ReadPermission(expression = "Prefab.Role.None OR sampleOperation")
