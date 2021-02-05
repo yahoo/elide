@@ -139,11 +139,13 @@ public class ClassType<T> implements Type<T> {
 
     @Override
     public boolean isAssignableFrom(Type other) {
-        if (other instanceof Dynamic) {
+        Optional<Class<?>> clazz = other.getUnderlyingClass();
+
+        if (! clazz.isPresent()) {
             return false;
         }
 
-        return cls.isAssignableFrom(((ClassType) other).getCls());
+        return cls.isAssignableFrom(clazz.get());
     }
 
     @Override
