@@ -436,12 +436,8 @@ public class EntityBinding {
         if (!isHidden) {
             attributesDeque.push(fieldName);
         }
-        try {
-            fieldsToValues.put(fieldName, fieldOrMethod);
-            fieldsToTypes.put(fieldName, fieldType);
-        } catch (NullPointerException e) {
-            throw e;
-        }
+        fieldsToValues.put(fieldName, fieldOrMethod);
+        fieldsToTypes.put(fieldName, fieldType);
     }
 
     /**

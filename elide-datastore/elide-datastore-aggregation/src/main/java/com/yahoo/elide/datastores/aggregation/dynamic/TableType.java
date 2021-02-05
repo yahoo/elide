@@ -39,6 +39,7 @@ import com.yahoo.elide.modelconfig.model.Table;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -210,7 +211,7 @@ public class TableType implements Type<DynamicModelInstance> {
     }
 
     /**
-     * Must be called post construction of all the dynamic types to initialize table join fields..
+     * Must be called post construction of all the dynamic types to initialize table join fields.
      * @param tableTypes A map of table name to type.
      */
     public void resolveJoins(Map<String, Type<?>> tableTypes) {
@@ -346,7 +347,7 @@ public class TableType implements Type<DynamicModelInstance> {
                 if (table.getCardinality() == null || table.getCardinality().isEmpty()) {
                     return CardinalitySize.UNKNOWN;
                 }
-                return CardinalitySize.valueOf(table.getCardinality().toUpperCase());
+                return CardinalitySize.valueOf(table.getCardinality().toUpperCase(Locale.ENGLISH));
             }
         });
 
@@ -501,7 +502,7 @@ public class TableType implements Type<DynamicModelInstance> {
                 if (dimension.getCardinality() == null || dimension.getCardinality().isEmpty()) {
                     return CardinalitySize.UNKNOWN;
                 }
-                return CardinalitySize.valueOf(dimension.getCardinality().toUpperCase());
+                return CardinalitySize.valueOf(dimension.getCardinality().toUpperCase(Locale.ENGLISH));
             }
         });
 
@@ -641,7 +642,7 @@ public class TableType implements Type<DynamicModelInstance> {
      * @param str eg: {{ playerCountry.id}} = {{country_id}}
      * @return String without whitespace around column references eg: {{playerCountry.id}} = {{country_id}}
      */
-    public static String trimColumnReferences(String str) {
+    private static String trimColumnReferences(String str) {
         String expr = replaceNewlineWithSpace(str);
         Matcher matcher = REFERENCE_PARENTHESES.matcher(expr);
         while (matcher.find()) {

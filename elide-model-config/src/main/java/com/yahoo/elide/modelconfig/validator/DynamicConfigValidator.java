@@ -13,10 +13,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SecurityCheck;
-import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.EntityPermissions;
-import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.modelconfig.Config;
 import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
@@ -60,7 +58,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -196,21 +193,6 @@ public class DynamicConfigValidator {
         populateInheritance(this.elideTableConfig);
         validateTableConfig();
         validateJoinedTablesDBConnectionName(this.elideTableConfig);
-    }
-
-    public Map<String, Type<?>> getTableTypes(Function<Table, Type<?>> typeCompiler) {
-        Map<String, Type<?>> typeMap = dictionary.getBindings().stream()
-                .map(EntityBinding::getEntityClass)
-                .collect(Collectors.toMap(
-                        (type) -> dictionary.getJsonAliasFor(type),
-                        (type) -> type,
-                        (a, b) -> a));  //Ignore conflicts for testing.  This shouldn't happen in production.
-
-        elideTableConfig.getTables().stream().forEach(table -> {
-            typeMap.put(table.getName(), typeCompiler.apply(table));
-        });
-
-        return typeMap;
     }
 
     public void hydrateAndCompileModelConfigs(ElideDynamicInMemoryCompiler compiler) throws Exception {

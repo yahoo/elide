@@ -21,7 +21,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.when;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.audit.TestAuditLogger;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.dictionary.EntityDictionary;

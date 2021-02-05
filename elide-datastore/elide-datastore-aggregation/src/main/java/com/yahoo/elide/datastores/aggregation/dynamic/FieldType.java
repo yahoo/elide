@@ -45,6 +45,8 @@ public class FieldType implements Field {
                     .alias(name)
                     .build());
         } catch (InvalidParameterizedAttributeException e) {
+
+            //Return default value if the field has not been set.
             return null;
         }
     }

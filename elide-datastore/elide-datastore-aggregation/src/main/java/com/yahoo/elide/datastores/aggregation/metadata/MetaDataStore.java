@@ -15,7 +15,6 @@ import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
-import com.yahoo.elide.core.type.Dynamic;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
@@ -88,6 +87,7 @@ public class MetaDataStore implements DataStore {
         Set<String> joinNames = new HashSet<>();
         Set<Type<?>> dynamicTypes = new HashSet<>();
 
+        //Convert tables into types.
         tables.stream().forEach(table -> {
             TableType tableType = new TableType(table);
             dynamicTypes.add(tableType);
@@ -97,12 +97,14 @@ public class MetaDataStore implements DataStore {
             });
         });
 
+        //Built a list of static types referenced from joins in the dynamic types.
         metadataDictionary.getBindings().stream()
                 .filter(binding -> joinNames.contains(binding.getJsonApiType()))
                 .forEach(staticType -> {
                     typeMap.put(staticType.getJsonApiType(), staticType.getEntityClass());
                 });
 
+        //Resolve the join fields & bind the dynamic types.
         dynamicTypes.stream().forEach(table -> {
             ((TableType) table).resolveJoins(typeMap);
             String version = EntityDictionary.getModelVersion(table);
