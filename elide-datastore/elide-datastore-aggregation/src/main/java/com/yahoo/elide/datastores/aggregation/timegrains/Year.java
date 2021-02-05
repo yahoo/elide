@@ -7,47 +7,46 @@ package com.yahoo.elide.datastores.aggregation.timegrains;
 
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 
-import java.sql.Date;
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 /**
  * Time Grain class for Year.
  */
-public class Year extends Date {
+public class Year extends Time {
 
     public static final String FORMAT = "yyyy";
-    private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
+    public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(FORMAT)
+            .withZone(ZoneOffset.systemDefault());
 
-    public Year(java.util.Date date) {
-        super(date.getTime());
+    public Year(Date date) {
+        super(date, true, false, false, false, false, false, getSerializer(TimeGrain.YEAR));
+    }
+
+    public Year(LocalDateTime date) {
+        super(date, true, false, false, false, false, false, getSerializer(TimeGrain.YEAR));
     }
 
     @ElideTypeConverter(type = Year.class, name = "Year")
     static public class YearSerde implements Serde<Object, Year> {
         @Override
         public Year deserialize(Object val) {
-
-            Year date = null;
-
-            try {
-                if (val instanceof String) {
-                    date = new Year(new Timestamp(FORMATTER.parse((String) val).getTime()));
-                } else {
-                    date = new Year(FORMATTER.parse(FORMATTER.format(val)));
-                }
-            } catch (ParseException e) {
-                throw new IllegalArgumentException("String must be formatted as " + FORMAT);
+            if (val instanceof Date) {
+                return new Year((Date) val);
             }
-
-            return date;
+            java.time.Year year = java.time.Year.parse(val.toString(), FORMATTER);
+            LocalDateTime localDateTime = LocalDateTime.of(year.getValue(), Month.of(1), 1, 0, 0);
+            return new Year(localDateTime);
         }
 
         @Override
         public String serialize(Year val) {
-            return FORMATTER.format(val);
+            return val.serializer.format(val);
         }
     }
 }

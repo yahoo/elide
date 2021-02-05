@@ -76,36 +76,21 @@
           // Physical Column Reference in same table
           definition: '{{created_on}}'
           readAccess: guest user
-          grain:
-          {
-            type: SECOND
-            // sql: '{{}}' OR
-            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd HH:mm:ss'), 'yyyy-MM-dd HH:mm:ss')
-          }
-        }
-        {
-          name: orderDate
-          type: TIME
-          // Logical Column Reference in same table, which references Physical column in same table
-          definition: '{{orderTime}}'
-          readAccess: guest user
-          grain:
-          {
-            type: DAY
-            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
-          }
-        }
-        {
-          name: orderMonth
-          type: TIME
-          // Logical Column Reference in same table, which references another Logical column in same table, which references Physical column in same table
-          definition: '{{orderDate}}'
-          readAccess: guest user
-          grain:
-          {
-            type: MONTH
-            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
-          }
+          grains:
+          [
+            {
+              type: MONTH
+              sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
+            },
+            {
+              type: SECOND
+              sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd HH:mm:ss'), 'yyyy-MM-dd HH:mm:ss')
+            },
+            {
+              type: DAY
+              sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+            }
+          ]
         }
         {
           name: deliveryTime
@@ -113,10 +98,10 @@
           // Physical Column Reference in referred table
           definition: '{{delivery.delivered_on}}'
           readAccess: guest user
-          grain:
-          {
+          grains:
+          [{
             type: SECOND
-          }
+          }]
         }
         {
           name: deliveryDate
@@ -124,10 +109,10 @@
           // Logical Column Reference in referred table, which references Physical column in referred table
           definition: '{{delivery.time}}'
           readAccess: guest user
-          grain:
-          {
+          grains:
+          [{
             sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
-          }
+          }]
         }
         {
           name: deliveryMonth
@@ -135,11 +120,11 @@
           // Logical Column Reference in referred table, which references another Logical column in referred table, which references another Logical column in referred table, which references Physical column in referred table
           definition: '{{delivery.month}}'
           readAccess: guest user
-          grain:
-          {
+          grains:
+          [{
             type: MONTH
             sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
-          }
+          }]
         }
         {
           name: deliveryHour
@@ -147,11 +132,11 @@
           // Logical Column Reference in same table, which references Physical column in referred table
           definition: '{{deliveryTime}}'
           readAccess: guest user
-          grain:
-          {
+          grains:
+          [{
             type: HOUR
             sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd HH'), 'yyyy-MM-dd HH')
-          }
+          }]
         }
         {
           name: deliveryYear
@@ -159,11 +144,11 @@
           // Logical Column Reference in same table, which references another Logical Column in referred table, which references another Logical column in referred table, which references another Logical column in referred table, which references Physical column in referred table
           definition: '{{deliveryMonth}}'
           readAccess: guest user
-          grain:
-          {
+          grains:
+          [{
             type: YEAR
             sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy'), 'yyyy')
-          }
+          }]
         }
         {
           name: deliveryDefault
@@ -237,33 +222,33 @@
           type: TIME
           definition: '{{delivered_on}}'
           readAccess: guest user
-          grain:
-          {
+          grains:
+          [{
             type: SECOND
             sql: '{{}}'
-          }
+          }]
         }
         {
           name: date
           type: TIME
           definition: '{{time}}'
           readAccess: guest user
-          grain:
-          {
+          grains:
+          [{
             type: DAY
             sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
-          }
+          }]
         }
         {
           name: month
           type: TIME
           definition: '{{date}}'
           readAccess: guest user
-          grain:
-          {
+          grains:
+          [{
             type: MONTH
             sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
-          }
+          }]
         }
       ]
     }

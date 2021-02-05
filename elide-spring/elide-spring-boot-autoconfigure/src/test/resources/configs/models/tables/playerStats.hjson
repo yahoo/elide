@@ -39,25 +39,25 @@
                 name : createdOn
                 type : TIME
                 definition : '{{createdOn}}'
-                grain:
-                {
+                grains:
+                [{
                     type : DAY
                     sql : '''
                     PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
                     '''
-                }
+                }]
             },
             {
                 name : updatedOn
                 type : TIME
                 definition : '{{updatedOn}}'
-                grain:
-                {
+                grains:
+                [{
                     type : MONTH
                     sql : '''
                     PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
                     '''
-                }
+                }]
             }
         ]
     }]
