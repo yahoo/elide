@@ -71,6 +71,7 @@ public class EntityBinding {
 
     @Getter
     public final Type<?> entityClass;
+    @Getter
     public final String jsonApiType;
     @Getter
     public boolean idGenerated;
@@ -435,8 +436,12 @@ public class EntityBinding {
         if (!isHidden) {
             attributesDeque.push(fieldName);
         }
-        fieldsToValues.put(fieldName, fieldOrMethod);
-        fieldsToTypes.put(fieldName, fieldType);
+        try {
+            fieldsToValues.put(fieldName, fieldOrMethod);
+            fieldsToTypes.put(fieldName, fieldType);
+        } catch (NullPointerException e) {
+            throw e;
+        }
     }
 
     /**

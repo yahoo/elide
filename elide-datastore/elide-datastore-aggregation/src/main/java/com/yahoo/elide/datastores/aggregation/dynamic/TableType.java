@@ -26,7 +26,10 @@ import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
+import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanResolver;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.modelconfig.model.Dimension;
 import com.yahoo.elide.modelconfig.model.Grain;
 import com.yahoo.elide.modelconfig.model.Join;
@@ -38,12 +41,18 @@ import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.persistence.Id;
 
 /**
  * A dynamic Elide model that wraps a deserialized HJSON table.
  */
-public class TableType<T> implements Type<T> {
+public class TableType implements Type<DynamicModelInstance> {
+    public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
+    private static final String SPACE = " ";
+    public static final String NEWLINE = System.getProperty("line.separator");
+
     protected Table table;
     private Map<Class<? extends Annotation>, Annotation> annotations;
     private Map<String, Field> fields;
@@ -66,7 +75,7 @@ public class TableType<T> implements Type<T> {
 
     @Override
     public String getName() {
-        return getName();
+        return table.getName();
     }
 
     @Override
@@ -143,8 +152,8 @@ public class TableType<T> implements Type<T> {
     }
 
     @Override
-    public T newInstance() throws InstantiationException, IllegalAccessException {
-        return (T) new DynamicModelInstance(this);
+    public DynamicModelInstance newInstance() throws InstantiationException, IllegalAccessException {
+        return new DynamicModelInstance(this);
     }
 
     @Override
@@ -153,12 +162,12 @@ public class TableType<T> implements Type<T> {
     }
 
     @Override
-    public T[] getEnumConstants() {
+    public DynamicModelInstance[] getEnumConstants() {
         return null;
     }
 
     @Override
-    public Optional<Class<T>> getUnderlyingClass() {
+    public Optional<Class<DynamicModelInstance>> getUnderlyingClass() {
         return Optional.empty();
     }
 
@@ -204,7 +213,7 @@ public class TableType<T> implements Type<T> {
      * Must be called post construction of all the dynamic types to initialize table join fields..
      * @param tableTypes A map of table name to type.
      */
-    public void resolveJoins(Map<String, Type> tableTypes) {
+    public void resolveJoins(Map<String, Type<?>> tableTypes) {
         table.getJoins().forEach(join -> {
             Type joinTableType = tableTypes.get(join.getTo());
             fields.put(join.getName(),
@@ -223,11 +232,14 @@ public class TableType<T> implements Type<T> {
 
                     @Override
                     public String value() {
-                        return join.getDefinition();
+                        return trimColumnReferences(join.getDefinition());
                     }
 
                     @Override
                     public JoinType type() {
+                        if (join.getType() == null) {
+                            return JoinType.LEFT;
+                        }
                         return JoinType.valueOf(join.getType().name());
                     }
                 });
@@ -253,6 +265,44 @@ public class TableType<T> implements Type<T> {
                 return table.getName();
             }
         });
+
+        if (table.getSql() != null && !table.getSql().isEmpty()) {
+            annotations.put(FromSubquery.class, new FromSubquery() {
+
+                @Override
+                public Class<? extends Annotation> annotationType() {
+                    return FromSubquery.class;
+                }
+
+                @Override
+                public String sql() {
+                    return table.getSql();
+                }
+
+                @Override
+                public String dbConnectionName() {
+                    return table.getDbConnectionName();
+                }
+            });
+        } else {
+            annotations.put(FromTable.class, new FromTable() {
+
+                @Override
+                public Class<? extends Annotation> annotationType() {
+                    return FromTable.class;
+                }
+
+                @Override
+                public String name() {
+                    return table.getTable();
+                }
+
+                @Override
+                public String dbConnectionName() {
+                    return table.getDbConnectionName();
+                }
+            });
+        }
 
         annotations.put(TableMeta.class, new TableMeta() {
 
@@ -293,7 +343,10 @@ public class TableType<T> implements Type<T> {
 
             @Override
             public CardinalitySize size() {
-                return CardinalitySize.valueOf(table.getCardinality());
+                if (table.getCardinality() == null || table.getCardinality().isEmpty()) {
+                    return CardinalitySize.UNKNOWN;
+                }
+                return CardinalitySize.valueOf(table.getCardinality().toUpperCase());
             }
         });
 
@@ -368,11 +421,15 @@ public class TableType<T> implements Type<T> {
 
             @Override
             public String value() {
-                return measure.getDefinition();
+                return trimColumnReferences(measure.getDefinition());
             }
 
             @Override
             public Class<? extends QueryPlanResolver> queryPlan() {
+                if (measure.getQueryPlanResolver() == null || measure.getQueryPlanResolver().isEmpty()) {
+                    return DefaultQueryPlanResolver.class;
+                }
+
                 try {
                     return (Class<? extends QueryPlanResolver>) Class.forName(measure.getQueryPlanResolver());
                 } catch (ClassNotFoundException e) {
@@ -426,7 +483,7 @@ public class TableType<T> implements Type<T> {
 
             @Override
             public String tableSource() {
-                return dimension.getTableSource();
+                return dimension.getTableSource() == null ? "" : dimension.getTableSource();
             }
 
             @Override
@@ -441,7 +498,10 @@ public class TableType<T> implements Type<T> {
 
             @Override
             public CardinalitySize size() {
-                return CardinalitySize.valueOf(dimension.getCardinality());
+                if (dimension.getCardinality() == null || dimension.getCardinality().isEmpty()) {
+                    return CardinalitySize.UNKNOWN;
+                }
+                return CardinalitySize.valueOf(dimension.getCardinality().toUpperCase());
             }
         });
 
@@ -454,7 +514,7 @@ public class TableType<T> implements Type<T> {
 
             @Override
             public String value() {
-                return dimension.getDefinition();
+                return trimColumnReferences(dimension.getDefinition());
             }
         });
 
@@ -496,6 +556,9 @@ public class TableType<T> implements Type<T> {
 
                             @Override
                             public TimeGrain grain() {
+                                if (grain.getType() == null) {
+                                    return TimeGrain.DAY;
+                                }
                                 return TimeGrain.valueOf(grain.getType().name());
                             }
 
@@ -567,5 +630,24 @@ public class TableType<T> implements Type<T> {
             default:
                 return STRING_TYPE;
         }
+    }
+
+    /**
+     * Removes whitespace around column references.
+     * @param str eg: {{ playerCountry.id}} = {{country_id}}
+     * @return String without whitespace around column references eg: {{playerCountry.id}} = {{country_id}}
+     */
+    public static String trimColumnReferences(String str) {
+        String expr = replaceNewlineWithSpace(str);
+        Matcher matcher = REFERENCE_PARENTHESES.matcher(expr);
+        while (matcher.find()) {
+            String reference = matcher.group(1);
+            expr = expr.replace(reference, reference.trim());
+        }
+        return expr;
+    }
+
+    private static String replaceNewlineWithSpace(String str) {
+        return (str == null) ? str : str.replace(NEWLINE, SPACE);
     }
 }

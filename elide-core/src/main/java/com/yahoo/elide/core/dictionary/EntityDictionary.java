@@ -275,7 +275,11 @@ public class EntityDictionary {
         }
 
         //Will throw an exception if entityClass is not an entity.
-        lookupEntityClass(entityClass);
+        try {
+            lookupEntityClass(entityClass);
+        } catch (IllegalArgumentException e) {
+            throw e;
+        }
         return EMPTY_BINDING;
     }
 

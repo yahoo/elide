@@ -7,10 +7,8 @@ package com.yahoo.elide.datastores.aggregation.framework;
 
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.core.Slf4jQueryLogger;
-import com.yahoo.elide.datastores.aggregation.dynamic.TableType;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
@@ -23,11 +21,8 @@ import org.hibernate.Session;
 import lombok.AllArgsConstructor;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -55,14 +50,9 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
 
         MetaDataStore metaDataStore;
         if (validator != null) {
-            Set<Type<?>> dynamicTypes = new HashSet<>();
-            validator.getElideTableConfig().getTables().forEach(table ->{
-                dynamicTypes.add(new TableType(table));
-            });
+           metaDataStore = new MetaDataStore(validator.getElideTableConfig().getTables(), true);
 
-            metaDataStore = new MetaDataStore(new HashSet<>(dynamicTypes), true);
-
-            aggregationDataStoreBuilder.dynamicCompiledClasses(new HashSet<>(dynamicTypes));
+           aggregationDataStoreBuilder.dynamicCompiledClasses(metaDataStore.getDynamicTypes());
         } else {
             metaDataStore = new MetaDataStore(true);
         }

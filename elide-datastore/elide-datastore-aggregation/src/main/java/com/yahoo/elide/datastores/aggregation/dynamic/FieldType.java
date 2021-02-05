@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.dynamic;
 
 import static java.lang.reflect.Modifier.PUBLIC;
+import com.yahoo.elide.core.exceptions.InvalidParameterizedAttributeException;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.ParameterizedModel;
@@ -37,11 +38,15 @@ public class FieldType implements Field {
 
         ParameterizedModel model = (ParameterizedModel) obj;
 
-        return model.invoke(Attribute.builder()
-                .name(name)
-                .type(type)
-                .alias(name)
-                .build());
+        try {
+            return model.invoke(Attribute.builder()
+                    .name(name)
+                    .type(type)
+                    .alias(name)
+                    .build());
+        } catch (InvalidParameterizedAttributeException e) {
+
+        }
     }
 
     @Override
@@ -56,7 +61,13 @@ public class FieldType implements Field {
 
     @Override
     public void set(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException {
-        throw new UnsupportedOperationException();
+        if (! ParameterizedModel.class.isAssignableFrom(obj.getClass())) {
+            throw new IllegalArgumentException("Class is not a dynamic type: " + obj.getClass());
+        }
+
+        ParameterizedModel model = (ParameterizedModel) obj;
+
+        model.addAttributeValue(Attribute.builder().name(name).type(type).alias(name).build(), value);
     }
 
     @Override
@@ -100,5 +111,9 @@ public class FieldType implements Field {
     @Override
     public int getModifiers() {
         return PUBLIC;
+    }
+
+    public static Object getDefaultValue(FieldType field) {
+
     }
 }
