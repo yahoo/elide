@@ -24,11 +24,6 @@ public class ExportControllerProperties extends ControllerProperties {
     private String path = "/export";
 
     /**
-     *  Maximum Download Run time before TIMEOUT.
-     */
-    private int maxDownloadRunTimeSeconds = 60;
-
-    /**
      * Storage engine destination .
      */
     private String storageDestination = "/tmp";
