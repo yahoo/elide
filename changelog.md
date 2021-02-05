@@ -1,5 +1,10 @@
 # Change Log
 
+## 4.7.0
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/ec8e6602cc1a8183079f18ae98ed753625690e65) Removing jetty from spring boot starter (#1805) 
+   * [view commit](https://github.com/yahoo/elide/commit/eccbdbc87e7bba04c02d3865fbf605daf1d724c6) Upgrading ant on elide-4.x for CVE (#1813) 
+
 ## 4.6.11
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/9ada9013455397b64ce113d9129cbfa67e941467) Adding request query parameters to patch extension request scope (#1782) 
