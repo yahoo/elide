@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
+import static com.yahoo.elide.datastores.aggregation.query.ColumnProjection.createSQLAlias;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -53,8 +54,8 @@ public class EntityHyrdatorTest extends SQLUnitTest {
         ResultSetMetaData resultSetMetaData = mock(ResultSetMetaData.class);
         when(resultSet.next()).thenAnswer(RESULTSET_NEXT);
         when(resultSet.getObject("highScore")).thenReturn(1234);
-        when(resultSet.getObject("byDay")).thenReturn(new Date(1612390856));
-        when(resultSet.getObject("byMonth")).thenReturn(new Date(1612390856));
+        when(resultSet.getObject(createSQLAlias("recordedDate", "byDay"))).thenReturn(new Date(1612390856));
+        when(resultSet.getObject(createSQLAlias("recordedDate", "byMonth"))).thenReturn(new Date(1612390856));
         when(resultSet.getMetaData()).thenReturn(resultSetMetaData);
         when(resultSetMetaData.getColumnCount()).thenReturn(3);
 

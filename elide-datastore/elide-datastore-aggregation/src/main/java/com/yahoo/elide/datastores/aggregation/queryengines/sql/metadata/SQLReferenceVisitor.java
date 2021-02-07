@@ -69,7 +69,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
 
         //This is a nested query.  Don't do table lookups.
         } else {
-            return getFieldAlias(applyQuotes(tableAliases.peek()), applyQuotes(dimension.getName()));
+            return getFieldAlias(applyQuotes(tableAliases.peek()), applyQuotes(dimension.getSQLAlias()));
         }
     }
 
