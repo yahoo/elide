@@ -20,10 +20,12 @@ import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
+import com.yahoo.elide.async.resources.ExportApiEndpoint.ExportApiProperties;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
 import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
+import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -151,8 +153,19 @@ public class ElideResourceConfig extends ResourceConfig {
                     }
                     bind(asyncAPIDao).to(AsyncAPIDAO.class);
 
-                    // TODO: If null, initialize with FileResultStorageEngine
                     ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
+                    if (resultStorageEngine == null) {
+                        resultStorageEngine = new FileResultStorageEngine(asyncProperties.getStorageDestination());
+                    }
+                    bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
+
+                    if (asyncProperties.enableExport()) {
+                        ExportApiProperties exportApiProperties = new ExportApiProperties(
+                                asyncProperties.getExportAsyncResponseExecutor(),
+                                asyncProperties.getExportAsyncResponseTimeoutSeconds());
+                        bind(exportApiProperties).to(ExportApiProperties.class).named("exportApiProperties");
+                    }
+
                     AsyncExecutorService.init(elide, asyncProperties.getThreadSize(), asyncAPIDao,
                             resultStorageEngine);
                     bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);

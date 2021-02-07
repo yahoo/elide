@@ -70,7 +70,8 @@ public class ElideStandaloneTest {
                         .withBaseUrl("https://elide.io")
                         .withAuditLogger(getAuditLogger())
                         .withJsonApiPath(getJsonApiPathSpec().replaceAll("/\\*", ""))
-                        .withGraphQLApiPath(getGraphQLApiPathSpec().replaceAll("/\\*", ""));
+                        .withGraphQLApiPath(getGraphQLApiPathSpec().replaceAll("/\\*", ""))
+                        .withDownloadApiPath(getAsyncProperties().getExportApiPathSpec().replaceAll("/\\*", ""));
 
                 if (enableISO8601Dates()) {
                     builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
@@ -146,6 +147,11 @@ public class ElideStandaloneTest {
                     @Override
                     public Integer getQueryCleanupDays() {
                         return 3;
+                    }
+
+                    @Override
+                    public boolean enableExport() {
+                        return false;
                     }
                 };
                 return asyncPropeties;
@@ -405,5 +411,25 @@ public class ElideStandaloneTest {
                 fail("Async Query not completed.");
             }
         }
+    }
+
+    // Resource disabled by default.
+    @Test
+    public void exportResourceDisabledTest() throws InterruptedException {
+        // elide-standalone returns different error message when export resource is not initialized
+        // vs when it could not find a matching id to export.
+        // Jetty seems to have a different behavior than spring-framework for non-existent resources.
+        // Post call to a non-existent resource returns 405 in jetty, spring-framework returns 404.
+        // Spring-framework behaved similar to Jetty,
+        // but was changed with https://github.com/spring-projects/spring-boot/issues/4876.
+        int queryId = 1;
+        String output = when()
+                .get("/export/" + queryId)
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND)
+                .extract().body().asString();
+
+        assertEquals(true, output.contains(" Not Found"));
+        assertEquals(false, output.contains(queryId + " Not Found"));
     }
 }

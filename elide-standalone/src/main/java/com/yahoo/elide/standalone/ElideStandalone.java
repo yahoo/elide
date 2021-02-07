@@ -97,6 +97,14 @@ public class ElideStandalone {
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
         }
 
+        if (elideStandaloneSettings.getAsyncProperties().enableExport()) {
+            ServletHolder jerseyServlet = context.addServlet(ServletContainer.class,
+                    elideStandaloneSettings.getAsyncProperties().getExportApiPathSpec());
+            jerseyServlet.setInitOrder(0);
+            jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.async.resources");
+            jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
+        }
+
         if (elideStandaloneSettings.enableServiceMonitoring()) {
             FilterHolder instrumentedFilterHolder = new FilterHolder(InstrumentedFilter.class);
             instrumentedFilterHolder.setName("instrumentedFilter");
