@@ -84,7 +84,7 @@ public class CSVExportFormatterTest {
         resourceAttributes.put("createdOn", queryObj.getCreatedOn());
 
         Resource resource = new Resource("tableExport", "0", resourceAttributes, null, null, null);
-        //Resource(type=stats, id=0, attributes={dimension=Bar, measure=150}, relationships=null, links=null, meta=null)
+
         PersistentResource persistentResource = mock(PersistentResource.class);
         when(persistentResource.getObject()).thenReturn(queryObj);
         when(persistentResource.getRequestScope()).thenReturn(scope);
@@ -93,6 +93,56 @@ public class CSVExportFormatterTest {
 
         String output = formatter.format(persistentResource, 1);
         assertEquals(true, output.contains(row));
+    }
+
+    @Test
+    public void testNullResourceToCSV() {
+        CSVExportFormatter formatter = new CSVExportFormatter(elide, false);
+        PersistentResource persistentResource = null;
+
+        String output = formatter.format(persistentResource, 1);
+        assertEquals(null, output);
+    }
+
+    @Test
+    public void testNullProjectionHeader() {
+        CSVExportFormatter formatter = new CSVExportFormatter(elide, false);
+
+        TableExport queryObj = new TableExport();
+
+        // Prepare EntityProjection
+        EntityProjection projection = null;
+
+        String output = formatter.preFormat(projection, queryObj);
+        assertEquals(null, output);
+    }
+
+    @Test
+    public void testProjectionWithEmptyAttributeSetHeader() {
+        CSVExportFormatter formatter = new CSVExportFormatter(elide, false);
+
+        TableExport queryObj = new TableExport();
+
+        // Prepare EntityProjection
+        Set<Attribute> attributes = new LinkedHashSet<Attribute>();
+        EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
+
+        String output = formatter.preFormat(projection, queryObj);
+        assertEquals("", output);
+    }
+
+    @Test
+    public void testProjectionWithNullAttributesHeader() {
+        CSVExportFormatter formatter = new CSVExportFormatter(elide, false);
+
+        TableExport queryObj = new TableExport();
+
+        // Prepare EntityProjection
+        Set<Attribute> attributes = null;
+        EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
+
+        String output = formatter.preFormat(projection, queryObj);
+        assertEquals(null, output);
     }
 
     @Test

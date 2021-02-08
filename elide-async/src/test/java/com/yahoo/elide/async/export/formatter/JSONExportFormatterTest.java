@@ -58,7 +58,7 @@ public class JSONExportFormatterTest {
     }
 
     @Test
-    public void testResourceToJSON() {
+    public void testFormat() {
         JSONExportFormatter formatter = new JSONExportFormatter(elide);
         TableExport queryObj = new TableExport();
         String query = "{ tableExport { edges { node { query queryType createdOn} } } }";
@@ -92,5 +92,45 @@ public class JSONExportFormatterTest {
 
         String output = formatter.format(persistentResource, 1);
         assertEquals(true, output.contains(start));
+    }
+
+    @Test
+    public void testResourceToJSON() {
+        JSONExportFormatter formatter = new JSONExportFormatter(elide);
+        TableExport queryObj = new TableExport();
+        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
+        queryObj.setId(id);
+
+        String start = "{\"query\":\"{ tableExport { edges { node { query queryType} } } }\","
+                + "\"queryType\":\"GRAPHQL_V1_0\"}";
+
+        // Prepare EntityProjection
+        Set<Attribute> attributes = new LinkedHashSet<Attribute>();
+        attributes.add(Attribute.builder().type(TableExport.class).name("query").alias("query").build());
+        attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
+        EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
+
+        Map<String, Object> resourceAttributes = new LinkedHashMap<>();
+        resourceAttributes.put("query", "{ tableExport { edges { node { query queryType} } } }");
+        resourceAttributes.put("queryType", QueryType.GRAPHQL_V1_0);
+
+        Resource resource = new Resource("tableExport", "0", resourceAttributes, null, null, null);
+        PersistentResource persistentResource = mock(PersistentResource.class);
+        when(persistentResource.getObject()).thenReturn(queryObj);
+        when(persistentResource.getRequestScope()).thenReturn(scope);
+        when(persistentResource.toResource(any(), any())).thenReturn(resource);
+        when(scope.getEntityProjection()).thenReturn(projection);
+
+        String output = formatter.resourceToJSON(elide.getMapper().getObjectMapper(), persistentResource);
+        assertEquals(true, output.contains(start));
+    }
+
+    @Test
+    public void testNullResourceToJSON() {
+        JSONExportFormatter formatter = new JSONExportFormatter(elide);
+        PersistentResource persistentResource = null;
+
+        String output = formatter.format(persistentResource, 1);
+        assertEquals(null, output);
     }
 }

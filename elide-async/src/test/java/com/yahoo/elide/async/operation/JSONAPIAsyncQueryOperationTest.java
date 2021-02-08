@@ -6,6 +6,7 @@
 package com.yahoo.elide.async.operation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -58,5 +59,36 @@ public class JSONAPIAsyncQueryOperationTest {
         assertEquals(responseBody, queryResultObj.getResponseBody());
         assertEquals(200, queryResultObj.getHttpStatus());
         assertEquals(3, queryResultObj.getRecordCount());
+    }
+
+    @Test
+    public void testProcessQueryNullResponse() throws URISyntaxException {
+        AsyncQuery queryObj = new AsyncQuery();
+        ElideResponse response = null;
+        String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
+        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.JSONAPI_V1_0);
+
+        when(elide.get(any(), any(), any(), any(), any(), any())).thenReturn(response);
+        JSONAPIAsyncQueryOperation jsonOperation = new JSONAPIAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
+        assertThrows(IllegalStateException.class, () -> jsonOperation.call());
+    }
+
+    @Test
+    public void testProcessQueryInvalidResponse() throws URISyntaxException {
+        AsyncQuery queryObj = new AsyncQuery();
+        String responseBody = "ResponseBody";
+        ElideResponse response = new ElideResponse(200, responseBody);
+        String query = "/group?sort=commonName&fields%5Bgroup%5D=commonName,description";
+        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.JSONAPI_V1_0);
+
+        when(elide.get(any(), any(), any(), any(), any(), any())).thenReturn(response);
+        JSONAPIAsyncQueryOperation jsonOperation = new JSONAPIAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
+        assertThrows(IllegalStateException.class, () -> jsonOperation.call());
     }
 }

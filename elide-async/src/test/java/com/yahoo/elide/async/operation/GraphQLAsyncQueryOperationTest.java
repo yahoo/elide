@@ -6,6 +6,7 @@
 package com.yahoo.elide.async.operation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -16,6 +17,7 @@ import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.QueryRunner;
 
@@ -86,5 +88,48 @@ public class GraphQLAsyncQueryOperationTest {
         assertEquals(responseBody, queryResultObj.getResponseBody());
         assertEquals(200, queryResultObj.getHttpStatus());
         assertEquals(0, queryResultObj.getRecordCount());
+    }
+
+    @Test
+    public void testProcessQueryGraphQlNullResponse() throws URISyntaxException {
+        AsyncQuery queryObj = new AsyncQuery();
+        ElideResponse response = null;
+        String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
+        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
+
+        when(runner.run(any(), any(), any(), any())).thenReturn(response);
+        GraphQLAsyncQueryOperation graphQLOperation = new GraphQLAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
+        assertThrows(IllegalStateException.class, () -> graphQLOperation.call());
+    }
+
+    @Test
+    public void testProcessQueryGraphQlRunnerException() throws URISyntaxException {
+        AsyncQuery queryObj = new AsyncQuery();
+        String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
+        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
+
+        when(runner.run(any(), any(), any(), any())).thenThrow(RuntimeException.class);
+        GraphQLAsyncQueryOperation graphQLOperation = new GraphQLAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
+        assertThrows(RuntimeException.class, () -> graphQLOperation.call());
+    }
+
+    @Test
+    public void testProcessQueryGraphQlApiVersionNotSupported() throws URISyntaxException {
+        AsyncQuery queryObj = new AsyncQuery();
+        String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
+        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
+
+        when(requestScope.getApiVersion()).thenReturn("v2");
+        GraphQLAsyncQueryOperation graphQLOperation = new GraphQLAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
+        assertThrows(InvalidOperationException.class, () -> graphQLOperation.call());
     }
 }
