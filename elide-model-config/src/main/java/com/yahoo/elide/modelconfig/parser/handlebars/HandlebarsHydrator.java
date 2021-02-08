@@ -5,22 +5,16 @@
  */
 package com.yahoo.elide.modelconfig.parser.handlebars;
 
-import com.yahoo.elide.modelconfig.StaticModelsDetails;
-import com.yahoo.elide.modelconfig.model.ElideSecurityConfig;
-import com.yahoo.elide.modelconfig.model.ElideTableConfig;
-import com.yahoo.elide.modelconfig.model.Table;
 import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.EscapingStrategy.Hbs;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Template;
 import com.github.jknack.handlebars.helper.AssignHelper;
-import com.github.jknack.handlebars.helper.ConditionalHelpers;
 import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -28,7 +22,6 @@ import java.util.Map;
  */
 public class HandlebarsHydrator {
 
-    public static final String SECURITY_CLASS_PREFIX = "DynamicConfigOperationChecks";
     public static final String HANDLEBAR_START_DELIMITER = "<%";
     public static final String HANDLEBAR_END_DELIMITER = "%>";
     public static final EscapingStrategy MY_ESCAPING_STRATEGY = new Hbs(new String[][]{
@@ -38,33 +31,11 @@ public class HandlebarsHydrator {
     });
 
     private final Handlebars handlebars;
-    private final HandlebarsHelper helper;
 
-    public HandlebarsHydrator(StaticModelsDetails staticModelDetails) {
+    public HandlebarsHydrator() {
         TemplateLoader loader = new ClassPathTemplateLoader("/templates");
-        this.helper = new HandlebarsHelper(staticModelDetails);
         this.handlebars = new Handlebars(loader).with(MY_ESCAPING_STRATEGY);
-        this.handlebars.registerHelpers(ConditionalHelpers.class);
         this.handlebars.registerHelper(AssignHelper.NAME, AssignHelper.INSTANCE);
-        this.handlebars.registerHelpers(helper);
-    }
-
-    /**
-     * Method to hydrate the Table template.
-     * @param table ElideTable object
-     * @return map with key as table java class name and value as table java class definition
-     * @throws IOException IOException
-     */
-    public Map<String, String> hydrateTableTemplate(ElideTableConfig table) throws IOException {
-
-        Map<String, String> tableClasses = new HashMap<>();
-
-        Template template = handlebars.compile("table", HANDLEBAR_START_DELIMITER, HANDLEBAR_END_DELIMITER);
-        for (Table t : table.getTables()) {
-            tableClasses.put(helper.capitalizeFirstLetter(t.getName()), template.apply(t));
-        }
-
-        return tableClasses;
     }
 
     /**
@@ -80,28 +51,5 @@ public class HandlebarsHydrator {
         Template template = handlebars.compileInline(config, HANDLEBAR_START_DELIMITER, HANDLEBAR_END_DELIMITER);
 
         return template.apply(context);
-    }
-
-    /**
-     * Method to hydrate the Security template.
-     * @param security ElideSecurity Object
-     * @return security java class string
-     * @throws IOException IOException
-     */
-    public Map<String, String> hydrateSecurityTemplate(ElideSecurityConfig security) throws IOException {
-
-        Map<String, String> securityClasses = new HashMap<>();
-
-        if (security == null) {
-            return securityClasses;
-        }
-
-        Template template = handlebars.compile("security", HANDLEBAR_START_DELIMITER, HANDLEBAR_END_DELIMITER);
-        for (String role : security.getRoles()) {
-            securityClasses.put(SECURITY_CLASS_PREFIX + helper.createSecurityIdentifier(role, false),
-                            template.apply(role));
-        }
-
-        return securityClasses;
     }
 }

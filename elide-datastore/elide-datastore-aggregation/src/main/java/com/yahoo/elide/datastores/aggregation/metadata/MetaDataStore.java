@@ -30,7 +30,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
 import org.hibernate.annotations.Subselect;
 import lombok.Getter;
 
@@ -141,27 +140,6 @@ public class MetaDataStore implements DataStore {
         return modelsToBind.stream()
                 .filter(type -> type instanceof TableType)
                 .collect(Collectors.toSet());
-    }
-
-    public MetaDataStore(ElideDynamicEntityCompiler compiler,
-            boolean enableMetaDataStore) throws ClassNotFoundException {
-        this(enableMetaDataStore);
-
-        //TODO add Entity Annotation classes when supported by dynamic config.
-        Set<Class<?>> dynamicCompiledClasses = compiler.findAnnotatedClasses(FromTable.class);
-        dynamicCompiledClasses.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
-
-        if (dynamicCompiledClasses != null && dynamicCompiledClasses.size() != 0) {
-            getClassType(dynamicCompiledClasses).forEach(cls -> {
-                String version = EntityDictionary.getModelVersion(cls);
-                HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version,
-                        getHashMapDataStoreInitializer());
-                hashMapDataStore.getDictionary().bindEntity(cls, Collections.singleton(Join.class));
-                this.metadataDictionary.bindEntity(cls, Collections.singleton(Join.class));
-                this.modelsToBind.add(cls);
-                this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);
-            });
-        }
     }
 
     /**

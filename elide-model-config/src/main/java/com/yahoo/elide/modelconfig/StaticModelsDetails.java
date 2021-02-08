@@ -31,8 +31,6 @@ public class StaticModelsDetails {
 
     @Data
     private static class ModelMapValue {
-        private final String className;
-        private final String classImport;
         private final Set<String> fieldNames;
     }
 
@@ -40,46 +38,10 @@ public class StaticModelsDetails {
 
         String modelName = dictionary.getJsonAliasFor(cls);
         String modelVersion = EntityDictionary.getModelVersion(cls);
-        String className = cls.getSimpleName();
-        String pkgName = cls.getPackage().getName();
         Set<String> fieldNames = new HashSet<String>(dictionary.getAllFields(cls));
 
         staticModelsDetailsMap.put(new ModelMapKey(modelName, modelVersion),
-                        new ModelMapValue(className, prepareImport(pkgName, className), fieldNames));
-    }
-
-    /**
-     * Prepare Import statement.
-     * @param pkgName package name.
-     * @param className class name.
-     * @return complete import statement.
-     */
-    private static String prepareImport(String pkgName, String className) {
-        return "import " + pkgName + "." + className + ";";
-    }
-
-    /**
-     * Get Class Name for provided (modelName, modelVersion).
-     * @param modelName model name.
-     * @param modelVersion model version.
-     * @param defaultValue default value.
-     * @return class name for provided (modelName, modelVersion) if available else default value.
-     */
-    public String getClassName(String modelName, String modelVersion, String defaultValue) {
-        ModelMapValue value = staticModelsDetailsMap.get(new ModelMapKey(modelName, modelVersion));
-        return value != null ? value.getClassName() : defaultValue;
-    }
-
-    /**
-     * Get Class Import for provided (modelName, modelVersion).
-     * @param modelName model name.
-     * @param modelVersion model version.
-     * @param defaultValue default value.
-     * @return import statement for provided (modelName, modelVersion) if available else default value.
-     */
-    public String getClassImport(String modelName, String modelVersion, String defaultValue) {
-        ModelMapValue value = staticModelsDetailsMap.get(new ModelMapKey(modelName, modelVersion));
-        return value != null ? value.getClassImport() : defaultValue;
+                        new ModelMapValue(fieldNames));
     }
 
     /**

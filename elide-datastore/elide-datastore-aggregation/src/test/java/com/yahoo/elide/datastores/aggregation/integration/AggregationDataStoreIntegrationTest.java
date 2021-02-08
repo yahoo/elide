@@ -39,7 +39,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
-import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.zaxxer.hikari.HikariConfig;
@@ -188,14 +187,6 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 }
             }
         };
-    }
-
-    private static ElideDynamicEntityCompiler getCompiler(String path) {
-        try {
-            return new ElideDynamicEntityCompiler(path);
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
     }
 
     @Test
