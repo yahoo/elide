@@ -21,10 +21,12 @@ import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanResolver;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.modelconfig.model.Dimension;
+import com.yahoo.elide.modelconfig.model.Grain;
 import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Table;
 import com.yahoo.elide.modelconfig.model.Type;
@@ -173,7 +175,7 @@ public class TableTypeTest {
                 .measure(Measure.builder()
                         .type(Type.MONEY)
                         .category("category1")
-                        .definition("SUM{{price}}")
+                        .definition("SUM{{  price}}")
                         .hidden(false)
                         .friendlyName("Price")
                         .name("price")
@@ -254,7 +256,7 @@ public class TableTypeTest {
                 .dimension(Dimension.builder()
                         .type(Type.TIME)
                         .category("category1")
-                        .definition("{{createdOn}}")
+                        .definition("{{createdOn  }}")
                         .hidden(false)
                         .friendlyName("Created On")
                         .name("createdOn")
@@ -286,5 +288,40 @@ public class TableTypeTest {
         assertEquals("UTC", temporal.timeZone());
         assertTrue(temporal.grains().length == 0);
 
+    }
+
+    @Test
+    void testMultipleTimeDimensionGrains() throws Exception {
+
+        Table testTable = Table.builder()
+                .table("table1")
+                .name("Table")
+                .dimension(Dimension.builder()
+                        .type(Type.TIME)
+                        .definition("{{createdOn}}")
+                        .name("createdOn")
+                        .grain(Grain.builder()
+                                .sql("some sql")
+                                .type(Grain.GrainType.DAY)
+                                .build())
+                        .grain(Grain.builder()
+                                .sql("some other sql")
+                                .type(Grain.GrainType.YEAR)
+                                .build())
+                        .build())
+                .build();
+
+        TableType testType = new TableType(testTable);
+
+        Field field = testType.getDeclaredField("createdOn");
+        assertNotNull(field);
+
+        Temporal temporal = field.getAnnotation(Temporal.class);
+        assertEquals("UTC", temporal.timeZone());
+        assertTrue(temporal.grains().length == 2);
+        assertEquals("some sql", temporal.grains()[0].expression());
+        assertEquals("some other sql", temporal.grains()[1].expression());
+        assertEquals(TimeGrain.DAY, temporal.grains()[0].grain());
+        assertEquals(TimeGrain.YEAR, temporal.grains()[1].grain());
     }
 }

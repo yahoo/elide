@@ -14,6 +14,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -75,6 +76,7 @@ public class Dimension implements Named {
     private Type type;
 
     @JsonProperty("grains")
+    @Singular
     private List<Grain> grains = new ArrayList<Grain>();
 
     @JsonProperty("tags")
