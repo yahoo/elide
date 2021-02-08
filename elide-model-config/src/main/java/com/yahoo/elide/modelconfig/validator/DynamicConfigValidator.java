@@ -6,18 +6,17 @@
 package com.yahoo.elide.modelconfig.validator;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static com.yahoo.elide.modelconfig.DynamicConfigHelpers.isNullOrEmpty;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.EntityPermissions;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.modelconfig.Config;
 import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
 import com.yahoo.elide.modelconfig.DynamicConfigSchemaValidator;
-import com.yahoo.elide.modelconfig.StaticModelsDetails;
 import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.modelconfig.model.Dimension;
 import com.yahoo.elide.modelconfig.model.ElideDBConfig;
@@ -88,7 +87,6 @@ public class DynamicConfigValidator {
     private final Map<String, Resource> resourceMap = new HashMap<>();
     private final PathMatchingResourcePatternResolver resolver;
     private final EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
-    private final StaticModelsDetails staticModelDetails = new StaticModelsDetails();
 
     public DynamicConfigValidator(String configDir) {
         resolver = new PathMatchingResourcePatternResolver(this.getClass().getClassLoader());
@@ -123,7 +121,6 @@ public class DynamicConfigValidator {
         annotatedClasses.forEach(cls -> {
             if (cls.getAnnotation(Include.class) != null) {
                 dictionary.bindEntity(cls);
-                staticModelDetails.add(dictionary, getClassType(cls));
             }
         });
     }
@@ -572,8 +569,8 @@ public class DynamicConfigValidator {
             return;
         }
 
-        if (staticModelDetails.exists(modelName, NO_VERSION)) {
-            if (!staticModelDetails.hasField(modelName, NO_VERSION, fieldName)) {
+        if (hasStaticModel(modelName, NO_VERSION)) {
+            if (!hasStaticField(modelName, NO_VERSION, fieldName)) {
                 throw new IllegalStateException("Invalid tableSource : " + tableSource + " . Field : " + fieldName
                                 + " is undefined for non-hjson model: " + modelName);
             }
@@ -643,7 +640,7 @@ public class DynamicConfigValidator {
     private void validateJoin(Join join) {
         String joinModelName = join.getTo();
 
-        if (!(elideTableConfig.hasTable(joinModelName) || staticModelDetails.exists(joinModelName, NO_VERSION))) {
+        if (!(elideTableConfig.hasTable(joinModelName) || hasStaticModel(joinModelName, NO_VERSION))) {
             throw new IllegalStateException(
                             "Model: " + joinModelName + " is neither included in dynamic models nor in static models");
         }
@@ -758,5 +755,23 @@ public class DynamicConfigValidator {
             return filePath.substring(filePath.indexOf(RESOURCES) + RESOURCES_LENGTH);
         }
         return filePath;
+    }
+
+    private boolean hasStaticField(String modelName, String version, String fieldName) {
+        Type<?> modelType = dictionary.getEntityClass(modelName, version);
+        if (modelType == null) {
+            return false;
+        }
+
+        try {
+            return (modelType.getDeclaredField(fieldName) != null);
+        } catch (NoSuchFieldException e) {
+            return false;
+        }
+    }
+
+    private boolean hasStaticModel(String modelName, String version) {
+        Type<?> modelType = dictionary.getEntityClass(modelName, version);
+        return modelType != null;
     }
 }
