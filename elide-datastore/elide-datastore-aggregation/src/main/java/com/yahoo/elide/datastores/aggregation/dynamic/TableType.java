@@ -295,7 +295,12 @@ public class TableType implements Type<DynamicModelInstance> {
 
                 @Override
                 public String name() {
-                    return table.getTable();
+                    String tableName = table.getTable();
+                    if (table.getSchema() != null && ! table.getSchema().isEmpty()) {
+                        return table.getSchema() + "." + tableName;
+
+                    }
+                    return tableName;
                 }
 
                 @Override
