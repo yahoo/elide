@@ -16,7 +16,7 @@ import javax.persistence.Id;
 @Include
 @EqualsAndHashCode
 @ToString
-public class Loop {
+public class DimensionLoop {
     // PK
     @Setter
     private String id;

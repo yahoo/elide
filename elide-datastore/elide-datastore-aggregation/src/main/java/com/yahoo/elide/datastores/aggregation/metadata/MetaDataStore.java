@@ -20,6 +20,7 @@ import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
+import com.yahoo.elide.datastores.aggregation.dynamic.TableType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.FunctionArgument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -35,8 +36,10 @@ import lombok.Getter;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -77,6 +80,43 @@ public class MetaDataStore implements DataStore {
 
     private final Set<Class<?>> metadataModelClasses;
 
+    public MetaDataStore(Collection<com.yahoo.elide.modelconfig.model.Table> tables, boolean enableMetaDataStore) {
+        this(getClassType(getAllAnnotatedClasses()), enableMetaDataStore);
+
+        Map<String, Type<?>> typeMap = new HashMap<>();
+        Set<String> joinNames = new HashSet<>();
+        Set<Type<?>> dynamicTypes = new HashSet<>();
+
+        //Convert tables into types.
+        tables.stream().forEach(table -> {
+            TableType tableType = new TableType(table);
+            dynamicTypes.add(tableType);
+            typeMap.put(table.getName(), tableType);
+            table.getJoins().stream().forEach(join -> {
+                joinNames.add(join.getTo());
+            });
+        });
+
+        //Built a list of static types referenced from joins in the dynamic types.
+        metadataDictionary.getBindings().stream()
+                .filter(binding -> joinNames.contains(binding.getJsonApiType()))
+                .forEach(staticType -> {
+                    typeMap.put(staticType.getJsonApiType(), staticType.getEntityClass());
+                });
+
+        //Resolve the join fields & bind the dynamic types.
+        dynamicTypes.stream().forEach(table -> {
+            ((TableType) table).resolveJoins(typeMap);
+            String version = EntityDictionary.getModelVersion(table);
+            HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version,
+                    getHashMapDataStoreInitializer());
+            hashMapDataStore.getDictionary().bindEntity(table, Collections.singleton(Join.class));
+            this.metadataDictionary.bindEntity(table, Collections.singleton(Join.class));
+            this.modelsToBind.add(table);
+            this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);
+        });
+    }
+
     public MetaDataStore(boolean enableMetaDataStore) {
         this(getClassType(getAllAnnotatedClasses()), enableMetaDataStore);
     }
@@ -95,6 +135,12 @@ public class MetaDataStore implements DataStore {
              }
              return true;
         });
+    }
+
+    public Set<Type<?>> getDynamicTypes() {
+        return modelsToBind.stream()
+                .filter(type -> type instanceof TableType)
+                .collect(Collectors.toSet());
     }
 
     public MetaDataStore(ElideDynamicEntityCompiler compiler,
