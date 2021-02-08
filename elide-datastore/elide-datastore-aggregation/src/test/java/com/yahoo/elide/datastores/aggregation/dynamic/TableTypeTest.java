@@ -8,16 +8,32 @@ package com.yahoo.elide.datastores.aggregation.dynamic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
+import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
+import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
+import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
+import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanResolver;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.modelconfig.model.Dimension;
+import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Table;
 import com.yahoo.elide.modelconfig.model.Type;
 import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import javax.persistence.Id;
 
 public class TableTypeTest {
 
@@ -42,6 +58,8 @@ public class TableTypeTest {
 
     @Test
     void testTableAnnotations() throws Exception {
+        Set<String> tags = new HashSet<>(Arrays.asList("tag1", "tag2"));
+
         Table testTable = Table.builder()
                 .cardinality("medium")
                 .description("A test table")
@@ -50,6 +68,11 @@ public class TableTypeTest {
                 .name("Table")
                 .schema("db1")
                 .category("category1")
+                .readAccess("Admin")
+                .dbConnectionName("dbConn")
+                .isFact(true)
+                .filterTemplate("a==b")
+                .tags(tags)
                 .build();
 
         TableType testType = new TableType(testTable);
@@ -59,11 +82,209 @@ public class TableTypeTest {
 
         FromTable fromTable = (FromTable) testType.getAnnotation(FromTable.class);
         assertEquals("db1.table1", fromTable.name());
+        assertEquals("dbConn", fromTable.dbConnectionName());
 
         TableMeta tableMeta = (TableMeta) testType.getAnnotation(TableMeta.class);
         assertEquals("foo", tableMeta.friendlyName());
         assertEquals(CardinalitySize.MEDIUM, tableMeta.size());
         assertEquals("A test table", tableMeta.description());
         assertEquals("category1", tableMeta.category());
+        assertEquals(true, tableMeta.isFact());
+        assertEquals(tags, new HashSet<>(Arrays.asList(tableMeta.tags())));
+        assertEquals("a==b", tableMeta.filterTemplate());
+
+        ReadPermission readPermission = (ReadPermission) testType.getAnnotation(ReadPermission.class);
+        assertEquals("Admin", readPermission.expression());
+    }
+
+    @Test
+    void testHiddenTableAnnotations() throws Exception {
+        Table testTable = Table.builder()
+                .cardinality("medium")
+                .description("A test table")
+                .friendlyName("foo")
+                .table("table1")
+                .name("Table")
+                .hidden(true)
+                .schema("db1")
+                .category("category1")
+                .build();
+
+        TableType testType = new TableType(testTable);
+
+        Exclude exclude = (Exclude) testType.getAnnotation(Exclude.class);
+        assertNotNull(exclude);
+        Include include = (Include) testType.getAnnotation(Include.class);
+        assertNull(include);
+    }
+
+    @Test
+    void testTableNameWithoutSchema() throws Exception {
+        Table testTable = Table.builder()
+                .table("table1")
+                .name("Table")
+                .build();
+
+        TableType testType = new TableType(testTable);
+
+        FromTable fromTable = (FromTable) testType.getAnnotation(FromTable.class);
+        assertEquals("table1", fromTable.name());
+    }
+
+    @Test
+    void testTableSQL() throws Exception {
+        Table testTable = Table.builder()
+                .sql("SELECT * FROM FOO")
+                .name("Table")
+                .dbConnectionName("dbConn")
+                .build();
+
+        TableType testType = new TableType(testTable);
+
+        FromSubquery fromSubquery = (FromSubquery) testType.getAnnotation(FromSubquery.class);
+        assertEquals("SELECT * FROM FOO", fromSubquery.sql());
+        assertEquals("dbConn", fromSubquery.dbConnectionName());
+    }
+
+    @Test
+    void testIdField() throws Exception {
+        Table testTable = Table.builder()
+                .table("table1")
+                .name("Table")
+                .build();
+
+        TableType testType = new TableType(testTable);
+
+        assertTrue(testType.getFields().length == 1);
+        Field field = testType.getDeclaredField("id");
+
+        assertNotNull(field);
+        Id id = field.getAnnotation(Id.class);
+        assertNotNull(id);
+    }
+
+    @Test
+    void testMeasureAnnotations() throws Exception {
+        Set<String> tags = new HashSet<>(Arrays.asList("tag1", "tag2"));
+
+        Table testTable = Table.builder()
+                .table("table1")
+                .name("Table")
+                .measure(Measure.builder()
+                        .type(Type.MONEY)
+                        .category("category1")
+                        .definition("SUM{{price}}")
+                        .hidden(false)
+                        .friendlyName("Price")
+                        .name("price")
+                        .readAccess("Admin")
+                        .description("A measure")
+                        .tags(tags)
+                        .build())
+                .build();
+
+        TableType testType = new TableType(testTable);
+
+        Field field = testType.getDeclaredField("price");
+        assertNotNull(field);
+
+        ReadPermission readPermission = field.getAnnotation(ReadPermission.class);
+        assertEquals("Admin", readPermission.expression());
+
+        ColumnMeta columnMeta = field.getAnnotation(ColumnMeta.class);
+        assertEquals("A measure", columnMeta.description());
+        assertEquals("category1", columnMeta.category());
+        assertEquals("Price", columnMeta.friendlyName());
+        assertEquals(CardinalitySize.UNKNOWN, columnMeta.size());
+        assertEquals(tags, new HashSet<>(Arrays.asList(columnMeta.tags())));
+
+        MetricFormula metricFormula = field.getAnnotation(MetricFormula.class);
+        assertEquals("SUM{{price}}", metricFormula.value());
+        assertEquals(DefaultQueryPlanResolver.class, metricFormula.queryPlan());
+    }
+
+    @Test
+    void testDimensionAnnotations() throws Exception {
+        Set<String> tags = new HashSet<>(Arrays.asList("tag1", "tag2"));
+
+        Table testTable = Table.builder()
+                .table("table1")
+                .name("Table")
+                .dimension(Dimension.builder()
+                        .type(Type.TEXT)
+                        .category("category1")
+                        .definition("{{region}}")
+                        .hidden(false)
+                        .friendlyName("Region")
+                        .name("region")
+                        .readAccess("Admin")
+                        .description("A dimension")
+                        .tags(tags)
+                        .cardinality("small")
+                        .tableSource("region.id")
+                        .build())
+                .build();
+
+        TableType testType = new TableType(testTable);
+
+        Field field = testType.getDeclaredField("region");
+        assertNotNull(field);
+
+        ReadPermission readPermission = field.getAnnotation(ReadPermission.class);
+        assertEquals("Admin", readPermission.expression());
+
+        ColumnMeta columnMeta = field.getAnnotation(ColumnMeta.class);
+        assertEquals("A dimension", columnMeta.description());
+        assertEquals("category1", columnMeta.category());
+        assertEquals("Region", columnMeta.friendlyName());
+        assertEquals(CardinalitySize.SMALL, columnMeta.size());
+        assertEquals(tags, new HashSet<>(Arrays.asList(columnMeta.tags())));
+
+        DimensionFormula dimensionFormula = field.getAnnotation(DimensionFormula.class);
+        assertEquals("{{region}}", dimensionFormula.value());
+    }
+
+    @Test
+    void testTimeDimensionAnnotations() throws Exception {
+        Set<String> tags = new HashSet<>(Arrays.asList("tag1", "tag2"));
+
+        Table testTable = Table.builder()
+                .table("table1")
+                .name("Table")
+                .dimension(Dimension.builder()
+                        .type(Type.TIME)
+                        .category("category1")
+                        .definition("{{createdOn}}")
+                        .hidden(false)
+                        .friendlyName("Created On")
+                        .name("createdOn")
+                        .readAccess("Admin")
+                        .description("A time dimension")
+                        .tags(tags)
+                        .build())
+                .build();
+
+        TableType testType = new TableType(testTable);
+
+        Field field = testType.getDeclaredField("createdOn");
+        assertNotNull(field);
+
+        ReadPermission readPermission = field.getAnnotation(ReadPermission.class);
+        assertEquals("Admin", readPermission.expression());
+
+        ColumnMeta columnMeta = field.getAnnotation(ColumnMeta.class);
+        assertEquals("A time dimension", columnMeta.description());
+        assertEquals("category1", columnMeta.category());
+        assertEquals("Created On", columnMeta.friendlyName());
+        assertEquals(CardinalitySize.UNKNOWN, columnMeta.size());
+        assertEquals(tags, new HashSet<>(Arrays.asList(columnMeta.tags())));
+
+        DimensionFormula dimensionFormula = field.getAnnotation(DimensionFormula.class);
+        assertEquals("{{createdOn}}", dimensionFormula.value());
+
+        Temporal temporal = field.getAnnotation(Temporal.class);
+        assertEquals("UTC", temporal.timeZone());
+        assertTrue(temporal.grains().length == 0);
+
     }
 }

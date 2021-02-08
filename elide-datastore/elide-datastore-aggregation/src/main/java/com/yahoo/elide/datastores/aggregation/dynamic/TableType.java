@@ -251,7 +251,7 @@ public class TableType implements Type<DynamicModelInstance> {
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Table table) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
-        if (table.getHidden() == false) {
+        if (table.getHidden() == null || table.getHidden() == false) {
             annotations.put(Include.class, new Include() {
 
                 @Override
@@ -562,8 +562,9 @@ public class TableType implements Type<DynamicModelInstance> {
 
                 @Override
                 public TimeGrainDefinition[] grains() {
-                    TimeGrainDefinition[] definitions = new TimeGrainDefinition[dimension.getGrains().size()];
-                    for (int idx = 0; idx < dimension.getGrains().size(); idx++) {
+                    int numGrains = dimension.getGrains() == null ? 0 : dimension.getGrains().size();
+                    TimeGrainDefinition[] definitions = new TimeGrainDefinition[numGrains];
+                    for (int idx = 0; idx < numGrains; idx++) {
                         Grain grain = dimension.getGrains().get(idx);
                         definitions[idx] = new TimeGrainDefinition() {
 
