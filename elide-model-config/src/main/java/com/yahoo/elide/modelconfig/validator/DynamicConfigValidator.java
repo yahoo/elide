@@ -10,6 +10,7 @@ import static com.yahoo.elide.modelconfig.DynamicConfigHelpers.isNullOrEmpty;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.EntityPermissions;
 import com.yahoo.elide.core.type.Type;
@@ -116,11 +117,13 @@ public class DynamicConfigValidator {
     private void initialize() {
 
         Set<Class<?>> annotatedClasses =
-                        ClassScanner.getAnnotatedClasses(Arrays.asList(Include.class));
+                        ClassScanner.getAnnotatedClasses(Arrays.asList(Include.class, SecurityCheck.class));
 
         annotatedClasses.forEach(cls -> {
             if (cls.getAnnotation(Include.class) != null) {
                 dictionary.bindEntity(cls);
+            } else {
+                dictionary.addSecurityCheck(cls);
             }
         });
     }
