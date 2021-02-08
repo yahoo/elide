@@ -19,10 +19,10 @@ import javax.persistence.Id;
  */
 @Include(rootLevel = false)
 @Entity
-@CreatePermission(expression = "allow all")
-@ReadPermission(expression = "allow all")
-@UpdatePermission(expression = "allow all")
-@DeletePermission(expression = "allow all")
+@CreatePermission(expression = "Prefab.Role.All")
+@ReadPermission(expression = "Prefab.Role.All")
+@UpdatePermission(expression = "Prefab.Role.All")
+@DeletePermission(expression = "Prefab.Role.All")
 public class RedisActions {
     private String id;
     private String description;

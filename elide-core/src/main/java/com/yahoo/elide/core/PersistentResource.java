@@ -1342,12 +1342,23 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      */
     private Resource toResource(final Supplier<Map<String, Relationship>> relationshipSupplier,
                                final Supplier<Map<String, Object>> attributeSupplier) {
+        return toResource(relationshipSupplier.get(), attributeSupplier.get());
+    }
+
+    /**
+     * Convert a persistent resource to a resource.
+     * @param relationships The relationships
+     * @param attributes The attributes
+     * @return The Resource
+     */
+    public Resource toResource(final Map<String, Relationship> relationships,
+                               final Map<String, Object> attributes) {
         final Resource resource = new Resource(typeName, (obj == null)
                 ? uuid.orElseThrow(
                 () -> new InvalidEntityBodyException("No id found on object"))
                 : dictionary.getId(obj));
-        resource.setRelationships(relationshipSupplier.get());
-        resource.setAttributes(attributeSupplier.get());
+        resource.setRelationships(relationships);
+        resource.setAttributes(attributes);
         if (requestScope.getElideSettings().isEnableJsonLinks()) {
             resource.setLinks(requestScope.getElideSettings().getJsonApiLinks().getResourceLevelLinks(this));
         }

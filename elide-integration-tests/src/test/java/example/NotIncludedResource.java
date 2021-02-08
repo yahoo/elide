@@ -11,9 +11,9 @@ import com.yahoo.elide.annotation.UpdatePermission;
 
 import javax.persistence.Entity;
 
-@ReadPermission(expression = "allow all")
-@CreatePermission(expression = "allow all")
-@UpdatePermission(expression = "allow all")
+@ReadPermission(expression = "Prefab.Role.All")
+@CreatePermission(expression = "Prefab.Role.All")
+@UpdatePermission(expression = "Prefab.Role.All")
 @Entity
 public class NotIncludedResource extends BaseId {
     private String someParams;
