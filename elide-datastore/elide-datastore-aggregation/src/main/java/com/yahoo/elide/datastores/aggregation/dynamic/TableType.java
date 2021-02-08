@@ -11,6 +11,7 @@ import static com.yahoo.elide.core.type.ClassType.LONG_TYPE;
 import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import static com.yahoo.elide.datastores.aggregation.timegrains.Time.TIME_TYPE;
 import static com.yahoo.elide.modelconfig.model.Type.TIME;
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.type.Field;
@@ -249,23 +250,34 @@ public class TableType implements Type<DynamicModelInstance> {
 
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Table table) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
-        annotations.put(Include.class, new Include() {
 
-            @Override
-            public Class<? extends Annotation> annotationType() {
-                return Include.class;
-            }
+        if (table.getHidden() == false) {
+            annotations.put(Include.class, new Include() {
 
-            @Override
-            public boolean rootLevel() {
-                return true;
-            }
+                @Override
+                public Class<? extends Annotation> annotationType() {
+                    return Include.class;
+                }
 
-            @Override
-            public String type() {
-                return table.getName();
-            }
-        });
+                @Override
+                public boolean rootLevel() {
+                    return true;
+                }
+
+                @Override
+                public String type() {
+                    return table.getName();
+                }
+            });
+        } else {
+            annotations.put(Exclude.class, new Exclude() {
+
+                @Override
+                public Class<? extends Annotation> annotationType() {
+                    return Exclude.class;
+                }
+            });
+        }
 
         if (table.getSql() != null && !table.getSql().isEmpty()) {
             annotations.put(FromSubquery.class, new FromSubquery() {
