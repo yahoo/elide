@@ -50,7 +50,6 @@ public class JsonAPITableExportOperationTest {
     private Elide elide;
     private AsyncExecutorService asyncExecutorService;
     private ResultStorageEngine engine;
-//    private MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
 
     @BeforeEach
     public void setupMocks(@TempDir Path tempDir) {
