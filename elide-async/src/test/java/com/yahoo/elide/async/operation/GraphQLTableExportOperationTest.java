@@ -105,7 +105,7 @@ public class GraphQLTableExportOperationTest {
     public void testProcessBadEntityQuery() throws URISyntaxException, IOException  {
         dataPrep();
         TableExport queryObj = new TableExport();
-        String query = "{\"query\":\"{ tableExport1 { edges { node { id principalName} } } }\",\"variables\":null}";
+        String query = "{\"query\":\"{ tableExportInvalid { edges { node { id principalName} } } }\",\"variables\":null}";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         queryObj.setId(id);
         queryObj.setQuery(query);
@@ -124,7 +124,7 @@ public class GraphQLTableExportOperationTest {
     public void testProcessBadQuery() throws URISyntaxException, IOException  {
         dataPrep();
         TableExport queryObj = new TableExport();
-        String query = "{\"query\":\"{ tableExport1 { edges { node { id principalName}  } }\",\"variables\":null}";
+        String query = "{\"query\":\"{ tableExport { edges { node { id principalName}  } }\",\"variables\":null}";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         queryObj.setId(id);
         queryObj.setQuery(query);
@@ -136,7 +136,7 @@ public class GraphQLTableExportOperationTest {
         TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
-        assertEquals("Bad Request Body'Can't parse query: { tableExport1 { edges { node { id principalName}  } }'", queryResultObj.getMessage());
+        assertEquals("Bad Request Body'Can't parse query: { tableExport { edges { node { id principalName}  } }'", queryResultObj.getMessage());
     }
 
     /**
