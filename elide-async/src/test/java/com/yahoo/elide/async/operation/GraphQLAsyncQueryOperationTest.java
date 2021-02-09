@@ -91,21 +91,6 @@ public class GraphQLAsyncQueryOperationTest {
     }
 
     @Test
-    public void testProcessQueryGraphQlNullResponse() throws URISyntaxException {
-        AsyncQuery queryObj = new AsyncQuery();
-        ElideResponse response = null;
-        String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";
-        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
-        queryObj.setId(id);
-        queryObj.setQuery(query);
-        queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
-
-        when(runner.run(any(), any(), any(), any())).thenReturn(response);
-        GraphQLAsyncQueryOperation graphQLOperation = new GraphQLAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
-        assertThrows(IllegalStateException.class, () -> graphQLOperation.call());
-    }
-
-    @Test
     public void testProcessQueryGraphQlRunnerException() throws URISyntaxException {
         AsyncQuery queryObj = new AsyncQuery();
         String query = "{\"query\":\"{ group { edges { node { name commonName description } } } }\",\"variables\":null}";

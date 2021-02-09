@@ -42,10 +42,8 @@ public class GraphQLAsyncQueryOperation extends AsyncQueryOperation {
         UUID requestUUID = UUID.fromString(queryObj.getRequestId());
         //TODO - we need to add the baseUrlEndpoint to the queryObject.
         ElideResponse response = runner.run("", queryObj.getQuery(), user, requestUUID);
-        if (response != null) {
-            log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
-                    response.getResponseCode(), response.getBody());
-        }
+        log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
+                response.getResponseCode(), response.getBody());
         return response;
     }
 

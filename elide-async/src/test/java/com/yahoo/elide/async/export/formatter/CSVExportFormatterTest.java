@@ -142,7 +142,7 @@ public class CSVExportFormatterTest {
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         String output = formatter.preFormat(projection, queryObj);
-        assertEquals(null, output);
+        assertEquals("", output);
     }
 
     @Test

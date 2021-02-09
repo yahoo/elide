@@ -14,7 +14,6 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.security.User;
 
 import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.PathNotFoundException;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
@@ -48,10 +47,8 @@ public class JSONAPIAsyncQueryOperation extends AsyncQueryOperation {
 
         //TODO - we need to add the baseUrlEndpoint to the queryObject.
         ElideResponse response = elide.get("", getPath(uri), queryParams, user, apiVersion, requestUUID);
-        if (response != null) {
-            log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
-                    response.getResponseCode(), response.getBody());
-        }
+        log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
+                response.getResponseCode(), response.getBody());
         return response;
     }
 
@@ -84,11 +81,7 @@ public class JSONAPIAsyncQueryOperation extends AsyncQueryOperation {
     public Integer calculateRecordCount(AsyncQuery queryObj, ElideResponse response) {
         Integer count = null;
         if (response.getResponseCode() == 200) {
-            try {
-                count = JsonPath.read(response.getBody(), "$.data.length()");
-            } catch (PathNotFoundException e) {
-                throw new IllegalStateException("Invalid Response, unable to get record count.");
-            }
+            count = JsonPath.read(response.getBody(), "$.data.length()");
         }
         return count;
     }
