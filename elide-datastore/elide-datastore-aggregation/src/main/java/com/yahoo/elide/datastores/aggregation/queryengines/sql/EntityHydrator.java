@@ -61,23 +61,20 @@ public class EntityHydrator {
         this.entityDictionary = entityDictionary;
 
         //Get all the projections from the client query.
-        List<String> projections = this.query.getMetricProjections().stream()
-                .map(MetricProjection::getAlias)
-                .collect(Collectors.toList());
+        Map<String, String> projections = this.query.getMetricProjections().stream()
+                .collect(Collectors.toMap(MetricProjection::getAlias, MetricProjection::getSafeAlias));
 
-        projections.addAll(this.query.getAllDimensionProjections().stream()
-                .map(ColumnProjection::getAlias)
-                .collect(Collectors.toList()));
+        projections.putAll(this.query.getAllDimensionProjections().stream()
+                .collect(Collectors.toMap(ColumnProjection::getAlias, ColumnProjection::getSafeAlias)));
 
         try {
             Preconditions.checkArgument(projections.size() == rs.getMetaData().getColumnCount());
             while (rs.next()) {
                 Map<String, Object> row = new HashMap<>();
 
-                for (int idx = 0; idx < projections.size(); idx++) {
-                    String fieldName = projections.get(idx);
-                    Object value = rs.getObject(fieldName);
-                    row.put(fieldName, value);
+                for (Map.Entry<String, String> entry : projections.entrySet()) {
+                    Object value = rs.getObject(entry.getValue());
+                    row.put(entry.getKey(), value);
                 }
 
                 this.results.add(row);

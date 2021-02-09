@@ -21,7 +21,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import com.yahoo.elide.datastores.aggregation.resolvers.DailyAverageScorePerPeriodResolver;
 import com.yahoo.elide.datastores.aggregation.timegrains.Day;
-import com.yahoo.elide.datastores.aggregation.timegrains.Month;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
@@ -122,8 +121,6 @@ public class PlayerStats extends ParameterizedModel {
     private String player2Name;
 
     private Time recordedDate;
-
-    private Month recordedMonth;
 
     private Day updatedDate;
 

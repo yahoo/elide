@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.AbstractSqlDialect.BACKTICK;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.AbstractSqlDialect.DOUBLE_QUOTE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
@@ -293,7 +296,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
                         + "FROM (SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS \"overallRating\","
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate_DAY\","
+                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate_XXX\","
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
                         + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" GROUP BY "
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
@@ -321,7 +324,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
                         + "FROM (SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS \"overallRating\","
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate_DAY\","
+                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate_XXX\","
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
                         + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" GROUP BY "
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
@@ -350,7 +353,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
                         + "FROM (SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS \"overallRating\","
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate_DAY\","
+                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate_XXX\","
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
                         + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
                         + "LEFT OUTER JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\" ON \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"country_id\" = \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"id\" "
@@ -379,7 +382,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                 + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') "
                 + "FROM (SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
                 + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS \"overallRating\","
-                + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate_DAY\","
+                + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate_XXX\","
                 + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
                 + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
                 + "GROUP BY \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
@@ -394,7 +397,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                 + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
                 + "FROM (SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
                 + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS \"overallRating\","
-                + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate_DAY\","
+                + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate_XXX\","
                 + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
                 + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" GROUP BY "
                 + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
@@ -424,7 +427,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
                         + "FROM (SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS \"overallRating\","
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate_DAY\","
+                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate_XXX\","
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
                         + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" GROUP BY "
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
@@ -441,6 +444,21 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
         compareQueryLists(expectedQueryList, engine.explain(query));
 
         testQueryExecution(TestQuery.NESTED_METRIC_WITH_SORTING_QUERY.getQuery());
+    }
+
+    @Test
+    public void testNestedMetricWithAliasesQuery() {
+        Query query = TestQuery.NESTED_METRIC_WITH_ALIASES_QUERY.getQuery();
+
+        String queryStr = engine.explain(query).get(0);
+        queryStr = repeatedWhitespacePattern.matcher(queryStr).replaceAll(" ");
+        queryStr = queryStr.replaceAll(":[a-zA-Z0-9_]+", ":XXX");
+        queryStr = queryStr.replaceAll("PlayerStats_\\d+", "PlayerStats_XXX");
+
+        String expectedStr = getExpectedNestedMetricWithAliasesSQL(true).replace(BACKTICK, DOUBLE_QUOTE);
+        assertEquals(expectedStr, queryStr);
+
+        testQueryExecution(query);
     }
 
     @Test
