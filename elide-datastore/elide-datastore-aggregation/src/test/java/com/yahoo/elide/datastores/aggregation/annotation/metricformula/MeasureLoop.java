@@ -14,7 +14,7 @@ import lombok.ToString;
 @Include
 @EqualsAndHashCode
 @ToString
-public class Loop {
+public class MeasureLoop {
     // PK
     @Setter
     private String id;

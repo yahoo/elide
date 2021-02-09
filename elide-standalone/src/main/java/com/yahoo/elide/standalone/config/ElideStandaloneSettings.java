@@ -6,10 +6,8 @@
 package com.yahoo.elide.standalone.config;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
@@ -17,6 +15,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
@@ -26,14 +25,12 @@ import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.DataSourceConfiguration;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
-import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
+import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
 
@@ -44,15 +41,14 @@ import org.hibernate.Session;
 import io.swagger.models.Info;
 import io.swagger.models.Swagger;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 
@@ -337,22 +333,20 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Gets the dynamic compiler for elide.
-     * @return Optional ElideDynamicEntityCompiler
+     * Gets the dynamic config validator for elide.
+     * @return Optional DynamicConfigValidator
+     * @throws IOException thrown when validator fails to read configuration.
      */
-    default Optional<ElideDynamicEntityCompiler> getDynamicCompiler() {
-        ElideDynamicEntityCompiler dynamicEntityCompiler = null;
+    default Optional<DynamicConfigValidator> getDynamicConfigValidator() throws IOException {
+        DynamicConfigValidator validator = null;
 
         if (getAnalyticProperties().enableAggregationDataStore()
                         && getAnalyticProperties().enableDynamicModelConfig()) {
-            try {
-                dynamicEntityCompiler = new ElideDynamicEntityCompiler(getAnalyticProperties().getDynamicConfigPath());
-            } catch (Exception e) { // thrown by in memory compiler
-                throw new IllegalStateException(e);
-            }
+            validator = new DynamicConfigValidator(getAnalyticProperties().getDynamicConfigPath());
+            validator.readAndValidateConfigs();
         }
 
-        return Optional.ofNullable(dynamicEntityCompiler);
+        return Optional.ofNullable(validator);
     }
 
     /**
@@ -398,18 +392,14 @@ public interface ElideStandaloneSettings {
     /**
      * Gets the AggregationDataStore for elide.
      * @param queryEngine query engine object.
-     * @param optionalCompiler optional dynamic compiler object.
      * @return AggregationDataStore object initialized.
      */
-    default AggregationDataStore getAggregationDataStore(QueryEngine queryEngine,
-            Optional<ElideDynamicEntityCompiler> optionalCompiler) {
+    default AggregationDataStore getAggregationDataStore(QueryEngine queryEngine) {
         AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder()
                 .queryEngine(queryEngine).queryLogger(new Slf4jQueryLogger());
 
         if (getAnalyticProperties().enableDynamicModelConfig()) {
-            Set<Class<?>> annotatedClasses = getDynamicClassesIfAvailable(optionalCompiler, FromTable.class);
-            annotatedClasses.addAll(getDynamicClassesIfAvailable(optionalCompiler, FromSubquery.class));
-            aggregationDataStoreBuilder.dynamicCompiledClasses(getClassType(annotatedClasses));
+            aggregationDataStoreBuilder.dynamicCompiledClasses(queryEngine.getMetaDataStore().getDynamicTypes());
         }
         aggregationDataStoreBuilder.cache(getQueryCache());
         return aggregationDataStoreBuilder.build();
@@ -418,11 +408,11 @@ public interface ElideStandaloneSettings {
     /**
      * Gets the EntityDictionary for elide.
      * @param injector Service locator for web service for dependency injection.
-     * @param optionalCompiler optional dynamic compiler object.
+     * @param validator optional dynamic config validator object.
      * @return EntityDictionary object initialized.
      */
     default EntityDictionary getEntityDictionary(ServiceLocator injector,
-            Optional<ElideDynamicEntityCompiler> optionalCompiler) {
+            Optional<DynamicConfigValidator> validator) {
         EntityDictionary dictionary = new EntityDictionary(getCheckMappings(),
                 new Injector() {
                     @Override
@@ -438,28 +428,25 @@ public interface ElideStandaloneSettings {
 
         dictionary.scanForSecurityChecks();
 
-        Set<Class<?>> annotatedSecurityClasses = getDynamicClassesIfAvailable(optionalCompiler, SecurityCheck.class);
-
-        dictionary.addSecurityChecks(annotatedSecurityClasses);
-
+        if (validator.isPresent()) {
+            validator.get().getElideSecurityConfig().getRoles().forEach(role -> {
+                dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role));
+            });
+        }
         return dictionary;
     }
 
     /**
      * Gets the metadatastore for elide.
-     * @param optionalCompiler optional dynamic compiler object.
+     * @param validator optional dynamic config validator object.
      * @return MetaDataStore object initialized.
      */
-    default MetaDataStore getMetaDataStore(Optional<ElideDynamicEntityCompiler> optionalCompiler) {
+    default MetaDataStore getMetaDataStore(Optional<DynamicConfigValidator> validator) {
         MetaDataStore metaDataStore = null;
         boolean enableMetaDataStore = getAnalyticProperties().enableMetaDataStore();
 
-        if (optionalCompiler.isPresent()) {
-            try {
-                metaDataStore = new MetaDataStore(optionalCompiler.get(), enableMetaDataStore);
-            } catch (ClassNotFoundException e) {
-                throw new IllegalStateException(e);
-            }
+        if (validator.isPresent()) {
+            metaDataStore = new MetaDataStore(validator.get().getElideTableConfig().getTables(), enableMetaDataStore);
         } else {
             metaDataStore = new MetaDataStore(enableMetaDataStore);
         }
@@ -471,18 +458,18 @@ public interface ElideStandaloneSettings {
      * Gets the QueryEngine for elide.
      * @param metaDataStore MetaDataStore object.
      * @param defaultConnectionDetails default DataSource Object and SQLDialect Object.
-     * @param optionalCompiler Optional dynamic compiler object.
+     * @param validator Optional dynamic config validator.
      * @param dataSourceConfiguration DataSource Configuration.
      * @param dbPasswordExtractor Password Extractor Implementation.
      * @return QueryEngine object initialized.
      */
     default QueryEngine getQueryEngine(MetaDataStore metaDataStore, ConnectionDetails defaultConnectionDetails,
-                    Optional<ElideDynamicEntityCompiler> optionalCompiler,
+                    Optional<DynamicConfigValidator> validator,
                     DataSourceConfiguration dataSourceConfiguration, DBPasswordExtractor dbPasswordExtractor) {
-        if (optionalCompiler.isPresent()) {
+        if (validator.isPresent()) {
             Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
-            optionalCompiler.get().getElideSQLDBConfig().getDbconfigs().forEach(dbConfig -> {
+            validator.get().getElideSQLDBConfig().getDbconfigs().forEach(dbConfig -> {
                 connectionDetailsMap.put(dbConfig.getName(),
                                 new ConnectionDetails(
                                                 dataSourceConfiguration.getDataSource(dbConfig, dbPasswordExtractor),
@@ -491,24 +478,5 @@ public interface ElideStandaloneSettings {
             return new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap);
         }
         return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
-    }
-
-    static Set<Class<?>> getDynamicClassesIfAvailable(Optional<ElideDynamicEntityCompiler> optionalCompiler,
-            Class<?> classz) {
-        Set<Class<?>> annotatedClasses = new HashSet<Class<?>>();
-
-        if (!optionalCompiler.isPresent()) {
-            return annotatedClasses;
-        }
-
-        ElideDynamicEntityCompiler compiler = optionalCompiler.get();
-
-        try {
-            annotatedClasses = compiler.findAnnotatedClasses(classz);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException(e);
-        }
-
-        return annotatedClasses;
     }
 }
