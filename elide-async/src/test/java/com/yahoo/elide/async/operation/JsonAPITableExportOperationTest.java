@@ -102,6 +102,25 @@ public class JsonAPITableExportOperationTest {
         assertEquals(1, queryResultObj.getRecordCount());
     }
 
+    @Test
+    public void testProcessBadEntityQuery() throws URISyntaxException, IOException  {
+        dataPrep();
+        TableExport queryObj = new TableExport();
+        String query = "/tableExport1?sort=principalName&fields=principalName";
+        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.JSONAPI_V1_0);
+        queryObj.setResultType(ResultType.CSV);
+
+        JSONAPITableExportOperation jsonAPIOperation = new JSONAPITableExportOperation(new JSONExportFormatter(elide), asyncExecutorService,
+                queryObj, requestScope);
+        TableExportResult queryResultObj = (TableExportResult) jsonAPIOperation.call();
+
+        assertEquals(200, queryResultObj.getHttpStatus());
+        assertEquals("InvalidCollectionException: Unknown collection tableExport1", queryResultObj.getMessage());
+    }
+
     /**
      * Prepping and Storing an TableExport entry to be queried later on.
      * @throws IOException  IOException
