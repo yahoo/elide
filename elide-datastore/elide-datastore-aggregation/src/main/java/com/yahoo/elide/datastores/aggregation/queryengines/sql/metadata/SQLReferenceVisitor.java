@@ -69,7 +69,10 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
 
         //This is a nested query.  Don't do table lookups.
         } else {
-            return getFieldAlias(applyQuotes(tableAliases.peek()), applyQuotes(dimension.getName()));
+            String expr = dimension.getExpression();
+            // Remove leading '{{' & trailing '}}'
+            expr = expr.substring(2, expr.length() - 2);
+            return visitPhysicalReference(expr);
         }
     }
 

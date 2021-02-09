@@ -10,6 +10,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
 import java.io.Serializable;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Map;
 
@@ -30,6 +31,21 @@ public interface ColumnProjection extends Serializable {
      */
     default String getAlias() {
         return getName();
+    }
+
+    /**
+     * Get the safe alias (an alias that is not vulnerable to injection).
+     *
+     * @return an alias for column that is not vulnerable to injection
+     */
+    default String getSafeAlias() {
+        String alias = getAlias();
+        String name = getName();
+        if (name.equals(alias)) {
+            return name;
+        } else {
+            return createSafeAlias(name, alias);
+        }
     }
 
     /**
@@ -94,5 +110,15 @@ public interface ColumnProjection extends Serializable {
      */
     default ColumnProjection withSourceAndExpression(Queryable source, String expression) {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Creates an alias that is not vulnerable to injection
+     * @param name projected column's name
+     * @param alias projected column's alias
+     * @return an alias for projected column that is not vulnerable to injection
+     */
+    public static String createSafeAlias(String name, String alias) {
+        return name + "_" + (Base64.getEncoder().encodeToString(alias.getBytes()).hashCode() & 0xfffffff);
     }
 }
