@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.framework;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
-import static com.yahoo.elide.modelconfig.parser.handlebars.HandlebarsHelper.NEWLINE;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -93,6 +92,7 @@ public abstract class SQLUnitTest {
     protected static MetaDataStore metaDataStore;
 
     private static final DataSource DUMMY_DATASOURCE = new HikariDataSource();
+    private static final String NEWLINE = System.getProperty("line.separator");
     protected static QueryEngine engine;
 
     protected QueryEngine.Transaction transaction;
