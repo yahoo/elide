@@ -111,7 +111,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
      * @param prevScope RequestScope object.
      * @param projection Entity projection.
      * @return Observable PersistentResource
-     * @throws URISyntaxException
+     * @throws URISyntaxException URISyntaxException from malformed or incorrect URI
      */
     public Observable<PersistentResource> export(TableExport exportObj, RequestScope prevScope,
             EntityProjection projection) throws URISyntaxException {
@@ -162,7 +162,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
      * @param apiVersion API Version.
      * @param tx DataStoreTransaction.
      * @return RequestScope Type Object
-     * @throws URISyntaxException
+     * @throws URISyntaxException URISyntaxException from malformed or incorrect URI
      */
     public abstract RequestScope getRequestScope(TableExport exportObj, User user,
             String apiVersion, DataStoreTransaction tx) throws URISyntaxException;

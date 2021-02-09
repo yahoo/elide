@@ -16,7 +16,6 @@ import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.EntityProjectionMaker;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 
 import lombok.extern.slf4j.Slf4j;
@@ -25,13 +24,13 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.UUID;
 
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
+/**
+ * JSONAPI TableExport Execute Operation.
+ */
 @Slf4j
 public class JSONAPITableExportOperation extends TableExportOperation {
-
-    private static final String PATH = "/tableExport";
 
     public JSONAPITableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
             AsyncAPI export, RequestScope scope) {
@@ -42,8 +41,9 @@ public class JSONAPITableExportOperation extends TableExportOperation {
     public RequestScope getRequestScope(TableExport export, User user, String apiVersion, DataStoreTransaction tx)
             throws URISyntaxException {
         UUID requestId = UUID.fromString(export.getRequestId());
-        MultivaluedMap<String, String> queryParams = getQueryParams(export.getQuery());
-        return new RequestScope("", "", apiVersion, null, tx, user, queryParams,
+        URIBuilder uri = new URIBuilder(export.getQuery());
+        MultivaluedMap<String, String> queryParams = JSONAPIAsyncQueryOperation.getQueryParams(uri);
+        return new RequestScope("", JSONAPIAsyncQueryOperation.getPath(uri), apiVersion, null, tx, user, queryParams,
                 Collections.emptyMap(), requestId, getService().getElide().getElideSettings());
     }
 
@@ -51,29 +51,14 @@ public class JSONAPITableExportOperation extends TableExportOperation {
     public EntityProjection getProjection(TableExport export, String apiVersion) throws BadRequestException {
         EntityProjection projection = null;
         try {
+            URIBuilder uri = new URIBuilder(export.getQuery());
             Elide elide = getService().getElide();
             projection = new EntityProjectionMaker(elide.getElideSettings().getDictionary(),
-                    getScope()).parsePath(PATH);
+                    getScope()).parsePath(JSONAPIAsyncQueryOperation.getPath(uri));
 
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
         return projection;
-    }
-
-    /**
-     * This method parses the url and gets the query params.
-     * And adds them into a MultivaluedMap
-     * @param uri URIBuilder instance
-     * @return MultivaluedMap with query parameters
-     * @throws URISyntaxException
-     */
-    private MultivaluedMap<String, String> getQueryParams(String query) throws URISyntaxException {
-        URIBuilder uri = new URIBuilder(query);
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
-        for (NameValuePair queryParam : uri.getQueryParams()) {
-            queryParams.add(queryParam.getName(), queryParam.getValue());
-        }
-        return queryParams;
     }
 }

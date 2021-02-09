@@ -67,7 +67,6 @@ public class TableExportHook extends AsyncAPIHook<TableExport> {
         } else if (queryType.equals(QueryType.JSONAPI_V1_0)) {
             operation = new JSONAPITableExportOperation(formatter, getAsyncExecutorService(), export, scope);
         } else {
-            // TODO - Support JSONAPI
             throw new InvalidOperationException(queryType + "is not supported");
         }
         return operation;
