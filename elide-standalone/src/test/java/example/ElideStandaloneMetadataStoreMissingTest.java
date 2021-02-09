@@ -11,9 +11,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
-import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
-import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
-import example.models.Post;
 import org.eclipse.jetty.util.MultiException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -21,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.util.Optional;
-import java.util.Properties;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ElideStandaloneMetadataStoreMissingTest {
@@ -30,7 +26,7 @@ public class ElideStandaloneMetadataStoreMissingTest {
 
     @BeforeAll
     public void init() throws Exception {
-        elide = new ElideStandalone(new ElideStandaloneSettings() {
+        elide = new ElideStandalone(new ElideStandaloneTestSettings() {
 
             @Override
             public ElideStandaloneAnalyticSettings getAnalyticProperties() {

@@ -13,7 +13,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
-import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
 
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterAll;
@@ -30,7 +29,7 @@ public class ElideStandaloneExportTest {
 
     @BeforeAll
     public void init() throws Exception {
-        elide = new ElideStandalone(new ElideStandaloneSettings() {
+        elide = new ElideStandalone(new ElideStandaloneTestSettings() {
 
             @Override
             public ElideStandaloneAsyncSettings getAsyncProperties() {
