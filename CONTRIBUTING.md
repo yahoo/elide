@@ -7,7 +7,7 @@ If you have a question that needs an answer, [create an issue](https://help.gith
 
 ### Issues for bugs or feature requests
 
-If you encounter any bugs in the code, or want to request a new feature or enhancement, please [create an issue](https://help.github.com/articles/creating-an-issue/) to report it. Kindly add a label to indicate what type of issue it is.
+If you encounter any bugs in the code, or want to request a new feature or enhancement, please [create an issue](https://github.com/yahoo/elide/issues/new) to report it. Kindly add a label to indicate what type of issue it is.
 
 ### Contribute Code
 We welcome your pull requests for bug fixes. To implement something new, please create an issue first so we can discuss it together.
@@ -39,6 +39,6 @@ We only seek to accept code that you are authorized to contribute to the project
 
 ## Code of Conduct
 
-We encourage inclusive and professional interactions on our project. We welcome everyone to open an issue, improve the documentation, report bug or ssubmit a pull request. By participating in this project, you agree to abide by the [Verizon Media Code of Conduct](Code-of-Conduct.md). If you feel there is a conduct issue related to this project, please raise it per the Code of Conduct process and we will address it.
+We encourage inclusive and professional interactions on our project. We welcome everyone to open an issue, improve the documentation, report bug or submit a pull request. By participating in this project, you agree to abide by the [Verizon Media Code of Conduct](Code-of-Conduct.md). If you feel there is a conduct issue related to this project, please raise it per the Code of Conduct process and we will address it.
 
 When submitting a pull request (PR), please use the following guidelines:
