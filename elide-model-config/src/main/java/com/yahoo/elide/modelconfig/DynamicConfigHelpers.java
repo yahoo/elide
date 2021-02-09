@@ -149,7 +149,7 @@ public class DynamicConfigHelpers {
      * @throws IOException
      */
     public static String resolveVariables(String jsonConfig, Map<String, Object> variables) throws IOException {
-        HandlebarsHydrator hydrator = new HandlebarsHydrator(new StaticModelsDetails());
+        HandlebarsHydrator hydrator = new HandlebarsHydrator();
         return hydrator.hydrateConfigTemplate(jsonConfig, variables);
     }
 
