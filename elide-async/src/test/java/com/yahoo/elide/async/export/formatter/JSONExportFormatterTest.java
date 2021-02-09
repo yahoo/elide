@@ -6,6 +6,7 @@
 package com.yahoo.elide.async.export.formatter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -15,9 +16,13 @@ import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.Attribute;
+import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.jsonapi.models.Resource;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +31,10 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 
 public class JSONExportFormatterTest {
@@ -34,6 +42,7 @@ public class JSONExportFormatterTest {
     private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
     private HashMapDataStore dataStore;
     private Elide elide;
+    private RequestScope scope;
 
    @BeforeEach
     public void setupMocks(@TempDir Path tempDir) {
@@ -45,28 +54,43 @@ public class JSONExportFormatterTest {
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                         .build());
         FORMATTER.setTimeZone(TimeZone.getTimeZone("GMT"));
+        scope = mock(RequestScope.class);
     }
 
     @Test
     public void testResourceToJSON() {
         JSONExportFormatter formatter = new JSONExportFormatter(elide);
         TableExport queryObj = new TableExport();
-        String query = "/tableExport";
+        String query = "{ tableExport { edges { node { query queryType createdOn} } } }";
         String id = "edc4a871-dff2-4054-804e-d80075cf827d";
         queryObj.setId(id);
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
         queryObj.setResultType(ResultType.CSV);
 
-        String start = "{\"id\":\"edc4a871-dff2-4054-804e-d80075cf827d\",\"query\":\"/tableExport\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"requestId\":\"" + queryObj.getRequestId() + "\",\"principalName\":null"
-                + ",\"status\":\""  + queryObj.getStatus() + "\",\"createdOn\":\"" + FORMATTER.format(queryObj.getCreatedOn())
-                + "\",\"updatedOn\":\"" + FORMATTER.format(queryObj.getUpdatedOn()) + "\",\"asyncAfterSeconds\":10,\"resultType\":\"CSV\","
-                + "\"result\":null}";
+        String start = "{\"query\":\"{ tableExport { edges { node { query queryType createdOn} } } }\","
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"createdOn\":\"" + FORMATTER.format(queryObj.getCreatedOn()) + "\"}";
 
-        PersistentResource resource = mock(PersistentResource.class);
-        when(resource.getObject()).thenReturn(queryObj);
-        String output = formatter.format(resource, 1);
+        // Prepare EntityProjection
+        Set<Attribute> attributes = new LinkedHashSet<Attribute>();
+        attributes.add(Attribute.builder().type(TableExport.class).name("query").alias("query").build());
+        attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
+        attributes.add(Attribute.builder().type(TableExport.class).name("createdOn").build());
+        EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
+
+        Map<String, Object> resourceAttributes = new LinkedHashMap<>();
+        resourceAttributes.put("query", query);
+        resourceAttributes.put("queryType", queryObj.getQueryType());
+        resourceAttributes.put("createdOn", queryObj.getCreatedOn());
+
+        Resource resource = new Resource("tableExport", "0", resourceAttributes, null, null, null);
+        PersistentResource persistentResource = mock(PersistentResource.class);
+        when(persistentResource.getObject()).thenReturn(queryObj);
+        when(persistentResource.getRequestScope()).thenReturn(scope);
+        when(persistentResource.toResource(any(), any())).thenReturn(resource);
+        when(scope.getEntityProjection()).thenReturn(projection);
+
+        String output = formatter.format(persistentResource, 1);
         assertEquals(true, output.contains(start));
     }
 }

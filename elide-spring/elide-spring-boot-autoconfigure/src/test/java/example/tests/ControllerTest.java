@@ -36,6 +36,7 @@ import com.yahoo.elide.test.graphql.GraphQLDSL;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
@@ -47,17 +48,20 @@ import javax.ws.rs.core.MediaType;
  * Example functional test.
  */
 @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
-@Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+@Sql(
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+        scripts = "classpath:db/test_init.sql",
         statements = "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
-                + "\t\t('com.example.repository','Example Repository','The code for this project', false);")
-@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-        statements = "DELETE FROM ArtifactVersion; DELETE FROM ArtifactProduct; DELETE FROM ArtifactGroup;")
+            + "\t\t('com.example.repository','Example Repository','The code for this project', false);"
+)
 @Import(IntegrationTestSetup.class)
 @TestPropertySource(
         properties = {
-                "elide.json-api.enableLinks=true"
+                "elide.json-api.enableLinks=true",
+                "elide.async.export.enabled=false"
         }
 )
+@ActiveProfiles("default")
 public class ControllerTest extends IntegrationTest {
     private String baseUrl;
 
@@ -462,5 +466,17 @@ public class ControllerTest extends IntegrationTest {
                 .then()
                 .body("errors.message", contains("CreatePermission Denied"))
                 .statusCode(200);
+    }
+
+    // Controller disabled by default.
+    @Test
+    public void exportControllerDisabledTest() {
+        // Though post is not supported for export we can use it to test if controller is disabled.
+        // post returns with 404 if controller is disabled and 405 when enabled.
+        when()
+                .post("/export/asyncQueryId")
+                .then()
+                .body("error", equalTo("Not Found"))
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 }

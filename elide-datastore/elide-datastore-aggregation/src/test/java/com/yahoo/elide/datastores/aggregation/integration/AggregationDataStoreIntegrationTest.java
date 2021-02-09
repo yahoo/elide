@@ -21,12 +21,12 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.when;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.audit.TestAuditLogger;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.checks.OperatorCheck;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
@@ -39,8 +39,8 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
-import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.modelconfig.model.DBConfig;
+import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import example.TestCheckMappings;
@@ -82,7 +82,18 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
     @Mock private static SecurityContext securityContextMock;
 
-    public static final ElideDynamicEntityCompiler COMPILER = getCompiler("src/test/resources/configs");
+    public static DynamicConfigValidator VALIDATOR;
+
+    static {
+        VALIDATOR = new DynamicConfigValidator("src/test/resources/configs");
+
+        try {
+            VALIDATOR.readAndValidateConfigs();
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     private static final class SecurityHjsonIntegrationTestResourceConfig extends ResourceConfig {
 
         @Inject
@@ -94,10 +105,9 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                     map.put(OperatorCheck.OPERTOR_CHECK, OperatorCheck.class);
                     EntityDictionary dictionary = new EntityDictionary(map);
 
-                    try {
-                        dictionary.addSecurityChecks(COMPILER.findAnnotatedClasses(SecurityCheck.class));
-                    } catch (ClassNotFoundException e) {
-                    }
+                    VALIDATOR.getElideSecurityConfig().getRoles().forEach(role -> {
+                        dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role));
+                    });
 
                     Elide elide = new Elide(new ElideSettingsBuilder(getDataStore())
                                     .withEntityDictionary(dictionary)
@@ -150,13 +160,13 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         // Add an entry for "mycon" connection which is not from hjson
         connectionDetailsMap.put("mycon", defaultConnectionDetails);
         // Add connection details fetched from hjson
-        COMPILER.getElideSQLDBConfig().getDbconfigs().forEach(dbConfig -> {
+        VALIDATOR.getElideSQLDBConfig().getDbconfigs().forEach(dbConfig -> {
             connectionDetailsMap.put(dbConfig.getName(),
                             new ConnectionDetails(getDataSource(dbConfig, getDBPasswordExtractor()),
                                             SQLDialectFactory.getDialect(dbConfig.getDialect())));
         });
 
-        return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, COMPILER);
+        return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, VALIDATOR);
     }
 
     static DataSource getDataSource(DBConfig dbConfig, DBPasswordExtractor dbPasswordExtractor) {
@@ -177,14 +187,6 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 }
             }
         };
-    }
-
-    private static ElideDynamicEntityCompiler getCompiler(String path) {
-        try {
-            return new ElideDynamicEntityCompiler(path);
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
     }
 
     @Test

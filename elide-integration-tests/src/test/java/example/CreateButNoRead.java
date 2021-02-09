@@ -23,7 +23,7 @@ import javax.persistence.OneToMany;
  */
 @Include
 @Entity
-@CreatePermission(expression = "allow all")
+@CreatePermission(expression = "Prefab.Role.All")
 public class CreateButNoRead extends BaseId {
     private Set<CreateButNoReadChild> otherObjects;
 
