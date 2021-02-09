@@ -18,10 +18,10 @@ import javax.persistence.ManyToMany;
 
 @Entity
 @Include
-@ReadPermission(expression = "allow all")
-@CreatePermission(expression = "allow all")
-@UpdatePermission(expression = "allow all")
-@DeletePermission(expression = "allow all")
+@ReadPermission(expression = "Prefab.Role.All")
+@CreatePermission(expression = "Prefab.Role.All")
+@UpdatePermission(expression = "Prefab.Role.All")
+@DeletePermission(expression = "Prefab.Role.All")
 public class AuditEntityInverse extends BaseId {
     private List<AuditEntity> entities;
 

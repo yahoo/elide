@@ -16,9 +16,9 @@ import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 
 @Include(rootLevel = false)
-@ReadPermission(expression = "allow all")
-@CreatePermission(expression = "allow all")
-@UpdatePermission(expression = "allow all")
+@ReadPermission(expression = "Prefab.Role.All")
+@CreatePermission(expression = "Prefab.Role.All")
+@UpdatePermission(expression = "Prefab.Role.All")
 @Entity
 public class OneToOneNonRoot extends BaseId {
     private String test;

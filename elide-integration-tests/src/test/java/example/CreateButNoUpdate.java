@@ -17,8 +17,8 @@ import javax.persistence.Entity;
  */
 @Include
 @Entity
-@CreatePermission(expression = "allow all")
-@ReadPermission(expression = "allow all")
+@CreatePermission(expression = "Prefab.Role.All")
+@ReadPermission(expression = "Prefab.Role.All")
 @UpdatePermission(expression = "Prefab.Role.None")
 public class CreateButNoUpdate extends BaseId {
     private String textValue;

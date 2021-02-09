@@ -13,38 +13,37 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class ISOWeekSerdeTest {
-    private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+    private DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
 
     @Test
     public void testDateSerialize() throws ParseException {
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 06, 00, 00, 00);
 
-        String expected = "2020-01-06";
-        ISOWeek expectedDate = new ISOWeek(formatter.parse(expected));
+        ISOWeek expectedDate = new ISOWeek(localDate);
         Serde serde = new ISOWeek.ISOWeekSerde();
         Object actual = serde.serialize(expectedDate);
-        assertEquals(expected, actual);
+        assertEquals("2020-01-06", actual);
     }
 
     @Test
     public void testDateDeserializeString() throws ParseException {
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 06, 00, 00, 00);
 
-        String dateInString = "2020-01-06";
-        Date expectedDate = new Date(formatter.parse(dateInString).getTime());
-        String actual = "2020-01-06";
+        ISOWeek expectedDate = new ISOWeek(localDate);
         Serde serde = new ISOWeek.ISOWeekSerde();
-        Object actualDate = serde.deserialize(actual);
+        Object actualDate = serde.deserialize("2020-01-06");
         assertEquals(expectedDate, actualDate);
     }
 
     @Test
     public void testDeserializeTimestampNotMonday() throws ParseException {
-
-        String dateInString = "2020-01-01";
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
+        ISOWeek timestamp = new ISOWeek(localDate);
         Serde serde = new ISOWeek.ISOWeekSerde();
         assertThrows(IllegalArgumentException.class, () -> {
             serde.deserialize(timestamp);
@@ -53,10 +52,9 @@ public class ISOWeekSerdeTest {
 
     @Test
     public void testDeserializeTimestamp() throws ParseException {
-
-        String dateInString = "2020-01-06";
-        ISOWeek expectedDate = new ISOWeek(formatter.parse(dateInString));
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 06, 00, 00, 00);
+        ISOWeek expectedDate = new ISOWeek(localDate);
+        Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new ISOWeek.ISOWeekSerde();
         Object actualDate = serde.deserialize(timestamp);
         assertEquals(expectedDate, actualDate);
@@ -67,7 +65,7 @@ public class ISOWeekSerdeTest {
 
         String dateInString = "January-2020-01";
         Serde serde = new ISOWeek.ISOWeekSerde();
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(DateTimeParseException.class, () -> {
             serde.deserialize(dateInString);
         });
     }

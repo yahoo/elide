@@ -23,10 +23,10 @@ import javax.persistence.Table;
 /**
  * Permission checks test bean.
  */
-@CreatePermission(expression = "allow all")
-@ReadPermission(expression = "allow all")
-@UpdatePermission(expression = "Prefab.Role.None OR allow all")
-@DeletePermission(expression = "Prefab.Role.None AND allow all")
+@CreatePermission(expression = "Prefab.Role.All")
+@ReadPermission(expression = "Prefab.Role.All")
+@UpdatePermission(expression = "Prefab.Role.None OR Prefab.Role.All")
+@DeletePermission(expression = "Prefab.Role.None AND Prefab.Role.All")
 @Include(type = "fun") // optional here because class has this name
 // Hibernate
 @Entity
@@ -92,7 +92,7 @@ public class FunWithPermissions extends BaseId {
         this.field1 = field1;
     }
 
-    @ReadPermission(expression = "allow all")
+    @ReadPermission(expression = "Prefab.Role.All")
     public String getField2() {
         return field2;
     }
@@ -117,7 +117,7 @@ public class FunWithPermissions extends BaseId {
 
     private String field5;
 
-    @ReadPermission(expression = "allow all OR negativeIntegerUser")
+    @ReadPermission(expression = "Prefab.Role.All OR negativeIntegerUser")
     public String getField5() {
         return field5;
     }
@@ -128,7 +128,7 @@ public class FunWithPermissions extends BaseId {
 
     private String field6;
 
-    @ReadPermission(expression = "negativeIntegerUser AND allow all")
+    @ReadPermission(expression = "negativeIntegerUser AND Prefab.Role.All")
     public String getField6() {
         return field6;
     }
@@ -140,7 +140,7 @@ public class FunWithPermissions extends BaseId {
     private String field7;
 
     /* Verifies a chain of checks where the last can fail. */
-    @ReadPermission(expression = "allow all AND Prefab.Role.None")
+    @ReadPermission(expression = "Prefab.Role.All AND Prefab.Role.None")
     public String getField7() {
         return field7;
     }

@@ -202,7 +202,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
 
                     Path.PathElement last = path.lastElement().get();
 
-                    SQLColumnProjection projection = fieldToColumnProjection(plan, last.getFieldName());
+                    SQLColumnProjection projection = fieldToColumnProjection(plan, last.getAlias());
                     String orderByClause = (plan.getColumnProjections().contains(projection)
                             && dialect.useAliasForOrderByClause())
                             ? applyQuotes(projection.getAlias())
@@ -296,7 +296,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
     private String generatePredicatePathReference(Path path, Query query) {
         Path.PathElement last = path.lastElement().get();
 
-        SQLColumnProjection projection = fieldToColumnProjection(query, last.getFieldName());
+        SQLColumnProjection projection = fieldToColumnProjection(query, last.getAlias());
         return projection.toSQL(referenceTable);
     }
 

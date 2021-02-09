@@ -22,4 +22,9 @@ public class ExportControllerProperties extends ControllerProperties {
      * The URL path prefix for the controller.
      */
     private String path = "/export";
+
+    /**
+     * Storage engine destination .
+     */
+    private String storageDestination = "/tmp";
 }

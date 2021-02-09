@@ -6,19 +6,24 @@
 
 package com.yahoo.elide.core.type;
 
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.core.exceptions.InvalidParameterizedAttributeException;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
  * Base class that contains one or more parameterized attributes.
  */
 public abstract class ParameterizedModel {
-    private Map<Attribute, ParameterizedAttribute> parameterizedAttributes;
+
+    @Exclude
+    protected Map<Attribute, ParameterizedAttribute> parameterizedAttributes;
 
     public ParameterizedModel() {
         this(new HashMap<>());
@@ -45,9 +50,37 @@ public abstract class ParameterizedModel {
      * @return The attribute value.
      */
     public <T> T invoke(Attribute attribute) {
-        if (! parameterizedAttributes.containsKey(attribute)) {
+        Optional<Attribute> match = parameterizedAttributes.keySet().stream()
+
+                //Only filter by alias required.  (Filtering by type may not work with inheritance).
+                .filter((modelAttribute) -> attribute.getAlias().equals(modelAttribute.getAlias()))
+                .findFirst();
+
+        if (! match.isPresent()) {
             throw new InvalidParameterizedAttributeException(attribute);
         }
-        return parameterizedAttributes.get(attribute).invoke(attribute.getArguments());
+
+        return parameterizedAttributes.get(match.get()).invoke(attribute.getArguments());
+    }
+
+    /**
+     * Fetch the attribute value by name.
+     * @param alias The field name to fetch.
+     * @param defaultValue Returned if the field name is not found
+     * @param <T> The return type of the attribute.
+     * @return The attribute value or the provided default value.
+     */
+    public <T> T fetch(String alias, T defaultValue) {
+        Optional<Attribute> match = parameterizedAttributes.keySet().stream()
+
+                //Only filter by alias required.  (Filtering by type may not work with inheritance).
+                .filter((modelAttribute) -> alias.equals(modelAttribute.getAlias()))
+                .findFirst();
+
+        if (! match.isPresent()) {
+            return defaultValue;
+        }
+
+        return parameterizedAttributes.get(match.get()).invoke(new HashSet<>());
     }
 }

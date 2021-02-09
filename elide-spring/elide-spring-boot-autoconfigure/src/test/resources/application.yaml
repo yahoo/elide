@@ -19,6 +19,9 @@ elide:
     cleanupEnabled: true
     queryCleanupDays: 7
     defaultAsyncAPIDAO: true
+    export:
+      enabled: true
+      path: /export
   dynamic-config:
     path: src/test/resources/configs
     enabled: true

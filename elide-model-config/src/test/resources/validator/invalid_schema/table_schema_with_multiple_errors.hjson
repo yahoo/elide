@@ -54,19 +54,19 @@
           // unsupported field type
           type: TIMEX
           definition: "{{create_on}}"
-          grain:
-          {
+          grains:
+          [{
             // unsupported grain type
             type: Days
-          }
+          }]
         }
         {
           name: updatedOn
           type: Time
           definition: "{{updated_on}}"
-          grain: {
+          grains: [{
               type: month
-          }
+          }]
         }
         {
           name: modifiedOn

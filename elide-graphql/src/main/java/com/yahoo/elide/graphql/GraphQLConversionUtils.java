@@ -465,6 +465,7 @@ public class GraphQLConversionUtils {
                 .map(argumentType -> newArgument()
                         .name(argumentType.getName())
                         .type(fetchScalarOrObjectInput(argumentType.getType()))
+                        .defaultValue(argumentType.getDefaultValue())
                         .build())
                 .collect(Collectors.toList());
 

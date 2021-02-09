@@ -15,9 +15,9 @@ import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
 
 @Include
-@ReadPermission(expression = "allow all")
-@CreatePermission(expression = "allow all")
-@UpdatePermission(expression = "allow all")
+@ReadPermission(expression = "Prefab.Role.All")
+@CreatePermission(expression = "Prefab.Role.All")
+@UpdatePermission(expression = "Prefab.Role.All")
 @Entity
 public class OneToOneRoot extends BaseId {
     private String name;

@@ -13,6 +13,8 @@ import io.reactivex.Observable;
  * Utility interface used for storing the results of AsyncQuery for downloads.
  */
 public interface ResultStorageEngine {
+    public static final String RETRIEVE_ERROR = "Unable to retrieve results.";
+    public static final String STORE_ERROR = "Unable to store results.";
 
     /**
      * Stores the result of the query.
