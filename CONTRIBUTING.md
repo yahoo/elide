@@ -3,7 +3,7 @@ First, thanks for taking the time to contribute to our project! There are many w
 
 ### Questions
 
-If you have a question that needs an answer, [create an issue](https://help.github.com/articles/creating-an-issue/), and label it as a question.
+If you have a question that needs an answer, [create an issue](https://github.com/yahoo/elide/issues/new), and label it as a question.
 
 ### Issues for bugs or feature requests
 
