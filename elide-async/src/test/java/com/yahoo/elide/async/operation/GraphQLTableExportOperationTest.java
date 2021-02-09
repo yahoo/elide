@@ -117,7 +117,7 @@ public class GraphQLTableExportOperationTest {
         TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
-        assertEquals("Bad Request Body'Unknown entity {tableExport1}.'", queryResultObj.getMessage());
+        assertEquals("Bad Request Body'Unknown entity {tableExportInvalid}.'", queryResultObj.getMessage());
     }
 
     @Test
