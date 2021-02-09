@@ -35,7 +35,7 @@ public class DynamicConfigSchemaValidator {
     private JsonSchema securitySchema;
     private JsonSchema variableSchema;
     private JsonSchema dbConfigSchema;
-    private static String NEWLINE = "\n";
+    private static String NEWLINE = System.lineSeparator();
 
     public DynamicConfigSchemaValidator() {
 
