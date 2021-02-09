@@ -33,13 +33,18 @@ public interface ColumnProjection extends Serializable {
         return getName();
     }
 
+    /**
+     * Get the safe alias (an alias that is not vulnerable to injection).
+     *
+     * @return an alias for column that is not vulnerable to injection
+     */
     default String getSafeAlias() {
         String alias = getAlias();
         String name = getName();
         if (name.equals(alias)) {
             return name;
         } else {
-            return createSQLAlias(name, alias);
+            return createSafeAlias(name, alias);
         }
     }
 
@@ -107,7 +112,13 @@ public interface ColumnProjection extends Serializable {
         throw new UnsupportedOperationException();
     }
 
-    public static String createSQLAlias(String name, String alias) {
+    /**
+     * Creates an alias that is not vulnerable to injection
+     * @param name projected column's name
+     * @param alias projected column's alias
+     * @return an alias for projected column that is not vulnerable to injection
+     */
+    public static String createSafeAlias(String name, String alias) {
         return name + "_" + (Base64.getEncoder().encodeToString(alias.getBytes()).hashCode() & 0xfffffff);
     }
 }

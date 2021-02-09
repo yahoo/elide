@@ -641,6 +641,10 @@ public abstract class SQLUnitTest {
             split[split.length - 1] = "`overallRating_207658499` DESC ";
             expectedSQL = String.join(NEWLINE, split);
         }
+        return formatInSingleLine(expectedSQL);
+    }
+
+    private String formatInSingleLine(String expectedSQL) {
         // Remove spaces at the start of each line with in string
         expectedSQL = expectedSQL.replaceAll("(?m)^\\s*", "");
         expectedSQL = expectedSQL.replace(NEWLINE, "");
