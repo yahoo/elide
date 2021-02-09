@@ -24,6 +24,7 @@ import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
 import com.yahoo.elide.async.service.dao.DefaultAsyncAPIDAO;
+import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
@@ -153,10 +154,11 @@ public class ElideAsyncConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "elide.async.download", name = "enabled", matchIfMissing = false)
+    @ConditionalOnProperty(prefix = "elide.async.export", name = "enabled", matchIfMissing = false)
     public ResultStorageEngine buildResultStorageEngine(Elide elide, ElideConfigProperties settings,
             AsyncAPIDAO asyncQueryDAO) {
-        // TODO: Initialize with FileResultStorageEngine
-        return null;
+        FileResultStorageEngine resultStorageEngine = new FileResultStorageEngine(settings.getAsync().getExport()
+                .getStorageDestination());
+        return resultStorageEngine;
     }
 }

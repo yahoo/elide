@@ -7,53 +7,47 @@ package com.yahoo.elide.datastores.aggregation.timegrains;
 
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 
-import java.sql.Date;
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 /**
  * Time Grain class for Week.
  */
-public class Week extends Date {
+public class Week extends Time {
 
     public static final String FORMAT = "yyyy-MM-dd";
-    private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
 
-    public Week(java.util.Date date) {
-        super(date.getTime());
+    public Week(LocalDateTime date) {
+        super(date, true, true, true, false, false, false, getSerializer(TimeGrain.WEEK));
     }
 
     @ElideTypeConverter(type = Week.class, name = "Week")
     static public class WeekSerde implements Serde<Object, Week> {
-        private static final SimpleDateFormat WEEKDATE_FORMATTER = new SimpleDateFormat("u");
-
         @Override
         public Week deserialize(Object val) {
-
-            Week date = null;
-
-            try {
-                if (val instanceof String) {
-                    date = new Week(new Timestamp(FORMATTER.parse((String) val).getTime()));
-                } else {
-                    date = new Week(FORMATTER.parse(FORMATTER.format(val)));
-                }
-            } catch (ParseException e) {
-                throw new IllegalArgumentException("String must be formatted as " + FORMAT);
+            LocalDateTime date;
+            if (val instanceof Date) {
+                date = LocalDateTime.ofInstant(((Date) val).toInstant(), ZoneOffset.systemDefault());
+            } else {
+                LocalDate localDate = LocalDate.parse(val.toString(), DateTimeFormatter.ISO_LOCAL_DATE);
+                date = localDate.atTime(0, 0);
             }
 
-            if (!WEEKDATE_FORMATTER.format(date).equals("7")) {
+            if (date.getDayOfWeek() != DayOfWeek.SUNDAY) {
                 throw new IllegalArgumentException("Date string not a Sunday");
             }
-
-            return date;
+            return new Week(date);
         }
 
         @Override
         public String serialize(Week val) {
-            return FORMATTER.format(val);
+            return val.serializer.format(val);
         }
     }
 }

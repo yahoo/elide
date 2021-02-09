@@ -82,9 +82,9 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
             exportResult.setUrl(new URL(generateDownloadURL(exportObj, (RequestScope) scope)));
             exportResult.setRecordCount(recordNumber);
         } catch (BadRequestException e) {
-            exportResult.setMessage("Download url generation failure.");
-        } catch (MalformedURLException e) {
             exportResult.setMessage("EntityProjection generation failure.");
+        } catch (MalformedURLException e) {
+            exportResult.setMessage("Download url generation failure.");
         }  catch (Exception e) {
             exportResult.setMessage(e.getMessage());
         } finally {
@@ -127,6 +127,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
             //TODO - Can we have projectionInfo as null?
             RequestScope exportRequestScope = getRequestScope(exportObj, prevScope.getUser(),
                     prevScope.getApiVersion(), tx);
+            exportRequestScope.setEntityProjection(projection);
 
             if (projection != null) {
                 results = PersistentResource.loadRecords(projection, Collections.emptyList(), exportRequestScope);

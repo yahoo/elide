@@ -38,7 +38,7 @@ public class Right {
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class
     )
-    @UpdatePermission(expression = "allow all")
+    @UpdatePermission(expression = "Prefab.Role.All")
     public Left getOne2one() {
         return one2one;
     }
@@ -98,7 +98,7 @@ public class Right {
     @ManyToMany(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE }
     )
-    @UpdatePermission(expression = "allow all")
+    @UpdatePermission(expression = "Prefab.Role.All")
     public Set<Left> getAllowDeleteAtFieldLevel() {
         return allowDeleteAtFieldLevel;
     }

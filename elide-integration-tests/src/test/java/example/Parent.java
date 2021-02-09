@@ -28,10 +28,10 @@ import javax.validation.constraints.NotNull;
 /**
  * Parent test bean.
  */
-@CreatePermission(expression = "parentInitCheck OR allow all")
-@ReadPermission(expression = "parentInitCheck OR allow all")
-@UpdatePermission(expression = "parentInitCheck OR allow all OR Prefab.Role.None")
-@DeletePermission(expression = "parentInitCheck OR allow all OR Prefab.Role.None")
+@CreatePermission(expression = "parentInitCheck OR Prefab.Role.All")
+@ReadPermission(expression = "parentInitCheck OR Prefab.Role.All")
+@UpdatePermission(expression = "parentInitCheck OR Prefab.Role.All OR Prefab.Role.None")
+@DeletePermission(expression = "parentInitCheck OR Prefab.Role.All OR Prefab.Role.None")
 @Include(type = "parent") // optional here because class has this name
 @Paginate(maxLimit = 100000)
 // Hibernate
@@ -48,8 +48,8 @@ public class Parent extends BaseId {
         init = true;
     }
 
-    @ReadPermission(expression = "allow all OR Prefab.Role.None")
-    @UpdatePermission(expression = "allow all OR Prefab.Role.None")
+    @ReadPermission(expression = "Prefab.Role.All OR Prefab.Role.None")
+    @UpdatePermission(expression = "Prefab.Role.All OR Prefab.Role.None")
     // Hibernate
     @ManyToMany(
             targetEntity = Child.class

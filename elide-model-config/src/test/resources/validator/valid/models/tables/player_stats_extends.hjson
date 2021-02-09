@@ -28,49 +28,49 @@
            name : createdOn
            type : TIME
            definition : '{{create_on}}'
-           grain:
-            {
+           grains:
+            [{
              type : MONTH
              sql :  '''
              PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM')
              '''
-            }
+            }]
          },
          {
            name : createdYear
            type : TIME
            definition : '{{createdYear}}'
-           grain:
-            {
+           grains:
+            [{
              type : Year
              sql :  '''
              PARSEDATETIME(FORMATDATETIME(createdOn, 'yyyy-MM-dd'), 'yyyy')
              '''
-            }
+            }]
          },
          {
            name : createdWeekDate
            type : TIME
            definition : '{{createdOn}}'
-           grain:
-            {
+           grains:
+            [{
              type : isoWEEK
              sql :  '''
              PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
              '''
-            }
+            }]
          },
          {
            name : updatedMonth
            type : TIME
            definition : '{{updated_month}}'
-           grain:
-            {
+           grains:
+            [{
              type : mOnth
              sql :  '''
              PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyyMM')
              '''
-            }
+            }]
          }
       ]
     }

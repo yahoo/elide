@@ -13,50 +13,49 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class WeekSerdeTest {
-    private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+    private DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
 
     @Test
     public void testDateSerialize() throws ParseException {
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 05, 00, 00, 00);
 
-        String expected = "2020-01-05";
-        Week expectedDate = new Week(formatter.parse(expected));
+        Week expectedDate = new Week(localDate);
         Serde serde = new Week.WeekSerde();
         Object actual = serde.serialize(expectedDate);
-        assertEquals(expected, actual);
+        assertEquals("2020-01-05", actual);
     }
 
     @Test
     public void testDateDeserializeString() throws ParseException {
-
-        String dateInString = "2020-01-05";
-        Date expectedDate = new Date(formatter.parse(dateInString).getTime());
-        String actual = "2020-01-05";
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 05, 00, 00, 00);
+        Week expectedDate = new Week(localDate);
         Serde serde = new Week.WeekSerde();
-        Object actualDate = serde.deserialize(actual);
+        Object actualDate = serde.deserialize("2020-01-05");
         assertEquals(expectedDate, actualDate);
     }
 
     @Test
     public void testDeserializeTimestampNotSunday() throws ParseException {
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 06, 00, 00, 00);
 
-        String dateInString = "2020-01-06";
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        Week expectedDate = new Week(localDate);
         Serde serde = new Week.WeekSerde();
         assertThrows(IllegalArgumentException.class, () -> {
-            serde.deserialize(timestamp);
+            serde.deserialize(expectedDate);
         });
     }
 
     @Test
     public void testDeserializeTimestamp() throws ParseException {
+        LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 05, 00, 00, 00);
 
-        String dateInString = "2020-01-05";
-        Week expectedDate = new Week(formatter.parse(dateInString));
-        Timestamp timestamp = new Timestamp(formatter.parse(dateInString).getTime());
+        Week expectedDate = new Week(localDate);
+        Timestamp timestamp = new Timestamp(expectedDate.getTime());
         Serde serde = new Week.WeekSerde();
         Object actualDate = serde.deserialize(timestamp);
         assertEquals(expectedDate, actualDate);
@@ -67,7 +66,7 @@ public class WeekSerdeTest {
 
         String dateInString = "January-2020-01";
         Serde serde = new Week.WeekSerde();
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(DateTimeParseException.class, () -> {
             serde.deserialize(dateInString);
         });
     }

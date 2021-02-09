@@ -31,9 +31,6 @@ import javax.inject.Singleton;
 public class FileResultStorageEngine implements ResultStorageEngine {
     @Setter private String basePath;
 
-    public FileResultStorageEngine() {
-    }
-
     /**
      * Constructor.
      * @param basePath basePath for storing the files. Can be absolute or relative.
@@ -55,14 +52,14 @@ public class FileResultStorageEngine implements ResultStorageEngine {
                             writer.flush();
                         },
                         throwable -> {
-                            throw new IllegalStateException(throwable);
+                            throw new IllegalStateException(STORE_ERROR, throwable);
                         },
                         () -> {
                             writer.flush();
                         }
                 );
         } catch (IOException e) {
-            throw new IllegalStateException(e);
+            throw new IllegalStateException(STORE_ERROR, e);
         }
 
         return tableExport;
@@ -85,7 +82,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
                                     record = reader.readLine();
                                     return record != null;
                                 } catch (IOException e) {
-                                    throw new IllegalStateException(e);
+                                    throw new IllegalStateException(RETRIEVE_ERROR, e);
                                 }
                             }
 
@@ -106,7 +103,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
             return Files.newBufferedReader(Paths.get(basePath + File.separator + asyncQueryID));
         } catch (IOException e) {
             log.debug(e.getMessage());
-            throw new IllegalStateException("Unable to retrieve results.");
+            throw new IllegalStateException(RETRIEVE_ERROR, e);
         }
     }
 
@@ -115,7 +112,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
             return Files.newBufferedWriter(Paths.get(basePath + File.separator + asyncQueryID));
         } catch (IOException e) {
             log.debug(e.getMessage());
-            throw new IllegalStateException("Unable to store results.");
+            throw new IllegalStateException(STORE_ERROR, e);
         }
     }
 }

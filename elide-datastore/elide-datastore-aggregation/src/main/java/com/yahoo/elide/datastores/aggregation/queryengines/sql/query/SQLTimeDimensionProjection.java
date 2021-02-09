@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import com.yahoo.elide.core.exceptions.InvalidParameterizedAttributeException;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
@@ -20,6 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -60,7 +62,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
         this.expression = column.getExpression();
         this.name = column.getName();
         this.source = (SQLTable) column.getTable();
-        this.grain = column.getSupportedGrain();
+        this.grain = getGrainFromArguments(arguments, column);
         this.arguments = arguments;
         this.alias = alias;
         this.timeZone = timeZone;
@@ -106,5 +108,20 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
                 .grain(grain)
                 .timeZone(timeZone)
                 .build();
+    }
+
+    private TimeDimensionGrain getGrainFromArguments(Map<String, Argument> arguments, TimeDimension column) {
+        Argument grainArgument = arguments.get("grain");
+
+        if (grainArgument == null) {
+            return column.getDefaultGrain();
+        }
+
+        String grainName = grainArgument.getValue().toString().toLowerCase(Locale.ENGLISH);
+
+        return column.getSupportedGrains().stream()
+                .filter(grain -> grain.getGrain().name().toLowerCase(Locale.ENGLISH).equals(grainName))
+                .findFirst()
+                .orElseThrow(() -> new InvalidParameterizedAttributeException(name, grainArgument));
     }
 }

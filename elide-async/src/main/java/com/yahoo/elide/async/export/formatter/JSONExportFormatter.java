@@ -8,11 +8,19 @@ package com.yahoo.elide.async.export.formatter;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.jsonapi.models.Resource;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * JSON output format implementation.
@@ -48,14 +56,29 @@ public class JSONExportFormatter implements TableExportFormatter {
         }
 
         StringBuilder str = new StringBuilder();
-
         try {
-            str.append(mapper.writeValueAsString(resource.getObject()));
+            Resource jsonResource = resource.toResource(getRelationships(resource), getAttributes(resource));
+
+            str.append(mapper.writeValueAsString(jsonResource.getAttributes()));
         } catch (JsonProcessingException e) {
             log.error("Exception when converting to JSON {}", e.getMessage());
             throw new IllegalStateException(e);
         }
         return str.toString();
+    }
+
+    protected static Map<String, Object> getAttributes(PersistentResource resource) {
+        final Map<String, Object> attributes = new LinkedHashMap<>();
+        final Set<Attribute> attrFields = resource.getRequestScope().getEntityProjection().getAttributes();
+
+        for (Attribute field : attrFields) {
+            attributes.put(field.getName(), resource.getAttribute(field));
+        }
+        return attributes;
+    }
+
+    protected static Map<String, Object> getRelationships(PersistentResource resource) {
+        return Collections.emptyMap();
     }
 
     @Override
