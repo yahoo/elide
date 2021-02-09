@@ -20,12 +20,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 
 import io.reactivex.Observable;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.servlet.http.HttpServletResponse;
@@ -55,19 +53,17 @@ public class ExportApiEndpointTest {
     @Test
     public void testGet() throws InterruptedException, IOException {
         String queryId = "1";
-        int maxDownloadTimeSeconds = 10;
+        int maxDownloadTimeSeconds = 1;
         int maxDownloadTimeMilliSeconds = maxDownloadTimeSeconds * 1000;
         when(engine.getResultsByID(queryId)).thenReturn(Observable.just("result"));
 
-        ExecutorService executor = Executors.newFixedThreadPool(1);
-        exportApiProperties = new ExportApiProperties(executor, maxDownloadTimeSeconds);
+        exportApiProperties = new ExportApiProperties(Executors.newFixedThreadPool(1), maxDownloadTimeSeconds);
         endpoint = new ExportApiEndpoint(engine, exportApiProperties);
         endpoint.get(queryId, response, asyncResponse);
 
-        verify(engine, Mockito.times(1)).getResultsByID(queryId);
-
         // Timeout(int) succeeds as soon as the resume is called. It waits maximum upto value of "int" for resume to be called..
-        Mockito.verify(asyncResponse, timeout(maxDownloadTimeMilliSeconds)).resume(responseCaptor.capture());
+        verify(engine, timeout(maxDownloadTimeMilliSeconds)).getResultsByID(queryId);
+        verify(asyncResponse, timeout(maxDownloadTimeMilliSeconds)).resume(responseCaptor.capture());
         final Response res = responseCaptor.getValue();
 
         assertEquals(res.getStatus(), 200);
