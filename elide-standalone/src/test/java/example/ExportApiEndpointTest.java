@@ -66,7 +66,7 @@ public class ExportApiEndpointTest {
 
         verify(engine, Mockito.times(1)).getResultsByID(queryId);
 
-        // Timeout(int) succeeds as soon as the resume is called, but waits maximum upto value of "int" passed.
+        // Timeout(int) succeeds as soon as the resume is called. It waits maximum upto value of "int" for resume to be called..
         Mockito.verify(asyncResponse, timeout(maxDownloadTimeMilliSeconds)).resume(responseCaptor.capture());
         final Response res = responseCaptor.getValue();
 
