@@ -98,7 +98,7 @@ public class DynamicConfigValidatorTest {
     public void testMissingConfigDir() throws Exception {
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/missing", "--nocompile" }));
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/missing" }));
             assertEquals(2, exitStatus);
         });
 
@@ -109,27 +109,16 @@ public class DynamicConfigValidatorTest {
     public void testValidConfigDir() throws Exception {
         tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/valid", "--nocompile" }));
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/valid"}));
             assertEquals(0, exitStatus);
         });
-    }
-
-    @Test
-    public void testValidConfigDirWithCompile() throws Exception {
-        String error = tapSystemErr(() -> {
-            int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/valid" }));
-            assertEquals(2, exitStatus);
-        });
-
-        assertTrue(error.startsWith("Unable to compile the source"));
     }
 
     @Test
     public void testMissingVariableConfig() throws Exception {
         tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/missing_variable", "--nocompile" }));
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/missing_variable"}));
             assertEquals(0, exitStatus);
         });
     }
@@ -138,7 +127,7 @@ public class DynamicConfigValidatorTest {
     public void testMissingSecurityConfig() throws Exception {
         tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/missing_security", "--nocompile" }));
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/missing_security"}));
             assertEquals(0, exitStatus);
         });
     }
@@ -147,7 +136,7 @@ public class DynamicConfigValidatorTest {
     public void testMissingConfigs() throws Exception {
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/missing_configs", "--nocompile" }));
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/missing_configs"}));
             assertEquals(2, exitStatus);
         });
 
@@ -158,7 +147,7 @@ public class DynamicConfigValidatorTest {
     public void testMissingTableConfig() throws Exception {
         tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/missing_table_config", "--nocompile" }));
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/missing_table_config"}));
             assertEquals(0, exitStatus);
         });
     }
@@ -167,7 +156,7 @@ public class DynamicConfigValidatorTest {
     public void testBadVariableConfig() throws Exception {
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_variable", "--nocompile" }));
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_variable"}));
             assertEquals(2, exitStatus);
         });
 
@@ -203,7 +192,7 @@ public class DynamicConfigValidatorTest {
     public void testBadSecurityConfig() throws Exception {
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_security", "--nocompile" }));
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_security"}));
             assertEquals(2, exitStatus);
         });
 
@@ -216,7 +205,7 @@ public class DynamicConfigValidatorTest {
     public void testDuplicateSecurityRoleConfig() throws Exception {
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/duplicate_security_role", "--nocompile" }));
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/duplicate_security_role"}));
             assertEquals(2, exitStatus);
         });
 
@@ -227,7 +216,7 @@ public class DynamicConfigValidatorTest {
     public void testBadSecurityRoleConfig() throws Exception {
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_security_role", "--nocompile" }));
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_security_role"}));
             assertEquals(2, exitStatus);
         });
 
@@ -243,7 +232,7 @@ public class DynamicConfigValidatorTest {
     public void testBadSecurityChecks() throws Exception {
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_security_check", "--nocompile" }));
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_security_check"}));
             assertEquals(2, exitStatus);
         });
 
@@ -254,7 +243,7 @@ public class DynamicConfigValidatorTest {
     public void testBadTableConfigJoinType() throws Exception {
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_table_join_type", "--nocompile" }));
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_table_join_type"}));
             assertEquals(2, exitStatus);
         });
         String expected = "Schema validation failed for: table1.hjson\n"
@@ -286,7 +275,7 @@ public class DynamicConfigValidatorTest {
 
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_dim_name", "--nocompile" }));
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_dim_name"}));
             assertEquals(2, exitStatus);
         });
 
@@ -297,7 +286,7 @@ public class DynamicConfigValidatorTest {
     public void testBadTableConfigSQL() throws Exception {
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_table_sql", "--nocompile" }));
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_table_sql"}));
             assertEquals(2, exitStatus);
         });
 
@@ -308,7 +297,7 @@ public class DynamicConfigValidatorTest {
     public void testBadJoinModel() throws Exception {
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
-                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_join_model", "--nocompile" }));
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_join_model"}));
             assertEquals(2, exitStatus);
         });
         assertTrue(error.contains(" is neither included in dynamic models nor in static models"));
@@ -318,7 +307,7 @@ public class DynamicConfigValidatorTest {
     public void testBadJoinDefinition() throws Exception {
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() -> DynamicConfigValidator
-                    .main(new String[]{"--configDir", "src/test/resources/validator/bad_join_def", "--nocompile"}));
+                    .main(new String[]{"--configDir", "src/test/resources/validator/bad_join_def"}));
 
             assertEquals(2, exitStatus);
         });
@@ -330,7 +319,7 @@ public class DynamicConfigValidatorTest {
     public void testUndefinedVariable() throws Exception {
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() -> DynamicConfigValidator
-                    .main(new String[]{"--configDir", "src/test/resources/validator/undefined_handlebar", "--nocompile"}));
+                    .main(new String[]{"--configDir", "src/test/resources/validator/undefined_handlebar"}));
 
             assertEquals(2, exitStatus);
         });
@@ -342,7 +331,7 @@ public class DynamicConfigValidatorTest {
     public void testBadTableSource() throws Exception {
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() -> DynamicConfigValidator
-                    .main(new String[]{"--configDir", "src/test/resources/validator/bad_tablesource", "--nocompile"}));
+                    .main(new String[]{"--configDir", "src/test/resources/validator/bad_tablesource"}));
 
             assertEquals(2, exitStatus);
         });
@@ -354,7 +343,7 @@ public class DynamicConfigValidatorTest {
     public void testDuplicateDBConfigName() throws Exception {
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() -> DynamicConfigValidator
-                    .main(new String[]{"--configDir", "src/test/resources/validator/duplicate_dbconfigname", "--nocompile"}));
+                    .main(new String[]{"--configDir", "src/test/resources/validator/duplicate_dbconfigname"}));
 
             assertEquals(2, exitStatus);
         });
@@ -366,7 +355,7 @@ public class DynamicConfigValidatorTest {
     public void testJoinedTablesDBConnectionNameMismatch() throws Exception {
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() -> DynamicConfigValidator
-                    .main(new String[]{"--configDir", "src/test/resources/validator/mismatch_dbconfig", "--nocompile"}));
+                    .main(new String[]{"--configDir", "src/test/resources/validator/mismatch_dbconfig"}));
 
             assertEquals(2, exitStatus);
         });

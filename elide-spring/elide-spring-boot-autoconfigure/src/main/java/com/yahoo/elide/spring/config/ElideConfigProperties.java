@@ -33,17 +33,17 @@ public class ElideConfigProperties {
     /**
      * Settings for the Async.
      */
-    private AsyncProperties async;
+    private AsyncProperties async = new AsyncProperties();
 
     /**
      * Settings for the Dynamic Configuration.
      */
-    private DynamicConfigProperties dynamicConfig;
+    private DynamicConfigProperties dynamicConfig = new DynamicConfigProperties();
 
     /**
      * Settings for the Aggregation Store.
      */
-    private AggregationStoreProperties aggregationStore;
+    private AggregationStoreProperties aggregationStore = new AggregationStoreProperties();
 
     /**
      * Default pagination size for collections if the client doesn't paginate.

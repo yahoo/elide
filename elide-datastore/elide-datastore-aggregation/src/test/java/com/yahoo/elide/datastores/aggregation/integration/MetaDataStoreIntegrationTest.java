@@ -6,7 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.integration;
 
-import static com.yahoo.elide.datastores.aggregation.integration.AggregationDataStoreIntegrationTest.COMPILER;
+import static com.yahoo.elide.datastores.aggregation.integration.AggregationDataStoreIntegrationTest.VALIDATOR;
 import static com.yahoo.elide.datastores.aggregation.integration.AggregationDataStoreIntegrationTest.getDBPasswordExtractor;
 import static com.yahoo.elide.datastores.aggregation.integration.AggregationDataStoreIntegrationTest.getDataSource;
 import static io.restassured.RestAssured.given;
@@ -55,13 +55,13 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
         // Add an entry for "mycon" connection which is not from hjson
         connectionDetailsMap.put("mycon", defaultConnectionDetails);
         // Add connection details fetched from hjson
-        COMPILER.getElideSQLDBConfig().getDbconfigs().forEach(dbConfig -> {
+        VALIDATOR.getElideSQLDBConfig().getDbconfigs().forEach(dbConfig -> {
             connectionDetailsMap.put(dbConfig.getName(),
                             new ConnectionDetails(getDataSource(dbConfig, getDBPasswordExtractor()),
                                             SQLDialectFactory.getDialect(dbConfig.getDialect())));
         });
 
-        return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, COMPILER);
+        return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, VALIDATOR);
     }
 
     @Test
