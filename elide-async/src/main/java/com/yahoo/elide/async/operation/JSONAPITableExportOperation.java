@@ -20,6 +20,7 @@ import org.apache.http.client.utils.URIBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.UUID;
@@ -56,9 +57,9 @@ public class JSONAPITableExportOperation extends TableExportOperation {
             projection = new EntityProjectionMaker(elide.getElideSettings().getDictionary(),
                     getScope()).parsePath(JSONAPIAsyncQueryOperation.getPath(uri));
 
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
+        } catch (URISyntaxException e) {
+        	throw new IllegalStateException(e);
+		}
         return projection;
     }
 }
