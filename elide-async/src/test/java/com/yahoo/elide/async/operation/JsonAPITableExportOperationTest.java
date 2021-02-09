@@ -118,7 +118,7 @@ public class JsonAPITableExportOperationTest {
         TableExportResult queryResultObj = (TableExportResult) jsonAPIOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
-        assertEquals("InvalidCollectionException: Unknown collection tableExport1", queryResultObj.getMessage());
+        assertEquals("Unknown collection tableExport1", queryResultObj.getMessage());
     }
 
     /**
