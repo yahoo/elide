@@ -33,7 +33,7 @@ public interface ColumnProjection extends Serializable {
         return getName();
     }
 
-    default String getSQLAlias() {
+    default String getSafeAlias() {
         String alias = getAlias();
         String name = getName();
         if (name.equals(alias)) {

@@ -62,10 +62,10 @@ public class EntityHydrator {
 
         //Get all the projections from the client query.
         Map<String, String> projections = this.query.getMetricProjections().stream()
-                .collect(Collectors.toMap(MetricProjection::getAlias, MetricProjection::getSQLAlias));
+                .collect(Collectors.toMap(MetricProjection::getAlias, MetricProjection::getSafeAlias));
 
         projections.putAll(this.query.getAllDimensionProjections().stream()
-                .collect(Collectors.toMap(ColumnProjection::getAlias, ColumnProjection::getSQLAlias)));
+                .collect(Collectors.toMap(ColumnProjection::getAlias, ColumnProjection::getSafeAlias)));
 
         try {
             Preconditions.checkArgument(projections.size() == rs.getMetaData().getColumnCount());
