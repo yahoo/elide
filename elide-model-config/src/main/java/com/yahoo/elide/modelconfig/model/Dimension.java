@@ -10,9 +10,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -43,6 +45,7 @@ import java.util.Set;
 @EqualsAndHashCode()
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Dimension implements Named {
 
     @JsonProperty("name")
@@ -73,6 +76,7 @@ public class Dimension implements Named {
     private Type type;
 
     @JsonProperty("grains")
+    @Singular
     private List<Grain> grains = new ArrayList<Grain>();
 
     @JsonProperty("tags")

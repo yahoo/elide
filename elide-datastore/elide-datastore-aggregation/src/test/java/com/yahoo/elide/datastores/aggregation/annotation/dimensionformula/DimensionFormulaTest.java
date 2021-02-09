@@ -35,7 +35,7 @@ public class DimensionFormulaTest {
 
     @Test
     public void testReferenceLoop() {
-        MetaDataStore metaDataStore = new MetaDataStore(getClassType(Sets.newHashSet(Loop.class)), true);
+        MetaDataStore metaDataStore = new MetaDataStore(getClassType(Sets.newHashSet(DimensionLoop.class)), true);
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,

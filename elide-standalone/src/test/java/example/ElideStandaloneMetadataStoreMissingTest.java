@@ -8,7 +8,7 @@ package example;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
-import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
+import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import org.eclipse.jetty.util.MultiException;
@@ -55,7 +55,7 @@ public class ElideStandaloneMetadataStoreMissingTest {
             }
 
             @Override
-            public MetaDataStore getMetaDataStore(Optional<ElideDynamicEntityCompiler> optionalCompiler) {
+            public MetaDataStore getMetaDataStore(Optional<DynamicConfigValidator> validator) {
                 return null;
             }
         });

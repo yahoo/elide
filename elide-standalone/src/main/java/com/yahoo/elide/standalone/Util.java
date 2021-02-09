@@ -8,18 +8,13 @@ package com.yahoo.elide.standalone;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.jpa.PersistenceUnitInfoImpl;
-import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 import javax.persistence.Entity;
@@ -33,23 +28,15 @@ import javax.sql.DataSource;
 public class Util {
 
     public static EntityManagerFactory getEntityManagerFactory(String modelPackageName, boolean includeAsyncModel,
-            Optional<ElideDynamicEntityCompiler> optionalCompiler, Properties options) {
+                                                               Properties options) {
 
         // Configure default options for example service
         populateDefaultOptions(options);
 
         ClassLoader classLoader = null;
 
-        if (optionalCompiler.isPresent()) {
-            ElideDynamicEntityCompiler compiler = optionalCompiler.get();
-            classLoader = compiler.getClassLoader();
-            Collection<ClassLoader> classLoaders = new ArrayList<>();
-            classLoaders.add(classLoader);
-            options.put(AvailableSettings.CLASSLOADERS, classLoaders);
-        }
-
         PersistenceUnitInfo persistenceUnitInfo = new PersistenceUnitInfoImpl("elide-stand-alone",
-                combineModelEntities(optionalCompiler, modelPackageName, includeAsyncModel),
+                combineModelEntities(modelPackageName, includeAsyncModel),
                 options, classLoader);
 
         return new EntityManagerFactoryBuilderImpl(
@@ -115,26 +102,16 @@ public class Util {
     /**
      * Combine the model entities with Async and Dynamic models.
      *
-     * @param optionalCompiler optional dynamicCompiler
      * @param modelPackageName Package name
      * @param includeAsyncModel Include Async model package Name
      * @return All entities combined from both package.
      */
-    public static List<String> combineModelEntities(Optional<ElideDynamicEntityCompiler> optionalCompiler,
-            String modelPackageName, boolean includeAsyncModel) {
+    public static List<String> combineModelEntities(String modelPackageName, boolean includeAsyncModel) {
 
         List<String> modelEntities = getAllEntities(modelPackageName);
 
         if (includeAsyncModel) {
             modelEntities.addAll(getAllEntities(AsyncQuery.class.getPackage().getName()));
-        }
-
-        if (optionalCompiler.isPresent()) {
-            try {
-                modelEntities.addAll(optionalCompiler.get().findAnnotatedClassNames(Entity.class));
-            } catch (ClassNotFoundException e) {
-                throw new IllegalStateException(e);
-            }
         }
         return modelEntities;
     }

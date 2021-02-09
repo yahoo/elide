@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
+import static com.yahoo.elide.modelconfig.DynamicConfigHelpers.isNullOrEmpty;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.Type;
@@ -78,12 +79,16 @@ public class SQLTable extends Table implements Queryable {
 
     @Override
     public MetricProjection getMetricProjection(String fieldName) {
+        return getMetricProjection(fieldName, null);
+    }
+
+    public MetricProjection getMetricProjection(String fieldName, String alias) {
         Metric metric = super.getMetric(fieldName);
         if (metric == null) {
             return null;
         }
         return new SQLMetricProjection(metric,
-                metric.getName(),
+                isNullOrEmpty(alias) ? metric.getName() : alias,
                 new HashMap<>());
     }
 
@@ -99,12 +104,16 @@ public class SQLTable extends Table implements Queryable {
 
     @Override
     public ColumnProjection getDimensionProjection(String fieldName) {
+        return getDimensionProjection(fieldName, null);
+    }
+
+    public ColumnProjection getDimensionProjection(String fieldName, String alias) {
         Dimension dimension = super.getDimension(fieldName);
         if (dimension == null) {
             return null;
         }
         return new SQLDimensionProjection(dimension,
-                dimension.getName(),
+                isNullOrEmpty(alias) ? dimension.getName() : alias,
                 new HashMap<>());
 
     }
