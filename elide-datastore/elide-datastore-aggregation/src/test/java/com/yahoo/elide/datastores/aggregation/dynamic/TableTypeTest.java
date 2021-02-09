@@ -6,10 +6,12 @@
 
 package com.yahoo.elide.datastores.aggregation.dynamic;
 
+import static com.yahoo.elide.datastores.aggregation.annotation.JoinType.INNER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
@@ -27,13 +29,16 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSu
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.modelconfig.model.Dimension;
 import com.yahoo.elide.modelconfig.model.Grain;
+import com.yahoo.elide.modelconfig.model.Join;
 import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Table;
 import com.yahoo.elide.modelconfig.model.Type;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import javax.persistence.Id;
 
@@ -247,6 +252,29 @@ public class TableTypeTest {
     }
 
     @Test
+    void testDimensionTableValues() throws Exception {
+        Set<String> values = new HashSet<>(Arrays.asList("DIM1", "DIM2"));
+
+        Table testTable = Table.builder()
+                .table("table1")
+                .name("Table")
+                .dimension(Dimension.builder()
+                        .type(Type.COORDINATE)
+                        .name("location")
+                        .values(values)
+                        .build())
+                .build();
+
+        TableType testType = new TableType(testTable);
+
+        Field field = testType.getDeclaredField("location");
+        assertNotNull(field);
+
+        ColumnMeta columnMeta = field.getAnnotation(ColumnMeta.class);
+        assertEquals(values, new HashSet<>(Arrays.asList(columnMeta.values())));
+    }
+
+    @Test
     void testTimeDimensionAnnotations() throws Exception {
         Set<String> tags = new HashSet<>(Arrays.asList("tag1", "tag2"));
 
@@ -287,7 +315,6 @@ public class TableTypeTest {
         Temporal temporal = field.getAnnotation(Temporal.class);
         assertEquals("UTC", temporal.timeZone());
         assertTrue(temporal.grains().length == 0);
-
     }
 
     @Test
@@ -323,5 +350,111 @@ public class TableTypeTest {
         assertEquals("some other sql", temporal.grains()[1].expression());
         assertEquals(TimeGrain.DAY, temporal.grains()[0].grain());
         assertEquals(TimeGrain.YEAR, temporal.grains()[1].grain());
+    }
+
+    @Test
+    void testJoinField() throws Exception {
+        Table testTable1 = Table.builder()
+                .name("table1")
+                .join(Join.builder()
+                        .definition("{{id }} = {{ table2.id}}")
+                        .kind(Join.Kind.TOONE)
+                        .type(Join.Type.INNER)
+                        .name("join1")
+                        .to("table2.dim2")
+                        .build())
+                .build();
+
+        Table testTable2 = Table.builder()
+                .name("table2")
+                .dimension(Dimension.builder()
+                        .name("dim2")
+                        .type(Type.BOOLEAN)
+                        .build())
+                .build();
+
+        TableType testType1 = new TableType(testTable1);
+        TableType testType2 = new TableType(testTable2);
+
+        Map<String, com.yahoo.elide.core.type.Type<?>> tables = new HashMap<>();
+        tables.put("table1", testType1);
+        tables.put("table2", testType2);
+
+        testType1.resolveJoins(tables);
+
+        Field field = testType1.getDeclaredField("join1");
+        assertNotNull(field);
+
+        com.yahoo.elide.datastores.aggregation.annotation.Join join = field.getAnnotation(
+                com.yahoo.elide.datastores.aggregation.annotation.Join.class);
+
+        assertEquals(INNER, join.type());
+        assertEquals("{{id}} = {{table2.id}}", join.value());
+    }
+
+    @Test
+    void testHiddenDimension() throws Exception {
+        Table testTable = Table.builder()
+                .table("table1")
+                .name("Table")
+                .dimension(Dimension.builder()
+                        .name("dim1")
+                        .type(Type.BOOLEAN)
+                        .hidden(true)
+                        .build())
+                .build();
+
+        TableType testType = new TableType(testTable);
+
+        Field field = testType.getDeclaredField("dim1");
+        assertNotNull(field);
+
+        Exclude exclude = field.getAnnotation(Exclude.class);
+        assertNotNull(exclude);
+        Include include = field.getAnnotation(Include.class);
+        assertNull(include);
+    }
+
+    @Test
+    void testHiddenMeasure() throws Exception {
+        Table testTable = Table.builder()
+                .table("table1")
+                .name("Table")
+                .measure(Measure.builder()
+                        .name("measure1")
+                        .type(Type.BOOLEAN)
+                        .hidden(true)
+                        .build())
+                .build();
+
+        TableType testType = new TableType(testTable);
+
+        Field field = testType.getDeclaredField("measure1");
+        assertNotNull(field);
+
+        Exclude exclude = field.getAnnotation(Exclude.class);
+        assertNotNull(exclude);
+        Include include = field.getAnnotation(Include.class);
+        assertNull(include);
+    }
+
+    @Test
+    void testInvalidResolver() throws Exception {
+        Table testTable = Table.builder()
+                .table("table1")
+                .name("Table")
+                .measure(Measure.builder()
+                        .name("measure1")
+                        .type(Type.BOOLEAN)
+                        .queryPlanResolver("does.not.exist.class")
+                        .build())
+                .build();
+
+        TableType testType = new TableType(testTable);
+        Field field = testType.getDeclaredField("measure1");
+
+        MetricFormula metricFormula = field.getAnnotation(MetricFormula.class);
+
+        assertThrows(IllegalStateException.class, () -> metricFormula.queryPlan());
     }
 }

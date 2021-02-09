@@ -389,6 +389,16 @@ public class TableType implements Type<DynamicModelInstance> {
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Measure measure) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
+        if (measure.getHidden() != null && measure.getHidden() == true) {
+            annotations.put(Exclude.class, new Exclude() {
+
+                @Override
+                public Class<? extends Annotation> annotationType() {
+                    return Exclude.class;
+                }
+            });
+        }
+
         annotations.put(ColumnMeta.class, new ColumnMeta() {
             @Override
             public Class<? extends Annotation> annotationType() {
@@ -477,6 +487,16 @@ public class TableType implements Type<DynamicModelInstance> {
 
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Dimension dimension) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
+
+        if (dimension.getHidden() != null && dimension.getHidden() == true) {
+            annotations.put(Exclude.class, new Exclude() {
+
+                @Override
+                public Class<? extends Annotation> annotationType() {
+                    return Exclude.class;
+                }
+            });
+        }
 
         annotations.put(ColumnMeta.class, new ColumnMeta() {
             @Override
