@@ -14,6 +14,7 @@ import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.operation.GraphQLTableExportOperation;
+import com.yahoo.elide.async.operation.JSONAPITableExportOperation;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.ChangeSpec;
@@ -63,6 +64,8 @@ public class TableExportHook extends AsyncAPIHook<TableExport> {
 
         if (queryType.equals(QueryType.GRAPHQL_V1_0)) {
             operation = new GraphQLTableExportOperation(formatter, getAsyncExecutorService(), export, scope);
+        } else if (queryType.equals(QueryType.JSONAPI_V1_0)) {
+            operation = new JSONAPITableExportOperation(formatter, getAsyncExecutorService(), export, scope);
         } else {
             // TODO - Support JSONAPI
             throw new InvalidOperationException(queryType + "is not supported");

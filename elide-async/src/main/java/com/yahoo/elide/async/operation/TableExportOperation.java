@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Date;
@@ -43,7 +44,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
     @Getter private AsyncExecutorService service;
     private Integer recordNumber = 0;
     private TableExport exportObj;
-    private RequestScope scope;
+    @Getter private RequestScope scope;
 
     public TableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
             AsyncAPI exportObj, RequestScope scope) {
@@ -110,9 +111,10 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
      * @param prevScope RequestScope object.
      * @param projection Entity projection.
      * @return Observable PersistentResource
+     * @throws URISyntaxException
      */
     public Observable<PersistentResource> export(TableExport exportObj, RequestScope prevScope,
-            EntityProjection projection) {
+            EntityProjection projection) throws URISyntaxException {
         Observable<PersistentResource> results = Observable.empty();
         Elide elide = service.getElide();
 
@@ -160,9 +162,10 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
      * @param apiVersion API Version.
      * @param tx DataStoreTransaction.
      * @return RequestScope Type Object
+     * @throws URISyntaxException
      */
     public abstract RequestScope getRequestScope(TableExport exportObj, User user,
-            String apiVersion, DataStoreTransaction tx);
+            String apiVersion, DataStoreTransaction tx) throws URISyntaxException;
 
     /**
      * Generate Download URL.
