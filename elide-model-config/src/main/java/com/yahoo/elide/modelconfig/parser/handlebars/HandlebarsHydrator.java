@@ -10,7 +10,6 @@ import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.EscapingStrategy.Hbs;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Template;
-import com.github.jknack.handlebars.helper.AssignHelper;
 import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
 
@@ -35,7 +34,6 @@ public class HandlebarsHydrator {
     public HandlebarsHydrator() {
         TemplateLoader loader = new ClassPathTemplateLoader("/templates");
         this.handlebars = new Handlebars(loader).with(MY_ESCAPING_STRATEGY);
-        this.handlebars.registerHelper(AssignHelper.NAME, AssignHelper.INSTANCE);
     }
 
     /**
