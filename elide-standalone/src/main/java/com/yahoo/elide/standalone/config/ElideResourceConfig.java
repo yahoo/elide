@@ -20,7 +20,6 @@ import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
-import com.yahoo.elide.async.resources.ExportApiEndpoint.ExportApiProperties;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
@@ -38,6 +37,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.standalone.Util;
+import com.yahoo.elide.standalone.resources.ExportApiEndpoint.ExportApiProperties;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
@@ -153,17 +153,19 @@ public class ElideResourceConfig extends ResourceConfig {
                     }
                     bind(asyncAPIDao).to(AsyncAPIDAO.class);
 
-                    ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
-                    if (resultStorageEngine == null) {
-                        resultStorageEngine = new FileResultStorageEngine(asyncProperties.getStorageDestination());
-                    }
-                    bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
+                    ResultStorageEngine resultStorageEngine = null;
 
                     if (asyncProperties.enableExport()) {
                         ExportApiProperties exportApiProperties = new ExportApiProperties(
                                 asyncProperties.getExportAsyncResponseExecutor(),
                                 asyncProperties.getExportAsyncResponseTimeoutSeconds());
                         bind(exportApiProperties).to(ExportApiProperties.class).named("exportApiProperties");
+
+                        resultStorageEngine = asyncProperties.getResultStorageEngine();
+                        if (resultStorageEngine == null) {
+                            resultStorageEngine = new FileResultStorageEngine(asyncProperties.getStorageDestination());
+                        }
+                        bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
                     }
 
                     AsyncExecutorService.init(elide, asyncProperties.getThreadSize(), asyncAPIDao,

@@ -101,7 +101,8 @@ public class ElideStandalone {
             ServletHolder jerseyServlet = context.addServlet(ServletContainer.class,
                     elideStandaloneSettings.getAsyncProperties().getExportApiPathSpec());
             jerseyServlet.setInitOrder(0);
-            jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.async.resources");
+            jerseyServlet.setInitParameter("jersey.config.server.provider.packages",
+                    "com.yahoo.elide.standalone.resources");
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
         }
 

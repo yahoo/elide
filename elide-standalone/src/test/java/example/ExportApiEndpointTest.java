@@ -3,16 +3,18 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.async.resources;
+package example;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.yahoo.elide.async.resources.ExportApiEndpoint.ExportApiProperties;
 import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
+import com.yahoo.elide.standalone.resources.ExportApiEndpoint;
+import com.yahoo.elide.standalone.resources.ExportApiEndpoint.ExportApiProperties;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +25,7 @@ import org.mockito.Mockito;
 import io.reactivex.Observable;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.servlet.http.HttpServletResponse;
@@ -52,17 +55,19 @@ public class ExportApiEndpointTest {
     @Test
     public void testGet() throws InterruptedException, IOException {
         String queryId = "1";
+        int maxDownloadTimeSeconds = 10;
+        int maxDownloadTimeMilliSeconds = maxDownloadTimeSeconds * 1000;
         when(engine.getResultsByID(queryId)).thenReturn(Observable.just("result"));
 
-        exportApiProperties = new ExportApiProperties(Executors.newFixedThreadPool(1), 10);
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        exportApiProperties = new ExportApiProperties(executor, maxDownloadTimeSeconds);
         endpoint = new ExportApiEndpoint(engine, exportApiProperties);
         endpoint.get(queryId, response, asyncResponse);
 
         verify(engine, Mockito.times(1)).getResultsByID(queryId);
-        // Sleep to let the request finish.
-        Thread.sleep(100000);
 
-        Mockito.verify(asyncResponse).resume(responseCaptor.capture());
+        // Timeout(int) succeeds as soon as the resume is called, but waits maximum upto value of "int" passed.
+        Mockito.verify(asyncResponse, timeout(maxDownloadTimeMilliSeconds)).resume(responseCaptor.capture());
         final Response res = responseCaptor.getValue();
 
         assertEquals(res.getStatus(), 200);
