@@ -44,13 +44,15 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
     private Integer recordNumber = 0;
     private TableExport exportObj;
     private RequestScope scope;
+    private ResultStorageEngine engine;
 
     public TableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
-            AsyncAPI exportObj, RequestScope scope) {
+            AsyncAPI exportObj, RequestScope scope, ResultStorageEngine engine) {
         this.formatter = formatter;
         this.service = service;
         this.exportObj = (TableExport) exportObj;
         this.scope = scope;
+        this.engine = engine;
     }
 
     @Override
@@ -76,7 +78,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
             Observable<String> interimResults = concatStringWithObservable(preResult, results, true);
             Observable<String> finalResults = concatStringWithObservable(postResult, interimResults, false);
 
-            storeResults(exportObj, service.getResultStorageEngine(), finalResults);
+            storeResults(exportObj, engine, finalResults);
 
             exportResult.setUrl(new URL(generateDownloadURL(exportObj, (RequestScope) scope)));
             exportResult.setRecordCount(recordNumber);

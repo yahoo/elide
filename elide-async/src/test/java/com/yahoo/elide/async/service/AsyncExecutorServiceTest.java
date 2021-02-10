@@ -59,7 +59,7 @@ public class AsyncExecutorServiceTest {
         testUser = mock(User.class);
         scope = mock(RequestScope.class);
         resultStorageEngine = mock(FileResultStorageEngine.class);
-        AsyncExecutorService.init(elide, 5, asyncAPIDao, resultStorageEngine);
+        AsyncExecutorService.init(elide, 5, asyncAPIDao);
         service = AsyncExecutorService.getInstance();
     }
 
@@ -70,7 +70,7 @@ public class AsyncExecutorServiceTest {
         assertNotNull(service.getExecutor());
         assertNotNull(service.getUpdater());
         assertEquals(asyncAPIDao, service.getAsyncAPIDao());
-        assertEquals(resultStorageEngine, service.getResultStorageEngine());
+        assertEquals(resultStorageEngine, resultStorageEngine);
     }
 
     //Test for executor hook execution

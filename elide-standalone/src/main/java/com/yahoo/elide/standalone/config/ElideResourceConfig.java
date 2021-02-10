@@ -174,8 +174,7 @@ public class ElideResourceConfig extends ResourceConfig {
                         bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
                     }
 
-                    AsyncExecutorService.init(elide, asyncProperties.getThreadSize(), asyncAPIDao,
-                            resultStorageEngine);
+                    AsyncExecutorService.init(elide, asyncProperties.getThreadSize(), asyncAPIDao);
                     bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                     // Binding AsyncQuery LifeCycleHook
@@ -195,7 +194,7 @@ public class ElideResourceConfig extends ResourceConfig {
 
                     // Binding TableExport LifeCycleHook
                     TableExportHook tableExportHook = getTableExportHook(AsyncExecutorService.getInstance(),
-                            asyncProperties, supportedFormatters);
+                            asyncProperties, supportedFormatters, resultStorageEngine);
                     dictionary.bindTrigger(TableExport.class, READ, PRESECURITY, tableExportHook, false);
                     dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
                     dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);
@@ -268,14 +267,15 @@ public class ElideResourceConfig extends ResourceConfig {
     // Trying to avoid adding too many individual properties to ElideSettings for now.
     // https://github.com/yahoo/elide/issues/1803
     private TableExportHook getTableExportHook(AsyncExecutorService asyncExecutorService,
-            ElideStandaloneAsyncSettings asyncProperties, Map<ResultType, TableExportFormatter> supportedFormatters) {
+            ElideStandaloneAsyncSettings asyncProperties, Map<ResultType, TableExportFormatter> supportedFormatters,
+            ResultStorageEngine engine) {
         TableExportHook tableExportHook = null;
         if (asyncProperties.enableExport()) {
             tableExportHook = new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfterSeconds(),
-                    supportedFormatters);
+                    supportedFormatters, engine);
         } else {
             tableExportHook = new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfterSeconds(),
-                    supportedFormatters) {
+                    supportedFormatters, engine) {
                 @Override
                 public void validateOptions(AsyncAPI export, RequestScope requestScope) {
                     throw new InvalidOperationException("TableExport is not supported.");

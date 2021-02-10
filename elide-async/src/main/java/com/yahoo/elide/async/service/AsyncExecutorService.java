@@ -11,7 +11,6 @@ import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.QueryStatus;
 import com.yahoo.elide.async.operation.AsyncAPIUpdateOperation;
 import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
-import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.QueryRunner;
 import lombok.Data;
@@ -48,7 +47,6 @@ public class AsyncExecutorService {
     private ExecutorService updater;
     private AsyncAPIDAO asyncAPIDao;
     private static AsyncExecutorService asyncExecutorService = null;
-    private ResultStorageEngine resultStorageEngine;
     private ThreadLocal<AsyncAPIResultFuture> asyncResultFutureThreadLocal = new ThreadLocal<>();
 
     /**
@@ -61,8 +59,7 @@ public class AsyncExecutorService {
     }
 
     @Inject
-    private AsyncExecutorService(Elide elide, Integer threadPoolSize, AsyncAPIDAO asyncAPIDao,
-            ResultStorageEngine resultStorageEngine) {
+    private AsyncExecutorService(Elide elide, Integer threadPoolSize, AsyncAPIDAO asyncAPIDao) {
         this.elide = elide;
         runners = new HashMap();
 
@@ -73,7 +70,6 @@ public class AsyncExecutorService {
         executor = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
         updater = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
         this.asyncAPIDao = asyncAPIDao;
-        this.resultStorageEngine = resultStorageEngine;
     }
 
     /**
@@ -83,11 +79,9 @@ public class AsyncExecutorService {
      * @param threadPoolSize thread pool size
      * @param asyncAPIDao DAO Object
      */
-    public static void init(Elide elide, Integer threadPoolSize, AsyncAPIDAO asyncAPIDao,
-            ResultStorageEngine resultStorageEngine) {
+    public static void init(Elide elide, Integer threadPoolSize, AsyncAPIDAO asyncAPIDao) {
         if (asyncExecutorService == null) {
-            asyncExecutorService = new AsyncExecutorService(elide, threadPoolSize, asyncAPIDao,
-                    resultStorageEngine);
+            asyncExecutorService = new AsyncExecutorService(elide, threadPoolSize, asyncAPIDao);
         } else {
             log.debug("asyncExecutorService is already initialized.");
         }
