@@ -38,10 +38,14 @@ public class JSONAPITableExportOperation extends TableExportOperation {
     }
 
     @Override
-    public RequestScope getRequestScope(TableExport export, User user, String apiVersion, DataStoreTransaction tx)
-            throws URISyntaxException {
+    public RequestScope getRequestScope(TableExport export, User user, String apiVersion, DataStoreTransaction tx) {
         UUID requestId = UUID.fromString(export.getRequestId());
-        URIBuilder uri = new URIBuilder(export.getQuery());
+        URIBuilder uri;
+        try {
+            uri = new URIBuilder(export.getQuery());
+        } catch (URISyntaxException e) {
+            throw new BadRequestException(e.getMessage());
+        }
         MultivaluedMap<String, String> queryParams = JSONAPIAsyncQueryOperation.getQueryParams(uri);
         return new RequestScope("", JSONAPIAsyncQueryOperation.getPath(uri), apiVersion, null, tx, user, queryParams,
                 Collections.emptyMap(), requestId, getService().getElide().getElideSettings());
@@ -57,7 +61,7 @@ public class JSONAPITableExportOperation extends TableExportOperation {
                     getScope()).parsePath(JSONAPIAsyncQueryOperation.getPath(uri));
 
         } catch (URISyntaxException e) {
-            throw new IllegalStateException(e);
+            throw new BadRequestException(e.getMessage());
         }
         return projection;
     }

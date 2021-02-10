@@ -121,6 +121,25 @@ public class JsonAPITableExportOperationTest {
         assertEquals("Unknown collection tableExportInvalid", queryResultObj.getMessage());
     }
 
+    @Test
+    public void testProcessBadQuery() throws URISyntaxException, IOException  {
+        dataPrep();
+        TableExport queryObj = new TableExport();
+        String query = "tableExport/^IllegalCharacter^";
+        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.JSONAPI_V1_0);
+        queryObj.setResultType(ResultType.CSV);
+
+        JSONAPITableExportOperation jsonAPIOperation = new JSONAPITableExportOperation(new JSONExportFormatter(elide), asyncExecutorService,
+                queryObj, requestScope);
+        TableExportResult queryResultObj = (TableExportResult) jsonAPIOperation.call();
+
+        assertEquals(200, queryResultObj.getHttpStatus());
+        assertEquals("EntityProjection generation failure.", queryResultObj.getMessage());
+    }
+
     /**
      * Prepping and Storing an TableExport entry to be queried later on.
      * @throws IOException  IOException

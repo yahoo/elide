@@ -163,10 +163,9 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
      * @param apiVersion API Version.
      * @param tx DataStoreTransaction.
      * @return RequestScope Type Object
-     * @throws URISyntaxException URISyntaxException from malformed or incorrect URI
      */
     public abstract RequestScope getRequestScope(TableExport exportObj, User user,
-            String apiVersion, DataStoreTransaction tx) throws URISyntaxException;
+            String apiVersion, DataStoreTransaction tx);
 
     /**
      * Generate Download URL.
