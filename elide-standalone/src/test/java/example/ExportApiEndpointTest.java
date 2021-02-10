@@ -61,7 +61,8 @@ public class ExportApiEndpointTest {
         endpoint = new ExportApiEndpoint(engine, exportApiProperties);
         endpoint.get(queryId, response, asyncResponse);
 
-        // Timeout(int) succeeds as soon as the resume is called. It waits maximum upto value of "int" for resume to be called..
+        // Timeout(int) succeeds as soon as the function to be verified is called.
+        // It waits maximum upto value of "int" for function to be called.
         verify(engine, timeout(maxDownloadTimeMilliSeconds)).getResultsByID(queryId);
         verify(asyncResponse, timeout(maxDownloadTimeMilliSeconds)).resume(responseCaptor.capture());
         final Response res = responseCaptor.getValue();
