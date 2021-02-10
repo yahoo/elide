@@ -100,6 +100,44 @@ public class GraphQLTableExportOperationTest {
         assertEquals(1, queryResultObj.getRecordCount());
     }
 
+    @Test
+    public void testProcessBadEntityQuery() throws URISyntaxException, IOException  {
+        dataPrep();
+        TableExport queryObj = new TableExport();
+        String query = "{\"query\":\"{ tableExportInvalid { edges { node { id principalName} } } }\",\"variables\":null}";
+        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
+        queryObj.setResultType(ResultType.CSV);
+
+        GraphQLTableExportOperation graphQLOperation = new GraphQLTableExportOperation(new JSONExportFormatter(elide), asyncExecutorService,
+                queryObj, requestScope);
+        TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
+
+        assertEquals(200, queryResultObj.getHttpStatus());
+        assertEquals("Bad Request Body'Unknown entity {tableExportInvalid}.'", queryResultObj.getMessage());
+    }
+
+    @Test
+    public void testProcessBadQuery() throws URISyntaxException, IOException  {
+        dataPrep();
+        TableExport queryObj = new TableExport();
+        String query = "{\"query\":\"{ tableExport { edges { node { id principalName}  } }\",\"variables\":null}";
+        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
+        queryObj.setResultType(ResultType.CSV);
+
+        GraphQLTableExportOperation graphQLOperation = new GraphQLTableExportOperation(new JSONExportFormatter(elide), asyncExecutorService,
+                queryObj, requestScope);
+        TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
+
+        assertEquals(200, queryResultObj.getHttpStatus());
+        assertEquals("Bad Request Body'Can't parse query: { tableExport { edges { node { id principalName}  } }'", queryResultObj.getMessage());
+    }
+
     /**
      * Prepping and Storing an TableExport entry to be queried later on.
      * @throws IOException  IOException
