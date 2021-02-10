@@ -95,7 +95,7 @@ public class ElideResourceConfig extends ResourceConfig {
 
         Optional<DynamicConfigValidator> validator;
         try {
-            validator = settings.getDynamicConfigValidator();
+            validator = settings.getDynamicConfiguration();
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }

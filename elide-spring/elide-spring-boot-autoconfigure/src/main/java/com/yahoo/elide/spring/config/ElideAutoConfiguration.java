@@ -29,6 +29,7 @@ import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
+import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.swagger.SwaggerBuilder;
@@ -74,15 +75,15 @@ public class ElideAutoConfiguration {
     private final Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
 
     /**
-     * Creates a HJSON configuration validator for dynamic config classes.
+     * Creates dynamic configuration for models, security roles, and database connections.
      * @param settings Config Settings.
      * @throws IOException if there is an error reading the configuration.
-     * @return An instance of DynamicConfigValidator.
+     * @return An instance of DynamicConfiguration.
      */
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnExpression("${elide.aggregation-store.enabled} and ${elide.dynamic-config.enabled}")
-    public DynamicConfigValidator buildDynamicConfigValidator(ElideConfigProperties settings) throws IOException {
+    public DynamicConfiguration buildDynamicConfiguration(ElideConfigProperties settings) throws IOException {
         DynamicConfigValidator validator = new DynamicConfigValidator(settings.getDynamicConfig().getPath());
         validator.readAndValidateConfigs();
         return validator;
@@ -167,7 +168,7 @@ public class ElideAutoConfiguration {
      * Creates the entity dictionary for Elide which contains static metadata about Elide models.
      * Override to load check classes or life cycle hooks.
      * @param beanFactory Injector to inject Elide models.
-     * @param validator An instance of DynamicConfigValidator.
+     * @param dynamicConfig An instance of DynamicConfiguration.
      * @param settings Elide configuration settings.
      * @return a newly configured EntityDictionary.
      * @throws ClassNotFoundException Exception thrown.
@@ -175,7 +176,7 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public EntityDictionary buildDictionary(AutowireCapableBeanFactory beanFactory,
-                                            @Autowired(required = false) DynamicConfigValidator validator,
+                                            @Autowired(required = false) DynamicConfiguration dynamicConfig,
                                             ElideConfigProperties settings)
             throws ClassNotFoundException {
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>(),
@@ -194,7 +195,7 @@ public class ElideAutoConfiguration {
         dictionary.scanForSecurityChecks();
 
         if (isAggregationStoreEnabled(settings) && isDynamicConfigEnabled(settings)) {
-            validator.getElideSecurityConfig().getRoles().forEach(role -> {
+            dynamicConfig.getRoles().forEach(role -> {
                 dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role));
             });
         }
@@ -205,7 +206,7 @@ public class ElideAutoConfiguration {
     /**
      * Create a QueryEngine instance for aggregation data store to use.
      * @param defaultDataSource DataSource for JPA.
-     * @param validator An instance of DynamicConfigValidator.
+     * @param dynamicConfig An instance of DynamicConfiguration.
      * @param settings Elide configuration settings.
      * @param dataSourceConfiguration DataSource Configuration
      * @param dbPasswordExtractor Password Extractor Implementation
@@ -216,7 +217,7 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
     public QueryEngine buildQueryEngine(DataSource defaultDataSource,
-                                        @Autowired(required = false) DynamicConfigValidator validator,
+                                        @Autowired(required = false) DynamicConfiguration dynamicConfig,
                                         ElideConfigProperties settings,
                                         DataSourceConfiguration dataSourceConfiguration,
                                         DBPasswordExtractor dbPasswordExtractor) throws ClassNotFoundException {
@@ -225,11 +226,11 @@ public class ElideAutoConfiguration {
         ConnectionDetails defaultConnectionDetails = new ConnectionDetails(defaultDataSource,
                         SQLDialectFactory.getDialect(settings.getAggregationStore().getDefaultDialect()));
         if (isDynamicConfigEnabled(settings)) {
-            MetaDataStore metaDataStore = new MetaDataStore(validator.getElideTableConfig().getTables(),
+            MetaDataStore metaDataStore = new MetaDataStore(dynamicConfig.getTables(),
                     enableMetaDataStore);
             Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
-            validator.getElideSQLDBConfig().getDbconfigs().forEach(dbConfig -> {
+            dynamicConfig.getDatabaseConfigurations().forEach(dbConfig -> {
                 connectionDetailsMap.put(dbConfig.getName(),
                                 new ConnectionDetails(
                                                 dataSourceConfiguration.getDataSource(dbConfig, dbPasswordExtractor),
