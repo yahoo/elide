@@ -95,7 +95,7 @@ public class ExportController {
                         outputStream.flush();
                         outputStream.close();
                     }
-                    );
+            );
         };
 
         return ResponseEntity

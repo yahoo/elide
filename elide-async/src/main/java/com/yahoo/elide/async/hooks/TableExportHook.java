@@ -15,6 +15,7 @@ import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.operation.GraphQLTableExportOperation;
 import com.yahoo.elide.async.service.AsyncExecutorService;
+import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.RequestScope;
@@ -28,11 +29,13 @@ import java.util.concurrent.Callable;
  */
 public class TableExportHook extends AsyncAPIHook<TableExport> {
     Map<ResultType, TableExportFormatter> supportedFormatters;
+    ResultStorageEngine engine;
 
     public TableExportHook (AsyncExecutorService asyncExecutorService, Integer maxAsyncAfterSeconds,
-            Map<ResultType, TableExportFormatter> supportedFormatters) {
+            Map<ResultType, TableExportFormatter> supportedFormatters, ResultStorageEngine engine) {
         super(asyncExecutorService, maxAsyncAfterSeconds);
         this.supportedFormatters = supportedFormatters;
+        this.engine = engine;
     }
 
     @Override
@@ -62,7 +65,7 @@ public class TableExportHook extends AsyncAPIHook<TableExport> {
         }
 
         if (queryType.equals(QueryType.GRAPHQL_V1_0)) {
-            operation = new GraphQLTableExportOperation(formatter, getAsyncExecutorService(), export, scope);
+            operation = new GraphQLTableExportOperation(formatter, getAsyncExecutorService(), export, scope, engine);
         } else {
             // TODO - Support JSONAPI
             throw new InvalidOperationException(queryType + "is not supported");
