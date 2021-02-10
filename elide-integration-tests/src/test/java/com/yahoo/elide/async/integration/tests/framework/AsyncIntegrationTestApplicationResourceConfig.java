@@ -92,9 +92,10 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 AsyncAPIDAO asyncAPIDao = new DefaultAsyncAPIDAO(elide.getElideSettings(), elide.getDataStore());
                 bind(asyncAPIDao).to(AsyncAPIDAO.class);
 
+                // TODO Pass resultStorageEngine to TableExportHook
                 ResultStorageEngine resultStorageEngine =
                         new FileResultStorageEngine(System.getProperty("java.io.tmpDir"));
-                AsyncExecutorService.init(elide, 5, asyncAPIDao, resultStorageEngine);
+                AsyncExecutorService.init(elide, 5, asyncAPIDao);
                 bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
 
                 BillingService billingService = new BillingService() {
