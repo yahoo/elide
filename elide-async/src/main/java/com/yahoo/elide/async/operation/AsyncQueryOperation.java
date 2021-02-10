@@ -48,7 +48,9 @@ public abstract class AsyncQueryOperation implements Callable<AsyncAPIResult> {
         queryResult.setCompletedOn(new Date());
         queryResult.setResponseBody(response.getBody());
         queryResult.setContentLength(response.getBody().length());
-        queryResult.setRecordCount(calculateRecordCount((AsyncQuery) queryObj, response));
+        if (response.getResponseCode() == 200) {
+            queryResult.setRecordCount(calculateRecordCount((AsyncQuery) queryObj, response));
+        }
         return queryResult;
     }
 

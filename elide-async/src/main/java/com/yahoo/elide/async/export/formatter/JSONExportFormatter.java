@@ -67,7 +67,7 @@ public class JSONExportFormatter implements TableExportFormatter {
         return str.toString();
     }
 
-    protected static Map<String, Object> getAttributes(PersistentResource resource) {
+    private static Map<String, Object> getAttributes(PersistentResource resource) {
         final Map<String, Object> attributes = new LinkedHashMap<>();
         final Set<Attribute> attrFields = resource.getRequestScope().getEntityProjection().getAttributes();
 
@@ -77,7 +77,7 @@ public class JSONExportFormatter implements TableExportFormatter {
         return attributes;
     }
 
-    protected static Map<String, Object> getRelationships(PersistentResource resource) {
+    private static Map<String, Object> getRelationships(PersistentResource resource) {
         return Collections.emptyMap();
     }
 
