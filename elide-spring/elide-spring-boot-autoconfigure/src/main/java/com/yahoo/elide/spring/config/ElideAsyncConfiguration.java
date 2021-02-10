@@ -66,9 +66,9 @@ public class ElideAsyncConfiguration {
             AsyncAPIDAO asyncQueryDao, EntityDictionary dictionary,
             @Autowired(required = false) ResultStorageEngine resultStorageEngine) {
         AsyncProperties asyncProperties = settings.getAsync();
-        AsyncExecutorService.init(elide, asyncProperties.getThreadPoolSize(),
-                asyncQueryDao);
-        AsyncExecutorService asyncExecutorService = AsyncExecutorService.getInstance();
+
+        AsyncExecutorService asyncExecutorService =
+                        new AsyncExecutorService(elide, asyncProperties.getThreadPoolSize(), asyncQueryDao);
 
         // Binding AsyncQuery LifeCycleHook
         AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService,
@@ -91,7 +91,7 @@ public class ElideAsyncConfiguration {
         dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
         dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);
 
-        return AsyncExecutorService.getInstance();
+        return asyncExecutorService;
     }
 
     // TODO Remove this method when ElideSettings has all the settings.

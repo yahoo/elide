@@ -59,8 +59,7 @@ public class AsyncExecutorServiceTest {
         testUser = mock(User.class);
         scope = mock(RequestScope.class);
         resultStorageEngine = mock(FileResultStorageEngine.class);
-        AsyncExecutorService.init(elide, 5, asyncAPIDao);
-        service = AsyncExecutorService.getInstance();
+        service = new AsyncExecutorService(elide, 5, asyncAPIDao);
     }
 
     @Test

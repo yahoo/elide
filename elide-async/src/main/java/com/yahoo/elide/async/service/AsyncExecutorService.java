@@ -39,14 +39,13 @@ import javax.inject.Inject;
 @Slf4j
 public class AsyncExecutorService {
 
-    private final int defaultThreadpoolSize = 6;
+    public static final int DEFAULT_THREAD_POOL_SIZE = 6;
 
     private Elide elide;
     private Map<String, QueryRunner> runners;
     private ExecutorService executor;
     private ExecutorService updater;
     private AsyncAPIDAO asyncAPIDao;
-    private static AsyncExecutorService asyncExecutorService = null;
     private ThreadLocal<AsyncAPIResultFuture> asyncResultFutureThreadLocal = new ThreadLocal<>();
 
     /**
@@ -59,40 +58,23 @@ public class AsyncExecutorService {
     }
 
     @Inject
-    private AsyncExecutorService(Elide elide, Integer threadPoolSize, AsyncAPIDAO asyncAPIDao) {
+    public AsyncExecutorService(Elide elide, ExecutorService executor, ExecutorService updater,
+                    AsyncAPIDAO asyncAPIDao) {
         this.elide = elide;
-        runners = new HashMap();
+        runners = new HashMap<>();
 
         for (String apiVersion : elide.getElideSettings().getDictionary().getApiVersions()) {
             runners.put(apiVersion, new QueryRunner(elide, apiVersion));
         }
 
-        executor = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
-        updater = Executors.newFixedThreadPool(threadPoolSize == null ? defaultThreadpoolSize : threadPoolSize);
+        this.executor = executor;
+        this.updater = updater;
         this.asyncAPIDao = asyncAPIDao;
     }
 
-    /**
-     * Initialize the singleton AsyncExecutorService object.
-     * If already initialized earlier, no new object is created.
-     * @param elide Elide Instance
-     * @param threadPoolSize thread pool size
-     * @param asyncAPIDao DAO Object
-     */
-    public static void init(Elide elide, Integer threadPoolSize, AsyncAPIDAO asyncAPIDao) {
-        if (asyncExecutorService == null) {
-            asyncExecutorService = new AsyncExecutorService(elide, threadPoolSize, asyncAPIDao);
-        } else {
-            log.debug("asyncExecutorService is already initialized.");
-        }
-    }
-
-    /**
-     * Get instance of AsyncExecutorService.
-     * @return AsyncExecutorService Object
-     */
-    public synchronized static AsyncExecutorService getInstance() {
-        return asyncExecutorService;
+    public AsyncExecutorService(Elide elide, int threadPoolSize, AsyncAPIDAO asyncAPIDao) {
+        this(elide, Executors.newFixedThreadPool(threadPoolSize), Executors.newFixedThreadPool(threadPoolSize),
+                        asyncAPIDao);
     }
 
     /**
