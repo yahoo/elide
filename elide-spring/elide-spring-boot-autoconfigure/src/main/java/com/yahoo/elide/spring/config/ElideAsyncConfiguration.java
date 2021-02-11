@@ -41,6 +41,8 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Async Configuration For Elide Services.  Override any of the beans (by defining your own)
@@ -66,9 +68,10 @@ public class ElideAsyncConfiguration {
             AsyncAPIDAO asyncQueryDao, EntityDictionary dictionary,
             @Autowired(required = false) ResultStorageEngine resultStorageEngine) {
         AsyncProperties asyncProperties = settings.getAsync();
-        AsyncExecutorService.init(elide, asyncProperties.getThreadPoolSize(),
-                asyncQueryDao);
-        AsyncExecutorService asyncExecutorService = AsyncExecutorService.getInstance();
+
+        ExecutorService executor = Executors.newFixedThreadPool(asyncProperties.getThreadPoolSize());
+        ExecutorService updater = Executors.newFixedThreadPool(asyncProperties.getThreadPoolSize());
+        AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide, executor, updater, asyncQueryDao);
 
         // Binding AsyncQuery LifeCycleHook
         AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService,
@@ -91,7 +94,7 @@ public class ElideAsyncConfiguration {
         dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
         dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);
 
-        return AsyncExecutorService.getInstance();
+        return asyncExecutorService;
     }
 
     // TODO Remove this method when ElideSettings has all the settings.

@@ -5,9 +5,19 @@
  */
 package example;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
+import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
-
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.standalone.ElideStandalone;
@@ -19,6 +29,10 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+
+import io.restassured.response.Response;
+
+import javax.ws.rs.core.MediaType;
 
 /**
  * Tests ElideStandalone starts and works.
@@ -119,8 +133,6 @@ public class ElideStandaloneExportTest {
         assertEquals(true, output.contains(queryId + " Not Found"));
     }
 
-// TODO Uncomment once AsyncExecutorService Singleton is removed. https://github.com/yahoo/elide/issues/1798
-/*
     @Test
     public void testExportDynamicModel() throws InterruptedException {
         // Load Test data in Post Table
@@ -212,5 +224,5 @@ public class ElideStandaloneExportTest {
                 .get("/export/ba31ca4e-ed8f-4be0-a0f3-12088fa9265d")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
-    }*/
+    }
 }

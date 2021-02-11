@@ -118,8 +118,7 @@ public class AsyncTest extends IntegrationTest {
             }
         }
     }
-// TODO Uncomment once AsyncExecutorService Singleton is removed. https://github.com/yahoo/elide/issues/1798
-/*
+
     @Test
     public void testExportDynamicModel() throws InterruptedException {
         //Create Table Export
@@ -271,7 +270,7 @@ public class AsyncTest extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK);
     }
-*/
+
     @Test
     public void exportControllerTest() {
         when()
