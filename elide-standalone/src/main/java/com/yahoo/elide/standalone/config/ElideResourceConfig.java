@@ -35,7 +35,7 @@ import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
-import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
+import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.standalone.Util;
 import com.yahoo.elide.standalone.resources.ExportApiEndpoint.ExportApiProperties;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import javax.inject.Inject;
 import javax.persistence.EntityManagerFactory;
@@ -69,6 +70,8 @@ public class ElideResourceConfig extends ResourceConfig {
     private final ServiceLocator injector;
 
     public static final String ELIDE_STANDALONE_SETTINGS_ATTR = "elideStandaloneSettings";
+    public static final String ASYNC_EXECUTOR_ATTR = "asyncExecutor";
+    public static final String ASYNC_UPDATER_ATTR = "asyncUpdater";
 
     private static MetricRegistry metricRegistry = null;
     private static HealthCheckRegistry healthCheckRegistry = null;
@@ -82,7 +85,6 @@ public class ElideResourceConfig extends ResourceConfig {
     @Inject
     public ElideResourceConfig(ServiceLocator injector, @Context ServletContext servletContext) {
         this.injector = injector;
-
         settings = (ElideStandaloneSettings) servletContext.getAttribute(ELIDE_STANDALONE_SETTINGS_ATTR);
 
         // Bind things that should be injectable to the Settings class
@@ -95,9 +97,9 @@ public class ElideResourceConfig extends ResourceConfig {
             }
         });
 
-        Optional<DynamicConfigValidator> validator;
+        Optional<DynamicConfiguration> dynamicConfiguration;
         try {
-            validator = settings.getDynamicConfigValidator();
+            dynamicConfiguration = settings.getDynamicConfiguration();
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -110,12 +112,12 @@ public class ElideResourceConfig extends ResourceConfig {
                 EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(settings.getModelPackageName(),
                         asyncProperties.enabled(), settings.getDatabaseProperties());
 
-                EntityDictionary dictionary = settings.getEntityDictionary(injector, validator);
+                EntityDictionary dictionary = settings.getEntityDictionary(injector, dynamicConfiguration);
 
                 DataStore dataStore;
 
                 if (settings.getAnalyticProperties().enableAggregationDataStore()) {
-                    MetaDataStore metaDataStore = settings.getMetaDataStore(validator);
+                    MetaDataStore metaDataStore = settings.getMetaDataStore(dynamicConfiguration);
                     if (metaDataStore == null) {
                         throw new IllegalStateException("Aggregation Datastore is enabled but metaDataStore is null");
                     }
@@ -125,7 +127,7 @@ public class ElideResourceConfig extends ResourceConfig {
                                     SQLDialectFactory.getDialect(settings.getAnalyticProperties().getDefaultDialect()));
 
                     QueryEngine queryEngine = settings.getQueryEngine(metaDataStore, defaultConnectionDetails,
-                                    validator, settings.getDataSourceConfiguration(),
+                                    dynamicConfiguration, settings.getDataSourceConfiguration(),
                                     settings.getAnalyticProperties().getDBPasswordExtractor());
                     AggregationDataStore aggregationDataStore =
                                     settings.getAggregationDataStore(queryEngine);
@@ -173,12 +175,14 @@ public class ElideResourceConfig extends ResourceConfig {
                         }
                         bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
                     }
-
-                    AsyncExecutorService.init(elide, asyncProperties.getThreadSize(), asyncAPIDao);
-                    bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
+                    ExecutorService executor = (ExecutorService) servletContext.getAttribute(ASYNC_EXECUTOR_ATTR);
+                    ExecutorService updater = (ExecutorService) servletContext.getAttribute(ASYNC_UPDATER_ATTR);
+                    AsyncExecutorService asyncExecutorService =
+                                    new AsyncExecutorService(elide, executor, updater, asyncAPIDao);
+                    bind(asyncExecutorService).to(AsyncExecutorService.class);
 
                     // Binding AsyncQuery LifeCycleHook
-                    AsyncQueryHook asyncQueryHook = new AsyncQueryHook(AsyncExecutorService.getInstance(),
+                    AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService,
                             asyncProperties.getMaxAsyncAfterSeconds());
 
                     dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, asyncQueryHook, false);
@@ -193,7 +197,7 @@ public class ElideResourceConfig extends ResourceConfig {
                     supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
 
                     // Binding TableExport LifeCycleHook
-                    TableExportHook tableExportHook = getTableExportHook(AsyncExecutorService.getInstance(),
+                    TableExportHook tableExportHook = getTableExportHook(asyncExecutorService,
                             asyncProperties, supportedFormatters, resultStorageEngine);
                     dictionary.bindTrigger(TableExport.class, READ, PRESECURITY, tableExportHook, false);
                     dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);

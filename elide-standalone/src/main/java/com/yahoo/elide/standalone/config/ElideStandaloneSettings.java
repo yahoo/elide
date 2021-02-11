@@ -30,6 +30,7 @@ import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
+import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
@@ -333,11 +334,11 @@ public interface ElideStandaloneSettings {
     }
 
     /**
-     * Gets the dynamic config validator for elide.
-     * @return Optional DynamicConfigValidator
+     * Gets the dynamic configuration for models, security roles, and database connection.
+     * @return Optional DynamicConfiguration
      * @throws IOException thrown when validator fails to read configuration.
      */
-    default Optional<DynamicConfigValidator> getDynamicConfigValidator() throws IOException {
+    default Optional<DynamicConfiguration> getDynamicConfiguration() throws IOException {
         DynamicConfigValidator validator = null;
 
         if (getAnalyticProperties().enableAggregationDataStore()
@@ -408,11 +409,11 @@ public interface ElideStandaloneSettings {
     /**
      * Gets the EntityDictionary for elide.
      * @param injector Service locator for web service for dependency injection.
-     * @param validator optional dynamic config validator object.
+     * @param dynamicConfiguration optional dynamic config object.
      * @return EntityDictionary object initialized.
      */
     default EntityDictionary getEntityDictionary(ServiceLocator injector,
-            Optional<DynamicConfigValidator> validator) {
+            Optional<DynamicConfiguration> dynamicConfiguration) {
         EntityDictionary dictionary = new EntityDictionary(getCheckMappings(),
                 new Injector() {
                     @Override
@@ -428,8 +429,8 @@ public interface ElideStandaloneSettings {
 
         dictionary.scanForSecurityChecks();
 
-        if (validator.isPresent()) {
-            validator.get().getElideSecurityConfig().getRoles().forEach(role -> {
+        if (dynamicConfiguration.isPresent()) {
+            dynamicConfiguration.get().getRoles().forEach(role -> {
                 dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role));
             });
         }
@@ -438,15 +439,15 @@ public interface ElideStandaloneSettings {
 
     /**
      * Gets the metadatastore for elide.
-     * @param validator optional dynamic config validator object.
+     * @param dynamicConfiguration optional dynamic config object.
      * @return MetaDataStore object initialized.
      */
-    default MetaDataStore getMetaDataStore(Optional<DynamicConfigValidator> validator) {
+    default MetaDataStore getMetaDataStore(Optional<DynamicConfiguration> dynamicConfiguration) {
         MetaDataStore metaDataStore = null;
         boolean enableMetaDataStore = getAnalyticProperties().enableMetaDataStore();
 
-        if (validator.isPresent()) {
-            metaDataStore = new MetaDataStore(validator.get().getElideTableConfig().getTables(), enableMetaDataStore);
+        if (dynamicConfiguration.isPresent()) {
+            metaDataStore = new MetaDataStore(dynamicConfiguration.get().getTables(), enableMetaDataStore);
         } else {
             metaDataStore = new MetaDataStore(enableMetaDataStore);
         }
@@ -458,18 +459,18 @@ public interface ElideStandaloneSettings {
      * Gets the QueryEngine for elide.
      * @param metaDataStore MetaDataStore object.
      * @param defaultConnectionDetails default DataSource Object and SQLDialect Object.
-     * @param validator Optional dynamic config validator.
+     * @param dynamicConfiguration Optional dynamic config.
      * @param dataSourceConfiguration DataSource Configuration.
      * @param dbPasswordExtractor Password Extractor Implementation.
      * @return QueryEngine object initialized.
      */
     default QueryEngine getQueryEngine(MetaDataStore metaDataStore, ConnectionDetails defaultConnectionDetails,
-                    Optional<DynamicConfigValidator> validator,
+                    Optional<DynamicConfiguration> dynamicConfiguration,
                     DataSourceConfiguration dataSourceConfiguration, DBPasswordExtractor dbPasswordExtractor) {
-        if (validator.isPresent()) {
+        if (dynamicConfiguration.isPresent()) {
             Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
-            validator.get().getElideSQLDBConfig().getDbconfigs().forEach(dbConfig -> {
+            dynamicConfiguration.get().getDatabaseConfigurations().forEach(dbConfig -> {
                 connectionDetailsMap.put(dbConfig.getName(),
                                 new ConnectionDetails(
                                                 dataSourceConfiguration.getDataSource(dbConfig, dbPasswordExtractor),
