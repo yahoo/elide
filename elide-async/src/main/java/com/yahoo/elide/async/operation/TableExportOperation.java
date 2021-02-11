@@ -5,6 +5,15 @@
  */
 package com.yahoo.elide.async.operation;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Collections;
+import java.util.Date;
+import java.util.UUID;
+import java.util.concurrent.Callable;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.models.AsyncAPI;
@@ -25,16 +34,6 @@ import io.reactivex.Observable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Collections;
-import java.util.Date;
-import java.util.UUID;
-
-import java.util.concurrent.Callable;
-
 /**
  * TableExport Execute Operation Interface.
  */
@@ -44,14 +43,16 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
     @Getter private AsyncExecutorService service;
     private Integer recordNumber = 0;
     private TableExport exportObj;
-    @Getter private RequestScope scope;
+    private RequestScope scope;
+    private ResultStorageEngine engine;
 
     public TableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
-            AsyncAPI exportObj, RequestScope scope) {
+            AsyncAPI exportObj, RequestScope scope, ResultStorageEngine engine) {
         this.formatter = formatter;
         this.service = service;
         this.exportObj = (TableExport) exportObj;
         this.scope = scope;
+        this.engine = engine;
     }
 
     @Override
@@ -77,7 +78,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
             Observable<String> interimResults = concatStringWithObservable(preResult, results, true);
             Observable<String> finalResults = concatStringWithObservable(postResult, interimResults, false);
 
-            storeResults(exportObj, service.getResultStorageEngine(), finalResults);
+            storeResults(exportObj, engine, finalResults);
 
             exportResult.setUrl(new URL(generateDownloadURL(exportObj, (RequestScope) scope)));
             exportResult.setRecordCount(recordNumber);

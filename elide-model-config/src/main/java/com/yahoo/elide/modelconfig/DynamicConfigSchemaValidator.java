@@ -6,7 +6,6 @@
 package com.yahoo.elide.modelconfig;
 
 import static com.yahoo.elide.modelconfig.DynamicConfigHelpers.isNullOrEmpty;
-import static com.yahoo.elide.modelconfig.parser.handlebars.HandlebarsHelper.NEWLINE;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -36,6 +35,7 @@ public class DynamicConfigSchemaValidator {
     private JsonSchema securitySchema;
     private JsonSchema variableSchema;
     private JsonSchema dbConfigSchema;
+    private static String NEWLINE = System.lineSeparator();
 
     public DynamicConfigSchemaValidator() {
 

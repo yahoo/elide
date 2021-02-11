@@ -5,15 +5,14 @@
  */
 package com.yahoo.elide.spring.config;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
@@ -24,23 +23,21 @@ import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.DataSourceConfiguration;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
-import com.yahoo.elide.modelconfig.compile.ElideDynamicEntityCompiler;
 import com.yahoo.elide.modelconfig.model.DBConfig;
+import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -52,9 +49,9 @@ import io.swagger.models.Info;
 import io.swagger.models.Swagger;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 
@@ -77,22 +74,18 @@ public class ElideAutoConfiguration {
     private final Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
 
     /**
-     * Creates a entity compiler for compiling dynamic config classes.
+     * Creates a HJSON configuration validator for dynamic config classes.
      * @param settings Config Settings.
-     * @return An instance of ElideDynamicEntityCompiler.
-     * @throws Exception Exception thrown.
+     * @throws IOException if there is an error reading the configuration.
+     * @return An instance of DynamicConfigValidator.
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
-    public ElideDynamicEntityCompiler buildElideDynamicEntityCompiler(ElideConfigProperties settings) throws Exception {
-
-        ElideDynamicEntityCompiler compiler = null;
-
-        if (isDynamicConfigEnabled(settings)) {
-            compiler = new ElideDynamicEntityCompiler(settings.getDynamicConfig().getPath());
-        }
-        return compiler;
+    @ConditionalOnExpression("${elide.aggregation-store.enabled} and ${elide.dynamic-config.enabled}")
+    public DynamicConfigValidator buildDynamicConfigValidator(ElideConfigProperties settings) throws IOException {
+        DynamicConfigValidator validator = new DynamicConfigValidator(settings.getDynamicConfig().getPath());
+        validator.readAndValidateConfigs();
+        return validator;
     }
 
     /**
@@ -174,7 +167,7 @@ public class ElideAutoConfiguration {
      * Creates the entity dictionary for Elide which contains static metadata about Elide models.
      * Override to load check classes or life cycle hooks.
      * @param beanFactory Injector to inject Elide models.
-     * @param dynamicCompiler An instance of objectprovider for ElideDynamicEntityCompiler.
+     * @param validator An instance of DynamicConfigValidator.
      * @param settings Elide configuration settings.
      * @return a newly configured EntityDictionary.
      * @throws ClassNotFoundException Exception thrown.
@@ -182,7 +175,8 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public EntityDictionary buildDictionary(AutowireCapableBeanFactory beanFactory,
-            ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties settings)
+                                            @Autowired(required = false) DynamicConfigValidator validator,
+                                            ElideConfigProperties settings)
             throws ClassNotFoundException {
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>(),
                 new Injector() {
@@ -200,9 +194,9 @@ public class ElideAutoConfiguration {
         dictionary.scanForSecurityChecks();
 
         if (isAggregationStoreEnabled(settings) && isDynamicConfigEnabled(settings)) {
-            ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();
-            Set<Class<?>> annotatedClass = compiler.findAnnotatedClasses(SecurityCheck.class);
-            dictionary.addSecurityChecks(annotatedClass);
+            validator.getElideSecurityConfig().getRoles().forEach(role -> {
+                dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role));
+            });
         }
 
         return dictionary;
@@ -211,7 +205,7 @@ public class ElideAutoConfiguration {
     /**
      * Create a QueryEngine instance for aggregation data store to use.
      * @param defaultDataSource DataSource for JPA.
-     * @param dynamicCompiler An instance of objectprovider for ElideDynamicEntityCompiler.
+     * @param validator An instance of DynamicConfigValidator.
      * @param settings Elide configuration settings.
      * @param dataSourceConfiguration DataSource Configuration
      * @param dbPasswordExtractor Password Extractor Implementation
@@ -222,7 +216,7 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
     public QueryEngine buildQueryEngine(DataSource defaultDataSource,
-                                        ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler,
+                                        @Autowired(required = false) DynamicConfigValidator validator,
                                         ElideConfigProperties settings,
                                         DataSourceConfiguration dataSourceConfiguration,
                                         DBPasswordExtractor dbPasswordExtractor) throws ClassNotFoundException {
@@ -231,10 +225,11 @@ public class ElideAutoConfiguration {
         ConnectionDetails defaultConnectionDetails = new ConnectionDetails(defaultDataSource,
                         SQLDialectFactory.getDialect(settings.getAggregationStore().getDefaultDialect()));
         if (isDynamicConfigEnabled(settings)) {
-            MetaDataStore metaDataStore = new MetaDataStore(dynamicCompiler.getIfAvailable(), enableMetaDataStore);
+            MetaDataStore metaDataStore = new MetaDataStore(validator.getElideTableConfig().getTables(),
+                    enableMetaDataStore);
             Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
-            dynamicCompiler.getIfAvailable().getElideSQLDBConfig().getDbconfigs().forEach(dbConfig -> {
+            validator.getElideSQLDBConfig().getDbconfigs().forEach(dbConfig -> {
                 connectionDetailsMap.put(dbConfig.getName(),
                                 new ConnectionDetails(
                                                 dataSourceConfiguration.getDataSource(dbConfig, dbPasswordExtractor),
@@ -252,7 +247,6 @@ public class ElideAutoConfiguration {
      * Creates the DataStore Elide.  Override to use a different store.
      * @param entityManagerFactory The JPA factory which creates entity managers.
      * @param queryEngine QueryEngine instance for aggregation data store.
-     * @param compiler ElideDynamicEntityCompiler.
      * @param settings Elide configuration settings.
      * @return An instance of a JPA DataStore.
      * @throws ClassNotFoundException Exception thrown.
@@ -261,7 +255,6 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     public DataStore buildDataStore(EntityManagerFactory entityManagerFactory,
                                     @Autowired(required = false) QueryEngine queryEngine,
-                                    @Autowired(required = false) ElideDynamicEntityCompiler compiler,
                                     ElideConfigProperties settings,
                                     @Autowired(required = false) Cache cache,
                                     @Autowired(required = false) QueryLogger querylogger)
@@ -274,9 +267,7 @@ public class ElideAutoConfiguration {
             AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder =
                             AggregationDataStore.builder().queryEngine(queryEngine);
             if (isDynamicConfigEnabled(settings)) {
-                Set<Class<?>> annotatedClasses = compiler.findAnnotatedClasses(FromTable.class);
-                annotatedClasses.addAll(compiler.findAnnotatedClasses(FromSubquery.class));
-                aggregationDataStoreBuilder.dynamicCompiledClasses(getClassType(annotatedClasses));
+                aggregationDataStoreBuilder.dynamicCompiledClasses(queryEngine.getMetaDataStore().getDynamicTypes());
             }
             aggregationDataStoreBuilder.cache(cache);
             aggregationDataStoreBuilder.queryLogger(querylogger);

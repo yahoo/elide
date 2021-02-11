@@ -119,7 +119,7 @@ public class QueryPlan implements Queryable {
      */
     public static <T extends ColumnProjection> Set<T> nestColumnProjection(Queryable parentSource, Set<T> columns) {
         return (Set<T>) columns.stream()
-                .map(column -> column.withSourceAndExpression(parentSource, "{{" + column.getName() + "}}"))
+                .map(column -> column.withSourceAndExpression(parentSource, "{{" + column.getSafeAlias() + "}}"))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }

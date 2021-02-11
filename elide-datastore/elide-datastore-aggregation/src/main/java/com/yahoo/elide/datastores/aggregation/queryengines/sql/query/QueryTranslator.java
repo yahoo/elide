@@ -166,13 +166,13 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
         List<String> metricProjections = query.getMetricProjections().stream()
                 .map(SQLMetricProjection.class::cast)
                 .map(invocation -> invocation.toSQL(referenceTable) + " AS "
-                                + applyQuotes(invocation.getAlias()))
+                                + applyQuotes(invocation.getSafeAlias()))
                 .collect(Collectors.toList());
 
         List<String> dimensionProjections = query.getAllDimensionProjections().stream()
                 .map(SQLColumnProjection.class::cast)
                 .map(dimension -> dimension.toSQL(referenceTable) + " AS "
-                                + applyQuotes(dimension.getAlias()))
+                                + applyQuotes(dimension.getSafeAlias()))
                 .collect(Collectors.toList());
 
         if (metricProjections.isEmpty()) {
@@ -205,7 +205,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
                     SQLColumnProjection projection = fieldToColumnProjection(plan, last.getAlias());
                     String orderByClause = (plan.getColumnProjections().contains(projection)
                             && dialect.useAliasForOrderByClause())
-                            ? applyQuotes(projection.getAlias())
+                            ? applyQuotes(projection.getSafeAlias())
                             : projection.toSQL(referenceTable);
 
                     return orderByClause + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");

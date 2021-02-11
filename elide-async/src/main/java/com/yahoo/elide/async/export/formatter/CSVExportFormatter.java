@@ -27,7 +27,7 @@ public class CSVExportFormatter implements TableExportFormatter {
     private static final String COMMA = ",";
     private static final String DOUBLE_QUOTES = "\"";
 
-    public static boolean skipCSVHeader = false;
+    private boolean skipCSVHeader = false;
     private ObjectMapper mapper;
 
     public CSVExportFormatter(Elide elide, boolean skipCSVHeader) {
@@ -82,6 +82,10 @@ public class CSVExportFormatter implements TableExportFormatter {
      * @return returns Header string which is in CSV format.
      */
     private String generateCSVHeader(EntityProjection projection) {
+        if (projection.getAttributes() == null) {
+            return "";
+        }
+
         String header = projection.getAttributes().stream()
         .map(attr -> {
             StringBuilder column = new StringBuilder();

@@ -71,6 +71,7 @@ public class EntityBinding {
 
     @Getter
     public final Type<?> entityClass;
+    @Getter
     public final String jsonApiType;
     @Getter
     public boolean idGenerated;
