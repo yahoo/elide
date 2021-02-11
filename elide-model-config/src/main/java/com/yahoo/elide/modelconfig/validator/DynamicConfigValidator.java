@@ -18,6 +18,7 @@ import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.modelconfig.Config;
 import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
 import com.yahoo.elide.modelconfig.DynamicConfigSchemaValidator;
+import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.modelconfig.model.Dimension;
 import com.yahoo.elide.modelconfig.model.ElideDBConfig;
@@ -62,7 +63,7 @@ import java.util.stream.Collectors;
 /**
  * Util class to validate and parse the config files. Optionally compiles config files.
  */
-public class DynamicConfigValidator {
+public class DynamicConfigValidator implements DynamicConfiguration {
     public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
 
 
@@ -175,6 +176,21 @@ public class DynamicConfigValidator {
         populateInheritance(this.elideTableConfig);
         validateTableConfig();
         validateJoinedTablesDBConnectionName(this.elideTableConfig);
+    }
+
+    @Override
+    public Set<Table> getTables() {
+        return elideTableConfig.getTables();
+    }
+
+    @Override
+    public Set<String> getRoles() {
+        return elideSecurityConfig.getRoles();
+    }
+
+    @Override
+    public Set<DBConfig> getDatabaseConfigurations() {
+        return elideSQLDBConfig.getDbconfigs();
     }
 
     private static void validateInheritance(ElideTableConfig tables) {

@@ -35,7 +35,7 @@ import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
-import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
+import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.standalone.Util;
 import com.yahoo.elide.standalone.resources.ExportApiEndpoint.ExportApiProperties;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
@@ -95,9 +95,9 @@ public class ElideResourceConfig extends ResourceConfig {
             }
         });
 
-        Optional<DynamicConfigValidator> validator;
+        Optional<DynamicConfiguration> dynamicConfiguration;
         try {
-            validator = settings.getDynamicConfigValidator();
+            dynamicConfiguration = settings.getDynamicConfiguration();
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -110,12 +110,12 @@ public class ElideResourceConfig extends ResourceConfig {
                 EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(settings.getModelPackageName(),
                         asyncProperties.enabled(), settings.getDatabaseProperties());
 
-                EntityDictionary dictionary = settings.getEntityDictionary(injector, validator);
+                EntityDictionary dictionary = settings.getEntityDictionary(injector, dynamicConfiguration);
 
                 DataStore dataStore;
 
                 if (settings.getAnalyticProperties().enableAggregationDataStore()) {
-                    MetaDataStore metaDataStore = settings.getMetaDataStore(validator);
+                    MetaDataStore metaDataStore = settings.getMetaDataStore(dynamicConfiguration);
                     if (metaDataStore == null) {
                         throw new IllegalStateException("Aggregation Datastore is enabled but metaDataStore is null");
                     }
@@ -125,7 +125,7 @@ public class ElideResourceConfig extends ResourceConfig {
                                     SQLDialectFactory.getDialect(settings.getAnalyticProperties().getDefaultDialect()));
 
                     QueryEngine queryEngine = settings.getQueryEngine(metaDataStore, defaultConnectionDetails,
-                                    validator, settings.getDataSourceConfiguration(),
+                                    dynamicConfiguration, settings.getDataSourceConfiguration(),
                                     settings.getAnalyticProperties().getDBPasswordExtractor());
                     AggregationDataStore aggregationDataStore =
                                     settings.getAggregationDataStore(queryEngine);
