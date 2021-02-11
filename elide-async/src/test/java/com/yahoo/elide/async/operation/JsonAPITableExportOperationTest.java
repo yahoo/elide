@@ -136,7 +136,7 @@ public class JsonAPITableExportOperationTest {
         TableExportResult queryResultObj = (TableExportResult) jsonAPIOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
-        assertEquals("EntityProjection generation failure.", queryResultObj.getMessage());
+        assertEquals("Bad Request body", queryResultObj.getMessage());
     }
 
     /**

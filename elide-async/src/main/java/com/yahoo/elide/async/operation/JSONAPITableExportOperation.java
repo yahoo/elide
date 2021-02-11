@@ -53,16 +53,16 @@ public class JSONAPITableExportOperation extends TableExportOperation {
     }
 
     @Override
-    public EntityProjection getProjection(TableExport export, String apiVersion) throws BadRequestException {
+    public EntityProjection getProjection(TableExport export, RequestScope scope) throws BadRequestException {
         EntityProjection projection = null;
         try {
             URIBuilder uri = new URIBuilder(export.getQuery());
             Elide elide = getService().getElide();
             projection = new EntityProjectionMaker(elide.getElideSettings().getDictionary(),
-                    getScope()).parsePath(JSONAPIAsyncQueryOperation.getPath(uri));
+                    scope).parsePath(JSONAPIAsyncQueryOperation.getPath(uri));
 
         } catch (URISyntaxException e) {
-            throw new BadRequestException(e.getMessage());
+            throw new IllegalStateException(e);
         }
         return projection;
     }
