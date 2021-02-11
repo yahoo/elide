@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import javax.inject.Inject;
 import javax.persistence.EntityManagerFactory;
@@ -69,6 +70,8 @@ public class ElideResourceConfig extends ResourceConfig {
     private final ServiceLocator injector;
 
     public static final String ELIDE_STANDALONE_SETTINGS_ATTR = "elideStandaloneSettings";
+    public static final String ASYNC_EXECUTOR_ATTR = "asyncExecutor";
+    public static final String ASYNC_UPDATER_ATTR = "asyncUpdater";
 
     private static MetricRegistry metricRegistry = null;
     private static HealthCheckRegistry healthCheckRegistry = null;
@@ -82,7 +85,6 @@ public class ElideResourceConfig extends ResourceConfig {
     @Inject
     public ElideResourceConfig(ServiceLocator injector, @Context ServletContext servletContext) {
         this.injector = injector;
-
         settings = (ElideStandaloneSettings) servletContext.getAttribute(ELIDE_STANDALONE_SETTINGS_ATTR);
 
         // Bind things that should be injectable to the Settings class
@@ -173,12 +175,14 @@ public class ElideResourceConfig extends ResourceConfig {
                         }
                         bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
                     }
-
-                    AsyncExecutorService.init(elide, asyncProperties.getThreadSize(), asyncAPIDao);
-                    bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
+                    ExecutorService executor = (ExecutorService) servletContext.getAttribute(ASYNC_EXECUTOR_ATTR);
+                    ExecutorService updater = (ExecutorService) servletContext.getAttribute(ASYNC_UPDATER_ATTR);
+                    AsyncExecutorService asyncExecutorService =
+                                    new AsyncExecutorService(elide, executor, updater, asyncAPIDao);
+                    bind(asyncExecutorService).to(AsyncExecutorService.class);
 
                     // Binding AsyncQuery LifeCycleHook
-                    AsyncQueryHook asyncQueryHook = new AsyncQueryHook(AsyncExecutorService.getInstance(),
+                    AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService,
                             asyncProperties.getMaxAsyncAfterSeconds());
 
                     dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, asyncQueryHook, false);
@@ -193,7 +197,7 @@ public class ElideResourceConfig extends ResourceConfig {
                     supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
 
                     // Binding TableExport LifeCycleHook
-                    TableExportHook tableExportHook = getTableExportHook(AsyncExecutorService.getInstance(),
+                    TableExportHook tableExportHook = getTableExportHook(asyncExecutorService,
                             asyncProperties, supportedFormatters, resultStorageEngine);
                     dictionary.bindTrigger(TableExport.class, READ, PRESECURITY, tableExportHook, false);
                     dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
