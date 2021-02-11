@@ -72,11 +72,6 @@ public class AsyncExecutorService {
         this.asyncAPIDao = asyncAPIDao;
     }
 
-    public AsyncExecutorService(Elide elide, int threadPoolSize, AsyncAPIDAO asyncAPIDao) {
-        this(elide, Executors.newFixedThreadPool(threadPoolSize), Executors.newFixedThreadPool(threadPoolSize),
-                        asyncAPIDao);
-    }
-
     /**
      * Execute Query asynchronously.
      * @param queryObj Query Object

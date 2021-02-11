@@ -42,6 +42,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 
@@ -96,7 +97,8 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 // TODO Pass resultStorageEngine to TableExportHook
                 ResultStorageEngine resultStorageEngine =
                         new FileResultStorageEngine(System.getProperty("java.io.tmpDir"));
-                AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide, 5, asyncAPIDao);
+                AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide,
+                                Executors.newFixedThreadPool(5), Executors.newFixedThreadPool(5), asyncAPIDao);
 
                 BillingService billingService = new BillingService() {
                     @Override

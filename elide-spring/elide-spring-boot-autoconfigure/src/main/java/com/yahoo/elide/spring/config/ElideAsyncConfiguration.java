@@ -41,6 +41,8 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Async Configuration For Elide Services.  Override any of the beans (by defining your own)
@@ -67,8 +69,9 @@ public class ElideAsyncConfiguration {
             @Autowired(required = false) ResultStorageEngine resultStorageEngine) {
         AsyncProperties asyncProperties = settings.getAsync();
 
-        AsyncExecutorService asyncExecutorService =
-                        new AsyncExecutorService(elide, asyncProperties.getThreadPoolSize(), asyncQueryDao);
+        ExecutorService executor = Executors.newFixedThreadPool(asyncProperties.getThreadPoolSize());
+        ExecutorService updater = Executors.newFixedThreadPool(asyncProperties.getThreadPoolSize());
+        AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide, executor, updater, asyncQueryDao);
 
         // Binding AsyncQuery LifeCycleHook
         AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService,

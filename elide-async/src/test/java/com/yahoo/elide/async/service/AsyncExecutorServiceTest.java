@@ -36,6 +36,7 @@ import org.junit.jupiter.api.TestInstance;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AsyncExecutorServiceTest {
@@ -59,7 +60,9 @@ public class AsyncExecutorServiceTest {
         testUser = mock(User.class);
         scope = mock(RequestScope.class);
         resultStorageEngine = mock(FileResultStorageEngine.class);
-        service = new AsyncExecutorService(elide, 5, asyncAPIDao);
+        service = new AsyncExecutorService(elide, Executors.newFixedThreadPool(5), Executors.newFixedThreadPool(5),
+                        asyncAPIDao);
+
     }
 
     @Test
