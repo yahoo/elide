@@ -74,7 +74,6 @@ public class GraphQLTableExportOperationTest {
         asyncExecutorService = mock(AsyncExecutorService.class);
         engine = new FileResultStorageEngine(tempDir.toString());
         when(asyncExecutorService.getElide()).thenReturn(elide);
-        when(asyncExecutorService.getResultStorageEngine()).thenReturn(engine);
         when(requestScope.getApiVersion()).thenReturn(NO_VERSION);
         when(requestScope.getUser()).thenReturn(user);
         when(requestScope.getElideSettings()).thenReturn(elide.getElideSettings());
@@ -93,12 +92,50 @@ public class GraphQLTableExportOperationTest {
         queryObj.setResultType(ResultType.CSV);
 
         GraphQLTableExportOperation graphQLOperation = new GraphQLTableExportOperation(new JSONExportFormatter(elide), asyncExecutorService,
-                queryObj, requestScope);
+                queryObj, requestScope, engine);
         TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
         assertTrue("https://elide.io/export/edc4a871-dff2-4054-804e-d80075cf827d".equals(queryResultObj.getUrl().toString()));
         assertEquals(1, queryResultObj.getRecordCount());
+    }
+
+    @Test
+    public void testProcessBadEntityQuery() throws URISyntaxException, IOException  {
+        dataPrep();
+        TableExport queryObj = new TableExport();
+        String query = "{\"query\":\"{ tableExportInvalid { edges { node { id principalName} } } }\",\"variables\":null}";
+        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
+        queryObj.setResultType(ResultType.CSV);
+
+        GraphQLTableExportOperation graphQLOperation = new GraphQLTableExportOperation(new JSONExportFormatter(elide), asyncExecutorService,
+                queryObj, requestScope, engine);
+        TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
+
+        assertEquals(200, queryResultObj.getHttpStatus());
+        assertEquals("Bad Request Body'Unknown entity {tableExportInvalid}.'", queryResultObj.getMessage());
+    }
+
+    @Test
+    public void testProcessBadQuery() throws URISyntaxException, IOException  {
+        dataPrep();
+        TableExport queryObj = new TableExport();
+        String query = "{\"query\":\"{ tableExport { edges { node { id principalName}  } }\",\"variables\":null}";
+        String id = "edc4a871-dff2-4054-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
+        queryObj.setResultType(ResultType.CSV);
+
+        GraphQLTableExportOperation graphQLOperation = new GraphQLTableExportOperation(new JSONExportFormatter(elide), asyncExecutorService,
+                queryObj, requestScope, engine);
+        TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
+
+        assertEquals(200, queryResultObj.getHttpStatus());
+        assertEquals("Bad Request Body'Can't parse query: { tableExport { edges { node { id principalName}  } }'", queryResultObj.getMessage());
     }
 
     /**

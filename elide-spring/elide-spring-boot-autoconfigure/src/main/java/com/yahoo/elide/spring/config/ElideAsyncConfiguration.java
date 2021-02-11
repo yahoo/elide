@@ -41,6 +41,8 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Async Configuration For Elide Services.  Override any of the beans (by defining your own)
@@ -66,9 +68,10 @@ public class ElideAsyncConfiguration {
             AsyncAPIDAO asyncQueryDao, EntityDictionary dictionary,
             @Autowired(required = false) ResultStorageEngine resultStorageEngine) {
         AsyncProperties asyncProperties = settings.getAsync();
-        AsyncExecutorService.init(elide, asyncProperties.getThreadPoolSize(),
-                asyncQueryDao, resultStorageEngine);
-        AsyncExecutorService asyncExecutorService = AsyncExecutorService.getInstance();
+
+        ExecutorService executor = Executors.newFixedThreadPool(asyncProperties.getThreadPoolSize());
+        ExecutorService updater = Executors.newFixedThreadPool(asyncProperties.getThreadPoolSize());
+        AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide, executor, updater, asyncQueryDao);
 
         // Binding AsyncQuery LifeCycleHook
         AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService,
@@ -85,12 +88,13 @@ public class ElideAsyncConfiguration {
         supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
 
         // Binding TableExport LifeCycleHook
-        TableExportHook tableExportHook = getTableExportHook(asyncExecutorService, settings, supportedFormatters);
+        TableExportHook tableExportHook = getTableExportHook(asyncExecutorService, settings, supportedFormatters,
+                resultStorageEngine);
         dictionary.bindTrigger(TableExport.class, READ, PRESECURITY, tableExportHook, false);
         dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
         dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);
 
-        return AsyncExecutorService.getInstance();
+        return asyncExecutorService;
     }
 
     // TODO Remove this method when ElideSettings has all the settings.
@@ -98,16 +102,17 @@ public class ElideAsyncConfiguration {
     // Trying to avoid adding too many individual properties to ElideSettings for now.
     // https://github.com/yahoo/elide/issues/1803
     private TableExportHook getTableExportHook(AsyncExecutorService asyncExecutorService,
-            ElideConfigProperties settings, Map<ResultType, TableExportFormatter> supportedFormatters) {
+            ElideConfigProperties settings, Map<ResultType, TableExportFormatter> supportedFormatters,
+            ResultStorageEngine resultStorageEngine) {
         boolean exportEnabled = settings.getAsync().getExport() != null ? settings.getAsync().getExport().isEnabled()
                 : false;
         TableExportHook tableExportHook = null;
         if (exportEnabled) {
             tableExportHook = new TableExportHook(asyncExecutorService, settings.getAsync().getMaxAsyncAfterSeconds(),
-                    supportedFormatters);
+                    supportedFormatters, resultStorageEngine);
         } else {
             tableExportHook = new TableExportHook(asyncExecutorService, settings.getAsync().getMaxAsyncAfterSeconds(),
-                    supportedFormatters) {
+                    supportedFormatters, resultStorageEngine) {
                 @Override
                 public void validateOptions(AsyncAPI export, RequestScope requestScope) {
                     throw new InvalidOperationException("TableExport is not supported.");

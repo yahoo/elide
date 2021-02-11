@@ -5,7 +5,11 @@
  */
 package com.yahoo.elide.standalone;
 
+import static com.yahoo.elide.standalone.config.ElideResourceConfig.ASYNC_EXECUTOR_ATTR;
+import static com.yahoo.elide.standalone.config.ElideResourceConfig.ASYNC_UPDATER_ATTR;
 import static com.yahoo.elide.standalone.config.ElideResourceConfig.ELIDE_STANDALONE_SETTINGS_ATTR;
+
+import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.standalone.config.ElideResourceConfig;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
@@ -22,6 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.concurrent.Executors;
+
 import javax.servlet.DispatcherType;
 
 /**
@@ -80,6 +86,14 @@ public class ElideStandalone {
 
         context.setAttribute(ELIDE_STANDALONE_SETTINGS_ATTR, elideStandaloneSettings);
 
+        if (elideStandaloneSettings.getAsyncProperties().enabled()) {
+            Integer threadPoolSize = elideStandaloneSettings.getAsyncProperties().getThreadSize() == null
+                            ? AsyncExecutorService.DEFAULT_THREAD_POOL_SIZE
+                            : elideStandaloneSettings.getAsyncProperties().getThreadSize();
+            context.setAttribute(ASYNC_EXECUTOR_ATTR, Executors.newFixedThreadPool(threadPoolSize));
+            context.setAttribute(ASYNC_UPDATER_ATTR, Executors.newFixedThreadPool(threadPoolSize));
+        }
+
         if (elideStandaloneSettings.enableJSONAPI()) {
             ServletHolder jerseyServlet = context.addServlet(ServletContainer.class,
                     elideStandaloneSettings.getJsonApiPathSpec());
@@ -94,6 +108,15 @@ public class ElideStandalone {
                     elideStandaloneSettings.getGraphQLApiPathSpec());
             jerseyServlet.setInitOrder(0);
             jerseyServlet.setInitParameter("jersey.config.server.provider.packages", "com.yahoo.elide.graphql");
+            jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
+        }
+
+        if (elideStandaloneSettings.getAsyncProperties().enableExport()) {
+            ServletHolder jerseyServlet = context.addServlet(ServletContainer.class,
+                    elideStandaloneSettings.getAsyncProperties().getExportApiPathSpec());
+            jerseyServlet.setInitOrder(0);
+            jerseyServlet.setInitParameter("jersey.config.server.provider.packages",
+                    "com.yahoo.elide.standalone.resources");
             jerseyServlet.setInitParameter("javax.ws.rs.Application", ElideResourceConfig.class.getCanonicalName());
         }
 

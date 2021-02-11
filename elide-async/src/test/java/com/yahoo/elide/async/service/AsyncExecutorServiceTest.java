@@ -36,6 +36,7 @@ import org.junit.jupiter.api.TestInstance;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AsyncExecutorServiceTest {
@@ -59,8 +60,9 @@ public class AsyncExecutorServiceTest {
         testUser = mock(User.class);
         scope = mock(RequestScope.class);
         resultStorageEngine = mock(FileResultStorageEngine.class);
-        AsyncExecutorService.init(elide, 5, asyncAPIDao, resultStorageEngine);
-        service = AsyncExecutorService.getInstance();
+        service = new AsyncExecutorService(elide, Executors.newFixedThreadPool(5), Executors.newFixedThreadPool(5),
+                        asyncAPIDao);
+
     }
 
     @Test
@@ -70,7 +72,7 @@ public class AsyncExecutorServiceTest {
         assertNotNull(service.getExecutor());
         assertNotNull(service.getUpdater());
         assertEquals(asyncAPIDao, service.getAsyncAPIDao());
-        assertEquals(resultStorageEngine, service.getResultStorageEngine());
+        assertEquals(resultStorageEngine, resultStorageEngine);
     }
 
     //Test for executor hook execution

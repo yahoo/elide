@@ -10,6 +10,7 @@ import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.QueryRunner;
 
@@ -35,6 +36,9 @@ public class GraphQLAsyncQueryOperation extends AsyncQueryOperation {
     public ElideResponse execute(AsyncAPI queryObj, User user,
             String apiVersion) throws URISyntaxException {
         QueryRunner runner = getService().getRunners().get(apiVersion);
+        if (runner == null) {
+            throw new InvalidOperationException("Invalid API Version");
+        }
         UUID requestUUID = UUID.fromString(queryObj.getRequestId());
         //TODO - we need to add the baseUrlEndpoint to the queryObject.
         ElideResponse response = runner.run("", queryObj.getQuery(), user, requestUUID);

@@ -42,6 +42,8 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
+
 import javax.inject.Inject;
 
 public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfig {
@@ -92,10 +94,11 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 AsyncAPIDAO asyncAPIDao = new DefaultAsyncAPIDAO(elide.getElideSettings(), elide.getDataStore());
                 bind(asyncAPIDao).to(AsyncAPIDAO.class);
 
+                // TODO Pass resultStorageEngine to TableExportHook
                 ResultStorageEngine resultStorageEngine =
                         new FileResultStorageEngine(System.getProperty("java.io.tmpDir"));
-                AsyncExecutorService.init(elide, 5, asyncAPIDao, resultStorageEngine);
-                bind(AsyncExecutorService.getInstance()).to(AsyncExecutorService.class);
+                AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide,
+                                Executors.newFixedThreadPool(5), Executors.newFixedThreadPool(5), asyncAPIDao);
 
                 BillingService billingService = new BillingService() {
                     @Override
@@ -107,7 +110,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 bind(billingService).to(BillingService.class);
 
                 // Binding AsyncQuery LifeCycleHook
-                AsyncQueryHook asyncQueryHook = new AsyncQueryHook(AsyncExecutorService.getInstance(), 10);
+                AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService, 10);
 
                 InvoiceCompletionHook invoiceCompletionHook = new InvoiceCompletionHook(billingService);
 
