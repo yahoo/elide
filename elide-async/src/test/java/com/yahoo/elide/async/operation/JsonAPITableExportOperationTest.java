@@ -75,7 +75,6 @@ public class JsonAPITableExportOperationTest {
         asyncExecutorService = mock(AsyncExecutorService.class);
         engine = new FileResultStorageEngine(tempDir.toString());
         when(asyncExecutorService.getElide()).thenReturn(elide);
-        when(asyncExecutorService.getResultStorageEngine()).thenReturn(engine);
         when(requestScope.getApiVersion()).thenReturn(NO_VERSION);
         when(requestScope.getUser()).thenReturn(user);
         when(requestScope.getElideSettings()).thenReturn(elide.getElideSettings());
@@ -94,7 +93,7 @@ public class JsonAPITableExportOperationTest {
         queryObj.setResultType(ResultType.CSV);
 
         JSONAPITableExportOperation jsonAPIOperation = new JSONAPITableExportOperation(new JSONExportFormatter(elide), asyncExecutorService,
-                queryObj, requestScope);
+                queryObj, requestScope, engine);
         TableExportResult queryResultObj = (TableExportResult) jsonAPIOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
@@ -114,7 +113,7 @@ public class JsonAPITableExportOperationTest {
         queryObj.setResultType(ResultType.CSV);
 
         JSONAPITableExportOperation jsonAPIOperation = new JSONAPITableExportOperation(new JSONExportFormatter(elide), asyncExecutorService,
-                queryObj, requestScope);
+                queryObj, requestScope, engine);
         TableExportResult queryResultObj = (TableExportResult) jsonAPIOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
@@ -133,7 +132,7 @@ public class JsonAPITableExportOperationTest {
         queryObj.setResultType(ResultType.CSV);
 
         JSONAPITableExportOperation jsonAPIOperation = new JSONAPITableExportOperation(new JSONExportFormatter(elide), asyncExecutorService,
-                queryObj, requestScope);
+                queryObj, requestScope, engine);
         TableExportResult queryResultObj = (TableExportResult) jsonAPIOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());

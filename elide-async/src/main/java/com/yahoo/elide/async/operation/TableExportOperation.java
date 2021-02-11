@@ -5,15 +5,6 @@
  */
 package com.yahoo.elide.async.operation;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Collections;
-import java.util.Date;
-import java.util.UUID;
-import java.util.concurrent.Callable;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.models.AsyncAPI;
@@ -34,6 +25,15 @@ import io.reactivex.Observable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Collections;
+import java.util.Date;
+import java.util.UUID;
+
+import java.util.concurrent.Callable;
+
 /**
  * TableExport Execute Operation Interface.
  */
@@ -43,7 +43,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
     @Getter private AsyncExecutorService service;
     private Integer recordNumber = 0;
     private TableExport exportObj;
-    private RequestScope scope;
+    @Getter private RequestScope scope;
     private ResultStorageEngine engine;
 
     public TableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
@@ -112,10 +112,9 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
      * @param prevScope RequestScope object.
      * @param projection Entity projection.
      * @return Observable PersistentResource
-     * @throws URISyntaxException URISyntaxException from malformed or incorrect URI
      */
     public Observable<PersistentResource> export(TableExport exportObj, RequestScope prevScope,
-            EntityProjection projection) throws URISyntaxException {
+            EntityProjection projection) {
         Observable<PersistentResource> results = Observable.empty();
         Elide elide = service.getElide();
 
