@@ -15,12 +15,6 @@ import java.util.Collection;
  */
 public class NoRelationshipsProjectionValidator implements Validator {
 
-    private static final Validator INSTANCE = new NoRelationshipsProjectionValidator();
-
-    public static Validator getInstance() {
-        return INSTANCE;
-    }
-
     @Override
     public void validateProjection(Collection<EntityProjection> projections) {
         for (EntityProjection projection : projections) {

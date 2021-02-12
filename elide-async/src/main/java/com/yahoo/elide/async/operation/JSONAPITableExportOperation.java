@@ -39,7 +39,7 @@ public class JSONAPITableExportOperation extends TableExportOperation {
     public JSONAPITableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
             AsyncAPI export, RequestScope scope, ResultStorageEngine engine) {
         super(formatter, service, export, scope, engine,
-                        Arrays.asList(NoRelationshipsProjectionValidator.getInstance()));
+                        Arrays.asList(new NoRelationshipsProjectionValidator()));
     }
 
     @Override

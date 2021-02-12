@@ -15,12 +15,6 @@ import java.util.Collection;
  */
 public class SingleRootProjectionValidator implements Validator {
 
-    private static final Validator INSTANCE = new SingleRootProjectionValidator();
-
-    public static Validator getInstance() {
-        return INSTANCE;
-    }
-
     @Override
     public void validateProjection(Collection<EntityProjection> projections) {
         if (projections.size() != 1) {

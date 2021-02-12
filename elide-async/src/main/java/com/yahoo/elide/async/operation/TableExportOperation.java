@@ -51,7 +51,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
     private TableExport exportObj;
     private RequestScope scope;
     private ResultStorageEngine engine;
-    private List<Validator> validators = new ArrayList<>(Arrays.asList(SingleRootProjectionValidator.getInstance()));
+    private List<Validator> validators = new ArrayList<>(Arrays.asList(new SingleRootProjectionValidator()));
 
     public TableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
             AsyncAPI exportObj, RequestScope scope, ResultStorageEngine engine, List<Validator> validators) {
