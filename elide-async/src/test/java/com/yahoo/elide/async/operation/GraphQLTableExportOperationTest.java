@@ -10,9 +10,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.export.formatter.JSONExportFormatter;
+import com.yahoo.elide.async.models.ArtifactGroup;
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
@@ -37,8 +39,10 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 
@@ -53,7 +57,8 @@ public class GraphQLTableExportOperationTest {
 
     @BeforeEach
     public void setupMocks(@TempDir Path tempDir) {
-        dataStore = new HashMapDataStore(TableExport.class.getPackage());
+        dataStore = new HashMapDataStore(
+                        new HashSet<>(Arrays.asList(TableExport.class.getPackage(), ArtifactGroup.class.getPackage())));
         Map<String, Class<? extends Check>> map = new HashMap<>();
         map.put(AsyncAPIInlineChecks.AsyncAPIOwner.PRINCIPAL_IS_OWNER,
                 AsyncAPIInlineChecks.AsyncAPIOwner.class);
@@ -136,6 +141,69 @@ public class GraphQLTableExportOperationTest {
 
         assertEquals(200, queryResultObj.getHttpStatus());
         assertEquals("Bad Request Body'Can't parse query: { tableExport { edges { node { id principalName}  } }'", queryResultObj.getMessage());
+    }
+
+    @Test
+    public void testProcessQueryWithRelationship() {
+        TableExport queryObj = new TableExport();
+        String query = "{\"query\":\"{ group { edges { node { name products {edges { node { name } } } } } } }\", \"variables\":null}";
+        String id = "edc4a871-dff2-4194-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
+        queryObj.setResultType(ResultType.CSV);
+
+        GraphQLTableExportOperation graphQLOperation = new GraphQLTableExportOperation(new JSONExportFormatter(elide),
+                        asyncExecutorService, queryObj, requestScope, engine);
+        TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
+
+        assertEquals(200, queryResultObj.getHttpStatus());
+        assertEquals("Export is not supported for Query that requires traversing Relationships.",
+                        queryResultObj.getMessage());
+        assertEquals(null, queryResultObj.getRecordCount());
+        assertEquals(null, queryResultObj.getUrl());
+    }
+
+    @Test
+    public void testProcessQueryWithMultipleProjection() {
+        TableExport queryObj = new TableExport();
+        String query = "{\"query\":\"{ tableExport { edges { node { principalName } } } asyncQuery { edges { node { principalName } } } }\",\"variables\":null}";
+        String id = "edc4a871-dff2-4094-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
+        queryObj.setResultType(ResultType.CSV);
+
+        GraphQLTableExportOperation graphQLOperation = new GraphQLTableExportOperation(new JSONExportFormatter(elide),
+                        asyncExecutorService, queryObj, requestScope, engine);
+        TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
+
+        assertEquals(200, queryResultObj.getHttpStatus());
+        assertEquals("Export is only supported for single Query with one root projection.",
+                        queryResultObj.getMessage());
+        assertEquals(null, queryResultObj.getRecordCount());
+        assertEquals(null, queryResultObj.getUrl());
+    }
+
+    @Test
+    public void testProcessMultipleQuery() {
+        TableExport queryObj = new TableExport();
+        String query = "{\"query\":\"{ tableExport { edges { node { principalName } } } } { asyncQuery { edges { node { principalName } } } }\",\"variables\":null}";
+        String id = "edc4a871-dff2-4094-804e-d80075cf827d";
+        queryObj.setId(id);
+        queryObj.setQuery(query);
+        queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
+        queryObj.setResultType(ResultType.CSV);
+
+        GraphQLTableExportOperation graphQLOperation = new GraphQLTableExportOperation(new JSONExportFormatter(elide),
+                        asyncExecutorService, queryObj, requestScope, engine);
+        TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
+
+        assertEquals(200, queryResultObj.getHttpStatus());
+        assertEquals("Export is only supported for single Query with one root projection.",
+                        queryResultObj.getMessage());
+        assertEquals(null, queryResultObj.getRecordCount());
+        assertEquals(null, queryResultObj.getUrl());
     }
 
     /**

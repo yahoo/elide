@@ -7,13 +7,13 @@ package com.yahoo.elide.async.operation;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
+import com.yahoo.elide.async.export.validator.NoRelationshipsProjectionValidator;
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
-import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
@@ -27,10 +27,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -41,7 +41,8 @@ public class GraphQLTableExportOperation extends TableExportOperation {
 
     public GraphQLTableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
             AsyncAPI export, RequestScope scope, ResultStorageEngine engine) {
-        super(formatter, service, export, scope, engine);
+        super(formatter, service, export, scope, engine,
+                        Arrays.asList(NoRelationshipsProjectionValidator.getInstance()));
     }
 
     @Override
@@ -53,9 +54,8 @@ public class GraphQLTableExportOperation extends TableExportOperation {
     }
 
     @Override
-    public EntityProjection getProjection(TableExport export, RequestScope scope)
-            throws BadRequestException {
-        EntityProjection projection;
+    public Collection<EntityProjection> getProjections(TableExport export, RequestScope scope) {
+        GraphQLProjectionInfo projectionInfo;
         try {
             String graphQLDocument = export.getQuery();
             Elide elide = getService().getElide();
@@ -65,20 +65,13 @@ public class GraphQLTableExportOperation extends TableExportOperation {
             Map<String, Object> variables = QueryRunner.extractVariables(mapper, node);
             String queryString = QueryRunner.extractQuery(node);
 
-            GraphQLProjectionInfo projectionInfo =
-                    new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables, scope.getApiVersion())
-                        .make(queryString);
-
-            //TODO Call Validators.
-            Optional<Entry<String, EntityProjection>> optionalEntry =
-                    projectionInfo.getProjections().entrySet().stream().findFirst();
-
-            projection = optionalEntry.isPresent() ? optionalEntry.get().getValue() : null;
+            projectionInfo = new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables,
+                            scope.getApiVersion()).make(queryString);
 
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
 
-        return projection;
+        return projectionInfo.getProjections().values();
     }
 }
