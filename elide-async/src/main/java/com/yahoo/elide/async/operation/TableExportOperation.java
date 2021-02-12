@@ -59,12 +59,14 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
     public AsyncAPIResult call() {
         String apiVersion = scope.getApiVersion();
         log.debug("TableExport Object from request: {}", exportObj);
-
+        Elide elide = service.getElide();
         TableExportResult exportResult = new TableExportResult();
-        try {
-            EntityProjection projection = getProjection(exportObj, apiVersion);
+        try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
 
-            Observable<PersistentResource> observableResults = export(exportObj, scope, projection);
+            RequestScope requestScope = getRequestScope(exportObj, scope.getUser(), apiVersion, tx);
+            EntityProjection projection = getProjection(exportObj, requestScope);
+
+            Observable<PersistentResource> observableResults = export(exportObj, requestScope, projection);
 
             Observable<String> results = Observable.empty();
             String preResult = formatter.preFormat(projection, exportObj);
@@ -83,7 +85,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
             exportResult.setUrl(new URL(generateDownloadURL(exportObj, (RequestScope) scope)));
             exportResult.setRecordCount(recordNumber);
         } catch (BadRequestException e) {
-            exportResult.setMessage("EntityProjection generation failure.");
+            exportResult.setMessage("Bad Request body");
         } catch (MalformedURLException e) {
             exportResult.setMessage("Download url generation failure.");
         }  catch (Exception e) {
@@ -113,20 +115,21 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
      * @param projection Entity projection.
      * @return Observable PersistentResource
      */
-    public Observable<PersistentResource> export(TableExport exportObj, RequestScope prevScope,
+    private Observable<PersistentResource> export(TableExport exportObj, RequestScope scope,
             EntityProjection projection) {
         Observable<PersistentResource> results = Observable.empty();
         Elide elide = service.getElide();
 
         UUID requestId = UUID.fromString(exportObj.getRequestId());
 
-        try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
+        try {
+            DataStoreTransaction tx = scope.getTransaction();
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
 
             //TODO - we need to add the baseUrlEndpoint to the queryObject.
             //TODO - Can we have projectionInfo as null?
-            RequestScope exportRequestScope = getRequestScope(exportObj, prevScope.getUser(),
-                    prevScope.getApiVersion(), tx);
+            RequestScope exportRequestScope = getRequestScope(exportObj, scope.getUser(),
+                    scope.getApiVersion(), tx);
             exportRequestScope.setEntityProjection(projection);
 
             if (projection != null) {
@@ -194,11 +197,11 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
     /**
      * Generate Entity Projection from the query.
      * @param exportObj TableExport type object.
-     * @param apiVersion API Version.
+     * @param requestScope requestScope object.
      * @return EntityProjection object.
      * @throws BadRequestException BadRequestException.
      */
-    public abstract EntityProjection getProjection(TableExport exportObj, String apiVersion)
+    public abstract EntityProjection getProjection(TableExport exportObj, RequestScope requestScope)
             throws BadRequestException;
 
 }

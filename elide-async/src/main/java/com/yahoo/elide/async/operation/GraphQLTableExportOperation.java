@@ -53,7 +53,7 @@ public class GraphQLTableExportOperation extends TableExportOperation {
     }
 
     @Override
-    public EntityProjection getProjection(TableExport export, String apiVersion)
+    public EntityProjection getProjection(TableExport export, RequestScope scope)
             throws BadRequestException {
         EntityProjection projection;
         try {
@@ -66,7 +66,7 @@ public class GraphQLTableExportOperation extends TableExportOperation {
             String queryString = QueryRunner.extractQuery(node);
 
             GraphQLProjectionInfo projectionInfo =
-                    new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables, apiVersion)
+                    new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables, scope.getApiVersion())
                         .make(queryString);
 
             //TODO Call Validators.
