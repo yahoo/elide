@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -131,7 +132,7 @@ public class FilterTranslatorTest {
 
         JPQLPredicateGenerator generator = new JPQLPredicateGenerator() {
             @Override
-            public String generate(String columnAlias, List<FilterPredicate.FilterParameter> parameters) {
+            public String generate(FilterPredicate predicate, Function<Path, String> aliasGenerator) {
                 return "FOO";
             }
         };
@@ -154,7 +155,7 @@ public class FilterTranslatorTest {
 
         JPQLPredicateGenerator generator = new JPQLPredicateGenerator() {
             @Override
-            public String generate(String columnAlias, List<FilterPredicate.FilterParameter> parameters) {
+            public String generate(FilterPredicate predicate, Function<Path, String> aliasGenerator) {
                 return "FOO";
             }
         };

@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.annotations.JPQLFilterFragment;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterTranslator;
@@ -21,7 +22,7 @@ import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
-import java.util.List;
+import java.util.function.Function;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.Id;
@@ -31,7 +32,7 @@ import javax.persistence.metamodel.Metamodel;
 public class JpaDataStoreTest {
     public static class TestGenerator implements JPQLPredicateGenerator {
         @Override
-        public String generate(String columnAlias, List<FilterPredicate.FilterParameter> parameters) {
+        public String generate(FilterPredicate predicate, Function<Path, String> parameters) {
             return "FOO()";
         }
     }
