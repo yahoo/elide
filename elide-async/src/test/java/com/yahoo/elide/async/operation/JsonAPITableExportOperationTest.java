@@ -7,6 +7,7 @@ package com.yahoo.elide.async.operation;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -99,6 +100,7 @@ public class JsonAPITableExportOperationTest {
         assertEquals(200, queryResultObj.getHttpStatus());
         assertTrue("https://elide.io/export/edc4a871-dff2-4054-804e-d80075cf827d".equals(queryResultObj.getUrl().toString()));
         assertEquals(1, queryResultObj.getRecordCount());
+        assertNull(queryResultObj.getMessage());
     }
 
     @Test
