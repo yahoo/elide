@@ -62,7 +62,7 @@ public class JSONAPITableExportOperation extends TableExportOperation {
                     scope).parsePath(JSONAPIAsyncQueryOperation.getPath(uri));
 
         } catch (URISyntaxException e) {
-            throw new IllegalStateException(e);
+            throw new BadRequestException(e.getMessage());
         }
         return projection;
     }
