@@ -5,7 +5,9 @@
  */
 package com.yahoo.elide.async.export.validator;
 
-import graphql.language.Field;
+import com.yahoo.elide.core.request.EntityProjection;
+
+import java.util.Collection;
 
 /**
  * Utility interface used to validate Entity Projections.
@@ -14,8 +16,7 @@ public interface Validator {
 
     /**
      * Validates the EntityProjection.
-     * @param entityType Class of the Entity to be validated.
-     * @param field GraphQL Field.
+     * @param projections Collection of EntityProjections to validate.
      */
-    public void validateProjection(Class<?> entityType, Field field);
+    public void validateProjection(Collection<EntityProjection> projections);
 }
