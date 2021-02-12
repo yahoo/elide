@@ -7,6 +7,8 @@ package com.yahoo.elide.async.operation;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
+import com.yahoo.elide.async.export.validator.SingleRootProjectionValidator;
+import com.yahoo.elide.async.export.validator.Validator;
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncAPIResult;
 import com.yahoo.elide.async.models.TableExport;
@@ -28,8 +30,12 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import java.util.concurrent.Callable;
@@ -45,14 +51,16 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
     private TableExport exportObj;
     private RequestScope scope;
     private ResultStorageEngine engine;
+    private List<Validator> validators = new ArrayList<>(Arrays.asList(new SingleRootProjectionValidator()));
 
     public TableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
-            AsyncAPI exportObj, RequestScope scope, ResultStorageEngine engine) {
+            AsyncAPI exportObj, RequestScope scope, ResultStorageEngine engine, List<Validator> validators) {
         this.formatter = formatter;
         this.service = service;
         this.exportObj = (TableExport) exportObj;
         this.scope = scope;
         this.engine = engine;
+        this.validators.addAll(validators);
     }
 
     @Override
@@ -64,7 +72,9 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
 
             RequestScope requestScope = getRequestScope(exportObj, scope.getUser(), apiVersion, tx);
-            EntityProjection projection = getProjection(exportObj, requestScope);
+            Collection<EntityProjection> projections = getProjections(exportObj, requestScope);
+            validateProjections(projections);
+            EntityProjection projection = projections.iterator().next();
 
             Observable<PersistentResource> observableResults = export(exportObj, requestScope, projection);
 
@@ -85,7 +95,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
             exportResult.setUrl(new URL(generateDownloadURL(exportObj, (RequestScope) scope)));
             exportResult.setRecordCount(recordNumber);
         } catch (BadRequestException e) {
-            exportResult.setMessage("Bad Request body");
+            exportResult.setMessage(e.getMessage());
         } catch (MalformedURLException e) {
             exportResult.setMessage("Download url generation failure.");
         }  catch (Exception e) {
@@ -194,14 +204,16 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
         return resultStorageEngine.storeResults(exportObj, result);
     }
 
+    private void validateProjections(Collection<EntityProjection> projections) {
+        validators.forEach(validator -> validator.validateProjection(projections));
+    }
+
     /**
      * Generate Entity Projection from the query.
      * @param exportObj TableExport type object.
      * @param requestScope requestScope object.
-     * @return EntityProjection object.
-     * @throws BadRequestException BadRequestException.
+     * @return Collection of EntityProjection object.
      */
-    public abstract EntityProjection getProjection(TableExport exportObj, RequestScope requestScope)
-            throws BadRequestException;
+    public abstract Collection<EntityProjection> getProjections(TableExport exportObj, RequestScope requestScope);
 
 }

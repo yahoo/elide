@@ -7,6 +7,7 @@ package com.yahoo.elide.async.operation;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
+import com.yahoo.elide.async.export.validator.NoRelationshipsProjectionValidator;
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.service.AsyncExecutorService;
@@ -22,6 +23,8 @@ import org.apache.http.client.utils.URIBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -35,7 +38,8 @@ public class JSONAPITableExportOperation extends TableExportOperation {
 
     public JSONAPITableExportOperation(TableExportFormatter formatter, AsyncExecutorService service,
             AsyncAPI export, RequestScope scope, ResultStorageEngine engine) {
-        super(formatter, service, export, scope, engine);
+        super(formatter, service, export, scope, engine,
+                        Arrays.asList(new NoRelationshipsProjectionValidator()));
     }
 
     @Override
@@ -53,7 +57,7 @@ public class JSONAPITableExportOperation extends TableExportOperation {
     }
 
     @Override
-    public EntityProjection getProjection(TableExport export, RequestScope scope) throws BadRequestException {
+    public Collection<EntityProjection> getProjections(TableExport export, RequestScope scope) {
         EntityProjection projection = null;
         try {
             URIBuilder uri = new URIBuilder(export.getQuery());
@@ -64,6 +68,6 @@ public class JSONAPITableExportOperation extends TableExportOperation {
         } catch (URISyntaxException e) {
             throw new BadRequestException(e.getMessage());
         }
-        return projection;
+        return Collections.singletonList(projection);
     }
 }
