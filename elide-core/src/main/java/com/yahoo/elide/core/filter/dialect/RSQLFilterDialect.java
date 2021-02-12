@@ -433,7 +433,6 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                             }
                     })
                     .collect(Collectors.toList());
-
             if (op.equals(RSQLOperators.EQUAL) || op.equals(RSQLOperators.IN)) {
                 return equalityExpression(arguments.get(0), path, values, true);
             } else if (op.equals(INI)) {

@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.filter;
 
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.google.common.base.Preconditions;
@@ -12,6 +13,7 @@ import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -71,7 +73,9 @@ public class CaseAwareJPQLGenerator implements JPQLPredicateGenerator {
     }
 
     @Override
-    public String generate(String columnAlias, List<FilterPredicate.FilterParameter> params) {
+    public String generate(FilterPredicate predicate, Function<Path, String> aliasGenerator) {
+       String columnAlias = aliasGenerator.apply(predicate.getPath());
+       List<FilterPredicate.FilterParameter> parameters = predicate.getParameters();
 
         if (Strings.isNullOrEmpty(columnAlias)) {
             log.error("columnAlias cannot be NULL or empty");
@@ -79,17 +83,17 @@ public class CaseAwareJPQLGenerator implements JPQLPredicateGenerator {
         }
 
         if (argumentCount == ArgumentCount.MANY) {
-            Preconditions.checkState(!params.isEmpty());
+            Preconditions.checkState(!parameters.isEmpty());
         } else if (argumentCount == ArgumentCount.ONE) {
-            Preconditions.checkArgument(params.size() == 1);
+            Preconditions.checkArgument(parameters.size() == 1);
 
-            if (Strings.isNullOrEmpty(params.get(0).getPlaceholder())) {
+            if (Strings.isNullOrEmpty(parameters.get(0).getPlaceholder())) {
                 log.error("One non-null, non-empty argument was expected.");
                 throw new IllegalStateException(FILTER_ALIAS_NOT_NULL);
             }
         }
 
-        return String.format(jpqlTemplate, upperOrLower.wrap(columnAlias), params.stream()
+        return String.format(jpqlTemplate, upperOrLower.wrap(columnAlias), parameters.stream()
                 .map(upperOrLower::wrap)
                 .collect(Collectors.joining(COMMA)));
     }

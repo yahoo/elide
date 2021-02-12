@@ -81,7 +81,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
         if (query.getWhereFilter() != null) {
             builder.whereClause("WHERE " + translateFilterExpression(
                     query.getWhereFilter(),
-                    filterPredicate -> generatePredicatePathReference(filterPredicate.getPath(), query)));
+                    path -> generatePredicatePathReference(path, query)));
 
             joinExpressions.addAll(extractJoinExpressions(query.getSource(), query.getWhereFilter()));
         }
@@ -89,7 +89,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
         if (query.getHavingFilter() != null) {
             builder.havingClause("HAVING " + translateFilterExpression(
                     query.getHavingFilter(),
-                    (predicate) -> constructHavingClauseWithReference(predicate, query)));
+                    (path) -> constructHavingClauseWithReference(path, query)));
 
             joinExpressions.addAll(extractJoinExpressions(query.getSource(), query.getHavingFilter()));
         }
@@ -128,15 +128,15 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
     /**
      * Construct HAVING clause filter using physical column references. Metric fields need to be aggregated in HAVING.
      *
-     * @param predicate a filter predicate in HAVING clause
+     * @param path a filter predicate path in HAVING clause
      * @param query query
      * @return an filter/constraint expression that can be put in HAVING clause
      */
-    private String constructHavingClauseWithReference(FilterPredicate predicate, Query query) {
-        Path.PathElement last = predicate.getPath().lastElement().get();
+    private String constructHavingClauseWithReference(Path path, Query query) {
+        Path.PathElement last = path.lastElement().get();
         String fieldName = last.getFieldName();
 
-        if (predicate.getPath().getPathElements().size() > 1) {
+        if (path.getPathElements().size() > 1) {
             throw new BadRequestException("The having clause can only reference fact table aggregations.");
         }
 
@@ -150,7 +150,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
         if (metric != null) {
             return metric.toSQL(referenceTable);
         } else {
-            return generatePredicatePathReference(predicate.getPath(), query);
+            return generatePredicatePathReference(path, query);
         }
     }
 
@@ -276,14 +276,14 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
      * Translates a filter expression into SQL.
      *
      * @param expression The filter expression
-     * @param columnGenerator A function which generates a column reference in SQL from a FilterPredicate.
+     * @param aliasGenerator A function which generates a column reference in SQL from a Path.
      * @return A SQL expression
      */
     private String translateFilterExpression(FilterExpression expression,
-                                             Function<FilterPredicate, String> columnGenerator) {
+                                             Function<Path, String> aliasGenerator) {
         FilterTranslator filterVisitor = new FilterTranslator();
 
-        return filterVisitor.apply(expression, columnGenerator);
+        return filterVisitor.apply(expression, aliasGenerator);
     }
 
     /**
