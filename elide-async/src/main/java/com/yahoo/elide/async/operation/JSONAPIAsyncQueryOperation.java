@@ -58,7 +58,7 @@ public class JSONAPIAsyncQueryOperation extends AsyncQueryOperation {
      * @param uri URIBuilder instance
      * @return MultivaluedMap with query parameters
      */
-    private MultivaluedMap<String, String> getQueryParams(URIBuilder uri) {
+    public static MultivaluedMap<String, String> getQueryParams(URIBuilder uri) {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         for (NameValuePair queryParam : uri.getQueryParams()) {
             queryParams.add(queryParam.getName(), queryParam.getValue());
@@ -70,10 +70,9 @@ public class JSONAPIAsyncQueryOperation extends AsyncQueryOperation {
      * This method parses the url and gets the query params.
      * And retrieves path to be used by underlying Elide.get method
      * @param uri URIBuilder instance
-     * @throws URISyntaxException URISyntaxException from malformed or incorrect URI
      * @return Path extracted from URI
      */
-    private String getPath(URIBuilder uri) {
+    public static String getPath(URIBuilder uri) {
         return uri.getPath();
     }
 
