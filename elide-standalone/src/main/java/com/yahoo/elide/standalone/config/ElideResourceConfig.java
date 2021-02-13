@@ -112,7 +112,8 @@ public class ElideResourceConfig extends ResourceConfig {
                 EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(settings.getModelPackageName(),
                         asyncProperties.enabled(), settings.getDatabaseProperties());
 
-                EntityDictionary dictionary = settings.getEntityDictionary(injector, dynamicConfiguration);
+                EntityDictionary dictionary = settings.getEntityDictionary(injector, dynamicConfiguration,
+                        settings.getEntitiesToExclude());
 
                 DataStore dataStore;
 
@@ -129,8 +130,7 @@ public class ElideResourceConfig extends ResourceConfig {
                     QueryEngine queryEngine = settings.getQueryEngine(metaDataStore, defaultConnectionDetails,
                                     dynamicConfiguration, settings.getDataSourceConfiguration(),
                                     settings.getAnalyticProperties().getDBPasswordExtractor());
-                    AggregationDataStore aggregationDataStore =
-                                    settings.getAggregationDataStore(queryEngine);
+                    AggregationDataStore aggregationDataStore = settings.getAggregationDataStore(queryEngine);
                     if (aggregationDataStore == null) {
                         throw new IllegalStateException(
                                         "Aggregation Datastore is enabled but aggregationDataStore is null");

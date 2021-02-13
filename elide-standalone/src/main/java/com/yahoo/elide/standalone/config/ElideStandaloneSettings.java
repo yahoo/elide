@@ -8,6 +8,8 @@ package com.yahoo.elide.standalone.config;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
@@ -16,6 +18,8 @@ import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
@@ -46,10 +50,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 
@@ -72,6 +78,25 @@ public interface ElideStandaloneSettings {
      */
     default Map<String, Class<? extends Check>> getCheckMappings() {
         return Collections.emptyMap();
+    }
+
+    /**
+     * A Set containing Types to be excluded from EntityDictionary's EntityBinding.
+     * @return Set of Types.
+     */
+    default Set<Type> getEntitiesToExclude() {
+        Set<Type> entitiesToExclude = new HashSet();
+        ElideStandaloneAsyncSettings asyncProperties = getAsyncProperties();
+
+        if (!asyncProperties.enabled()) {
+            entitiesToExclude.add(new ClassType(AsyncQuery.class));
+        }
+
+        if (!asyncProperties.enableExport()) {
+            entitiesToExclude.add(new ClassType(TableExport.class));
+        }
+
+        return entitiesToExclude;
     }
 
     /**
@@ -410,10 +435,11 @@ public interface ElideStandaloneSettings {
      * Gets the EntityDictionary for elide.
      * @param injector Service locator for web service for dependency injection.
      * @param dynamicConfiguration optional dynamic config object.
+     * @param entitiesToExclude set of Entities to exclude from binding.
      * @return EntityDictionary object initialized.
      */
     default EntityDictionary getEntityDictionary(ServiceLocator injector,
-            Optional<DynamicConfiguration> dynamicConfiguration) {
+            Optional<DynamicConfiguration> dynamicConfiguration, Set<Type> entitiesToExclude) {
         EntityDictionary dictionary = new EntityDictionary(getCheckMappings(),
                 new Injector() {
                     @Override
@@ -425,7 +451,7 @@ public interface ElideStandaloneSettings {
                     public <T> T instantiate(Class<T> cls) {
                         return injector.create(cls);
                     }
-                });
+                }, entitiesToExclude);
 
         dictionary.scanForSecurityChecks();
 
