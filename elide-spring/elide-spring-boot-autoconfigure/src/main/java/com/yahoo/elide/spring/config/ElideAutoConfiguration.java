@@ -182,19 +182,14 @@ public class ElideAutoConfiguration {
 
         AsyncProperties asyncProperties = settings.getAsync();
 
-        if (asyncProperties != null) {
-            if(!asyncProperties.isEnabled()) {
-                entitiesToExclude.add(new ClassType(AsyncQuery.class));
-            }
-
-            ExportControllerProperties exportProperties = asyncProperties.getExport();
-
-            if (exportProperties == null || (exportProperties != null && !exportProperties.isEnabled())) {
-                entitiesToExclude.add(new ClassType(TableExport.class));
-            }
-        } else {
-            entitiesToExclude.add(new ClassType(TableExport.class));
+        if (asyncProperties == null || !asyncProperties.isEnabled()) {
             entitiesToExclude.add(new ClassType(AsyncQuery.class));
+        }
+
+        boolean exportEnabled = isExportEnabled(asyncProperties);
+
+        if (!exportEnabled) {
+            entitiesToExclude.add(new ClassType(TableExport.class));
         }
 
         return entitiesToExclude;
@@ -391,6 +386,13 @@ public class ElideAutoConfiguration {
         }
 
         return enabled;
+
+    }
+
+    public static boolean isExportEnabled(AsyncProperties asyncProperties) {
+
+        return (asyncProperties == null ||  asyncProperties.getExport() == null) ? false
+                : asyncProperties.getExport().isEnabled();
 
     }
 }
