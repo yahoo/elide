@@ -88,11 +88,11 @@ public interface ElideStandaloneSettings {
         Set<Type> entitiesToExclude = new HashSet();
         ElideStandaloneAsyncSettings asyncProperties = getAsyncProperties();
 
-        if (!asyncProperties.enabled()) {
+        if (asyncProperties == null || !asyncProperties.enabled()) {
             entitiesToExclude.add(new ClassType(AsyncQuery.class));
         }
 
-        if (!asyncProperties.enableExport()) {
+        if (asyncProperties == null || !asyncProperties.enableExport()) {
             entitiesToExclude.add(new ClassType(TableExport.class));
         }
 

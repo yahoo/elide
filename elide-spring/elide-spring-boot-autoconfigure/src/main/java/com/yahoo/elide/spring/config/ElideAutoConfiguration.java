@@ -181,13 +181,20 @@ public class ElideAutoConfiguration {
         Set<Type> entitiesToExclude = new HashSet();
 
         AsyncProperties asyncProperties = settings.getAsync();
-        if (asyncProperties != null && !asyncProperties.isEnabled()) {
-            entitiesToExclude.add(new ClassType(AsyncQuery.class));
-        }
 
-        if (asyncProperties != null && asyncProperties.getExport() != null
-                && !asyncProperties.getExport().isEnabled()) {
+        if (asyncProperties != null) {
+            if(!asyncProperties.isEnabled()) {
+                entitiesToExclude.add(new ClassType(AsyncQuery.class));
+            }
+
+            ExportControllerProperties exportProperties = asyncProperties.getExport();
+
+            if (exportProperties == null || (exportProperties != null && !exportProperties.isEnabled())) {
+                entitiesToExclude.add(new ClassType(TableExport.class));
+            }
+        } else {
             entitiesToExclude.add(new ClassType(TableExport.class));
+            entitiesToExclude.add(new ClassType(AsyncQuery.class));
         }
 
         return entitiesToExclude;
