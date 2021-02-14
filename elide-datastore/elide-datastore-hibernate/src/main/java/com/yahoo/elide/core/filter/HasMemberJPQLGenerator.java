@@ -60,13 +60,13 @@ public class HasMemberJPQLGenerator implements JPQLPredicateGenerator{
         //       WHERE _INNER_example_Author.id = example_Book_authors.id AND _INNER_example_Author.id = :%s)
         return String.format("EXISTS (SELECT 1 FROM %s WHERE %s = %s AND %s = %s)",
                 getFromClause(path),
-                getFirstIdReference(path),
-                getOuterQueryJoinReference(path, aliasGenerator),
-                getLastFieldReference(path),
+                getInnerQueryIdField(path),
+                getOuterQueryIdField(path, aliasGenerator),
+                getInnerFilterFieldReference(path),
                 predicate.getParameters().get(0).getPlaceholder());
     }
 
-    private String getOuterQueryJoinReference(Path path, Function<Path, String> aliasGenerator) {
+    private String getOuterQueryIdField(Path path, Function<Path, String> aliasGenerator) {
         Path.PathElement firstElement = path.getPathElements().get(0);
 
         Path firstElementPath = new Path(Arrays.asList(firstElement));
@@ -77,7 +77,7 @@ public class HasMemberJPQLGenerator implements JPQLPredicateGenerator{
         return aliasGenerator.apply(firstElementPath) + "." + idField;
     }
 
-    private String getFirstIdReference(Path path) {
+    private String getInnerQueryIdField(Path path) {
         Path.PathElement firstElement = path.getPathElements().get(0);
 
         Path firstElementPath = new Path(Arrays.asList(firstElement));
@@ -87,7 +87,7 @@ public class HasMemberJPQLGenerator implements JPQLPredicateGenerator{
         return INNER + getPathAlias(firstElementPath) + "." + idField;
     }
 
-    private String getLastFieldReference(Path path) {
+    private String getInnerFilterFieldReference(Path path) {
         Path.PathElement lastElement = path.lastElement().get();
         String fieldName = lastElement.getFieldName();
 
