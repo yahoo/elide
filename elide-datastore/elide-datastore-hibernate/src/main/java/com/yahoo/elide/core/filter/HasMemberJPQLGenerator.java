@@ -6,13 +6,19 @@
 
 package com.yahoo.elide.core.filter;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getPathAlias;
+import static com.yahoo.elide.core.utils.TypeHelper.getTypeAlias;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.type.Type;
 
 import com.google.common.base.Preconditions;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -21,6 +27,8 @@ import java.util.function.Function;
 public class HasMemberJPQLGenerator implements JPQLPredicateGenerator{
     private final EntityDictionary dictionary;
     private final boolean negated;
+
+    private static String INNER = "_INNER_";
 
     public HasMemberJPQLGenerator(EntityDictionary dictionary) {
         this(dictionary, false);
@@ -48,7 +56,65 @@ public class HasMemberJPQLGenerator implements JPQLPredicateGenerator{
         Preconditions.checkArgument(path.lastElement().isPresent());
         Preconditions.checkArgument(! (path.lastElement().get().getType() instanceof Collection));
 
-        //EXISTS (SELECT 1 FROM Author a WHERE a.id = example_Book_authors.id AND a.id = %s)
-        return String.format("EXISTS (SELECT 1 FROM %s WHERE %s = %s AND %s = %s");
+        //EXISTS (SELECT 1 FROM Author _INNER_example_Author
+        //       WHERE _INNER_example_Author.id = example_Book_authors.id AND _INNER_example_Author.id = :%s)
+        return String.format("EXISTS (SELECT 1 FROM %s WHERE %s = %s AND %s = %s)",
+                getFromClause(path),
+                getFirstIdReference(path),
+                getOuterQueryJoinReference(path, aliasGenerator),
+                getLastFieldReference(path),
+                predicate.getParameters().get(0).getPlaceholder());
+    }
+
+    private String getOuterQueryJoinReference(Path path, Function<Path, String> aliasGenerator) {
+        Path.PathElement firstElement = path.getPathElements().get(0);
+
+        Path firstElementPath = new Path(Arrays.asList(firstElement));
+
+        Type<?> modelType = firstElement.getType();
+        String idField = dictionary.getIdFieldName(modelType);
+
+        return aliasGenerator.apply(firstElementPath) + "." + idField;
+    }
+
+    private String getFirstIdReference(Path path) {
+        Path.PathElement firstElement = path.getPathElements().get(0);
+
+        Path firstElementPath = new Path(Arrays.asList(firstElement));
+        Type<?> modelType = firstElement.getType();
+        String idField = dictionary.getIdFieldName(modelType);
+
+        return INNER + getPathAlias(firstElementPath) + "." + idField;
+    }
+
+    private String getLastFieldReference(Path path) {
+        Path.PathElement lastElement = path.lastElement().get();
+        String fieldName = lastElement.getFieldName();
+
+        return INNER + getPathAlias(path) + "." + fieldName;
+    }
+
+    private String getFromClause(Path path) {
+        List<Path.PathElement> pathElements = new ArrayList<>();
+
+        Path.PathElement firstElement = path.getPathElements().get(0);
+
+        String entityName = firstElement.getType().getCanonicalName();
+        String currentAlias = INNER + getTypeAlias(firstElement.getType());
+
+        String fromClause = String.format("FROM %s %s", entityName, currentAlias);
+
+        for (Path.PathElement element : path.getPathElements()) {
+            pathElements.add(element);
+            Path currentPath = new Path(pathElements);
+
+            String nextAlias = getPathAlias(currentPath);
+
+            fromClause += " LEFT JOIN " + currentAlias + "." + element.getFieldName() + " " + nextAlias;
+
+            currentAlias = nextAlias;
+        }
+
+        return fromClause;
     }
 }
