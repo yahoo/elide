@@ -47,7 +47,7 @@ public class FilterTranslatorTest {
 
     public FilterTranslatorTest() {
         dictionary = new EntityDictionary(new HashMap<>());
-        dictionary.bindEntity(FilterTranslatorTest.Book.class);
+        dictionary.bindEntity(Book.class);
     }
 
     @Test
