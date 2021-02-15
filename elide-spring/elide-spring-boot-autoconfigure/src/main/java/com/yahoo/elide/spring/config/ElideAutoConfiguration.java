@@ -7,12 +7,16 @@ package com.yahoo.elide.spring.config;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
@@ -37,6 +41,7 @@ import com.yahoo.elide.swagger.SwaggerBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -52,7 +57,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 
@@ -165,11 +172,37 @@ public class ElideAutoConfiguration {
     }
 
     /**
+     * A Set containing Types to be excluded from EntityDictionary's EntityBinding.
+     * @param settings Elide configuration settings.
+     * @return Set of Types.
+     */
+    @Bean(name = "entitiesToExclude")
+    @ConditionalOnMissingBean
+    public Set<Type<?>> getEntitiesToExclude(ElideConfigProperties settings) {
+        Set<Type<?>> entitiesToExclude = new HashSet();
+
+        AsyncProperties asyncProperties = settings.getAsync();
+
+        if (asyncProperties == null || !asyncProperties.isEnabled()) {
+            entitiesToExclude.add(new ClassType(AsyncQuery.class));
+        }
+
+        boolean exportEnabled = isExportEnabled(asyncProperties);
+
+        if (!exportEnabled) {
+            entitiesToExclude.add(new ClassType(TableExport.class));
+        }
+
+        return entitiesToExclude;
+    }
+
+    /**
      * Creates the entity dictionary for Elide which contains static metadata about Elide models.
      * Override to load check classes or life cycle hooks.
      * @param beanFactory Injector to inject Elide models.
      * @param dynamicConfig An instance of DynamicConfiguration.
      * @param settings Elide configuration settings.
+     * @param entitiesToExclude set of Entities to exclude from binding.
      * @return a newly configured EntityDictionary.
      * @throws ClassNotFoundException Exception thrown.
      */
@@ -177,7 +210,8 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     public EntityDictionary buildDictionary(AutowireCapableBeanFactory beanFactory,
                                             @Autowired(required = false) DynamicConfiguration dynamicConfig,
-                                            ElideConfigProperties settings)
+                                            ElideConfigProperties settings,
+                                            @Qualifier("entitiesToExclude") Set<Type<?>> entitiesToExclude)
             throws ClassNotFoundException {
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>(),
                 new Injector() {
@@ -190,7 +224,7 @@ public class ElideAutoConfiguration {
                     public <T> T instantiate(Class<T> cls) {
                         return beanFactory.createBean(cls);
                     }
-                });
+                }, entitiesToExclude);
 
         dictionary.scanForSecurityChecks();
 
@@ -353,6 +387,13 @@ public class ElideAutoConfiguration {
         }
 
         return enabled;
+
+    }
+
+    public static boolean isExportEnabled(AsyncProperties asyncProperties) {
+
+        return (asyncProperties == null ||  asyncProperties.getExport() == null) ? false
+                : asyncProperties.getExport().isEnabled();
 
     }
 }

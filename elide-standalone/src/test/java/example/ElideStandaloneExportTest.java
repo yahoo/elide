@@ -16,6 +16,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -224,5 +225,17 @@ public class ElideStandaloneExportTest {
                 .get("/export/ba31ca4e-ed8f-4be0-a0f3-12088fa9265d")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
+    }
+
+    // TableExport should be available in Swagger Doc
+    @Test
+    public void swaggerDocumentTest() {
+        when()
+               .get("/swagger/doc/test")
+                .then()
+                .statusCode(200)
+                .body("tags.name", containsInAnyOrder("post", "functionArgument", "metric",
+                        "metricFunction", "dimension", "column", "table", "asyncQuery",
+                        "timeDimensionGrain", "timeDimension", "postView", "tableExport"));
     }
 }

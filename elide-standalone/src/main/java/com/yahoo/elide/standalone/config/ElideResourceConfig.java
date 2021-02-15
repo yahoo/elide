@@ -108,11 +108,13 @@ public class ElideResourceConfig extends ResourceConfig {
         register(new AbstractBinder() {
             @Override
             protected void configure() {
-                ElideStandaloneAsyncSettings asyncProperties = settings.getAsyncProperties();
+                ElideStandaloneAsyncSettings asyncProperties = settings.getAsyncProperties() == null
+                        ? new ElideStandaloneAsyncSettings() { } : settings.getAsyncProperties();
                 EntityManagerFactory entityManagerFactory = Util.getEntityManagerFactory(settings.getModelPackageName(),
                         asyncProperties.enabled(), settings.getDatabaseProperties());
 
-                EntityDictionary dictionary = settings.getEntityDictionary(injector, dynamicConfiguration);
+                EntityDictionary dictionary = settings.getEntityDictionary(injector, dynamicConfiguration,
+                        settings.getEntitiesToExclude());
 
                 DataStore dataStore;
 
@@ -129,8 +131,7 @@ public class ElideResourceConfig extends ResourceConfig {
                     QueryEngine queryEngine = settings.getQueryEngine(metaDataStore, defaultConnectionDetails,
                                     dynamicConfiguration, settings.getDataSourceConfiguration(),
                                     settings.getAnalyticProperties().getDBPasswordExtractor());
-                    AggregationDataStore aggregationDataStore =
-                                    settings.getAggregationDataStore(queryEngine);
+                    AggregationDataStore aggregationDataStore = settings.getAggregationDataStore(queryEngine);
                     if (aggregationDataStore == null) {
                         throw new IllegalStateException(
                                         "Aggregation Datastore is enabled but aggregationDataStore is null");
@@ -154,14 +155,17 @@ public class ElideResourceConfig extends ResourceConfig {
 
                 // Binding async service
                 if (asyncProperties.enabled()) {
-
                     AsyncAPIDAO asyncAPIDao = asyncProperties.getAPIDAO();
                     if (asyncAPIDao == null) {
                         asyncAPIDao = new DefaultAsyncAPIDAO(elide.getElideSettings(), elide.getDataStore());
                     }
                     bind(asyncAPIDao).to(AsyncAPIDAO.class);
 
-                    ResultStorageEngine resultStorageEngine = null;
+                    ExecutorService executor = (ExecutorService) servletContext.getAttribute(ASYNC_EXECUTOR_ATTR);
+                    ExecutorService updater = (ExecutorService) servletContext.getAttribute(ASYNC_UPDATER_ATTR);
+                    AsyncExecutorService asyncExecutorService =
+                                    new AsyncExecutorService(elide, executor, updater, asyncAPIDao);
+                    bind(asyncExecutorService).to(AsyncExecutorService.class);
 
                     if (asyncProperties.enableExport()) {
                         ExportApiProperties exportApiProperties = new ExportApiProperties(
@@ -169,17 +173,27 @@ public class ElideResourceConfig extends ResourceConfig {
                                 asyncProperties.getExportAsyncResponseTimeoutSeconds());
                         bind(exportApiProperties).to(ExportApiProperties.class).named("exportApiProperties");
 
-                        resultStorageEngine = asyncProperties.getResultStorageEngine();
+                        ResultStorageEngine resultStorageEngine = asyncProperties.getResultStorageEngine();
                         if (resultStorageEngine == null) {
                             resultStorageEngine = new FileResultStorageEngine(asyncProperties.getStorageDestination());
                         }
                         bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
+
+                        // Initialize the Formatters.
+                        Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<ResultType,
+                            TableExportFormatter>();
+                        supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide,
+                                asyncProperties.skipCSVHeader()));
+                        supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
+
+                        // Binding TableExport LifeCycleHook
+                        TableExportHook tableExportHook = getTableExportHook(asyncExecutorService,
+                                asyncProperties, supportedFormatters, resultStorageEngine);
+                        dictionary.bindTrigger(TableExport.class, READ, PRESECURITY, tableExportHook, false);
+                        dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
+                        dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);
+
                     }
-                    ExecutorService executor = (ExecutorService) servletContext.getAttribute(ASYNC_EXECUTOR_ATTR);
-                    ExecutorService updater = (ExecutorService) servletContext.getAttribute(ASYNC_UPDATER_ATTR);
-                    AsyncExecutorService asyncExecutorService =
-                                    new AsyncExecutorService(elide, executor, updater, asyncAPIDao);
-                    bind(asyncExecutorService).to(AsyncExecutorService.class);
 
                     // Binding AsyncQuery LifeCycleHook
                     AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService,
@@ -188,20 +202,6 @@ public class ElideResourceConfig extends ResourceConfig {
                     dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, asyncQueryHook, false);
                     dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, asyncQueryHook, false);
                     dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, asyncQueryHook, false);
-
-                    // Initialize the Formatters.
-                    Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<ResultType,
-                        TableExportFormatter>();
-                    supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide,
-                            asyncProperties.skipCSVHeader()));
-                    supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
-
-                    // Binding TableExport LifeCycleHook
-                    TableExportHook tableExportHook = getTableExportHook(asyncExecutorService,
-                            asyncProperties, supportedFormatters, resultStorageEngine);
-                    dictionary.bindTrigger(TableExport.class, READ, PRESECURITY, tableExportHook, false);
-                    dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
-                    dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);
 
                     // Binding async cleanup service
                     if (asyncProperties.enableCleanup()) {
