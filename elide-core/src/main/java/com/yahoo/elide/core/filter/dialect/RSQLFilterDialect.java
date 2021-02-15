@@ -394,11 +394,13 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
 
             if (op.equals(HASMEMBER_OP) || op.equals(HASNOMEMBER_OP)) {
                 if (FilterPredicate.toManyInPath(dictionary, path)) {
-                    throw new RSQLParseException(
-                            "Invalid toMany join: member of operator cannot be used for toMany relationships");
-                }
-                if (!FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, COLLECTION_TYPE)) {
-                    throw new RSQLParseException("Invalid Path: Last Path Element has to be a collection type");
+                    if (FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, COLLECTION_TYPE)) {
+                        throw new RSQLParseException("Invalid Path: Last Path Element cannot be a collection type");
+                    }
+                } else {
+                    if (!FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, COLLECTION_TYPE)) {
+                        throw new RSQLParseException("Invalid Path: Last Path Element has to be a collection type");
+                    }
                 }
             }
 
