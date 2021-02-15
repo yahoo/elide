@@ -22,7 +22,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * Tests filter query parameter parsing for the default Elide implementation (1.0 and 2.0)
+ * Tests filter query parameter parsing for the default Elide implementation (1.0 and 2.0).
  */
 public class DefaultFilterDialectTest {
 
@@ -204,5 +204,4 @@ public class DefaultFilterDialectTest {
 
         assertEquals("Invalid Path: Last Path Element cannot be a collection type", e.getMessage());
     }
-
 }

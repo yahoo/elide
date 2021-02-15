@@ -8,6 +8,7 @@ package com.yahoo.elide.core.filter;
 import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
@@ -20,6 +21,7 @@ import com.yahoo.elide.core.filter.predicates.NotEmptyPredicate;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -29,12 +31,14 @@ import java.util.stream.Collectors;
  */
 public class FilterTranslatorTest {
 
+    @Include
     class Book {
         String name;
         String genre;
         Author author;
     }
 
+    @Include
     class Author {
         String name;
     }
@@ -42,7 +46,8 @@ public class FilterTranslatorTest {
     private EntityDictionary dictionary;
 
     public FilterTranslatorTest() {
-        this.dictionary = dictionary;
+        dictionary = new EntityDictionary(new HashMap<>());
+        dictionary.bindEntity(FilterTranslatorTest.Book.class);
     }
 
     @Test

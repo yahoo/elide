@@ -23,7 +23,7 @@ import java.util.function.Function;
 /**
  * Generates JPQL filter fragments for the 'hasmember' and 'hasnomember' operators.
  */
-public class HasMemberJPQLGenerator implements JPQLPredicateGenerator{
+public class HasMemberJPQLGenerator implements JPQLPredicateGenerator {
     private final EntityDictionary dictionary;
     private final boolean negated;
 
@@ -56,8 +56,15 @@ public class HasMemberJPQLGenerator implements JPQLPredicateGenerator{
         Preconditions.checkArgument(! (path.lastElement().get().getType() instanceof Collection));
 
         //Creates JPQL like:
-        //EXISTS (SELECT 1 FROM example.Book _INNER_example_Book LEFT JOIN _INNER_example_Book.authors _INNER_example_Book_authors
-        //WHERE _INNER_example_Book.id = example_Book.id AND _INNER_example_Book_authors.name = :authors_name_7c02839c_0)
+        //EXISTS (SELECT 1
+        //FROM example.Book
+        //    _INNER_example_Book
+        //LEFT JOIN
+        //    _INNER_example_Book.authors  _INNER_example_Book_authors
+        //WHERE
+        //    _INNER_example_Book.id = example_Book.id
+        //    AND
+        //    _INNER_example_Book_authors.name = :authors_name_7c02839c_0)
         return String.format("%sEXISTS (SELECT 1 FROM %s WHERE %s = %s AND %s = %s)",
                 notMember,
                 getFromClause(path),

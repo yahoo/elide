@@ -1927,22 +1927,22 @@ public class FilterIT extends IntegrationTest {
     void testExceptionOnMemberOfOperator() throws JsonProcessingException {
         JsonNode result;
         // Typed Expression
-        result = getAsNode(String.format("/author/%s/books?filter[book.authors.name][hasmember]", nullNedId), HttpStatus.SC_BAD_REQUEST);
+        result = getAsNode(String.format("/author/%s/books?filter[book.authors][hasmember]", nullNedId), HttpStatus.SC_BAD_REQUEST);
         assertEquals(
-                "Invalid predicate: book.authors.name HASMEMBER []\n"
-                        + "Invalid query parameter: filter[book.authors.name][hasmember]\n"
-                        + "Invalid toMany join: member of operator cannot be used for toMany relationships\n"
-                        + "Invalid query parameter: filter[book.authors.name][hasmember]",
+                "Invalid predicate: book.authors HASMEMBER []\n"
+                        + "Invalid query parameter: filter[book.authors][hasmember]\n"
+                        + "Invalid Path: Last Path Element cannot be a collection type\n"
+                        + "Invalid query parameter: filter[book.authors][hasmember]",
                 result.get("errors").get(0).get("detail").asText()
         );
 
         //RSQL
-        result = getAsNode(String.format("/author/%s/books?filter[book]=authors.name=hasmember=true", nullNedId), HttpStatus.SC_BAD_REQUEST);
+        result = getAsNode(String.format("/author/%s/books?filter[book]=authors=hasmember=true", nullNedId), HttpStatus.SC_BAD_REQUEST);
         assertEquals(
                 "Invalid filter format: filter[book]\n"
                         + "Invalid query parameter: filter[book]\n"
                         + "Invalid filter format: filter[book]\n"
-                        + "Invalid toMany join: member of operator cannot be used for toMany relationships",
+                        + "Invalid Path: Last Path Element cannot be a collection type",
                 result.get("errors").get(0).get("detail").asText()
         );
 
@@ -1970,27 +1970,6 @@ public class FilterIT extends IntegrationTest {
                         + "Invalid query parameter: filter[book.title][hasmember]",
                 result.get("errors").get(0).get("detail").asText()
         );
-
-
-        // Member of one Relationships
-        result = getAsNode("/books?filter[book.authors][hasmember]=1", HttpStatus.SC_BAD_REQUEST);
-        assertEquals(
-                "Invalid predicate: book.authors HASMEMBER [1]\n"
-                        + "Invalid query parameter: filter[book.authors][hasmember]\n"
-                        + "Invalid toMany join: member of operator cannot be used for toMany relationships\n"
-                        + "Invalid query parameter: filter[book.authors][hasmember]",
-                result.get("errors").get(0).get("detail").asText()
-        );
-        //RSQL
-        result = getAsNode("/books?filter[book]=publisher=hasmember=1", HttpStatus.SC_BAD_REQUEST);
-        assertEquals(
-                "Invalid filter format: filter[book]\n"
-                        + "Invalid query parameter: filter[book]\n"
-                        + "Invalid filter format: filter[book]\n"
-                        + "Invalid Path: Last Path Element has to be a collection type",
-                result.get("errors").get(0).get("detail").asText()
-        );
-
     }
 
     @AfterAll
