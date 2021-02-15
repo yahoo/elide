@@ -9,8 +9,6 @@ package com.yahoo.elide.tests;
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
-import static org.hamcrest.Matchers.arrayContaining;
-import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -28,7 +26,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
@@ -1838,7 +1835,7 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
-    void testMemberOfToManyRelationship() {
+    void testRootMemberOfToManyRelationship() {
         /* RSQL Global */
         when()
                 .get("/book?filter=authors.id=hasmember=1")
@@ -1862,6 +1859,67 @@ public class FilterIT extends IntegrationTest {
                 .body("data.relationships.authors", hasSize(2))
                 .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
                 .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+    }
+
+    @Test
+    void testRootMemberOfToManyRelationshipConjunction() {
+        /* RSQL Global */
+        when()
+                .get("/book?filter=authors.id=hasmember=1;authors.id=hasnomember=2")
+                .then()
+                .body("data.relationships.authors", hasSize(2))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+
+        /* RSQL Typed */
+        when()
+                .get("/book?filter[book]=authors.id=hasmember=1;authors.id=hasnomember=2")
+                .then()
+                .body("data.relationships.authors", hasSize(2))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+
+        /* Default */
+        when()
+                .get("/book?filter[book.authors.id][hasmember]=1&filter[book.authors.id][hasnomember]=2")
+                .then()
+                .body("data.relationships.authors", hasSize(2))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+    }
+
+    @Test
+    void testSubcollectionMemberOfToManyRelationship() {
+        /* RSQL Typed */
+        when()
+                .get("/author/5/books?filter[book]=chapters.title=hasmember='Mamma mia I wantz some pizza!'")
+                .then()
+                .body("data.relationships.chapters", hasSize(1))
+                .body("data.relationships.chapters[0].data.id[0]", equalTo("2"));
+
+        /* Default */
+        when()
+                .get("/author/5/books?filter[book.chapters.title][hasmember]=Mamma mia I wantz some pizza!")
+                .then()
+                .body("data.relationships.chapters", hasSize(1))
+                .body("data.relationships.chapters[0].data.id[0]", equalTo("2"));
+    }
+
+    @Test
+    void testSubcollectionMemberOfToManyRelationshipConjunction() {
+        /* RSQL Typed */
+        when()
+                .get("/author/5/books?filter[book]=chapters.title=hasmember='Mamma mia I wantz some pizza!';chapters.title=hasnomember='Foo'")
+                .then()
+                .body("data.relationships.chapters", hasSize(1))
+                .body("data.relationships.chapters[0].data.id[0]", equalTo("2"));
+
+        /* Default */
+        when()
+                .get("/author/5/books?filter[book.chapters.title][hasmember]=Mamma mia I wantz some pizza!&filter[book.chapters.title][hasnomember]=Foo")
+                .then()
+                .body("data.relationships.chapters", hasSize(1))
+                .body("data.relationships.chapters[0].data.id[0]", equalTo("2"));
     }
 
     @Test
