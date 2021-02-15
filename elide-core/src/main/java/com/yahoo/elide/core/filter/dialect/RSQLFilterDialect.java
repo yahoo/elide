@@ -397,10 +397,8 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                     if (FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, COLLECTION_TYPE)) {
                         throw new RSQLParseException("Invalid Path: Last Path Element cannot be a collection type");
                     }
-                } else {
-                    if (!FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, COLLECTION_TYPE)) {
-                        throw new RSQLParseException("Invalid Path: Last Path Element has to be a collection type");
-                    }
+                } else if (!FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, COLLECTION_TYPE)) {
+                    throw new RSQLParseException("Invalid Path: Last Path Element has to be a collection type");
                 }
             }
 

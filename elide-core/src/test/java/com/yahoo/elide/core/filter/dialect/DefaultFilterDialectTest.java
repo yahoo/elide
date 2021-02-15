@@ -160,7 +160,7 @@ public class DefaultFilterDialectTest {
     }
 
     @Test
-    public void testMemberOfOperatorException() throws Exception {
+    public void testMemberOfToManyRelationship() throws Exception {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
 
         queryParams.add(
@@ -168,16 +168,41 @@ public class DefaultFilterDialectTest {
                 "name"
         );
 
-        assertThrows(ParseException.class,
-                () -> dialect.parseTypedExpression("/book", queryParams, NO_VERSION));
+        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/book", queryParams,
+                NO_VERSION);
 
-        queryParams.clear();
+        assertEquals(1, expressionMap.size());
+        assertEquals("book.authors.name HASMEMBER [name]", expressionMap.get("book").toString());
+    }
+
+    @Test
+    public void testMemberOfOperatorOnNonCollectionAttributeException() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.add(
                 "filter[book.title][hasmember]",
                 "title"
         );
 
-        assertThrows(ParseException.class,
+        ParseException e = assertThrows(ParseException.class,
                 () -> dialect.parseTypedExpression("/book", queryParams, NO_VERSION));
+
+        assertEquals("Invalid Path: Last Path Element has to be a collection type", e.getMessage());
     }
+
+    @Test
+    public void testMemberOfOperatorOnRelationshipException() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.clear();
+        queryParams.add(
+                "filter[book.authors][hasmember]",
+                "1"
+        );
+
+        ParseException e = assertThrows(ParseException.class,
+                () -> dialect.parseTypedExpression("/book", queryParams, NO_VERSION));
+
+        assertEquals("Invalid Path: Last Path Element cannot be a collection type", e.getMessage());
+    }
+
 }
