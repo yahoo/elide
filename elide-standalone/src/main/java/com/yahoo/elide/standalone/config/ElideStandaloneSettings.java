@@ -84,8 +84,8 @@ public interface ElideStandaloneSettings {
      * A Set containing Types to be excluded from EntityDictionary's EntityBinding.
      * @return Set of Types.
      */
-    default Set<Type> getEntitiesToExclude() {
-        Set<Type> entitiesToExclude = new HashSet();
+    default Set<Type<?>> getEntitiesToExclude() {
+        Set<Type<?>> entitiesToExclude = new HashSet();
         ElideStandaloneAsyncSettings asyncProperties = getAsyncProperties();
 
         if (asyncProperties == null || !asyncProperties.enabled()) {
@@ -439,7 +439,7 @@ public interface ElideStandaloneSettings {
      * @return EntityDictionary object initialized.
      */
     default EntityDictionary getEntityDictionary(ServiceLocator injector,
-            Optional<DynamicConfiguration> dynamicConfiguration, Set<Type> entitiesToExclude) {
+            Optional<DynamicConfiguration> dynamicConfiguration, Set<Type<?>> entitiesToExclude) {
         EntityDictionary dictionary = new EntityDictionary(getCheckMappings(),
                 new Injector() {
                     @Override

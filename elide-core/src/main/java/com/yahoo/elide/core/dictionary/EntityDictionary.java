@@ -107,7 +107,7 @@ public class EntityDictionary {
     @Getter
     protected final Function<Class, Serde> serdeLookup ;
 
-    private final Set<Type> entitiesToExclude;
+    private final Set<Type<?>> entitiesToExclude;
 
     public final static String REGULAR_ID_NAME = "id";
     private final static ConcurrentHashMap<Type, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
@@ -133,7 +133,7 @@ public class EntityDictionary {
      *               to their implementing classes.
      * @param entitiesToExclude Set of Models to exclude from Binding.
      */
-    public EntityDictionary(Map<String, Class<? extends Check>> checks, Set<Type> entitiesToExclude) {
+    public EntityDictionary(Map<String, Class<? extends Check>> checks, Set<Type<?>> entitiesToExclude) {
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
         this.roleChecks = new HashMap<>();
         this.apiVersions = new HashSet<>();
@@ -185,7 +185,7 @@ public class EntityDictionary {
      * @param entitiesToExclude Set of Models to exclude from Binding.
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks, Injector injector,
-            Set<Type> entitiesToExclude) {
+            Set<Type<?>> entitiesToExclude) {
         this(checks, injector, CoerceUtil::lookup, entitiesToExclude);
     }
 
@@ -198,7 +198,7 @@ public class EntityDictionary {
     public EntityDictionary(Map<String, Class<? extends Check>> checks,
                 Injector injector,
                 Function<Class, Serde> serdeLookup,
-                Set<Type> entitiesToExclude) {
+                Set<Type<?>> entitiesToExclude) {
         this.serdeLookup = serdeLookup;
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
         this.roleChecks = new HashMap<>();

@@ -175,10 +175,10 @@ public class ElideAutoConfiguration {
      * @param settings Elide configuration settings.
      * @return Set of Types.
      */
-    @Bean
+    @Bean(name= "entitiesToExclude")
     @ConditionalOnMissingBean
-    public Set<Type> getEntitiesToExclude(ElideConfigProperties settings) {
-        Set<Type> entitiesToExclude = new HashSet();
+    public Set<Type<?>> getEntitiesToExclude(ElideConfigProperties settings) {
+        Set<Type<?>> entitiesToExclude = new HashSet();
 
         AsyncProperties asyncProperties = settings.getAsync();
 
@@ -210,7 +210,7 @@ public class ElideAutoConfiguration {
     public EntityDictionary buildDictionary(AutowireCapableBeanFactory beanFactory,
                                             @Autowired(required = false) DynamicConfiguration dynamicConfig,
                                             ElideConfigProperties settings,
-                                            Set<Type> entitiesToExclude)
+                                            @Qualifier("entitiesToExclude") Set<Type<?>> entitiesToExclude)
             throws ClassNotFoundException {
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>(),
                 new Injector() {
