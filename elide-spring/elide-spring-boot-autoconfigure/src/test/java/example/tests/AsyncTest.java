@@ -16,6 +16,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import com.yahoo.elide.core.exceptions.HttpStatus;
@@ -285,5 +286,17 @@ public class AsyncTest extends IntegrationTest {
                 .post("/export/asyncQueryId")
                 .then()
                 .statusCode(HttpStatus.SC_METHOD_NOT_ALLOWED);
+    }
+
+    @Test
+    public void swaggerDocumentTest() {
+        when()
+                .get("/doc")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("tags.name", containsInAnyOrder("group", "functionArgument", "metric",
+                        "metricFunction", "dimension", "column", "table", "asyncQuery",
+                        "timeDimensionGrain", "timeDimension", "product", "playerCountry", "version", "playerStats",
+                        "stats", "tableExport"));
     }
 }

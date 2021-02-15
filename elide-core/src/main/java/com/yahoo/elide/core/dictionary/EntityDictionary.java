@@ -107,6 +107,8 @@ public class EntityDictionary {
     @Getter
     protected final Function<Class, Serde> serdeLookup ;
 
+    private final Set<Type<?>> entitiesToExclude;
+
     public final static String REGULAR_ID_NAME = "id";
     private final static ConcurrentHashMap<Type, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
 
@@ -119,9 +121,23 @@ public class EntityDictionary {
      *               to their implementing classes
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks) {
+        this(checks, Collections.EMPTY_SET);
+    }
+
+    /**
+     * Instantiate a new EntityDictionary with the provided set of checks. In addition all of the checks
+     * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped to {@code Prefab.CONTAINER.CHECK}
+     * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
+     * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
+     * @param checks a map that links the identifiers used in the permission expression strings
+     *               to their implementing classes.
+     * @param entitiesToExclude Set of Models to exclude from Binding.
+     */
+    public EntityDictionary(Map<String, Class<? extends Check>> checks, Set<Type<?>> entitiesToExclude) {
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
         this.roleChecks = new HashMap<>();
         this.apiVersions = new HashSet<>();
+        this.entitiesToExclude = entitiesToExclude;
         this.serdeLookup = CoerceUtil::lookup;
         initializeChecks();
 
@@ -154,18 +170,42 @@ public class EntityDictionary {
      *                 initialize Elide models.
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks, Injector injector) {
-        this(checks, injector, CoerceUtil::lookup);
+        this(checks, injector, Collections.EMPTY_SET);
+    }
+
+    /**
+     * Instantiate a new EntityDictionary with the provided set of checks and an injection function.
+     * In addition all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
+     * to {@code Prefab.CONTAINER.CHECK} * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
+     * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
+     * @param checks a map that links the identifiers used in the permission expression strings
+     *               to their implementing classes
+     * @param injector a function typically associated with a dependency injection framework that will
+     *                 initialize Elide models.
+     * @param entitiesToExclude Set of Models to exclude from Binding.
+     */
+    public EntityDictionary(Map<String, Class<? extends Check>> checks, Injector injector,
+            Set<Type<?>> entitiesToExclude) {
+        this(checks, injector, CoerceUtil::lookup, entitiesToExclude);
     }
 
     public EntityDictionary(Map<String, Class<? extends Check>> checks,
                             Injector injector,
                             Function<Class, Serde> serdeLookup) {
+        this(checks, injector, serdeLookup, Collections.EMPTY_SET);
+    }
+
+    public EntityDictionary(Map<String, Class<? extends Check>> checks,
+                Injector injector,
+                Function<Class, Serde> serdeLookup,
+                Set<Type<?>> entitiesToExclude) {
         this.serdeLookup = serdeLookup;
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
         this.roleChecks = new HashMap<>();
         this.apiVersions = new HashSet<>();
         initializeChecks();
         this.injector = injector;
+        this.entitiesToExclude = entitiesToExclude;
     }
 
     private void initializeChecks() {
@@ -900,6 +940,11 @@ public class EntityDictionary {
      * @param hiddenAnnotations Annotations for hiding a field in API
      */
     public void bindEntity(Type<?> cls, Set<Class<? extends Annotation>> hiddenAnnotations) {
+        if (entitiesToExclude.contains(cls)) {
+            //Exclude Entity
+            return;
+        }
+
         Type<?> declaredClass = lookupIncludeClass(cls);
 
         if (declaredClass == null) {
@@ -933,6 +978,11 @@ public class EntityDictionary {
      */
     public void bindEntity(EntityBinding entityBinding) {
         Type<?> declaredClass = entityBinding.entityClass;
+
+        if (entitiesToExclude.contains(declaredClass)) {
+            //Exclude Entity
+            return;
+        }
 
         if (isClassBound(declaredClass)) {
             //Ignore duplicate bindings.

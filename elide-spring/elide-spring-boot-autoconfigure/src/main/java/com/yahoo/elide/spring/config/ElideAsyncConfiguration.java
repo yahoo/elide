@@ -80,19 +80,23 @@ public class ElideAsyncConfiguration {
         dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, asyncQueryHook, false);
         dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, asyncQueryHook, false);
 
-        // Initialize the Formatters.
-        boolean skipCSVHeader = asyncProperties.getExport() != null ? asyncProperties.getExport().isSkipCSVHeader()
-            : false;
-        Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<ResultType, TableExportFormatter>();
-        supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide, skipCSVHeader));
-        supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
+        boolean exportEnabled = ElideAutoConfiguration.isExportEnabled(asyncProperties);
 
-        // Binding TableExport LifeCycleHook
-        TableExportHook tableExportHook = getTableExportHook(asyncExecutorService, settings, supportedFormatters,
-                resultStorageEngine);
-        dictionary.bindTrigger(TableExport.class, READ, PRESECURITY, tableExportHook, false);
-        dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
-        dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);
+        if (exportEnabled) {
+            // Initialize the Formatters.
+            boolean skipCSVHeader = asyncProperties.getExport() != null ? asyncProperties.getExport().isSkipCSVHeader()
+                    : false;
+            Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<ResultType, TableExportFormatter>();
+            supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide, skipCSVHeader));
+            supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
+
+            // Binding TableExport LifeCycleHook
+            TableExportHook tableExportHook = getTableExportHook(asyncExecutorService, settings, supportedFormatters,
+                    resultStorageEngine);
+            dictionary.bindTrigger(TableExport.class, READ, PRESECURITY, tableExportHook, false);
+            dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
+            dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);
+        }
 
         return asyncExecutorService;
     }
@@ -104,8 +108,8 @@ public class ElideAsyncConfiguration {
     private TableExportHook getTableExportHook(AsyncExecutorService asyncExecutorService,
             ElideConfigProperties settings, Map<ResultType, TableExportFormatter> supportedFormatters,
             ResultStorageEngine resultStorageEngine) {
-        boolean exportEnabled = settings.getAsync().getExport() != null ? settings.getAsync().getExport().isEnabled()
-                : false;
+        boolean exportEnabled = ElideAutoConfiguration.isExportEnabled(settings.getAsync());
+
         TableExportHook tableExportHook = null;
         if (exportEnabled) {
             tableExportHook = new TableExportHook(asyncExecutorService, settings.getAsync().getMaxAsyncAfterSeconds(),
