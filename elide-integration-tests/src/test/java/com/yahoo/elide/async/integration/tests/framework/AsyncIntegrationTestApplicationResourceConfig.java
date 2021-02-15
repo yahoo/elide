@@ -13,9 +13,15 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.async.export.formatter.CSVExportFormatter;
+import com.yahoo.elide.async.export.formatter.JSONExportFormatter;
+import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
+import com.yahoo.elide.async.hooks.TableExportHook;
 import com.yahoo.elide.async.integration.tests.AsyncIT;
 import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.ResultType;
+import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.security.AsyncAPIInlineChecks;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
@@ -88,15 +94,15 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                         .withSubqueryFilterDialect(multipleFilterStrategy)
                         .withEntityDictionary(dictionary)
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
+                        .withExportApiPath("/export")
                         .build());
                 bind(elide).to(Elide.class).named("elide");
 
                 AsyncAPIDAO asyncAPIDao = new DefaultAsyncAPIDAO(elide.getElideSettings(), elide.getDataStore());
                 bind(asyncAPIDao).to(AsyncAPIDAO.class);
 
-                // TODO Pass resultStorageEngine to TableExportHook
-                ResultStorageEngine resultStorageEngine =
-                        new FileResultStorageEngine(System.getProperty("java.io.tmpDir"));
+                // Create ResultStorageEngine using /tmp
+                ResultStorageEngine resultStorageEngine = new FileResultStorageEngine("/tmp");
                 AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide,
                                 Executors.newFixedThreadPool(5), Executors.newFixedThreadPool(5), asyncAPIDao);
 
@@ -119,6 +125,18 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, asyncQueryHook, false);
                 dictionary.bindTrigger(Invoice.class, "complete", CREATE, PRECOMMIT, invoiceCompletionHook);
                 dictionary.bindTrigger(Invoice.class, "complete", UPDATE, PRECOMMIT, invoiceCompletionHook);
+
+                Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<ResultType,
+                        TableExportFormatter>();
+                supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide, false));
+                supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
+
+                // Binding TableExport LifeCycleHook
+                TableExportHook tableExportHook = new TableExportHook(asyncExecutorService, 10, supportedFormatters,
+                        resultStorageEngine);
+                dictionary.bindTrigger(TableExport.class, READ, PRESECURITY, tableExportHook, false);
+                dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
+                dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);
 
                 AsyncCleanerService.init(elide, 30, 5, 150, asyncAPIDao);
                 bind(AsyncCleanerService.getInstance()).to(AsyncCleanerService.class);

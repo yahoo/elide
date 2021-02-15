@@ -49,10 +49,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 import lombok.Data;
@@ -60,6 +62,7 @@ import lombok.Data;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Map;
+
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.SecurityContext;
@@ -163,7 +166,7 @@ public class AsyncIT extends IntegrationTest {
     }
 
     /**
-     * Various tests for a JSONAPI query as a Async Request with asyncAfterSeconds value set to 0.
+     * Various tests for a JSONAPI query as a AsyncQuery Request with asyncAfterSeconds value set to 0.
      * Happy Path Test Scenario 1
      * @throws InterruptedException
      */
@@ -242,7 +245,7 @@ public class AsyncIT extends IntegrationTest {
     }
 
     /**
-     * Various tests for a JSONAPI query as a Async Request with asyncAfterSeconds value set to 7.
+     * Various tests for a JSONAPI query as a AsyncQuery Request with asyncAfterSeconds value set to 7.
      * Happy Path Test Scenario 2
      * @throws InterruptedException
      */
@@ -436,7 +439,7 @@ public class AsyncIT extends IntegrationTest {
     }
 
     /**
-     * Test for QueryStatus Set to PROCESSING instead of Queued
+     * Test for QueryStatus Set to PROCESSING instead of Queued.
      */
     @Test
     public void graphQLTestCreateFailOnQueryStatus() {
@@ -648,11 +651,11 @@ public class AsyncIT extends IntegrationTest {
     }
 
     /**
-     * Tests Read Permissions on Async Model for Admin Role
+     * Tests Read Permissions on AsyncQuery Model for Admin Role.
      * @throws IOException IOException
      */
     @Test
-    public void asyncModelAdminReadPermissions() throws IOException {
+    public void asyncQueryModelAdminReadPermissions() throws IOException {
 
         ElideResponse response = null;
         String id = "edc4a871-dff2-4054-804e-d80075c08959";
@@ -770,6 +773,7 @@ public class AsyncIT extends IntegrationTest {
 
         AsyncDelayStoreTransaction.sleep = false;
     }
+
     private JsonNode toJsonNode(String query, Map<String, Object> variables) {
         ObjectNode graphqlNode = JsonNodeFactory.instance.objectNode();
         graphqlNode.put("query", query);
