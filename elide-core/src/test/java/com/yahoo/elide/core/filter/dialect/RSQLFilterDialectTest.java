@@ -482,7 +482,7 @@ public class RSQLFilterDialectTest {
     }
 
     @Test
-    public void testMemberOfOperatorException() throws Exception {
+    public void testMemberOfOperatorOnNonCollectionAttributeException() throws Exception {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
 
         queryParams.clear();
@@ -491,7 +491,25 @@ public class RSQLFilterDialectTest {
                 "title=hasmember=title11"
         );
 
-        assertThrows(ParseException.class,
+        ParseException e = assertThrows(ParseException.class,
                 () -> dialect.parseGlobalExpression("/book", queryParams, NO_VERSION));
+
+        assertEquals("Invalid Path: Last Path Element has to be a collection type", e.getMessage());
+    }
+
+    @Test
+    public void testMemberOfOperatorOnRelationshipException() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.clear();
+        queryParams.add(
+                "filter",
+                "authors=hasmember=1"
+        );
+
+        ParseException e = assertThrows(ParseException.class,
+                () -> dialect.parseGlobalExpression("/book", queryParams, NO_VERSION));
+
+        assertEquals("Invalid Path: Last Path Element cannot be a collection type", e.getMessage());
     }
 }
