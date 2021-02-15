@@ -175,7 +175,7 @@ public class ElideAutoConfiguration {
      * @param settings Elide configuration settings.
      * @return Set of Types.
      */
-    @Bean(name= "entitiesToExclude")
+    @Bean(name = "entitiesToExclude")
     @ConditionalOnMissingBean
     public Set<Type<?>> getEntitiesToExclude(ElideConfigProperties settings) {
         Set<Type<?>> entitiesToExclude = new HashSet();
