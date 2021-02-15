@@ -8,7 +8,6 @@ package com.yahoo.elide.core.filter;
 import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
@@ -18,6 +17,8 @@ import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.filter.predicates.NotEmptyPredicate;
+import example.Author;
+import example.Book;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -31,45 +32,34 @@ import java.util.stream.Collectors;
  */
 public class FilterTranslatorTest {
 
-    @Include
-    static class Book {
-        String name;
-        String genre;
-        Author author;
-    }
-
-    @Include
-    static class Author {
-        String name;
-    }
-
     private EntityDictionary dictionary;
 
     public FilterTranslatorTest() {
         dictionary = new EntityDictionary(new HashMap<>());
-        dictionary.bindEntity(FilterTranslatorTest.Book.class);
+        dictionary.bindEntity(Book.class);
+        dictionary.bindEntity(Author.class);
     }
 
     @Test
     public void testHQLQueryVisitor() throws Exception {
         List<Path.PathElement> p0Path = Arrays.asList(
-                new Path.PathElement(FilterTranslatorTest.Book.class, Author.class, "authors")
+                new Path.PathElement(Book.class, Author.class, "authors")
         );
         FilterPredicate p0 = new NotEmptyPredicate(new Path(p0Path));
 
         List<Path.PathElement> p1Path = Arrays.asList(
-                new Path.PathElement(FilterTranslatorTest.Book.class, Author.class, "authors"),
+                new Path.PathElement(Book.class, Author.class, "authors"),
                 new Path.PathElement(Author.class, String.class, "name")
         );
         FilterPredicate p1 = new InPredicate(new Path(p1Path), "foo", "bar");
 
         List<Path.PathElement> p2Path = Arrays.asList(
-                new Path.PathElement(FilterTranslatorTest.Book.class, String.class, "name")
+                new Path.PathElement(Book.class, String.class, "name")
         );
         FilterPredicate p2 = new InPredicate(new Path(p2Path), "blah");
 
         List<Path.PathElement> p3Path = Arrays.asList(
-                new Path.PathElement(FilterTranslatorTest.Book.class, String.class, "genre")
+                new Path.PathElement(Book.class, String.class, "genre")
         );
         FilterPredicate p3 = new InPredicate(new Path(p3Path), "scifi");
 
@@ -93,10 +83,10 @@ public class FilterTranslatorTest {
         assertEquals(expected, query);
     }
 
-    //@Test
+    @Test
     public void testMemberOfOperator() throws Exception {
         List<Path.PathElement> path = Arrays.asList(
-                new Path.PathElement(FilterTranslatorTest.Book.class, String.class, "awards")
+                new Path.PathElement(Book.class, String.class, "awards")
         );
         FilterPredicate p1 = new FilterPredicate(new Path(path), Operator.HASMEMBER, Arrays.asList("awards1"));
         FilterPredicate p2 = new FilterPredicate(new Path(path), Operator.HASNOMEMBER, Arrays.asList("awards2"));
@@ -117,7 +107,7 @@ public class FilterTranslatorTest {
 
     @Test
     public void testEmptyFieldOnPrefix() throws Exception {
-        FilterPredicate pred = new FilterPredicate(new Path.PathElement(FilterTranslatorTest.Book.class, String.class, ""),
+        FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, String.class, ""),
                 Operator.PREFIX_CASE_INSENSITIVE, Arrays.asList("value"));
         FilterTranslator filterOp = new FilterTranslator(dictionary);
         assertThrows(InvalidValueException.class, () -> filterOp.apply(pred));
@@ -125,7 +115,7 @@ public class FilterTranslatorTest {
 
     @Test
     public void testEmptyFieldOnInfix() throws Exception {
-        FilterPredicate pred = new FilterPredicate(new Path.PathElement(FilterTranslatorTest.Book.class, String.class, ""),
+        FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, String.class, ""),
                 Operator.INFIX_CASE_INSENSITIVE, Arrays.asList("value"));
         FilterTranslator filterOp = new FilterTranslator(dictionary);
         assertThrows(InvalidValueException.class, () -> filterOp.apply(pred));
@@ -133,7 +123,7 @@ public class FilterTranslatorTest {
 
     @Test
     public void testEmptyFieldOnPostfix() throws Exception {
-        FilterPredicate pred = new FilterPredicate(new Path.PathElement(FilterTranslatorTest.Book.class, String.class, ""),
+        FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, String.class, ""),
                 Operator.POSTFIX_CASE_INSENSITIVE, Arrays.asList("value"));
         FilterTranslator filterOp = new FilterTranslator(dictionary);
         assertThrows(InvalidValueException.class, () -> filterOp.apply(pred));
