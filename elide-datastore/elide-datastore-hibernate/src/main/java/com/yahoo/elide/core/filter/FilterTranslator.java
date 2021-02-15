@@ -30,6 +30,7 @@ import static com.yahoo.elide.core.filter.Operator.TRUE;
 import static com.yahoo.elide.core.utils.TypeHelper.getFieldAlias;
 import static com.yahoo.elide.core.utils.TypeHelper.getPathAlias;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -186,21 +187,6 @@ public class FilterTranslator implements FilterOperation<String> {
         operatorGenerators.put(NOTEMPTY, (predicate, aliasGenerator) -> {
             return String.format("%s IS NOT EMPTY", aliasGenerator.apply(predicate.getPath()));
         });
-
-        operatorGenerators.put(HASMEMBER, (predicate, aliasGenerator) -> {
-            Preconditions.checkArgument(predicate.getParameters().size() == 1);
-            return String.format("%s MEMBER OF %s",
-                    predicate.getParameters().get(0).getPlaceholder(),
-                    aliasGenerator.apply(predicate.getPath()));
-        });
-
-        operatorGenerators.put(HASNOMEMBER, (predicate, aliasGenerator) -> {
-            Preconditions.checkArgument(predicate.getParameters().size() == 1);
-            return String.format("%s NOT MEMBER OF %s",
-                    predicate.getParameters().get(0).getPlaceholder(),
-                    aliasGenerator.apply(predicate.getPath()));
-        });
-
     }
 
     /**
@@ -247,6 +233,19 @@ public class FilterTranslator implements FilterOperation<String> {
      */
     public static JPQLPredicateGenerator lookupJPQLGenerator(Operator op) {
         return operatorGenerators.get(op);
+    }
+
+    private final EntityDictionary dictionary;
+
+    public FilterTranslator(EntityDictionary dictionary) {
+        this.dictionary = dictionary;
+        if (! operatorGenerators.containsKey(HASMEMBER)) {
+            operatorGenerators.put(HASMEMBER, new HasMemberJPQLGenerator(dictionary));
+        }
+
+        if (! operatorGenerators.containsKey(HASNOMEMBER)) {
+            operatorGenerators.put(HASNOMEMBER, new HasMemberJPQLGenerator(dictionary, true));
+        }
     }
 
     /**

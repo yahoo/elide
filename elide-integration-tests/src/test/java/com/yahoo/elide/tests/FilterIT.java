@@ -9,7 +9,10 @@ package com.yahoo.elide.tests;
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
+import static org.hamcrest.Matchers.arrayContaining;
+import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -25,6 +28,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
@@ -1831,6 +1835,33 @@ public class FilterIT extends IntegrationTest {
                         "data.id", contains(publisherBook.toArray())
                 );
 
+    }
+
+    @Test
+    void testMemberOfToManyRelationship() {
+        /* RSQL Global */
+        when()
+                .get("/book?filter=authors.id=hasmember=1")
+                .then()
+                .body("data.relationships.authors", hasSize(2))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+
+        /* RSQL Typed */
+        when()
+                .get("/book?filter[book]=authors.id=hasmember=1")
+                .then()
+                .body("data.relationships.authors", hasSize(2))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+
+        /* Default */
+        when()
+                .get("/book?filter[book.authors.id][hasmember]=1")
+                .then()
+                .body("data.relationships.authors", hasSize(2))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
     }
 
     @Test

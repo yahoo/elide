@@ -42,11 +42,13 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
     private final SQLReferenceTable referenceTable;
     private final EntityDictionary dictionary;
     private final SQLDialect dialect;
+    private FilterTranslator filterTranslator;
 
     public QueryTranslator(SQLReferenceTable referenceTable, SQLDialect sqlDialect) {
         this.referenceTable = referenceTable;
         this.dictionary = referenceTable.getDictionary();
         this.dialect = sqlDialect;
+        this.filterTranslator = new FilterTranslator(dictionary);
     }
 
     @Override
@@ -281,9 +283,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
      */
     private String translateFilterExpression(FilterExpression expression,
                                              Function<Path, String> aliasGenerator) {
-        FilterTranslator filterVisitor = new FilterTranslator();
-
-        return filterVisitor.apply(expression, aliasGenerator);
+        return filterTranslator.apply(expression, aliasGenerator);
     }
 
     /**
