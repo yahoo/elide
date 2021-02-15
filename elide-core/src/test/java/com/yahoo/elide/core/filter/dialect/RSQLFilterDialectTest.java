@@ -469,16 +469,21 @@ public class RSQLFilterDialectTest {
     }
 
     @Test
-    public void testMemberOfOperatorException() throws Exception {
+    public void testMemberOfToManyRelationship() throws Exception {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
 
         queryParams.add(
                 "filter",
-                "authors.name=hasmember=0"
+                "authors.name=hasmember='0'"
         );
 
-        assertThrows(ParseException.class,
-                () -> dialect.parseTypedExpression("/book", queryParams, NO_VERSION));
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
+        assertEquals("book.authors.name HASMEMBER [0]", expression.toString());
+    }
+
+    @Test
+    public void testMemberOfOperatorException() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
 
         queryParams.clear();
         queryParams.add(
@@ -487,6 +492,6 @@ public class RSQLFilterDialectTest {
         );
 
         assertThrows(ParseException.class,
-                () -> dialect.parseTypedExpression("/book", queryParams, NO_VERSION));
+                () -> dialect.parseGlobalExpression("/book", queryParams, NO_VERSION));
     }
 }
