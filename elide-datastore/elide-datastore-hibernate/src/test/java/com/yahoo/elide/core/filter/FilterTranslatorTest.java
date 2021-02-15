@@ -32,14 +32,14 @@ import java.util.stream.Collectors;
 public class FilterTranslatorTest {
 
     @Include
-    class Book {
+    static class Book {
         String name;
         String genre;
         Author author;
     }
 
     @Include
-    class Author {
+    static class Author {
         String name;
     }
 
