@@ -1205,11 +1205,11 @@ public class FilterIT extends IntegrationTest {
         assertEquals(pageNode.get("totalRecords").asInt(), 2);
 
         result = getAsNode("book?filter=(authors.name=='Thomas Harris')&page[totals]");
-        assertEquals(1, result.get("data").size());
+        assertEquals(2, result.get("data").size());
 
         pageNode = result.get("meta").get("page");
         assertNotNull(pageNode);
-        assertEquals(pageNode.get("totalRecords").asInt(), 1);
+        assertEquals(pageNode.get("totalRecords").asInt(), 2);
 
         result = getAsNode("book?filter=(publisher.name=='Default publisher')&page[totals]");
         assertEquals(1, result.get("data").size());
@@ -1835,6 +1835,17 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    void testRootMemberOfToManyRelationshipConjunction() {
+        /* RSQL Global */
+        when()
+                .get("/book?filter=authors.id=hasmember=1;authors.id=hasmember=2")
+                .then()
+                .body("data", hasSize(1))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[0].data.id[1]", equalTo("2"));
+    }
+
+    @Test
     void testRootMemberOfToManyRelationship() {
         /* RSQL Global */
         when()
@@ -1843,6 +1854,7 @@ public class FilterIT extends IntegrationTest {
                 .body("data.relationships.authors", hasSize(2))
                 .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
                 .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+
 
         /* RSQL Typed */
         when()
@@ -1862,10 +1874,10 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
-    void testRootMemberOfToManyRelationshipConjunction() {
+    void testRootMemberOfAndNotMemberOfToManyRelationship() {
         /* RSQL Global */
         when()
-                .get("/book?filter=authors.id=hasmember=1;authors.id=hasnomember=2")
+                .get("/book?filter=authors.id=hasmember=1;authors.id=hasnomember=3")
                 .then()
                 .body("data.relationships.authors", hasSize(2))
                 .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
@@ -1873,7 +1885,7 @@ public class FilterIT extends IntegrationTest {
 
         /* RSQL Typed */
         when()
-                .get("/book?filter[book]=authors.id=hasmember=1;authors.id=hasnomember=2")
+                .get("/book?filter[book]=authors.id=hasmember=1;authors.id=hasnomember=3")
                 .then()
                 .body("data.relationships.authors", hasSize(2))
                 .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
@@ -1881,7 +1893,7 @@ public class FilterIT extends IntegrationTest {
 
         /* Default */
         when()
-                .get("/book?filter[book.authors.id][hasmember]=1&filter[book.authors.id][hasnomember]=2")
+                .get("/book?filter[book.authors.id][hasmember]=1&filter[book.authors.id][hasnomember]=3")
                 .then()
                 .body("data.relationships.authors", hasSize(2))
                 .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
