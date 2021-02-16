@@ -30,6 +30,6 @@ public class DisableMetaDataStoreControllerTest extends ControllerTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("tags.name", containsInAnyOrder("playerCountry", "version",
-                        "asyncQuery", "playerStats", "stats", "product", "group", "tableExport"));
+                        "asyncQuery", "playerStats", "stats", "product", "group"));
     }
 }

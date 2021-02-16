@@ -60,6 +60,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -130,6 +131,38 @@ public class EntityDictionaryTest extends EntityDictionary {
         public boolean ok(com.yahoo.elide.core.security.User user) {
             return false;
         }
+    }
+
+    @Test
+    public void testBindingNoExcludeSet() {
+
+        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), Collections.EMPTY_SET);
+        testDictionary.bindEntity(Employee.class);
+        // Finds the Binding
+        assertNotNull(testDictionary.entityBindings.get(new ClassType(Employee.class)));
+    }
+
+    @Test
+    public void testBindingExcludeSet() {
+        Set<Type<?>> entitiesToExclude = new HashSet<Type<?>>();
+        entitiesToExclude.add(new ClassType(Employee.class));
+
+        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), entitiesToExclude);
+        testDictionary.bindEntity(Employee.class);
+        // Does not find the Binding
+        assertNull(testDictionary.entityBindings.get(new ClassType(Employee.class)));
+    }
+
+    @Test
+    public void testEntityBindingExcludeSet() {
+
+        Set<Type<?>> entitiesToExclude = new HashSet<Type<?>>();
+        entitiesToExclude.add(new ClassType(Employee.class));
+
+        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), entitiesToExclude);
+        testDictionary.bindEntity(new EntityBinding(testDictionary, new ClassType(Employee.class), "employee"));
+        // Does not find the Binding
+        assertNull(testDictionary.entityBindings.get(new ClassType(Employee.class)));
     }
 
     @Test

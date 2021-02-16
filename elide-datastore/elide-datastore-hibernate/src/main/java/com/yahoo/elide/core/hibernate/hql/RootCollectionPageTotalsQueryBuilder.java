@@ -57,7 +57,7 @@ public class RootCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilde
             predicates = filterExpression.accept(extractor);
 
             //Build the WHERE clause
-            filterClause = WHERE + new FilterTranslator().apply(filterExpression, USE_ALIAS);
+            filterClause = WHERE + new FilterTranslator(dictionary).apply(filterExpression, USE_ALIAS);
 
             //Build the JOIN clause
             joinClause =  getJoinClauseFromFilters(filterExpression, true);
