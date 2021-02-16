@@ -74,7 +74,7 @@ public class SubCollectionFetchQueryBuilder extends AbstractHQLQueryBuilder {
         if (filterExpression != null) {
             PredicateExtractionVisitor extractor = new PredicateExtractionVisitor();
             Collection<FilterPredicate> predicates = filterExpression.accept(extractor);
-            String filterClause = new FilterTranslator().apply(filterExpression, USE_ALIAS);
+            String filterClause = new FilterTranslator(dictionary).apply(filterExpression, USE_ALIAS);
 
             String joinClause =  getJoinClauseFromFilters(filterExpression)
                     + getJoinClauseFromSort(entityProjection.getSorting())

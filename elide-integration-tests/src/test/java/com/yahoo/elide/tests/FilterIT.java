@@ -10,6 +10,7 @@ import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSI
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -1834,26 +1835,114 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    void testRootMemberOfToManyRelationship() {
+        /* RSQL Global */
+        when()
+                .get("/book?filter=authors.id=hasmember=1")
+                .then()
+                .body("data.relationships.authors", hasSize(2))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+
+        /* RSQL Typed */
+        when()
+                .get("/book?filter[book]=authors.id=hasmember=1")
+                .then()
+                .body("data.relationships.authors", hasSize(2))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+
+        /* Default */
+        when()
+                .get("/book?filter[book.authors.id][hasmember]=1")
+                .then()
+                .body("data.relationships.authors", hasSize(2))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+    }
+
+    @Test
+    void testRootMemberOfToManyRelationshipConjunction() {
+        /* RSQL Global */
+        when()
+                .get("/book?filter=authors.id=hasmember=1;authors.id=hasnomember=2")
+                .then()
+                .body("data.relationships.authors", hasSize(2))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+
+        /* RSQL Typed */
+        when()
+                .get("/book?filter[book]=authors.id=hasmember=1;authors.id=hasnomember=2")
+                .then()
+                .body("data.relationships.authors", hasSize(2))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+
+        /* Default */
+        when()
+                .get("/book?filter[book.authors.id][hasmember]=1&filter[book.authors.id][hasnomember]=2")
+                .then()
+                .body("data.relationships.authors", hasSize(2))
+                .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
+                .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+    }
+
+    @Test
+    void testSubcollectionMemberOfToManyRelationship() {
+        /* RSQL Typed */
+        when()
+                .get("/author/5/books?filter[book]=chapters.title=hasmember='Mamma mia I wantz some pizza!'")
+                .then()
+                .body("data.relationships.chapters", hasSize(1))
+                .body("data.relationships.chapters[0].data.id[0]", equalTo("2"));
+
+        /* Default */
+        when()
+                .get("/author/5/books?filter[book.chapters.title][hasmember]=Mamma mia I wantz some pizza!")
+                .then()
+                .body("data.relationships.chapters", hasSize(1))
+                .body("data.relationships.chapters[0].data.id[0]", equalTo("2"));
+    }
+
+    @Test
+    void testSubcollectionMemberOfToManyRelationshipConjunction() {
+        /* RSQL Typed */
+        when()
+                .get("/author/5/books?filter[book]=chapters.title=hasmember='Mamma mia I wantz some pizza!';chapters.title=hasnomember='Foo'")
+                .then()
+                .body("data.relationships.chapters", hasSize(1))
+                .body("data.relationships.chapters[0].data.id[0]", equalTo("2"));
+
+        /* Default */
+        when()
+                .get("/author/5/books?filter[book.chapters.title][hasmember]=Mamma mia I wantz some pizza!&filter[book.chapters.title][hasnomember]=Foo")
+                .then()
+                .body("data.relationships.chapters", hasSize(1))
+                .body("data.relationships.chapters[0].data.id[0]", equalTo("2"));
+    }
+
+    @Test
     @Tag("excludeOnHibernate3")
     void testExceptionOnMemberOfOperator() throws JsonProcessingException {
         JsonNode result;
         // Typed Expression
-        result = getAsNode(String.format("/author/%s/books?filter[book.authors.name][hasmember]", nullNedId), HttpStatus.SC_BAD_REQUEST);
+        result = getAsNode(String.format("/author/%s/books?filter[book.authors][hasmember]", nullNedId), HttpStatus.SC_BAD_REQUEST);
         assertEquals(
-                "Invalid predicate: book.authors.name HASMEMBER []\n"
-                        + "Invalid query parameter: filter[book.authors.name][hasmember]\n"
-                        + "Invalid toMany join: member of operator cannot be used for toMany relationships\n"
-                        + "Invalid query parameter: filter[book.authors.name][hasmember]",
+                "Invalid predicate: book.authors HASMEMBER []\n"
+                        + "Invalid query parameter: filter[book.authors][hasmember]\n"
+                        + "Invalid Path: Last Path Element cannot be a collection type\n"
+                        + "Invalid query parameter: filter[book.authors][hasmember]",
                 result.get("errors").get(0).get("detail").asText()
         );
 
         //RSQL
-        result = getAsNode(String.format("/author/%s/books?filter[book]=authors.name=hasmember=true", nullNedId), HttpStatus.SC_BAD_REQUEST);
+        result = getAsNode(String.format("/author/%s/books?filter[book]=authors=hasmember=true", nullNedId), HttpStatus.SC_BAD_REQUEST);
         assertEquals(
                 "Invalid filter format: filter[book]\n"
                         + "Invalid query parameter: filter[book]\n"
                         + "Invalid filter format: filter[book]\n"
-                        + "Invalid toMany join: member of operator cannot be used for toMany relationships",
+                        + "Invalid Path: Last Path Element cannot be a collection type",
                 result.get("errors").get(0).get("detail").asText()
         );
 
@@ -1881,27 +1970,6 @@ public class FilterIT extends IntegrationTest {
                         + "Invalid query parameter: filter[book.title][hasmember]",
                 result.get("errors").get(0).get("detail").asText()
         );
-
-
-        // Member of one Relationships
-        result = getAsNode("/books?filter[book.authors][hasmember]=1", HttpStatus.SC_BAD_REQUEST);
-        assertEquals(
-                "Invalid predicate: book.authors HASMEMBER [1]\n"
-                        + "Invalid query parameter: filter[book.authors][hasmember]\n"
-                        + "Invalid toMany join: member of operator cannot be used for toMany relationships\n"
-                        + "Invalid query parameter: filter[book.authors][hasmember]",
-                result.get("errors").get(0).get("detail").asText()
-        );
-        //RSQL
-        result = getAsNode("/books?filter[book]=publisher=hasmember=1", HttpStatus.SC_BAD_REQUEST);
-        assertEquals(
-                "Invalid filter format: filter[book]\n"
-                        + "Invalid query parameter: filter[book]\n"
-                        + "Invalid filter format: filter[book]\n"
-                        + "Invalid Path: Last Path Element has to be a collection type",
-                result.get("errors").get(0).get("detail").asText()
-        );
-
     }
 
     @AfterAll
