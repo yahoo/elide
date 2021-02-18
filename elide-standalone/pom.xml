@@ -108,14 +108,6 @@
             <version>${hibernate5.version}</version>
         </dependency>
 
-        <!-- MySQL Driver -->
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>${version.mysql}</version>
-            <scope>compile</scope>
-        </dependency>
-
         <!-- Jetty for embedded web server -->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
