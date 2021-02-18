@@ -62,6 +62,7 @@ import lombok.Data;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Map;
+import java.util.concurrent.Executors;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -113,6 +114,12 @@ public class AsyncIT extends IntegrationTest {
 
     public AsyncIT() {
         super(AsyncIntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
+    }
+
+    @Override
+    public void modifyServletContextHandler() {
+        // Set Attributes to be fetched in AsyncIntegrationTestApplicationResourceConfig
+        this.servletContextHandler.setAttribute(AsyncIntegrationTestApplicationResourceConfig.ASYNC_EXECUTOR_ATTR, Executors.newFixedThreadPool(5));
     }
 
     @Override

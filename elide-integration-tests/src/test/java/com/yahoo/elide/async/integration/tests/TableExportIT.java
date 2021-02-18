@@ -52,6 +52,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.glassfish.jersey.servlet.ServletContainer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -61,8 +63,10 @@ import io.restassured.response.ValidatableResponse;
 import lombok.Data;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.security.Principal;
 import java.util.Map;
+import java.util.concurrent.Executors;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -118,6 +122,24 @@ public class TableExportIT extends IntegrationTest {
         super(AsyncIntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
 
         this.port = super.getPort();
+    }
+
+    @Override
+    public void modifyServletContextHandler() {
+        // Initialize Export End Point
+        ServletHolder exportServlet = servletContextHandler.addServlet(ServletContainer.class, "/export/*");
+        exportServlet.setInitOrder(3);
+        exportServlet.setInitParameter("jersey.config.server.provider.packages",
+                com.yahoo.elide.async.resources.ExportApiEndpoint.class.getPackage().getName());
+        exportServlet.setInitParameter("javax.ws.rs.Application", AsyncIntegrationTestApplicationResourceConfig.class.getName());
+
+        // Set Attributes to be fetched in AsyncIntegrationTestApplicationResourceConfig
+        this.servletContextHandler.setAttribute(AsyncIntegrationTestApplicationResourceConfig.ASYNC_EXECUTOR_ATTR, Executors.newFixedThreadPool(5));
+        try {
+            this.servletContextHandler.setAttribute(AsyncIntegrationTestApplicationResourceConfig.STORAGE_DESTINATION_ATTR, Files.createTempDirectory("asyncIT"));
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Override
@@ -525,10 +547,10 @@ public class TableExportIT extends IntegrationTest {
     }
 
     /**
-     * Test for ResultType Set to Invalid.
+     * Test for ResultType Set to an unsupported value.
      */
     @Test
-    public void graphQLTestCreateFailOnResultType() {
+    public void graphQLTestCreateFailOnUnSupportedResultType() {
 
         TableExport queryObj = new TableExport();
         queryObj.setId("edc4a871-dff2-4054-804e-d80075cf939e");
@@ -567,12 +589,13 @@ public class TableExportIT extends IntegrationTest {
                 .statusCode(org.apache.http.HttpStatus.SC_OK);
 
         String output = response.extract().body().asString();
+        System.out.println(output);
         assertEquals(true, output.contains("errors"));
-        assertEquals(true, output.contains("data.resultType"));
+        assertEquals(true, output.contains("Validation error of type WrongType: argument &#39;data.resultType&#39;"));
     }
 
     /**
-     * Various tests for an unknown collection (group) that does not exist JSONAPI query as a TableExport Request.
+     * Various tests for an unknown collection (group) that does not exist in TableExport Request JSONAPI query.
      * @throws InterruptedException
      */
     @Test
@@ -660,7 +683,7 @@ public class TableExportIT extends IntegrationTest {
     }
 
     /**
-     * Various tests for an unknown collection (group) that does not exist GrapqhQL query as a TableExport Request.
+     * Various tests for an unknown collection (group) that does not exist in TableExport Request GraphQL query.
      * @throws InterruptedException
      */
     @Test
@@ -1131,16 +1154,15 @@ public class TableExportIT extends IntegrationTest {
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
         queryObj.setPrincipalName("owner-user");
 
-        dataStore.populateEntityDictionary(
-                        new EntityDictionary(AsyncIntegrationTestApplicationResourceConfig.MAPPINGS));
+        EntityDictionary dictionary = new EntityDictionary(AsyncIntegrationTestApplicationResourceConfig.MAPPINGS);
+        dataStore.populateEntityDictionary(dictionary);
         DataStoreTransaction tx = dataStore.beginTransaction();
         tx.createObject(queryObj, null);
         tx.commit(null);
         tx.close();
 
         Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
-                        .withEntityDictionary(
-                                        new EntityDictionary(AsyncIntegrationTestApplicationResourceConfig.MAPPINGS))
+                        .withEntityDictionary(dictionary)
                         .withAuditLogger(new TestAuditLogger()).build());
 
         User ownerUser = new User(() -> "owner-user");

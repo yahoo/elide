@@ -12,6 +12,8 @@ import com.yahoo.elide.core.datastore.wrapped.TransactionWrapper;
 import com.yahoo.elide.core.request.EntityProjection;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
+
 /**
  * Data Store Transaction that wraps another transaction and provides delay for testing Async queries.
  */
@@ -39,9 +41,9 @@ public class AsyncDelayStoreTransaction extends TransactionWrapper {
         try {
             log.debug("LoadObjects Sleep for delay test");
 
-            String sleepTime = scope.getRequestHeaders().get("sleep").get(0);
+            List<String> sleepTime = scope.getRequestHeaders().get("sleep");
             if (sleepTime != null && !sleepTime.isEmpty()) {
-                Thread.sleep(Integer.parseInt(sleepTime));
+                Thread.sleep(Integer.parseInt(sleepTime.get(0)));
             } else if (sleep) {
                 Thread.sleep(testDelay);
             }

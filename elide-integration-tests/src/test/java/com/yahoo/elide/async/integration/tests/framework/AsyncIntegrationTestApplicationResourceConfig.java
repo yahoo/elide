@@ -107,16 +107,31 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 AsyncAPIDAO asyncAPIDao = new DefaultAsyncAPIDAO(elide.getElideSettings(), elide.getDataStore());
                 bind(asyncAPIDao).to(AsyncAPIDAO.class);
 
-                // Create ResultStorageEngine
-                Path storageDestination = (Path) servletContext.getAttribute(STORAGE_DESTINATION_ATTR);
-                ResultStorageEngine resultStorageEngine = new FileResultStorageEngine(storageDestination.toAbsolutePath().toString());
-                bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
                 ExecutorService executorService = (ExecutorService) servletContext.getAttribute(ASYNC_EXECUTOR_ATTR);
                 AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide,
                         executorService, executorService, asyncAPIDao);
 
-                ExportApiProperties exportApiProperties = new ExportApiProperties(executorService, 10);
-                bind(exportApiProperties).to(ExportApiProperties.class).named("exportApiProperties");
+                // Create ResultStorageEngine
+                Path storageDestination = (Path) servletContext.getAttribute(STORAGE_DESTINATION_ATTR);
+                if (storageDestination != null) {
+                    ResultStorageEngine resultStorageEngine = new FileResultStorageEngine(storageDestination.toAbsolutePath().toString());
+                    bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
+
+                    Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<ResultType,
+                            TableExportFormatter>();
+                    supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide, false));
+                    supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
+
+                    // Binding TableExport LifeCycleHook
+                    TableExportHook tableExportHook = new TableExportHook(asyncExecutorService, 10, supportedFormatters,
+                            resultStorageEngine);
+                    dictionary.bindTrigger(TableExport.class, READ, PRESECURITY, tableExportHook, false);
+                    dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
+                    dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);
+
+                    ExportApiProperties exportApiProperties = new ExportApiProperties(executorService, 10);
+                    bind(exportApiProperties).to(ExportApiProperties.class).named("exportApiProperties");
+                }
 
                 BillingService billingService = new BillingService() {
                     @Override
@@ -137,18 +152,6 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, asyncQueryHook, false);
                 dictionary.bindTrigger(Invoice.class, "complete", CREATE, PRECOMMIT, invoiceCompletionHook);
                 dictionary.bindTrigger(Invoice.class, "complete", UPDATE, PRECOMMIT, invoiceCompletionHook);
-
-                Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<ResultType,
-                        TableExportFormatter>();
-                supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide, false));
-                supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
-
-                // Binding TableExport LifeCycleHook
-                TableExportHook tableExportHook = new TableExportHook(asyncExecutorService, 10, supportedFormatters,
-                        resultStorageEngine);
-                dictionary.bindTrigger(TableExport.class, READ, PRESECURITY, tableExportHook, false);
-                dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
-                dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);
 
                 AsyncCleanerService.init(elide, 30, 5, 150, asyncAPIDao);
                 bind(AsyncCleanerService.getInstance()).to(AsyncCleanerService.class);

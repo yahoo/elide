@@ -9,7 +9,6 @@ import static io.restassured.RestAssured.get;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import com.yahoo.elide.async.integration.tests.framework.AsyncIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.exceptions.HttpStatus;
@@ -33,8 +32,6 @@ import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.util.concurrent.Executors;
 
 /**
  * Integration test initializer.  Tests are intended to run sequentially (so they don't stomp on each other's data).
@@ -49,6 +46,7 @@ public abstract class IntegrationTest {
     protected final ObjectMapper mapper = new ObjectMapper();
     protected DataStore dataStore = null;
     private Server server = null;
+    protected final ServletContextHandler servletContextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
 
     private final String resourceConfig;
     private String packageName;
@@ -119,13 +117,10 @@ public abstract class IntegrationTest {
 
         // embedded jetty server
         Server server = new Server(RestAssured.port);
-        final ServletContextHandler servletContextHandler =
-                new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
         servletContextHandler.setContextPath("/");
         server.setHandler(servletContextHandler);
 
-        servletContextHandler.setAttribute(AsyncIntegrationTestApplicationResourceConfig.ASYNC_EXECUTOR_ATTR, Executors.newFixedThreadPool(5));
-        servletContextHandler.setAttribute(AsyncIntegrationTestApplicationResourceConfig.STORAGE_DESTINATION_ATTR, Files.createTempDirectory("asyncIT"));
+        modifyServletContextHandler();
 
         final ServletHolder servletHolder = servletContextHandler.addServlet(ServletContainer.class, "/*");
         servletHolder.setInitOrder(1);
@@ -137,12 +132,6 @@ public abstract class IntegrationTest {
         graphqlServlet.setInitParameter("jersey.config.server.provider.packages",
                 com.yahoo.elide.graphql.GraphQLEndpoint.class.getPackage().getName());
         graphqlServlet.setInitParameter("javax.ws.rs.Application", resourceConfig);
-
-        ServletHolder exportServlet = servletContextHandler.addServlet(ServletContainer.class, "/export/*");
-        exportServlet.setInitOrder(3);
-        exportServlet.setInitParameter("jersey.config.server.provider.packages",
-                com.yahoo.elide.async.resources.ExportApiEndpoint.class.getPackage().getName());
-        exportServlet.setInitParameter("javax.ws.rs.Application", resourceConfig);
 
         log.debug("...Starting Server...");
         server.start();
@@ -184,5 +173,9 @@ public abstract class IntegrationTest {
     public static Integer getPort() {
         String restassuredPort = System.getProperty("restassured.port", System.getenv("restassured.port"));
         return Integer.parseInt(StringUtils.isNotEmpty(restassuredPort) ? restassuredPort : "9999");
+    }
+
+    public void modifyServletContextHandler() {
+        // Do Nothing
     }
 }

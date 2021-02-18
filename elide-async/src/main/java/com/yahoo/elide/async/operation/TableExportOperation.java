@@ -168,9 +168,9 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
     }
 
     /**
-     * Initialize and get RequestScope.
+     * Initializes a new RequestScope for the export operation with the submitted query.
      * @param exportObj TableExport type object.
-     * @param scope RequestScope.
+     * @param scope RequestScope from the original submission.
      * @param tx DataStoreTransaction.
      * @return RequestScope Type Object
      */
