@@ -9,6 +9,7 @@ import static io.restassured.RestAssured.get;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import com.yahoo.elide.async.integration.tests.framework.AsyncIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.exceptions.HttpStatus;
@@ -32,6 +33,8 @@ import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.concurrent.Executors;
 
 /**
  * Integration test initializer.  Tests are intended to run sequentially (so they don't stomp on each other's data).
@@ -121,6 +124,9 @@ public abstract class IntegrationTest {
         servletContextHandler.setContextPath("/");
         server.setHandler(servletContextHandler);
 
+        servletContextHandler.setAttribute(AsyncIntegrationTestApplicationResourceConfig.ASYNC_EXECUTOR_ATTR, Executors.newFixedThreadPool(5));
+        servletContextHandler.setAttribute(AsyncIntegrationTestApplicationResourceConfig.STORAGE_DESTINATION_ATTR, Files.createTempDirectory("asyncIT"));
+
         final ServletHolder servletHolder = servletContextHandler.addServlet(ServletContainer.class, "/*");
         servletHolder.setInitOrder(1);
         servletHolder.setInitParameter("jersey.config.server.provider.packages", packageName);
@@ -131,6 +137,12 @@ public abstract class IntegrationTest {
         graphqlServlet.setInitParameter("jersey.config.server.provider.packages",
                 com.yahoo.elide.graphql.GraphQLEndpoint.class.getPackage().getName());
         graphqlServlet.setInitParameter("javax.ws.rs.Application", resourceConfig);
+
+        ServletHolder exportServlet = servletContextHandler.addServlet(ServletContainer.class, "/export/*");
+        exportServlet.setInitOrder(3);
+        exportServlet.setInitParameter("jersey.config.server.provider.packages",
+                com.yahoo.elide.async.resources.ExportApiEndpoint.class.getPackage().getName());
+        exportServlet.setInitParameter("javax.ws.rs.Application", resourceConfig);
 
         log.debug("...Starting Server...");
         server.start();

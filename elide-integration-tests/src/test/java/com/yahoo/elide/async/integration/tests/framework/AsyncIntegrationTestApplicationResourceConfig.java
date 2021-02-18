@@ -23,6 +23,7 @@ import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.security.AsyncAPIInlineChecks;
+import com.yahoo.elide.async.resources.ExportApiEndpoint.ExportApiProperties;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
@@ -43,17 +44,22 @@ import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 
 import javax.inject.Inject;
+import javax.servlet.ServletContext;
+import javax.ws.rs.core.Context;
 
 public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfig {
     public static final InMemoryLogger LOGGER = new InMemoryLogger();
+    public static final String ASYNC_EXECUTOR_ATTR = "asyncExecutor";
+    public static final String STORAGE_DESTINATION_ATTR = "storageDestination";
 
     public static final Map<String, Class<? extends Check>> MAPPINGS = defineMappings();
 
@@ -71,7 +77,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
     }
 
     @Inject
-    public AsyncIntegrationTestApplicationResourceConfig(ServiceLocator injector) {
+    public AsyncIntegrationTestApplicationResourceConfig(ServiceLocator injector, @Context ServletContext servletContext) {
         // Bind to injector
         register(new AbstractBinder() {
             @Override
@@ -101,10 +107,16 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 AsyncAPIDAO asyncAPIDao = new DefaultAsyncAPIDAO(elide.getElideSettings(), elide.getDataStore());
                 bind(asyncAPIDao).to(AsyncAPIDAO.class);
 
-                // Create ResultStorageEngine using /tmp
-                ResultStorageEngine resultStorageEngine = new FileResultStorageEngine("/tmp");
+                // Create ResultStorageEngine
+                Path storageDestination = (Path) servletContext.getAttribute(STORAGE_DESTINATION_ATTR);
+                ResultStorageEngine resultStorageEngine = new FileResultStorageEngine(storageDestination.toAbsolutePath().toString());
+                bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
+                ExecutorService executorService = (ExecutorService) servletContext.getAttribute(ASYNC_EXECUTOR_ATTR);
                 AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide,
-                                Executors.newFixedThreadPool(5), Executors.newFixedThreadPool(5), asyncAPIDao);
+                        executorService, executorService, asyncAPIDao);
+
+                ExportApiProperties exportApiProperties = new ExportApiProperties(executorService, 10);
+                bind(exportApiProperties).to(ExportApiProperties.class).named("exportApiProperties");
 
                 BillingService billingService = new BillingService() {
                     @Override

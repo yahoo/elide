@@ -12,7 +12,6 @@ import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.security.User;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +39,7 @@ public abstract class AsyncQueryOperation implements Callable<AsyncAPIResult> {
     public AsyncAPIResult call() throws URISyntaxException {
         ElideResponse response = null;
         log.debug("AsyncQuery Object from request: {}", queryObj);
-        response = execute(queryObj, scope.getUser(), scope.getApiVersion());
+        response = execute(queryObj, scope);
         nullResponseCheck(response);
 
         AsyncQueryResult queryResult = new AsyncQueryResult();
@@ -76,10 +75,9 @@ public abstract class AsyncQueryOperation implements Callable<AsyncAPIResult> {
     /**
      * Execute the Async Query Request.
      * @param queryObj AsyncAPI type object.
-     * @param user User object.
-     * @param apiVersion Api Version.
+     * @param scope RequestScope.
      * @return response ElideResponse object.
      * @throws URISyntaxException URISyntaxException Exception.
      */
-    public abstract ElideResponse execute(AsyncAPI queryObj, User user, String apiVersion)  throws URISyntaxException;
+    public abstract ElideResponse execute(AsyncAPI queryObj, RequestScope scope)  throws URISyntaxException;
 }

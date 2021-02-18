@@ -46,9 +46,10 @@ public class GraphQLTableExportOperation extends TableExportOperation {
     }
 
     @Override
-    public RequestScope getRequestScope(TableExport export, User user, String apiVersion,
-            DataStoreTransaction tx) {
+    public RequestScope getRequestScope(TableExport export, RequestScope scope, DataStoreTransaction tx) {
         UUID requestId = UUID.fromString(export.getRequestId());
+        User user = scope.getUser();
+        String apiVersion = scope.getApiVersion();
         return new GraphQLRequestScope("", tx, user, apiVersion, getService().getElide().getElideSettings(),
                 null, requestId, Collections.emptyMap());
     }

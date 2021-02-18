@@ -51,9 +51,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.io.Files;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -62,13 +60,9 @@ import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 import lombok.Data;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.Map;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -131,7 +125,7 @@ public class TableExportIT extends IntegrationTest {
         DataStoreTestHarness dataStoreTestHarness = super.createHarness();
         return new DataStoreTestHarness() {
                 public DataStore getDataStore() {
-                    return new AsyncDelayDataStore(dataStoreTestHarness.getDataStore(), 5000);
+                    return new AsyncDelayDataStore(dataStoreTestHarness.getDataStore());
                 }
                 public void cleanseTestData() {
                     dataStoreTestHarness.cleanseTestData();
@@ -175,6 +169,66 @@ public class TableExportIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_CREATED);
     }
 
+    private Response getJSONAPIResponse(String id) throws InterruptedException {
+        Response response = null;
+        int i = 0;
+        while (i < 1000) {
+            Thread.sleep(10);
+            response = given()
+                    .accept("application/vnd.api+json")
+                    .get("/tableExport/" + id);
+
+            String outputResponse = response.jsonPath().getString("data.attributes.status");
+
+            // If Table Export is completed
+            if (outputResponse.equals("COMPLETE")) {
+                break;
+            } else if (!(outputResponse.equals("PROCESSING"))) {
+                fail("Table Export has failed.");
+                break;
+            }
+
+            i++;
+
+            if (i == 1000) {
+                fail("Table Export not completed.");
+            }
+        }
+
+        return response;
+    }
+
+    private String getGraphQLResponse(String id) throws InterruptedException {
+        String  responseGraphQL = null;
+        int i = 0;
+        while (i < 1000) {
+            Thread.sleep(10);
+            responseGraphQL = given()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .body("{\"query\":\"{ tableExport(ids: [\\\"" + id + "\\\"]) "
+                            + "{ edges { node { id queryType status result "
+                            + "{ message url httpStatus recordCount } } } } }\","
+                            + "\"variables\":null}")
+                    .post("/graphQL")
+                    .asString();
+            // If Table Export is created and completed
+            if (responseGraphQL.contains("\"status\":\"COMPLETE\"")) {
+                break;
+            } else if (!(responseGraphQL.contains("\"status\":\"PROCESSING\""))) {
+                fail("TableExport has failed.");
+                break;
+            }
+            i++;
+
+            if (i == 1000) {
+                fail("TableExport not completed.");
+            }
+        }
+
+        return responseGraphQL;
+    }
+
     /**
      * Various tests for a JSONAPI query as a TableExport Request with asyncAfterSeconds value set to 0.
      * Happy Path Test Scenario 1
@@ -184,11 +238,10 @@ public class TableExportIT extends IntegrationTest {
     @Test
     public void jsonApiHappyPath1() throws InterruptedException, IOException {
 
-        AsyncDelayStoreTransaction.sleep = true;
-
         //Create Table Export Request
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
+                .header("sleep", "1000")
                 .body(
                         data(
                                 resource(
@@ -215,49 +268,27 @@ public class TableExportIT extends IntegrationTest {
                 .body("data.attributes.result.httpStatus", nullValue());
 
 
-        int i = 0;
-        while (i < 1000) {
-            Thread.sleep(10);
-            Response response = given()
-                    .accept("application/vnd.api+json")
-                    .get("/tableExport/edc4a871-dff2-4054-804e-d80075cf830a");
+        Response response = getJSONAPIResponse("edc4a871-dff2-4054-804e-d80075cf830a");
 
-            String outputResponse = response.jsonPath().getString("data.attributes.status");
+        // Validate TableExport  Response
+        response
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.id", equalTo("edc4a871-dff2-4054-804e-d80075cf830a"))
+                .body("data.type", equalTo("tableExport"))
+                .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
+                .body("data.attributes.status", equalTo("COMPLETE"))
+                .body("data.attributes.result.message", nullValue())
+                .body("data.attributes.result.recordCount", equalTo(3))
+                .body("data.attributes.result.url",
+                        equalTo("http://localhost:" + port + "/export/edc4a871-dff2-4054-804e-d80075cf830a"))
+                .body("data.attributes.result.httpStatus", equalTo(200));
 
-            // If Table Export is created and completed
-            if (outputResponse.equals("COMPLETE")) {
 
-                // Validate TableExport  Response
-                response
-                        .then()
-                        .statusCode(HttpStatus.SC_OK)
-                        .body("data.id", equalTo("edc4a871-dff2-4054-804e-d80075cf830a"))
-                        .body("data.type", equalTo("tableExport"))
-                        .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
-                        .body("data.attributes.status", equalTo("COMPLETE"))
-                        .body("data.attributes.result.message", nullValue())
-                        .body("data.attributes.result.recordCount", equalTo(3))
-                        .body("data.attributes.result.url",
-                                equalTo("http://localhost:" + port + "/export/edc4a871-dff2-4054-804e-d80075cf830a"))
-                        .body("data.attributes.result.httpStatus", equalTo(200));
-
-                assertEquals("\"title\"\n"
-                        + "\"For Whom the Bell Tolls\"\n"
-                        + "\"Song of Ice and Fire\"\n"
-                        + "\"Ender's Game\"\n", getStoredFileContents("edc4a871-dff2-4054-804e-d80075cf830a"));
-
-                break;
-            } else if (!(outputResponse.equals("PROCESSING"))) {
-                fail("Table Export has failed.");
-                break;
-            }
-
-            i++;
-
-            if (i == 1000) {
-                fail("Table Export not completed.");
-            }
-        }
+        assertEquals("\"title\"\n"
+                + "\"For Whom the Bell Tolls\"\n"
+                + "\"Song of Ice and Fire\"\n"
+                + "\"Ender's Game\"\n", getStoredFileContents(port, "edc4a871-dff2-4054-804e-d80075cf830a"));
     }
 
     /**
@@ -269,11 +300,10 @@ public class TableExportIT extends IntegrationTest {
     @Test
     public void jsonApiHappyPath2() throws InterruptedException, IOException {
 
-        AsyncDelayStoreTransaction.sleep = true;
-
         //Create TableExport Request
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
+                .header("sleep", "1000")
                 .body(
                         data(
                                 resource(
@@ -305,7 +335,7 @@ public class TableExportIT extends IntegrationTest {
                 + "{\"title\":\"For Whom the Bell Tolls\"}\n"
                 + ",{\"title\":\"Song of Ice and Fire\"}\n"
                 + ",{\"title\":\"Ender's Game\"}\n"
-                + "]\n", getStoredFileContents("edc4a871-dff2-4054-804e-d80075cf831a"));
+                + "]\n", getStoredFileContents(port, "edc4a871-dff2-4054-804e-d80075cf831a"));
 
     }
 
@@ -318,7 +348,6 @@ public class TableExportIT extends IntegrationTest {
     @Test
     public void graphQLHappyPath1() throws InterruptedException, IOException {
 
-        AsyncDelayStoreTransaction.sleep = true;
         TableExport queryObj = new TableExport();
         queryObj.setId("edc4a871-dff2-4054-804e-d80075cf828e");
         queryObj.setAsyncAfterSeconds(0);
@@ -350,6 +379,7 @@ public class TableExportIT extends IntegrationTest {
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
         ValidatableResponse response = given()
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("sleep", "1000")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
@@ -361,42 +391,18 @@ public class TableExportIT extends IntegrationTest {
                 + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
         assertEquals(expectedResponse, response.extract().body().asString());
 
-        int i = 0;
-        while (i < 1000) {
-            Thread.sleep(10);
-            String responseGraphQL = given()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .body("{\"query\":\"{ tableExport(ids: [\\\"edc4a871-dff2-4054-804e-d80075cf828e\\\"]) "
-                            + "{ edges { node { id queryType status result "
-                            + "{ url httpStatus recordCount } } } } }\","
-                            + "\"variables\":null}")
-                    .post("/graphQL")
-                    .asString();
-            // If Table Export is created and completed
-            if (responseGraphQL.contains("\"status\":\"COMPLETE\"")) {
+        String responseGraphQL = getGraphQLResponse("edc4a871-dff2-4054-804e-d80075cf828e");
+        expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
+                + "\"result\":{\"message\":null,\"url\":\"http://localhost:" + port + "/export/edc4a871-dff2-4054-804e-d80075cf828e\","
+                + "\"httpStatus\":200,\"recordCount\":3}}}]}}}";
 
-                expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
-                        + "\"result\":{\"url\":\"http://localhost:" + port + "/export/edc4a871-dff2-4054-804e-d80075cf828e\","
-                        + "\"httpStatus\":200,\"recordCount\":3}}}]}}}";
-
-                assertEquals(expectedResponse, responseGraphQL);
-                assertEquals("\"title\"\n"
-                        + "\"Ender's Game\"\n"
-                        + "\"Song of Ice and Fire\"\n"
-                        + "\"For Whom the Bell Tolls\"\n", getStoredFileContents("edc4a871-dff2-4054-804e-d80075cf828e"));
-                break;
-            } else if (!(responseGraphQL.contains("\"status\":\"PROCESSING\""))) {
-                fail("TableExport has failed.");
-                break;
-            }
-            i++;
-
-            if (i == 1000) {
-                fail("TableExport not completed.");
-            }
-        }
+        assertEquals(expectedResponse, responseGraphQL);
+        assertEquals("\"title\"\n"
+                + "\"Ender's Game\"\n"
+                + "\"Song of Ice and Fire\"\n"
+                + "\"For Whom the Bell Tolls\"\n", getStoredFileContents(port, "edc4a871-dff2-4054-804e-d80075cf828e"));
     }
+
     /**
      * Test for a GraphQL query as a TableExport Request with asyncAfterSeconds value set to 7.
      * Happy Path Test Scenario 2
@@ -406,7 +412,6 @@ public class TableExportIT extends IntegrationTest {
     @Test
     public void graphQLHappyPath2() throws InterruptedException, IOException {
 
-        AsyncDelayStoreTransaction.sleep = true;
         TableExport queryObj = new TableExport();
         queryObj.setId("edc4a871-dff2-4054-804e-d80075cf829e");
         queryObj.setAsyncAfterSeconds(7);
@@ -438,6 +443,7 @@ public class TableExportIT extends IntegrationTest {
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
         ValidatableResponse response = given()
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("sleep", "1000")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
@@ -468,7 +474,7 @@ public class TableExportIT extends IntegrationTest {
                 + "{\"title\":\"Ender's Game\"}\n"
                 + ",{\"title\":\"Song of Ice and Fire\"}\n"
                 + ",{\"title\":\"For Whom the Bell Tolls\"}\n"
-                + "]\n", getStoredFileContents("edc4a871-dff2-4054-804e-d80075cf829e"));
+                + "]\n", getStoredFileContents(port, "edc4a871-dff2-4054-804e-d80075cf829e"));
     }
 
     /**
@@ -592,41 +598,21 @@ public class TableExportIT extends IntegrationTest {
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_CREATED);
 
-        int i = 0;
-        while (i < 1000) {
-            Thread.sleep(10);
-            Response response = given()
-                    .accept("application/vnd.api+json")
-                    .get("/tableExport/ba31ca4e-ed8f-4be0-a0f3-12088fa9263b");
+        Response response = getJSONAPIResponse("ba31ca4e-ed8f-4be0-a0f3-12088fa9263b");
 
-            String outputResponse = response.jsonPath().getString("data.attributes.status");
+        // Validate TableExport Response
+        response
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263b"))
+                .body("data.type", equalTo("tableExport"))
+                .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
+                .body("data.attributes.status", equalTo("COMPLETE"))
+                .body("data.attributes.result.recordCount", nullValue())
+                .body("data.attributes.result.url", nullValue())
+                .body("data.attributes.result.message", equalTo("Unknown collection group"))
+                .body("data.attributes.result.httpStatus", equalTo(200));
 
-            // If TableExport is created and completed then validate results
-            if (outputResponse.equals("COMPLETE")) {
-                // Validate TableExport Response
-                response
-                        .then()
-                        .statusCode(HttpStatus.SC_OK)
-                        .body("data.id", equalTo("ba31ca4e-ed8f-4be0-a0f3-12088fa9263b"))
-                        .body("data.type", equalTo("tableExport"))
-                        .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
-                        .body("data.attributes.status", equalTo("COMPLETE"))
-                        .body("data.attributes.result.recordCount", nullValue())
-                        .body("data.attributes.result.url", nullValue())
-                        .body("data.attributes.result.message", equalTo("Unknown collection group"))
-                        .body("data.attributes.result.httpStatus", equalTo(200));
-
-                break;
-            } else if (!(outputResponse.equals("PROCESSING"))) {
-                fail("Table Export has failed.");
-                break;
-            }
-            i++;
-
-            if (i == 1000) {
-                fail("Table Export not completed.");
-            }
-        }
     }
 
     /**
@@ -657,41 +643,20 @@ public class TableExportIT extends IntegrationTest {
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_CREATED);
 
-        int i = 0;
-        while (i < 1000) {
-            Thread.sleep(10);
-            Response response = given()
-                    .accept("application/vnd.api+json")
-                    .get("/tableExport/ba31ca5e-ed8f-4be0-a0f3-12088fa9263b");
+        Response response = getJSONAPIResponse("ba31ca5e-ed8f-4be0-a0f3-12088fa9263b");
+        // Validate TableExport Response
+        response
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.id", equalTo("ba31ca5e-ed8f-4be0-a0f3-12088fa9263b"))
+                .body("data.type", equalTo("tableExport"))
+                .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
+                .body("data.attributes.status", equalTo("COMPLETE"))
+                .body("data.attributes.result.recordCount", nullValue())
+                .body("data.attributes.result.url", nullValue())
+                .body("data.attributes.result.message", equalTo("Unknown collection group"))
+                .body("data.attributes.result.httpStatus", equalTo(200));
 
-            String outputResponse = response.jsonPath().getString("data.attributes.status");
-
-            // If TableExport is created and completed then validate results
-            if (outputResponse.equals("COMPLETE")) {
-                // Validate TableExport Response
-                response
-                        .then()
-                        .statusCode(HttpStatus.SC_OK)
-                        .body("data.id", equalTo("ba31ca5e-ed8f-4be0-a0f3-12088fa9263b"))
-                        .body("data.type", equalTo("tableExport"))
-                        .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
-                        .body("data.attributes.status", equalTo("COMPLETE"))
-                        .body("data.attributes.result.recordCount", nullValue())
-                        .body("data.attributes.result.url", nullValue())
-                        .body("data.attributes.result.message", equalTo("Unknown collection group"))
-                        .body("data.attributes.result.httpStatus", equalTo(200));
-
-                break;
-            } else if (!(outputResponse.equals("PROCESSING"))) {
-                fail("Table Export has failed.");
-                break;
-            }
-            i++;
-
-            if (i == 1000) {
-                fail("Table Export not completed.");
-            }
-        }
     }
 
     /**
@@ -828,42 +793,20 @@ public class TableExportIT extends IntegrationTest {
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_CREATED);
 
-        int i = 0;
-        while (i < 1000) {
-            Thread.sleep(10);
-            Response response = given()
-                    .accept("application/vnd.api+json")
-                    .get("/tableExport/0b0dd4e6-9cdc-4bbc-8db2-5c1491c5ee1e");
-
-            String outputResponse = response.jsonPath().getString("data.attributes.status");
-
-            // If TableExport is created and completed
-            if (outputResponse.equals("COMPLETE")) {
-                // Validate TableExport Response
-                response
-                        .then()
-                        .statusCode(HttpStatus.SC_OK)
-                        .body("data.id", equalTo("0b0dd4e6-9cdc-4bbc-8db2-5c1491c5ee1e"))
-                        .body("data.type", equalTo("tableExport"))
-                        .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
-                        .body("data.attributes.status", equalTo("COMPLETE"))
-                        .body("data.attributes.result.recordCount", nullValue())
-                        .body("data.attributes.result.url", nullValue())
-                        .body("data.attributes.result.message",
-                                equalTo("Export is not supported for Query that requires traversing Relationships."))
-                        .body("data.attributes.result.httpStatus", equalTo(200));
-
-                break;
-            } else if (!(outputResponse.equals("PROCESSING"))) {
-                fail("Table Export has failed.");
-                break;
-            }
-            i++;
-
-            if (i == 1000) {
-                fail("Table Export not completed.");
-            }
-        }
+        Response response = getJSONAPIResponse("0b0dd4e6-9cdc-4bbc-8db2-5c1491c5ee1e");
+        // Validate TableExport Response
+        response
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.id", equalTo("0b0dd4e6-9cdc-4bbc-8db2-5c1491c5ee1e"))
+                .body("data.type", equalTo("tableExport"))
+                .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
+                .body("data.attributes.status", equalTo("COMPLETE"))
+                .body("data.attributes.result.recordCount", nullValue())
+                .body("data.attributes.result.url", nullValue())
+                .body("data.attributes.result.message",
+                        equalTo("Export is not supported for Query that requires traversing Relationships."))
+                .body("data.attributes.result.httpStatus", equalTo(200));
     }
 
     /**
@@ -873,7 +816,6 @@ public class TableExportIT extends IntegrationTest {
     @Test
     public void graphQLBadExportQueryFail() throws InterruptedException {
 
-        AsyncDelayStoreTransaction.sleep = true;
         TableExport queryObj = new TableExport();
         queryObj.setId("edc4a871-dff2-4054-804e-d80075df828e");
         queryObj.setAsyncAfterSeconds(0);
@@ -906,6 +848,7 @@ public class TableExportIT extends IntegrationTest {
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
         ValidatableResponse response = given()
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("sleep", "1000")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
@@ -917,37 +860,12 @@ public class TableExportIT extends IntegrationTest {
                 + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
         assertEquals(expectedResponse, response.extract().body().asString());
 
-        int i = 0;
-        while (i < 1000) {
-            Thread.sleep(10);
-            String responseGraphQL = given()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .body("{\"query\":\"{ tableExport(ids: [\\\"edc4a871-dff2-4054-804e-d80075df828e\\\"]) "
-                            + "{ edges { node { id queryType status result "
-                            + "{ message httpStatus recordCount } } } } }\","
-                            + "\"variables\":null}")
-                    .post("/graphQL")
-                    .asString();
-            // If TableExport is created and completed
-            if (responseGraphQL.contains("\"status\":\"COMPLETE\"")) {
+        String responseGraphQL = getGraphQLResponse("edc4a871-dff2-4054-804e-d80075df828e");
+        expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075df828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
+                + "\"result\":{\"message\":\"Bad Request Body'Can't parse query: { book { edges { node { title } } }'\",\"url\":null,"
+                + "\"httpStatus\":200,\"recordCount\":null}}}]}}}";
 
-                expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075df828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
-                        + "\"result\":{\"message\":\"Bad Request Body'Can't parse query: { book { edges { node { title } } }'\","
-                        + "\"httpStatus\":200,\"recordCount\":null}}}]}}}";
-
-                assertEquals(expectedResponse, responseGraphQL);
-                break;
-            } else if (!(responseGraphQL.contains("\"status\":\"PROCESSING\""))) {
-                fail("TableExport has failed.");
-                break;
-            }
-            i++;
-
-            if (i == 1000) {
-                fail("TableExport not completed.");
-            }
-        }
+        assertEquals(expectedResponse, responseGraphQL);
     }
 
     /**
@@ -957,7 +875,6 @@ public class TableExportIT extends IntegrationTest {
     @Test
     public void graphQLMultipleQueryFail() throws InterruptedException {
 
-        AsyncDelayStoreTransaction.sleep = true;
         TableExport queryObj = new TableExport();
         queryObj.setId("edc4a871-def2-4054-804e-d80075cf828e");
         queryObj.setAsyncAfterSeconds(0);
@@ -990,6 +907,7 @@ public class TableExportIT extends IntegrationTest {
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
         ValidatableResponse response = given()
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("sleep", "1000")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
@@ -1001,37 +919,12 @@ public class TableExportIT extends IntegrationTest {
                 + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
         assertEquals(expectedResponse, response.extract().body().asString());
 
-        int i = 0;
-        while (i < 1000) {
-            Thread.sleep(10);
-            String responseGraphQL = given()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .body("{\"query\":\"{ tableExport(ids: [\\\"edc4a871-def2-4054-804e-d80075cf828e\\\"]) "
-                            + "{ edges { node { id queryType status result "
-                            + "{ message httpStatus recordCount } } } } }\","
-                            + "\"variables\":null}")
-                    .post("/graphQL")
-                    .asString();
-            // If Table Export is created and completed
-            if (responseGraphQL.contains("\"status\":\"COMPLETE\"")) {
+        String responseGraphQL = getGraphQLResponse("edc4a871-def2-4054-804e-d80075cf828e");
+        expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-def2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
+                + "\"result\":{\"message\":\"Export is only supported for single Query with one root projection.\",\"url\":null,"
+                + "\"httpStatus\":200,\"recordCount\":null}}}]}}}";
 
-                expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-def2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
-                        + "\"result\":{\"message\":\"Export is only supported for single Query with one root projection.\","
-                        + "\"httpStatus\":200,\"recordCount\":null}}}]}}}";
-
-                assertEquals(expectedResponse, responseGraphQL);
-                break;
-            } else if (!(responseGraphQL.contains("\"status\":\"PROCESSING\""))) {
-                fail("TableExport has failed.");
-                break;
-            }
-            i++;
-
-            if (i == 1000) {
-                fail("TableExport not completed.");
-            }
-        }
+        assertEquals(expectedResponse, responseGraphQL);
     }
 
     /**
@@ -1041,7 +934,6 @@ public class TableExportIT extends IntegrationTest {
     @Test
     public void graphQLMultipleProjectionFail() throws InterruptedException {
 
-        AsyncDelayStoreTransaction.sleep = true;
         TableExport queryObj = new TableExport();
         queryObj.setId("edc4a871-daf2-4054-804e-d80075cf828e");
         queryObj.setAsyncAfterSeconds(0);
@@ -1074,6 +966,7 @@ public class TableExportIT extends IntegrationTest {
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
         ValidatableResponse response = given()
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("sleep", "1000")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
@@ -1085,37 +978,12 @@ public class TableExportIT extends IntegrationTest {
                 + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
         assertEquals(expectedResponse, response.extract().body().asString());
 
-        int i = 0;
-        while (i < 1000) {
-            Thread.sleep(10);
-            String responseGraphQL = given()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .body("{\"query\":\"{ tableExport(ids: [\\\"edc4a871-daf2-4054-804e-d80075cf828e\\\"]) "
-                            + "{ edges { node { id queryType status result "
-                            + "{ message httpStatus recordCount } } } } }\","
-                            + "\"variables\":null}")
-                    .post("/graphQL")
-                    .asString();
-            // If Table Export is created and completed
-            if (responseGraphQL.contains("\"status\":\"COMPLETE\"")) {
+        String responseGraphQL = getGraphQLResponse("edc4a871-daf2-4054-804e-d80075cf828e");
+        expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-daf2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
+                + "\"result\":{\"message\":\"Export is only supported for single Query with one root projection.\",\"url\":null,"
+                + "\"httpStatus\":200,\"recordCount\":null}}}]}}}";
 
-                expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-daf2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
-                        + "\"result\":{\"message\":\"Export is only supported for single Query with one root projection.\","
-                        + "\"httpStatus\":200,\"recordCount\":null}}}]}}}";
-
-                assertEquals(expectedResponse, responseGraphQL);
-                break;
-            } else if (!(responseGraphQL.contains("\"status\":\"PROCESSING\""))) {
-                fail("TableExport has failed.");
-                break;
-            }
-            i++;
-
-            if (i == 1000) {
-                fail("TableExport not completed.");
-            }
-        }
+        assertEquals(expectedResponse, responseGraphQL);
     }
 
     /**
@@ -1125,7 +993,6 @@ public class TableExportIT extends IntegrationTest {
     @Test
     public void graphQLRelationshipFetchFail() throws InterruptedException {
 
-        AsyncDelayStoreTransaction.sleep = true;
         TableExport queryObj = new TableExport();
         queryObj.setId("edc4a871-dbf2-4054-804e-d80075cf828e");
         queryObj.setAsyncAfterSeconds(0);
@@ -1157,6 +1024,7 @@ public class TableExportIT extends IntegrationTest {
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
         ValidatableResponse response = given()
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("sleep", "1000")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
@@ -1168,37 +1036,12 @@ public class TableExportIT extends IntegrationTest {
                 + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
         assertEquals(expectedResponse, response.extract().body().asString());
 
-        int i = 0;
-        while (i < 1000) {
-            Thread.sleep(10);
-            String responseGraphQL = given()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .body("{\"query\":\"{ tableExport(ids: [\\\"edc4a871-dbf2-4054-804e-d80075cf828e\\\"]) "
-                            + "{ edges { node { id queryType status result "
-                            + "{ message httpStatus recordCount } } } } }\","
-                            + "\"variables\":null}")
-                    .post("/graphQL")
-                    .asString();
-            // If Table Export is created and completed
-            if (responseGraphQL.contains("\"status\":\"COMPLETE\"")) {
+        String responseGraphQL = getGraphQLResponse("edc4a871-dbf2-4054-804e-d80075cf828e");
+        expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dbf2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
+                + "\"result\":{\"message\":\"Export is not supported for Query that requires traversing Relationships.\",\"url\":null,"
+                + "\"httpStatus\":200,\"recordCount\":null}}}]}}}";
 
-                expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dbf2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
-                        + "\"result\":{\"message\":\"Export is not supported for Query that requires traversing Relationships.\","
-                        + "\"httpStatus\":200,\"recordCount\":null}}}]}}}";
-
-                assertEquals(expectedResponse, responseGraphQL);
-                break;
-            } else if (!(responseGraphQL.contains("\"status\":\"PROCESSING\""))) {
-                fail("TableExport has failed.");
-                break;
-            }
-            i++;
-
-            if (i == 1000) {
-                fail("TableExport not completed.");
-            }
-        }
+        assertEquals(expectedResponse, responseGraphQL);
     }
 
     /**
@@ -1209,13 +1052,10 @@ public class TableExportIT extends IntegrationTest {
      */
     @Test
     public void noReadEntityTests() throws InterruptedException, IOException {
-        // Load Forbidden Book details
-        Resource bannedBook = resource(
-                type("forbiddenBook"),
+        Resource noRead = resource(
+                type("noread"),
                 attributes(
-                        attr("title", "Banned Book"),
-                        attr("genre", "Literary Fiction"),
-                        attr("language", "English")
+                        attr("field", "No Read")
                 )
         );
 
@@ -1223,9 +1063,9 @@ public class TableExportIT extends IntegrationTest {
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(
-                        datum(bannedBook).toJSON()
+                        datum(noRead).toJSON()
                 )
-                .post("/forbiddenBook")
+                .post("/noread")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED);
 
@@ -1238,7 +1078,7 @@ public class TableExportIT extends IntegrationTest {
                                         type("tableExport"),
                                         id("0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e"),
                                         attributes(
-                                                attr("query", "/forbiddenBook"),
+                                                attr("query", "/noread?fields%5Bnoread%5D=field"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
                                                 attr("asyncAfterSeconds", "10"),
@@ -1251,46 +1091,26 @@ public class TableExportIT extends IntegrationTest {
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_CREATED);
 
-        int i = 0;
-        while (i < 1000) {
-            Thread.sleep(10);
-            Response response = given()
-                    .accept("application/vnd.api+json")
-                    .get("/tableExport/0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e");
+        Response response = getJSONAPIResponse("0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e");
 
-            String outputResponse = response.jsonPath().getString("data.attributes.status");
+        // Validate TableExport Response
+        response
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.id", equalTo("0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e"))
+                .body("data.type", equalTo("tableExport"))
+                .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
+                .body("data.attributes.status", equalTo("COMPLETE"))
+                .body("data.attributes.result.recordCount", equalTo(0))
+                .body("data.attributes.result.url", notNullValue())
+                .body("data.attributes.result.message", nullValue())
+                .body("data.attributes.result.httpStatus", equalTo(200));
 
-            // If TableExport is created and completed
-            if (outputResponse.equals("COMPLETE")) {
-                // Validate TableExport Response
-                response
-                        .then()
-                        .statusCode(HttpStatus.SC_OK)
-                        .body("data.id", equalTo("0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e"))
-                        .body("data.type", equalTo("tableExport"))
-                        .body("data.attributes.queryType", equalTo("JSONAPI_V1_0"))
-                        .body("data.attributes.status", equalTo("COMPLETE"))
-                        .body("data.attributes.result.recordCount", equalTo(0))
-                        .body("data.attributes.result.url", notNullValue())
-                        .body("data.attributes.result.message", nullValue())
-                        .body("data.attributes.result.httpStatus", equalTo(200));
+        // Only Header in the file, no records.
+        String fileContents = getStoredFileContents(port, "0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e");
 
-                // Only Header in the file, no records.
-                String fileContents = getStoredFileContents("0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e");
-
-                assertEquals(1, fileContents.split("\n").length);
-                assertTrue(fileContents.contains("genre"));
-                break;
-            } else if (!(outputResponse.equals("PROCESSING"))) {
-                fail("Table Export has failed.");
-                break;
-            }
-            i++;
-
-            if (i == 1000) {
-                fail("Table Export not completed.");
-            }
-        }
+        assertEquals(1, fileContents.split("\n").length);
+        assertTrue(fileContents.contains("field"));
     }
 
     /**
@@ -1383,11 +1203,11 @@ public class TableExportIT extends IntegrationTest {
     @Test
     public void asyncAfterBeyondMax() throws InterruptedException {
         String expected = "{\"errors\":[{\"detail\":\"Invalid value: Invalid Async After Seconds\"}]}";
-        AsyncDelayStoreTransaction.sleep = true;
 
         //Create Async Request
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
+                .header("sleep", "1000")
                 .body(
                         data(
                                 resource(
@@ -1410,15 +1230,6 @@ public class TableExportIT extends IntegrationTest {
 
     }
 
-    /**
-     * Reset sleep delay flag after each test.
-     */
-    @AfterEach
-    public void sleepDelayReset() {
-
-        AsyncDelayStoreTransaction.sleep = false;
-    }
-
     private JsonNode toJsonNode(String query, Map<String, Object> variables) {
         ObjectNode graphqlNode = JsonNodeFactory.instance.objectNode();
         graphqlNode.put("query", query);
@@ -1428,14 +1239,12 @@ public class TableExportIT extends IntegrationTest {
         return graphqlNode;
     }
 
-    private String getStoredFileContents(String id) throws IOException {
-        StringBuilder lines = new StringBuilder();
-
-        try (Stream<String> stream = StreamSupport.stream(
-                Files.readLines(new File("/tmp/" + id), StandardCharsets.UTF_8).spliterator(), false)) {
-            stream.forEach(line -> lines.append(line).append(System.getProperty("line.separator")));
-        }
-
-        return lines.toString();
+    private String getStoredFileContents(Integer port, String id) {
+        return given()
+                .when()
+                .get("http://localhost:" + port + "/export/" + id)
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().asString();
     }
 }

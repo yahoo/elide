@@ -18,19 +18,31 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AsyncDelayStoreTransaction extends TransactionWrapper {
 
+    // TODO: Update AsyncIT and remove.
     private Integer testDelay;
     protected static Boolean sleep = false;
 
+    // TODO: Update AsyncIT and remove.
     public AsyncDelayStoreTransaction(DataStoreTransaction tx, Integer testDelay) {
 
         super(tx);
         this.testDelay = testDelay;
     }
+
+    public AsyncDelayStoreTransaction(DataStoreTransaction tx) {
+
+        super(tx);
+    }
+
     @Override
     public Iterable<Object> loadObjects(EntityProjection entityProjection, RequestScope scope) {
         try {
             log.debug("LoadObjects Sleep for delay test");
-            if (sleep) {
+
+            String sleepTime = scope.getRequestHeaders().get("sleep").get(0);
+            if (sleepTime != null && !sleepTime.isEmpty()) {
+                Thread.sleep(Integer.parseInt(sleepTime));
+            } else if (sleep) {
                 Thread.sleep(testDelay);
             }
         } catch (InterruptedException e) {

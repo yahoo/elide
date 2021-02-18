@@ -33,15 +33,16 @@ public class GraphQLAsyncQueryOperation extends AsyncQueryOperation {
     }
 
     @Override
-    public ElideResponse execute(AsyncAPI queryObj, User user,
-            String apiVersion) throws URISyntaxException {
+    public ElideResponse execute(AsyncAPI queryObj, RequestScope scope) throws URISyntaxException {
+        User user = scope.getUser();
+        String apiVersion = scope.getApiVersion();
         QueryRunner runner = getService().getRunners().get(apiVersion);
         if (runner == null) {
             throw new InvalidOperationException("Invalid API Version");
         }
         UUID requestUUID = UUID.fromString(queryObj.getRequestId());
         //TODO - we need to add the baseUrlEndpoint to the queryObject.
-        ElideResponse response = runner.run("", queryObj.getQuery(), user, requestUUID);
+        ElideResponse response = runner.run("", queryObj.getQuery(), user, requestUUID, scope.getRequestHeaders());
         log.debug("GRAPHQL_V1_0 getResponseCode: {}, GRAPHQL_V1_0 getBody: {}",
                 response.getResponseCode(), response.getBody());
         return response;

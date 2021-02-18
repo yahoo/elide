@@ -37,16 +37,19 @@ public class JSONAPIAsyncQueryOperation extends AsyncQueryOperation {
     }
 
     @Override
-    public ElideResponse execute(AsyncAPI queryObj, User user, String apiVersion)
+    public ElideResponse execute(AsyncAPI queryObj, RequestScope scope)
             throws URISyntaxException {
         Elide elide = getService().getElide();
+        User user = scope.getUser();
+        String apiVersion = scope.getApiVersion();
         UUID requestUUID = UUID.fromString(queryObj.getRequestId());
         URIBuilder uri = new URIBuilder(queryObj.getQuery());
         MultivaluedMap<String, String> queryParams = getQueryParams(uri);
         log.debug("Extracted QueryParams from AsyncQuery Object: {}", queryParams);
 
         //TODO - we need to add the baseUrlEndpoint to the queryObject.
-        ElideResponse response = elide.get("", getPath(uri), queryParams, user, apiVersion, requestUUID);
+        ElideResponse response = elide.get("", getPath(uri), queryParams, scope.getRequestHeaders(), user, apiVersion,
+                requestUUID);
         log.debug("JSONAPI_V1_0 getResponseCode: {}, JSONAPI_V1_0 getBody: {}",
                 response.getResponseCode(), response.getBody());
         return response;
