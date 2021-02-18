@@ -86,9 +86,7 @@
         <version.junit>5.7.1</version.junit>
         <version.junit.platform>1.7.1</version.junit.platform>
         <hibernate3.version>3.6.10.Final</hibernate3.version>
-        <version.mysql>8.0.22</version.mysql>
         <hibernate5.version>5.4.25.Final</hibernate5.version>
-        <version.mysql>8.0.20</version.mysql>
         <slf4j-api.version>1.7.30</slf4j-api.version>
 
         <!-- TODO: Need to update locations to be relative to the projects using them -->
@@ -153,11 +151,6 @@
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-continuation</artifactId>
                 <version>${version.jetty}</version>
-            </dependency>
-            <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
-                <version>${version.mysql}</version>
             </dependency>
 
             <!-- Test dependencies -->
