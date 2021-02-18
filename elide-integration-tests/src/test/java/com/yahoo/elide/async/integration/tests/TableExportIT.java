@@ -509,6 +509,7 @@ public class TableExportIT extends IntegrationTest {
         queryObj.setId("edc4a871-dff2-4054-804e-d80075cf839e");
         queryObj.setAsyncAfterSeconds(0);
         queryObj.setQueryType("GRAPHQL_V1_0");
+        // Status should be QUEUED during submission.
         queryObj.setStatus("PROCESSING");
         queryObj.setResultType("CSV");
         queryObj.setQuery("{\"query\":\"{ book { edges { node { id title } } } }\",\"variables\":null}");
@@ -557,6 +558,7 @@ public class TableExportIT extends IntegrationTest {
         queryObj.setAsyncAfterSeconds(0);
         queryObj.setQueryType("GRAPHQL_V1_0");
         queryObj.setStatus("QUEUED");
+        // XLS is not supported.
         queryObj.setResultType("XLS");
         queryObj.setQuery("{\"query\":\"{ book { edges { node { id title } } } }\",\"variables\":null}");
         String graphQLRequest = document(
@@ -608,6 +610,7 @@ public class TableExportIT extends IntegrationTest {
                                         type("tableExport"),
                                         id("ba31ca4e-ed8f-4be0-a0f3-12088fa9263b"),
                                         attributes(
+                                                // entity "group" does not exist.
                                                 attr("query", "/group?sort=genre&fields%5Bgroup%5D=title"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
@@ -694,6 +697,7 @@ public class TableExportIT extends IntegrationTest {
         queryObj.setQueryType("GRAPHQL_V1_0");
         queryObj.setStatus("QUEUED");
         queryObj.setResultType("CSV");
+        // entity "group" does not exist.
         queryObj.setQuery("{\"query\":\"{ group { edges { node { title } } } }\",\"variables\":null}");
         String graphQLRequest = document(
                 mutation(
@@ -754,7 +758,7 @@ public class TableExportIT extends IntegrationTest {
     @Test
     public void jsonApiBadRequestTests() throws InterruptedException {
 
-        //JSON API bad request
+        //JSON API bad request, ba31ca4e-ed8f-4be0-a0f3-12088fa9263a does not exist.
         given()
                 .accept("application/vnd.api+json")
                 .get("/tableExport/ba31ca4e-ed8f-4be0-a0f3-12088fa9263a")
@@ -771,7 +775,7 @@ public class TableExportIT extends IntegrationTest {
     @Test
     public void graphQLBadRequestTests() throws InterruptedException {
 
-      //GRAPHQL bad request
+      //GRAPHQL bad request, ba31ca4e-ed8f-4be0-a0f3-12088fa9263a does not exist.
         given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
@@ -803,6 +807,7 @@ public class TableExportIT extends IntegrationTest {
                                         type("tableExport"),
                                         id("0b0dd4e6-9cdc-4bbc-8db2-5c1491c5ee1e"),
                                         attributes(
+                                                // Fetching Book with all fields including relationships.
                                                 attr("query", "/book"),
                                                 attr("queryType", "JSONAPI_V1_0"),
                                                 attr("status", "QUEUED"),
@@ -1022,6 +1027,7 @@ public class TableExportIT extends IntegrationTest {
         queryObj.setQueryType("GRAPHQL_V1_0");
         queryObj.setStatus("QUEUED");
         queryObj.setResultType("CSV");
+        // Fetching relationship "authors"
         queryObj.setQuery("{\"query\":\"{ book { edges { node { title authors {edges { node { name } } } } } } }\", \"variables\":null}");
         String graphQLRequest = document(
                  mutation(
