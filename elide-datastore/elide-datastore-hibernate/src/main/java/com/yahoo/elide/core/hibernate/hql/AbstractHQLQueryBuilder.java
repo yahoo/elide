@@ -298,7 +298,7 @@ public abstract class AbstractHQLQueryBuilder {
     /**
      * Returns whether filter expression contains toMany relationship.
      * @param filterExpression
-     * @return
+     * @return true or false
      */
     protected boolean containsOneToMany(FilterExpression filterExpression) {
         PredicateExtractionVisitor visitor = new PredicateExtractionVisitor(new ArrayList<>());
