@@ -38,7 +38,7 @@ public class MatchesTemplateVisitorTest {
         FilterExpression clientExpression = dialect.parseFilterExpression("highScore==123",
                 playerStatsType, true);
 
-        FilterExpression templateExpression = dialect.parseFilterExpression("highScore=={{variable}}",
+        FilterExpression templateExpression = dialect.parseFilterExpression("highScore=={{}}",
                 playerStatsType, false, true);
 
         assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));

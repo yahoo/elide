@@ -23,7 +23,7 @@ import lombok.AllArgsConstructor;
  */
 @AllArgsConstructor
 public class MatchesTemplateVisitor implements FilterExpressionVisitor<Boolean> {
-    private static final String TEMPLATE_REGEX = "\\{\\{\\w+}\\}";
+    private static final String TEMPLATE_REGEX = "\\{\\{\\w*\\}\\}";
 
     private FilterExpression expressionToMatch;
 
