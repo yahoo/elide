@@ -113,7 +113,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
 
                 // Create ResultStorageEngine
                 Path storageDestination = (Path) servletContext.getAttribute(STORAGE_DESTINATION_ATTR);
-                if (storageDestination != null) {
+                if (storageDestination != null) { // TableExport is enabled
                     ResultStorageEngine resultStorageEngine = new FileResultStorageEngine(storageDestination.toAbsolutePath().toString());
                     bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
 
