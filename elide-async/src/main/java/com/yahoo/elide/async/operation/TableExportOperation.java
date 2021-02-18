@@ -21,7 +21,6 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.request.EntityProjection;
-import com.yahoo.elide.core.security.User;
 
 import io.reactivex.Observable;
 import lombok.Getter;
@@ -71,7 +70,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
         TableExportResult exportResult = new TableExportResult();
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
 
-            RequestScope requestScope = getRequestScope(exportObj, scope.getUser(), apiVersion, tx);
+            RequestScope requestScope = getRequestScope(exportObj, scope, tx);
             Collection<EntityProjection> projections = getProjections(exportObj, requestScope);
             validateProjections(projections);
             EntityProjection projection = projections.iterator().next();
@@ -138,8 +137,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
 
             //TODO - we need to add the baseUrlEndpoint to the queryObject.
             //TODO - Can we have projectionInfo as null?
-            RequestScope exportRequestScope = getRequestScope(exportObj, scope.getUser(),
-                    scope.getApiVersion(), tx);
+            RequestScope exportRequestScope = getRequestScope(exportObj, scope, tx);
             exportRequestScope.setEntityProjection(projection);
 
             if (projection != null) {
@@ -170,15 +168,13 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
     }
 
     /**
-     * Initialize and get RequestScope.
+     * Initializes a new RequestScope for the export operation with the submitted query.
      * @param exportObj TableExport type object.
-     * @param user User Object.
-     * @param apiVersion API Version.
+     * @param scope RequestScope from the original submission.
      * @param tx DataStoreTransaction.
      * @return RequestScope Type Object
      */
-    public abstract RequestScope getRequestScope(TableExport exportObj, User user,
-            String apiVersion, DataStoreTransaction tx);
+    public abstract RequestScope getRequestScope(TableExport exportObj, RequestScope scope, DataStoreTransaction tx);
 
     /**
      * Generate Download URL.
@@ -187,7 +183,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
      * @return URL generated.
      */
     public String generateDownloadURL(TableExport exportObj, RequestScope scope) {
-        String downloadPath =  scope.getElideSettings().getDownloadApiPath();
+        String downloadPath =  scope.getElideSettings().getExportApiPath();
         String baseURL = scope.getBaseUrlEndPoint();
         return baseURL + downloadPath + "/" + exportObj.getId();
     }

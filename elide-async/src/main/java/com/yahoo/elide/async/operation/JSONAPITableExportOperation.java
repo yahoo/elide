@@ -43,8 +43,10 @@ public class JSONAPITableExportOperation extends TableExportOperation {
     }
 
     @Override
-    public RequestScope getRequestScope(TableExport export, User user, String apiVersion, DataStoreTransaction tx) {
+    public RequestScope getRequestScope(TableExport export, RequestScope scope, DataStoreTransaction tx) {
         UUID requestId = UUID.fromString(export.getRequestId());
+        User user = scope.getUser();
+        String apiVersion = scope.getApiVersion();
         URIBuilder uri;
         try {
             uri = new URIBuilder(export.getQuery());
@@ -53,7 +55,7 @@ public class JSONAPITableExportOperation extends TableExportOperation {
         }
         MultivaluedMap<String, String> queryParams = JSONAPIAsyncQueryOperation.getQueryParams(uri);
         return new RequestScope("", JSONAPIAsyncQueryOperation.getPath(uri), apiVersion, null, tx, user, queryParams,
-                Collections.emptyMap(), requestId, getService().getElide().getElideSettings());
+                scope.getRequestHeaders(), requestId, getService().getElide().getElideSettings());
     }
 
     @Override

@@ -123,7 +123,7 @@ public interface ElideStandaloneSettings {
                 .withAuditLogger(getAuditLogger());
 
         if (getAsyncProperties().enableExport()) {
-            builder.withDownloadApiPath(getAsyncProperties().getExportApiPathSpec().replaceAll("/\\*", ""));
+            builder.withExportApiPath(getAsyncProperties().getExportApiPathSpec().replaceAll("/\\*", ""));
         }
 
         if (enableISO8601Dates()) {

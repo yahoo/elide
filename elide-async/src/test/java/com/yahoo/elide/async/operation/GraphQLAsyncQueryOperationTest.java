@@ -63,7 +63,7 @@ public class GraphQLAsyncQueryOperationTest {
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
 
-        when(runner.run(any(), any(), any(), any())).thenReturn(response);
+        when(runner.run(any(), any(), any(), any(), any())).thenReturn(response);
         GraphQLAsyncQueryOperation graphQLOperation = new GraphQLAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
         AsyncQueryResult queryResultObj = (AsyncQueryResult) graphQLOperation.call();
         assertEquals(responseBody, queryResultObj.getResponseBody());
@@ -82,7 +82,7 @@ public class GraphQLAsyncQueryOperationTest {
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.GRAPHQL_V1_0);
 
-        when(runner.run(any(), any(), any(), any())).thenReturn(response);
+        when(runner.run(any(), any(), any(), any(), any())).thenReturn(response);
         GraphQLAsyncQueryOperation graphQLOperation = new GraphQLAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
         AsyncQueryResult queryResultObj = (AsyncQueryResult) graphQLOperation.call();
         assertEquals(responseBody, queryResultObj.getResponseBody());

@@ -56,7 +56,7 @@ public class ElideSettingsBuilder {
     private String baseUrl = "";
     private String jsonApiPath;
     private String graphQLApiPath;
-    private String downloadApiPath;
+    private String exportApiPath;
 
     /**
      * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
@@ -112,7 +112,7 @@ public class ElideSettingsBuilder {
                 baseUrl,
                 jsonApiPath,
                 graphQLApiPath,
-                downloadApiPath);
+                exportApiPath);
     }
 
     public ElideSettingsBuilder withAuditLogger(AuditLogger auditLogger) {
@@ -212,8 +212,8 @@ public class ElideSettingsBuilder {
         return this;
     }
 
-    public ElideSettingsBuilder withDownloadApiPath(String downloadApiPath) {
-        this.downloadApiPath = downloadApiPath;
+    public ElideSettingsBuilder withExportApiPath(String exportApiPath) {
+        this.exportApiPath = exportApiPath;
         return this;
     }
 

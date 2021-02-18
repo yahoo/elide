@@ -18,9 +18,14 @@ public class AsyncDelayDataStore implements DataStore {
     private DataStore delayStore;
     private Integer testDelay;
 
+    // TODO remove testDelay in this class.
     public AsyncDelayDataStore(DataStore delayStore, Integer testDelay) {
         this.delayStore = delayStore;
         this.testDelay = testDelay;
+    }
+
+    public AsyncDelayDataStore(DataStore delayStore) {
+        this.delayStore = delayStore;
     }
 
     @Override
