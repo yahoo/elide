@@ -8,6 +8,7 @@ package com.yahoo.elide.initialization;
 import static io.restassured.RestAssured.get;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.exceptions.HttpStatus;
@@ -26,6 +27,7 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.TestInstance;
+
 import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,6 +46,7 @@ public abstract class IntegrationTest {
     protected final ObjectMapper mapper = new ObjectMapper();
     protected DataStore dataStore = null;
     private Server server = null;
+    protected final ServletContextHandler servletContextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
 
     private final String resourceConfig;
     private String packageName;
@@ -110,16 +113,14 @@ public abstract class IntegrationTest {
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
         // port randomly picked in pom.xml
-        String restassuredPort = System.getProperty("restassured.port", System.getenv("restassured.port"));
-        RestAssured.port =
-                Integer.parseInt(StringUtils.isNotEmpty(restassuredPort) ? restassuredPort : "9999");
+        RestAssured.port = getPort();
 
         // embedded jetty server
         Server server = new Server(RestAssured.port);
-        final ServletContextHandler servletContextHandler =
-                new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
         servletContextHandler.setContextPath("/");
         server.setHandler(servletContextHandler);
+
+        modifyServletContextHandler();
 
         final ServletHolder servletHolder = servletContextHandler.addServlet(ServletContainer.class, "/*");
         servletHolder.setInitOrder(1);
@@ -167,5 +168,14 @@ public abstract class IntegrationTest {
         } catch (IOException e) {
             fail("\n" + actual + "\n" + expected + "\n", e);
         }
+    }
+
+    public static Integer getPort() {
+        String restassuredPort = System.getProperty("restassured.port", System.getenv("restassured.port"));
+        return Integer.parseInt(StringUtils.isNotEmpty(restassuredPort) ? restassuredPort : "9999");
+    }
+
+    public void modifyServletContextHandler() {
+        // Do Nothing
     }
 }

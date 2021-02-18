@@ -72,7 +72,7 @@ public class GraphQLTableExportOperationTest {
                     new ElideSettingsBuilder(dataStore)
                         .withEntityDictionary(new EntityDictionary(map))
                         .withAuditLogger(new Slf4jLogger())
-                        .withDownloadApiPath("/export")
+                        .withExportApiPath("/export")
                         .build());
         user = mock(User.class);
         requestScope = mock(RequestScope.class);

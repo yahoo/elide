@@ -52,7 +52,7 @@ public class JSONAPIAsyncQueryOperationTest {
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
 
-        when(elide.get(any(), any(), any(), any(), any(), any())).thenReturn(response);
+        when(elide.get(any(), any(), any(), any(), any(), any(), any())).thenReturn(response);
         JSONAPIAsyncQueryOperation jsonOperation = new JSONAPIAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
         AsyncQueryResult queryResultObj = (AsyncQueryResult) jsonOperation.call();
         assertEquals(responseBody, queryResultObj.getResponseBody());
@@ -71,7 +71,7 @@ public class JSONAPIAsyncQueryOperationTest {
         queryObj.setQuery(query);
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
 
-        when(elide.get(any(), any(), any(), any(), any(), any())).thenReturn(response);
+        when(elide.get(any(), any(), any(), any(), any(), any(), any())).thenReturn(response);
         JSONAPIAsyncQueryOperation jsonOperation = new JSONAPIAsyncQueryOperation(asyncExecutorService, queryObj, requestScope);
         AsyncQueryResult queryResultObj = (AsyncQueryResult) jsonOperation.call();
         assertEquals(responseBody, queryResultObj.getResponseBody());

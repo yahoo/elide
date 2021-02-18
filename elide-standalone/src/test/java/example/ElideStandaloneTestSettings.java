@@ -41,7 +41,7 @@ public class ElideStandaloneTestSettings implements ElideStandaloneSettings {
                 .withAuditLogger(getAuditLogger())
                 .withJsonApiPath(getJsonApiPathSpec().replaceAll("/\\*", ""))
                 .withGraphQLApiPath(getGraphQLApiPathSpec().replaceAll("/\\*", ""))
-                .withDownloadApiPath(getAsyncProperties().getExportApiPathSpec().replaceAll("/\\*", ""));
+                .withExportApiPath(getAsyncProperties().getExportApiPathSpec().replaceAll("/\\*", ""));
 
         if (enableISO8601Dates()) {
             builder = builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));

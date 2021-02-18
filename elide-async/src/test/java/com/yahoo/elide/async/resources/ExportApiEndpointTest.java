@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package example;
+package com.yahoo.elide.async.resources;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -11,10 +11,9 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.yahoo.elide.async.resources.ExportApiEndpoint.ExportApiProperties;
 import com.yahoo.elide.async.service.storageengine.FileResultStorageEngine;
 import com.yahoo.elide.async.service.storageengine.ResultStorageEngine;
-import com.yahoo.elide.standalone.resources.ExportApiEndpoint;
-import com.yahoo.elide.standalone.resources.ExportApiEndpoint.ExportApiProperties;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

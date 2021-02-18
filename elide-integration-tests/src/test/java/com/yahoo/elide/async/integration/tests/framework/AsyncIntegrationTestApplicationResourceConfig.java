@@ -13,10 +13,17 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.async.export.formatter.CSVExportFormatter;
+import com.yahoo.elide.async.export.formatter.JSONExportFormatter;
+import com.yahoo.elide.async.export.formatter.TableExportFormatter;
 import com.yahoo.elide.async.hooks.AsyncQueryHook;
+import com.yahoo.elide.async.hooks.TableExportHook;
 import com.yahoo.elide.async.integration.tests.AsyncIT;
 import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.async.models.ResultType;
+import com.yahoo.elide.async.models.TableExport;
 import com.yahoo.elide.async.models.security.AsyncAPIInlineChecks;
+import com.yahoo.elide.async.resources.ExportApiEndpoint.ExportApiProperties;
 import com.yahoo.elide.async.service.AsyncCleanerService;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.async.service.dao.AsyncAPIDAO;
@@ -37,17 +44,22 @@ import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 
 import javax.inject.Inject;
+import javax.servlet.ServletContext;
+import javax.ws.rs.core.Context;
 
 public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfig {
     public static final InMemoryLogger LOGGER = new InMemoryLogger();
+    public static final String ASYNC_EXECUTOR_ATTR = "asyncExecutor";
+    public static final String STORAGE_DESTINATION_ATTR = "storageDestination";
 
     public static final Map<String, Class<? extends Check>> MAPPINGS = defineMappings();
 
@@ -65,7 +77,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
     }
 
     @Inject
-    public AsyncIntegrationTestApplicationResourceConfig(ServiceLocator injector) {
+    public AsyncIntegrationTestApplicationResourceConfig(ServiceLocator injector, @Context ServletContext servletContext) {
         // Bind to injector
         register(new AbstractBinder() {
             @Override
@@ -88,17 +100,38 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                         .withSubqueryFilterDialect(multipleFilterStrategy)
                         .withEntityDictionary(dictionary)
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
+                        .withExportApiPath("/export")
                         .build());
                 bind(elide).to(Elide.class).named("elide");
 
                 AsyncAPIDAO asyncAPIDao = new DefaultAsyncAPIDAO(elide.getElideSettings(), elide.getDataStore());
                 bind(asyncAPIDao).to(AsyncAPIDAO.class);
 
-                // TODO Pass resultStorageEngine to TableExportHook
-                ResultStorageEngine resultStorageEngine =
-                        new FileResultStorageEngine(System.getProperty("java.io.tmpDir"));
+                ExecutorService executorService = (ExecutorService) servletContext.getAttribute(ASYNC_EXECUTOR_ATTR);
                 AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide,
-                                Executors.newFixedThreadPool(5), Executors.newFixedThreadPool(5), asyncAPIDao);
+                        executorService, executorService, asyncAPIDao);
+
+                // Create ResultStorageEngine
+                Path storageDestination = (Path) servletContext.getAttribute(STORAGE_DESTINATION_ATTR);
+                if (storageDestination != null) { // TableExport is enabled
+                    ResultStorageEngine resultStorageEngine = new FileResultStorageEngine(storageDestination.toAbsolutePath().toString());
+                    bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
+
+                    Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<ResultType,
+                            TableExportFormatter>();
+                    supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide, false));
+                    supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
+
+                    // Binding TableExport LifeCycleHook
+                    TableExportHook tableExportHook = new TableExportHook(asyncExecutorService, 10, supportedFormatters,
+                            resultStorageEngine);
+                    dictionary.bindTrigger(TableExport.class, READ, PRESECURITY, tableExportHook, false);
+                    dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
+                    dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);
+
+                    ExportApiProperties exportApiProperties = new ExportApiProperties(executorService, 10);
+                    bind(exportApiProperties).to(ExportApiProperties.class).named("exportApiProperties");
+                }
 
                 BillingService billingService = new BillingService() {
                     @Override

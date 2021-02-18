@@ -152,7 +152,7 @@ public class ElideAutoConfiguration {
         if (settings.getAsync() != null
                 && settings.getAsync().getExport() != null
                 && settings.getAsync().getExport().isEnabled()) {
-            builder.withDownloadApiPath(settings.getAsync().getExport().getPath());
+            builder.withExportApiPath(settings.getAsync().getExport().getPath());
         }
 
         if (settings.getJsonApi() != null
