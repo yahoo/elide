@@ -10,6 +10,7 @@ import lombok.Data;
 import java.net.URL;
 
 import javax.persistence.Embeddable;
+import javax.persistence.Lob;
 
 /**
  * Model for Table Export Result.
@@ -19,5 +20,6 @@ import javax.persistence.Embeddable;
 public class TableExportResult extends AsyncAPIResult {
     private URL url;
 
+    @Lob
     private String message;
 }
