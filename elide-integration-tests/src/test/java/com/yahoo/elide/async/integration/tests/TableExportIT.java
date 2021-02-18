@@ -591,7 +591,6 @@ public class TableExportIT extends IntegrationTest {
                 .statusCode(org.apache.http.HttpStatus.SC_OK);
 
         String output = response.extract().body().asString();
-        System.out.println(output);
         assertEquals(true, output.contains("errors"));
         assertEquals(true, output.contains("Validation error of type WrongType: argument &#39;data.resultType&#39;"));
     }
