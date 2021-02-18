@@ -469,16 +469,21 @@ public class RSQLFilterDialectTest {
     }
 
     @Test
-    public void testMemberOfOperatorException() throws Exception {
+    public void testMemberOfToManyRelationship() throws Exception {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
 
         queryParams.add(
                 "filter",
-                "authors.name=hasmember=0"
+                "authors.name=hasmember='0'"
         );
 
-        assertThrows(ParseException.class,
-                () -> dialect.parseTypedExpression("/book", queryParams, NO_VERSION));
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
+        assertEquals("book.authors.name HASMEMBER [0]", expression.toString());
+    }
+
+    @Test
+    public void testMemberOfOperatorOnNonCollectionAttributeException() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
 
         queryParams.clear();
         queryParams.add(
@@ -486,7 +491,25 @@ public class RSQLFilterDialectTest {
                 "title=hasmember=title11"
         );
 
-        assertThrows(ParseException.class,
-                () -> dialect.parseTypedExpression("/book", queryParams, NO_VERSION));
+        ParseException e = assertThrows(ParseException.class,
+                () -> dialect.parseGlobalExpression("/book", queryParams, NO_VERSION));
+
+        assertEquals("Invalid Path: Last Path Element has to be a collection type", e.getMessage());
+    }
+
+    @Test
+    public void testMemberOfOperatorOnRelationshipException() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.clear();
+        queryParams.add(
+                "filter",
+                "authors=hasmember=1"
+        );
+
+        ParseException e = assertThrows(ParseException.class,
+                () -> dialect.parseGlobalExpression("/book", queryParams, NO_VERSION));
+
+        assertEquals("Invalid Path: Last Path Element cannot be a collection type", e.getMessage());
     }
 }

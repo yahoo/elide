@@ -239,10 +239,12 @@ public class DefaultFilterDialect implements JoinFilterDialect, SubqueryFilterDi
 
     private void memberOfOperatorConditions(FilterPredicate filterPredicate) throws ParseException {
         if (FilterPredicate.toManyInPath(dictionary, filterPredicate.getPath())) {
-            throw new ParseException("Invalid toMany join: member of operator cannot be used for toMany relationships");
-        }
-
-        if (!FilterPredicate.isLastPathElementAssignableFrom(dictionary, filterPredicate.getPath(), COLLECTION_TYPE)) {
+            if (FilterPredicate.isLastPathElementAssignableFrom(dictionary,
+                    filterPredicate.getPath(), COLLECTION_TYPE)) {
+                throw new ParseException("Invalid Path: Last Path Element cannot be a collection type");
+            }
+        } else if (!FilterPredicate.isLastPathElementAssignableFrom(dictionary, filterPredicate.getPath(),
+                COLLECTION_TYPE)) {
             throw new ParseException("Invalid Path: Last Path Element has to be a collection type");
         }
     }
