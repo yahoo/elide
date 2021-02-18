@@ -597,7 +597,7 @@ public class TableExportIT extends IntegrationTest {
     }
 
     /**
-     * Various tests for an unknown collection (group) that does not exist in TableExport Request JSONAPI query.
+     * Various tests for an unknown collection (group) that does not exist, used in TableExport Request JSONAPI query.
      * @throws InterruptedException
      */
     @Test
@@ -686,7 +686,7 @@ public class TableExportIT extends IntegrationTest {
     }
 
     /**
-     * Various tests for an unknown collection (group) that does not exist in TableExport Request GraphQL query.
+     * Various tests for an unknown collection (group) that does not exist, used in TableExport Request GraphQL query.
      * @throws InterruptedException
      */
     @Test
