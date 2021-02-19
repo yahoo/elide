@@ -1,5 +1,65 @@
 # Change Log
 
+## 5.0.0-pr31
+3rd public release candidate for Elide 5.0
+
+**Features**
+   * 'hasmember' and 'hasnomember' operators now work across toMany relationships.
+   * elide-async includes a data export API in CSV and JSON.
+
+**API Changes**
+   * Time dimensions (Aggregation Store) now have support for multiple time grains that can be selected by the client at query time.
+   * Invalid sparse fields returns a 4xx error to the requesting client.
+
+**Interface Changes**
+   * `JPQLPredicateGenerator` has a new contract allowing the generation of more complex JPQL expressions.
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/acb9e3047db287f6d6503abbaf83befbef04f209) Added javadoc and small improvements to new Elide types. (#1783) 
+   * [view commit](https://github.com/yahoo/elide/commit/9ce54149fec0e36da281673da40f586068f6459b) Passing query parameters and headers to patch extension request scope (#1781) 
+   * [view commit](https://github.com/yahoo/elide/commit/b012115bd4753517196d4305d8002a96b3e76c57) add join expression for all column projection including metrics (#1789) 
+   * [view commit](https://github.com/yahoo/elide/commit/2952559ba91b092b0bd1a51fb84f7c2b69cb937e) Field name must start with lower case (#1799) 
+   * [view commit](https://github.com/yahoo/elide/commit/e5354ea169d10ed13d4af00b0cca149b37ba3b1d) Add core support for parameterized attributes. (#1800) 
+   * [view commit](https://github.com/yahoo/elide/commit/37a7860a067379dcee8831bfc58f816d3ee82dd6) Issue#1779 Invalid sparse fields should return 4xx (#1801) 
+   * [view commit](https://github.com/yahoo/elide/commit/1d04e914c89ad894560fe36d8d11e96fb2774981) Async Refactor: Part 1 (#1777) 
+   * [view commit](https://github.com/yahoo/elide/commit/93ebb969254204bd315de860bd064ca77e70cfab) TableExportHook Binding (#1802) 
+   * [view commit](https://github.com/yahoo/elide/commit/4cc5a72bf152cc34c1d489f69221b8797f36ee38) Remove jetty from starter (#1807) 
+   * [view commit](https://github.com/yahoo/elide/commit/dd69d567f445b9a62dda30b9ff8093ea4455c08b) Async Refactor Cleanup (#1804) 
+   * [view commit](https://github.com/yahoo/elide/commit/c3a735c617807ab7d947103b442caadb08172524) Bump ant from 1.10.8 to 1.10.9 in /elide-graphql (#1810) 
+   * [view commit](https://github.com/yahoo/elide/commit/ba73bc2a5617fed8feeee5b419a0f0808081628f) Elide 5 Agg Store: Multiple time grains (#1806) 
+   * [view commit](https://github.com/yahoo/elide/commit/994c0a865027795133ac5731ff4b47b4f910ab4e) Fix for FieldType in FilterPredicate (#1814) 
+   * [view commit](https://github.com/yahoo/elide/commit/7a162860be33acca6cb6fc8109a8e9071497e03e) Metadatastore Models Permission (#1816) 
+   * [view commit](https://github.com/yahoo/elide/commit/34fbcd282798c6668f61ff35202c3c2aa783857f) TableExport Spring Controller (#1811) 
+   * [view commit](https://github.com/yahoo/elide/commit/dcb6336070c158b923a8e5a7ec92502ea57f36ee) Add dynamic table type (#1815) 
+   * [view commit](https://github.com/yahoo/elide/commit/84688c81b2020355f55e03250146a2a3cb515484) Bump junit-platform-launcher from 1.6.0 to 1.7.1 (#1819) 
+   * [view commit](https://github.com/yahoo/elide/commit/d1be9578498603d9b0f73161cc09555c5c34d3d6) Convert user provided alias before using in SQL (#1821) 
+   * [view commit](https://github.com/yahoo/elide/commit/c02e0d107dc5236626d4a08cafbae749f7111ce5) updating contrib guidelines for hackathon (#1826) 
+   * [view commit](https://github.com/yahoo/elide/commit/0db416741427385c77840648e2001a9f776a7b28) Bump spring.boot.version from 2.4.1 to 2.4.2 (#1796) 
+   * [view commit](https://github.com/yahoo/elide/commit/5186f34a1f9d82129294790c3055aa3ae5a69ba6) Update CONTRIBUTING.md (#1827) 
+   * [view commit](https://github.com/yahoo/elide/commit/00509f41da2d821ef0464c6a0e762c2e09c50be7) Async: Test Coverage (#1825) 
+   * [view commit](https://github.com/yahoo/elide/commit/106bb161fbeb937b15a19dd40f4ab9d17037ed6d) Export : Standalone API Resource (#1817) 
+   * [view commit](https://github.com/yahoo/elide/commit/9f09fb8c90ab84bfd4efd8dc0dba3a883c03061c) Update CONTRIBUTING.md (#1828) 
+   * [view commit](https://github.com/yahoo/elide/commit/d77f1240a3fa5abf824aea54d0533be844235359) Created new interface for dynamic configuration (#1830) 
+   * [view commit](https://github.com/yahoo/elide/commit/5283569e556181cdc145f0090eac74ee6a9d3e1c) Issue#1798 Remove Singleton Pattern for Async Service Classes (#1831) 
+   * [view commit](https://github.com/yahoo/elide/commit/1758431ef49e845f6b515b6961afb3bd3629fcdb) Bump jedis from 3.3.0 to 3.5.1 (#1794) 
+   * [view commit](https://github.com/yahoo/elide/commit/e3568815ab6eec1471c32adcc3272afbc139eab4) Data Export: JSON API support (#1824) 
+   * [view commit](https://github.com/yahoo/elide/commit/39d1add6c7f756aae279889bf3574594c1f76cda) Bump wagon-ssh-external from 3.4.0 to 3.4.2 (#1793) 
+   * [view commit](https://github.com/yahoo/elide/commit/66be9ae2277fe7c3ea21edc1a701cc8ab498a22e) Validators for JSON and Graphql Exporter (#1833) 
+   * [view commit](https://github.com/yahoo/elide/commit/4f24e6aed8daa025835a15765e515a2aa5f3e47a) Revising JPQPredicateGenerator contract to allow for more complex JPQ… (#1834) 
+   * [view commit](https://github.com/yahoo/elide/commit/af0aad2498f81659177eff1bbcfbf49213baf7b9) Exclude Models based on Conditions (#1835) 
+   * [view commit](https://github.com/yahoo/elide/commit/4387ca571472cddf2f33b5699fd41f259cf94cec) Add 'hasmember' operator support across to-many relationships. (#1843) 
+   * [view commit](https://github.com/yahoo/elide/commit/da92f9c81b30848fa05c1052e50782e0ddeb47c7) added one more hasmember operator IT test (#1844) 
+   * [view commit](https://github.com/yahoo/elide/commit/8b7b7a7c86f0d149977a58784422ab531aed2859) Bump version.jetty from 9.4.35.v20201120 to 9.4.36.v20210114 (#1840) 
+   * [view commit](https://github.com/yahoo/elide/commit/4b1501cba9dcf1ee8f67b97a3b0aa7261b950836) Bump classgraph from 4.8.98 to 4.8.102 (#1836) 
+   * [view commit](https://github.com/yahoo/elide/commit/e6e2013d41a05eca5567b9ca4b099afdfb57dd1c) Bump version.junit from 5.7.0 to 5.7.1 (#1837) 
+   * [view commit](https://github.com/yahoo/elide/commit/f04b48379a22983128c1e0654808bbdc1276f43f) Bump metrics.version from 4.1.16 to 4.1.17 (#1838) 
+   * [view commit](https://github.com/yahoo/elide/commit/1d0b2760e334815e58c1e9992cd2ef689dd61e2e) Bump hk2-api from 2.5.0 to 3.0.1 (#1759) 
+   * [view commit](https://github.com/yahoo/elide/commit/2eb90f1b8513e246930e5419e838b3fb1f7bbb98) Integration Tests for Table Export (#1842) 
+   * [view commit](https://github.com/yahoo/elide/commit/cea07da78f49da8b63328bd838962c70f8330228) Small Fix -  Removing system.out from TableExport (#1850) 
+   * [view commit](https://github.com/yahoo/elide/commit/34d521aaf2c268ab23a48f155fbfcd012470312b) Removing mysql connector as a dependency (no longer needed) (#1848) 
+   * [view commit](https://github.com/yahoo/elide/commit/49501c10202064527e0d31c3030fe12a4a4d710b) Fixing the regular expression for required filter templates (#1849) 
+   * [view commit](https://github.com/yahoo/elide/commit/b7e708537fc0c5fde20c6c1ae515f028b29141ed) Small Fix (#1851) 
+
 ## 5.0.0-pr30
 2nd public release candidate for Elide 5.0.
 
