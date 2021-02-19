@@ -4,4 +4,7 @@
  * See LICENSE file in project root for terms.
  */
 
+@Include
 package example.models.generics;
+
+import com.yahoo.elide.annotation.Include;

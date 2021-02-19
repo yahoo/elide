@@ -5,7 +5,6 @@
  */
 package example.nontransferable;
 
-import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.NonTransferable;
 
 import java.util.Collection;
@@ -20,7 +19,6 @@ import javax.persistence.OneToMany;
  * Container for ShareableWithPackageShare and Untransferable.
  */
 @Entity
-@Include
 @NonTransferable(enabled = false)
 public class ContainerWithPackageShare {
     private long id;

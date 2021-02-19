@@ -4,6 +4,8 @@
  * See LICENSE file in project root for terms.
  */
 @NonTransferable
+@Include
 package example.nontransferable;
 
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.NonTransferable;

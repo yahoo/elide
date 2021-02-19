@@ -5,7 +5,6 @@
  */
 package example.nontransferable;
 
-import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.NonTransferable;
 
 import javax.persistence.Entity;
@@ -19,7 +18,6 @@ import javax.persistence.ManyToOne;
  * Package level shareable bean.
  */
 @Entity
-@Include
 @NonTransferable(enabled = false)
 public class ShareableWithPackageShare {
     private long id;

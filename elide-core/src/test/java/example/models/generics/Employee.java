@@ -6,14 +6,11 @@
 
 package example.models.generics;
 
-import com.yahoo.elide.annotation.Include;
-
 import javax.persistence.Entity;
 
 /**
  * Helper class to test parameterized subclass/superclass hierarchies.
  */
-@Include
 @Entity
 public class Employee extends Peon<Manager> {
 }
