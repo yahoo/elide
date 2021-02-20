@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.datastore.inmemory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -27,6 +28,7 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.models.generics.Manager;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -518,7 +520,8 @@ public class InMemoryStoreTransactionTest {
 
     @Test
     public void testInMemoryDataStore() {
-        HashMapDataStore wrapped = new HashMapDataStore(Book.class.getPackage());
+        HashMapDataStore wrapped = new HashMapDataStore(Sets.newHashSet(
+                Book.class.getPackage(), Manager.class.getPackage()));
         InMemoryDataStore store = new InMemoryDataStore(wrapped);
         DataStoreTransaction tx = store.beginReadTransaction();
         assertEquals(InMemoryStoreTransaction.class, tx.getClass());
@@ -527,7 +530,6 @@ public class InMemoryStoreTransactionTest {
 
         String tos = store.toString();
         assertTrue(tos.contains("Data store contents"));
-        assertTrue(tos.contains("Table class example.NoReadEntity contents"));
         assertTrue(tos.contains("Table class example.Author contents"));
         assertTrue(tos.contains("Table class example.Book contents"));
         assertTrue(tos.contains("Table class example.Child contents"));
@@ -542,6 +544,7 @@ public class InMemoryStoreTransactionTest {
         assertTrue(tos.contains("Table class example.LineItem contents"));
         assertTrue(tos.contains("Table class example.MapColorShape contents"));
         assertTrue(tos.contains("Table class example.NoDeleteEntity contents"));
+        assertTrue(tos.contains("Table class example.NoReadEntity contents"));
         assertTrue(tos.contains("Table class example.NoShareEntity contents"));
         assertTrue(tos.contains("Table class example.NoUpdateEntity contents"));
         assertTrue(tos.contains("Table class example.Parent contents"));
@@ -555,5 +558,8 @@ public class InMemoryStoreTransactionTest {
         assertTrue(tos.contains("Table class example.packageshareable.ContainerWithPackageShare contents"));
         assertTrue(tos.contains("Table class example.packageshareable.ShareableWithPackageShare contents"));
         assertTrue(tos.contains("Table class example.packageshareable.UnshareableWithEntityUnshare contents"));
+        assertTrue(tos.contains("Table class com.yahoo.elide.models.generics.Employee contents"));
+        assertTrue(tos.contains("Table class com.yahoo.elide.models.generics.Manager contents"));
+        assertFalse(tos.contains("Table class com.yahoo.elide.models.generics.Other contents"));
     }
 }

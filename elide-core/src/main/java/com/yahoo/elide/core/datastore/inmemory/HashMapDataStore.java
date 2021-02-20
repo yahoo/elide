@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.datastore.inmemory;
 
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.DataStore;
 import com.yahoo.elide.core.DataStoreTransaction;
@@ -15,6 +16,7 @@ import com.yahoo.elide.utils.ClassScanner;
 import com.google.common.collect.Sets;
 import lombok.Getter;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -22,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+
+import javax.persistence.Entity;
 
 /**
  * Simple in-memory only database.
@@ -42,7 +46,20 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
         for (Package beanPackage : beanPackages) {
             ClassScanner.getAnnotatedClasses(beanPackage, Include.class).stream()
                 .filter(modelClass -> modelClass.getName().startsWith(beanPackage.getName()))
-                .forEach(modelClass -> dataStore.put(modelClass, Collections.synchronizedMap(new LinkedHashMap<>())));
+                .filter(modelClass -> dictionary.getFirstAnnotation(modelClass,
+                        Arrays.asList(Include.class, Exclude.class)) instanceof Include)
+                .forEach(modelClass -> dataStore.put(modelClass,
+                        Collections.synchronizedMap(new LinkedHashMap<>())));
+        }
+
+        for (Package beanPackage : beanPackages) {
+            ClassScanner.getAnnotatedClasses(beanPackage, Entity.class).stream()
+                .filter(modelClass -> modelClass.getName().startsWith(beanPackage.getName()))
+                .filter(modelClass -> !dataStore.containsKey(modelClass))
+                .filter(modelClass -> dictionary.getFirstAnnotation(modelClass,
+                        Arrays.asList(Include.class, Exclude.class)) instanceof Include)
+                .forEach(modelClass -> dataStore.put(modelClass,
+                        Collections.synchronizedMap(new LinkedHashMap<>())));
         }
     }
 
