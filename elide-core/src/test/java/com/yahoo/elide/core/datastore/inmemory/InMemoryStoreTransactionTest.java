@@ -6,6 +6,7 @@
 package com.yahoo.elide.core.datastore.inmemory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -535,5 +536,13 @@ public class InMemoryStoreTransactionTest {
         assertTrue(tos.contains("Table ClassType{cls=class example.StringId} contents"));
         assertTrue(tos.contains("Table ClassType{cls=class example.UpdateAndCreate} contents"));
         assertTrue(tos.contains("Table ClassType{cls=class example.User} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.models.generics.Employee} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.models.generics.Manager} contents"));
+        assertFalse(tos.contains("Table ClassType{cls=class example.models.generics.Other} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.models.triggers.Invoice} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.models.versioned.BookV2} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.nontransferable.ContainerWithPackageShare} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.nontransferable.ShareableWithPackageShare} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.nontransferable.Untransferable} contents"));
     }
 }

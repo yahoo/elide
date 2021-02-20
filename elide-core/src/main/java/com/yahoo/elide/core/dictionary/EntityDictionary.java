@@ -965,7 +965,7 @@ public class EntityDictionary {
         entityBindings.put(declaredClass, new EntityBinding(this, declaredClass,
                 type, version, hiddenAnnotations));
 
-        Include include = declaredClass.getAnnotation(Include.class);
+        Include include = (Include) getFirstAnnotation(declaredClass, Arrays.asList(Include.class));
         if (include.rootLevel()) {
             bindEntityRoots.add(declaredClass);
         }
@@ -1859,11 +1859,14 @@ public class EntityDictionary {
      */
     public static String getEntityName(Type<?> modelClass) {
         Type<?> declaringClass = lookupAnnotationDeclarationClass(modelClass, Include.class);
+        if (declaringClass == null) {
+            declaringClass = lookupAnnotationDeclarationClass(modelClass, Entity.class);
+        }
 
         Preconditions.checkNotNull(declaringClass);
         Include include = declaringClass.getAnnotation(Include.class);
 
-        if (! "".equals(include.type())) {
+        if (include != null && ! "".equals(include.type())) {
             return include.type();
         }
 
