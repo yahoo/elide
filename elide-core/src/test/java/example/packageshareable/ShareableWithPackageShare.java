@@ -5,8 +5,6 @@
  */
 package example.packageshareable;
 
-import com.yahoo.elide.annotation.Include;
-
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -18,7 +16,6 @@ import javax.persistence.ManyToOne;
  * Package level shareable bean.
  */
 @Entity
-@Include(rootLevel = true)
 public class ShareableWithPackageShare {
     private long id;
     private ContainerWithPackageShare container;
