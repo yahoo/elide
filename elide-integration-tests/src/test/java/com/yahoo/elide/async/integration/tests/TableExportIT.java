@@ -28,8 +28,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -207,16 +207,10 @@ public class TableExportIT extends IntegrationTest {
             // If Table Export is completed
             if (outputResponse.equals("COMPLETE")) {
                 break;
-            } else if (!(outputResponse.equals("PROCESSING"))) {
-                fail("Table Export has failed.");
-                break;
             }
-
+            assertEquals("PROCESSING", outputResponse, "Table Export has failed.");
             i++;
-
-            if (i == 1000) {
-                fail("Table Export not completed.");
-            }
+            assertNotEquals(1000, i, "Table Export not completed.");
         }
 
         return response;
@@ -239,15 +233,10 @@ public class TableExportIT extends IntegrationTest {
             // If Table Export is created and completed
             if (responseGraphQL.contains("\"status\":\"COMPLETE\"")) {
                 break;
-            } else if (!(responseGraphQL.contains("\"status\":\"PROCESSING\""))) {
-                fail("TableExport has failed.");
-                break;
             }
+            assertTrue(responseGraphQL.contains("\"status\":\"PROCESSING\""), "TableExport has failed.");
             i++;
-
-            if (i == 1000) {
-                fail("TableExport not completed.");
-            }
+            assertNotEquals(1000, i, "TableExport not completed.");
         }
 
         return responseGraphQL;

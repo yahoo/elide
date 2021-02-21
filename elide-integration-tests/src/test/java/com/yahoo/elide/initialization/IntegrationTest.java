@@ -15,6 +15,7 @@ import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
+import com.yahoo.elide.test.jsonapi.elements.Data;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,9 +25,13 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.hamcrest.CustomTypeSafeMatcher;
+import org.json.JSONException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.TestInstance;
+import org.skyscreamer.jsonassert.JSONCompare;
+import org.skyscreamer.jsonassert.JSONCompareMode;
 
 import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
@@ -177,5 +182,25 @@ public abstract class IntegrationTest {
 
     public void modifyServletContextHandler() {
         // Do Nothing
+    }
+
+    protected CustomTypeSafeMatcher<String> jsonEquals(Object expected, boolean strict) {
+        return new CustomTypeSafeMatcher<String>("jsonEquals") {
+            @Override
+            protected boolean matchesSafely(String actual) {
+                try {
+                    String expectedString;
+                    if (expected instanceof Data) {
+                        expectedString = ((Data) expected).toJSON();
+                    } else {
+                        expectedString = expected.toString();
+                    }
+                    return JSONCompare.compareJSON(expectedString, actual,
+                            strict ? JSONCompareMode.STRICT : JSONCompareMode.LENIENT).passed();
+                } catch (JSONException e) {
+                    return false;
+                }
+            }
+        };
     }
 }

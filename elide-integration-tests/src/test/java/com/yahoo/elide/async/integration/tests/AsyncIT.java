@@ -28,7 +28,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -240,16 +241,10 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.result.httpStatus", equalTo(200));
 
                 break;
-            } else if (!(outputResponse.equals("PROCESSING"))) {
-                fail("Async Query has failed.");
-                break;
             }
-
+            assertEquals("PROCESSING", outputResponse, "Async Query has failed.");
             i++;
-
-            if (i == 1000) {
-                fail("Async Query not completed.");
-            }
+            assertNotEquals(1000, i, "Async Query not completed.");
         }
     }
 
@@ -367,15 +362,9 @@ public class AsyncIT extends IntegrationTest {
 
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
-            } else if (!(responseGraphQL.contains("\"status\":\"PROCESSING\""))) {
-                fail("Async Query has failed.");
-                break;
             }
             i++;
-
-            if (i == 1000) {
-                fail("Async Query not completed.");
-            }
+            assertNotEquals(1000, i, "Async Query not completed.");
         }
     }
     /**
@@ -426,7 +415,12 @@ public class AsyncIT extends IntegrationTest {
                 .statusCode(org.apache.http.HttpStatus.SC_OK)
                 .body(equalTo(expectedResponse));
 
-        String responseGraphQL = given()
+        expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
+                + "\"result\":{\"responseBody\":\"{\\\"data\\\":{\\\"book\\\":{\\\"edges\\\":[{\\\"node\\\":{\\\"id\\\":\\\"1\\\",\\\"title\\\":\\\"Ender's Game\\\"}},"
+                + "{\\\"node\\\":{\\\"id\\\":\\\"2\\\",\\\"title\\\":\\\"Song of Ice and Fire\\\"}},"
+                + "{\\\"node\\\":{\\\"id\\\":\\\"3\\\",\\\"title\\\":\\\"For Whom the Bell Tolls\\\"}}]}}}\","
+                + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";
+        given()
                  .contentType(MediaType.APPLICATION_JSON)
                  .accept(MediaType.APPLICATION_JSON)
                  .body("{\"query\":\"{ asyncQuery(ids: [\\\"edc4a871-dff2-4054-804e-d80075cf829e\\\"]) "
@@ -434,15 +428,9 @@ public class AsyncIT extends IntegrationTest {
                          + "{ responseBody httpStatus contentLength } } } } }\","
                          + "\"variables\":null}")
                  .post("/graphQL")
-                 .asString();
-
-        expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
-                 + "\"result\":{\"responseBody\":\"{\\\"data\\\":{\\\"book\\\":{\\\"edges\\\":[{\\\"node\\\":{\\\"id\\\":\\\"1\\\",\\\"title\\\":\\\"Ender's Game\\\"}},"
-                 + "{\\\"node\\\":{\\\"id\\\":\\\"2\\\",\\\"title\\\":\\\"Song of Ice and Fire\\\"}},"
-                 + "{\\\"node\\\":{\\\"id\\\":\\\"3\\\",\\\"title\\\":\\\"For Whom the Bell Tolls\\\"}}]}}}\","
-                 + "\"httpStatus\":200,\"contentLength\":177}}}]}}}";
-
-        assertEquals(expectedResponse, responseGraphQL);
+                 .then()
+                 .statusCode(org.apache.http.HttpStatus.SC_OK)
+                 .body(equalTo(expectedResponse));
     }
 
     /**
@@ -539,15 +527,10 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.result.httpStatus", equalTo(404));
 
                 break;
-            } else if (!(outputResponse.equals("PROCESSING"))) {
-                fail("Async Query has failed.");
-                break;
             }
+            assertEquals("PROCESSING", outputResponse, "Async Query has failed.");
             i++;
-
-            if (i == 1000) {
-                fail("Async Query not completed.");
-            }
+            assertNotEquals(1000, i, "Async Query not completed.");
         }
     }
 
@@ -644,15 +627,10 @@ public class AsyncIT extends IntegrationTest {
                         .body("data.attributes.result.httpStatus", equalTo(200));
 
                 break;
-            } else if (!(outputResponse.equals("PROCESSING"))) {
-                fail("Async Query has failed.");
-                break;
             }
+            assertEquals("PROCESSING", outputResponse, "Async Query has failed.");
             i++;
-
-            if (i == 1000) {
-                fail("Async Query not completed.");
-            }
+            assertNotEquals(1000, i, "Async Query not completed.");
         }
     }
 

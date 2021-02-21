@@ -69,7 +69,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.owasp.encoder.Encode;
-import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -847,15 +846,13 @@ public class ResourceIT extends IntegrationTest {
                 datum(PARENT2),
                 include(CHILD2, CHILD3)).toJSON();
 
-        String actual = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/parent/2?include=children.friends")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-
-        JSONAssert.assertEquals(expected, actual, false);
+                .body(jsonEquals(expected, false));
     }
 
     @Test
@@ -865,15 +862,13 @@ public class ResourceIT extends IntegrationTest {
                 data(PARENT1, PARENT2, PARENT3, PARENT4),
                 include(CHILD1, CHILD2, CHILD3, CHILD4, CHILD5)).toJSON();
 
-        String actual = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/parent?include=children")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-
-        JSONAssert.assertEquals(expected, actual, false);
+                .body(jsonEquals(expected, false));
     }
 
     @Test
@@ -992,15 +987,13 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_NO_CONTENT)
                 .header(HttpHeaders.CONTENT_LENGTH, nullValue());
 
-        String actual = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/parent/4/relationships/children")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().response().asString();
-
-        JSONAssert.assertEquals(relationships.toJSON(), actual, false);
+                .body(jsonEquals(relationships, false));
     }
 
     @Test
@@ -1075,16 +1068,14 @@ public class ResourceIT extends IntegrationTest {
                 )
         );
 
-        String actual = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(parent)
                 .post("/parent")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED)
-                .extract().body().asString();
-
-        JSONAssert.assertEquals(parent.toJSON(), actual, true);
+                .body(jsonEquals(parent, true));
     }
 
 
@@ -1122,16 +1113,14 @@ public class ResourceIT extends IntegrationTest {
                 )
         );
 
-        String actual = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(parentInput)
                 .post("/parent")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED)
-                .extract().body().asString();
-
-        JSONAssert.assertEquals(parentOutput.toJSON(), actual, true);
+                .body(jsonEquals(parentOutput, true));
     }
 
     @Test
@@ -1201,26 +1190,22 @@ public class ResourceIT extends IntegrationTest {
                 )
         );
 
-        String childActual = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(childInput)
                 .post("/parent/4/children")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED)
-                .extract().body().asString();
+                .body(jsonEquals(childOutput, true));
 
-        JSONAssert.assertEquals(childOutput.toJSON(), childActual, true);
-
-        String parentActual = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/parent/4")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-
-        JSONAssert.assertEquals(parentOutput.toJSON(), parentActual, true);
+                .body(jsonEquals(parentOutput, true));
     }
 
     @Test
@@ -1312,9 +1297,7 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_NO_CONTENT)
                 .header(HttpHeaders.CONTENT_LENGTH, nullValue());
 
-        String actual = given().when().get("/fun/1").then().statusCode(HttpStatus.SC_OK).extract().body().asString();
-
-        JSONAssert.assertEquals(funOutput.toJSON(), actual, true);
+        given().when().get("/fun/1").then().statusCode(HttpStatus.SC_OK).body(jsonEquals(funOutput, true));
 
         funInput = datum(
                 resource(
@@ -1356,9 +1339,12 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_NO_CONTENT)
                 .header(HttpHeaders.CONTENT_LENGTH, nullValue());
 
-        actual = given().when().get("/fun/1").then().statusCode(HttpStatus.SC_OK).extract().body().asString();
-
-        JSONAssert.assertEquals(funOutput.toJSON(), actual, true);
+        given()
+                .when()
+                .get("/fun/1")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(jsonEquals(funOutput, true));
     }
 
     @Test
@@ -1617,15 +1603,13 @@ public class ResourceIT extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT)
                 .header(HttpHeaders.CONTENT_LENGTH, nullValue());
-        String response = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/parent/1/children/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-
-        JSONAssert.assertEquals(expected.toJSON(), response, true);
+                .body(jsonEquals(expected, true));
     }
 
     @Test
@@ -1922,15 +1906,13 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_CREATED);
 
         // Verify contents
-        String actual = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/yetAnotherPermission")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-
-        JSONAssert.assertEquals(data(obj).toJSON(), actual, true);
+                .body(jsonEquals(data(obj), true));
     }
 
     @Test

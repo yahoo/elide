@@ -28,7 +28,6 @@ import example.Left;
 import example.Right;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -89,14 +88,11 @@ public class EmbeddedIT extends IntegrationTest {
                 )
         );
 
-        String actual = given()
+        given()
                 .when()
                 .get("/right/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract()
-                .body().asString();
-
-        JSONAssert.assertEquals(datum(resource).toJSON(), actual, true);
+                .body(jsonEquals(datum(resource), true));
     }
 }
