@@ -2107,7 +2107,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testCollectionChangeSpecType() {
         Function<String, BiFunction<ChangeSpec, BiFunction<Collection, Collection, Boolean>, Boolean>> collectionCheck =
                 (fieldName) -> (spec, condFn) -> {
-                    assertTrue(fieldName.equals(spec.getFieldName()));
+                    assertEquals(fieldName, spec.getFieldName());
                     return condFn.apply((Collection) spec.getOriginal(), (Collection) spec.getModified());
                 };
 

@@ -101,7 +101,7 @@ public class GraphQLTableExportOperationTest {
         TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
-        assertTrue("https://elide.io/export/edc4a871-dff2-4054-804e-d80075cf827d".equals(queryResultObj.getUrl().toString()));
+        assertEquals("https://elide.io/export/edc4a871-dff2-4054-804e-d80075cf827d", queryResultObj.getUrl().toString());
         assertEquals(1, queryResultObj.getRecordCount());
     }
 
