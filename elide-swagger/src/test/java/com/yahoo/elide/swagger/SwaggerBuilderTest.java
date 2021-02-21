@@ -145,7 +145,7 @@ public class SwaggerBuilderTest {
                 .get();
 
         assertEquals("path", bookId.getIn());
-        assertEquals(true, bookId.getRequired());
+        assertTrue(bookId.getRequired());
 
         Parameter authorId = path.getParameters().stream()
                 .filter((param) -> param.getName().equals("authorId"))
@@ -153,7 +153,7 @@ public class SwaggerBuilderTest {
                 .get();
 
         assertEquals("path", authorId.getIn());
-        assertEquals(true, authorId.getRequired());
+        assertTrue(authorId.getRequired());
 
         path = swagger.getPaths().get("/book/{bookId}/authors");
         assertEquals(1,
@@ -167,7 +167,7 @@ public class SwaggerBuilderTest {
                 .get();
 
         assertEquals("path", bookId.getIn());
-        assertEquals(true, bookId.getRequired());
+        assertTrue(bookId.getRequired());
 
         path = swagger.getPaths().get("/book/{bookId}/relationships/authors");
         assertEquals(1,
@@ -181,7 +181,7 @@ public class SwaggerBuilderTest {
                 .get();
 
         assertEquals("path", bookId.getIn());
-        assertEquals(true, bookId.getRequired());
+        assertTrue(bookId.getRequired());
     }
 
     @Test

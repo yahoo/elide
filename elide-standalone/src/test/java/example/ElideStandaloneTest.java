@@ -21,6 +21,8 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.yahoo.elide.standalone.ElideStandalone;
@@ -280,7 +282,7 @@ public class ElideStandaloneTest {
                 .statusCode(HttpStatus.SC_NOT_FOUND)
                 .extract().body().asString();
 
-        assertEquals(true, output.contains(" Not Found"));
-        assertEquals(false, output.contains(queryId + " Not Found"));
+        assertTrue(output.contains(" Not Found"));
+        assertFalse(output.contains(queryId + " Not Found"));
     }
 }
