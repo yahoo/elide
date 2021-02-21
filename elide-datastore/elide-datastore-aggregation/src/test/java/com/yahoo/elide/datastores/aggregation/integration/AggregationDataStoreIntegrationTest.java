@@ -555,8 +555,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 )
         ).toQuery();
 
-        String errorMessage = "\"Exception while fetching data (/playerStats) : Invalid operation: "
-                + "Dimension field countryIsoCode must be grouped before filtering in having clause.\"";
+        String errorMessage = "Exception while fetching data (/playerStats) : Invalid operation: "
+                + "Dimension field countryIsoCode must be grouped before filtering in having clause.";
 
         runQueryWithExpectedError(graphQLRequest, errorMessage);
     }
@@ -581,8 +581,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 )
         ).toQuery();
 
-        String errorMessage = "\"Exception while fetching data (/playerStats) : Invalid operation: "
-                + "Metric field highScore must be aggregated before filtering in having clause.\"";
+        String errorMessage = "Exception while fetching data (/playerStats) : Invalid operation: "
+                + "Metric field highScore must be aggregated before filtering in having clause.";
 
         runQueryWithExpectedError(graphQLRequest, errorMessage);
     }
@@ -607,8 +607,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 )
         ).toQuery();
 
-        String errorMessage = "\"Exception while fetching data (/playerStats) : Invalid operation: "
-                + "Relationship traversal not supported for analytic queries.\"";
+        String errorMessage = "Exception while fetching data (/playerStats) : Invalid operation: "
+                + "Relationship traversal not supported for analytic queries.";
 
         runQueryWithExpectedError(graphQLRequest, errorMessage);
     }
@@ -746,7 +746,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 )
         ).toQuery();
 
-        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: Sorting on id field is not permitted\"";
+        String expected = "Exception while fetching data (/playerStats) : Invalid operation: Sorting on id field is not permitted";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
@@ -767,7 +767,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 )
         ).toQuery();
 
-        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: Can not sort on countryIsoCode as it is not present in query\"";
+        String expected = "Exception while fetching data (/playerStats) : Invalid operation: Can not sort on countryIsoCode as it is not present in query";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
@@ -789,7 +789,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 )
         ).toQuery();
 
-        String expected = "\"Exception while fetching data (/playerStats) : Invalid operation: Can not sort on highScore as it is not present in query\"";
+        String expected = "Exception while fetching data (/playerStats) : Invalid operation: Can not sort on highScore as it is not present in query";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
@@ -1276,7 +1276,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 )
         ).toQuery();
 
-        String expected = "\"Exception while fetching data (/orderDetails/edges[0]/node/customerRegion) : ReadPermission Denied\"";
+        String expected = "Exception while fetching data (/orderDetails/edges[0]/node/customerRegion) : ReadPermission Denied";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }

@@ -7,6 +7,7 @@ package com.yahoo.elide.initialization;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -14,7 +15,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.TestInstance;
 import io.restassured.response.ValidatableResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +75,7 @@ public abstract class GraphQLIntegrationTest extends IntegrationTest {
             Map<String, Object> variables,
             String errorMessage
     ) throws IOException {
-        runQuery(graphQLQuery, variables).body("errors[0].message", Matchers.equalTo(errorMessage));
+        runQuery(graphQLQuery, variables).body("errors[0].message", equalTo(errorMessage));
     }
 
     protected void compareJsonObject(ValidatableResponse response, String expected) throws IOException {
