@@ -103,16 +103,16 @@ public abstract class SQLUnitTest {
 
     // Standard set of test queries used in dialect tests
     protected enum TestQuery {
-        WHERE_DIMS_ONLY (() -> {
-            return Query.builder()
+        WHERE_DIMS_ONLY (() ->
+            Query.builder()
                     .source(playerStatsTable)
                     .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                     .whereFilter(new FilterPredicate(
                             new Path(PlayerStats.class, dictionary, "overallRating"),
                             Operator.NOTNULL,
                             new ArrayList<Object>()))
-                    .build();
-        }),
+                    .build()
+        ),
         WHERE_AND (() -> {
             FilterPredicate ratingFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "overallRating"),
@@ -143,26 +143,26 @@ public abstract class SQLUnitTest {
                     .whereFilter(new OrFilterExpression(ratingFilter, highScoreFilter))
                     .build();
         }),
-        HAVING_METRICS_ONLY (() -> {
-            return Query.builder()
+        HAVING_METRICS_ONLY (() ->
+            Query.builder()
                     .source(playerStatsTable)
                     .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
                     .havingFilter(new FilterPredicate(
                             new Path(PlayerStats.class, dictionary, "lowScore"),
                             Operator.GT,
                             Arrays.asList(9000)))
-                    .build();
-        }),
-        HAVING_DIMS_ONLY (() -> {
-            return Query.builder()
+                    .build()
+        ),
+        HAVING_DIMS_ONLY (() ->
+            Query.builder()
                     .source(playerStatsTable)
                     .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                     .havingFilter(new FilterPredicate(
                             new Path(PlayerStats.class, dictionary, "overallRating"),
                             Operator.NOTNULL,
                             new ArrayList<Object>()))
-                    .build();
-        }),
+                    .build()
+        ),
         HAVING_METRICS_AND_DIMS (() -> {
             FilterPredicate ratingFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "overallRating"),
@@ -193,15 +193,15 @@ public abstract class SQLUnitTest {
                     .havingFilter(new OrFilterExpression(ratingFilter, highScoreFilter))
                     .build();
         }),
-        PAGINATION_TOTAL (() -> {
-            return Query.builder()
+        PAGINATION_TOTAL (() ->
+            Query.builder()
                     .source(playerStatsTable)
                     .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
                     .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                     .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"))
                     .pagination(new ImmutablePagination(0, 1, false, true))
-                    .build();
-        }),
+                    .build()
+        ),
         SORT_METRIC_ASC (() -> {
             Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
             sortMap.put("lowScore", Sorting.SortOrder.asc);
@@ -256,13 +256,13 @@ public abstract class SQLUnitTest {
                     .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                     .build();
         }),
-        PAGINATION_METRIC_ONLY (() -> {
-            return Query.builder()
+        PAGINATION_METRIC_ONLY (() ->
+            Query.builder()
                     .source(playerStatsTable)
                     .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
                     .pagination(new ImmutablePagination(10, 5, false, true))
-                    .build();
-        }),
+                    .build()
+        ),
         COMPLICATED (() -> {
             // Sorting
             Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
@@ -396,30 +396,30 @@ public abstract class SQLUnitTest {
                     .sorting(new SortingImpl(sortMap, playerStatsType, sortAttributes, dictionary))
                     .build();
         }),
-        LEFT_JOIN (() -> {
-            return Query.builder()
+        LEFT_JOIN (() ->
+            Query.builder()
                     .source(videoGameTable)
                     .dimensionProjection(videoGameTable.getDimensionProjection("playerName"))
-                    .build();
-        }),
-        INNER_JOIN (() -> {
-            return Query.builder()
+                    .build()
+        ),
+        INNER_JOIN (() ->
+            Query.builder()
                     .source(videoGameTable)
                     .dimensionProjection(videoGameTable.getDimensionProjection("playerNameInnerJoin"))
-                    .build();
-        }),
-        CROSS_JOIN (() -> {
-            return Query.builder()
+                    .build()
+        ),
+        CROSS_JOIN (() ->
+            Query.builder()
                     .source(videoGameTable)
                     .dimensionProjection(videoGameTable.getDimensionProjection("playerNameCrossJoin"))
-                    .build();
-        }),
-        METRIC_JOIN(() -> {
-            return Query.builder()
+                    .build()
+        ),
+        METRIC_JOIN(() ->
+            Query.builder()
                     .source(videoGameTable)
                     .metricProjection(videoGameTable.getMetricProjection("normalizedHighScore"))
-                    .build();
-        });
+                    .build()
+        );
 
         private Provider<Query> queryProvider;
 

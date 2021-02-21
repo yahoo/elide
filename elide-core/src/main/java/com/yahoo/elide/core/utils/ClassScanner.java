@@ -75,7 +75,7 @@ public class ClassScanner {
      * @return The classes
      */
     static public Set<Class<?>> getAnnotatedClasses(List<Class<? extends Annotation>> annotations) {
-        return getAnnotatedClasses(annotations, (clazz) -> { return true; });
+        return getAnnotatedClasses(annotations, clazz -> true);
     }
 
     @SafeVarargs

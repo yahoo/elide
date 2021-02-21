@@ -59,7 +59,7 @@ public class JpaDataStoreTest {
         EntityManager managerMock = mock(EntityManager.class);
         when(managerMock.getMetamodel()).thenReturn(mockModel);
 
-        JpaDataStore store = new JpaDataStore(() -> { return managerMock; }, (unused) -> { return null; });
+        JpaDataStore store = new JpaDataStore(() -> managerMock, unused -> null);
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
 
 
@@ -90,7 +90,7 @@ public class JpaDataStoreTest {
         EntityManager managerMock = mock(EntityManager.class);
         when(managerMock.getMetamodel()).thenReturn(mockModel);
 
-        JpaDataStore store = new JpaDataStore(() -> { return managerMock; }, (unused) -> { return null; }, getClassType(Test.class));
+        JpaDataStore store = new JpaDataStore(() -> managerMock, unused -> null, getClassType(Test.class));
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
         store.populateEntityDictionary(dictionary);
 

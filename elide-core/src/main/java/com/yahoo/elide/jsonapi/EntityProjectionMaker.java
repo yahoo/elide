@@ -119,17 +119,13 @@ public class EntityProjectionMaker
     @Override
     public Function<Type<?>, NamedEntityProjection> visitRootCollectionLoadEntity(
             CoreParser.RootCollectionLoadEntityContext ctx) {
-        return (unused) -> {
-            return ctx.entity().accept(this).apply(null);
-        };
+        return unused -> ctx.entity().accept(this).apply(null);
     }
 
     @Override
     public Function<Type<?>, NamedEntityProjection> visitSubCollectionReadEntity(
             CoreParser.SubCollectionReadEntityContext ctx) {
-        return (parentClass) -> {
-            return ctx.entity().accept(this).apply(parentClass);
-        };
+        return parentClass -> ctx.entity().accept(this).apply(parentClass);
     }
 
     @Override
@@ -181,9 +177,8 @@ public class EntityProjectionMaker
 
         if (aggregate == null) {
             return nextResult;
-        } else {
-            return aggregate;
         }
+        return aggregate;
     }
 
     public EntityProjection visitIncludePath(Path path) {

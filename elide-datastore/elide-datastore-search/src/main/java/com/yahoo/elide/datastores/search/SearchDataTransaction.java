@@ -281,9 +281,8 @@ public class SearchDataTransaction extends TransactionWrapper {
             }
 
             return results.stream()
-                    .map((result) -> {
-                        return result[0];
-                    }).collect(Collectors.toList());
+                    .map(result -> result[0])
+                    .collect(Collectors.toList());
     }
 
     private boolean fieldIsIndexed(Type<?> entityClass, FilterPredicate predicate) {

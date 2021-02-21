@@ -434,14 +434,13 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
 
         if (!id.isPresent()) {
             throw new BadRequestException("UPDATE data objects must include ids");
-        } else {
-            Set<PersistentResource> loadedResource = fetchObject(
-                    requestScope,
-                    entity.getProjection(),
-                    Optional.of(Collections.singletonList(id.get()))
-            ).getPersistentResources();
-            updatedResource = loadedResource.iterator().next();
         }
+        Set<PersistentResource> loadedResource = fetchObject(
+                requestScope,
+                entity.getProjection(),
+                Optional.of(Collections.singletonList(id.get()))
+        ).getPersistentResources();
+        updatedResource = loadedResource.iterator().next();
 
         return updateAttributes(updatedResource, entity, attributes);
     }

@@ -514,9 +514,8 @@ public class EntityBinding {
         Type type;
         if (fieldOrMethod instanceof Field) {
             return ((Field) fieldOrMethod).getParameterizedType(parentClass, index);
-        } else {
-            return ((Method) fieldOrMethod).getParameterizedReturnType(parentClass, index);
         }
+        return ((Method) fieldOrMethod).getParameterizedReturnType(parentClass, index);
     }
 
     private void bindTriggerIfPresent(AccessibleObject fieldOrMethod) {

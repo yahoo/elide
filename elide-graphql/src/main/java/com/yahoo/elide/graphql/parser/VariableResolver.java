@@ -69,10 +69,9 @@ class VariableResolver {
             if (variableType instanceof NonNullType && scopeVariables.get(variableName) == null) {
                 // value of non-null variable must be resolvable
                 throw new BadRequestException("Undefined non-null variable " + variableName);
-            } else {
-                // this would put 'null' for this variable if it is not stored in the map
-                scopeVariables.put(variableName, scopeVariables.get(variableName));
             }
+            // this would put 'null' for this variable if it is not stored in the map
+            scopeVariables.put(variableName, scopeVariables.get(variableName));
         } else {
             if (!scopeVariables.containsKey(variableName)) {
                 // create a new variable with default value

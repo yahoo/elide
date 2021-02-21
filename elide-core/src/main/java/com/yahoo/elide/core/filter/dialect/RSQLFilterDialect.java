@@ -294,9 +294,8 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
             if (attribute != null) {
                 return new Path(rootEntityType, dictionary, attribute.getName(),
                         attribute.getAlias(), attribute.getArguments());
-            } else {
-                return buildPath(rootEntityType, attributeName);
             }
+            return buildPath(rootEntityType, attributeName);
         }
 
         private Path buildPath(Type rootEntityType, String selector) {

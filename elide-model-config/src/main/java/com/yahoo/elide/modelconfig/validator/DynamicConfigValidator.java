@@ -325,33 +325,25 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     }
 
     private String getInheritedSchema(Table table, String schema) {
-        Inheritance action = () -> {
-            return table.getSchema();
-        };
+        Inheritance action = () -> table.getSchema();
 
         return getInheritedAttribute(action, schema);
     }
 
     private String getInheritedConnection(Table table, String connection) {
-        Inheritance action = () -> {
-            return table.getDbConnectionName();
-        };
+        Inheritance action = () -> table.getDbConnectionName();
 
         return getInheritedAttribute(action, connection);
     }
 
     private String getInheritedSql(Table table, String sql) {
-        Inheritance action = () -> {
-            return table.getSql();
-        };
+        Inheritance action = () -> table.getSql();
 
         return getInheritedAttribute(action, sql);
     }
 
     private String getInheritedTable(Table table, String tableName) {
-        Inheritance action = () -> {
-            return table.getTable();
-        };
+        Inheritance action = () -> table.getTable();
 
         return getInheritedAttribute(action, tableName);
     }

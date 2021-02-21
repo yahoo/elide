@@ -113,9 +113,8 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         if (projection.getFilterExpression() == null
                 || tx.supportsFiltering(scope, Optional.empty(), projection) == FeatureSupport.FULL) {
             return tx.loadObject(projection, id, scope);
-        } else {
-            return DataStoreTransaction.super.loadObject(projection, id, scope);
         }
+        return DataStoreTransaction.super.loadObject(projection, id, scope);
     }
 
     @Override
