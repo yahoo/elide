@@ -170,7 +170,7 @@ public class MultiplexWriteTransaction extends MultiplexTransaction {
                              Serializable id,
                              RequestScope scope) {
         DataStoreTransaction transaction = getTransaction(projection.getType());
-        return (T) hold(transaction, transaction.loadObject(projection, id, scope));
+        return hold(transaction, (T) transaction.loadObject(projection, id, scope));
     }
 
     @Override
