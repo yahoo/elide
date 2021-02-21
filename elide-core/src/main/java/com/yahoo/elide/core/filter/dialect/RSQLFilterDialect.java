@@ -478,8 +478,8 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
             }
 
             Boolean isStringLike = path.lastElement()
-                    .map(e -> e.getFieldType().isAssignableFrom(STRING_TYPE))
-                    .orElse(false);
+                    .filter(e -> e.getFieldType().isAssignableFrom(STRING_TYPE))
+                    .isPresent();
             if (isStringLike) {
                 Operator op = caseSensitive
                         ? caseSensitivityStrategy.mapOperator(Operator.IN)
