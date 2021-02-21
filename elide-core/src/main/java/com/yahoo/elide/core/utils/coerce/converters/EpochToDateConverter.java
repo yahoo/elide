@@ -55,15 +55,17 @@ public class EpochToDateConverter<T extends Date> implements Converter, Serde<Ob
     private static <T> T numberToDate(Class<T> cls, Number epoch) throws ReflectiveOperationException {
         if (ClassUtils.isAssignable(cls, java.sql.Date.class)) {
             return cls.cast(new java.sql.Date(epoch.longValue()));
-        } else if (ClassUtils.isAssignable(cls, Timestamp.class)) {
-            return cls.cast(new Timestamp(epoch.longValue()));
-        } else if (ClassUtils.isAssignable(cls, Time.class)) {
-            return cls.cast(new Time(epoch.longValue()));
-        } else if (ClassUtils.isAssignable(cls, Date.class)) {
-            return cls.cast(new Date(epoch.longValue()));
-        } else {
-            throw new UnsupportedOperationException("Cannot convert to " + cls.getSimpleName());
         }
+        if (ClassUtils.isAssignable(cls, Timestamp.class)) {
+            return cls.cast(new Timestamp(epoch.longValue()));
+        }
+        if (ClassUtils.isAssignable(cls, Time.class)) {
+            return cls.cast(new Time(epoch.longValue()));
+        }
+        if (ClassUtils.isAssignable(cls, Date.class)) {
+            return cls.cast(new Date(epoch.longValue()));
+        }
+        throw new UnsupportedOperationException("Cannot convert to " + cls.getSimpleName());
     }
 
     private static <T> T stringToDate(Class<T> cls, String epoch) throws ReflectiveOperationException {

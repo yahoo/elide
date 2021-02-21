@@ -47,15 +47,17 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     private static final Comparator<Object> NULL_SAFE_COMPARE = (a, b) -> {
         if (a == null && b == null) {
             return 0;
-        } else if (a == null) {
-            return -1;
-        } else if (b == null) {
-            return 1;
-        } else if (a instanceof Comparable) {
-            return ((Comparable) a).compareTo(b);
-        } else {
-            throw new IllegalStateException("Trying to comparing non-comparable types!");
         }
+        if (a == null) {
+            return -1;
+        }
+        if (b == null) {
+            return 1;
+        }
+        if (a instanceof Comparable) {
+            return ((Comparable) a).compareTo(b);
+        }
+        throw new IllegalStateException("Trying to comparing non-comparable types!");
     };
 
     /**

@@ -27,11 +27,11 @@ public class ToEnumConverter implements Converter {
         try {
             if (ClassUtils.isAssignable(value.getClass(), String.class)) {
                 return stringToEnum(cls, (String) value);
-            } else if (ClassUtils.isAssignable(value.getClass(), Integer.class, true)) {
-                return intToEnum(cls, (Integer) value);
-            } else {
-               throw new UnsupportedOperationException(value.getClass().getSimpleName() + " to Enum no supported");
             }
+            if (ClassUtils.isAssignable(value.getClass(), Integer.class, true)) {
+                return intToEnum(cls, (Integer) value);
+            }
+            throw new UnsupportedOperationException(value.getClass().getSimpleName() + " to Enum no supported");
         } catch (IndexOutOfBoundsException | ReflectiveOperationException
                 | UnsupportedOperationException | IllegalArgumentException e) {
             throw new InvalidAttributeException("Unknown " + cls.getSimpleName() + " value " + value, e);

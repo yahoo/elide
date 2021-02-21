@@ -491,7 +491,8 @@ public abstract class SQLUnitTest {
     private static String getCompatabilityMode(String dialectType) {
         if (dialectType.equals(SQLDialectFactory.getMySQLDialect().getDialectType())) {
             return ";MODE=MySQL";
-        } else if (dialectType.equals(SQLDialectFactory.getPostgresDialect().getDialectType())) {
+        }
+        if (dialectType.equals(SQLDialectFactory.getPostgresDialect().getDialectType())) {
             return ";MODE=PostgreSQL";
         }
 
@@ -537,10 +538,14 @@ public abstract class SQLUnitTest {
     protected void compareQueryLists(List<String> expected, List<String> actual) {
         if (expected == null && actual == null) {
             return;
-        } else if (expected == null) {
+        }
+        if (expected == null) {
             fail("Expected a null query List, but actual was non-null");
-        } else if (actual == null) {
+            return;
+        }
+        if (actual == null) {
             fail("Expected a non-null query List, but actual was null");
+            return;
         }
 
         assertEquals(expected.size(), actual.size(), "Query List sizes do not match");

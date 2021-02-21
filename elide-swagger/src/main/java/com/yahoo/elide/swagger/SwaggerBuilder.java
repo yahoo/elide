@@ -209,8 +209,8 @@ public class SwaggerBuilder {
             Path path = new Path();
 
             /* The path parameter apply for all operations */
-            lineage.stream().forEach(item -> 
-                path.addParameter(item.getPathParameter()));
+            lineage.stream().forEach(item ->
+                    path.addParameter(item.getPathParameter()));
 
             String typeName = dictionary.getJsonAliasFor(type);
 

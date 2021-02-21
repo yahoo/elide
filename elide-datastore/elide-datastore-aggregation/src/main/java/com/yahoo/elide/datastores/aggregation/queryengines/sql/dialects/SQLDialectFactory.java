@@ -55,24 +55,28 @@ public class SQLDialectFactory {
     public static SQLDialect getDialect(String type) {
         if (type.equalsIgnoreCase(H2_DIALECT.getDialectType())) {
             return H2_DIALECT;
-        } else if (type.equalsIgnoreCase(HIVE_DIALECT.getDialectType())) {
+        }
+        if (type.equalsIgnoreCase(HIVE_DIALECT.getDialectType())) {
             return HIVE_DIALECT;
-        } else if (type.equalsIgnoreCase(PRESTODB_DIALECT.getDialectType())) {
+        }
+        if (type.equalsIgnoreCase(PRESTODB_DIALECT.getDialectType())) {
             return PRESTODB_DIALECT;
-        } else if (type.equalsIgnoreCase(MYSQL_DIALECT.getDialectType())) {
+        }
+        if (type.equalsIgnoreCase(MYSQL_DIALECT.getDialectType())) {
             return MYSQL_DIALECT;
-        } else if (type.equalsIgnoreCase(POSTGRES_DIALECT.getDialectType())) {
+        }
+        if (type.equalsIgnoreCase(POSTGRES_DIALECT.getDialectType())) {
             return POSTGRES_DIALECT;
-        } else if (type.equalsIgnoreCase(DRUID_DIALECT.getDialectType())) {
+        }
+        if (type.equalsIgnoreCase(DRUID_DIALECT.getDialectType())) {
             return DRUID_DIALECT;
-        } else {
-            try {
-                return (SQLDialect) Class.forName(type).getConstructor().newInstance();
-            } catch (ClassNotFoundException e) {
-                throw new IllegalArgumentException("Unsupported SQL Dialect: " + type, e);
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Failed to instantiate SQL Dialect: " + type, e);
-            }
+        }
+        try {
+            return (SQLDialect) Class.forName(type).getConstructor().newInstance();
+        } catch (ClassNotFoundException e) {
+            throw new IllegalArgumentException("Unsupported SQL Dialect: " + type, e);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to instantiate SQL Dialect: " + type, e);
         }
     }
 }
