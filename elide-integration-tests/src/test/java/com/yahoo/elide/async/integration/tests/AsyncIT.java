@@ -23,6 +23,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -56,7 +57,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import io.restassured.response.Response;
-import io.restassured.response.ValidatableResponse;
 import lombok.Data;
 
 import java.io.IOException;
@@ -126,9 +126,11 @@ public class AsyncIT extends IntegrationTest {
     protected DataStoreTestHarness createHarness() {
         DataStoreTestHarness dataStoreTestHarness = super.createHarness();
         return new DataStoreTestHarness() {
+                @Override
                 public DataStore getDataStore() {
                     return new AsyncDelayDataStore(dataStoreTestHarness.getDataStore(), 5000);
                 }
+                @Override
                 public void cleanseTestData() {
                     dataStoreTestHarness.cleanseTestData();
                 }
@@ -329,19 +331,18 @@ public class AsyncIT extends IntegrationTest {
                  )
         ).toQuery();
 
+        String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\","
+                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { id title } } } }\\\",\\\"variables\\\":null}\","
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\"}}]}}}";
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
-        ValidatableResponse response = given()
+        given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
                 .then()
-                .statusCode(org.apache.http.HttpStatus.SC_OK);
-
-        String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\","
-                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { id title } } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\"}}]}}}";
-        assertEquals(expectedResponse, response.extract().body().asString());
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body(equalTo(expectedResponse));
 
         int i = 0;
         while (i < 1000) {
@@ -412,19 +413,18 @@ public class AsyncIT extends IntegrationTest {
                  )
         ).toQuery();
 
+        String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\","
+                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { id title } } } }\\\",\\\"variables\\\":null}\","
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\"}}]}}}";
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
-        ValidatableResponse response = given()
+        given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
                 .then()
-                .statusCode(org.apache.http.HttpStatus.SC_OK);
-
-        String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\","
-                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { id title } } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\"}}]}}}";
-        assertEquals(expectedResponse, response.extract().body().asString());
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body(equalTo(expectedResponse));
 
         String responseGraphQL = given()
                  .contentType(MediaType.APPLICATION_JSON)
@@ -479,15 +479,14 @@ public class AsyncIT extends IntegrationTest {
         ).toQuery();
 
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
-        ValidatableResponse response = given()
+        given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
                 .then()
-                .statusCode(org.apache.http.HttpStatus.SC_OK);
-
-        assertEquals(true, response.extract().body().asString().contains("errors"));
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body(containsString("errors"));
     }
 
     /**

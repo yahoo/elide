@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -2108,10 +2107,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     public void testCollectionChangeSpecType() {
         Function<String, BiFunction<ChangeSpec, BiFunction<Collection, Collection, Boolean>, Boolean>> collectionCheck =
                 (fieldName) -> (spec, condFn) -> {
-                    if (!fieldName.equals(spec.getFieldName())) {
-                        fail("Should not reach here");
-                        throw new IllegalStateException();
-                    }
+                    assertTrue(fieldName.equals(spec.getFieldName()));
                     return condFn.apply((Collection) spec.getOriginal(), (Collection) spec.getModified());
                 };
 
@@ -2172,14 +2168,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test
     public void testAttrChangeSpecType() {
         BiFunction<ChangeSpec, BiFunction<String, String, Boolean>, Boolean> attrCheck = (spec, checkFn) -> {
-            if (!(spec.getModified() instanceof String) && spec.getModified() != null) {
-                fail("Should not reach here");
-                return false;
-            }
-            if (!"testAttr".equals(spec.getFieldName())) {
-                fail("Should not reach here");
-                return false;
-            }
+            assertTrue(spec.getModified() instanceof String || spec.getModified() == null);
+            assertEquals("testAttr", spec.getFieldName());
             return checkFn.apply((String) spec.getOriginal(), (String) spec.getModified());
         };
 
@@ -2196,14 +2186,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test
     public void testRelationChangeSpecType() {
             BiFunction<ChangeSpec, BiFunction<ChangeSpecChild, ChangeSpecChild, Boolean>, Boolean> relCheck = (spec, checkFn) -> {
-                if (!(spec.getModified() instanceof ChangeSpecChild) && spec.getModified() != null) {
-                    fail("Should not reach here");
-                    return false;
-                }
-                if (!"child".equals(spec.getFieldName())) {
-                    fail("Should not reach here");
-                    return false;
-                }
+                assertTrue(spec.getModified() instanceof ChangeSpecChild ||  spec.getModified() == null);
+                assertEquals("child", spec.getFieldName());
                 return checkFn.apply((ChangeSpecChild) spec.getOriginal(), (ChangeSpecChild) spec.getModified());
             };
 

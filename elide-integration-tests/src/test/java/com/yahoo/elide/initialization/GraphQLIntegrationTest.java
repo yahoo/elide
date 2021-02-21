@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.TestInstance;
 import io.restassured.response.ValidatableResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -74,12 +75,7 @@ public abstract class GraphQLIntegrationTest extends IntegrationTest {
             Map<String, Object> variables,
             String errorMessage
     ) throws IOException {
-        compareErrorMessage(runQuery(graphQLQuery, variables), errorMessage);
-    }
-
-    private void compareErrorMessage(ValidatableResponse response, String expected) throws IOException {
-        JsonNode responseNode = JSON_MAPPER.readTree(response.extract().body().asString());
-        assertEquals(expected, responseNode.get("errors").get(0).get("message").toString());
+        runQuery(graphQLQuery, variables).body("errors[0].message", Matchers.equalTo(errorMessage));
     }
 
     protected void compareJsonObject(ValidatableResponse response, String expected) throws IOException {

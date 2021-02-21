@@ -23,6 +23,7 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -59,7 +60,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import io.restassured.response.Response;
-import io.restassured.response.ValidatableResponse;
 import lombok.Data;
 
 import java.io.IOException;
@@ -146,9 +146,11 @@ public class TableExportIT extends IntegrationTest {
     protected DataStoreTestHarness createHarness() {
         DataStoreTestHarness dataStoreTestHarness = super.createHarness();
         return new DataStoreTestHarness() {
+                @Override
                 public DataStore getDataStore() {
                     return new AsyncDelayDataStore(dataStoreTestHarness.getDataStore());
                 }
+                @Override
                 public void cleanseTestData() {
                     dataStoreTestHarness.cleanseTestData();
                 }
@@ -398,20 +400,19 @@ public class TableExportIT extends IntegrationTest {
                  )
         ).toQuery();
 
+        String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\","
+                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { title } } } }\\\",\\\"variables\\\":null}\","
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
-        ValidatableResponse response = given()
+        given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("sleep", "1000")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
                 .then()
-                .statusCode(org.apache.http.HttpStatus.SC_OK);
-
-        String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\","
-                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { title } } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
-        assertEquals(expectedResponse, response.extract().body().asString());
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body(equalTo(expectedResponse));
 
         String responseGraphQL = getGraphQLResponse("edc4a871-dff2-4054-804e-d80075cf828e");
         expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
@@ -462,20 +463,19 @@ public class TableExportIT extends IntegrationTest {
                  )
         ).toQuery();
 
+        String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\","
+                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { title } } } }\\\",\\\"variables\\\":null}\","
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"JSON\"}}]}}}";
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
-        ValidatableResponse response = given()
+        given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("sleep", "1000")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
                 .then()
-                .statusCode(org.apache.http.HttpStatus.SC_OK);
-
-        String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\","
-                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { title } } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"JSON\"}}]}}}";
-        assertEquals(expectedResponse, response.extract().body().asString());
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body(equalTo(expectedResponse));
 
         String responseGraphQL = given()
                  .contentType(MediaType.APPLICATION_JSON)
@@ -534,17 +534,15 @@ public class TableExportIT extends IntegrationTest {
         ).toQuery();
 
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
-        ValidatableResponse response = given()
+        given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
                 .then()
-                .statusCode(org.apache.http.HttpStatus.SC_OK);
-
-        String output = response.extract().body().asString();
-        assertEquals(true, output.contains("errors"));
-        assertEquals(true, output.contains("CreatePermission Denied"));
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body(containsString("errors"))
+                .body(containsString("CreatePermission Denied"));
     }
 
     /**
@@ -582,17 +580,15 @@ public class TableExportIT extends IntegrationTest {
         ).toQuery();
 
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
-        ValidatableResponse response = given()
+        given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
                 .then()
-                .statusCode(org.apache.http.HttpStatus.SC_OK);
-
-        String output = response.extract().body().asString();
-        assertEquals(true, output.contains("errors"));
-        assertEquals(true, output.contains("Validation error of type WrongType: argument &#39;data.resultType&#39;"));
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body(containsString("errors"))
+                .body(containsString("Validation error of type WrongType: argument &#39;data.resultType&#39;"));
     }
 
     /**
@@ -719,19 +715,18 @@ public class TableExportIT extends IntegrationTest {
                 )
         ).toQuery();
 
+        String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf939e\","
+                + "\"query\":\"{\\\"query\\\":\\\"{ group { edges { node { title } } } }\\\",\\\"variables\\\":null}\","
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"CSV\"}}]}}}";
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
-        ValidatableResponse response = given()
+        given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
                 .then()
-                .statusCode(org.apache.http.HttpStatus.SC_OK);
-
-        String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf939e\","
-                + "\"query\":\"{\\\"query\\\":\\\"{ group { edges { node { title } } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"CSV\"}}]}}}";
-        assertEquals(expectedResponse, response.extract().body().asString());
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body(equalTo(expectedResponse));
 
         String responseGraphQL = given()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -872,20 +867,19 @@ public class TableExportIT extends IntegrationTest {
                  )
         ).toQuery();
 
+        String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075df828e\","
+                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { title } } }\\\",\\\"variables\\\":null}\","
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
-        ValidatableResponse response = given()
+        given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("sleep", "1000")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
                 .then()
-                .statusCode(org.apache.http.HttpStatus.SC_OK);
-
-        String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075df828e\","
-                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { title } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
-        assertEquals(expectedResponse, response.extract().body().asString());
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body(equalTo(expectedResponse));
 
         String responseGraphQL = getGraphQLResponse("edc4a871-dff2-4054-804e-d80075df828e");
         expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075df828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
@@ -931,20 +925,19 @@ public class TableExportIT extends IntegrationTest {
                  )
         ).toQuery();
 
+        String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-def2-4054-804e-d80075cf828e\","
+                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { title } } } author { edges { node { name } } } }\\\",\\\"variables\\\":null}\","
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
-        ValidatableResponse response = given()
+        given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("sleep", "1000")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
                 .then()
-                .statusCode(org.apache.http.HttpStatus.SC_OK);
-
-        String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-def2-4054-804e-d80075cf828e\","
-                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { title } } } author { edges { node { name } } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
-        assertEquals(expectedResponse, response.extract().body().asString());
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body(equalTo(expectedResponse));
 
         String responseGraphQL = getGraphQLResponse("edc4a871-def2-4054-804e-d80075cf828e");
         expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-def2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
@@ -990,20 +983,19 @@ public class TableExportIT extends IntegrationTest {
                  )
         ).toQuery();
 
+        String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-daf2-4054-804e-d80075cf828e\","
+                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { title } } } } { author { edges { node { name } } } }\\\",\\\"variables\\\":null}\","
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
-        ValidatableResponse response = given()
+        given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("sleep", "1000")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
                 .then()
-                .statusCode(org.apache.http.HttpStatus.SC_OK);
-
-        String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-daf2-4054-804e-d80075cf828e\","
-                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { title } } } } { author { edges { node { name } } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
-        assertEquals(expectedResponse, response.extract().body().asString());
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body(equalTo(expectedResponse));
 
         String responseGraphQL = getGraphQLResponse("edc4a871-daf2-4054-804e-d80075cf828e");
         expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-daf2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
@@ -1049,20 +1041,19 @@ public class TableExportIT extends IntegrationTest {
                  )
         ).toQuery();
 
+        String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dbf2-4054-804e-d80075cf828e\","
+                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { title authors {edges { node { name } } } } } } }\\\", \\\"variables\\\":null}\","
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
-        ValidatableResponse response = given()
+        given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("sleep", "1000")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
                 .then()
-                .statusCode(org.apache.http.HttpStatus.SC_OK);
-
-        String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dbf2-4054-804e-d80075cf828e\","
-                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { title authors {edges { node { name } } } } } } }\\\", \\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
-        assertEquals(expectedResponse, response.extract().body().asString());
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body(equalTo(expectedResponse));
 
         String responseGraphQL = getGraphQLResponse("edc4a871-dbf2-4054-804e-d80075cf828e");
         expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dbf2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","

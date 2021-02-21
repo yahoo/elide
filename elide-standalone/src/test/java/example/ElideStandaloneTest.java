@@ -72,8 +72,7 @@ public class ElideStandaloneTest {
             .post("/api/v1/post")
             .then()
 
-            .statusCode(HttpStatus.SC_CREATED)
-            .extract().body().asString();
+            .statusCode(HttpStatus.SC_CREATED);
 
         // Test the Dynamic Generated Analytical Model is accessible
         given()
@@ -118,8 +117,7 @@ public class ElideStandaloneTest {
                 )
                 .post("/api/v1/post")
                 .then()
-                .statusCode(HttpStatus.SC_CREATED)
-                .extract().body().asString();
+                .statusCode(HttpStatus.SC_CREATED);
     }
 
     @Test
@@ -142,8 +140,7 @@ public class ElideStandaloneTest {
             )
             .post("/api/v1/post")
             .then()
-            .statusCode(HttpStatus.SC_FORBIDDEN)
-            .extract().body().asString();
+            .statusCode(HttpStatus.SC_FORBIDDEN);
     }
 
     @Test
@@ -263,9 +260,7 @@ public class ElideStandaloneTest {
             }
             i++;
 
-            if (i == 1000) {
-                fail("Async Query not completed.");
-            }
+            assertEquals(1000, i, "Async Query not completed.");
         }
     }
 
