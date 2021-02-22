@@ -50,6 +50,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class InMemoryStoreTransactionTest {
@@ -509,44 +510,51 @@ public class InMemoryStoreTransactionTest {
 
         assertEquals(wrapped, wrapped.getDataStore());
 
-        String tos = store.toString();
-        assertTrue(tos.contains("Data store contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.NoReadEntity} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Author} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Book} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Child} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.ComputedBean} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Editor} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.FieldAnnotations} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.FirstClassFields} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.FunWithPermissions} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Invoice} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Job} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Left} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.LineItem} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.MapColorShape} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.NoDeleteEntity} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.NoShareEntity} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.NoUpdateEntity} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Parent} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Post} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.PrimitiveId} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Publisher} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Right} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.StringId} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.UpdateAndCreate} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.User} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.models.generics.Employee} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.models.generics.Manager} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.models.triggers.Invoice} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.models.versioned.BookV2} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.nontransferable.ContainerWithPackageShare} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.nontransferable.ShareableWithPackageShare} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.nontransferable.Untransferable} contents"));
-        assertFalse(tos.contains("Table ClassType{cls=class example.models.packageinfo.ExcludedPackageLevel} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.models.packageinfo.IncludedPackageLevel} contents"));
-        assertFalse(tos.contains("Table ClassType{cls=class example.models.packageinfo.excluded.ExcludedSubPackage} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.models.packageinfo.included.IncludedSubPackage} contents"));
-        assertFalse(tos.contains("Table ClassType{cls=class example.models.packageinfo.included.ExcludedBySuperClass} contents"));
+        // extract class names from DataStore string
+        String tos = store.toString()
+                .replace("Datastorecontents\n","")
+                .replace("Table ClassType{cls=class", "").replace("} contents", "")
+                .replace("Wrapped:[","").replace("]", "")
+                .replace(" ", "").replace("\n\n", ",").replace("\n","");
+
+        // make sure count is correct
+        assertEquals(35, tos.split(",").length,
+                new TreeSet(Arrays.asList(tos.split(","))).toString().replace(",", "\n"));
+
+        assertTrue(tos.contains("example.Author"));
+        assertTrue(tos.contains("example.Book"));
+        assertTrue(tos.contains("example.Child"));
+        assertTrue(tos.contains("example.CoerceBean"));
+        assertTrue(tos.contains("example.ComputedBean"));
+        assertTrue(tos.contains("example.Editor"));
+        assertTrue(tos.contains("example.FieldAnnotations"));
+        assertTrue(tos.contains("example.FirstClassFields"));
+        assertTrue(tos.contains("example.FunWithPermissions"));
+        assertTrue(tos.contains("example.Invoice"));
+        assertTrue(tos.contains("example.Job"));
+        assertTrue(tos.contains("example.Left"));
+        assertTrue(tos.contains("example.LineItem"));
+        assertTrue(tos.contains("example.MapColorShape"));
+        assertTrue(tos.contains("example.NoDeleteEntity"));
+        assertTrue(tos.contains("example.NoReadEntity"));
+        assertTrue(tos.contains("example.NoShareEntity"));
+        assertTrue(tos.contains("example.NoUpdateEntity"));
+        assertTrue(tos.contains("example.Parent"));
+        assertTrue(tos.contains("example.Post"));
+        assertTrue(tos.contains("example.PrimitiveId"));
+        assertTrue(tos.contains("example.Publisher"));
+        assertTrue(tos.contains("example.Right"));
+        assertTrue(tos.contains("example.StringId"));
+        assertTrue(tos.contains("example.UpdateAndCreate"));
+        assertTrue(tos.contains("example.User"));
+        assertTrue(tos.contains("example.models.generics.Employee"));
+        assertTrue(tos.contains("example.models.generics.Manager"));
+        assertTrue(tos.contains("example.models.packageinfo.IncludedPackageLevel"));
+        assertTrue(tos.contains("example.models.packageinfo.included.IncludedSubPackage"));
+        assertTrue(tos.contains("example.models.triggers.Invoice"));
+        assertTrue(tos.contains("example.models.versioned.BookV2"));
+        assertTrue(tos.contains("example.nontransferable.ContainerWithPackageShare"));
+        assertTrue(tos.contains("example.nontransferable.ShareableWithPackageShare"));
+        assertTrue(tos.contains("example.nontransferable.Untransferable"));
     }
 }
