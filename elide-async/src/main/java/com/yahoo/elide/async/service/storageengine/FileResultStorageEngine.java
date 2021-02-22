@@ -54,9 +54,8 @@ public class FileResultStorageEngine implements ResultStorageEngine {
                         throwable -> {
                             throw new IllegalStateException(STORE_ERROR, throwable);
                         },
-                        () -> {
-                            writer.flush();
-                        }
+                        () ->
+                            writer.flush()
                 );
         } catch (IOException e) {
             throw new IllegalStateException(STORE_ERROR, e);
@@ -71,31 +70,28 @@ public class FileResultStorageEngine implements ResultStorageEngine {
 
         return Observable.using(
                 () -> getReader(asyncQueryID),
-                reader -> {
-                    return Observable.fromIterable(() -> {
-                        return new Iterator<String>() {
-                            private String record = null;
+                reader -> Observable.fromIterable(() -> new Iterator<String>() {
+                    private String record = null;
 
-                            @Override
-                            public boolean hasNext() {
-                                try {
-                                    record = reader.readLine();
-                                    return record != null;
-                                } catch (IOException e) {
-                                    throw new IllegalStateException(RETRIEVE_ERROR, e);
-                                }
-                            }
+                    @Override
+                    public boolean hasNext() {
+                        try {
+                            record = reader.readLine();
+                            return record != null;
+                        } catch (IOException e) {
+                            throw new IllegalStateException(RETRIEVE_ERROR, e);
+                        }
+                    }
 
-                            @Override
-                            public String next() {
-                                if (record != null) {
-                                    return record;
-                                }
-                                throw new IllegalStateException("null line found.");
-                            }
-                        };
-                    });
-                }, BufferedReader::close);
+                    @Override
+                    public String next() {
+                        if (record != null) {
+                            return record;
+                        }
+                        throw new IllegalStateException("null line found.");
+                    }
+                }),
+                BufferedReader::close);
     }
 
     private BufferedReader getReader(String asyncQueryID) {

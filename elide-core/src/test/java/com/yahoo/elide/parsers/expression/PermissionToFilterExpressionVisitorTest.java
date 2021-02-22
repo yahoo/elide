@@ -259,7 +259,8 @@ public class PermissionToFilterExpressionVisitorTest {
             left = or.getLeft();
             right = or.getRight();
             return containsOnlyFilterableExpressions(left) && containsOnlyFilterableExpressions(right);
-        } else if (expr instanceof AndFilterExpression) {
+        }
+        if (expr instanceof AndFilterExpression) {
             AndFilterExpression and = (AndFilterExpression) expr;
             left = and.getLeft();
             right = and.getRight();

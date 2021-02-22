@@ -53,8 +53,8 @@ public class MonthSerdeTest {
     public void testDeserializeDateInvalidFormat() throws ParseException {
         String dateInString = "January-2020";
         Serde serde = new Month.MonthSerde();
-        assertThrows(DateTimeParseException.class, () -> {
-            serde.deserialize(dateInString);
-        });
+        assertThrows(DateTimeParseException.class, () ->
+            serde.deserialize(dateInString)
+        );
     }
 }

@@ -322,10 +322,8 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
 
         queryParams.entrySet()
                 .stream()
-                .filter((entry) -> entry.getKey().startsWith("filter"))
-                .forEach((entry) -> {
-                    returnMap.put(entry.getKey(), entry.getValue());
-                });
+                .filter(entry -> entry.getKey().startsWith("filter"))
+                .forEach(entry -> returnMap.put(entry.getKey(), entry.getValue()));
         return returnMap;
     }
 
@@ -506,8 +504,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     public String getRequestHeaderByName(String headerName) {
         if (this.requestHeaders.get(headerName) == null) {
             return null;
-        } else {
-            return this.requestHeaders.get(headerName).get(0);
         }
+        return this.requestHeaders.get(headerName).get(0);
     }
 }

@@ -23,12 +23,12 @@ public class ImmutablePagination implements Pagination {
     public static ImmutablePagination from(Pagination src) {
         if (src instanceof ImmutablePagination) {
             return (ImmutablePagination) src;
-        } else if (src != null) {
+        }
+        if (src != null) {
             return new ImmutablePagination(
                     src.getOffset(), src.getLimit(), src.isDefaultInstance(), src.returnPageTotals());
-        } else {
-            return null;
         }
+        return null;
     }
 
     @Override

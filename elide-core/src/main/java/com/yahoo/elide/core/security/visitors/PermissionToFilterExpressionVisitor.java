@@ -95,9 +95,11 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
         FilterExpression expression = visit(ctx.expression());
         if (Objects.equals(expression, TRUE_USER_CHECK_EXPRESSION)) {
             return FALSE_USER_CHECK_EXPRESSION;
-        } else if (Objects.equals(expression, FALSE_USER_CHECK_EXPRESSION)) {
+        }
+        if (Objects.equals(expression, FALSE_USER_CHECK_EXPRESSION)) {
             return TRUE_USER_CHECK_EXPRESSION;
-        } else if (Objects.equals(expression, NO_EVALUATION_EXPRESSION)) {
+        }
+        if (Objects.equals(expression, NO_EVALUATION_EXPRESSION)) {
             return NO_EVALUATION_EXPRESSION;
         }
         return new NotFilterExpression(expression);

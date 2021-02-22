@@ -262,7 +262,6 @@ public class GraphQLEntityProjectionMaker {
             addRelationship(field, projectionBuilder);
         } else if (TYPENAME.equals(fieldName)) {
             // '__typename' would not be handled by entityProjection
-            return;
         } else if (PAGE_INFO.equals(fieldName)) {
             // only 'totalRecords' needs to be added into the projection's pagination
             if (field.getSelectionSet().getSelections().stream()

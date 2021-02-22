@@ -37,7 +37,8 @@ public class AndFilterExpression implements FilterExpression {
     public static FilterExpression fromPair(FilterExpression left, FilterExpression right) {
         if (left != null && right != null) {
             return new AndFilterExpression(left, right);
-        } else if (left == null) {
+        }
+        if (left == null) {
             return right;
         }
         return left;

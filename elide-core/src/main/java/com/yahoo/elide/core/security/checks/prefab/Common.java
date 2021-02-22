@@ -25,8 +25,7 @@ public class Common {
     public static class FieldSetToNull<T> extends OperationCheck<T> {
         @Override
         public boolean ok(T record, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            return changeSpec.map((c) -> { return c.getModified() == null; })
-                    .orElse(false);
+            return changeSpec.filter(c -> c.getModified() == null).isPresent();
         }
     }
 }

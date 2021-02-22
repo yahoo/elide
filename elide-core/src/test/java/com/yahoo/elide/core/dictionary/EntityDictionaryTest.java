@@ -213,7 +213,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         EntityDictionary testDictionary = new EntityDictionary(
                 new HashMap<>(),
                 null,
-                (unused) -> { return new ISO8601DateSerde(); });
+                unused -> new ISO8601DateSerde());
 
         testDictionary.bindEntity(EntityWithDateId.class);
 
@@ -752,9 +752,9 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         assertEquals(new ClassType(SuperclassBinding.class), getEntityBinding(new ClassType(SubclassBinding.class)).entityClass);
         assertEquals(new ClassType(SuperclassBinding.class), getEntityBinding(new ClassType(SuperclassBinding.class)).entityClass);
-        assertThrows(IllegalArgumentException.class, () -> {
-            getEntityBinding(new ClassType(SubsubclassBinding.class));
-        });
+        assertThrows(IllegalArgumentException.class, () ->
+            getEntityBinding(new ClassType(SubsubclassBinding.class))
+        );
 
         assertEquals(new ClassType(SuperclassBinding.class), lookupIncludeClass(new ClassType(SuperclassBinding.class)));
         assertEquals(new ClassType(SuperclassBinding.class), lookupIncludeClass(new ClassType(SubclassBinding.class)));

@@ -69,10 +69,9 @@ class VariableResolver {
             if (variableType instanceof NonNullType && scopeVariables.get(variableName) == null) {
                 // value of non-null variable must be resolvable
                 throw new BadRequestException("Undefined non-null variable " + variableName);
-            } else {
-                // this would put 'null' for this variable if it is not stored in the map
-                scopeVariables.put(variableName, scopeVariables.get(variableName));
             }
+            // this would put 'null' for this variable if it is not stored in the map
+            scopeVariables.put(variableName, scopeVariables.get(variableName));
         } else {
             if (!scopeVariables.containsKey(variableName)) {
                 // create a new variable with default value
@@ -90,25 +89,33 @@ class VariableResolver {
     public Object resolveValue(Value value) {
         if (value instanceof BooleanValue) {
             return ((BooleanValue) value).isValue();
-        } else if (value instanceof EnumValue) {
+        }
+        if (value instanceof EnumValue) {
             // TODO
             throw new BadRequestException("Enum value is not supported.");
-        } else if (value instanceof FloatValue) {
+        }
+        if (value instanceof FloatValue) {
             return ((FloatValue) value).getValue();
-        } else if (value instanceof IntValue) {
+        }
+        if (value instanceof IntValue) {
             return ((IntValue) value).getValue();
-        } else if (value instanceof NullValue) {
+        }
+        if (value instanceof NullValue) {
             return null;
-        } else if (value instanceof StringValue) {
+        }
+        if (value instanceof StringValue) {
             return ((StringValue) value).getValue();
-        } else if (value instanceof ObjectValue) {
+        }
+        if (value instanceof ObjectValue) {
             return ((ObjectValue) value).getObjectFields().stream()
                     .collect(Collectors.toMap(ObjectField::getName, ObjectField::getValue));
-        } else if (value instanceof ArrayValue) {
+        }
+        if (value instanceof ArrayValue) {
             return ((ArrayValue) value).getValues().stream()
                     .map(this::resolveValue)
                     .collect(Collectors.toList());
-        } else if (value instanceof VariableReference) {
+        }
+        if (value instanceof VariableReference) {
             String variableName = ((VariableReference) value).getName();
             if (!scopeVariables.containsKey(variableName)) {
                 throw new BadRequestException("Can't resolve variable reference " + variableName);

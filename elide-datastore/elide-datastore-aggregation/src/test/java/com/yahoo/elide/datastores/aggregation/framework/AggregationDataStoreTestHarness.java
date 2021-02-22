@@ -62,16 +62,17 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
                 .queryLogger(new Slf4jQueryLogger())
                 .build();
 
-        Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
+        Consumer<EntityManager> txCancel = em -> em.unwrap(Session.class).cancelQuery();
 
         DataStore jpaStore = new JpaDataStore(
                 () -> entityManagerFactory.createEntityManager(),
-                (em) -> { return new NonJtaTransaction(em, txCancel); }
+                em -> new NonJtaTransaction(em, txCancel)
         );
 
         return new MultiplexManager(jpaStore, metaDataStore, aggregationDataStore);
     }
 
+    @Override
     public void cleanseTestData() {
 
     }

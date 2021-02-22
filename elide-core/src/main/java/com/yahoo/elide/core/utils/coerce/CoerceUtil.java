@@ -117,11 +117,11 @@ public class CoerceUtil {
             public Converter lookup(Class<?> sourceType, Class<?> targetType) {
                 if (targetType.isEnum()) {
                     return TO_ENUM_CONVERTER;
-                } else if (Map.class.isAssignableFrom(sourceType)) {
-                    return FROM_MAP_CONVERTER;
-                } else {
-                    return super.lookup(sourceType, targetType);
                 }
+                if (Map.class.isAssignableFrom(sourceType)) {
+                    return FROM_MAP_CONVERTER;
+                }
+                return super.lookup(sourceType, targetType);
             }
         });
     }

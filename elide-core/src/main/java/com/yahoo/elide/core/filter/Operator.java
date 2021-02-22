@@ -444,11 +444,10 @@ public enum Operator {
 
             if (fieldVal instanceof Collection) {
                 return ((Collection) fieldVal).stream()
-                        .anyMatch((fieldValueElement) -> {
-                            return fieldValueElement != null
-                                    && values.stream()
-                                    .anyMatch(testVal -> condition.test(compare(fieldValueElement, testVal)));
-                        });
+                        .anyMatch(fieldValueElement ->
+                            fieldValueElement != null
+                            && values.stream()
+                            .anyMatch(testVal -> condition.test(compare(fieldValueElement, testVal))));
             }
 
             return fieldVal != null
@@ -474,16 +473,14 @@ public enum Operator {
 
         if (leftHandSide instanceof Collection && !valueClass.isAssignableFrom(COLLECTION_TYPE)) {
             return ((Collection) leftHandSide).stream()
-                    .anyMatch((leftHandSideElement) -> {
-                        return values.stream()
-                                .map(value -> CoerceUtil.coerce(value, valueClass))
-                                .anyMatch(value -> predicate.test(leftHandSideElement, value));
-                    });
-        } else {
-            return leftHandSide != null && values.stream()
-                    .map(value -> CoerceUtil.coerce(value, valueClass))
-                    .anyMatch(value -> predicate.test(leftHandSide, value));
+                    .anyMatch(leftHandSideElement ->
+                        values.stream()
+                            .map(value -> CoerceUtil.coerce(value, valueClass))
+                            .anyMatch(value -> predicate.test(leftHandSideElement, value)));
         }
+        return leftHandSide != null && values.stream()
+                .map(value -> CoerceUtil.coerce(value, valueClass))
+                .anyMatch(value -> predicate.test(leftHandSide, value));
     }
 
     public Operator negate() {
