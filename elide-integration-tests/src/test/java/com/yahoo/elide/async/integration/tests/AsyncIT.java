@@ -29,6 +29,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
@@ -360,6 +361,7 @@ public class AsyncIT extends IntegrationTest {
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
             }
+            assertTrue(responseGraphQL.contains("\"status\":\"PROCESSING\""), "Async Query has failed.");
             i++;
             assertNotEquals(1000, i, "Async Query not completed.");
         }
