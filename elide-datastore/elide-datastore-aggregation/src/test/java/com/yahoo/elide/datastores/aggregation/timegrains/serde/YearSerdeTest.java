@@ -56,8 +56,8 @@ public class YearSerdeTest {
 
         String dateInString = "January";
         Serde serde = new Year.YearSerde();
-        assertThrows(DateTimeParseException.class, () -> {
-            serde.deserialize(dateInString);
-        });
+        assertThrows(DateTimeParseException.class, () ->
+            serde.deserialize(dateInString)
+        );
     }
 }

@@ -68,7 +68,7 @@ import javax.persistence.EntityManagerFactory;
 public interface ElideStandaloneSettings {
     /* Elide settings */
 
-     public final Consumer<EntityManager> TXCANCEL = (em) -> { em.unwrap(Session.class).cancelQuery(); };
+     public final Consumer<EntityManager> TXCANCEL = em -> em.unwrap(Session.class).cancelQuery();
 
     /**
      * A map containing check mappings for security across Elide. If not provided, then an empty map is used.
@@ -394,8 +394,8 @@ public interface ElideStandaloneSettings {
     default DataStore getDataStore(MetaDataStore metaDataStore, AggregationDataStore aggregationDataStore,
             EntityManagerFactory entityManagerFactory) {
         DataStore jpaDataStore = new JpaDataStore(
-                () -> { return entityManagerFactory.createEntityManager(); },
-                (em) -> { return new NonJtaTransaction(em, TXCANCEL); });
+                () -> entityManagerFactory.createEntityManager(),
+                em -> new NonJtaTransaction(em, TXCANCEL));
 
         DataStore dataStore = new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
 
@@ -409,8 +409,8 @@ public interface ElideStandaloneSettings {
      */
     default DataStore getDataStore(EntityManagerFactory entityManagerFactory) {
         DataStore jpaDataStore = new JpaDataStore(
-                () -> { return entityManagerFactory.createEntityManager(); },
-                (em) -> { return new NonJtaTransaction(em, TXCANCEL); });
+                () -> entityManagerFactory.createEntityManager(),
+                em -> new NonJtaTransaction(em, TXCANCEL));
 
         return jpaDataStore;
     }

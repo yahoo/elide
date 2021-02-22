@@ -171,7 +171,7 @@ public class SQLTable extends Table implements Queryable {
     public Set<ColumnProjection> getColumnProjections() {
         return super.getColumns()
                 .stream()
-                .map((column) -> { return getColumnProjection(column.getName()); })
+                .map(column -> getColumnProjection(column.getName()))
                 .collect(Collectors.toSet());
     }
 

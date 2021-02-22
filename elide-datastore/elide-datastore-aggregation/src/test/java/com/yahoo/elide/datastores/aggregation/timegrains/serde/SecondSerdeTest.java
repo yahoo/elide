@@ -57,8 +57,8 @@ public class SecondSerdeTest {
 
         String dateInString = "00:18:19 2020-01-01";
         Serde serde = new Second.SecondSerde();
-        assertThrows(DateTimeParseException.class, () -> {
-            serde.deserialize(dateInString);
-        });
+        assertThrows(DateTimeParseException.class, () ->
+            serde.deserialize(dateInString)
+        );
     }
 }

@@ -79,7 +79,7 @@ public class ElideAutoConfiguration {
     @Autowired(required = false)
     private MeterRegistry meterRegistry;
 
-    private final Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
+    private final Consumer<EntityManager> txCancel = em -> em.unwrap(Session.class).cancelQuery();
 
     /**
      * Creates dynamic configuration for models, security roles, and database connections.
@@ -295,8 +295,9 @@ public class ElideAutoConfiguration {
                                     @Autowired(required = false) QueryLogger querylogger)
             throws ClassNotFoundException {
 
-        JpaDataStore jpaDataStore = new JpaDataStore(entityManagerFactory::createEntityManager,
-                                                     (em) -> { return new NonJtaTransaction(em, txCancel); });
+        JpaDataStore jpaDataStore = new JpaDataStore(
+                entityManagerFactory::createEntityManager,
+                em -> new NonJtaTransaction(em, txCancel));
 
         if (isAggregationStoreEnabled(settings)) {
             AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder =

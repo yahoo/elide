@@ -45,9 +45,9 @@ public class WeekSerdeTest {
 
         Week expectedDate = new Week(localDate);
         Serde serde = new Week.WeekSerde();
-        assertThrows(IllegalArgumentException.class, () -> {
-            serde.deserialize(expectedDate);
-        });
+        assertThrows(IllegalArgumentException.class, () ->
+            serde.deserialize(expectedDate)
+        );
     }
 
     @Test
@@ -66,8 +66,8 @@ public class WeekSerdeTest {
 
         String dateInString = "January-2020-01";
         Serde serde = new Week.WeekSerde();
-        assertThrows(DateTimeParseException.class, () -> {
-            serde.deserialize(dateInString);
-        });
+        assertThrows(DateTimeParseException.class, () ->
+            serde.deserialize(dateInString)
+        );
     }
 }

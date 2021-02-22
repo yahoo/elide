@@ -89,12 +89,11 @@ public class AsyncAPICancelRunnable implements Runnable {
 
             //AsyncAPI IDs that need to be cancelled
             Set<String> queryIDsToCancel = queryUUIDsToCancel.stream()
-            .map(uuid -> {
-                return StreamSupport.stream(asyncAPIIterable.spliterator(), false)
+            .map(uuid -> StreamSupport
+                .stream(asyncAPIIterable.spliterator(), false)
                 .filter(query -> query.getRequestId().equals(uuid.toString()))
                 .map(T::getId)
-                .findFirst().orElseThrow(IllegalStateException::new);
-            })
+                .findFirst().orElseThrow(IllegalStateException::new))
             .collect(Collectors.toSet());
 
             //Cancel Transactions

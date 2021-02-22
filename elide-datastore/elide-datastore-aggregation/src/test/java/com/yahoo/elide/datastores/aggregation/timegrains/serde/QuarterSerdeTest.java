@@ -43,9 +43,9 @@ public class QuarterSerdeTest {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(02), 01, 00, 00, 00);
         Quarter quarter = new Quarter(localDate);
         Serde serde = new Quarter.QuarterSerde();
-        assertThrows(IllegalArgumentException.class, () -> {
-            serde.deserialize(quarter);
-        });
+        assertThrows(IllegalArgumentException.class, () ->
+            serde.deserialize(quarter)
+        );
     }
 
     @Test
@@ -63,8 +63,8 @@ public class QuarterSerdeTest {
 
         String dateInString = "January-2020";
         Serde serde = new Quarter.QuarterSerde();
-        assertThrows(DateTimeParseException.class, () -> {
-            serde.deserialize(dateInString);
-        });
+        assertThrows(DateTimeParseException.class, () ->
+            serde.deserialize(dateInString)
+        );
     }
 }

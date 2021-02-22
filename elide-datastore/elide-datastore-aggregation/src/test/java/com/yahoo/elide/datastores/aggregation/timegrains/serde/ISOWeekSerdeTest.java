@@ -45,9 +45,9 @@ public class ISOWeekSerdeTest {
         LocalDateTime localDate = LocalDateTime.of(2020, java.time.Month.of(01), 01, 00, 00, 00);
         ISOWeek timestamp = new ISOWeek(localDate);
         Serde serde = new ISOWeek.ISOWeekSerde();
-        assertThrows(IllegalArgumentException.class, () -> {
-            serde.deserialize(timestamp);
-        });
+        assertThrows(IllegalArgumentException.class, () ->
+            serde.deserialize(timestamp)
+        );
     }
 
     @Test
@@ -65,8 +65,8 @@ public class ISOWeekSerdeTest {
 
         String dateInString = "January-2020-01";
         Serde serde = new ISOWeek.ISOWeekSerde();
-        assertThrows(DateTimeParseException.class, () -> {
-            serde.deserialize(dateInString);
-        });
+        assertThrows(DateTimeParseException.class, () ->
+            serde.deserialize(dateInString)
+        );
     }
 }

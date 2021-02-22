@@ -56,8 +56,8 @@ public class HourSerdeTest {
 
         String dateInString = "00 2020-01-01";
         Serde serde = new Hour.HourSerde();
-        assertThrows(DateTimeParseException.class, () -> {
-            serde.deserialize(dateInString);
-        });
+        assertThrows(DateTimeParseException.class, () ->
+            serde.deserialize(dateInString)
+        );
     }
 }

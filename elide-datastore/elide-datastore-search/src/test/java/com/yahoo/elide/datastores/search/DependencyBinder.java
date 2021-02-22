@@ -46,12 +46,11 @@ public class DependencyBinder extends ResourceConfig {
                     indexOnStartup = true;
                 }
 
-                Consumer<EntityManager> txCancel = (em) -> { em.unwrap(Session.class).cancelQuery(); };
+                Consumer<EntityManager> txCancel = em -> em.unwrap(Session.class).cancelQuery();
                 EntityManagerFactory emf = Persistence.createEntityManagerFactory("searchDataStoreTest");
                 DataStore jpaStore = new JpaDataStore(
                         emf::createEntityManager,
-                        (em) -> { return new NonJtaTransaction(em, txCancel); }
-                        );
+                        em -> new NonJtaTransaction(em, txCancel));
 
                 EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
 

@@ -169,11 +169,11 @@ public abstract class Table implements Versioned {
                 .map(field -> {
                     if (isMetricField(dictionary, cls, field)) {
                         return constructMetric(field, dictionary);
-                    } else if (dictionary.attributeOrRelationAnnotationExists(cls, field, Temporal.class)) {
-                        return constructTimeDimension(field, dictionary);
-                    } else {
-                        return constructDimension(field, dictionary);
                     }
+                    if (dictionary.attributeOrRelationAnnotationExists(cls, field, Temporal.class)) {
+                        return constructTimeDimension(field, dictionary);
+                    }
+                    return constructDimension(field, dictionary);
                 })
                 .collect(Collectors.toSet());
 

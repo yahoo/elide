@@ -294,9 +294,8 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
             if (attribute != null) {
                 return new Path(rootEntityType, dictionary, attribute.getName(),
                         attribute.getAlias(), attribute.getArguments());
-            } else {
-                return buildPath(rootEntityType, attributeName);
             }
+            return buildPath(rootEntityType, attributeName);
         }
 
         private Path buildPath(Type rootEntityType, String selector) {
@@ -435,13 +434,17 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                     .collect(Collectors.toList());
             if (op.equals(RSQLOperators.EQUAL) || op.equals(RSQLOperators.IN)) {
                 return equalityExpression(arguments.get(0), path, values, true);
-            } else if (op.equals(INI)) {
+            }
+            if (op.equals(INI)) {
                 return equalityExpression(arguments.get(0), path, values, false);
-            } else if (op.equals(RSQLOperators.NOT_EQUAL) || op.equals(RSQLOperators.NOT_IN)) {
+            }
+            if (op.equals(RSQLOperators.NOT_EQUAL) || op.equals(RSQLOperators.NOT_IN)) {
                 return new NotFilterExpression(equalityExpression(arguments.get(0), path, values, true));
-            } else if (op.equals(NOT_INI)) {
+            }
+            if (op.equals(NOT_INI)) {
                 return new NotFilterExpression(equalityExpression(arguments.get(0), path, values, false));
-            } else if (OPERATOR_MAP.containsKey(op)) {
+            }
+            if (OPERATOR_MAP.containsKey(op)) {
                 return new FilterPredicate(path, OPERATOR_MAP.get(op), values);
             }
 
@@ -475,8 +478,8 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
             }
 
             Boolean isStringLike = path.lastElement()
-                    .map(e -> e.getFieldType().isAssignableFrom(STRING_TYPE))
-                    .orElse(false);
+                    .filter(e -> e.getFieldType().isAssignableFrom(STRING_TYPE))
+                    .isPresent();
             if (isStringLike) {
                 Operator op = caseSensitive
                         ? caseSensitivityStrategy.mapOperator(Operator.IN)
