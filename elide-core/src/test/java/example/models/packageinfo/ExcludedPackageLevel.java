@@ -4,9 +4,13 @@
  * See LICENSE file in project root for terms.
  */
 
-package example.models.generics;
+package example.models.packageinfo;
 
 import com.yahoo.elide.annotation.Exclude;
+
+import example.models.BaseId;
+import example.models.generics.Manager;
+import example.models.generics.Peon;
 
 import javax.persistence.Entity;
 
@@ -15,5 +19,5 @@ import javax.persistence.Entity;
  */
 @Entity
 @Exclude
-public class Other extends Peon<Manager> {
+public class ExcludedPackageLevel extends BaseId {
 }

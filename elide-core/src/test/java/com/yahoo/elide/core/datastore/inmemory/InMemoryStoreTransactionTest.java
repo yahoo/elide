@@ -538,11 +538,15 @@ public class InMemoryStoreTransactionTest {
         assertTrue(tos.contains("Table ClassType{cls=class example.User} contents"));
         assertTrue(tos.contains("Table ClassType{cls=class example.models.generics.Employee} contents"));
         assertTrue(tos.contains("Table ClassType{cls=class example.models.generics.Manager} contents"));
-        assertFalse(tos.contains("Table ClassType{cls=class example.models.generics.Other} contents"));
         assertTrue(tos.contains("Table ClassType{cls=class example.models.triggers.Invoice} contents"));
         assertTrue(tos.contains("Table ClassType{cls=class example.models.versioned.BookV2} contents"));
         assertTrue(tos.contains("Table ClassType{cls=class example.nontransferable.ContainerWithPackageShare} contents"));
         assertTrue(tos.contains("Table ClassType{cls=class example.nontransferable.ShareableWithPackageShare} contents"));
         assertTrue(tos.contains("Table ClassType{cls=class example.nontransferable.Untransferable} contents"));
+        assertFalse(tos.contains("Table ClassType{cls=class example.models.packageinfo.ExcludedPackageLevel} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.models.packageinfo.IncludedPackageLevel} contents"));
+        assertFalse(tos.contains("Table ClassType{cls=class example.models.packageinfo.excluded.ExcludedSubPackage} contents"));
+        assertTrue(tos.contains("Table ClassType{cls=class example.models.packageinfo.included.IncludedSubPackage} contents"));
+        assertFalse(tos.contains("Table ClassType{cls=class example.models.packageinfo.included.ExcludedBySuperClass} contents"));
     }
 }
