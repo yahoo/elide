@@ -342,11 +342,11 @@ public class SQLReferenceTable {
     private static String applyQuotes(String str, char beginQuote, char endQuote) {
         if (str == null || str.trim().isEmpty()) {
             return str;
-        } else if (str.contains(PERIOD)) {
-            return beginQuote + str.trim().replace(PERIOD, endQuote + PERIOD + beginQuote) + endQuote;
-        } else {
-            return beginQuote + str.trim() + endQuote;
         }
+        if (str.contains(PERIOD)) {
+            return beginQuote + str.trim().replace(PERIOD, endQuote + PERIOD + beginQuote) + endQuote;
+        }
+        return beginQuote + str.trim() + endQuote;
     }
 
     /**

@@ -1832,12 +1832,10 @@ public class EntityDictionary {
         if (column == null || column.length == 0) {
             if (joinColumn == null || joinColumn.length == 0) {
                 return fieldName;
-            } else {
-                return joinColumn[0].name();
             }
-        } else {
-            return column[0].name();
+            return joinColumn[0].name();
         }
+        return column[0].name();
     }
 
     /**
@@ -1873,9 +1871,8 @@ public class EntityDictionary {
         Entity entity = (Entity) getFirstAnnotation(declaringClass, Arrays.asList(Entity.class));
         if (entity == null || "".equals(entity.name())) {
             return StringUtils.uncapitalize(declaringClass.getSimpleName());
-        } else {
-            return entity.name();
         }
+        return entity.name();
     }
 
     public static <T> Type<T> getType(T object) {

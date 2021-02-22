@@ -50,7 +50,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -180,11 +179,10 @@ public class AsyncIT extends IntegrationTest {
     @Test
     public void jsonApiHappyPath1() throws InterruptedException {
 
-        AsyncDelayStoreTransaction.sleep = true;
-
         //Create Async Request
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
+                .header("sleep", "1000")
                 .body(
                         data(
                                 resource(
@@ -259,11 +257,10 @@ public class AsyncIT extends IntegrationTest {
     @Test
     public void jsonApiHappyPath2() throws InterruptedException {
 
-        AsyncDelayStoreTransaction.sleep = true;
-
         //Create Async Request
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
+                .header("sleep", "1000")
                 .body(
                         data(
                                 resource(
@@ -302,7 +299,6 @@ public class AsyncIT extends IntegrationTest {
     @Test
     public void graphQLHappyPath1() throws InterruptedException {
 
-        AsyncDelayStoreTransaction.sleep = true;
         AsyncQuery queryObj = new AsyncQuery();
         queryObj.setId("edc4a871-dff2-4054-804e-d80075cf828e");
         queryObj.setAsyncAfterSeconds(0);
@@ -332,6 +328,7 @@ public class AsyncIT extends IntegrationTest {
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
         ValidatableResponse response = given()
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("sleep", "1000")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
@@ -385,7 +382,6 @@ public class AsyncIT extends IntegrationTest {
     @Test
     public void graphQLHappyPath2() throws InterruptedException {
 
-        AsyncDelayStoreTransaction.sleep = true;
         AsyncQuery queryObj = new AsyncQuery();
         queryObj.setId("edc4a871-dff2-4054-804e-d80075cf829e");
         queryObj.setAsyncAfterSeconds(7);
@@ -415,6 +411,7 @@ public class AsyncIT extends IntegrationTest {
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
         ValidatableResponse response = given()
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("sleep", "1000")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
@@ -451,7 +448,6 @@ public class AsyncIT extends IntegrationTest {
     @Test
     public void graphQLTestCreateFailOnQueryStatus() {
 
-        AsyncDelayStoreTransaction.sleep = true;
         AsyncQuery queryObj = new AsyncQuery();
         queryObj.setId("edc4a871-dff2-4054-804e-d80075cf839e");
         queryObj.setAsyncAfterSeconds(0);
@@ -481,6 +477,7 @@ public class AsyncIT extends IntegrationTest {
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
         ValidatableResponse response = given()
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("sleep", "1000")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(graphQLJsonNode)
                 .post("/graphQL")
@@ -746,11 +743,11 @@ public class AsyncIT extends IntegrationTest {
     @Test
     public void asyncAfterBeyondMax() throws InterruptedException {
         String expected = "{\"errors\":[{\"detail\":\"Invalid value: Invalid Async After Seconds\"}]}";
-        AsyncDelayStoreTransaction.sleep = true;
 
         //Create Async Request
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
+                .header("sleep", "1000")
                 .body(
                         data(
                                 resource(
@@ -770,15 +767,6 @@ public class AsyncIT extends IntegrationTest {
                 .statusCode(org.apache.http.HttpStatus.SC_BAD_REQUEST)
                 .body(equalTo(expected));
 
-    }
-
-    /**
-     * Reset sleep delay flag after each test.
-     */
-    @AfterEach
-    public void sleepDelayReset() {
-
-        AsyncDelayStoreTransaction.sleep = false;
     }
 
     private JsonNode toJsonNode(String query, Map<String, Object> variables) {

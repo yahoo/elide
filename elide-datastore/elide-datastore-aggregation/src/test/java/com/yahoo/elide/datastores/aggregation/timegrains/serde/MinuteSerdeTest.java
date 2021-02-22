@@ -57,8 +57,8 @@ public class MinuteSerdeTest {
 
         String dateInString = "00:18 2020-01-01";
         Serde serde = new Minute.MinuteSerde();
-        assertThrows(DateTimeParseException.class, () -> {
-            serde.deserialize(dateInString);
-        });
+        assertThrows(DateTimeParseException.class, () ->
+            serde.deserialize(dateInString)
+        );
     }
 }

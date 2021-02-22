@@ -95,7 +95,8 @@ public abstract class AbstractHibernateStore implements JPQLDataStore {
         public AbstractHibernateStore build() {
             if (sessionFactory != null) {
                 return new HibernateSessionFactoryStore(sessionFactory, isScrollEnabled, scrollMode);
-            } else if (emf != null) {
+            }
+            if (emf != null) {
                 return new HibernateEntityManagerStore(emf, isScrollEnabled, scrollMode);
             }
             throw new IllegalStateException("Either an EntityManager or SessionFactory is required!");

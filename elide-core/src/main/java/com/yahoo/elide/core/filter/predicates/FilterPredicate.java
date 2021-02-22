@@ -61,11 +61,11 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
 
     public static boolean isLastPathElementAssignableFrom(EntityDictionary dictionary, Path path, Type<?> clz) {
         return path.lastElement()
-                .map(last ->
+                .filter(last ->
                         clz.isAssignableFrom(
                                 dictionary.getType(last.getType(), last.getFieldName())
                         ))
-                .orElse(false);
+                .isPresent();
     }
 
     public FilterPredicate(PathElement pathElement, Operator op, List<Object> values) {

@@ -86,8 +86,8 @@ public class TimeSerdeTest {
     @Test
     public void testInvalidDeserialization() throws ParseException {
         Serde serde = new Time.TimeSerde();
-        assertThrows(IllegalArgumentException.class, () -> {
-            serde.deserialize("2020R1");
-        });
+        assertThrows(IllegalArgumentException.class, () ->
+            serde.deserialize("2020R1")
+        );
     }
 }

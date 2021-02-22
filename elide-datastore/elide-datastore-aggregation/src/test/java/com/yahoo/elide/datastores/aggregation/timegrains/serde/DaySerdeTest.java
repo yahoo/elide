@@ -55,8 +55,8 @@ public class DaySerdeTest {
 
         String dateInString = "January-01-2020";
         Serde serde = new Day.DaySerde();
-        assertThrows(DateTimeParseException.class, () -> {
-            serde.deserialize(dateInString);
-        });
+        assertThrows(DateTimeParseException.class, () ->
+            serde.deserialize(dateInString)
+        );
     }
 }

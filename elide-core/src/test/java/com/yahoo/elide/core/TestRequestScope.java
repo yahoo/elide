@@ -63,8 +63,7 @@ public class TestRequestScope extends RequestScope {
     public Optional<MultivaluedMap<String, String>> getQueryParams() {
         if (queryParamOverrides != null) {
             return Optional.of(queryParamOverrides);
-        } else {
-            return super.getQueryParams();
         }
+        return super.getQueryParams();
     }
 }

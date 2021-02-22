@@ -1331,7 +1331,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      * @return The Resource
      */
     public Resource toResource(EntityProjection projection) {
-        return toResource(() -> { return getRelationships(projection); }, this::getAttributes);
+        return toResource(() -> getRelationships(projection), this::getAttributes);
     }
 
     /**

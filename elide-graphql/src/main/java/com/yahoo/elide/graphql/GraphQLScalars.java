@@ -77,7 +77,8 @@ public class GraphQLScalars {
                 public String parseLiteral(Object o) {
                     if (o instanceof StringValue) {
                         return ((StringValue) o).getValue();
-                    } else if (o instanceof IntValue) {
+                    }
+                    if (o instanceof IntValue) {
                         return ((IntValue) o).getValue().toString();
                     }
                     // Unexpected object, try to use the toString.

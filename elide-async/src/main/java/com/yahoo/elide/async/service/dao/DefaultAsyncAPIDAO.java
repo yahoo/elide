@@ -66,9 +66,7 @@ public class DefaultAsyncAPIDAO implements AsyncAPIDAO {
     @Override
     public <T extends AsyncAPI> Iterable<T> updateStatusAsyncAPIByFilter(FilterExpression filterExpression,
             QueryStatus status, Class<T> type) {
-        return updateAsyncAPIIterable(filterExpression, (asyncAPI) -> {
-            asyncAPI.setStatus(status);
-            }, type);
+        return updateAsyncAPIIterable(filterExpression, asyncAPI -> asyncAPI.setStatus(status), type);
     }
 
     /**

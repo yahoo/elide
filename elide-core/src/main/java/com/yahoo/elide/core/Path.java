@@ -130,12 +130,12 @@ public class Path {
                 || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
             Type<?> attributeClass = dictionary.getType(entityClass, fieldName);
             return new PathElement(entityClass, attributeClass, fieldName, alias, arguments);
-        } else if ("this".equals(fieldName)) {
-            return new PathElement(entityClass, null, fieldName);
-        } else {
-            String entityAlias = dictionary.getJsonAliasFor(entityClass);
-            throw new InvalidValueException(entityAlias + " does not contain the field " + fieldName);
         }
+        if ("this".equals(fieldName)) {
+            return new PathElement(entityClass, null, fieldName);
+        }
+        String entityAlias = dictionary.getJsonAliasFor(entityClass);
+        throw new InvalidValueException(entityAlias + " does not contain the field " + fieldName);
     }
 
     /**
