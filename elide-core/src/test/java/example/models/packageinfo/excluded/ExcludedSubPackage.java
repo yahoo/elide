@@ -7,9 +7,6 @@
 package example.models.packageinfo.excluded;
 
 import example.models.BaseId;
-import example.models.generics.Manager;
-import example.models.generics.Peon;
-
 import javax.persistence.Entity;
 
 /**

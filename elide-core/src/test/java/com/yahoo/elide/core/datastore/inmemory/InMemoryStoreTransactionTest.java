@@ -6,7 +6,6 @@
 package com.yahoo.elide.core.datastore.inmemory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -512,10 +511,10 @@ public class InMemoryStoreTransactionTest {
 
         // extract class names from DataStore string
         String tos = store.toString()
-                .replace("Datastorecontents\n","")
+                .replace("Data store contents", "")
                 .replace("Table ClassType{cls=class", "").replace("} contents", "")
-                .replace("Wrapped:[","").replace("]", "")
-                .replace(" ", "").replace("\n\n", ",").replace("\n","");
+                .replace("Wrapped:[", "").replace("]", "")
+                .replace(" ", "").replace("\n\n", ",").replace("\n", "");
 
         // make sure count is correct
         assertEquals(35, tos.split(",").length,

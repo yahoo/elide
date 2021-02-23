@@ -26,7 +26,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.persistence.Entity;
 import javax.persistence.MappedSuperclass;
 
 /**

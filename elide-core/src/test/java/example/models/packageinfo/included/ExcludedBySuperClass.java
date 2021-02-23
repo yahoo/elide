@@ -7,8 +7,6 @@
 package example.models.packageinfo.included;
 
 import example.ExcludedEntity;
-import example.models.packageinfo.excluded.ExcludedSubPackage;
-
 import javax.persistence.Entity;
 
 /**
