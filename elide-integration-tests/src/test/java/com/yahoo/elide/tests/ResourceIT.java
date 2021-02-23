@@ -1735,7 +1735,7 @@ public class ResourceIT extends IntegrationTest {
                 )
         );
 
-        Data expected = data(
+        Data expected = new Data(
                 resource(
                         type("parent"),
                         id("5"),
@@ -1751,16 +1751,14 @@ public class ResourceIT extends IntegrationTest {
                 )
         );
 
-        String actualResponse = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(newParent)
                 .post("/parent")
                 .then()
                 .statusCode(HttpStatus.SC_CREATED)
-                .extract().body().asString();
-
-        assertEqualDocuments(actualResponse, expected.toJSON());
+                .body(jsonEquals(expected, false));
     }
 
     @Test
