@@ -6,11 +6,11 @@
 package com.yahoo.elide.core.audit;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -142,20 +142,11 @@ public class LogMessageImplTest {
                 throw testException;
             }
         };
-        try {
-            testAuditLogger.log(failMessage);
-            Thread.sleep(Math.floorMod(ThreadLocalRandom.current().nextInt(), 100));
-            testAuditLogger.commit();
-            fail("Exception expected");
-        } catch (TestLoggerException e) {
-            assertSame(e, testException);
-        }
+
+        assertSame(assertThrows(TestLoggerException.class, () -> testAuditLogger.log(failMessage)), testException);
+        Thread.sleep(Math.floorMod(ThreadLocalRandom.current().nextInt(), 100));
 
         // should not cause another exception
-        try {
-            testAuditLogger.commit();
-        } catch (TestLoggerException e) {
-            fail("Exception not cleared from previous logger commit");
-        }
+        assertDoesNotThrow(() -> testAuditLogger.commit(), "Exception not cleared from previous logger commit");
     }
 }

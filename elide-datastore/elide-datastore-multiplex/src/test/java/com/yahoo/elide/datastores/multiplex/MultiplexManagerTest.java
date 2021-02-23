@@ -9,8 +9,8 @@ import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -120,12 +120,8 @@ public class MultiplexManagerTest {
             OtherBean otherBean = OtherBean.class.newInstance();
             t.createObject(otherBean, null);
             //t.save(firstBean);
-            try {
-                t.commit(null);
-                fail("TransactionException expected");
-            } catch (TransactionException expected) {
-                // expected
-            }
+
+            assertThrows(TransactionException.class, () -> t.commit(null));
         } catch (InstantiationException | IllegalAccessException e) {
             log.error("", e);
         }

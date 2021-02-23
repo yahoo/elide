@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.search;
 
 import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -130,7 +131,7 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        assertEquals(null, testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
+        assertNull(testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
         verify(wrappedTransaction, times(1))
                 .supportsFiltering(eq(mockScope), any(), eq(projection));
     }
@@ -176,7 +177,7 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        assertEquals(null, testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
+        assertNull(testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
 
         verify(wrappedTransaction, times(1))
                 .supportsFiltering(eq(mockScope), any(), eq(projection));
@@ -238,7 +239,7 @@ public class DataStoreSupportsFilteringTest {
                 .filterExpression(filter)
                 .build();
 
-        assertEquals(null, testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
+        assertNull(testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
         verify(wrappedTransaction, times(1))
                 .supportsFiltering(eq(mockScope), any(), eq(projection));
     }

@@ -12,6 +12,8 @@ import static com.yahoo.elide.test.graphql.GraphQLDSL.field;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
@@ -29,7 +31,7 @@ public class GraphQLEntityProjectMakerTest extends PersistentResourceFetcherTest
          GraphQLEntityProjectionMaker projectionMaker = new GraphQLEntityProjectionMaker(settings);
          GraphQLProjectionInfo projectionInfo = projectionMaker.make(graphQLRequest);
          assertEquals(1, projectionInfo.getProjections().size());
-         assertEquals(true, projectionInfo.getProjections().entrySet().iterator().next().getValue().getPagination().isDefaultInstance());
+         assertTrue(projectionInfo.getProjections().entrySet().iterator().next().getValue().getPagination().isDefaultInstance());
      }
 
      @Test
@@ -39,7 +41,7 @@ public class GraphQLEntityProjectMakerTest extends PersistentResourceFetcherTest
          GraphQLProjectionInfo projectionInfo = projectionMaker.make(graphQLRequest);
          assertEquals(1, projectionInfo.getProjections().size());
          Pagination page = projectionInfo.getProjections().entrySet().iterator().next().getValue().getPagination();
-         assertEquals(false, page.isDefaultInstance());
+         assertFalse(page.isDefaultInstance());
          assertEquals(1, page.getLimit());
      }
 

@@ -675,7 +675,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         bindEntity(SuperclassBinding.class);
 
-        assertEquals(null, getEntityBinding(new ClassType(SuperclassBinding.class)).entityClass);
+        assertNull(getEntityBinding(new ClassType(SuperclassBinding.class)).entityClass);
         assertEquals(new ClassType(SuperclassBinding.class), lookupEntityClass(new ClassType(SuperclassBinding.class)));
     }
 
@@ -758,7 +758,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         assertEquals(new ClassType(SuperclassBinding.class), lookupIncludeClass(new ClassType(SuperclassBinding.class)));
         assertEquals(new ClassType(SuperclassBinding.class), lookupIncludeClass(new ClassType(SubclassBinding.class)));
-        assertEquals(null, lookupIncludeClass(new ClassType(SubsubclassBinding.class)));
+        assertNull(lookupIncludeClass(new ClassType(SubsubclassBinding.class)));
     }
 
     @Test
@@ -932,7 +932,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
         assertThrows(InvalidAttributeException.class, () -> setValue(book, "badfield", "Elide"));
         assertEquals("1234", getId(book));
-        assertEquals(true, isRoot(new ClassType(Book.class)));
+        assertTrue(isRoot(new ClassType(Book.class)));
 
         assertEquals(new ClassType(Book.class), lookupBoundClass(new ClassType(Book.class)));
         assertNull(lookupBoundClass(new ClassType(String.class)));

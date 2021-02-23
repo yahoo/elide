@@ -7,8 +7,8 @@ package com.yahoo.elide.datastores.multiplex;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.datastores.multiplex.bridgeable.BridgeableDataStoreHarness;
@@ -94,82 +94,71 @@ public class BridgeableStoreTest extends IntegrationTest {
 
     @Test
     public void testFetchBridgeableStoreToMany() {
-        String result = given()
+        given()
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/1?include=redisActions")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-
-        assertTrue(result.contains("user1actionid1"));
-        assertTrue(result.contains("user1actionid2"));
-        assertFalse(result.contains("user2"));
+                .body(containsString("user1actionid1"))
+                .body(containsString("user1actionid2"))
+                .body(not(containsString("user2")));
     }
 
     @Test
     public void testFetchBridgeableStoreLoadSingleObjectToMany() {
-        String result = given()
+        given()
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/1/redisActions/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
+                .body(containsString("user1actionid1"))
+                .body(not(containsString("user1actionid2")))
+                .body(not(containsString("user2")));
 
         given()
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/2/redisActions/3")
                 .then()
-                .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-
-        assertTrue(result.contains("user1actionid1"));
-        assertFalse(result.contains("user1actionid2"));
-        assertFalse(result.contains("user2"));
+                .statusCode(HttpStatus.SC_OK);
     }
 
     @Test
     public void testFetchBridgeableStoreLoadSingleObjectFromBadSourceToMany() {
-        String result = given()
+        given()
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/1/redisActions/3")
                 .then()
-                .statusCode(HttpStatus.SC_NOT_FOUND)
-                .extract().body().asString();
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
     public void testFetchBridgeableStoreToOne() {
-        String result = given()
+        given()
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/1?include=specialAction")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-
-        assertTrue(result.contains("user1actionid1"));
-        assertFalse(result.contains("user1actionid2"));
-        assertFalse(result.contains("user2"));
+                .body(containsString("user1actionid1"))
+                .body(not(containsString("user1actionid2")))
+                .body(not(containsString("user2")));
     }
 
     @Test
     public void testFetchBridgeableStoreLoadSingleObjectToOne() {
-        String result = given()
+        given()
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/1/specialAction")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
+                .body(containsString("user1actionid1"))
+                .body(not(containsString("user1actionid2")))
+                .body(not(containsString("user2")));
 
         given()
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/2/specialAction")
                 .then()
-                .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-
-        assertTrue(result.contains("user1actionid1"));
-        assertFalse(result.contains("user1actionid2"));
-        assertFalse(result.contains("user2"));
+                .statusCode(HttpStatus.SC_OK);
     }
 
     @Test
@@ -178,8 +167,7 @@ public class BridgeableStoreTest extends IntegrationTest {
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/hibernateUser/1/redisActions/3")
                 .then()
-                .statusCode(HttpStatus.SC_NOT_FOUND)
-                .extract().body().asString();
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     private static int getUnusedPort() throws Exception {
