@@ -5,8 +5,6 @@
  */
 package example.nontransferable;
 
-import com.yahoo.elide.annotation.Include;
-
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -18,7 +16,6 @@ import javax.persistence.ManyToOne;
  * Entity level Unshareable bean.
  */
 @Entity
-@Include
 public class Untransferable {
     private long id;
     private ContainerWithPackageShare container;
