@@ -51,7 +51,13 @@ import example.StringId;
 import example.User;
 import example.models.generics.Employee;
 import example.models.generics.Manager;
+import example.models.packageinfo.ExcludedPackageLevel;
+import example.models.packageinfo.IncludedPackageLevel;
+import example.models.packageinfo.excluded.ExcludedSubPackage;
+import example.models.packageinfo.included.ExcludedBySuperClass;
+import example.models.packageinfo.included.IncludedSubPackage;
 import example.models.versioned.BookV2;
+
 import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Annotation;
@@ -100,6 +106,11 @@ public class EntityDictionaryTest extends EntityDictionary {
         bindEntity(NoId.class);
         bindEntity(BookV2.class);
         bindEntity(Book.class);
+        bindEntity(IncludedPackageLevel.class);
+        bindEntity(IncludedSubPackage.class);
+        bindEntity(ExcludedPackageLevel.class);
+        bindEntity(ExcludedSubPackage.class);
+        bindEntity(ExcludedBySuperClass.class);
 
         checkNames.forcePut("user has all access", Role.ALL.class);
     }
@@ -1015,7 +1026,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertTrue(models.contains(new ClassType(BookV2.class)));
 
         models = getBoundClassesByVersion(NO_VERSION);
-        assertEquals(14, models.size());
+        assertEquals(16, models.size());
     }
 
     @Test
@@ -1050,5 +1061,10 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertTrue(hasBinding(new ClassType(NoId.class)));
         assertTrue(hasBinding(new ClassType(BookV2.class)));
         assertTrue(hasBinding(new ClassType(Book.class)));
+        assertTrue(hasBinding(new ClassType((IncludedPackageLevel.class))));
+        assertTrue(hasBinding(new ClassType((IncludedSubPackage.class))));
+        assertFalse(hasBinding(new ClassType((ExcludedPackageLevel.class))));
+        assertFalse(hasBinding(new ClassType((ExcludedSubPackage.class))));
+        assertFalse(hasBinding(new ClassType((ExcludedBySuperClass.class))));
     }
 }

@@ -511,7 +511,6 @@ public class EntityBinding {
     public static Type<?> getFieldType(Type<?> parentClass,
                                        AccessibleObject fieldOrMethod,
                                        Optional<Integer> index) {
-        Type type;
         if (fieldOrMethod instanceof Field) {
             return ((Field) fieldOrMethod).getParameterizedType(parentClass, index);
         }
