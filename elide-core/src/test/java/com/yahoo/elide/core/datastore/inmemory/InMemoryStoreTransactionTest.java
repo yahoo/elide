@@ -31,6 +31,7 @@ import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.ClassType;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import example.Author;
@@ -49,7 +50,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class InMemoryStoreTransactionTest {
@@ -514,46 +514,46 @@ public class InMemoryStoreTransactionTest {
                 .replace("Data store contents", "")
                 .replace("Table ClassType{cls=class", "").replace("} contents", "")
                 .replace("Wrapped:[", "").replace("]", "")
-                .replace(" ", "").replace("\n\n", ",").replace("\n", "");
+                .replace("\n\n", ",")
+                .replace(" ", "").replace("\n", "");
 
         // make sure count is correct
-        assertEquals(35, tos.split(",").length,
-                new TreeSet(Arrays.asList(tos.split(","))).toString().replace(",", "\n"));
-
-        assertTrue(tos.contains("example.Author"));
-        assertTrue(tos.contains("example.Book"));
-        assertTrue(tos.contains("example.Child"));
-        assertTrue(tos.contains("example.CoerceBean"));
-        assertTrue(tos.contains("example.ComputedBean"));
-        assertTrue(tos.contains("example.Editor"));
-        assertTrue(tos.contains("example.FieldAnnotations"));
-        assertTrue(tos.contains("example.FirstClassFields"));
-        assertTrue(tos.contains("example.FunWithPermissions"));
-        assertTrue(tos.contains("example.Invoice"));
-        assertTrue(tos.contains("example.Job"));
-        assertTrue(tos.contains("example.Left"));
-        assertTrue(tos.contains("example.LineItem"));
-        assertTrue(tos.contains("example.MapColorShape"));
-        assertTrue(tos.contains("example.NoDeleteEntity"));
-        assertTrue(tos.contains("example.NoReadEntity"));
-        assertTrue(tos.contains("example.NoShareEntity"));
-        assertTrue(tos.contains("example.NoUpdateEntity"));
-        assertTrue(tos.contains("example.Parent"));
-        assertTrue(tos.contains("example.Post"));
-        assertTrue(tos.contains("example.PrimitiveId"));
-        assertTrue(tos.contains("example.Publisher"));
-        assertTrue(tos.contains("example.Right"));
-        assertTrue(tos.contains("example.StringId"));
-        assertTrue(tos.contains("example.UpdateAndCreate"));
-        assertTrue(tos.contains("example.User"));
-        assertTrue(tos.contains("example.models.generics.Employee"));
-        assertTrue(tos.contains("example.models.generics.Manager"));
-        assertTrue(tos.contains("example.models.packageinfo.IncludedPackageLevel"));
-        assertTrue(tos.contains("example.models.packageinfo.included.IncludedSubPackage"));
-        assertTrue(tos.contains("example.models.triggers.Invoice"));
-        assertTrue(tos.contains("example.models.versioned.BookV2"));
-        assertTrue(tos.contains("example.nontransferable.ContainerWithPackageShare"));
-        assertTrue(tos.contains("example.nontransferable.ShareableWithPackageShare"));
-        assertTrue(tos.contains("example.nontransferable.Untransferable"));
+        assertEquals(ImmutableSet.copyOf(new String[] {
+            "example.Author",
+            "example.Book",
+            "example.Child",
+            "example.CoerceBean",
+            "example.ComputedBean",
+            "example.Editor",
+            "example.FieldAnnotations",
+            "example.FirstClassFields",
+            "example.FunWithPermissions",
+            "example.Invoice",
+            "example.Job",
+            "example.Left",
+            "example.LineItem",
+            "example.MapColorShape",
+            "example.NoDeleteEntity",
+            "example.NoReadEntity",
+            "example.NoShareEntity",
+            "example.NoUpdateEntity",
+            "example.Parent",
+            "example.Post",
+            "example.PrimitiveId",
+            "example.Publisher",
+            "example.Right",
+            "example.StringId",
+            "example.UpdateAndCreate",
+            "example.User",
+            "example.models.generics.Employee",
+            "example.models.generics.Manager",
+            "example.models.packageinfo.IncludedPackageLevel",
+            "example.models.packageinfo.included.IncludedSubPackage",
+            "example.models.triggers.Invoice",
+            "example.models.versioned.BookV2",
+            "example.nontransferable.ContainerWithPackageShare",
+            "example.nontransferable.ShareableWithPackageShare",
+            "example.nontransferable.Untransferable"
+        }), ImmutableSet.copyOf(tos.split(",")));
     }
 }
