@@ -547,6 +547,8 @@ public class InMemoryStoreTransactionTest {
             "example.User",
             "example.models.generics.Employee",
             "example.models.generics.Manager",
+            "example.models.generics.Overlord",
+            "example.models.generics.Peon",
             "example.models.packageinfo.IncludedPackageLevel",
             "example.models.packageinfo.included.IncludedSubPackage",
             "example.models.triggers.Invoice",

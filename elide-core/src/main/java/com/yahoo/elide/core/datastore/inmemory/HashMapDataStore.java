@@ -26,8 +26,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.persistence.MappedSuperclass;
-
 /**
  * Simple in-memory only database.
  */
@@ -46,9 +44,7 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
 
         for (Package beanPackage : beanPackages) {
             ClassScanner.getAllClasses(beanPackage.getName()).stream()
-                .filter(modelClass -> modelClass.getName().startsWith(beanPackage.getName()))
-                .map(modelClass -> new ClassType(modelClass))
-                .filter(modelType -> modelType.getAnnotation(MappedSuperclass.class) == null)
+                .map(ClassType::new)
                 .filter(modelType -> dictionary.getFirstAnnotation(modelType,
                         Arrays.asList(Include.class, Exclude.class)) instanceof Include)
                 .forEach(modelType -> dataStore.put(modelType,
