@@ -6,7 +6,9 @@
 package com.yahoo.elide.async.export.formatter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.any;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -92,7 +94,7 @@ public class CSVExportFormatterTest {
         when(scope.getEntityProjection()).thenReturn(projection);
 
         String output = formatter.format(persistentResource, 1);
-        assertEquals(true, output.contains(row));
+        assertTrue(output.contains(row));
     }
 
     @Test
@@ -101,7 +103,7 @@ public class CSVExportFormatterTest {
         PersistentResource persistentResource = null;
 
         String output = formatter.format(persistentResource, 1);
-        assertEquals(null, output);
+        assertNull(output);
     }
 
     @Test
@@ -114,7 +116,7 @@ public class CSVExportFormatterTest {
         EntityProjection projection = null;
 
         String output = formatter.preFormat(projection, queryObj);
-        assertEquals(null, output);
+        assertNull(output);
     }
 
     @Test
@@ -186,6 +188,6 @@ public class CSVExportFormatterTest {
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         String output = formatter.preFormat(projection, queryObj);
-        assertEquals(null, output);
+        assertNull(output);
     }
 }

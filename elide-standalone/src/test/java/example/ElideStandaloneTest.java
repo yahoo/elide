@@ -16,12 +16,14 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import com.yahoo.elide.standalone.ElideStandalone;
 
@@ -72,8 +74,7 @@ public class ElideStandaloneTest {
             .post("/api/v1/post")
             .then()
 
-            .statusCode(HttpStatus.SC_CREATED)
-            .extract().body().asString();
+            .statusCode(HttpStatus.SC_CREATED);
 
         // Test the Dynamic Generated Analytical Model is accessible
         given()
@@ -118,8 +119,7 @@ public class ElideStandaloneTest {
                 )
                 .post("/api/v1/post")
                 .then()
-                .statusCode(HttpStatus.SC_CREATED)
-                .extract().body().asString();
+                .statusCode(HttpStatus.SC_CREATED);
     }
 
     @Test
@@ -142,8 +142,7 @@ public class ElideStandaloneTest {
             )
             .post("/api/v1/post")
             .then()
-            .statusCode(HttpStatus.SC_FORBIDDEN)
-            .extract().body().asString();
+            .statusCode(HttpStatus.SC_FORBIDDEN);
     }
 
     @Test
@@ -257,15 +256,10 @@ public class ElideStandaloneTest {
                 String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"ba31ca4e-ed8f-4be0-a0f3-12088fa9263d\",\"queryType\":\"JSONAPI_V1_0\",\"status\":\"COMPLETE\",\"result\":{\"responseBody\":\"{\\\"data\\\":[{\\\"type\\\":\\\"post\\\",\\\"id\\\":\\\"2\\\",\\\"attributes\\\":{\\\"abusiveContent\\\":false,\\\"content\\\":\\\"This is my first post. woot.\\\",\\\"date\\\":\\\"2019-01-01T00:00Z\\\"},\\\"links\\\":{\\\"self\\\":\\\"https://elide.io/api/v1/post/2\\\"}}]}\",\"httpStatus\":200,\"contentLength\":191}}}]}}}";
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
-            } else if (!(outputResponse.equals("PROCESSING"))) {
-                fail("Async Query has failed.");
-                break;
             }
+            assertEquals("PROCESSING", outputResponse, "Async Query has failed.");
             i++;
-
-            if (i == 1000) {
-                fail("Async Query not completed.");
-            }
+            assertNotEquals(1000, i, "Async Query not completed.");
         }
     }
 
@@ -279,13 +273,11 @@ public class ElideStandaloneTest {
         // Spring-framework behaved similar to Jetty,
         // but was changed with https://github.com/spring-projects/spring-boot/issues/4876.
         int queryId = 1;
-        String output = when()
+        when()
                 .get("/export/" + queryId)
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND)
-                .extract().body().asString();
-
-        assertEquals(true, output.contains(" Not Found"));
-        assertEquals(false, output.contains(queryId + " Not Found"));
+                .body(containsString(" Not Found"))
+                .body(not(containsString(queryId + " Not Found")));
     }
 }

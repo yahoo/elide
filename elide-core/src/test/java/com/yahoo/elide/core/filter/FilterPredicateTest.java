@@ -140,7 +140,7 @@ public class FilterPredicateTest {
                     assertEquals(Arrays.asList("def", "jkl"), predicate.getValues());
                     break;
                 default:
-                    fail(predicate.toString() + " case not covered");
+                    fail(predicate + " case not covered");
             }
         }
     }

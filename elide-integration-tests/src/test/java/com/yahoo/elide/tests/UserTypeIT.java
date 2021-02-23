@@ -19,7 +19,6 @@ import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -71,16 +70,13 @@ class UserTypeIT extends IntegrationTest {
             .then()
             .statusCode(HttpStatus.SC_CREATED);
 
-        String actual = given()
+        given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
             .get("/person/1")
             .then()
             .statusCode(HttpStatus.SC_OK)
-            .extract()
-            .body().asString();
-
-        JSONAssert.assertEquals(datum(resource).toJSON(), actual, true);
+            .body(jsonEquals(datum(resource), true));
     }
 
     @Test
@@ -128,14 +124,13 @@ class UserTypeIT extends IntegrationTest {
             .then()
             .statusCode(HttpStatus.SC_NO_CONTENT);
 
-        String actual = given()
+        given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
             .get("/person/2")
             .then()
-            .statusCode(HttpStatus.SC_OK).extract().body().asString();
-
-        JSONAssert.assertEquals(datum(modified).toJSON(), actual, true);
+            .statusCode(HttpStatus.SC_OK)
+            .body(jsonEquals(datum(modified), true));
     }
 
     @Test
@@ -167,14 +162,13 @@ class UserTypeIT extends IntegrationTest {
             .then()
             .statusCode(HttpStatus.SC_CREATED);
 
-        String actual = given()
+        given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
             .get("/person/3")
             .then()
-            .statusCode(HttpStatus.SC_OK).extract().body().asString();
-
-        JSONAssert.assertEquals(datum(expected).toJSON(), actual, true);
+            .statusCode(HttpStatus.SC_OK)
+            .body(jsonEquals(datum(expected), true));
     }
 
     @Test
@@ -218,13 +212,12 @@ class UserTypeIT extends IntegrationTest {
             .then()
             .statusCode(HttpStatus.SC_CREATED);
 
-        String actual = given()
+        given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .accept(JSONAPI_CONTENT_TYPE)
             .get("/person/4")
             .then()
-            .statusCode(HttpStatus.SC_OK).extract().body().asString();
-
-        JSONAssert.assertEquals(datum(expected).toJSON(), actual, true);
+            .statusCode(HttpStatus.SC_OK)
+            .body(jsonEquals(datum(expected), true));
     }
 }

@@ -6,6 +6,7 @@
 package com.yahoo.elide.async.operation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -76,6 +77,6 @@ public class JSONAPIAsyncQueryOperationTest {
         AsyncQueryResult queryResultObj = (AsyncQueryResult) jsonOperation.call();
         assertEquals(responseBody, queryResultObj.getResponseBody());
         assertEquals(201, queryResultObj.getHttpStatus());
-        assertEquals(null, queryResultObj.getRecordCount());
+        assertNull(queryResultObj.getRecordCount());
     }
 }

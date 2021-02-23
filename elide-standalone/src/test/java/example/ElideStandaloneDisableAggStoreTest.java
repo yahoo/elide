@@ -28,6 +28,7 @@ import org.junit.jupiter.api.TestInstance;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
 
+    @Override
     @BeforeAll
     public void init() throws Exception {
         elide = new ElideStandalone(new ElideStandaloneTestSettings() {
@@ -86,7 +87,6 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
         )
         .post("/api/v1/post")
         .then()
-        .statusCode(HttpStatus.SC_CREATED)
-        .extract().body().asString();
+        .statusCode(HttpStatus.SC_CREATED);
     }
 }

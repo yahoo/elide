@@ -14,7 +14,6 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;
@@ -41,7 +40,8 @@ public class DynamicConfigTest extends IntegrationTest {
 
     @Test
     public void jsonApiGetTest() {
-        String apiGetViewRequest = when()
+        String apiGetViewExpected = "{\"data\":[{\"type\":\"playerStats\",\"id\":\"0\",\"attributes\":{\"countryCode\":\"USA\",\"createdOn\":\"2000-10-10\",\"highScore\":null,\"name\":\"SerenaWilliams\",\"updatedOn\":\"2001-10\"}}]}";
+        when()
                 .get("/json/playerStats?filter=createdOn>=1999-01-01;createdOn<2001-01-01")
                 .then()
                 .body(equalTo(
@@ -59,9 +59,8 @@ public class DynamicConfigTest extends IntegrationTest {
                                 )
                         ).toJSON())
                 )
-                .statusCode(HttpStatus.SC_OK).extract().response().asString();
-        String apiGetViewExpected = "{\"data\":[{\"type\":\"playerStats\",\"id\":\"0\",\"attributes\":{\"countryCode\":\"USA\",\"createdOn\":\"2000-10-10\",\"highScore\":null,\"name\":\"SerenaWilliams\",\"updatedOn\":\"2001-10\"}}]}";
-        assertEquals(apiGetViewExpected, apiGetViewRequest);
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(apiGetViewExpected));
     }
 
     @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)

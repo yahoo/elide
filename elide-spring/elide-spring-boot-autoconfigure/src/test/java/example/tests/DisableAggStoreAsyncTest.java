@@ -16,8 +16,6 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
-
 import com.yahoo.elide.core.exceptions.HttpStatus;
 
 import org.junit.jupiter.api.Test;
@@ -111,10 +109,8 @@ public class DisableAggStoreAsyncTest extends IntegrationTest {
 
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
-            } else if (!(outputResponse.equals("PROCESSING"))) {
-                fail("Async Query has failed.");
-                break;
             }
+            assertEquals("PROCESSING", outputResponse, "Async Query has failed.");
         }
     }
 }

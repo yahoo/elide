@@ -8,6 +8,7 @@ package com.yahoo.elide.modelconfig.validator;
 import static com.github.stefanbirkner.systemlambda.SystemLambda.catchSystemExit;
 import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemErr;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.modelconfig.model.Table;
@@ -33,10 +34,10 @@ public class DynamicConfigValidatorTest {
 
         // parent class sql/table
         assertEquals("player_stats", child.getTable());
-        assertEquals(null, child.getSql());
+        assertNull(child.getSql());
         assertEquals("gamedb", child.getSchema());
-        assertEquals(null, child.getDbConnectionName());
-        assertEquals(true, child.getIsFact());
+        assertNull(child.getDbConnectionName());
+        assertTrue(child.getIsFact());
 
         // no new joins in child class, will inherit parent class joins
         assertEquals(parent.getJoins().size(), child.getJoins().size());

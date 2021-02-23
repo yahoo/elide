@@ -7,7 +7,7 @@ package com.yahoo.elide.async.operation;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -101,7 +101,7 @@ public class GraphQLTableExportOperationTest {
         TableExportResult queryResultObj = (TableExportResult) graphQLOperation.call();
 
         assertEquals(200, queryResultObj.getHttpStatus());
-        assertTrue("https://elide.io/export/edc4a871-dff2-4054-804e-d80075cf827d".equals(queryResultObj.getUrl().toString()));
+        assertEquals("https://elide.io/export/edc4a871-dff2-4054-804e-d80075cf827d", queryResultObj.getUrl().toString());
         assertEquals(1, queryResultObj.getRecordCount());
     }
 
@@ -160,8 +160,8 @@ public class GraphQLTableExportOperationTest {
         assertEquals(200, queryResultObj.getHttpStatus());
         assertEquals("Export is not supported for Query that requires traversing Relationships.",
                         queryResultObj.getMessage());
-        assertEquals(null, queryResultObj.getRecordCount());
-        assertEquals(null, queryResultObj.getUrl());
+        assertNull(queryResultObj.getRecordCount());
+        assertNull(queryResultObj.getUrl());
     }
 
     @Test
@@ -181,8 +181,8 @@ public class GraphQLTableExportOperationTest {
         assertEquals(200, queryResultObj.getHttpStatus());
         assertEquals("Export is only supported for single Query with one root projection.",
                         queryResultObj.getMessage());
-        assertEquals(null, queryResultObj.getRecordCount());
-        assertEquals(null, queryResultObj.getUrl());
+        assertNull(queryResultObj.getRecordCount());
+        assertNull(queryResultObj.getUrl());
     }
 
     @Test
@@ -202,8 +202,8 @@ public class GraphQLTableExportOperationTest {
         assertEquals(200, queryResultObj.getHttpStatus());
         assertEquals("Export is only supported for single Query with one root projection.",
                         queryResultObj.getMessage());
-        assertEquals(null, queryResultObj.getRecordCount());
-        assertEquals(null, queryResultObj.getUrl());
+        assertNull(queryResultObj.getRecordCount());
+        assertNull(queryResultObj.getUrl());
     }
 
     /**

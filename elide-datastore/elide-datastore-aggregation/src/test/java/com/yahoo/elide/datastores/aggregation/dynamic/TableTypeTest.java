@@ -96,7 +96,7 @@ public class TableTypeTest {
         assertEquals(CardinalitySize.MEDIUM, tableMeta.size());
         assertEquals("A test table", tableMeta.description());
         assertEquals("category1", tableMeta.category());
-        assertEquals(true, tableMeta.isFact());
+        assertTrue(tableMeta.isFact());
         assertEquals(tags, new HashSet<>(Arrays.asList(tableMeta.tags())));
         assertEquals("a==b", tableMeta.filterTemplate());
 
