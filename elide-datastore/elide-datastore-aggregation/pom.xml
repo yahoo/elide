@@ -40,7 +40,7 @@
 
     <properties>
         <junit.version>5.4.1</junit.version>
-        <hikari.version>3.4.5</hikari.version>
+        <hikari.version>4.0.2</hikari.version>
     </properties>
 
     <dependencies>
