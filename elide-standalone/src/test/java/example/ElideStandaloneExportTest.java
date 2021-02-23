@@ -19,8 +19,6 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
-
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
@@ -214,10 +212,8 @@ public class ElideStandaloneExportTest {
                         + "\"result\":{\"url\":\"https://elide.io/export/ba31ca4e-ed8f-4be0-a0f3-12088fa9265d\",\"httpStatus\":200,\"recordCount\":1}}}]}}}";
                 assertEquals(expectedResponse, responseGraphQL);
                 break;
-            } else if (!(outputResponse.equals("PROCESSING"))) {
-                fail("Async Query has failed.");
-                break;
             }
+            assertEquals("PROCESSING", outputResponse, "Async Query has failed.");
         }
         when()
                 .get("/export/ba31ca4e-ed8f-4be0-a0f3-12088fa9265d")
