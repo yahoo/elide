@@ -185,16 +185,16 @@ public abstract class IntegrationTest {
     }
 
     protected CustomTypeSafeMatcher<String> jsonEquals(Object expected, boolean strict) {
-        return new CustomTypeSafeMatcher<String>("jsonEquals") {
+        String expectedString;
+        if (expected instanceof Data) {
+            expectedString = ((Data) expected).toJSON();
+        } else {
+            expectedString = expected.toString();
+        }
+        return new CustomTypeSafeMatcher<String>(expectedString) {
             @Override
             protected boolean matchesSafely(String actual) {
                 try {
-                    String expectedString;
-                    if (expected instanceof Data) {
-                        expectedString = ((Data) expected).toJSON();
-                    } else {
-                        expectedString = expected.toString();
-                    }
                     return JSONCompare.compareJSON(expectedString, actual,
                             strict ? JSONCompareMode.STRICT : JSONCompareMode.LENIENT).passed();
                 } catch (JSONException e) {

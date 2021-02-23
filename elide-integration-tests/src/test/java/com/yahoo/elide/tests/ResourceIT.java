@@ -443,72 +443,61 @@ public class ResourceIT extends IntegrationTest {
         // filterExpressionCheckObj.id != User'id.
 
         //test root object collection, should just receive 2 out of 3 records.
-        String getResult1 = given()
+        String expected1 = "{\"data\":[{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"name\":\"obj1\"},\"relationships\":{\"listOfAnotherObjs\":{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\"}]}}},{\"type\":\"filterExpressionCheckObj\",\"id\":\"2\",\"relationships\":{\"listOfAnotherObjs\":{\"data\":[]}}}]}";
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/filterExpressionCheckObj")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().response().asString();
+                .body(equalTo(expected1));
 
         //test authentication pass querying with ID == 1
-        String getResult2 = given()
+        String expected2 = "{\"data\":{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"name\":\"obj1\"},\"relationships\":{\"listOfAnotherObjs\":{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\"}]}}}}";
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/filterExpressionCheckObj/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().response().asString();
+                .body(equalTo(expected2));
 
         //test authentication pass querying with ID == 2, it shouldn't contain attribute "name".
-        String getResult3 = given()
+        String expected3 = "{\"data\":{\"type\":\"filterExpressionCheckObj\",\"id\":\"2\",\"relationships\":{\"listOfAnotherObjs\":{\"data\":[]}}}}";
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/filterExpressionCheckObj/2")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().response().asString();
+                .body(equalTo(expected3));
 
         //test authentication fail querying with ID == 3
-        String getResult4 = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/filterExpressionCheckObj/3")
                 .then()
-                .statusCode(HttpStatus.SC_NOT_FOUND)
-                .extract().response().asString();
+                .statusCode(HttpStatus.SC_NOT_FOUND);
 
         //test authentication pass query a relation of object
-        String getResult5 = given()
+        String expected5 = "{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"anotherName\":\"anotherObj1\",\"createDate\":1999},\"relationships\":{\"linkToParent\":{\"data\":[{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\"}]}}}]}";
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/filterExpressionCheckObj/1/listOfAnotherObjs")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().response().asString();
+                .body(equalTo(expected5));
 
         //test authentication pass query a relation of object
-        String getResult6 = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/anotherFilterExpressionCheckObj")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().response().asString();
-
-        String expected1 = "{\"data\":[{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"name\":\"obj1\"},\"relationships\":{\"listOfAnotherObjs\":{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\"}]}}},{\"type\":\"filterExpressionCheckObj\",\"id\":\"2\",\"relationships\":{\"listOfAnotherObjs\":{\"data\":[]}}}]}";
-
-        String expected2 = "{\"data\":{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"name\":\"obj1\"},\"relationships\":{\"listOfAnotherObjs\":{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\"}]}}}}";
-
-        String expected3 = "{\"data\":{\"type\":\"filterExpressionCheckObj\",\"id\":\"2\",\"relationships\":{\"listOfAnotherObjs\":{\"data\":[]}}}}";
-
-        String expected5 = "{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"anotherName\":\"anotherObj1\",\"createDate\":1999},\"relationships\":{\"linkToParent\":{\"data\":[{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\"}]}}}]}";
-
-        assertEquals(getResult1, expected1);
-        assertEquals(getResult2, expected2);
-        assertEquals(getResult3, expected3);
-        assertEquals(getResult5, expected5);
-        assertEquals(getResult6, expected5);
+                .body(equalTo(expected5));
     }
 
     @Test
@@ -877,15 +866,13 @@ public class ResourceIT extends IntegrationTest {
                 data(PARENT1, PARENT2, PARENT3, PARENT4),
                 include(CHILD1, CHILD2, CHILD3, CHILD4, CHILD5, PARENT3)).toJSON();
 
-        String actual = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/parent?include=children,spouses")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-
-        assertEqualDocuments(actual, expected);
+                .body(jsonEquals(expected, false));
     }
 
     @Test
@@ -914,15 +901,13 @@ public class ResourceIT extends IntegrationTest {
 
         String expected = data(PARENT1, PARENT2, PARENT3, PARENT4).toJSON();
 
-        String actual = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/parent?sort=+firstName")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-
-        assertEqualDocuments(actual, expected);
+                .body(equalTo(expected));
     }
 
     @Test
@@ -930,15 +915,13 @@ public class ResourceIT extends IntegrationTest {
 
         String expected = data(PARENT4, PARENT3, PARENT2, PARENT1).toJSON();
 
-        String actual = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/parent?sort=-firstName")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-
-        assertEquals(actual, expected);
+                .body(equalTo(expected));
     }
 
 
@@ -959,15 +942,13 @@ public class ResourceIT extends IntegrationTest {
     public void testGetWithTrailingSlash() {
         String expected = data(PARENT1, PARENT2, PARENT3, PARENT4).toJSON();
 
-        String actual = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/parent/")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-
-        assertEqualDocuments(actual, expected);
+                .body(equalTo(expected));
     }
 
     @Test
@@ -1427,15 +1408,13 @@ public class ResourceIT extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected1));
-        String response = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/parent/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-
-        assertEqualDocuments(response, expected2);
+                .body(jsonEquals(expected2, false));
     }
 
     @Test
@@ -1537,15 +1516,13 @@ public class ResourceIT extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected1));
-        String response = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/parent/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-
-        assertEqualDocuments(response, expected2);
+                .body(jsonEquals(expected2, true));
     }
 
     @Test
@@ -1561,15 +1538,13 @@ public class ResourceIT extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected1));
-        String response = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/parent/2")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-
-        assertEqualDocuments(response, expected2);
+                .body(jsonEquals(expected2, false));
     }
 
     @Test
@@ -1609,7 +1584,7 @@ public class ResourceIT extends IntegrationTest {
                 .get("/parent/1/children/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body(jsonEquals(expected, true));
+                .body(jsonEquals(expected, false));
     }
 
     @Test
@@ -1660,15 +1635,13 @@ public class ResourceIT extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo(expected1));
-        String response = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/parent/1")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .extract().body().asString();
-
-        assertEqualDocuments(response, expected2);
+                .body(jsonEquals(expected2, false));
     }
 
     @Test
@@ -1742,7 +1715,7 @@ public class ResourceIT extends IntegrationTest {
                 .patch("/")
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(equalTo(expected));
+                .body(jsonEquals(expected, false));
     }
 
     @Test
@@ -1812,14 +1785,13 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_CREATED);
 
         // Verify it was actually created
-        String o = given()
+        given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .body(oneToOneRoot)
                 .get("/oneToOneRoot/1")
                 .then()
-                .statusCode(HttpStatus.SC_OK)
-                .extract().asString();
+                .statusCode(HttpStatus.SC_OK);
 
         Data oneToOneNonRoot = datum(
                 resource(

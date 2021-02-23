@@ -8,14 +8,16 @@ package com.yahoo.elide.initialization;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.json.JSONException;
 import org.junit.jupiter.api.TestInstance;
+import org.skyscreamer.jsonassert.JSONAssert;
 import io.restassured.response.ValidatableResponse;
 import lombok.extern.slf4j.Slf4j;
 
@@ -78,10 +80,12 @@ public abstract class GraphQLIntegrationTest extends IntegrationTest {
         runQuery(graphQLQuery, variables).body("errors[0].message", equalTo(errorMessage));
     }
 
-    protected void compareJsonObject(ValidatableResponse response, String expected) throws IOException {
-        JsonNode responseNode = mapper.readTree(response.extract().body().asString());
-        JsonNode expectedNode = mapper.readTree(expected);
-        assertEquals(expectedNode, responseNode);
+    protected void compareJsonObject(ValidatableResponse response, String expected) {
+        try {
+            JSONAssert.assertEquals(expected, response.extract().body().asString(), true);
+        } catch (JSONException e) {
+            fail(e);
+        }
     }
 
     protected ValidatableResponse runQuery(String query, Map<String, Object> variables,

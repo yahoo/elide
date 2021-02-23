@@ -16,14 +16,14 @@ import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.standalone.ElideStandalone;
 
@@ -273,13 +273,11 @@ public class ElideStandaloneTest {
         // Spring-framework behaved similar to Jetty,
         // but was changed with https://github.com/spring-projects/spring-boot/issues/4876.
         int queryId = 1;
-        String output = when()
+        when()
                 .get("/export/" + queryId)
                 .then()
                 .statusCode(HttpStatus.SC_NOT_FOUND)
-                .extract().body().asString();
-
-        assertTrue(output.contains(" Not Found"));
-        assertFalse(output.contains(queryId + " Not Found"));
+                .body(containsString(" Not Found"))
+                .body(not(containsString(queryId + " Not Found")));
     }
 }
