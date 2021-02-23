@@ -140,7 +140,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
             });
         }
 
-        String requestedFields = environment.field.getName() + fieldName.toString();
+        String requestedFields = environment.field.getName() + fieldName;
 
         GraphQLType parent = environment.parentType;
         if (log.isDebugEnabled()) {
