@@ -478,7 +478,8 @@ public class ResourceIT extends IntegrationTest {
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/filterExpressionCheckObj/3")
                 .then()
-                .statusCode(HttpStatus.SC_NOT_FOUND);
+                .statusCode(HttpStatus.SC_NOT_FOUND)
+                .body("errors[0].detail", equalTo("Unknown identifier 3 for filterExpressionCheckObj"));
 
         //test authentication pass query a relation of object
         String expected5 = "{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"anotherName\":\"anotherObj1\",\"createDate\":1999},\"relationships\":{\"linkToParent\":{\"data\":[{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\"}]}}}]}";
