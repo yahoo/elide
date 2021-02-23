@@ -8,14 +8,13 @@ package example;
 import com.yahoo.elide.annotation.Include;
 
 import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
 @Entity(name = "invoice")
-@Include(rootLevel = true)
+@Include
 public class Invoice {
     private long id;
     private Set<LineItem> items;

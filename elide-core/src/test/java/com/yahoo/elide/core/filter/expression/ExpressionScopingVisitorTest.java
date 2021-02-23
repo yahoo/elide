@@ -8,11 +8,10 @@ package com.yahoo.elide.core.filter.expression;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.Path.PathElement;
-import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.InPredicate;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.filter.predicates.InPredicate;
 import example.Author;
 import example.Book;
 import org.junit.jupiter.api.Test;
@@ -63,7 +62,7 @@ public class ExpressionScopingVisitorTest {
             assertTrue(predicateCopy != predicateOriginal);
         }
 
-        assertEquals("example_Author_name", predicates.get(0).getAlias());
+        assertEquals("example_Author_name", predicates.get(0).getPath().getAlias());
         assertTrue(predicates.get(0).getParameters().get(0).getPlaceholder().startsWith(":name_name_"));
         assertEquals("blah\\%", predicates.get(0).getParameters().get(0).escapeMatching());
     }

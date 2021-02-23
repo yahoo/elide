@@ -6,24 +6,28 @@
 
 package com.yahoo.elide.datastores.search;
 
-import static com.yahoo.elide.core.DataStoreTransaction.FeatureSupport.FULL;
-import static com.yahoo.elide.core.DataStoreTransaction.FeatureSupport.NONE;
+import static com.yahoo.elide.core.datastore.DataStoreTransaction.FeatureSupport.FULL;
+import static com.yahoo.elide.core.datastore.DataStoreTransaction.FeatureSupport.NONE;
 
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.wrapped.TransactionWrapper;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.request.Sorting;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 
+import com.google.common.base.Preconditions;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.hibernate.search.annotations.Field;
@@ -55,7 +59,6 @@ public class SearchDataTransaction extends TransactionWrapper {
     private FullTextEntityManager em;
     private int minNgram;
     private int maxNgram;
-
     public SearchDataTransaction(DataStoreTransaction tx,
                                  EntityDictionary dictionary,
                                  FullTextEntityManager em,
@@ -69,36 +72,34 @@ public class SearchDataTransaction extends TransactionWrapper {
     }
 
     @Override
-    public Iterable<Object> loadObjects(Class<?> entityClass,
-                                        Optional<FilterExpression> filterExpression,
-                                        Optional<Sorting> sorting,
-                                        Optional<Pagination> pagination,
+    public <T> Iterable<T> loadObjects(EntityProjection projection,
                                         RequestScope requestScope) {
-        if (!filterExpression.isPresent()) {
-            return super.loadObjects(entityClass, filterExpression, sorting, pagination, requestScope);
+        if (projection.getFilterExpression() == null) {
+            return super.loadObjects(projection, requestScope);
         }
 
-        boolean canSearch = (canSearch(entityClass, filterExpression.get()) != NONE);
+        boolean canSearch = (canSearch(projection.getType(), projection.getFilterExpression()) != NONE);
 
-        if (mustSort(sorting, entityClass)) {
-            canSearch = canSearch && canSort(sorting.get(), entityClass);
+        if (mustSort(Optional.ofNullable(projection.getSorting()))) {
+            canSearch = canSearch && canSort(projection.getSorting(), projection.getType());
         }
 
         if (canSearch) {
-            return search(entityClass, filterExpression.get(), sorting, pagination);
+            return search(projection.getType(), projection.getFilterExpression(),
+                    Optional.ofNullable(projection.getSorting()),
+                    Optional.ofNullable(projection.getPagination()));
         }
 
-        return super.loadObjects(entityClass, filterExpression, sorting, pagination, requestScope);
+        return super.loadObjects(projection, requestScope);
     }
 
     /**
      * Indicates whether sorting has been requested for this entity.
      * @param sorting An optional elide sorting clause.
-     * @param entityClass The entity to sort.
      * @return True if the entity must be sorted. False otherwise.
      */
-    private boolean mustSort(Optional<Sorting> sorting, Class<?> entityClass) {
-        return sorting.isPresent() && !sorting.get().getValidSortingRules(entityClass, dictionary).isEmpty();
+    private boolean mustSort(Optional<Sorting> sorting) {
+        return sorting.isPresent() && !sorting.get().getSortingPaths().isEmpty();
     }
 
     /**
@@ -107,10 +108,10 @@ public class SearchDataTransaction extends TransactionWrapper {
      * @param entityClass The entity being sorted.
      * @return true if Lucene can sort.  False otherwise.
      */
-    private boolean canSort(Sorting sorting, Class<?> entityClass) {
+    private boolean canSort(Sorting sorting, Type<?> entityClass) {
 
         for (Map.Entry<Path, Sorting.SortOrder> entry
-                : sorting.getValidSortingRules(entityClass, dictionary).entrySet()) {
+                : sorting.getSortingPaths().entrySet()) {
 
             Path path = entry.getKey();
 
@@ -132,20 +133,25 @@ public class SearchDataTransaction extends TransactionWrapper {
     /**
      * Builds a lucene Sort object from and Elide Sorting object.
      * @param sorting Elide sorting object
-     * @param entityClass The entity being sorted.
+     * @param entityType The entity being sorted.
      * @return A lucene Sort object
      */
-    private Sort buildSort(Sorting sorting, Class<?> entityClass) {
+    private Sort buildSort(Sorting sorting, Type<?> entityType) {
+        Class<?> entityClass = null;
+        if (entityType != null) {
+            Preconditions.checkState(entityType instanceof ClassType);
+            entityClass = ((ClassType) entityType).getCls();
+        }
         QueryBuilder builder = em.getSearchFactory().buildQueryBuilder().forEntity(entityClass).get();
 
         SortFieldContext context = null;
         for (Map.Entry<Path, Sorting.SortOrder> entry
-                : sorting.getValidSortingRules(entityClass, dictionary).entrySet()) {
+                : sorting.getSortingPaths().entrySet()) {
 
             String fieldName = entry.getKey().lastElement().get().getFieldName();
 
             SortableField sortableField =
-                    dictionary.getAttributeOrRelationAnnotation(entityClass, SortableField.class, fieldName);
+                    dictionary.getAttributeOrRelationAnnotation(entityType, SortableField.class, fieldName);
 
             fieldName = sortableField.forField().isEmpty() ? fieldName : sortableField.forField();
 
@@ -171,19 +177,21 @@ public class SearchDataTransaction extends TransactionWrapper {
     }
 
     @Override
-    public FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
+    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
+        Type<?> entityClass = projection.getType();
+        FilterExpression expression = projection.getFilterExpression();
 
         /* Return the least support among all the predicates */
         FeatureSupport support = canSearch(entityClass, expression);
 
         if (support == NONE) {
-            return super.supportsFiltering(entityClass, expression);
+            return super.supportsFiltering(scope, parent, projection);
         }
 
         return support;
     }
 
-    private DataStoreTransaction.FeatureSupport canSearch(Class<?> entityClass, FilterExpression expression) {
+    private DataStoreTransaction.FeatureSupport canSearch(Type<?> entityClass, FilterExpression expression) {
 
         /* Collapse the filter expression to a list of leaf predicates */
         Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
@@ -211,7 +219,7 @@ public class SearchDataTransaction extends TransactionWrapper {
         return support;
     }
 
-    private DataStoreTransaction.FeatureSupport canSearch(Class<?> entityClass, FilterPredicate predicate) {
+    private DataStoreTransaction.FeatureSupport canSearch(Type<?> entityClass, FilterPredicate predicate) {
 
         boolean isIndexed = fieldIsIndexed(entityClass, predicate);
 
@@ -229,15 +237,20 @@ public class SearchDataTransaction extends TransactionWrapper {
 
     /**
      * Perform the full-text search.
-     * @param entityClass The class to search
+     * @param entityType The class to search
      * @param filterExpression The filter expression to apply
      * @param sorting Optional sorting
      * @param pagination Optional pagination
      * @return A list of records of type entityClass.
      */
-    private List<Object> search(Class<?> entityClass, FilterExpression filterExpression, Optional<Sorting> sorting,
+    private <T> List<T> search(Type<?> entityType, FilterExpression filterExpression, Optional<Sorting> sorting,
                                 Optional<Pagination> pagination) {
             Query query;
+            Class<?> entityClass = null;
+            if (entityType != null) {
+                Preconditions.checkState(entityType instanceof ClassType);
+                entityClass = ((ClassType) entityType).getCls();
+            }
             try {
                 query = filterExpression.accept(new FilterExpressionToLuceneQuery(em, entityClass));
             } catch (IllegalArgumentException e) {
@@ -246,8 +259,8 @@ public class SearchDataTransaction extends TransactionWrapper {
 
             FullTextQuery fullTextQuery = em.createFullTextQuery(query, entityClass);
 
-            if (mustSort(sorting, entityClass)) {
-                fullTextQuery = fullTextQuery.setSort(buildSort(sorting.get(), entityClass));
+            if (mustSort(sorting)) {
+                fullTextQuery = fullTextQuery.setSort(buildSort(sorting.get(), entityType));
             }
 
             if (pagination.isPresent()) {
@@ -255,12 +268,12 @@ public class SearchDataTransaction extends TransactionWrapper {
                 fullTextQuery = fullTextQuery.setFirstResult(pagination.get().getOffset());
             }
 
-            List<Object[]> results = fullTextQuery
+            List<T[]> results = fullTextQuery
                     .setProjection(ProjectionConstants.THIS)
                     .getResultList();
 
-            if (pagination.isPresent() && pagination.get().isGenerateTotals()) {
-                pagination.get().setPageTotals(fullTextQuery.getResultSize());
+            if (pagination.isPresent() && pagination.get().returnPageTotals()) {
+                pagination.get().setPageTotals((long) fullTextQuery.getResultSize());
             }
 
             if (results.isEmpty()) {
@@ -268,12 +281,11 @@ public class SearchDataTransaction extends TransactionWrapper {
             }
 
             return results.stream()
-                    .map((result) -> {
-                        return result[0];
-                    }).collect(Collectors.toList());
+                    .map(result -> result[0])
+                    .collect(Collectors.toList());
     }
 
-    private boolean fieldIsIndexed(Class<?> entityClass, FilterPredicate predicate) {
+    private boolean fieldIsIndexed(Type<?> entityClass, FilterPredicate predicate) {
         String fieldName = predicate.getField();
 
         List<Field> fields = new ArrayList<>();
@@ -302,7 +314,7 @@ public class SearchDataTransaction extends TransactionWrapper {
         return indexed;
     }
 
-    private DataStoreTransaction.FeatureSupport operatorSupport(Class<?> entityClass, FilterPredicate predicate)
+    private DataStoreTransaction.FeatureSupport operatorSupport(Type<?> entityClass, FilterPredicate predicate)
             throws HttpStatusException {
 
         Operator op = predicate.getOperator();

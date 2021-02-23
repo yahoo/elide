@@ -14,7 +14,7 @@ import javax.persistence.Entity;
 /**
  * Bean with only computed fields
  */
-@Include
+@Include(rootLevel = false)
 @Entity
 public class ComputedBean {
 
@@ -29,7 +29,7 @@ public class ComputedBean {
     }
 
     @ComputedAttribute
-    public String getTestWithSecurityScope(com.yahoo.elide.security.RequestScope requestScope) {
+    public String getTestWithSecurityScope(com.yahoo.elide.core.security.RequestScope requestScope) {
         return "test3";
     }
 

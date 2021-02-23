@@ -6,12 +6,11 @@
 
 package com.yahoo.elide.core.datastore.wrapped;
 
-import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.security.User;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.request.Attribute;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.Relationship;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -29,81 +28,69 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     protected DataStoreTransaction tx;
 
     @Override
-    public User accessUser(Object opaqueUser) {
-        return tx.accessUser(opaqueUser);
+    public void preCommit(RequestScope scope) {
+        tx.preCommit(scope);
     }
 
     @Override
-    public void preCommit() {
-        tx.preCommit();
-    }
-
-    @Override
-    public <T> T createNewObject(Class<T> entityClass) {
-        return tx.createNewObject(entityClass);
-    }
-
-    @Override
-    public Object loadObject(Class<?> entityClass, Serializable id, Optional<FilterExpression> filterExpression,
+    public <T> T loadObject(EntityProjection projection, Serializable id,
                              RequestScope scope) {
-        return tx.loadObject(entityClass, id, filterExpression, scope);
+        return tx.loadObject(projection, id, scope);
     }
 
     @Override
-    public Object getRelation(DataStoreTransaction relationTx, Object entity, String relationName,
-                              Optional<FilterExpression> filterExpression, Optional<Sorting> sorting,
-                              Optional<Pagination> pagination, RequestScope scope) {
-        return tx.getRelation(relationTx, entity, relationName, filterExpression, sorting, pagination, scope);
+    public <T, R> R getRelation(DataStoreTransaction relationTx, T entity,
+                              Relationship relationship, RequestScope scope) {
+        return tx.getRelation(relationTx, entity, relationship, scope);
     }
 
     @Override
-    public void updateToManyRelation(DataStoreTransaction relationTx, Object entity, String relationName,
-                                     Set<Object> newRelationships, Set<Object> deletedRelationships,
+    public <T, R> void updateToManyRelation(DataStoreTransaction relationTx, T entity, String relationName,
+                                     Set<R> newRelationships, Set<R> deletedRelationships,
                                      RequestScope scope) {
         tx.updateToManyRelation(relationTx, entity, relationName, newRelationships, deletedRelationships, scope);
 
     }
 
     @Override
-    public void updateToOneRelation(DataStoreTransaction relationTx, Object entity,
-                                    String relationName, Object relationshipValue, RequestScope scope) {
+    public <T, R> void updateToOneRelation(DataStoreTransaction relationTx, T entity,
+                                    String relationName, R relationshipValue, RequestScope scope) {
         tx.updateToOneRelation(relationTx, entity, relationName, relationshipValue, scope);
     }
 
     @Override
-    public Object getAttribute(Object entity, String attributeName, RequestScope scope) {
-        return tx.getAttribute(entity, attributeName, scope);
+    public <T, R> R getAttribute(T entity, Attribute attribute, RequestScope scope) {
+        return tx.getAttribute(entity, attribute, scope);
     }
 
     @Override
-    public void setAttribute(Object entity, String attributeName, Object attributeValue, RequestScope scope) {
-        tx.setAttribute(entity, attributeName, attributeValue, scope);
+    public <T> void setAttribute(T entity, Attribute attribute, RequestScope scope) {
+        tx.setAttribute(entity, attribute, scope);
     }
 
     @Override
-    public FeatureSupport supportsFiltering(Class<?> entityClass, FilterExpression expression) {
-        return tx.supportsFiltering(entityClass, expression);
+    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
+        return tx.supportsFiltering(scope, parent, projection);
     }
 
     @Override
-    public boolean supportsSorting(Class<?> entityClass, Sorting sorting) {
-        return tx.supportsSorting(entityClass, sorting);
+    public <T> boolean supportsSorting(RequestScope scope, Optional<T> parent, EntityProjection projection) {
+        return tx.supportsSorting(scope, parent, projection);
     }
 
     @Override
-    public boolean supportsPagination(Class<?> entityClass) {
-        return tx.supportsPagination(entityClass);
+    public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
+        return tx.supportsPagination(scope, parent, projection);
     }
 
     @Override
-    public void save(Object o, RequestScope requestScope) {
+    public <T> void save(T o, RequestScope requestScope) {
         tx.save(o, requestScope);
     }
 
     @Override
-    public void delete(Object o, RequestScope requestScope) {
+    public <T> void delete(T o, RequestScope requestScope) {
         tx.delete(o, requestScope);
-
     }
 
     @Override
@@ -119,20 +106,20 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     @Override
     public void createObject(Object o, RequestScope requestScope) {
         tx.createObject(o, requestScope);
-
     }
 
     @Override
-    public Iterable<Object> loadObjects(Class<?> entityClass,
-                                        Optional<FilterExpression> filterExpression,
-                                        Optional<Sorting> sorting,
-                                        Optional<Pagination> pagination,
-                                        RequestScope requestScope) {
-        return tx.loadObjects(entityClass, filterExpression, sorting, pagination, requestScope);
+    public <T> Iterable<T> loadObjects(EntityProjection projection, RequestScope scope) {
+        return tx.loadObjects(projection, scope);
     }
 
     @Override
     public void close() throws IOException {
         tx.close();
+    }
+
+    @Override
+    public void cancel(RequestScope scope) {
+        tx.cancel(scope);
     }
 }

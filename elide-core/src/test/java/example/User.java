@@ -8,11 +8,9 @@ package example;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.Set;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -25,7 +23,7 @@ import javax.persistence.Transient;
  * Used to test computed attributes.
  */
 @Entity
-@Include(rootLevel = true)
+@Include
 public class User {
     @JsonIgnore
     private long id;

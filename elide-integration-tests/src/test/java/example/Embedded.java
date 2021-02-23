@@ -8,14 +8,13 @@ package example;
 import com.yahoo.elide.annotation.Include;
 
 import java.util.Set;
-
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 
 /**
  * Embedded test bean.
  */
-@Include(rootLevel = true)
+@Include
 @Entity
 public class Embedded extends BaseId {
     private Set<Long> segmentIds;

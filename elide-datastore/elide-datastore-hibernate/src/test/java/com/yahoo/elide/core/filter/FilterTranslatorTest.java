@@ -5,19 +5,26 @@
  */
 package com.yahoo.elide.core.filter;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.filter.predicates.InPredicate;
+import com.yahoo.elide.core.filter.predicates.NotEmptyPredicate;
+import example.Author;
+import example.Book;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -25,14 +32,12 @@ import java.util.stream.Collectors;
  */
 public class FilterTranslatorTest {
 
-    class Book {
-        String name;
-        String genre;
-        Author author;
-    }
+    private EntityDictionary dictionary;
 
-    class Author {
-        String name;
+    public FilterTranslatorTest() {
+        dictionary = new EntityDictionary(new HashMap<>());
+        dictionary.bindEntity(Book.class);
+        dictionary.bindEntity(Author.class);
     }
 
     @Test
@@ -63,8 +68,9 @@ public class FilterTranslatorTest {
         AndFilterExpression and2 = new AndFilterExpression(or, and1);
         NotFilterExpression not = new NotFilterExpression(and2);
 
-        FilterTranslator filterOp = new FilterTranslator();
+        FilterTranslator filterOp = new FilterTranslator(dictionary);
         String query = filterOp.apply(not, false);
+        query = query.trim().replaceAll(" +", " ");
 
         String p1Params = p1.getParameters().stream()
                 .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
@@ -72,7 +78,7 @@ public class FilterTranslatorTest {
                 .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
         String p3Params = p3.getParameters().stream()
                 .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
-        String expected = "WHERE NOT (((name IN (" + p2Params + ") OR genre IN (" + p3Params + ")) "
+        String expected = "NOT (((name IN (" + p2Params + ") OR genre IN (" + p3Params + ")) "
                 + "AND (authors IS NOT EMPTY AND authors.name IN (" + p1Params + "))))";
         assertEquals(expected, query);
     }
@@ -87,14 +93,14 @@ public class FilterTranslatorTest {
 
         AndFilterExpression and = new AndFilterExpression(p1, p2);
 
-        FilterTranslator filterOp = new FilterTranslator();
+        FilterTranslator filterOp = new FilterTranslator(dictionary);
         String query = filterOp.apply(and, false);
 
         String p1Params = p1.getParameters().stream()
                 .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
         String p2Params = p2.getParameters().stream()
                 .map(FilterPredicate.FilterParameter::getPlaceholder).collect(Collectors.joining(", "));
-        String expected = "WHERE (" + p1Params + " MEMBER OF awards "
+        String expected = "(" + p1Params + " MEMBER OF awards "
                 + "AND " + p2Params + " NOT MEMBER OF awards)";
         assertEquals(expected, query);
     }
@@ -103,7 +109,7 @@ public class FilterTranslatorTest {
     public void testEmptyFieldOnPrefix() throws Exception {
         FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, String.class, ""),
                 Operator.PREFIX_CASE_INSENSITIVE, Arrays.asList("value"));
-        FilterTranslator filterOp = new FilterTranslator();
+        FilterTranslator filterOp = new FilterTranslator(dictionary);
         assertThrows(InvalidValueException.class, () -> filterOp.apply(pred));
     }
 
@@ -111,7 +117,7 @@ public class FilterTranslatorTest {
     public void testEmptyFieldOnInfix() throws Exception {
         FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, String.class, ""),
                 Operator.INFIX_CASE_INSENSITIVE, Arrays.asList("value"));
-        FilterTranslator filterOp = new FilterTranslator();
+        FilterTranslator filterOp = new FilterTranslator(dictionary);
         assertThrows(InvalidValueException.class, () -> filterOp.apply(pred));
     }
 
@@ -119,7 +125,7 @@ public class FilterTranslatorTest {
     public void testEmptyFieldOnPostfix() throws Exception {
         FilterPredicate pred = new FilterPredicate(new Path.PathElement(Book.class, String.class, ""),
                 Operator.POSTFIX_CASE_INSENSITIVE, Arrays.asList("value"));
-        FilterTranslator filterOp = new FilterTranslator();
+        FilterTranslator filterOp = new FilterTranslator(dictionary);
         assertThrows(InvalidValueException.class, () -> filterOp.apply(pred));
     }
 
@@ -128,21 +134,21 @@ public class FilterTranslatorTest {
 
         JPQLPredicateGenerator generator = new JPQLPredicateGenerator() {
             @Override
-            public String generate(String columnAlias, List<FilterPredicate.FilterParameter> parameters) {
+            public String generate(FilterPredicate predicate, Function<Path, String> aliasGenerator) {
                 return "FOO";
             }
         };
 
         try {
-            FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, Author.class, "name", generator);
+            FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, getClassType(Author.class), "name", generator);
 
             FilterPredicate pred = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"),
                     Operator.INFIX_CASE_INSENSITIVE, Arrays.asList("value"));
 
-            String actual = new FilterTranslator().apply(pred);
+            String actual = new FilterTranslator(dictionary).apply(pred);
             assertEquals("FOO", actual);
         } finally {
-            FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, Author.class, "name", null);
+            FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, getClassType(Author.class), "name", null);
         }
     }
 
@@ -151,7 +157,7 @@ public class FilterTranslatorTest {
 
         JPQLPredicateGenerator generator = new JPQLPredicateGenerator() {
             @Override
-            public String generate(String columnAlias, List<FilterPredicate.FilterParameter> parameters) {
+            public String generate(FilterPredicate predicate, Function<Path, String> aliasGenerator) {
                 return "FOO";
             }
         };
@@ -163,7 +169,7 @@ public class FilterTranslatorTest {
             FilterPredicate pred = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"),
                     Operator.INFIX_CASE_INSENSITIVE, Arrays.asList("value"));
 
-            String actual = new FilterTranslator().apply(pred);
+            String actual = new FilterTranslator(dictionary).apply(pred);
             assertEquals("FOO", actual);
         } finally {
             FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, old);

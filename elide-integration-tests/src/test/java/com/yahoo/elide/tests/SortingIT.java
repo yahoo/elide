@@ -11,14 +11,12 @@ import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.yahoo.elide.core.utils.JsonParser;
 import com.yahoo.elide.initialization.IntegrationTest;
-import com.yahoo.elide.utils.JsonParser;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -59,6 +57,7 @@ public class SortingIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     public void testSortingRootCollectionByRelationshipProperty() throws IOException {
         JsonNode result = getAsNode("/book?sort=-publisher.name");
         int size = result.get("data").size();
@@ -109,6 +108,7 @@ public class SortingIT extends IntegrationTest {
     }
 
     @Test
+    @Tag("skipInMemory")
     public void testSortingRootCollectionByRelationshipPropertyWithJoinFilterAndPagination() throws IOException {
         final JsonNode result = getAsNode("/book?filter[book.authors.name][infixi]=Hemingway&sort=-publisher.name", HttpStatus.SC_BAD_REQUEST);
         assertNotNull(result.get("errors"));
@@ -162,7 +162,6 @@ public class SortingIT extends IntegrationTest {
             assertEquals(expectedTitle, actualTitle);
         }
     }
-
 
     @Test
     public void testRootCollectionByNullRelationshipProperty() throws IOException {

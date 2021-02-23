@@ -1,0 +1,34 @@
+{
+    // should work fine if missing variables.hjson not provided.
+    tables: [{
+        name: Player
+        table: player
+        schema: playerdb
+        description:
+        '''
+        A long description
+        '''
+        cardinality : large
+        measures : [
+            {
+            name : highScore
+            type : "INTEGER"
+            definition: 'MAX({{score}})'
+            }
+        ]
+        dimensions : [
+            {
+                name : createdOn
+                type : TIME
+                definition : '{{create_on}}'
+                grains:
+                [{
+                    type : DAY
+                    sql :  '''
+                    PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+                    '''
+                }]
+            }
+        ]
+    }]
+}

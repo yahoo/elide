@@ -10,7 +10,6 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.graphql.containers.GraphQLContainer;
 import com.yahoo.elide.graphql.containers.PersistentResourceContainer;
 import com.yahoo.elide.graphql.containers.RootContainer;
-
 import graphql.language.Field;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLType;
@@ -42,7 +41,7 @@ public class Environment {
     public Environment(DataFetchingEnvironment environment) {
         Map<String, Object> args = environment.getArguments();
 
-        requestScope = (GraphQLRequestScope) environment.getContext();
+        requestScope = environment.getContext();
 
         filters = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_FILTER));
         offset = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_AFTER));

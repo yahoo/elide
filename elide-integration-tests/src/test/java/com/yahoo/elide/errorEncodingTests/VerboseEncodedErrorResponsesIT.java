@@ -7,19 +7,17 @@ package com.yahoo.elide.errorEncodingTests;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
-
-import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
+import com.yahoo.elide.core.utils.JsonParser;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.initialization.VerboseEncodedErrorResponsesTestApplicationResourceConfig;
-import com.yahoo.elide.resources.JsonApiEndpoint;
-import com.yahoo.elide.utils.JsonParser;
-
+import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
+import com.yahoo.elide.test.jsonapi.elements.Resource;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
@@ -136,20 +134,6 @@ public class VerboseEncodedErrorResponsesIT extends IntegrationTest {
     public void graphQLMutationError() {
         String request = jsonParser.getJson("/EncodedErrorResponsesIT/graphQLMutationError.req.json");
         String expected = jsonParser.getJson("/EncodedErrorResponsesIT/graphQLMutationError.json");
-        given()
-            .contentType(GRAPHQL_CONTENT_TYPE)
-            .accept(GRAPHQL_CONTENT_TYPE)
-            .body(request)
-            .post("/graphQL")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .body(equalTo(expected));
-    }
-
-    @Test
-    public void graphQLFetchError() {
-        String request = jsonParser.getJson("/EncodedErrorResponsesIT/graphQLFetchError.req.json");
-        String expected = jsonParser.getJson("/EncodedErrorResponsesIT/graphQLFetchError.json");
         given()
             .contentType(GRAPHQL_CONTENT_TYPE)
             .accept(GRAPHQL_CONTENT_TYPE)

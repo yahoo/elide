@@ -5,8 +5,8 @@
  */
 package example;
 
-import com.yahoo.elide.security.User;
-import com.yahoo.elide.security.checks.UserCheck;
+import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.core.security.checks.UserCheck;
 
 /**
  * Useful for testing permissions based on different users.
@@ -14,12 +14,7 @@ import com.yahoo.elide.security.checks.UserCheck;
 public class NegativeIntegerUserCheck extends UserCheck {
     @Override
     public boolean ok(User user) {
-        Integer id = (Integer) user.getOpaqueUser();
+        Integer id = Integer.parseInt(user.getPrincipal().getName());
         return id >= 0;
-    }
-
-    @Override
-    public String checkIdentifier() {
-        return "negativeIntegerUser";
     }
 }

@@ -8,12 +8,11 @@ package example;
 import com.yahoo.elide.annotation.Include;
 
 import java.util.UUID;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
-@Include(rootLevel = true) // optional here because class has this name
+@Include // optional here because class has this name
 @Entity
 public class Preview {
     @Id

@@ -10,7 +10,6 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
 
 import java.util.Set;
-
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToMany;
@@ -21,7 +20,7 @@ import javax.persistence.Table;
 /**
  * left bean.
  */
-@Include(rootLevel = true, type = "left") // optional here because class has this name
+@Include(type = "left") // optional here because class has this name
 @Entity
 @Table(name = "xleft")  // left is SQL keyword
 @DeletePermission(expression = "negativeIntegerUser")
@@ -59,7 +58,7 @@ public class Left extends BaseId {
         return one2many;
     }
 
-    @UpdatePermission(expression = "deny all")
+    @UpdatePermission(expression = "Prefab.Role.None")
     @OneToOne(
             targetEntity = Right.class,
             mappedBy = "noUpdateOne2One",

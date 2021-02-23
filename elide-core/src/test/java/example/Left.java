@@ -7,12 +7,11 @@ package example;
 
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.NonTransferable;
 import com.yahoo.elide.annotation.UpdatePermission;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -23,10 +22,11 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-@Include(rootLevel = true, type = "left") // optional here because class has this name
+@Include(type = "left") // optional here because class has this name
 @Entity
 @Table(name = "xleft")  // left is SQL keyword
 @DeletePermission(expression = "negativeIntegerUser")
+@NonTransferable
 public class Left {
     @JsonIgnore
     private long id;
@@ -74,7 +74,7 @@ public class Left {
         return id;
     }
 
-    @UpdatePermission(expression = "deny all")
+    @UpdatePermission(expression = "Prefab.Role.None")
     @OneToOne(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Right.class,

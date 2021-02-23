@@ -6,19 +6,22 @@
 
 package com.yahoo.elide.graphql;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
+import static graphql.schema.GraphQLArgument.newArgument;
 import static graphql.schema.GraphQLEnumType.newEnum;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLInputObjectType.newInputObject;
 import static graphql.schema.GraphQLObjectType.newObject;
-
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.utils.coerce.CoerceUtil;
-import com.yahoo.elide.utils.coerce.converters.ElideTypeConverter;
-import com.yahoo.elide.utils.coerce.converters.Serde;
-
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
+import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
+import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectField;
@@ -31,34 +34,35 @@ import graphql.schema.GraphQLScalarType;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Contains methods that convert from a class to a GraphQL input or query type.
  */
 @Slf4j
 public class GraphQLConversionUtils {
-    protected static final String MAP = "Map";
     protected static final String KEY = "key";
     protected static final String VALUE = "value";
     protected static final String ERROR_MESSAGE = "Value should either be integer, String or float";
 
-    private final Map<Class<?>, GraphQLScalarType> scalarMap = new HashMap<>();
+    private final Map<Type<?>, GraphQLScalarType> scalarMap = new HashMap<>();
 
     protected NonEntityDictionary nonEntityDictionary;
     protected EntityDictionary entityDictionary;
 
-    private final Map<Class, GraphQLObjectType> outputConversions = new HashMap<>();
-    private final Map<Class, GraphQLInputObjectType> inputConversions = new HashMap<>();
-    private final Map<Class, GraphQLEnumType> enumConversions = new HashMap<>();
+    private final Map<Type, GraphQLObjectType> outputConversions = new HashMap<>();
+    private final Map<Type, GraphQLInputObjectType> inputConversions = new HashMap<>();
+    private final Map<Type, GraphQLEnumType> enumConversions = new HashMap<>();
     private final Map<String, GraphQLList> mapConversions = new HashMap<>();
+    private final GraphQLNameUtils nameUtils;
 
     public GraphQLConversionUtils(EntityDictionary entityDictionary, NonEntityDictionary nonEntityDictionary) {
         this.entityDictionary = entityDictionary;
         this.nonEntityDictionary = nonEntityDictionary;
+        this.nameUtils = new GraphQLNameUtils(entityDictionary);
         registerCustomScalars();
     }
 
@@ -69,7 +73,7 @@ public class GraphQLConversionUtils {
                     .getAnnotation(ElideTypeConverter.class);
             if (elideTypeConverter != null) {
                 SerdeCoercing serdeCoercing = new SerdeCoercing(ERROR_MESSAGE, serde);
-                scalarMap.put(elideTypeConverter.type(), new GraphQLScalarType(elideTypeConverter.name(),
+                scalarMap.put(getClassType(elideTypeConverter.type()), new GraphQLScalarType(elideTypeConverter.name(),
                         elideTypeConverter.description(), serdeCoercing));
             }
         }
@@ -80,27 +84,27 @@ public class GraphQLConversionUtils {
      * @param clazz - the non-entity type.
      * @return the GraphQLType or null if there is a problem with the underlying model.
      */
-    public GraphQLScalarType classToScalarType(Class<?> clazz) {
-        if (clazz.equals(int.class) || clazz.equals(Integer.class)) {
+    public GraphQLScalarType classToScalarType(Type<?> clazz) {
+        if (clazz.equals(getClassType(int.class)) || clazz.equals(getClassType(Integer.class))) {
             return Scalars.GraphQLInt;
-        } else if (clazz.equals(boolean.class) || clazz.equals(Boolean.class)) {
+        } else if (clazz.equals(getClassType(boolean.class)) || clazz.equals(getClassType(Boolean.class))) {
             return Scalars.GraphQLBoolean;
-        } else if (clazz.equals(long.class) || clazz.equals(Long.class)) {
+        } else if (clazz.equals(getClassType(long.class)) || clazz.equals(getClassType(Long.class))) {
             return Scalars.GraphQLLong;
-        } else if (clazz.equals(float.class) || clazz.equals(Float.class)) {
+        } else if (clazz.equals(getClassType(float.class)) || clazz.equals(getClassType(Float.class))) {
             return Scalars.GraphQLFloat;
-        } else if (clazz.equals(double.class) || clazz.equals(Double.class)) {
+        } else if (clazz.equals(getClassType(double.class)) || clazz.equals(getClassType(Double.class))) {
             return Scalars.GraphQLFloat;
-        } else if (clazz.equals(short.class) || clazz.equals(Short.class)) {
+        } else if (clazz.equals(getClassType(short.class)) || clazz.equals(getClassType(Short.class))) {
             return Scalars.GraphQLShort;
-        } else if (clazz.equals(String.class)) {
+        } else if (clazz.equals(getClassType(String.class))) {
             return Scalars.GraphQLString;
-        } else if (clazz.equals(BigDecimal.class)) {
+        } else if (clazz.equals(getClassType(BigDecimal.class))) {
             return Scalars.GraphQLBigDecimal;
-        } else if (Date.class.isAssignableFrom(clazz)) {
-            return GraphQLScalars.GRAPHQL_DATE_TYPE;
         } else if (scalarMap.containsKey(clazz)) {
             return scalarMap.get(clazz);
+        } else if (ClassType.DATE_TYPE.isAssignableFrom(clazz)) {
+            return GraphQLScalars.GRAPHQL_DATE_TYPE;
         }
         return null;
     }
@@ -110,17 +114,17 @@ public class GraphQLConversionUtils {
      * @param enumClazz the Enum to convert
      * @return A GraphQLEnum type for class.
      */
-    public GraphQLEnumType classToEnumType(Class<?> enumClazz) {
+    public GraphQLEnumType classToEnumType(Type<?> enumClazz) {
         if (enumConversions.containsKey(enumClazz)) {
             return enumConversions.get(enumClazz);
         }
 
         Enum [] values = (Enum []) enumClazz.getEnumConstants();
 
-        GraphQLEnumType.Builder builder = newEnum().name(toValidNameName(enumClazz.getName()));
+        GraphQLEnumType.Builder builder = newEnum().name(nameUtils.toOutputTypeName(enumClazz));
 
         for (Enum value : values) {
-            builder.value(toValidNameName(value.name()), value);
+            builder.value(value.toString(), value);
         }
 
         GraphQLEnumType enumResult = builder.build();
@@ -138,8 +142,8 @@ public class GraphQLConversionUtils {
      * @param fetcher The Datafetcher to assign to the created GraphQL object.
      * @return The created type.
      */
-    public GraphQLList classToQueryMap(Class<?> keyClazz, Class<?> valueClazz, DataFetcher fetcher) {
-        String mapName = toValidNameName(keyClazz.getName() + valueClazz.getCanonicalName() + MAP);
+    public GraphQLList classToQueryMap(Type<?> keyClazz, Type<?> valueClazz, DataFetcher fetcher) {
+        String mapName = nameUtils.toMapEntryOutputName(keyClazz, valueClazz);
 
         if (mapConversions.containsKey(mapName)) {
             return mapConversions.get(mapName);
@@ -174,9 +178,9 @@ public class GraphQLConversionUtils {
      * @param valueClazz The map value class
      * @return The created type.
      */
-    public GraphQLList classToInputMap(Class<?> keyClazz,
-                                       Class<?> valueClazz) {
-        String mapName = toValidNameName("_input__" + keyClazz.getName() + valueClazz.getCanonicalName() + MAP);
+    public GraphQLList classToInputMap(Type<?> keyClazz,
+                                       Type<?> valueClazz) {
+        String mapName = nameUtils.toMapEntryInputName(keyClazz, valueClazz);
 
         if (mapConversions.containsKey(mapName)) {
             return mapConversions.get(mapName);
@@ -210,8 +214,8 @@ public class GraphQLConversionUtils {
      * @param fetcher The data fetcher to associated with the newly created GraphQL Query Type
      * @return A newly created GraphQL Query Type or null if the underlying type cannot be converted.
      */
-    public GraphQLOutputType attributeToQueryObject(Class<?> parentClass,
-                                                    Class<?> attributeClass,
+    public GraphQLOutputType attributeToQueryObject(Type<?> parentClass,
+                                                    Type<?> attributeClass,
                                                     String attribute,
                                                     DataFetcher fetcher) {
         return attributeToQueryObject(
@@ -232,8 +236,8 @@ public class GraphQLConversionUtils {
      * @return A GraphQL Query Type (either newly created or singleton instance for class) or
      *         null if the underlying type cannot be converted.
      */
-    protected GraphQLOutputType attributeToQueryObject(Class<?> parentClass,
-                                                       Class<?> attributeClass,
+    protected GraphQLOutputType attributeToQueryObject(Type<?> parentClass,
+                                                       Type<?> attributeClass,
                                                        String attribute,
                                                        DataFetcher fetcher,
                                                        EntityDictionary dictionary) {
@@ -248,23 +252,23 @@ public class GraphQLConversionUtils {
         }
 
         /* We don't support Class */
-        if (Class.class.isAssignableFrom(attributeClass)) {
+        if (ClassType.CLASS_TYPE.isAssignableFrom(attributeClass)) {
             return null;
         }
 
         /* If the attribute is a map */
-        if (Map.class.isAssignableFrom(attributeClass)) {
+        if (ClassType.MAP_TYPE.isAssignableFrom(attributeClass)) {
 
             /* Extract the key and value types */
-            Class<?> keyType = dictionary.getParameterizedType(parentClass, attribute, 0);
-            Class<?> valueType = dictionary.getParameterizedType(parentClass, attribute, 1);
+            Type<?> keyType = dictionary.getParameterizedType(parentClass, attribute, 0);
+            Type<?> valueType = dictionary.getParameterizedType(parentClass, attribute, 1);
 
             return classToQueryMap(keyType, valueType, fetcher);
 
         /* If the attribute is a collection */
-        } else if (Collection.class.isAssignableFrom(attributeClass)) {
+        } else if (ClassType.COLLECTION_TYPE.isAssignableFrom(attributeClass)) {
             /* Extract the collection type */
-            Class<?> listType = dictionary.getParameterizedType(parentClass, attribute, 0);
+            Type<?> listType = dictionary.getParameterizedType(parentClass, attribute, 0);
 
             // If this is a collection of a boxed type scalar, we want to unwrap it properly
             return new GraphQLList(fetchScalarOrObjectOutput(listType, fetcher));
@@ -280,27 +284,14 @@ public class GraphQLConversionUtils {
      * @param attribute The name of the attribute.
      * @return A newly created GraphQL Input Type or null if the underlying type cannot be converted.
      */
-    public GraphQLInputType attributeToInputObject(Class<?> parentClass,
-                                                   Class<?> attributeClass,
+    public GraphQLInputType attributeToInputObject(Type<?> parentClass,
+                                                   Type<?> attributeClass,
                                                    String attribute) {
         return attributeToInputObject(
                 parentClass,
                 attributeClass,
                 attribute,
                 entityDictionary);
-    }
-
-    /**
-     * Helper function converts a string into a valid name.
-     *
-     * @param input Input string
-     * @return Sanitized form of input string
-     */
-    protected String toValidNameName(String input) {
-        return input
-                .replace(".", "_") // Replaces package qualifier on class names
-                .replace("$", "__1") // Replaces inner-class qualifier
-                .replace("[", "___2"); // Replaces primitive list qualifier ([B == array of bytes)
     }
 
     /**
@@ -312,8 +303,8 @@ public class GraphQLConversionUtils {
      *
      * @return A newly created GraphQL Input Type or null if the underlying type cannot be converted.
      */
-    protected GraphQLInputType attributeToInputObject(Class<?> parentClass,
-                                                      Class<?> attributeClass,
+    protected GraphQLInputType attributeToInputObject(Type<?> parentClass,
+                                                      Type<?> attributeClass,
                                                       String attribute,
                                                       EntityDictionary dictionary) {
 
@@ -327,24 +318,24 @@ public class GraphQLConversionUtils {
         }
 
         /* We don't support Class */
-        if (Class.class.isAssignableFrom(attributeClass)) {
+        if (ClassType.CLASS_TYPE.isAssignableFrom(attributeClass)) {
             return null;
         }
 
         /* If the attribute is a map */
-        if (Map.class.isAssignableFrom(attributeClass)) {
+        if (ClassType.MAP_TYPE.isAssignableFrom(attributeClass)) {
 
             /* Extract the key and value types */
-            Class<?> keyType = dictionary.getParameterizedType(parentClass, attribute, 0);
-            Class<?> valueType = dictionary.getParameterizedType(parentClass, attribute, 1);
+            Type<?> keyType = dictionary.getParameterizedType(parentClass, attribute, 0);
+            Type<?> valueType = dictionary.getParameterizedType(parentClass, attribute, 1);
 
             return classToInputMap(keyType, valueType);
 
         /* If the attribute is a collection */
-        } else if (Collection.class.isAssignableFrom(attributeClass)) {
+        } else if (ClassType.COLLECTION_TYPE.isAssignableFrom(attributeClass)) {
 
             /* Extract the collection type */
-            Class<?> listType = dictionary.getParameterizedType(parentClass, attribute, 0);
+            Type<?> listType = dictionary.getParameterizedType(parentClass, attribute, 0);
 
             return new GraphQLList(fetchScalarOrObjectInput(listType));
         }
@@ -358,7 +349,7 @@ public class GraphQLConversionUtils {
      * @return A newly created GraphQL object.
      */
     public GraphQLObjectType classToQueryObject(
-            Class<?> clazz,
+            Type<?> clazz,
             DataFetcher fetcher) {
         log.info("Building query object for type: {}", clazz.getName());
 
@@ -372,10 +363,10 @@ public class GraphQLConversionUtils {
         }
 
         GraphQLObjectType.Builder objectBuilder = newObject();
-        objectBuilder.name(toValidNameName(clazz.getName()));
+        objectBuilder.name(nameUtils.toNonElideOutputTypeName(clazz));
 
         for (String attribute : nonEntityDictionary.getAttributes(clazz)) {
-            Class<?> attributeClass = nonEntityDictionary.getType(clazz, attribute);
+            Type<?> attributeClass = nonEntityDictionary.getType(clazz, attribute);
 
             GraphQLFieldDefinition.Builder fieldBuilder = newFieldDefinition()
                     .name(attribute)
@@ -405,7 +396,7 @@ public class GraphQLConversionUtils {
      * @param clazz The non Elide object class
      * @return A newly created GraphQL object.
      */
-    public GraphQLInputObjectType classToInputObject(Class<?> clazz) {
+    public GraphQLInputObjectType classToInputObject(Type<?> clazz) {
         log.info("Building input object for type: {}", clazz.getName());
 
         if (!nonEntityDictionary.hasBinding(clazz)) {
@@ -418,11 +409,11 @@ public class GraphQLConversionUtils {
         }
 
         GraphQLInputObjectType.Builder objectBuilder = newInputObject();
-        objectBuilder.name(toValidNameName("_input__" + clazz.getName()));
+        objectBuilder.name(nameUtils.toNonElideInputTypeName(clazz));
 
         for (String attribute : nonEntityDictionary.getAttributes(clazz)) {
             log.info("Building input object attribute: {}", attribute);
-            Class<?> attributeClass = nonEntityDictionary.getType(clazz, attribute);
+            Type<?> attributeClass = nonEntityDictionary.getType(clazz, attribute);
 
             GraphQLInputObjectField.Builder fieldBuilder = newInputObjectField()
                     .name(attribute);
@@ -444,7 +435,44 @@ public class GraphQLConversionUtils {
         return object;
     }
 
-    private GraphQLOutputType fetchScalarOrObjectOutput(Class<?> conversionClass,
+    /**
+     * Build an Argument list object for the given attribute.
+     * @param entityClass The Entity class to which this attribute belongs to.
+     * @param attribute The name of the attribute.
+     * @param fetcher The data fetcher to associated with the newly created GraphQL Query Type.
+     * @return Newly created GraphQLArgument Collection for the given attribute.
+     */
+    public List<GraphQLArgument> attributeArgumentToQueryObject(Type<?> entityClass,
+                                                                String attribute,
+                                                                DataFetcher fetcher) {
+        return attributeArgumentToQueryObject(entityClass, attribute, fetcher, entityDictionary);
+    }
+
+    /**
+     * Build an Argument list object for the given attribute
+     * @param entityClass The Entity class to which this attribute belongs to.
+     * @param attribute The name of the attribute.
+     * @param fetcher The data fetcher to associated with the newly created GraphQL Query Type
+     * @param dictionary The dictionary that contains the runtime type information for the parent class.
+     * @return Newly created GraphQLArgument Collection for the given attribute
+     */
+    public List<GraphQLArgument> attributeArgumentToQueryObject(Type<?> entityClass,
+                                                                String attribute,
+                                                                DataFetcher fetcher,
+                                                                EntityDictionary dictionary) {
+        return dictionary.getAttributeArguments(entityClass, attribute)
+                .stream()
+                .map(argumentType -> newArgument()
+                        .name(argumentType.getName())
+                        .type(fetchScalarOrObjectInput(argumentType.getType()))
+                        .defaultValue(argumentType.getDefaultValue())
+                        .build())
+                .collect(Collectors.toList());
+
+    }
+
+
+    private GraphQLOutputType fetchScalarOrObjectOutput(Type<?> conversionClass,
                                                         DataFetcher fetcher) {
         /* If class is enum, provide enum type */
         if (conversionClass.isEnum()) {
@@ -460,7 +488,7 @@ public class GraphQLConversionUtils {
         return outputType;
     }
 
-    private GraphQLInputType fetchScalarOrObjectInput(Class<?> conversionClass) {
+    private GraphQLInputType fetchScalarOrObjectInput(Type<?> conversionClass) {
         /* If class is enum, provide enum type */
         if (conversionClass.isEnum()) {
             return classToEnumType(conversionClass);

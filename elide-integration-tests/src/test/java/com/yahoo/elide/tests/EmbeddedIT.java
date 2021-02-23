@@ -5,31 +5,27 @@
  */
 package com.yahoo.elide.tests;
 
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Relation.TO_ONE;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.linkage;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relation;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relationships;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.test.jsonapi.elements.Relation.TO_ONE;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
-
-import com.yahoo.elide.contrib.testhelpers.jsonapi.elements.Resource;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
-
+import com.yahoo.elide.test.jsonapi.elements.Resource;
 import com.google.common.collect.ImmutableSet;
-
 import example.Embedded;
 import example.Left;
 import example.Right;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -100,8 +96,6 @@ public class EmbeddedIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .extract()
                 .body().asString();
-
-        System.out.println(datum(resource).toJSON());
 
         JSONAssert.assertEquals(datum(resource).toJSON(), actual, true);
     }

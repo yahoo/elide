@@ -1,0 +1,256 @@
+{
+  tables:
+  [
+    {
+      name: orderDetails
+      table: order_details
+      dbConnectionName: SalesDBConnection
+      cardinality: large
+      readAccess: guest user
+      joins:
+      [
+        {
+          name: customer
+          to: customerDetails
+          type: Left
+          // References Physical Columns
+          definition: '{{customer_id}} = {{ customer.id}}'
+        }
+        {
+          name: delivery
+          to: deliveryDetails
+          kind: toOne
+          // References Logical Columns, multiple join condition
+          definition: '''
+          {{ orderId}} = {{delivery.orderId}} AND
+          {{ delivery.delivered_on }} > '1970-01-01'
+          '''
+        }
+      ]
+      measures:
+      [
+        {
+          name: orderTotal
+          type: DECIMAL
+          definition: 'SUM({{ order_total }})'
+          readAccess: admin.user
+        }
+      ]
+      dimensions:
+      [
+        {
+          name: orderId
+          type: TEXT
+          definition: '{{ order_id }}'
+          readAccess: guest user
+        }
+        {
+          name: courierName
+          type: TEXT
+          definition: '{{delivery.courier_name}}'
+          readAccess: operator
+        }
+        {
+          name: customerRegion
+          type: TEXT
+          definition: '{{customer.customerRegion}}'
+          readAccess: operator
+          cardinality: small
+        }
+        {
+          name: customerRegionRegion
+          type: TEXT
+          definition: '{{customer.region.region}}'
+          readAccess: operator
+          tableSource: regionDetails.region
+        }
+        {
+          name: zipCode
+          type: INTEGER
+          definition: '{{customer.zipCode}}'
+          readAccess: operator
+        }
+        {
+          name: orderTime
+          type: TIME
+          // Physical Column Reference in same table
+          definition: '{{created_on}}'
+          readAccess: guest user
+          grains:
+          [
+            {
+              type: MONTH
+              sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
+            },
+            {
+              type: SECOND
+              sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd HH:mm:ss'), 'yyyy-MM-dd HH:mm:ss')
+            },
+            {
+              type: DAY
+              sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+            }
+          ]
+        }
+        {
+          name: deliveryTime
+          type: TIME
+          // Physical Column Reference in referred table
+          definition: '{{delivery.delivered_on}}'
+          readAccess: guest user
+          grains:
+          [{
+            type: SECOND
+          }]
+        }
+        {
+          name: deliveryDate
+          type: TIME
+          // Logical Column Reference in referred table, which references Physical column in referred table
+          definition: '{{delivery.time}}'
+          readAccess: guest user
+          grains:
+          [{
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+          }]
+        }
+        {
+          name: deliveryMonth
+          type: TIME
+          // Logical Column Reference in referred table, which references another Logical column in referred table, which references another Logical column in referred table, which references Physical column in referred table
+          definition: '{{delivery.month}}'
+          readAccess: guest user
+          grains:
+          [{
+            type: MONTH
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
+          }]
+        }
+        {
+          name: deliveryHour
+          type: TIME
+          // Logical Column Reference in same table, which references Physical column in referred table
+          definition: '{{deliveryTime}}'
+          readAccess: guest user
+          grains:
+          [{
+            type: HOUR
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd HH'), 'yyyy-MM-dd HH')
+          }]
+        }
+        {
+          name: deliveryYear
+          type: TIME
+          // Logical Column Reference in same table, which references another Logical Column in referred table, which references another Logical column in referred table, which references another Logical column in referred table, which references Physical column in referred table
+          definition: '{{deliveryMonth}}'
+          readAccess: guest user
+          grains:
+          [{
+            type: YEAR
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy'), 'yyyy')
+          }]
+        }
+        {
+          name: deliveryDefault
+          type: TIME
+          // Logical Column Reference in same table, which references another Logical Column in referred table, which references another Logical column in referred table, which references another Logical column in referred table, which references Physical column in referred table
+          definition: '{{delivery.time}}'
+          readAccess: guest user
+        }
+      ]
+    }
+    {
+      name: customerDetails
+      table: customer_details
+      dbConnectionName: SalesDBConnection
+      cardinality: small
+      readAccess: guest user
+      joins:
+      [
+        {
+          name: region
+          to: regionDetails
+          // References Physical & Logical Columns
+          definition: '{{zipCode}} = {{region.zip_code}}'
+        }
+      ]
+      dimensions:
+      [
+        {
+          name: name
+          type: TEXT
+          definition: '{{name}}'
+          readAccess: guest user
+        }
+        {
+          name: zipCode
+          type: INTEGER
+          definition: '{{zip_code}}'
+          readAccess: guest user
+        }
+        {
+          name: customerRegion
+          type: TEXT
+          definition: '{{region.region}}'
+          readAccess: guest user
+        }
+      ]
+    }
+    {
+      name: deliveryDetails
+      table: delivery_details
+      dbConnectionName: SalesDBConnection
+      cardinality: large
+      readAccess: guest user
+      filterTemplate : month>={{start}};month<{{end}}
+      dimensions:
+      [
+        {
+          name: orderId
+          type: TEXT
+          definition: '{{order_id}}'
+          readAccess: guest user
+        }
+        {
+          name: trackingNumber
+          type: INTEGER
+          definition: '{{tracking_number}}'
+          readAccess: operator
+        }
+        {
+          name: time
+          type: TIME
+          definition: '{{delivered_on}}'
+          readAccess: guest user
+          grains:
+          [{
+            type: SECOND
+            sql: '{{}}'
+          }]
+        }
+        {
+          name: date
+          type: TIME
+          definition: '{{time}}'
+          readAccess: guest user
+          grains:
+          [{
+            type: DAY
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+          }]
+        }
+        {
+          name: month
+          type: TIME
+          definition: '{{date}}'
+          readAccess: guest user
+          grains:
+          [{
+            type: MONTH
+            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
+          }]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+cache:
+   event: ["~/.m2"]
+
+shared:
+   annotations:
+       screwdriver.cd/cpu: TURBO
+       screwdriver.cd/ram: TURBO
+   image: maven:3.6.3-jdk-8
+
+jobs:
+  master-commit:
+    requires: [~pr, ~commit]
+    secrets:
+        - COVERALLS_REPO_TOKEN
+    steps:
+      - build: mvn -B clean verify coveralls:report
+
+  elide-5-build:
+    requires: [~pr:elide-5.x, ~commit:elide-5.x]
+    secrets:
+        - COVERALLS_REPO_TOKEN
+    steps:
+      - build: mvn -B clean verify coveralls:report
+
+  elide-4-build:
+    requires: [~pr:elide-4.x, ~commit:elide-4.x]
+    secrets:
+        - COVERALLS_REPO_TOKEN
+    steps:
+      - build: mvn -B clean verify coveralls:report
+
+  release:
+    secrets:
+        - BINTRAY_USER
+        - BINTRAY_API_KEY
+    requires: [~tag, ~release]
+    steps:
+      - release: mvn -B -DskipTests deploy --settings ./settings.xml

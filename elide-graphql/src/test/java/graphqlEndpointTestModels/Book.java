@@ -5,26 +5,27 @@
  */
 package graphqlEndpointTestModels;
 
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.OnUpdatePostCommit;
-import com.yahoo.elide.annotation.OnUpdatePreCommit;
-import com.yahoo.elide.annotation.OnUpdatePreSecurity;
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.graphql.GraphQLEndpointTest;
-import com.yahoo.elide.security.RequestScope;
-
 import graphqlEndpointTestModels.security.CommitChecks;
 import graphqlEndpointTestModels.security.UserChecks;
+import hooks.BookUpdatePostCommitHook;
+import hooks.BookUpdatePreCommitHook;
+import hooks.BookUpdatePreSecurityHook;
 import lombok.Builder;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -38,7 +39,7 @@ import javax.persistence.Transient;
  * <b>CAUTION: DO NOT DECORATE IT WITH {@link Builder}, which hides its no-args constructor. This will result in
  * runtime error at places such as {@code entityClass.newInstance();}</b>
  */
-@Include(rootLevel = true)
+@Include
 @Entity
 @CreatePermission(expression = UserChecks.IS_USER_1)
 @ReadPermission(expression = UserChecks.IS_USER_1 + " OR " + UserChecks.IS_USER_2 + " OR NOT "
@@ -64,6 +65,9 @@ public class Book {
         this.id = id;
     }
 
+    @LifeCycleHookBinding(hook = BookUpdatePreSecurityHook.class, operation = UPDATE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = BookUpdatePreCommitHook.class, operation = UPDATE, phase = PRECOMMIT)
+    @LifeCycleHookBinding(hook = BookUpdatePostCommitHook.class, operation = UPDATE, phase = POSTCOMMIT)
     public String getTitle() {
         return title;
     }
@@ -90,23 +94,5 @@ public class Book {
 
     public void setUser1SecretField() {
         // Do nothing
-    }
-
-    @OnUpdatePreSecurity(value = "title")
-    public void titlePreSecurity(RequestScope scope) {
-        GraphQLEndpointTest.User user = (GraphQLEndpointTest.User) scope.getUser().getOpaqueUser();
-        user.appendLog("On Title Update Pre Security\n");
-    }
-
-    @OnUpdatePreCommit(value = "title")
-    public void titlePreCommit(RequestScope scope) {
-        GraphQLEndpointTest.User user = (GraphQLEndpointTest.User) scope.getUser().getOpaqueUser();
-        user.appendLog("On Title Update Pre Commit\n");
-    }
-
-    @OnUpdatePostCommit(value = "title")
-    public void titlePostCommit(RequestScope scope) {
-        GraphQLEndpointTest.User user = (GraphQLEndpointTest.User) scope.getUser().getOpaqueUser();
-        user.appendLog("On Title Update Post Commit\n");
     }
 }

@@ -6,24 +6,21 @@
 package com.yahoo.elide.initialization;
 
 import static org.mockito.Mockito.mock;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.audit.AuditLogger;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
-import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
+import com.yahoo.elide.core.audit.AuditLogger;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.models.triggers.services.BillingService;
-import com.yahoo.elide.resources.DefaultOpaqueUserFunction;
-
+import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
 import example.TestCheckMappings;
-
+import example.models.triggers.services.BillingService;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
 import java.util.Arrays;
+import java.util.Calendar;
 
 /**
  * Typical-use test binder for integration test resource configs.
@@ -41,11 +38,14 @@ public class StandardTestBinder extends AbstractBinder {
 
     @Override
     protected void configure() {
+        EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS, injector::inject);
+
+        bind(dictionary).to(EntityDictionary.class);
+
         // Elide instance
         bindFactory(new Factory<Elide>() {
             @Override
             public Elide provide() {
-                EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS, injector::inject);
                 DefaultFilterDialect defaultFilterStrategy = new DefaultFilterDialect(dictionary);
                 RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
 
@@ -59,6 +59,7 @@ public class StandardTestBinder extends AbstractBinder {
                         .withJoinFilterDialect(multipleFilterStrategy)
                         .withSubqueryFilterDialect(multipleFilterStrategy)
                         .withEntityDictionary(dictionary)
+                        .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
                         .build());
             }
 
@@ -67,20 +68,6 @@ public class StandardTestBinder extends AbstractBinder {
 
             }
         }).to(Elide.class).named("elide");
-
-        // User function
-        bindFactory(new Factory<DefaultOpaqueUserFunction>() {
-            private final Integer user = 1;
-
-            @Override
-            public DefaultOpaqueUserFunction provide() {
-                return v -> user;
-            }
-
-            @Override
-            public void dispose(DefaultOpaqueUserFunction defaultOpaqueUserFunction) {
-            }
-        }).to(DefaultOpaqueUserFunction.class).named("elideUserExtractionFunction");
 
         bind(BILLING_SERVICE).to(BillingService.class);
     }

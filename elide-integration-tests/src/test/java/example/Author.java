@@ -10,8 +10,6 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
-
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,7 +17,6 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -35,8 +32,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "author")
-@Include(rootLevel = true)
-@SharePermission
+@Include
 @Paginate
 @Audit(action = Audit.Action.CREATE,
         operation = 10,
@@ -61,7 +57,7 @@ public class Author {
     private Collection<Book> books = new ArrayList<>();
 
     @Getter @Setter
-    @ReadPermission(expression = "deny all")
+    @ReadPermission(expression = "Prefab.Role.None")
     private String homeAddress;
 
     @Override

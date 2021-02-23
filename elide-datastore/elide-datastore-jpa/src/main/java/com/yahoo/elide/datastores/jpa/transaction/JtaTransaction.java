@@ -7,9 +7,9 @@ package com.yahoo.elide.datastores.jpa.transaction;
 
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
-
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.function.Consumer;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.persistence.EntityManager;
@@ -22,13 +22,12 @@ import javax.transaction.UserTransaction;
 @Slf4j
 public class JtaTransaction extends AbstractJpaTransaction {
     private final UserTransaction transaction;
-
-    public JtaTransaction(EntityManager entityManager) {
-        this(entityManager, lookupUserTransaction());
+    public JtaTransaction(EntityManager entityManager, Consumer<EntityManager> txCancel) {
+        this(entityManager, lookupUserTransaction(), txCancel);
     }
 
-    public JtaTransaction(EntityManager entityManager, UserTransaction transaction) {
-        super(entityManager);
+    public JtaTransaction(EntityManager entityManager, UserTransaction transaction, Consumer<EntityManager> txCancel) {
+        super(entityManager, txCancel);
         this.transaction = transaction;
     }
 

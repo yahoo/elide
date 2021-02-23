@@ -5,27 +5,29 @@
  */
 package com.yahoo.elide.datastores.inmemory;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.example.beans.ExcludedBean;
 import com.yahoo.elide.example.beans.FirstBean;
+import com.yahoo.elide.example.beans.FirstChildBean;
 import com.yahoo.elide.example.beans.NonEntity;
 import com.yahoo.elide.example.beans.SecondBean;
-
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.collections4.IterableUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Optional;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -33,21 +35,117 @@ import java.util.Set;
  */
 public class HashMapDataStoreTest {
     private InMemoryDataStore inMemoryDataStore;
+    private EntityDictionary entityDictionary;
 
     @BeforeEach
     public void setup() {
-        final EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
+        entityDictionary = new EntityDictionary(new HashMap<>());
         inMemoryDataStore = new InMemoryDataStore(FirstBean.class.getPackage());
         inMemoryDataStore.populateEntityDictionary(entityDictionary);
+    }
+
+    private <T extends Object> T createNewInheritanceObject(Class<T> type)
+            throws IOException, InstantiationException, IllegalAccessException {
+        T obj = type.newInstance();
+        try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
+            t.createObject(obj, null);
+            t.commit(null);
+        }
+        return obj;
+    }
+
+    @Test
+    public void dataStoreTestInheritance() throws IOException, InstantiationException, IllegalAccessException {
+        Map<String, Object> entry = inMemoryDataStore.get(getClassType(FirstBean.class));
+        assertEquals(0, entry.size());
+
+        FirstChildBean child = createNewInheritanceObject(FirstChildBean.class);
+
+        // Adding Child object, adds a parent entry.
+        try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
+            Iterable<Object> beans = t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null);
+            assertNotNull(beans);
+            assertTrue(beans.iterator().hasNext());
+            FirstBean bean = (FirstBean) IterableUtils.first(beans);
+            assertEquals("1", bean.getId());
+        }
+
+        assertEquals("1", child.getId());
+        assertNotNull(entry);
+        assertEquals(1, entry.size());
+
+        // New Parent avoids id collision.
+        FirstBean parent = createNewInheritanceObject(FirstBean.class);
+        assertEquals("2", parent.getId());
+
+        // New Child avoids id collision
+        FirstChildBean child1 = createNewInheritanceObject(FirstChildBean.class);
+        assertEquals("3", child1.getId());
+    }
+
+    @Test
+    public void dataStoreTestInheritanceDelete() throws IOException, InstantiationException, IllegalAccessException {
+        Map<String, Object> entry = inMemoryDataStore.get(getClassType(FirstBean.class));
+        assertEquals(0, entry.size());
+
+        FirstChildBean child = createNewInheritanceObject(FirstChildBean.class);
+        createNewInheritanceObject(FirstBean.class);
+
+        // Delete Child
+        try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
+            t.delete(child, null);
+            t.commit(null);
+        }
+
+        // Only 1 parent entry should remain.
+        try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
+            Iterable<Object> beans = t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null);
+            assertNotNull(beans);
+            assertTrue(beans.iterator().hasNext());
+            FirstBean bean = (FirstBean) IterableUtils.first(beans);
+            assertEquals("2", bean.getId());
+        }
+    }
+
+    @Test
+    public void dataStoreTestInheritanceUpdate() throws IOException, InstantiationException, IllegalAccessException {
+        Map<String, Object> entry = inMemoryDataStore.get(getClassType(FirstBean.class));
+        assertEquals(0, entry.size());
+
+        FirstChildBean child = createNewInheritanceObject(FirstChildBean.class);
+        createNewInheritanceObject(FirstBean.class);
+
+        // update Child
+        try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
+            child.setNickname("hello");
+            t.save(child, null);
+            t.commit(null);
+        }
+
+        // Only 1 parent entry should remain.
+        try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
+            Iterable<Object> beans = t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null);
+            assertNotNull(beans);
+            assertTrue(beans.iterator().hasNext());
+            FirstChildBean bean = (FirstChildBean) IterableUtils.first(beans);
+            assertEquals("1", bean.getId());
+            assertEquals("hello", bean.getNickname());
+        }
     }
 
     @Test
     public void checkLoading() {
         final EntityDictionary entityDictionary = inMemoryDataStore.getDictionary();
-        assertNotNull(entityDictionary.getJsonAliasFor(FirstBean.class));
-        assertNotNull(entityDictionary.getJsonAliasFor(SecondBean.class));
-        assertThrows(IllegalArgumentException.class, () -> entityDictionary.getJsonAliasFor(NonEntity.class));
-        assertThrows(IllegalArgumentException.class, () -> entityDictionary.getJsonAliasFor(ExcludedBean.class));
+        assertNotNull(entityDictionary.getJsonAliasFor(getClassType(FirstBean.class)));
+        assertNotNull(entityDictionary.getJsonAliasFor(getClassType(SecondBean.class)));
+        assertThrows(IllegalArgumentException.class, () -> entityDictionary.getJsonAliasFor(getClassType(NonEntity.class)));
+        assertThrows(IllegalArgumentException.class, () -> entityDictionary.getJsonAliasFor(getClassType(ExcludedBean.class)));
     }
 
     @Test
@@ -56,13 +154,19 @@ public class HashMapDataStoreTest {
         object.id = "0";
         object.name = "Test";
         try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
-            assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null).iterator().hasNext());
+            assertFalse(t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null).iterator().hasNext());
             t.createObject(object, null);
-            assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null).iterator().hasNext());
+            assertFalse(t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null).iterator().hasNext());
             t.commit(null);
         }
         try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
-            Iterable<Object> beans = t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null);
+            Iterable<Object> beans = t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null);
             assertNotNull(beans);
             assertTrue(beans.iterator().hasNext());
             FirstBean bean = (FirstBean) IterableUtils.first(beans);
@@ -97,8 +201,9 @@ public class HashMapDataStoreTest {
         // and a meaningful ID is assigned
         Set<String> names = new HashSet<>();
         try (DataStoreTransaction t = inMemoryDataStore.beginTransaction()) {
-            for (Object objBean : t.loadObjects(FirstBean.class,
-                                                Optional.empty(), Optional.empty(), Optional.empty(), null)) {
+            for (Object objBean : t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null)) {
                 FirstBean bean = (FirstBean) objBean;
                 names.add(bean.name);
                 assertFalse(bean.id == null);

@@ -1,0 +1,73 @@
+/*
+ * Copyright 2020, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+
+package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
+
+import com.yahoo.elide.core.request.Argument;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Value;
+
+import java.util.Map;
+
+/**
+ * Dimension projection that can expand the dimension into a SQL projection fragment.
+ */
+@Value
+@Builder
+@AllArgsConstructor
+public class SQLDimensionProjection implements SQLColumnProjection {
+    private Queryable source;
+    private String name;
+    private ValueType valueType;
+    private ColumnType columnType;
+    private String expression;
+    private String alias;
+    private Map<String, Argument> arguments;
+
+    public SQLDimensionProjection(Dimension dimension,
+                                  String alias,
+                                  Map<String, Argument> arguments) {
+        this.source = (SQLTable) dimension.getTable();
+        this.name = dimension.getName();
+        this.expression = dimension.getExpression();
+        this.valueType = dimension.getValueType();
+        this.columnType = dimension.getColumnType();
+        this.alias = alias;
+        this.arguments = arguments;
+    }
+
+    @Override
+    public SQLDimensionProjection withSource(Queryable source) {
+        return SQLDimensionProjection.builder()
+                .source(source)
+                .name(name)
+                .alias(alias)
+                .valueType(valueType)
+                .columnType(columnType)
+                .expression(expression)
+                .arguments(arguments)
+                .build();
+    }
+
+    @Override
+    public SQLDimensionProjection withSourceAndExpression(Queryable source, String expression) {
+        return SQLDimensionProjection.builder()
+                .source(source)
+                .name(name)
+                .alias(alias)
+                .valueType(valueType)
+                .columnType(columnType)
+                .expression(expression)
+                .arguments(arguments)
+                .build();
+    }
+}

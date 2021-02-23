@@ -6,14 +6,17 @@
 
 package com.yahoo.elide.datastores.jpa;
 
-import com.yahoo.elide.core.DataStore;
+import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
+import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
-import com.yahoo.elide.models.generics.Manager;
-import com.yahoo.elide.models.triggers.Invoice;
-import com.yahoo.elide.utils.ClassScanner;
 import example.Parent;
+import example.models.generics.Manager;
+import example.models.triggers.Invoice;
+import example.models.versioned.BookV2;
 import org.hibernate.MappingException;
+import org.hibernate.Session;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.boot.spi.MetadataImplementor;
@@ -26,7 +29,9 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
@@ -40,6 +45,7 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
 
     private DataStore store;
     private MetadataImplementor metadataImplementor;
+    private final Consumer<EntityManager> txCancel = em -> em.unwrap(Session.class).cancelQuery();
 
     public JpaDataStoreHarness() {
         Map<String, Object> options = new HashMap<>();
@@ -49,6 +55,8 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class));
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(Manager.class.getPackage(), Entity.class));
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class));
+            bindClasses.addAll(ClassScanner.getAnnotatedClasses(BookV2.class.getPackage(), Entity.class));
+            bindClasses.addAll(ClassScanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class));
         } catch (MappingException e) {
             throw new IllegalStateException(e);
         }
@@ -80,6 +88,8 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
                     .forEach(metadataSources::addAnnotatedClass);
             ClassScanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class)
                     .forEach(metadataSources::addAnnotatedClass);
+            ClassScanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class)
+                    .forEach(metadataSources::addAnnotatedClass);
         } catch (MappingException e) {
             throw new IllegalStateException(e);
         }
@@ -89,8 +99,8 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
         resetSchema();
 
         store = new JpaDataStore(
-                () -> { return emf.createEntityManager(); },
-                (entityManager) -> { return new NonJtaTransaction(entityManager); }
+                () -> emf.createEntityManager(),
+                entityManager -> new NonJtaTransaction(entityManager, txCancel)
         );
     }
 

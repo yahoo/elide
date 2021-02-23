@@ -9,17 +9,13 @@ import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.CommitCheck;
-import com.yahoo.elide.security.checks.OperationCheck;
-
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.Optional;
 import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -31,9 +27,8 @@ import javax.persistence.OneToOne;
 
 @Entity(name = "childEntity")
 @CreatePermission(expression = "initCheck")
-@SharePermission
-@ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheckOp")
-@Include(rootLevel = true, type = "child")
+@ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheck")
+@Include(type = "child")
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
        logStatement = "DELETE Child {0} Parent {1}",
@@ -105,7 +100,7 @@ public class Child {
     @OneToOne(
             targetEntity = Child.class
     )
-    @ReadPermission(expression = "deny all")
+    @ReadPermission(expression = "Prefab.Role.None")
     public Child getReadNoAccess() {
         return noReadAccess;
     }
@@ -114,33 +109,13 @@ public class Child {
         this.noReadAccess = noReadAccess;
     }
 
-    static public class InitCheck extends CommitCheck<Child> {
+    static public class InitCheck extends OperationCheck<Child> {
         @Override
         public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (child.getParents() != null) {
                 return true;
             }
             return false;
-        }
-
-        @Override
-        public String checkIdentifier() {
-            return "initCheck";
-        }
-    }
-
-    static public class InitCheckOp extends OperationCheck<Child> {
-        @Override
-        public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            if (child.getParents() != null) {
-                return true;
-            }
-            return false;
-        }
-
-        @Override
-        public String checkIdentifier() {
-            return "initCheckOp";
         }
     }
 }

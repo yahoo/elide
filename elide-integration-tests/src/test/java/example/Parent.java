@@ -10,18 +10,14 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Paginate;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.CommitCheck;
-import com.yahoo.elide.security.checks.OperationCheck;
-
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.checks.OperationCheck;
 import lombok.ToString;
 
 import java.util.Optional;
 import java.util.Set;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -32,12 +28,11 @@ import javax.validation.constraints.NotNull;
 /**
  * Parent test bean.
  */
-@CreatePermission(expression = "parentInitCheck OR allow all")
-@ReadPermission(expression = "parentInitCheckOp OR allow all")
-@UpdatePermission(expression = "parentInitCheck OR allow all OR deny all")
-@DeletePermission(expression = "parentInitCheckOp OR allow all OR deny all")
-@SharePermission
-@Include(rootLevel = true, type = "parent") // optional here because class has this name
+@CreatePermission(expression = "parentInitCheck OR Prefab.Role.All")
+@ReadPermission(expression = "parentInitCheck OR Prefab.Role.All")
+@UpdatePermission(expression = "parentInitCheck OR Prefab.Role.All OR Prefab.Role.None")
+@DeletePermission(expression = "parentInitCheck OR Prefab.Role.All OR Prefab.Role.None")
+@Include(type = "parent") // optional here because class has this name
 @Paginate(maxLimit = 100000)
 // Hibernate
 @Entity
@@ -47,14 +42,14 @@ public class Parent extends BaseId {
     private Set<Parent> spouses;
     private String firstName;
     private String specialAttribute;
-    @ReadPermission(expression = "deny all") public transient boolean init = false;
+    @ReadPermission(expression = "Prefab.Role.None") public transient boolean init = false;
 
     public void doInit() {
         init = true;
     }
 
-    @ReadPermission(expression = "allow all OR deny all")
-    @UpdatePermission(expression = "allow all OR deny all")
+    @ReadPermission(expression = "Prefab.Role.All OR Prefab.Role.None")
+    @UpdatePermission(expression = "Prefab.Role.All OR Prefab.Role.None")
     // Hibernate
     @ManyToMany(
             targetEntity = Child.class
@@ -94,7 +89,7 @@ public class Parent extends BaseId {
     }
 
     // Special attribute is to catch a corner case for patch extension
-    @ReadPermission(expression = "deny all")
+    @ReadPermission(expression = "Prefab.Role.None")
     @UpdatePermission(expression = "parentSpecialValue")
     public String getSpecialAttribute() {
         return specialAttribute;
@@ -104,20 +99,8 @@ public class Parent extends BaseId {
         this.specialAttribute = specialAttribute;
     }
 
-    /**
-     * Initialization validation check.
-     */
-    static public class InitCheck extends CommitCheck<Parent> {
-        @Override
-        public boolean ok(Parent parent, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            if (parent.getChildren() != null && parent.getSpouses() != null) {
-                return true;
-            }
-            return false;
-        }
-    }
 
-    static public class InitCheckOp extends OperationCheck<Parent> {
+    static public class InitCheck extends OperationCheck<Parent> {
         @Override
         public boolean ok(Parent parent, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (parent.getChildren() != null && parent.getSpouses() != null) {

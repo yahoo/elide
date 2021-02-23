@@ -11,7 +11,6 @@ import com.yahoo.elide.annotation.ReadPermission;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
@@ -21,7 +20,7 @@ import javax.persistence.OneToMany;
  * Publisher for book/author example.
  */
 @Entity
-@Include
+@Include(rootLevel = false)
 public class Publisher extends BaseId {
     private String name;
     private Set<Book> books = new HashSet<>();

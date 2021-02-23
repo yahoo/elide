@@ -10,11 +10,9 @@ import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
 import java.util.List;
-
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
@@ -23,12 +21,11 @@ import javax.persistence.OneToOne;
 @Audit(action = Audit.Action.CREATE,
         logStatement = "Created with value: {0}",
         logExpressions = {"${auditEntity.value}"})
-@Include(rootLevel = true)
-@ReadPermission(expression = "allow all")
-@CreatePermission(expression = "allow all")
-@DeletePermission(expression = "allow all")
-@UpdatePermission(expression = "allow all")
-@SharePermission
+@Include
+@ReadPermission(expression = "Prefab.Role.All")
+@CreatePermission(expression = "Prefab.Role.All")
+@DeletePermission(expression = "Prefab.Role.All")
+@UpdatePermission(expression = "Prefab.Role.All")
 public class AuditEntity extends BaseId {
     private AuditEntity otherEntity;
     private String value;

@@ -11,9 +11,9 @@ import com.yahoo.elide.annotation.ReadPermission;
 
 import javax.persistence.Entity;
 
-@CreatePermission(expression = "allow all")
-@ReadPermission(expression = "deny all")
-@Include(rootLevel = true)
+@CreatePermission(expression = "Prefab.Role.All")
+@ReadPermission(expression = "Prefab.Role.None")
+@Include
 @Entity
 public class YetAnotherPermission extends BaseId {
     private String hiddenName;
@@ -27,7 +27,7 @@ public class YetAnotherPermission extends BaseId {
         this.hiddenName = hiddenName;
     }
 
-    @ReadPermission(expression = "allow all")
+    @ReadPermission(expression = "Prefab.Role.All")
     public String getYouShouldBeAbleToRead() {
         return youShouldBeAbleToRead;
     }

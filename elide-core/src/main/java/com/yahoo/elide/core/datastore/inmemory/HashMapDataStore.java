@@ -6,12 +6,13 @@
 package com.yahoo.elide.core.datastore.inmemory;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import com.yahoo.elide.utils.ClassScanner;
-
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.ClassScanner;
 import com.google.common.collect.Sets;
 import lombok.Getter;
 
@@ -27,10 +28,10 @@ import java.util.concurrent.atomic.AtomicLong;
  * Simple in-memory only database.
  */
 public class HashMapDataStore implements DataStore, DataStoreTestHarness {
-    private final Map<Class<?>, Map<String, Object>> dataStore = Collections.synchronizedMap(new HashMap<>());
-    @Getter private EntityDictionary dictionary;
+    protected final Map<Type<?>, Map<String, Object>> dataStore = Collections.synchronizedMap(new HashMap<>());
+    @Getter protected EntityDictionary dictionary;
     @Getter private final Set<Package> beanPackages;
-    @Getter private final ConcurrentHashMap<Class<?>, AtomicLong> typeIds = new ConcurrentHashMap<>();
+    @Getter private final ConcurrentHashMap<Type<?>, AtomicLong> typeIds = new ConcurrentHashMap<>();
 
     public HashMapDataStore(Package beanPackage) {
         this(Sets.newHashSet(beanPackage));
@@ -42,13 +43,14 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
         for (Package beanPackage : beanPackages) {
             ClassScanner.getAnnotatedClasses(beanPackage, Include.class).stream()
                 .filter(modelClass -> modelClass.getName().startsWith(beanPackage.getName()))
-                .forEach(modelClass -> dataStore.put(modelClass, Collections.synchronizedMap(new LinkedHashMap<>())));
+                .forEach(modelClass -> dataStore.put(new ClassType(modelClass),
+                        Collections.synchronizedMap(new LinkedHashMap<>())));
         }
     }
 
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        for (Class<?> clazz : dataStore.keySet()) {
+        for (Type<?> clazz : dataStore.keySet()) {
             dictionary.bindEntity(clazz);
         }
 
@@ -64,7 +66,7 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Data store contents ");
-        for (Map.Entry<Class<?>, Map<String, Object>> dse : dataStore.entrySet()) {
+        for (Map.Entry<Type<?>, Map<String, Object>> dse : dataStore.entrySet()) {
             sb.append("\n Table ").append(dse.getKey()).append(" contents \n");
             for (Map.Entry<String, Object> e : dse.getValue().entrySet()) {
                 sb.append(" Id: ").append(e.getKey()).append(" Value: ").append(e.getValue());
@@ -76,6 +78,15 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
     @Override
     public DataStore getDataStore() {
         return this;
+    }
+
+    /**
+     * Returns metadata mapping for an entity class.
+     * @param cls entity class
+     * @return Map
+     */
+    public Map<String, Object> get(Type<?> cls) {
+        return dataStore.get(cls);
     }
 
     @Override

@@ -5,8 +5,7 @@
  */
 package com.yahoo.elide.initialization;
 
-import com.yahoo.elide.audit.TestAuditLogger;
-
+import com.yahoo.elide.core.audit.TestAuditLogger;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -20,5 +19,6 @@ public class IntegrationTestApplicationResourceConfig extends ResourceConfig {
     @Inject
     public IntegrationTestApplicationResourceConfig(ServiceLocator injector) {
         register(new StandardTestBinder(new TestAuditLogger(), injector));
+        register(TestAuthFilter.class);
     }
 }

@@ -15,17 +15,17 @@ import javax.persistence.Entity;
 /**
  * A model intended to be ONLY created and read, but never updated.
  */
-@Include(rootLevel = true)
+@Include
 @Entity
-@CreatePermission(expression = "allow all")
-@ReadPermission(expression = "allow all")
-@UpdatePermission(expression = "deny all")
+@CreatePermission(expression = "Prefab.Role.All")
+@ReadPermission(expression = "Prefab.Role.All")
+@UpdatePermission(expression = "Prefab.Role.None")
 public class CreateButNoUpdate extends BaseId {
     private String textValue;
 
     private String cannotModify = "unmodified";
 
-    @CreatePermission(expression = "deny all")
+    @CreatePermission(expression = "Prefab.Role.None")
     public String getCannotModify() {
         return cannotModify;
     }

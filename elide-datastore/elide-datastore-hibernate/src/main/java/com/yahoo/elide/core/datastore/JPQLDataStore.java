@@ -5,10 +5,11 @@
  */
 package com.yahoo.elide.core.datastore;
 
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.annotations.JPQLFilterFragment;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterTranslator;
+import com.yahoo.elide.core.type.Type;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +19,7 @@ import org.slf4j.LoggerFactory;
 public interface JPQLDataStore extends DataStore {
     Logger LOGGER = LoggerFactory.getLogger(JPQLDataStore.class);
 
-    default void bindEntityClass(Class<?> entityClass, EntityDictionary dictionary) {
+    default void bindEntityClass(Type<?> entityClass, EntityDictionary dictionary) {
         try {
             // Ignore this result. We are just checking to see if it throws an exception meaning that
             // provided class was _not_ an entity.

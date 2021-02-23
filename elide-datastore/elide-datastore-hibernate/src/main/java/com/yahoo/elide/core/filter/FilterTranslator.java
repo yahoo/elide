@@ -27,22 +27,26 @@ import static com.yahoo.elide.core.filter.Operator.POSTFIX_CASE_INSENSITIVE;
 import static com.yahoo.elide.core.filter.Operator.PREFIX;
 import static com.yahoo.elide.core.filter.Operator.PREFIX_CASE_INSENSITIVE;
 import static com.yahoo.elide.core.filter.Operator.TRUE;
-
+import static com.yahoo.elide.core.utils.TypeHelper.getFieldAlias;
+import static com.yahoo.elide.core.utils.TypeHelper.getPathAlias;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
-import com.yahoo.elide.core.filter.FilterPredicate.FilterParameter;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate.FilterParameter;
+import com.yahoo.elide.core.type.Type;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -52,7 +56,15 @@ public class FilterTranslator implements FilterOperation<String> {
     private static final String COMMA = ", ";
 
     private static Map<Operator, JPQLPredicateGenerator> operatorGenerators;
-    private static Map<Triple<Operator, Class<?>, String>, JPQLPredicateGenerator> predicateOverrides;
+    private static Map<Triple<Operator, Type<?>, String>, JPQLPredicateGenerator> predicateOverrides;
+
+    public static final Function<Path, String> GENERATE_HQL_COLUMN_NO_ALIAS = (path) -> path.getPathElements().stream()
+            .map(Path.PathElement::getFieldName)
+            .collect(Collectors.joining("."));
+
+    public static final Function<Path, String> GENERATE_HQL_COLUMN_WITH_ALIAS =
+            (path) -> getFieldAlias(getPathAlias(path),
+                    path.lastElement().map(Path.PathElement::getFieldName).orElse(null));
 
     static {
         predicateOverrides = new HashMap<>();
@@ -119,73 +131,62 @@ public class FilterTranslator implements FilterOperation<String> {
                 CaseAwareJPQLGenerator.ArgumentCount.ONE)
         );
 
-        operatorGenerators.put(LT, (columnAlias, params) -> {
-            Preconditions.checkState(!params.isEmpty());
-            return String.format("%s < %s", columnAlias, params.size() == 1
-                    ? params.get(0).getPlaceholder()
-                    : leastClause(params));
+        operatorGenerators.put(LT, (predicate, aliasGenerator) -> {
+            Preconditions.checkState(!predicate.getParameters().isEmpty());
+            return String.format("%s < %s", aliasGenerator.apply(predicate.getPath()),
+                    predicate.getParameters().size() == 1
+                    ? predicate.getParameters().get(0).getPlaceholder()
+                    : leastClause(predicate.getParameters()));
         });
 
-        operatorGenerators.put(LE, (columnAlias, params) -> {
-            Preconditions.checkState(!params.isEmpty());
-            return String.format("%s <= %s", columnAlias, params.size() == 1
-                    ? params.get(0).getPlaceholder()
-                    : leastClause(params));
+        operatorGenerators.put(LE, (predicate, aliasGenerator) -> {
+            Preconditions.checkState(!predicate.getParameters().isEmpty());
+            return String.format("%s <= %s", aliasGenerator.apply(predicate.getPath()),
+                    predicate.getParameters().size() == 1
+                    ? predicate.getParameters().get(0).getPlaceholder()
+                    : leastClause(predicate.getParameters()));
         });
 
-        operatorGenerators.put(GT, (columnAlias, params) -> {
-            Preconditions.checkState(!params.isEmpty());
-            return String.format("%s > %s", columnAlias, params.size() == 1
-                    ? params.get(0).getPlaceholder()
-                    : greatestClause(params));
+        operatorGenerators.put(GT, (predicate, aliasGenerator) -> {
+            Preconditions.checkState(!predicate.getParameters().isEmpty());
+            return String.format("%s > %s", aliasGenerator.apply(predicate.getPath()),
+                    predicate.getParameters().size() == 1
+                    ? predicate.getParameters().get(0).getPlaceholder()
+                    : greatestClause(predicate.getParameters()));
 
         });
 
-        operatorGenerators.put(GE, (columnAlias, params) -> {
-            Preconditions.checkState(!params.isEmpty());
-            return String.format("%s >= %s", columnAlias, params.size() == 1
-                    ? params.get(0).getPlaceholder()
-                    : greatestClause(params));
+        operatorGenerators.put(GE, (predicate, aliasGenerator) -> {
+            Preconditions.checkState(!predicate.getParameters().isEmpty());
+            return String.format("%s >= %s", aliasGenerator.apply(predicate.getPath()),
+                    predicate.getParameters().size() == 1
+                    ? predicate.getParameters().get(0).getPlaceholder()
+                    : greatestClause(predicate.getParameters()));
         });
 
-        operatorGenerators.put(ISNULL, (columnAlias, params) -> {
-            return String.format("%s IS NULL", columnAlias);
+        operatorGenerators.put(ISNULL, (predicate, aliasGenerator) -> {
+            return String.format("%s IS NULL", aliasGenerator.apply(predicate.getPath()));
         });
 
-        operatorGenerators.put(NOTNULL, (columnAlias, params) -> {
-            return String.format("%s IS NOT NULL", columnAlias);
+        operatorGenerators.put(NOTNULL, (predicate, aliasGenerator) -> {
+            return String.format("%s IS NOT NULL", aliasGenerator.apply(predicate.getPath()));
         });
 
-        operatorGenerators.put(TRUE, (columnAlias, params) -> {
+        operatorGenerators.put(TRUE, (predicate, aliasGenerator) -> {
             return "(1 = 1)";
         });
 
-        operatorGenerators.put(FALSE, (columnAlias, params) -> {
+        operatorGenerators.put(FALSE, (predicate, aliasGenerator) -> {
             return "(1 = 0)";
         });
 
-        operatorGenerators.put(ISEMPTY, (columnAlias, params) -> {
-            return String.format("%s IS EMPTY", columnAlias);
+        operatorGenerators.put(ISEMPTY, (predicate, aliasGenerator) -> {
+            return String.format("%s IS EMPTY", aliasGenerator.apply(predicate.getPath()));
         });
 
-        operatorGenerators.put(NOTEMPTY, (columnAlias, params) -> {
-            return String.format("%s IS NOT EMPTY", columnAlias);
+        operatorGenerators.put(NOTEMPTY, (predicate, aliasGenerator) -> {
+            return String.format("%s IS NOT EMPTY", aliasGenerator.apply(predicate.getPath()));
         });
-
-        operatorGenerators.put(HASMEMBER, (columnAlias, params) -> {
-            Preconditions.checkArgument(params.size() == 1);
-            return String.format("%s MEMBER OF %s",
-                    params.get(0).getPlaceholder(),
-                    columnAlias);
-        });
-
-        operatorGenerators.put(HASNOMEMBER, (columnAlias, params) -> {
-            Preconditions.checkArgument(params.size() == 1);
-            return String.format("%s NOT MEMBER OF %s",
-                    params.get(0).getPlaceholder(),
-                    columnAlias);
-        });
-
     }
 
     /**
@@ -206,7 +207,7 @@ public class FilterTranslator implements FilterOperation<String> {
      * @param generator The generator to resgister
      */
     public static void registerJPQLGenerator(Operator op,
-                                             Class<?> entityClass,
+                                             Type<?> entityClass,
                                              String fieldName,
                                              JPQLPredicateGenerator generator) {
         predicateOverrides.put(Triple.of(op, entityClass, fieldName), generator);
@@ -220,8 +221,8 @@ public class FilterTranslator implements FilterOperation<String> {
      * @return Returns null if no generator is registered.
      */
     public static JPQLPredicateGenerator lookupJPQLGenerator(Operator op,
-                                           Class<?> entityClass,
-                                           String fieldName) {
+                                                             Type<?> entityClass,
+                                                             String fieldName) {
         return predicateOverrides.get(Triple.of(op, entityClass, fieldName));
     }
 
@@ -234,6 +235,19 @@ public class FilterTranslator implements FilterOperation<String> {
         return operatorGenerators.get(op);
     }
 
+    private final EntityDictionary dictionary;
+
+    public FilterTranslator(EntityDictionary dictionary) {
+        this.dictionary = dictionary;
+        if (! operatorGenerators.containsKey(HASMEMBER)) {
+            operatorGenerators.put(HASMEMBER, new HasMemberJPQLGenerator(dictionary));
+        }
+
+        if (! operatorGenerators.containsKey(HASNOMEMBER)) {
+            operatorGenerators.put(HASNOMEMBER, new HasMemberJPQLGenerator(dictionary, true));
+        }
+    }
+
     /**
      * Translates the filterPredicate to JPQL.
      * @param filterPredicate The predicate to translate
@@ -241,29 +255,25 @@ public class FilterTranslator implements FilterOperation<String> {
      */
     @Override
     public String apply(FilterPredicate filterPredicate) {
-        return apply(filterPredicate, false);
+        return apply(filterPredicate, GENERATE_HQL_COLUMN_NO_ALIAS);
     }
 
     /**
      * Transforms a filter predicate into a JPQL query fragment.
      * @param filterPredicate The predicate to transform.
-     * @param prefixWithAlias Whether or not to append the entity type to the predicate.
-     *                       This is useful for table aliases referenced in JPQL for some kinds of joins.
+     * @param aliasGenerator Function which supplies a HQL fragment which represents the column in the predicate.
      * @return The hql query fragment.
      */
-    protected String apply(FilterPredicate filterPredicate, boolean prefixWithAlias) {
-        String fieldPath = filterPredicate.getFieldPath();
+    protected String apply(FilterPredicate filterPredicate, Function<Path, String> aliasGenerator) {
 
-        if (prefixWithAlias) {
-            fieldPath = filterPredicate.getAlias() + "." + filterPredicate.getField();
-        }
+        Function<Path, String> removeThisFromAlias = (path) -> {
+            String fieldPath = aliasGenerator.apply(path);
+
+            //JPQL doesn't support 'this', but it does support aliases.
+            return fieldPath.replaceAll("\\.this", "");
+        };
 
         Path.PathElement last = filterPredicate.getPath().lastElement().get();
-
-        //JPQL doesn't support 'this', but it does support aliases.
-        fieldPath = fieldPath.replaceAll("\\.this", "");
-
-        List<FilterParameter> params = filterPredicate.getParameters();
 
         Operator op = filterPredicate.getOperator();
         JPQLPredicateGenerator generator = lookupJPQLGenerator(op, last.getType(), last.getFieldName());
@@ -276,7 +286,7 @@ public class FilterTranslator implements FilterOperation<String> {
             throw new BadRequestException("Operator not implemented: " + filterPredicate.getOperator());
         }
 
-        return generator.generate(fieldPath, params);
+        return generator.generate(filterPredicate, aliasGenerator);
     }
 
     private static String greatestClause(List<FilterParameter> params) {
@@ -291,24 +301,46 @@ public class FilterTranslator implements FilterOperation<String> {
                 .collect(Collectors.joining(COMMA)));
     }
 
+    /**
+     * Translates the filterExpression to a JPQL filter fragment.
+     * @param filterExpression The filterExpression to translate
+     * @param prefixWithAlias If true, use the default alias provider to append the predicates with an alias.
+     *                        Otherwise, don't append aliases.
+     * @return A JPQL filter fragment.
+     */
     public String apply(FilterExpression filterExpression, boolean prefixWithAlias) {
-        JPQLQueryVisitor visitor = new JPQLQueryVisitor(prefixWithAlias);
-        return "WHERE " + filterExpression.accept(visitor);
+        Function<Path, String> aliasGenerator = GENERATE_HQL_COLUMN_NO_ALIAS;
+        if (prefixWithAlias) {
+            aliasGenerator = GENERATE_HQL_COLUMN_WITH_ALIAS;
+        }
+
+        return apply(filterExpression, aliasGenerator);
+    }
+
+    /**
+     * Translates the filterExpression to a JPQL filter fragment.
+     * @param filterExpression The filterExpression to translate
+     * @param aliasGenerator Generates a HQL fragment that represents a column in the predicate
+     * @return A JPQL filter fragment.
+     */
+    public String apply(FilterExpression filterExpression, Function<Path, String> aliasGenerator) {
+        JPQLQueryVisitor visitor = new JPQLQueryVisitor(aliasGenerator);
+        return filterExpression.accept(visitor);
     }
 
     /**
      * Filter expression visitor which builds an JPQL query.
      */
     public class JPQLQueryVisitor implements FilterExpressionVisitor<String> {
-        private boolean prefixWithAlias;
+        private Function<Path, String> aliasGenerator;
 
-        public JPQLQueryVisitor(boolean prefixWithAlias) {
-            this.prefixWithAlias = prefixWithAlias;
+        public JPQLQueryVisitor(Function<Path, String> aliasGenerator) {
+            this.aliasGenerator = aliasGenerator;
         }
 
         @Override
         public String visitPredicate(FilterPredicate filterPredicate) {
-            return apply(filterPredicate, prefixWithAlias);
+            return apply(filterPredicate, aliasGenerator);
         }
 
         @Override

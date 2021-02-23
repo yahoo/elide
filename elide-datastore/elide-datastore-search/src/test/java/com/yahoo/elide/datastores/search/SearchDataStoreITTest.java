@@ -7,17 +7,16 @@
 package com.yahoo.elide.datastores.search;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
-
-import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.initialization.AbstractApiResourceInitializer;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +33,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .when()
-            .get("/item?filter[item]=name==*-Luc*")
+            .get("/item?filter[item]=name==*-luc*")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .body("data.id", equalTo(Arrays.asList("6")));
@@ -65,7 +64,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .when()
-            .get("/item?filter[item]=name==*DrU*")
+            .get("/item?filter[item]=name=ini=*DrU*")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .body("data.id", containsInAnyOrder("1", "3", "1000"));
@@ -91,7 +90,7 @@ public class SearchDataStoreITTest extends AbstractApiResourceInitializer {
         given()
             .contentType(JSONAPI_CONTENT_TYPE)
             .when()
-            .get("/item?filter[item]=name==*DrU*")
+            .get("/item?filter[item]=name==*dru*")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .body("data.id", containsInAnyOrder("1", "3"));

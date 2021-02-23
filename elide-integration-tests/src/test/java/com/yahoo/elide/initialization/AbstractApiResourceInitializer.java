@@ -5,8 +5,7 @@
  */
 package com.yahoo.elide.initialization;
 
-import com.yahoo.elide.resources.JsonApiEndpoint;
-
+import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -16,7 +15,6 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
-
 import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,6 +55,7 @@ public abstract class AbstractApiResourceInitializer {
         String restassuredPort = System.getProperty("restassured.port", System.getenv("restassured.port"));
         RestAssured.port =
                 Integer.parseInt(StringUtils.isNotEmpty(restassuredPort) ? restassuredPort : "9999");
+        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
         // embedded jetty server
         server = new Server(RestAssured.port);
@@ -69,12 +68,6 @@ public abstract class AbstractApiResourceInitializer {
         servletHolder.setInitOrder(1);
         servletHolder.setInitParameter("jersey.config.server.provider.packages", packageName);
         servletHolder.setInitParameter("javax.ws.rs.Application", resourceConfig);
-
-        ServletHolder graphqlServlet = servletContextHandler.addServlet(ServletContainer.class, "/graphQL/*");
-        graphqlServlet.setInitOrder(2);
-        graphqlServlet.setInitParameter("jersey.config.server.provider.packages",
-                com.yahoo.elide.graphql.GraphQLEndpoint.class.getPackage().getName());
-        graphqlServlet.setInitParameter("javax.ws.rs.Application", resourceConfig);
 
         log.debug("...Starting Server...");
         server.start();

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2019, Yahoo Inc.
+  ~ Licensed under the Apache License, Version 2.0
+  ~ See LICENSE file in project root for terms.
+  -->
+
+<persistence xmlns="http://java.sun.com/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
+             version="2.0">
+    <persistence-unit name="aggregationStore">
+        <class>com.yahoo.elide.datastores.aggregation.example.Country</class>
+        <class>com.yahoo.elide.datastores.aggregation.example.SubCountry</class>
+        <class>com.yahoo.elide.datastores.aggregation.example.Player</class>
+        <class>com.yahoo.elide.datastores.aggregation.example.Continent</class>
+
+
+        <properties>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
+            <property name="hibernate.archive.autodetection" value="" />
+        </properties>
+    </persistence-unit>
+</persistence>

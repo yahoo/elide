@@ -9,7 +9,6 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
 
 import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -21,7 +20,7 @@ import javax.persistence.Table;
 /**
  * Right test bean.
  */
-@Include(rootLevel = true, type = "right") // optional here because class has this name
+@Include(type = "right") // optional here because class has this name
 @Entity
 @Table(name = "xright")     // right is SQL keyword
 public class Right extends BaseId {
@@ -31,7 +30,7 @@ public class Right extends BaseId {
     private Set<Left> noUpdate;
     private Set<Left> noDelete;
 
-    @UpdatePermission(expression = "deny all")
+    @UpdatePermission(expression = "Prefab.Role.None")
     @OneToOne(
             targetEntity = Left.class,
             fetch = FetchType.LAZY
@@ -44,7 +43,7 @@ public class Right extends BaseId {
         this.noUpdateOne2One = noUpdateOne2One;
     }
 
-    @UpdatePermission(expression = "deny all")
+    @UpdatePermission(expression = "Prefab.Role.None")
     @ManyToMany(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class

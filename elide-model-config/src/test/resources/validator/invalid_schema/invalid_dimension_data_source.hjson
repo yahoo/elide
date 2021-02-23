@@ -1,0 +1,61 @@
+{
+  tables: [{
+      name: PlayerStats
+      table: player_stats
+      schema: gamedb
+      description:
+      '''
+      A long description
+      '''
+      category: Table Category
+      cardinality : large
+      hidden : false
+      readAccess : A user is admin or is a player in the game
+      filterTemplate : countryIsoCode=={{code}}
+      joins: [
+          {
+             name: playerCountry
+             to: country
+             kind: toOne
+             definition: '{{playerCountry.id}} = {{country_id}}'
+          },
+          {
+             name: playerTeam
+             to: team
+             kind: toMany
+             definition: '{{playerTeam.id}} = {{team_id}}'
+          }
+      ]
+
+      measures : [
+          {
+          name : highScore
+          type : INTEGER
+          description : very awesome score
+          definition: 'MAX({{score}})'
+          }
+      ]
+      dimensions : [
+         {
+           name : countryIsoCode
+           type : TEXT
+           category : country detail
+           definition : '{{playerCountry.isoCode}}'
+           values : ['US', 'HK']
+           tableSource : 'playerCountry.isoCode'
+         }
+         {
+           name : createdOn
+           type : TIME
+           definition : '{{create_on}}'
+           grains:
+            [{
+             type : DAY
+             sql :  '''
+             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+             '''
+            }]
+         }
+      ]
+  }]
+}

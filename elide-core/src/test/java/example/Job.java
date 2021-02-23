@@ -6,7 +6,6 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -23,7 +22,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "job")
-@Include(rootLevel = true, type = "job")
+@Include(type = "job")
 public class Job {
 
     @Id

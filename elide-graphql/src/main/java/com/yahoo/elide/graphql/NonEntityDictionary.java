@@ -6,12 +6,13 @@
 
 package com.yahoo.elide.graphql;
 
-import com.yahoo.elide.core.EntityBinding;
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.dictionary.EntityBinding;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
+import com.yahoo.elide.core.type.Type;
 
 import org.apache.commons.lang3.text.WordUtils;
-
+import org.apache.commons.lang3.tuple.Pair;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
@@ -31,16 +32,16 @@ public class NonEntityDictionary extends EntityDictionary {
      * @param cls Entity bean class
      */
     @Override
-    public void bindEntity(Class<?> cls) {
+    public void bindEntity(Type<?> cls) {
         String type = WordUtils.uncapitalize(cls.getSimpleName());
 
-        Class<?> duplicate = bindJsonApiToEntity.put(type, cls);
+        Type<?> duplicate = bindJsonApiToEntity.put(Pair.of(type, NO_VERSION), cls);
 
         if (duplicate != null && !duplicate.equals(cls)) {
             log.error("Duplicate binding {} for {}, {}", type, cls, duplicate);
             throw new DuplicateMappingException(type + " " + cls.getName() + ":" + duplicate.getName());
         }
 
-        entityBindings.put(cls, new EntityBinding(this, cls, type, type));
+        entityBindings.put(cls, new EntityBinding(this, cls, type));
     }
 }

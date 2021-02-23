@@ -6,16 +6,16 @@
 
 package com.yahoo.elide.initialization;
 
-import com.yahoo.elide.core.DataStore;
+import com.yahoo.elide.async.models.AsyncQuery;
+import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import com.yahoo.elide.models.generics.Manager;
-import com.yahoo.elide.models.triggers.Invoice;
-
 import com.google.common.collect.Sets;
-
 import example.Parent;
+import example.models.generics.Manager;
+import example.models.triggers.Invoice;
+import example.models.versioned.BookV2;
 
 import java.util.Set;
 
@@ -30,7 +30,9 @@ public class InMemoryDataStoreHarness implements DataStoreTestHarness {
         Set<Package> beanPackages = Sets.newHashSet(
                 Parent.class.getPackage(),
                 Invoice.class.getPackage(),
-                Manager.class.getPackage()
+                Manager.class.getPackage(),
+                BookV2.class.getPackage(),
+                AsyncQuery.class.getPackage()
         );
 
         mapStore = new HashMapDataStore(beanPackages);

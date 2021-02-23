@@ -7,23 +7,20 @@
 package com.yahoo.elide.inheritance;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.linkage;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relation;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relationships;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
-
-import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
-
 import org.junit.jupiter.api.Test;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

@@ -1,0 +1,78 @@
+{
+  tables:
+  [
+    {
+      name: PlayerStatsChild
+      extend: PlayerStats
+      description: PlayerStats Child
+      cardinality: large
+      measures : [
+          {
+            name : highScore
+            type : Text
+            description : very awesome score
+            definition: 'MAX({{score}})'
+            queryPlanResolver: 'com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanResolver.class'
+            tags: ['PUBLIC']
+          },
+          {
+            name : avgScore
+            type : INTEGER
+            description : Avg score
+            definition: 'Avg({{score}})'
+            tags: ['PUBLIC']
+          }
+      ]
+      dimensions : [
+         {
+           name : createdOn
+           type : TIME
+           definition : '{{create_on}}'
+           grains:
+            [{
+             type : MONTH
+             sql :  '''
+             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM')
+             '''
+            }]
+         },
+         {
+           name : createdYear
+           type : TIME
+           definition : '{{createdYear}}'
+           grains:
+            [{
+             type : Year
+             sql :  '''
+             PARSEDATETIME(FORMATDATETIME(createdOn, 'yyyy-MM-dd'), 'yyyy')
+             '''
+            }]
+         },
+         {
+           name : createdWeekDate
+           type : TIME
+           definition : '{{createdOn}}'
+           grains:
+            [{
+             type : isoWEEK
+             sql :  '''
+             PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+             '''
+            }]
+         },
+         {
+           name : updatedMonth
+           type : TIME
+           definition : '{{updated_month}}'
+           grains:
+            [{
+             type : mOnth
+             sql :  '''
+             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyyMM')
+             '''
+            }]
+         }
+      ]
+    }
+  ]
+}

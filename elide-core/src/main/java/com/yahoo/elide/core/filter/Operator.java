@@ -5,13 +5,14 @@
  */
 package com.yahoo.elide.core.filter;
 
+import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidOperatorNegationException;
-import com.yahoo.elide.utils.coerce.CoerceUtil;
-
+import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -380,7 +381,7 @@ public enum Operator {
             Object val = getFieldValue(entity, fieldPath, requestScope);
             Object filterStr = fieldPath.lastElement()
                     .map(last -> CoerceUtil.coerce(values.get(0), last.getFieldType()))
-                    .orElse(CoerceUtil.coerce(values.get(0), String.class));
+                    .orElseGet(() -> CoerceUtil.coerce(values.get(0), String.class));
 
             if (val == null) {
                 return false;
@@ -443,11 +444,10 @@ public enum Operator {
 
             if (fieldVal instanceof Collection) {
                 return ((Collection) fieldVal).stream()
-                        .anyMatch((fieldValueElement) -> {
-                            return fieldValueElement != null
-                                    && values.stream()
-                                    .anyMatch(testVal -> condition.test(compare(fieldValueElement, testVal)));
-                        });
+                        .anyMatch(fieldValueElement ->
+                            fieldValueElement != null
+                            && values.stream()
+                            .anyMatch(testVal -> condition.test(compare(fieldValueElement, testVal))));
             }
 
             return fieldVal != null
@@ -467,22 +467,20 @@ public enum Operator {
 
     private static boolean evaluate(Object entity, Path fieldPath, List<Object> values,
                              BiPredicate predicate, RequestScope requestScope) {
-        Class<?> valueClass = fieldPath.lastElement().get().getFieldType();
+        Type<?> valueClass = fieldPath.lastElement().get().getFieldType();
 
         Object leftHandSide = getFieldValue(entity, fieldPath, requestScope);
 
-        if (leftHandSide instanceof Collection && !valueClass.isAssignableFrom(Collection.class)) {
+        if (leftHandSide instanceof Collection && !valueClass.isAssignableFrom(COLLECTION_TYPE)) {
             return ((Collection) leftHandSide).stream()
-                    .anyMatch((leftHandSideElement) -> {
-                        return values.stream()
-                                .map(value -> CoerceUtil.coerce(value, valueClass))
-                                .anyMatch(value -> predicate.test(leftHandSideElement, value));
-                    });
-        } else {
-            return leftHandSide != null && values.stream()
-                    .map(value -> CoerceUtil.coerce(value, valueClass))
-                    .anyMatch(value -> predicate.test(leftHandSide, value));
+                    .anyMatch(leftHandSideElement ->
+                        values.stream()
+                            .map(value -> CoerceUtil.coerce(value, valueClass))
+                            .anyMatch(value -> predicate.test(leftHandSideElement, value)));
         }
+        return leftHandSide != null && values.stream()
+                .map(value -> CoerceUtil.coerce(value, valueClass))
+                .anyMatch(value -> predicate.test(leftHandSide, value));
     }
 
     public Operator negate() {

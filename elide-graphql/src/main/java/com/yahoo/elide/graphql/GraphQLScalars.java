@@ -5,9 +5,8 @@
  */
 package com.yahoo.elide.graphql;
 
-import com.yahoo.elide.utils.coerce.CoerceUtil;
-import com.yahoo.elide.utils.coerce.converters.Serde;
-
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import graphql.language.IntValue;
 import graphql.language.StringValue;
 import graphql.schema.Coercing;
@@ -78,7 +77,8 @@ public class GraphQLScalars {
                 public String parseLiteral(Object o) {
                     if (o instanceof StringValue) {
                         return ((StringValue) o).getValue();
-                    } else if (o instanceof IntValue) {
+                    }
+                    if (o instanceof IntValue) {
                         return ((IntValue) o).getValue().toString();
                     }
                     // Unexpected object, try to use the toString.

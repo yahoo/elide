@@ -7,37 +7,36 @@
 package com.yahoo.elide.tests;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
-import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relation;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationships;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.argument;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.arguments;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.document;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.field;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.selection;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.linkage;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relation;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.relationships;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
-
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.initialization.GraphQLIntegrationTest;
-
 import com.google.common.collect.Sets;
 import example.embeddedid.Address;
 import example.embeddedid.AddressSerde;
 import example.embeddedid.Building;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import lombok.Data;
 
 import java.io.IOException;
@@ -50,6 +49,11 @@ public class EmbeddedIdIT extends GraphQLIntegrationTest {
     protected Address address2 = new Address(1409, "W Green St", 61801);
     protected Address address3 = new Address(1800, "South First Street", 61820);
     protected AddressSerde serde = new AddressSerde();
+
+    @BeforeAll
+    public void beforeAll() {
+        CoerceUtil.register(Address.class, serde);
+    }
 
     @BeforeEach
     public void setup() throws IOException {

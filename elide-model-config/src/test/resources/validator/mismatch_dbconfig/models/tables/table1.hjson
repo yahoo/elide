@@ -1,0 +1,64 @@
+{
+  tables: [{
+      name: PlayerStats
+      table: player_stats
+      schema: gamedb
+      dbConnectionName: MySQLConnection
+      description:
+      '''
+      A long description
+      '''
+      cardinality : large
+      hidden : false
+      joins: [
+          {
+             name: playerCountry
+             to: Country
+             kind: toOne
+             definition: '{{playerCountry.id}} = {{country_id}}'
+          }
+      ]
+
+      measures : [
+          {
+          name : highScore
+          type : INTEGER
+          definition: 'MAX({{score}})'
+          }
+      ]
+      dimensions : [
+         {
+           name : countryIsoCode
+           type : TEXT
+           definition : '{{playerCountry.isoCode}}'
+         },
+         {
+           name : createdOn
+           type : TIME
+           definition : '{{create_on}}'
+           grains:
+            [{
+             type : DAY
+             sql :  '''
+             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+             '''
+            }]
+         }
+      ]
+  }
+  {
+      name: Country
+      table: country
+      // connection name not same as parent table
+      dbConnectionName: OracleConnection
+      dimensions:
+      [
+        {
+          name: countryName
+          type: TEXT
+          definition: '{{countryName}}'
+        }
+      ]
+  }
+  ]
+}

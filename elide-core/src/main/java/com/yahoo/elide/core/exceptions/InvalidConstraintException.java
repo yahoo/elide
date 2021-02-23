@@ -4,13 +4,13 @@
  * See LICENSE file in project root for terms.
  */
 package com.yahoo.elide.core.exceptions;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.ClassType;
 
 /**
  * Invalid constraint exception. Message is exactly what is provided in the constructor.
  *
- * {@link com.yahoo.elide.core.HttpStatus#SC_BAD_REQUEST invalid}
+ * {@link HttpStatus#SC_BAD_REQUEST invalid}
  */
 public class InvalidConstraintException extends HttpStatusException {
     private static final long serialVersionUID = 1L;
@@ -24,7 +24,7 @@ public class InvalidConstraintException extends HttpStatusException {
         String message = getMessage();
 
         if (message == null) {
-            return EntityDictionary.getSimpleName(getClass());
+            return EntityDictionary.getSimpleName(new ClassType(getClass()));
         }
 
         return message;

@@ -5,25 +5,27 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.mockito.Mockito.mock;
-
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.audit.AuditLogger;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.audit.AuditLogger;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.TestDictionary;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.TestUser;
+import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.User;
-import com.yahoo.elide.security.checks.OperationCheck;
-
 import com.google.common.collect.Sets;
-
 import example.Author;
 import example.Book;
 import example.Child;
@@ -42,23 +44,23 @@ import example.NoUpdateEntity;
 import example.Parent;
 import example.Publisher;
 import example.Right;
-import example.TestCheckMappings;
 import example.UpdateAndCreate;
-import example.packageshareable.ContainerWithPackageShare;
-import example.packageshareable.ShareableWithPackageShare;
-import example.packageshareable.UnshareableWithEntityUnshare;
-
+import example.nontransferable.ContainerWithPackageShare;
+import example.nontransferable.ShareableWithPackageShare;
+import example.nontransferable.Untransferable;
+import io.reactivex.Observable;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import nocreate.NoCreateEntity;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
@@ -71,7 +73,8 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     protected final ElideSettings elideSettings;
 
     protected static EntityDictionary initDictionary() {
-        EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS);
+        EntityDictionary dictionary = TestDictionary.getTestDictionary();
+
         dictionary.bindEntity(UpdateAndCreate.class);
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Book.class);
@@ -97,7 +100,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         dictionary.bindEntity(ComputedBean.class);
         dictionary.bindEntity(ContainerWithPackageShare.class);
         dictionary.bindEntity(ShareableWithPackageShare.class);
-        dictionary.bindEntity(UnshareableWithEntityUnshare.class);
+        dictionary.bindEntity(Untransferable.class);
         return dictionary;
     }
 
@@ -113,9 +116,8 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     public PersistenceResourceTestSetup() {
         super(
                 new Child(),
-                null,
                 null, // new request scope + new Child == cannot possibly be a UUID for this object
-                new RequestScope(null, null, null, null, null, null,
+                new RequestScope(null, null, NO_VERSION, null, null, null, null, null, UUID.randomUUID(),
                         initSettings()
                 )
         );
@@ -142,7 +144,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     }
 
     protected RequestScope buildRequestScope(String path, DataStoreTransaction tx, User user, MultivaluedMap<String, String> queryParams) {
-        return new RequestScope(null, path, null, tx, user, queryParams, elideSettings);
+        return new RequestScope(null, path, NO_VERSION, null, tx, user, queryParams, null, UUID.randomUUID(), elideSettings);
     }
 
     protected <T> PersistentResource<T> bootstrapPersistentResource(T obj) {
@@ -150,13 +152,13 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     }
 
     protected <T> PersistentResource<T> bootstrapPersistentResource(T obj, DataStoreTransaction tx) {
-        User goodUser = new User(1);
-        RequestScope requestScope = new RequestScope(null, null, null, tx, goodUser, null, elideSettings);
-        return new PersistentResource<>(obj, null, requestScope.getUUIDFor(obj), requestScope);
+        User goodUser = new TestUser("1");
+        RequestScope requestScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, null, UUID.randomUUID(), elideSettings);
+        return new PersistentResource<>(obj, requestScope.getUUIDFor(obj), requestScope);
     }
 
     protected RequestScope getUserScope(User user, AuditLogger auditLogger) {
-        return new RequestScope(null, null, new JsonApiDocument(), null, user, null,
+        return new RequestScope(null, null, NO_VERSION, new JsonApiDocument(), null, user, null, null, UUID.randomUUID(),
                 new ElideSettingsBuilder(null)
                     .withEntityDictionary(dictionary)
                     .withAuditLogger(auditLogger)
@@ -182,17 +184,17 @@ public class PersistenceResourceTestSetup extends PersistentResource {
 
     /* ChangeSpec-specific test elements */
     @Entity
-    @Include
-    @CreatePermission(expression = "allow all")
-    @ReadPermission(expression = "allow all")
-    @UpdatePermission(expression = "deny all")
-    @DeletePermission(expression = "allow all")
+    @Include(rootLevel = false)
+    @CreatePermission(expression = "Prefab.Role.All")
+    @ReadPermission(expression = "Prefab.Role.All")
+    @UpdatePermission(expression = "Prefab.Role.None")
+    @DeletePermission(expression = "Prefab.Role.All")
     public static final class ChangeSpecModel {
         @Id
         public long id;
 
-        @ReadPermission(expression = "deny all")
-        @UpdatePermission(expression = "deny all")
+        @ReadPermission(expression = "Prefab.Role.None")
+        @UpdatePermission(expression = "Prefab.Role.None")
         public Function<ChangeSpec, Boolean> checkFunction;
 
         @UpdatePermission(expression = "changeSpecNonCollection")
@@ -215,14 +217,13 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     }
 
     @Entity
-    @Include
+    @Include(rootLevel = false)
     @EqualsAndHashCode
     @AllArgsConstructor
-    @CreatePermission(expression = "allow all")
-    @ReadPermission(expression = "allow all")
-    @UpdatePermission(expression = "allow all")
-    @DeletePermission(expression = "allow all")
-    @SharePermission
+    @CreatePermission(expression = "Prefab.Role.All")
+    @ReadPermission(expression = "Prefab.Role.All")
+    @UpdatePermission(expression = "Prefab.Role.All")
+    @DeletePermission(expression = "Prefab.Role.All")
     public static final class ChangeSpecChild {
         @Id
         public long id;
@@ -231,7 +232,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     public static final class ChangeSpecCollection extends OperationCheck<Object> {
 
         @Override
-        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+        public boolean ok(Object object, com.yahoo.elide.core.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (changeSpec.isPresent() && (object instanceof ChangeSpecModel)) {
                 ChangeSpec spec = changeSpec.get();
                 if (!(spec.getModified() instanceof Collection)) {
@@ -246,7 +247,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
     public static final class ChangeSpecNonCollection extends OperationCheck<Object> {
 
         @Override
-        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+        public boolean ok(Object object, com.yahoo.elide.core.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (changeSpec.isPresent() && (object instanceof ChangeSpecModel)) {
                 return ((ChangeSpecModel) object).checkFunction.apply(changeSpec.get());
             }
@@ -254,10 +255,20 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         }
     }
 
-    public static Set<PersistentResource> getRelation(PersistentResource resource, String relation) {
-        Optional<FilterExpression> filterExpression =
-                resource.getRequestScope().getExpressionForRelation(resource, relation);
+    public Set<PersistentResource> getRelation(PersistentResource resource, String relation) {
+        Observable<PersistentResource> resources =
+                resource.getRelationCheckedFiltered(getRelationship(resource.getResourceType(), relation));
 
-        return resource.getRelationCheckedFiltered(relation, filterExpression, Optional.empty(), Optional.empty());
+        return resources.toList(LinkedHashSet::new).blockingGet();
+    }
+
+    public com.yahoo.elide.core.request.Relationship getRelationship(Type<?> type, String name) {
+        return com.yahoo.elide.core.request.Relationship.builder()
+                .name(name)
+                .alias(name)
+                .projection(EntityProjection.builder()
+                        .type(type)
+                        .build())
+                .build();
     }
 }

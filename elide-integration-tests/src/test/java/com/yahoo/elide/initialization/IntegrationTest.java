@@ -9,18 +9,15 @@ import static io.restassured.RestAssured.get;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
+import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.resources.JsonApiEndpoint;
-
+import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -35,7 +32,6 @@ import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 /**
  * Integration test initializer.  Tests are intended to run sequentially (so they don't stomp on each other's data).
@@ -45,11 +41,12 @@ import java.util.HashMap;
 public abstract class IntegrationTest {
 
     /* Shared between the test setup code (to insert test data) as well as the Jetty server (to serve test data) */
-    private static DataStoreTestHarness dataStoreHarness;
+    protected static DataStoreTestHarness dataStoreHarness;
 
     protected final ObjectMapper mapper = new ObjectMapper();
     protected DataStore dataStore = null;
     private Server server = null;
+    protected final ServletContextHandler servletContextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
 
     private final String resourceConfig;
     private String packageName;
@@ -58,14 +55,14 @@ public abstract class IntegrationTest {
      * The Json api mapper.
      * Empty dictionary is OK provided the OBJECT_MAPPER is used for reading only
      */
-    protected final JsonApiMapper jsonApiMapper = new JsonApiMapper(new EntityDictionary(new HashMap<>()));
+    protected final JsonApiMapper jsonApiMapper = new JsonApiMapper();
 
     protected IntegrationTest() {
         this(IntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
     }
 
     protected IntegrationTest(final Class<? extends ResourceConfig> resourceConfig, String packageName) {
-        this.resourceConfig = resourceConfig.getCanonicalName();
+        this.resourceConfig = resourceConfig.getName();
         this.packageName = packageName;
 
         if (dataStoreHarness == null) {
@@ -80,7 +77,7 @@ public abstract class IntegrationTest {
         }
     }
 
-    private DataStoreTestHarness createHarness() {
+    protected DataStoreTestHarness createHarness() {
         try {
             final String dataStoreSupplierName = System.getProperty("dataStoreHarness");
 
@@ -116,16 +113,14 @@ public abstract class IntegrationTest {
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
         // port randomly picked in pom.xml
-        String restassuredPort = System.getProperty("restassured.port", System.getenv("restassured.port"));
-        RestAssured.port =
-                Integer.parseInt(StringUtils.isNotEmpty(restassuredPort) ? restassuredPort : "9999");
+        RestAssured.port = getPort();
 
         // embedded jetty server
         Server server = new Server(RestAssured.port);
-        final ServletContextHandler servletContextHandler =
-                new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
         servletContextHandler.setContextPath("/");
         server.setHandler(servletContextHandler);
+
+        modifyServletContextHandler();
 
         final ServletHolder servletHolder = servletContextHandler.addServlet(ServletContainer.class, "/*");
         servletHolder.setInitOrder(1);
@@ -173,5 +168,14 @@ public abstract class IntegrationTest {
         } catch (IOException e) {
             fail("\n" + actual + "\n" + expected + "\n", e);
         }
+    }
+
+    public static Integer getPort() {
+        String restassuredPort = System.getProperty("restassured.port", System.getenv("restassured.port"));
+        return Integer.parseInt(StringUtils.isNotEmpty(restassuredPort) ? restassuredPort : "9999");
+    }
+
+    public void modifyServletContextHandler() {
+        // Do Nothing
     }
 }

@@ -5,27 +5,27 @@
  */
 package com.yahoo.elide;
 
-import com.yahoo.elide.audit.AuditLogger;
-import com.yahoo.elide.audit.Slf4jLogger;
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.HttpStatus;
-import com.yahoo.elide.core.JSONApiLinks;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.filter.dialect.DefaultFilterDialect;
-import com.yahoo.elide.core.filter.dialect.JoinFilterDialect;
+import com.yahoo.elide.core.audit.AuditLogger;
+import com.yahoo.elide.core.audit.Slf4jLogger;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.core.filter.dialect.SubqueryFilterDialect;
-import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.filter.dialect.graphql.FilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.JoinFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.SubqueryFilterDialect;
+import com.yahoo.elide.core.pagination.PaginationImpl;
+import com.yahoo.elide.core.security.PermissionExecutor;
+import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
+import com.yahoo.elide.core.security.executors.VerbosePermissionExecutor;
+import com.yahoo.elide.core.utils.coerce.converters.EpochToDateConverter;
+import com.yahoo.elide.core.utils.coerce.converters.ISO8601DateSerde;
+import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
-import com.yahoo.elide.security.PermissionExecutor;
-import com.yahoo.elide.security.executors.ActivePermissionExecutor;
-import com.yahoo.elide.utils.coerce.converters.EpochToDateConverter;
-import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
-import com.yahoo.elide.utils.coerce.converters.Serde;
+import com.yahoo.elide.jsonapi.links.JSONApiLinks;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -45,15 +45,18 @@ public class ElideSettingsBuilder {
     private Function<RequestScope, PermissionExecutor> permissionExecutorFunction = ActivePermissionExecutor::new;
     private List<JoinFilterDialect> joinFilterDialects;
     private List<SubqueryFilterDialect> subqueryFilterDialects;
+    private FilterDialect graphqlFilterDialect;
     private JSONApiLinks jsonApiLinks;
     private Map<Class, Serde> serdes;
-    private int defaultMaxPageSize = Pagination.MAX_PAGE_LIMIT;
-    private int defaultPageSize = Pagination.DEFAULT_PAGE_LIMIT;
-    private boolean useFilterExpressions;
+    private int defaultMaxPageSize = PaginationImpl.MAX_PAGE_LIMIT;
+    private int defaultPageSize = PaginationImpl.DEFAULT_PAGE_LIMIT;
     private int updateStatusCode;
-    private boolean returnErrorObjects;
-    private boolean encodeErrorResponses;
     private boolean enableJsonLinks;
+    private boolean strictQueryParams = true;
+    private String baseUrl = "";
+    private String jsonApiPath;
+    private String graphQLApiPath;
+    private String exportApiPath;
 
     /**
      * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
@@ -64,7 +67,7 @@ public class ElideSettingsBuilder {
     public ElideSettingsBuilder(DataStore dataStore) {
         this.dataStore = dataStore;
         this.auditLogger = new Slf4jLogger();
-        this.jsonApiMapper = new JsonApiMapper(entityDictionary);
+        this.jsonApiMapper = new JsonApiMapper();
         this.joinFilterDialects = new ArrayList<>();
         this.subqueryFilterDialects = new ArrayList<>();
         updateStatusCode = HttpStatus.SC_NO_CONTENT;
@@ -86,6 +89,10 @@ public class ElideSettingsBuilder {
             subqueryFilterDialects.add(new RSQLFilterDialect(entityDictionary));
         }
 
+        if (graphqlFilterDialect == null) {
+            graphqlFilterDialect = new RSQLFilterDialect(entityDictionary);
+        }
+
         return new ElideSettings(
                 auditLogger,
                 dataStore,
@@ -94,15 +101,18 @@ public class ElideSettingsBuilder {
                 permissionExecutorFunction,
                 joinFilterDialects,
                 subqueryFilterDialects,
+                graphqlFilterDialect,
                 jsonApiLinks,
                 defaultMaxPageSize,
                 defaultPageSize,
-                useFilterExpressions,
                 updateStatusCode,
-                returnErrorObjects,
                 serdes,
-                encodeErrorResponses,
-                enableJsonLinks);
+                enableJsonLinks,
+                strictQueryParams,
+                baseUrl,
+                jsonApiPath,
+                graphQLApiPath,
+                exportApiPath);
     }
 
     public ElideSettingsBuilder withAuditLogger(AuditLogger auditLogger) {
@@ -117,33 +127,6 @@ public class ElideSettingsBuilder {
 
     public ElideSettingsBuilder withJsonApiMapper(JsonApiMapper jsonApiMapper) {
         this.jsonApiMapper = jsonApiMapper;
-        return this;
-    }
-
-    public ElideSettingsBuilder withPermissionExecutor(
-            Function<RequestScope, PermissionExecutor> permissionExecutorFunction) {
-        this.permissionExecutorFunction = permissionExecutorFunction;
-        return this;
-    }
-
-    public ElideSettingsBuilder withPermissionExecutor(Class<? extends PermissionExecutor> permissionExecutorClass) {
-        permissionExecutorFunction = (requestScope) -> {
-            try {
-                try {
-                    // Try to find a constructor with request scope
-                    Constructor<? extends PermissionExecutor> ctor =
-                            permissionExecutorClass.getDeclaredConstructor(RequestScope.class);
-                    return ctor.newInstance(requestScope);
-                } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException
-                        | InstantiationException e) {
-                    // If that fails, try blank constructor
-                    return permissionExecutorClass.newInstance();
-                }
-            } catch (IllegalAccessException | InstantiationException e) {
-                // Everything failed. Throw hands up, not sure how to proceed.
-                throw new RuntimeException(e);
-            }
-        };
         return this;
     }
 
@@ -177,8 +160,23 @@ public class ElideSettingsBuilder {
         return this;
     }
 
-    public ElideSettingsBuilder withUseFilterExpressions(boolean useFilterExpressions) {
-        this.useFilterExpressions = useFilterExpressions;
+    /**
+     * Sets the base URL that will be returned in URLs generated by Elide.
+     * @param baseUrl The base URL that clients use in queries.
+     * @return the settings builder.
+     */
+    public ElideSettingsBuilder withBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
+        return this;
+    }
+
+    public ElideSettingsBuilder withGraphQLDialect(FilterDialect dialect) {
+        graphqlFilterDialect = dialect;
+        return this;
+    }
+
+    public ElideSettingsBuilder withVerboseErrors() {
+        permissionExecutorFunction = VerbosePermissionExecutor::new;
         return this;
     }
 
@@ -198,19 +196,29 @@ public class ElideSettingsBuilder {
         return this;
     }
 
-    public ElideSettingsBuilder withReturnErrorObjects(boolean returnErrorObjects) {
-        this.returnErrorObjects = returnErrorObjects;
-        return this;
-    }
-
-    public ElideSettingsBuilder withEncodeErrorResponses(boolean encodeErrorResponses) {
-        this.encodeErrorResponses = encodeErrorResponses;
-        return this;
-    }
-
     public ElideSettingsBuilder withJSONApiLinks(JSONApiLinks links) {
         this.enableJsonLinks = true;
         this.jsonApiLinks = links;
+        return this;
+    }
+
+    public ElideSettingsBuilder withJsonApiPath(String jsonApiPath) {
+        this.jsonApiPath = jsonApiPath;
+        return this;
+    }
+
+    public ElideSettingsBuilder withGraphQLApiPath(String graphQLApiPath) {
+        this.graphQLApiPath = graphQLApiPath;
+        return this;
+    }
+
+    public ElideSettingsBuilder withExportApiPath(String exportApiPath) {
+        this.exportApiPath = exportApiPath;
+        return this;
+    }
+
+    public ElideSettingsBuilder withStrictQueryParams(boolean enabled) {
+        this.strictQueryParams = enabled;
         return this;
     }
 }

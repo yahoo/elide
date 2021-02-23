@@ -6,27 +6,29 @@
 package com.yahoo.elide.parsers.expression;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.Check;
-import com.yahoo.elide.security.checks.OperationCheck;
-import com.yahoo.elide.security.checks.UserCheck;
-import com.yahoo.elide.security.checks.prefab.Role;
-import com.yahoo.elide.security.permissions.ExpressionResult;
-import com.yahoo.elide.security.permissions.expressions.Expression;
-
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.TestDictionary;
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.yahoo.elide.core.security.checks.UserCheck;
+import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.core.security.permissions.ExpressionResult;
+import com.yahoo.elide.core.security.permissions.expressions.Expression;
+import com.yahoo.elide.core.security.visitors.PermissionExpressionVisitor;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import lombok.AllArgsConstructor;
+
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,7 +49,7 @@ public class PermissionExpressionVisitorTest {
         checks.put("user has all access", Role.ALL.class);
         checks.put("user has no access", Role.NONE.class);
 
-        dictionary = new EntityDictionary(checks);
+        dictionary = TestDictionary.getTestDictionary(checks);
         dictionary.bindEntity(Model.class);
         dictionary.bindEntity(ComplexEntity.class);
     }
@@ -78,23 +80,23 @@ public class PermissionExpressionVisitorTest {
 
     @Test
     public void testComplexModelCreate() {
-        Expression expression = getExpressionForPermission(CreatePermission.class, ComplexEntity.class);
+        Expression expression = getExpressionForPermission(CreatePermission.class, new ClassType(ComplexEntity.class));
         assertEquals(ExpressionResult.PASS, expression.evaluate(Expression.EvaluationMode.ALL_CHECKS));
     }
 
     @Test
     public void testNamesWithSpaces() {
-        Expression expression = getExpressionForPermission(DeletePermission.class, ComplexEntity.class);
-        Expression expression2 = getExpressionForPermission(UpdatePermission.class, ComplexEntity.class);
+        Expression expression = getExpressionForPermission(DeletePermission.class, new ClassType(ComplexEntity.class));
+        Expression expression2 = getExpressionForPermission(UpdatePermission.class, new ClassType(ComplexEntity.class));
         assertEquals(ExpressionResult.PASS, expression.evaluate(Expression.EvaluationMode.ALL_CHECKS));
         assertEquals(ExpressionResult.PASS, expression2.evaluate(Expression.EvaluationMode.ALL_CHECKS));
     }
 
     private Expression getExpressionForPermission(Class<? extends Annotation> permission) {
-        return getExpressionForPermission(permission, Model.class);
+        return getExpressionForPermission(permission, new ClassType(Model.class));
     }
 
-    private Expression getExpressionForPermission(Class<? extends Annotation> permission, Class model) {
+    private Expression getExpressionForPermission(Class<? extends Annotation> permission, Type model) {
         PermissionExpressionVisitor v = new PermissionExpressionVisitor(dictionary, DummyExpression::new);
         ParseTree permissions = dictionary.getPermissionsForClass(model, permission);
 
@@ -102,7 +104,7 @@ public class PermissionExpressionVisitorTest {
     }
 
     @Entity
-    @Include
+    @Include(rootLevel = false)
     @ReadPermission(expression = "user has all access AND Allow")
     @UpdatePermission(expression = "Allow or Deny")
     @DeletePermission(expression = "Not Deny")
@@ -127,7 +129,7 @@ public class PermissionExpressionVisitorTest {
     }
 
     @Entity
-    @Include
+    @Include(rootLevel = false)
     @CreatePermission(expression = "(Deny or Allow) and (not Deny)")
     @DeletePermission(expression = "user has all access or user has no access")
     @UpdatePermission(expression = "user has all access and (user has no access or user has all access)")
@@ -144,7 +146,7 @@ public class PermissionExpressionVisitorTest {
             if (check instanceof UserCheck) {
                 result = ((UserCheck) check).ok(null);
             } else {
-                result = check.ok(null, null, null);
+                result = ((OperationCheck) check).ok(null, null, null);
             }
 
             if (result) {

@@ -12,7 +12,6 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
 import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -24,11 +23,11 @@ import javax.persistence.Table;
 /**
  * Permission checks test bean.
  */
-@CreatePermission(expression = "allow all")
-@ReadPermission(expression = "allow all")
-@UpdatePermission(expression = "deny all OR allow all")
-@DeletePermission(expression = "deny all AND allow all")
-@Include(rootLevel = true, type = "fun") // optional here because class has this name
+@CreatePermission(expression = "Prefab.Role.All")
+@ReadPermission(expression = "Prefab.Role.All")
+@UpdatePermission(expression = "Prefab.Role.None OR Prefab.Role.All")
+@DeletePermission(expression = "Prefab.Role.None AND Prefab.Role.All")
+@Include(type = "fun") // optional here because class has this name
 // Hibernate
 @Entity
 @Table(name = "fun")
@@ -84,7 +83,7 @@ public class FunWithPermissions extends BaseId {
         this.relation3 = relation3;
     }
 
-    @ReadPermission(expression = "deny all")
+    @ReadPermission(expression = "Prefab.Role.None")
     public String getField1() {
         return field1;
     }
@@ -93,7 +92,7 @@ public class FunWithPermissions extends BaseId {
         this.field1 = field1;
     }
 
-    @ReadPermission(expression = "allow all")
+    @ReadPermission(expression = "Prefab.Role.All")
     public String getField2() {
         return field2;
     }
@@ -118,7 +117,7 @@ public class FunWithPermissions extends BaseId {
 
     private String field5;
 
-    @ReadPermission(expression = "allow all OR negativeIntegerUser")
+    @ReadPermission(expression = "Prefab.Role.All OR negativeIntegerUser")
     public String getField5() {
         return field5;
     }
@@ -129,7 +128,7 @@ public class FunWithPermissions extends BaseId {
 
     private String field6;
 
-    @ReadPermission(expression = "negativeIntegerUser AND allow all")
+    @ReadPermission(expression = "negativeIntegerUser AND Prefab.Role.All")
     public String getField6() {
         return field6;
     }
@@ -141,7 +140,7 @@ public class FunWithPermissions extends BaseId {
     private String field7;
 
     /* Verifies a chain of checks where the last can fail. */
-    @ReadPermission(expression = "allow all AND deny all")
+    @ReadPermission(expression = "Prefab.Role.All AND Prefab.Role.None")
     public String getField7() {
         return field7;
     }
@@ -153,7 +152,7 @@ public class FunWithPermissions extends BaseId {
     private String field8;
 
     /* Verifies a chain of checks where all can fail or the last can succeed. */
-    @ReadPermission(expression = "deny all OR negativeIntegerUser")
+    @ReadPermission(expression = "Prefab.Role.None OR negativeIntegerUser")
     public String getField8() {
         return field8;
     }

@@ -5,14 +5,15 @@
  */
 package com.yahoo.elide.datastores.hibernate5;
 
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.JPQLDataStore;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.Type;
 
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.jpa.HibernateEntityManagerFactory;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.metamodel.EntityType;
@@ -81,14 +82,6 @@ public abstract class AbstractHibernateStore implements JPQLDataStore {
             this.emf = entityManagerFactory;
         }
 
-        @Deprecated
-        public Builder(final HibernateEntityManagerFactory entityManagerFactory) {
-            this.sessionFactory = null;
-            this.isScrollEnabled = true;
-            this.scrollMode = ScrollMode.FORWARD_ONLY;
-            this.emf = entityManagerFactory;
-        }
-
         public Builder withScrollEnabled(final boolean isScrollEnabled) {
             this.isScrollEnabled = isScrollEnabled;
             return this;
@@ -102,7 +95,8 @@ public abstract class AbstractHibernateStore implements JPQLDataStore {
         public AbstractHibernateStore build() {
             if (sessionFactory != null) {
                 return new HibernateSessionFactoryStore(sessionFactory, isScrollEnabled, scrollMode);
-            } else if (emf != null) {
+            }
+            if (emf != null) {
                 return new HibernateEntityManagerStore(emf, isScrollEnabled, scrollMode);
             }
             throw new IllegalStateException("Either an EntityManager or SessionFactory is required!");
@@ -118,7 +112,7 @@ public abstract class AbstractHibernateStore implements JPQLDataStore {
     }
 
     protected void bindEntity(EntityDictionary dictionary, EntityType<?> type) {
-        Class<?> mappedClass = type.getJavaType();
+        Type<?> mappedClass = getClassType(type.getJavaType());
 
         bindEntityClass(mappedClass, dictionary);
     }

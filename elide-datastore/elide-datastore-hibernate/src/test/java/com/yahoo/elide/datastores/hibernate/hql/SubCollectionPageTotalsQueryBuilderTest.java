@@ -5,25 +5,23 @@
  */
 package com.yahoo.elide.datastores.hibernate.hql;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
-
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.filter.FilterPredicate;
-import com.yahoo.elide.core.filter.InPredicate;
-import com.yahoo.elide.core.hibernate.hql.AbstractHQLQueryBuilder;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.hibernate.hql.RelationshipImpl;
 import com.yahoo.elide.core.hibernate.hql.SubCollectionPageTotalsQueryBuilder;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
-
+import com.yahoo.elide.core.pagination.PaginationImpl;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.request.Sorting;
 import example.Author;
 import example.Book;
 import example.Chapter;
 import example.Publisher;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -31,7 +29,6 @@ import org.junit.jupiter.api.TestInstance;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SubCollectionPageTotalsQueryBuilderTest {
@@ -58,27 +55,29 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         Book book = new Book();
         book.setId(2);
 
+        EntityProjection entityProjection = EntityProjection.builder().type(Book.class).build();
+        Relationship relationshipProjection = Relationship.builder().projection(entityProjection).name(BOOKS).build();
         RelationshipImpl relationship = new RelationshipImpl(
-                Author.class,
-                Book.class,
-                BOOKS,
+                getClassType(Author.class),
                 author,
-                Arrays.asList(book)
+                relationshipProjection
         );
 
-        SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(relationship,
-                dictionary, new TestSessionWrapper());
+        SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(
+                relationship, dictionary, new TestSessionWrapper()
+        );
 
         TestQueryWrapper query = (TestQueryWrapper) builder
                 .build();
 
         String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
         actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
 
         String expected =
-                "SELECT COUNT(DISTINCT example_Author_books)  "
-                + "FROM example.Author AS example_Author  "
-                + "JOIN example_Author.books example_Author_books  "
+                "SELECT COUNT(DISTINCT example_Author_books) "
+                + "FROM example.Author AS example_Author "
+                + "JOIN example_Author.books example_Author_books "
                 + "WHERE example_Author.id IN (:id_XXX)";
 
         assertEquals(expected, actual);
@@ -86,24 +85,80 @@ public class SubCollectionPageTotalsQueryBuilderTest {
 
     @Test
     public void testSubCollectionPageTotalsWithSorting() {
-        AbstractHQLQueryBuilder.Relationship relationship = mock(AbstractHQLQueryBuilder.Relationship.class);
+        Author author = new Author();
+        author.setId(1L);
+
+        Book book = new Book();
+        book.setId(2);
+
         Sorting sorting = mock(Sorting.class);
 
-        SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(relationship,
-                dictionary, new TestSessionWrapper());
+        EntityProjection entityProjection = EntityProjection.builder()
+                .type(Book.class)
+                .sorting(sorting)
+                .build();
 
-        assertThrows(UnsupportedOperationException.class, () -> builder.withPossibleSorting(Optional.of(sorting)).build());
+        Relationship relationshipProjection = Relationship.builder().name(BOOKS).projection(entityProjection).build();
+        RelationshipImpl relationship = new RelationshipImpl(
+                getClassType(Author.class),
+                author,
+                relationshipProjection
+        );
+
+        TestQueryWrapper query = (TestQueryWrapper) new SubCollectionPageTotalsQueryBuilder(
+                relationship,
+                dictionary,
+                new TestSessionWrapper()
+        ).build();
+
+        String expected =
+                "SELECT COUNT(DISTINCT example_Author_books) "
+                        + "FROM example.Author AS example_Author "
+                        + "JOIN example_Author.books example_Author_books "
+                        + "WHERE example_Author.id IN (:id_XXX)";
+
+        String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
+        actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testSubCollectionPageTotalsWithPagination() {
-        AbstractHQLQueryBuilder.Relationship relationship = mock(AbstractHQLQueryBuilder.Relationship.class);
-        Pagination pagination = mock(Pagination.class);
+        Author author = new Author();
+        author.setId(1L);
 
-        SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(relationship,
-                dictionary, new TestSessionWrapper());
+        Book book = new Book();
+        book.setId(2);
 
-        assertThrows(UnsupportedOperationException.class, () -> builder.withPossiblePagination(Optional.of(pagination)));
+        PaginationImpl pagination = mock(PaginationImpl.class);
+        EntityProjection entityProjection = EntityProjection.builder()
+                .type(Book.class)
+                .pagination(pagination)
+                .build();
+        Relationship relationshipProjection = Relationship.builder().name(BOOKS).projection(entityProjection).build();
+        RelationshipImpl relationship = new RelationshipImpl(
+                getClassType(Author.class),
+                author,
+                relationshipProjection
+        );
+
+        TestQueryWrapper query = (TestQueryWrapper) new SubCollectionPageTotalsQueryBuilder(
+                relationship,
+                dictionary,
+                new TestSessionWrapper()
+        ).build();
+
+        String expected =
+                "SELECT COUNT(DISTINCT example_Author_books) "
+                        + "FROM example.Author AS example_Author "
+                        + "JOIN example_Author.books example_Author_books "
+                        + "WHERE example_Author.id IN (:id_XXX)";
+
+        String actual = query.getQueryText();
+        actual = actual.trim().replaceAll(" +", " ");
+        actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -114,14 +169,6 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         Book book = new Book();
         book.setId(2);
 
-        RelationshipImpl relationship = new RelationshipImpl(
-                Author.class,
-                Book.class,
-                BOOKS,
-                author,
-                Arrays.asList(book)
-        );
-
         List<Path.PathElement>  publisherNamePath = Arrays.asList(
                 new Path.PathElement(Book.class, Publisher.class, PUBLISHER),
                 new Path.PathElement(Publisher.class, String.class, "name")
@@ -131,23 +178,38 @@ public class SubCollectionPageTotalsQueryBuilderTest {
                 new Path(publisherNamePath),
                 "Pub1");
 
-        SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(
-                relationship, dictionary, new TestSessionWrapper());
-
-        TestQueryWrapper query = (TestQueryWrapper) builder
-                .withPossibleFilterExpression(Optional.of(publisherNamePredicate))
+        EntityProjection entityProjection = EntityProjection.builder()
+                .type(Book.class)
+                .filterExpression(publisherNamePredicate)
                 .build();
 
+        Relationship relationshipProjection = Relationship.builder().name(BOOKS).projection(entityProjection).build();
+
+        RelationshipImpl relationship = new RelationshipImpl(
+                getClassType(Author.class),
+                author,
+                relationshipProjection
+        );
+
+        SubCollectionPageTotalsQueryBuilder builder = new SubCollectionPageTotalsQueryBuilder(
+                relationship,
+                dictionary,
+                new TestSessionWrapper()
+        );
+
+        TestQueryWrapper query = (TestQueryWrapper) builder.build();
+
         String expected =
-                "SELECT COUNT(DISTINCT example_Author_books)  "
-                + "FROM example.Author AS example_Author  "
-                + "LEFT JOIN example_Author.books example_Author_books  "
-                + "LEFT JOIN example_Author_books.publisher example_Book_publisher   "
-                + "WHERE (example_Book_publisher.name IN (:books_publisher_name_XXX) "
+                "SELECT COUNT(DISTINCT example_Author_books) "
+                + "FROM example.Author AS example_Author "
+                + "LEFT JOIN example_Author.books example_Author_books "
+                + "LEFT JOIN example_Author_books.publisher example_Author_books_publisher "
+                + "WHERE (example_Author_books_publisher.name IN (:books_publisher_name_XXX) "
                 + "AND example_Author.id IN (:id_XXX))";
 
         String actual = query.getQueryText();
         actual = actual.replaceFirst(":books_publisher_name_\\w+", ":books_publisher_name_XXX");
+        actual = actual.trim().replaceAll(" +", " ");
         actual = actual.replaceFirst(":id_\\w+", ":id_XXX");
 
         assertEquals(expected, actual);

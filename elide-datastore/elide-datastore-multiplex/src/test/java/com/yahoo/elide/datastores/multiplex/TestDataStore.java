@@ -5,20 +5,16 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.TransactionException;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.utils.ClassScanner;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.utils.ClassScanner;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Optional;
-
 import javax.persistence.Entity;
 
 class TestDataStore implements DataStore, DataStoreTransaction {
@@ -68,20 +64,21 @@ class TestDataStore implements DataStore, DataStoreTransaction {
     }
 
     @Override
-    public Object loadObject(Class<?> entityClass,
-                      Serializable id,
-                      Optional<FilterExpression> filterExpression,
-                      RequestScope scope) {
+    public Object loadObject(EntityProjection projection,
+                             Serializable id,
+                             RequestScope scope) {
         throw new TransactionException(null);
     }
 
     @Override
     public Iterable<Object> loadObjects(
-            Class<?> entityClass,
-            Optional<FilterExpression> filterExpression,
-            Optional<Sorting> sorting,
-            Optional<Pagination> pagination,
+            EntityProjection projection,
             RequestScope scope) {
         throw new TransactionException(null);
+    }
+
+    @Override
+    public void cancel(RequestScope scope) {
+        // Nothing
     }
 }

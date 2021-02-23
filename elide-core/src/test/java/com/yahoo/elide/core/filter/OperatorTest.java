@@ -9,16 +9,16 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
-
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.security.checks.Check;
+import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
 import example.Author;
 import example.Book;
-
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -43,7 +43,7 @@ public class OperatorTest {
         }
 
         @Override
-        public Class<?> lookupBoundClass(Class<?> objClass) {
+        public Type<?> lookupBoundClass(Type<?> objClass) {
             // Special handling for mocked Book class which has Entity annotation
             if (objClass.getName().contains("$MockitoMock$")) {
                 objClass = objClass.getSuperclass();
@@ -63,9 +63,9 @@ public class OperatorTest {
 
     private Path constructPath(Class<?> rootEntity, String pathString) {
         List<Path.PathElement> pathElementsList = new ArrayList<>();
-        Class prevEntity = rootEntity;
+        Type prevEntity = new ClassType(rootEntity);
         for (String field : pathString.split("\\.")) {
-            Class<?> fieldType = ("id".equals(field.toLowerCase(Locale.ENGLISH)))
+            Type<?> fieldType = ("id".equals(field.toLowerCase(Locale.ENGLISH)))
                     ? dictionary.getIdType(prevEntity)
                     : dictionary.getParameterizedType(prevEntity, field);
             Path.PathElement pathElement = new Path.PathElement(prevEntity, fieldType, field);

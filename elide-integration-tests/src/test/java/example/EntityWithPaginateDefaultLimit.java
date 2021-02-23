@@ -7,14 +7,13 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.Paginate;
-
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.Entity;
 
 @Entity
-@Include(rootLevel = true)
+@Include
 @Paginate(defaultLimit = 5)
 public class EntityWithPaginateDefaultLimit extends BaseId {
     @Getter

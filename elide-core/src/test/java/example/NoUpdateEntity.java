@@ -7,18 +7,16 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
-
 import lombok.Data;
 
 import java.util.Set;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-@UpdatePermission(expression = "deny all")
-@Include(rootLevel = true, type = "noupdate") // optional here because class has this name
+@UpdatePermission(expression = "Prefab.Role.None")
+@Include(type = "noupdate") // optional here because class has this name
 // Hibernate
 @Entity
 @Table(name = "noupdate")

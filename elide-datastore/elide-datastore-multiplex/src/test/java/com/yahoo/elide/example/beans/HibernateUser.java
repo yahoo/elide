@@ -15,7 +15,6 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.example.hbase.beans.RedisActions;
 
 import java.util.Set;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
@@ -25,12 +24,12 @@ import javax.persistence.Transient;
 /**
  * Hibernate-managed user.
  */
-@Include(rootLevel = true)
+@Include
 @Entity
-@CreatePermission(expression = "allow all")
-@ReadPermission(expression = "allow all")
-@UpdatePermission(expression = "allow all")
-@DeletePermission(expression = "allow all")
+@CreatePermission(expression = "Prefab.Role.All")
+@ReadPermission(expression = "Prefab.Role.All")
+@UpdatePermission(expression = "Prefab.Role.All")
+@DeletePermission(expression = "Prefab.Role.All")
 public class HibernateUser {
     private Long id;
     private String firstName;

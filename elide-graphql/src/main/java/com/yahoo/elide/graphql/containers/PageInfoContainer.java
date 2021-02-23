@@ -7,10 +7,10 @@ package com.yahoo.elide.graphql.containers;
 
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.BadRequestException;
-import com.yahoo.elide.core.pagination.Pagination;
+import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.graphql.Environment;
+import com.yahoo.elide.graphql.KeyWord;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
-
 import lombok.Getter;
 
 import java.util.List;
@@ -22,12 +22,6 @@ import java.util.stream.Collectors;
  */
 public class PageInfoContainer implements GraphQLContainer {
     @Getter private final ConnectionContainer connectionContainer;
-
-    // Page info keywords
-    private static final String PAGE_INFO_HAS_NEXT_PAGE_KEYWORD = "hasNextPage";
-    private static final String PAGE_INFO_START_CURSOR_KEYWORD = "startCursor";
-    private static final String PAGE_INFO_END_CURSOR_KEYWORD = "endCursor";
-    private static final String PAGE_INFO_TOTAL_RECORDS_KEYWORD = "totalRecords";
 
     public PageInfoContainer(ConnectionContainer connectionContainer) {
         this.connectionContainer = connectionContainer;
@@ -45,17 +39,17 @@ public class PageInfoContainer implements GraphQLContainer {
                 .collect(Collectors.toList());
 
         return pagination.map(pageValue -> {
-            switch (fieldName) {
-                case PAGE_INFO_HAS_NEXT_PAGE_KEYWORD: {
+            switch (KeyWord.byName(fieldName)) {
+                case PAGE_INFO_HAS_NEXT_PAGE: {
                     int numResults = ids.size();
                     int nextOffset = numResults + pageValue.getOffset();
                     return nextOffset < pageValue.getPageTotals();
                 }
-                case PAGE_INFO_START_CURSOR_KEYWORD:
+                case PAGE_INFO_START_CURSOR:
                     return pageValue.getOffset();
-                case PAGE_INFO_END_CURSOR_KEYWORD:
+                case PAGE_INFO_END_CURSOR:
                     return pageValue.getOffset() + ids.size();
-                case PAGE_INFO_TOTAL_RECORDS_KEYWORD:
+                case PAGE_INFO_TOTAL_RECORDS:
                     return pageValue.getPageTotals();
                 default:
                     break;

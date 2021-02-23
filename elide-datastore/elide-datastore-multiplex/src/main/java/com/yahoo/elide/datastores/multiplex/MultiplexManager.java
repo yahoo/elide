@@ -5,9 +5,14 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityBinding;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.Type;
+
+import lombok.AccessLevel;
+import lombok.Setter;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,10 +33,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * <li>Attempt to reverse DB1 commit fails
  * </ul>
  */
-public class MultiplexManager implements DataStore {
+public final class MultiplexManager implements DataStore {
 
     protected final List<DataStore> dataStores;
-    protected final ConcurrentHashMap<Class<?>, DataStore> dataStoreMap = new ConcurrentHashMap<>();
+    protected final ConcurrentHashMap<Type<?>, DataStore> dataStoreMap = new ConcurrentHashMap<>();
+
+    @Setter(AccessLevel.PROTECTED)
     private EntityDictionary dictionary;
 
     /**
@@ -53,12 +60,12 @@ public class MultiplexManager implements DataStore {
             );
 
             dataStore.populateEntityDictionary(subordinateDictionary);
-            for (Class<?> cls : subordinateDictionary.getBindings()) {
+            for (EntityBinding binding : subordinateDictionary.getBindings()) {
                 // route class to this database manager
-                this.dataStoreMap.put(cls, dataStore);
+                this.dataStoreMap.put(binding.entityClass, dataStore);
+
                 // bind to multiplex dictionary
-                dictionary.bindEntity(cls);
-                dictionary.bindInitializer(subordinateDictionary::initializeEntity, cls);
+                dictionary.bindEntity(binding);
             }
         }
     }
@@ -83,9 +90,9 @@ public class MultiplexManager implements DataStore {
      * @param cls provided class
      * @return database manager handling this entity
      */
-    protected <T> DataStore getSubManager(Class<T> cls) {
+    protected <T> DataStore getSubManager(Type<T> cls) {
         // Follow for this class or super-class for Entity annotation
-        Class<T> type = (Class<T>) dictionary.lookupBoundClass(cls);
+        Type<T> type = (Type<T>) dictionary.lookupBoundClass(cls);
         return dataStoreMap.get(type);
     }
 }

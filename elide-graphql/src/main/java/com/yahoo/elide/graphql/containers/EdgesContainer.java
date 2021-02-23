@@ -5,11 +5,11 @@
  */
 package com.yahoo.elide.graphql.containers;
 
+import static com.yahoo.elide.graphql.KeyWord.NODE;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -20,14 +20,12 @@ import lombok.Getter;
 public class EdgesContainer implements PersistentResourceContainer, GraphQLContainer {
     @Getter private final PersistentResource persistentResource;
 
-    private static final String NODE_KEYWORD = "node";
-
     @Override
     public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
         String fieldName = context.field.getName();
 
         // TODO: Cursor
-        if (NODE_KEYWORD.equals(fieldName)) {
+        if (NODE.equals(fieldName)) {
             return new NodeContainer(context.parentResource);
         }
 

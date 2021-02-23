@@ -8,15 +8,12 @@ package example;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Collection;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
@@ -26,10 +23,9 @@ import javax.persistence.OneToOne;
  * Model for authors.
  */
 @Entity
-@Include(rootLevel = true)
+@Include
 @CreatePermission(expression = "Principal is user one OR Principal is user two")
 @UpdatePermission(expression = "Principal is user two")
-@SharePermission
 @Audit(action = Audit.Action.CREATE,
         operation = 10,
         logStatement = "{0}",

@@ -6,25 +6,28 @@
 
 package com.yahoo.elide.datastores.search;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
-import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.core.utils.coerce.converters.ISO8601DateSerde;
 import com.yahoo.elide.datastores.search.models.Item;
-import com.yahoo.elide.utils.coerce.CoerceUtil;
-import com.yahoo.elide.utils.coerce.converters.ISO8601DateSerde;
 import org.h2.store.fs.FileUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -34,6 +37,7 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Optional;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
@@ -87,9 +91,15 @@ public class DataStoreSupportsFilteringTest {
         /* The field is indexed using the @Fields annotation */
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterExpression filter = filterParser.parseFilterExpression("name==*rum*",
-                Item.class, false);
+                getClassType(Item.class), false);
 
-        assertEquals(DataStoreTransaction.FeatureSupport.FULL, testTransaction.supportsFiltering(Item.class, filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertEquals(DataStoreTransaction.FeatureSupport.FULL,
+                testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
     }
 
     @Test
@@ -97,9 +107,15 @@ public class DataStoreSupportsFilteringTest {
         /* The field is indexed using the @Field annotation */
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterExpression filter = filterParser.parseFilterExpression("description==*rum*",
-                Item.class, false);
+                getClassType(Item.class), false);
 
-        assertEquals(DataStoreTransaction.FeatureSupport.FULL, testTransaction.supportsFiltering(Item.class, filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertEquals(DataStoreTransaction.FeatureSupport.FULL,
+                testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
     }
 
     @Test
@@ -107,74 +123,123 @@ public class DataStoreSupportsFilteringTest {
         /* The field is not indexed */
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterExpression filter = filterParser.parseFilterExpression("price==123",
-                Item.class, false);
+                getClassType(Item.class), false);
 
-        assertEquals(null, testTransaction.supportsFiltering(Item.class, filter));
-        verify(wrappedTransaction, times(1)).supportsFiltering(eq(Item.class), eq(filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertEquals(null, testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
+        verify(wrappedTransaction, times(1))
+                .supportsFiltering(eq(mockScope), any(), eq(projection));
     }
 
     @Test
     public void testNgramTooSmall() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("description==*ru*",
-                Item.class, false);
+                getClassType(Item.class), false);
 
-        assertThrows(InvalidValueException.class, () -> testTransaction.supportsFiltering(Item.class, filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertThrows(InvalidValueException.class,
+                () -> testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
     }
 
     @Test
     public void testNgramTooLarge() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("description==*abcdefghijk*",
-                Item.class, false);
+                getClassType(Item.class), false);
 
-        assertThrows(InvalidValueException.class, () -> testTransaction.supportsFiltering(Item.class, filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertThrows(InvalidValueException.class,
+                () -> testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
     }
 
     @Test
     public void testLargeNgramForEqualityOperator() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("description==abcdefghijk",
-                Item.class, false);
+                getClassType(Item.class), false);
 
-        assertEquals(null, testTransaction.supportsFiltering(Item.class, filter));
-        verify(wrappedTransaction, times(1)).supportsFiltering(eq(Item.class), eq(filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertEquals(null, testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
+
+        verify(wrappedTransaction, times(1))
+                .supportsFiltering(eq(mockScope), any(), eq(projection));
     }
 
     @Test
     public void testNgramJustRight() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("description==*ruabc*",
-                Item.class, false);
+                getClassType(Item.class), false);
 
-        assertEquals(DataStoreTransaction.FeatureSupport.FULL, testTransaction.supportsFiltering(Item.class, filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertEquals(DataStoreTransaction.FeatureSupport.FULL,
+                testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
     }
 
     @Test
     public void testInfixOperator() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("name==*rum*",
-                Item.class, false);
+                getClassType(Item.class), false);
 
-        assertEquals(DataStoreTransaction.FeatureSupport.FULL, testTransaction.supportsFiltering(Item.class, filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertEquals(DataStoreTransaction.FeatureSupport.FULL,
+                testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
     }
 
     @Test
     public void testPrefixOperator() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("name==drum*",
-                Item.class, false);
+                getClassType(Item.class), false);
 
-        assertEquals(DataStoreTransaction.FeatureSupport.PARTIAL, testTransaction.supportsFiltering(Item.class, filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertEquals(DataStoreTransaction.FeatureSupport.PARTIAL,
+                testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
     }
 
     @Test
     public void testEqualityOperator() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
         FilterPredicate filter = (FilterPredicate) filterParser.parseFilterExpression("name==drum",
-                Item.class, false);
+                getClassType(Item.class), false);
 
-        assertEquals(null, testTransaction.supportsFiltering(Item.class, filter));
-        verify(wrappedTransaction, times(1)).supportsFiltering(eq(Item.class), eq(filter));
+        EntityProjection projection = EntityProjection.builder()
+                .type(Item.class)
+                .filterExpression(filter)
+                .build();
+
+        assertEquals(null, testTransaction.supportsFiltering(mockScope, Optional.empty(), projection));
+        verify(wrappedTransaction, times(1))
+                .supportsFiltering(eq(mockScope), any(), eq(projection));
     }
 }

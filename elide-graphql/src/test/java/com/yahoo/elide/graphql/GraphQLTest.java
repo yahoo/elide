@@ -6,12 +6,14 @@
 
 package com.yahoo.elide.graphql;
 
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.security.checks.Check;
-
+import com.yahoo.elide.core.dictionary.ArgumentType;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.type.ClassType;
 import example.Address;
 import example.Author;
 import example.Book;
+import example.ParameterizedExample;
 import example.Pseudonym;
 import example.Publisher;
 
@@ -21,12 +23,12 @@ import java.util.Map;
 /**
  * Bootstrap for GraphQL tests.
  */
-public class GraphQLTest {
+public abstract class GraphQLTest {
     protected EntityDictionary dictionary;
 
     public GraphQLTest() {
         Map<String, Class<? extends Check>> checks = new HashMap<>();
-        checks.put("allow all", com.yahoo.elide.security.checks.prefab.Role.ALL.class);
+        checks.put("Prefab.Role.All", com.yahoo.elide.core.security.checks.prefab.Role.ALL.class);
 
         dictionary = new EntityDictionary(checks);
 
@@ -35,5 +37,9 @@ public class GraphQLTest {
         dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(Pseudonym.class);
         dictionary.bindEntity(Address.class);
+        dictionary.bindEntity(ParameterizedExample.class);
+
+        dictionary.addArgumentToAttribute(new ClassType(ParameterizedExample.class), "attribute",
+                new ArgumentType("argument", ClassType.STRING_TYPE, "defaultValue"));
     }
 }

@@ -21,5 +21,5 @@ public class SwaggerControllerProperties extends ControllerProperties {
     /**
      * Swagger needs a version for the service.
      */
-    private String version = "1.0";
+    private String version = "";
 }

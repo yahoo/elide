@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2016, Yahoo Inc.
+  ~ Copyright 2020, Yahoo Inc.
   ~ Licensed under the Apache License, Version 2.0
   ~ See LICENSE file in project root for terms.
   -->
@@ -8,21 +8,21 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-parent-pom</artifactId>
-    <version>4.6.9-SNAPSHOT</version>
+    <version>5.0.0-pr32-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Elide: Parent Pom</name>
     <description>Parent pom for Elide project</description>
     <url>https://github.com/yahoo/elide</url>
 
     <modules>
-        <module>elide-annotations</module>
-        <module>elide-example-models</module>
         <module>elide-core</module>
         <module>elide-graphql</module>
         <module>elide-datastore</module>
         <module>elide-integration-tests</module>
-        <module>elide-example</module>
-        <module>elide-contrib</module>
+        <module>elide-model-config</module>
+        <module>elide-swagger</module>
+        <module>elide-test</module>
+        <module>elide-async</module>
         <module>elide-standalone</module>
         <module>elide-spring</module>
     </modules>
@@ -63,7 +63,7 @@
     </scm>
 
     <prerequisites>
-        <maven>3.0.0</maven>
+        <maven>3.6.3</maven>
     </prerequisites>
 
     <properties>
@@ -77,16 +77,17 @@
         <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 
         <!-- dependency versions -->
-        <version.antlr4>4.8-1</version.antlr4>
+        <version.antlr4>4.9</version.antlr4>
         <version.logback>1.2.3</version.logback>
-        <version.jetty>9.4.31.v20200723</version.jetty>
-        <version.restassured>4.3.1</version.restassured>
-        <version.jackson>2.11.2</version.jackson>
-        <version.jersey>2.31</version.jersey>
-        <version.junit>5.6.2</version.junit>
+        <version.jetty>9.4.36.v20210114</version.jetty>
+        <version.restassured>4.3.3</version.restassured>
+        <version.jackson>2.11.3</version.jackson>
+        <version.jersey>2.32</version.jersey>
+        <version.junit>5.7.1</version.junit>
+        <version.junit.platform>1.7.1</version.junit.platform>
         <hibernate3.version>3.6.10.Final</hibernate3.version>
-        <version.mysql>8.0.21</version.mysql>
-        <hibernate5.version>5.4.18.Final</hibernate5.version>
+        <hibernate5.version>5.4.25.Final</hibernate5.version>
+        <slf4j-api.version>1.7.30</slf4j-api.version>
 
         <!-- TODO: Need to update locations to be relative to the projects using them -->
         <parent.pom.dir>${project.basedir}/..</parent.pom.dir>
@@ -101,25 +102,15 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.yahoo.elide</groupId>
-                <artifactId>elide-annotations</artifactId>
-                <version>4.6.9-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>com.yahoo.elide</groupId>
-                <artifactId>elide-example-models</artifactId>
-                <version>4.6.9-SNAPSHOT</version>
-            </dependency>
-            <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.12</version>
+                <version>1.18.16</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
-                <version>1.7.30</version>
+                <version>${slf4j-api.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -129,7 +120,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>29.0-jre</version>
+                <version>30.1-jre</version>
             </dependency>
             <dependency>
                 <groupId>javax.inject</groupId>
@@ -160,11 +151,6 @@
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-continuation</artifactId>
                 <version>${version.jetty}</version>
-            </dependency>
-            <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
-                <version>${version.mysql}</version>
             </dependency>
 
             <!-- Test dependencies -->
@@ -213,6 +199,13 @@
             </dependency>
 
             <dependency>
+                <groupId>org.junit.platform</groupId>
+                <artifactId>junit-platform-launcher</artifactId>
+                <version>${version.junit.platform}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
                 <version>1.4.200</version>
@@ -221,7 +214,7 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>3.5.11</version>
+                <version>3.6.28</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -309,7 +302,7 @@
                         <dependency>
                             <groupId>com.puppycrawl.tools</groupId>
                             <artifactId>checkstyle</artifactId>
-                            <version>8.36.1</version>
+                            <version>8.37</version>
                             <scope>compile</scope>
                         </dependency>
                     </dependencies>
@@ -381,6 +374,10 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <doclint>all,-missing</doclint>
+                    <source>${source.jdk.version}</source>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -463,7 +460,7 @@
                 <artifactId>coveralls-maven-plugin</artifactId>
                 <version>4.3.0</version>
                 <configuration>
-                    <repoToken>${env.COVERALLS_API_TOKEN}</repoToken>
+                    <repoToken>${env.COVERALLS_REPO_TOKEN}</repoToken>
                 </configuration>
             </plugin>
             <plugin>
@@ -507,6 +504,7 @@
                     <skipSystemScope>true</skipSystemScope>
                     <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
                     <suppressionFile>suppressions.xml</suppressionFile>
+                    <retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
                 </configuration>
                 <executions>
                     <execution>
@@ -521,7 +519,7 @@
             <extension>
                 <groupId>org.apache.maven.wagon</groupId>
                 <artifactId>wagon-ssh-external</artifactId>
-                <version>3.4.0</version>
+                <version>3.4.2</version>
             </extension>
         </extensions>
     </build>

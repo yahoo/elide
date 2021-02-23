@@ -10,20 +10,18 @@ import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.filter.NotNullPredicate;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.FilterExpressionCheck;
-import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.CommitCheck;
-import com.yahoo.elide.security.checks.OperationCheck;
+import com.yahoo.elide.core.filter.predicates.NotNullPredicate;
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
+import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.yahoo.elide.core.type.Type;
 
 import java.util.Optional;
 import java.util.Set;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -36,9 +34,8 @@ import javax.persistence.Transient;
  */
 @Entity(name = "childEntity")
 @CreatePermission(expression = "initCheck")
-@SharePermission
-@ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheckOp AND initCheckFilter")
-@Include(rootLevel = true, type = "child")
+@ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheck AND initCheckFilter")
+@Include(type = "child")
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
        logStatement = "DELETE Child {0} Parent {1}",
@@ -95,7 +92,7 @@ public class Child extends BaseId {
     }
 
     @OneToOne(targetEntity = Child.class, fetch = FetchType.LAZY)
-    @ReadPermission(expression = "deny all")
+    @ReadPermission(expression = "Prefab.Role.None")
     public Child getNoReadAccess() {
         return noReadAccess;
     }
@@ -115,20 +112,7 @@ public class Child extends BaseId {
         throw new IllegalAccessError();
     }
 
-    /**
-     * Initialization validation check.
-     */
-    static public class InitCheck extends CommitCheck<Child> {
-        @Override
-        public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            if (child.getParents() != null) {
-                return true;
-            }
-            return false;
-        }
-    }
-
-    static public class InitCheckOp extends OperationCheck<Child> {
+    static public class InitCheck extends OperationCheck<Child> {
         @Override
         public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             if (child.getParents() != null) {
@@ -140,7 +124,7 @@ public class Child extends BaseId {
 
     static public class InitCheckFilter extends FilterExpressionCheck<Child> {
         @Override
-        public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Type entityClass, RequestScope requestScope) {
             return new NotNullPredicate(new Path.PathElement(Child.class, Long.class, "id"));
         }
     }

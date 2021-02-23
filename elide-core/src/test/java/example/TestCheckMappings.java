@@ -6,12 +6,11 @@
 package example;
 
 import com.yahoo.elide.core.PersistentResourceTest;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.PermissionExecutorTest;
-import com.yahoo.elide.security.checks.Check;
-import com.yahoo.elide.security.checks.OperationCheck;
-import com.yahoo.elide.security.checks.prefab.Role;
-
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.PermissionExecutorTest;
+import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.security.checks.OperationCheck;
+import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Optional;
@@ -22,24 +21,20 @@ import java.util.Optional;
 public class TestCheckMappings {
     public static final ImmutableMap<String, Class<? extends Check>> MAPPINGS =
             ImmutableMap.<String, Class<? extends Check>>builder()
-                    .put("allow all", Role.ALL.class)
-                    .put("deny all", Role.NONE.class)
+                    .put("Prefab.Role.All", Role.ALL.class)
                     .put("changeSpecCollection", PersistentResourceTest.ChangeSpecCollection.class)
                     .put("changeSpecNonCollection", PersistentResourceTest.ChangeSpecNonCollection.class)
                     .put("initCheck", Child.InitCheck.class)
-                    .put("initCheckOp", Child.InitCheckOp.class)
                     .put("parentInitCheck", Parent.InitCheck.class)
-                    .put("parentInitCheckOp", Parent.InitCheckOp.class)
                     .put("negativeIntegerUser", NegativeIntegerUserCheck.class)
                     .put("negativeChildId", NegativeChildIdCheck.class)
-                    .put("FailAtCommit", PermissionExecutorTest.FailingCommitCheck.class)
+                    .put("FailOp", PermissionExecutorTest.FailingOperationCheck.class)
                     .put("privatePermission", PrivatePermission.class)
                     .put("sampleOperation", PermissionExecutorTest.SampleOperationCheck.class)
-                    .put("sampleCommit", PermissionExecutorTest.SampleCommitCheck.class)
-                    .put("sampleOperationCommitInverse", PermissionExecutorTest.SampleOperationCheckCommitInverse.class)
+                    .put("sampleOperationInverse", PermissionExecutorTest.SampleOperationCheckInverse.class)
                     .put("shouldCache", PermissionExecutorTest.ShouldCache.class)
                     .put("peUserCheck", PermissionExecutorTest.UserCheckTest.class)
-                    .put("passingCommit", PermissionExecutorTest.PassingCommitCheck.class)
+                    .put("passingOp", PermissionExecutorTest.PassingOperationCheck.class)
                     .put("Principal is user one", UserIdChecks.UserOneCheck.class)
                     .put("Principal is user two", UserIdChecks.UserTwoCheck.class)
                     .put("Principal is user three", UserIdChecks.UserThreeCheck.class)
@@ -50,7 +45,7 @@ public class TestCheckMappings {
 
     private static final class PrivatePermission extends OperationCheck<Object> {
         @Override
-        public boolean ok(Object object, com.yahoo.elide.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
+        public boolean ok(Object object, com.yahoo.elide.core.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return false;
         }
     }

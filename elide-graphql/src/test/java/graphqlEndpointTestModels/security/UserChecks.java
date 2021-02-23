@@ -5,8 +5,8 @@
  */
 package graphqlEndpointTestModels.security;
 
-import com.yahoo.elide.security.User;
-import com.yahoo.elide.security.checks.UserCheck;
+import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.core.security.checks.UserCheck;
 
 import java.security.Principal;
 
@@ -18,7 +18,7 @@ public class UserChecks {
         public static class One extends UserCheck {
             @Override
             public boolean ok(User user) {
-                Principal principal = (Principal) user.getOpaqueUser();
+                Principal principal = user.getPrincipal();
                 if (principal == null) {
                     return false;
                 }
@@ -29,7 +29,7 @@ public class UserChecks {
         public static class Two extends UserCheck {
             @Override
             public boolean ok(User user) {
-                Principal principal = (Principal) user.getOpaqueUser();
+                Principal principal = user.getPrincipal();
                 if (principal == null) {
                     return false;
                 }

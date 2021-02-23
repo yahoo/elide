@@ -1,0 +1,19 @@
+{
+    tables: [{
+        name: postView
+        table: Post
+        description:
+        '''
+        A long description
+        '''
+        cardinality : large
+        readAccess : Prefab.Role.All
+        dimensions : [
+            {
+                name : content
+                type : TEXT
+                definition : '{{content}}'
+            }
+        ]
+    }]
+}

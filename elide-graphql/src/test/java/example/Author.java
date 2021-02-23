@@ -8,8 +8,6 @@ package example;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
-
 import lombok.Builder;
 
 import java.util.ArrayList;
@@ -22,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -40,8 +37,7 @@ import javax.persistence.Transient;
  */
 @Entity
 @Table(name = "author")
-@Include(rootLevel = true)
-@SharePermission
+@Include
 @Audit(action = Audit.Action.CREATE,
         operation = 10,
         logStatement = "{0}",

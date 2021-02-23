@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.hibernate5.porting;
 
 import com.yahoo.elide.core.hibernate.Query;
-
 import lombok.Getter;
 
 import java.util.Collection;

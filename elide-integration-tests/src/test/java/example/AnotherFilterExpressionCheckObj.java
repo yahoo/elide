@@ -7,18 +7,17 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.security.FilterExpressionCheck;
-import com.yahoo.elide.security.RequestScope;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
+import com.yahoo.elide.core.type.Type;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
@@ -27,10 +26,9 @@ import javax.persistence.Table;
  * Model for anotherFilterExpressionCheckObj.
  */
 @Entity
-@SharePermission
 @Table(name = "anotherFilterExpressionCheckObj")
 @ReadPermission(expression = "checkActsLikeFilter")
-@Include(rootLevel = true)
+@Include
 public class AnotherFilterExpressionCheckObj extends BaseId {
     private String anotherName;
     private long createDate = 0;
@@ -74,7 +72,7 @@ public class AnotherFilterExpressionCheckObj extends BaseId {
     public static class CheckActsLikeFilter extends FilterExpressionCheck {
 
         @Override
-        public FilterExpression getFilterExpression(Class entityClass, RequestScope requestScope) {
+        public FilterExpression getFilterExpression(Type entityClass, RequestScope requestScope) {
             return createFilterPredicate();
         }
 

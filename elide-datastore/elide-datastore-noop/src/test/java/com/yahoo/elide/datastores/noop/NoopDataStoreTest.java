@@ -5,14 +5,13 @@
  */
 package com.yahoo.elide.datastores.noop;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.yahoo.elide.beans.NoopBean;
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
-
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -25,7 +24,7 @@ public class NoopDataStoreTest {
         DataStore store = new NoopDataStore(Arrays.asList(NoopBean.class));
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
         store.populateEntityDictionary(dictionary);
-        assertEquals(NoopBean.class, dictionary.getEntityClass("theNoopBean"));
+        assertEquals(getClassType(NoopBean.class), dictionary.getEntityClass("theNoopBean", EntityDictionary.NO_VERSION));
     }
 
     @Test

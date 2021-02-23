@@ -2,6 +2,7 @@ server:
   port: 4001
 
 elide:
+  baseUrl: 'https://elide.io'
   json-api:
     path: /json
     enabled: true
@@ -11,11 +12,26 @@ elide:
   swagger:
     path: /doc
     enabled: true
-    version: "1.0"
-
+  async:
+    enabled: true
+    threadPoolSize: 7
+    maxRunTimeMinutes: 65
+    cleanupEnabled: true
+    queryCleanupDays: 7
+    defaultAsyncAPIDAO: true
+    export:
+      enabled: true
+      path: /export
+  dynamic-config:
+    path: src/test/resources/configs
+    enabled: true
+  aggregation-store:
+    enabled: true
+    default-dialect: h2
+    enableMetaDataStore: true
 spring:
   jpa:
-    show_sql: true
+    show-sql: true
     properties:
       hibernate:
         dialect: 'org.hibernate.dialect.H2Dialect'
@@ -25,7 +41,6 @@ spring:
       naming:
         physical-strategy: 'org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl'
       ddl-auto: 'create'
-
   datasource:
     url: 'jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1'
     username: 'sa'

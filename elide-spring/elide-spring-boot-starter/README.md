@@ -3,11 +3,10 @@
 For more information on Elide, visit [elide.io](https://elide.io).
 
 Opinionated jar which packages dependencies to get started with Elide and Spring Boot.  The starter includes:
-1. Spring Boot Web (minus tomcat)
-2. Spring Boot Jetty
-3. Spring Boot JPA
-4. YAML Configuration
-5. All of the Elide dependencies
+1. Spring Boot Web
+2. Spring Boot JPA
+3. YAML Configuration
+4. All of the Elide dependencies
 
 ## Maven Dependency
 

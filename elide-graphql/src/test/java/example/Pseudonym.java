@@ -6,7 +6,6 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,7 +19,7 @@ import javax.persistence.OneToOne;
  * An author's pen-name
  */
 @Entity
-@Include
+@Include(rootLevel = false)
 public class Pseudonym {
     private long id;
     private Author author;

@@ -16,7 +16,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "assigned_id_long")
-@Include(rootLevel = true)
+@Include
 public class AssignedIdLong {
     private long id;
     private int value;

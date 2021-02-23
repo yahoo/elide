@@ -1,0 +1,56 @@
+{
+  tables: [{
+      name: PlayerStats
+      // Sql has disallowed words
+      sql: Truncate Table PlayerStats
+      schema: gamedb
+      description:
+      '''
+      A long description
+      '''
+      cardinality : large
+      hidden : false
+      readAccess : A user is admin or is a player in the game
+      joins: [
+          {
+             name: playerCountry
+             to: country
+             kind: toOne
+             definition: '{{playerCountry.id}} = {{country_id}}'
+          },
+          {
+             name: playerTeam
+             to: team
+             kind: toMany
+             definition: '{{playerTeam.id}} = {{team_id}}'
+          }
+      ]
+
+      measures : [
+          {
+          name : highScore
+          type : INTEGER
+          definition: 'MAX({{score}})'
+          }
+      ]
+      dimensions : [
+         {
+           name : countryIsoCode
+           type : TEXT
+           definition : '{{playerCountry.isoCode}}'
+         },
+         {
+           name : createdOn
+           type : TIME
+           definition : '{{create_on}}'
+           grains:
+            [{
+             type : DAY
+             sql :  '''
+             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+             '''
+            }]
+         }
+      ]
+  }]
+}

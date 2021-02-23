@@ -5,24 +5,24 @@
  */
 package com.yahoo.elide.core.hibernate.hql;
 
-import com.yahoo.elide.core.EntityDictionary;
+import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.core.utils.TypeHelper.getTypeAlias;
 import com.yahoo.elide.core.Path.PathElement;
-import com.yahoo.elide.core.filter.FilterPredicate;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterTranslator;
-import com.yahoo.elide.core.filter.InPredicate;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.ExpressionScopingVisitor;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.utils.coerce.CoerceUtil;
+import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Optional;
 
 /**
  * Constructs a HQL query to fetch the size of a hibernate collection proxy.
@@ -34,18 +34,8 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
     public SubCollectionPageTotalsQueryBuilder(Relationship relationship,
                                                EntityDictionary dictionary,
                                                Session session) {
-        super(dictionary, session);
+        super(relationship.getRelationship().getProjection(), dictionary, session);
         this.relationship = relationship;
-    }
-
-    @Override
-    public AbstractHQLQueryBuilder withPossiblePagination(Optional<Pagination> ignored) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public AbstractHQLQueryBuilder withPossibleSorting(Optional<Sorting> ignored) {
-        throw new UnsupportedOperationException();
     }
 
     /**
@@ -65,8 +55,8 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
      */
     @Override
     public Query build() {
-        Class<?> parentType = dictionary.lookupEntityClass(relationship.getParentType());
-        Class<?> idType = dictionary.getIdType(parentType);
+        Type<?> parentType = dictionary.lookupEntityClass(relationship.getParentType());
+        Type<?> idType = dictionary.getIdType(parentType);
         Object idVal = CoerceUtil.coerce(dictionary.getId(relationship.getParent()), idType);
         String idField = dictionary.getIdFieldName(parentType);
 
@@ -80,16 +70,19 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
         String relationshipName = relationship.getRelationshipName();
 
         //Relationship alias is Author_books
-        String parentAlias = FilterPredicate.getTypeAlias(parentType);
-        String relationshipAlias = parentAlias + UNDERSCORE + relationshipName;
+        String parentAlias = getTypeAlias(parentType);
+        String relationshipAlias = appendAlias(parentAlias, relationshipName);
 
-        if (filterExpression.isPresent()) {
+        FilterExpression filterExpression = entityProjection.getFilterExpression();
+        if (filterExpression != null) {
             // Copy and scope the filter expression for the join clause
             ExpressionScopingVisitor visitor = new ExpressionScopingVisitor(
                     new PathElement(parentType, relationship.getChildType(), relationship.getRelationshipName()));
-            FilterExpression scoped = filterExpression
-                    .map(fe -> fe.accept(visitor))
-                    .orElseThrow(() -> new IllegalStateException("Filter expression cloned to null"));
+            if (filterExpression == null) {
+                throw new IllegalStateException("Filter expression cloned to null");
+            }
+
+            FilterExpression scoped = filterExpression.accept(visitor);
 
             //For each filter predicate, prepend the predicate with the parent:
             //books.title = 'Foobar' becomes author.books.title = 'Foobar'
@@ -105,7 +98,7 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
             joinClause = getJoinClauseFromFilters(joinedExpression, true);
 
             //Build the WHERE clause
-            filterClause = new FilterTranslator().apply(joinedExpression, USE_ALIAS);
+            filterClause = new FilterTranslator(dictionary).apply(joinedExpression, USE_ALIAS);
         } else {
 
             //If there is no filter, we still need to explicitly JOIN book and authors.
@@ -116,7 +109,7 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
                     + relationshipAlias
                     + SPACE;
 
-            filterClause = new FilterTranslator().apply(idExpression, USE_ALIAS);
+            filterClause = new FilterTranslator(dictionary).apply(idExpression, USE_ALIAS);
             predicates.add(idExpression);
         }
 
@@ -130,7 +123,7 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
                         + parentAlias
                         + SPACE
                         + joinClause
-                        + SPACE
+                        + WHERE
                         + filterClause);
 
         //Fill in the query parameters

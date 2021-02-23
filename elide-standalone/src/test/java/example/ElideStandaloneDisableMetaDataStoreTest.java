@@ -1,0 +1,64 @@
+/*
+ * Copyright 2020, Oath Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+package example;
+
+import static io.restassured.RestAssured.when;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import com.yahoo.elide.standalone.ElideStandalone;
+import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+
+/**
+ * Tests ElideStandalone starts and works.
+ */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class ElideStandaloneDisableMetaDataStoreTest extends ElideStandaloneTest {
+
+    @BeforeAll
+    public void init() throws Exception {
+        elide = new ElideStandalone(new ElideStandaloneTestSettings() {
+
+            @Override
+            public ElideStandaloneAnalyticSettings getAnalyticProperties() {
+                ElideStandaloneAnalyticSettings analyticPropeties = new ElideStandaloneAnalyticSettings() {
+                    @Override
+                    public boolean enableDynamicModelConfig() {
+                        return true;
+                    }
+
+                    @Override
+                    public boolean enableAggregationDataStore() {
+                        return true;
+                    }
+
+                    @Override
+                    public boolean enableMetaDataStore() {
+                        return false;
+                    }
+
+                    @Override
+                    public String getDynamicConfigPath() {
+                        return "src/test/resources/configs/";
+                    }
+                };
+                return analyticPropeties;
+            }
+        });
+        elide.start(false);
+    }
+
+    @Override
+    @Test
+    public void swaggerDocumentTest() {
+        when()
+        .get("/swagger/doc/test")
+         .then()
+         .statusCode(200)
+         .body("tags.name", containsInAnyOrder("post", "asyncQuery", "postView"));
+    }
+}

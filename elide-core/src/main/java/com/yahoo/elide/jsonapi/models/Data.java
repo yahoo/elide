@@ -5,20 +5,16 @@
  */
 package com.yahoo.elide.jsonapi.models;
 
-import com.yahoo.elide.core.RelationshipType;
+import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.jsonapi.serialization.DataDeserializer;
 import com.yahoo.elide.jsonapi.serialization.DataSerializer;
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
+import io.reactivex.Observable;
 import lombok.ToString;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Container for different representations of top-level data in JSON API.
@@ -29,7 +25,7 @@ import java.util.stream.Collectors;
 @JsonDeserialize(using = DataDeserializer.class)
 @ToString
 public class Data<T> {
-    private final Collection<T> values;
+    private final Observable<T> values;
     private final RelationshipType relationshipType;
 
     /**
@@ -38,7 +34,11 @@ public class Data<T> {
      * @param value singleton resource
      */
     public Data(T value) {
-        this.values = new SingleElementSet<>(value);
+        if (value == null) {
+            this.values = Observable.empty();
+        } else {
+            this.values = Observable.fromArray(value);
+        }
         this.relationshipType = RelationshipType.MANY_TO_ONE; // Any "toOne"
     }
 
@@ -47,9 +47,39 @@ public class Data<T> {
      *
      * @param values List of resources
      */
-    public Data(Collection<T> values) {
+    public Data(Observable<T> values) {
+        this(values, RelationshipType.MANY_TO_MANY);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param values List of resources
+     * @param relationshipType toOne or toMany
+     */
+    public Data(Observable<T> values, RelationshipType relationshipType) {
         this.values = values;
-        this.relationshipType = RelationshipType.MANY_TO_MANY; // Any "toMany"
+        this.relationshipType = relationshipType;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param values List of resources
+     */
+    public Data(Collection<T> values) {
+        this(values, RelationshipType.MANY_TO_MANY);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param values List of resources
+     * @param relationshipType toOne or toMany
+     */
+    public Data(Collection<T> values, RelationshipType relationshipType) {
+        this.values = Observable.fromIterable(values);
+        this.relationshipType = relationshipType;
     }
 
     /**
@@ -58,18 +88,11 @@ public class Data<T> {
      * @param sortFunction comparator to sort data with
      */
     public void sort(Comparator<T> sortFunction) {
-        if (values instanceof List) {
-            ((List<T>) values).sort(sortFunction);
-        } else {
-            ArrayList<T> sortedList = new ArrayList<>(values);
-            sortedList.sort(sortFunction);
-            values.clear();
-            values.addAll(sortedList);
-        }
+        this.values.sorted(sortFunction);
     }
 
     public Collection<T> get() {
-        return values;
+        return values.toList().blockingGet();
     }
 
     /**
@@ -89,7 +112,10 @@ public class Data<T> {
      */
     public T getSingleValue() {
         if (isToOne()) {
-            return ((SingleElementSet<T>) values).getValue();
+            if (values.isEmpty().blockingGet()) {
+                return null;
+            }
+            return values.blockingSingle();
         }
 
         throw new IllegalAccessError("Data is not toOne");
@@ -97,8 +123,8 @@ public class Data<T> {
 
     @SuppressWarnings("unchecked")
     public Collection<ResourceIdentifier> toResourceIdentifiers() {
-        return ((Collection<Resource>) get()).stream()
-                                             .map(object -> object != null ? object.toResourceIdentifier() : null)
-                                             .collect(Collectors.toList());
+        return values
+                .map(object -> object != null ? ((Resource) object).toResourceIdentifier() : null)
+                .toList().blockingGet();
     }
 }

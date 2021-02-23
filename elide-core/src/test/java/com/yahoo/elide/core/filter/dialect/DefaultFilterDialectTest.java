@@ -5,10 +5,11 @@
  */
 package com.yahoo.elide.core.filter.dialect;
 
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import example.Author;
 import example.Book;
@@ -17,12 +18,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.Map;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * Tests filter query parameter parsing for the default Elide implementation (1.0 and 2.0)
+ * Tests filter query parameter parsing for the default Elide implementation (1.0 and 2.0).
  */
 public class DefaultFilterDialectTest {
 
@@ -51,7 +51,7 @@ public class DefaultFilterDialectTest {
                 "Hemingway"
         );
 
-        FilterExpression filterExpression = dialect.parseGlobalExpression("/author", queryParams);
+        FilterExpression filterExpression = dialect.parseGlobalExpression("/author", queryParams, NO_VERSION);
 
         assertEquals(
                 "(author.books.title IN [foo, bar, baz] AND author.name INFIX [Hemingway])",
@@ -84,7 +84,7 @@ public class DefaultFilterDialectTest {
                 "foo,bar,baz"
         );
 
-        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams);
+        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams, NO_VERSION);
 
         assertEquals(2, expressionMap.size());
         assertEquals("(book.title IN [foo, bar, baz] AND book.genre IN [scifi])", expressionMap.get("book").toString());
@@ -101,7 +101,7 @@ public class DefaultFilterDialectTest {
                 "foo,bar,baz"
         );
 
-        assertThrows(ParseException.class, () -> dialect.parseTypedExpression("/invalid", queryParams));
+        assertThrows(ParseException.class, () -> dialect.parseTypedExpression("/invalid", queryParams, NO_VERSION));
     }
 
     @Test
@@ -113,7 +113,7 @@ public class DefaultFilterDialectTest {
                 "foo,bar,baz"
         );
 
-        assertThrows(ParseException.class, () -> dialect.parseTypedExpression("/book", queryParams));
+        assertThrows(ParseException.class, () -> dialect.parseTypedExpression("/book", queryParams, NO_VERSION));
     }
 
     @Test
@@ -126,7 +126,7 @@ public class DefaultFilterDialectTest {
                 "foo,bar,baz"
         );
 
-        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams);
+        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams, NO_VERSION);
 
         assertEquals(1, expressionMap.size());
         assertEquals("author.books.title IN [foo, bar, baz]", expressionMap.get("author").toString());
@@ -142,7 +142,7 @@ public class DefaultFilterDialectTest {
         );
 
         assertThrows(ParseException.class,
-                () -> dialect.parseTypedExpression("/book", queryParams));
+                () -> dialect.parseTypedExpression("/book", queryParams, NO_VERSION));
     }
 
     @Test
@@ -155,12 +155,12 @@ public class DefaultFilterDialectTest {
 
         assertEquals(
                 "{book=book.awards HASNOMEMBER [awards1]}",
-                dialect.parseTypedExpression("/book", queryParams).toString()
+                dialect.parseTypedExpression("/book", queryParams, NO_VERSION).toString()
         );
     }
 
     @Test
-    public void testMemberOfOperatorException() throws Exception {
+    public void testMemberOfToManyRelationship() throws Exception {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
 
         queryParams.add(
@@ -168,16 +168,40 @@ public class DefaultFilterDialectTest {
                 "name"
         );
 
-        assertThrows(ParseException.class,
-                () -> dialect.parseTypedExpression("/book", queryParams));
+        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/book", queryParams,
+                NO_VERSION);
 
-        queryParams.clear();
+        assertEquals(1, expressionMap.size());
+        assertEquals("book.authors.name HASMEMBER [name]", expressionMap.get("book").toString());
+    }
+
+    @Test
+    public void testMemberOfOperatorOnNonCollectionAttributeException() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.add(
                 "filter[book.title][hasmember]",
                 "title"
         );
 
-        assertThrows(ParseException.class,
-                () -> dialect.parseTypedExpression("/book", queryParams));
+        ParseException e = assertThrows(ParseException.class,
+                () -> dialect.parseTypedExpression("/book", queryParams, NO_VERSION));
+
+        assertEquals("Invalid Path: Last Path Element has to be a collection type", e.getMessage());
+    }
+
+    @Test
+    public void testMemberOfOperatorOnRelationshipException() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.clear();
+        queryParams.add(
+                "filter[book.authors][hasmember]",
+                "1"
+        );
+
+        ParseException e = assertThrows(ParseException.class,
+                () -> dialect.parseTypedExpression("/book", queryParams, NO_VERSION));
+
+        assertEquals("Invalid Path: Last Path Element cannot be a collection type", e.getMessage());
     }
 }

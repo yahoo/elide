@@ -6,33 +6,23 @@
 package com.yahoo.elide.errorObjectsTests;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
-import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.datum;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import com.yahoo.elide.initialization.ErrorObjectsIntegrationTestApplicationResourceConfig;
 import com.yahoo.elide.initialization.IntegrationTest;
-import com.yahoo.elide.resources.JsonApiEndpoint;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-
 import javax.ws.rs.core.MediaType;
 
 public class ErrorObjectsIT extends IntegrationTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    public ErrorObjectsIT() {
-        super(ErrorObjectsIntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
-    }
 
     @Test
     public void testJsonAPIErrorObjects() throws IOException {

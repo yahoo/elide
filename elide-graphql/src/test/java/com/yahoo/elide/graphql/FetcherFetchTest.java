@@ -7,12 +7,10 @@
 package com.yahoo.elide.graphql;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.RequestScope;
 import org.junit.jupiter.api.Test;
-
 import graphql.ExecutionResult;
+
+import java.util.HashMap;
 
 /**
  * Test the Fetch operation.
@@ -27,6 +25,11 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     @Test
     public void testRootSingle() throws Exception {
         runComparisonTest("rootSingle");
+    }
+
+    @Test
+    public void testRootUnknownField() throws Exception {
+        assertParsingFails(loadGraphQLRequest("fetch/rootUnknownField.graphql"));
     }
 
     @Test
@@ -70,6 +73,11 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
+    public void testRootCollectionInvalidSort() throws Exception {
+        assertParsingFails(loadGraphQLRequest("fetch/rootCollectionInvalidSort.graphql"));
+    }
+
+    @Test
     public void testRootCollectionMultiSort() throws Exception {
         runComparisonTest("rootCollectionMultiSort");
     }
@@ -100,6 +108,16 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
+    public void testFilterByAlias() throws Exception {
+        runComparisonTest("filterByAlias");
+    }
+
+    @Test
+    public void sortByAlias() throws Exception {
+        runComparisonTest("sortByAlias");
+    }
+
+    @Test
     public void testRootCollectionFilter() throws Exception {
         runComparisonTest("rootCollectionFilter");
     }
@@ -115,10 +133,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testFailuresWithBody() throws Exception {
-        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
-        RequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, settings);
-
+    public void testFailuresWithBody() {
         String graphQLRequest = "{ "
                 + "book(ids: [\"1\"], data: [{\"id\": \"1\"}]) { "
                 + "edges { node { "
@@ -127,8 +142,8 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
                 + "}}"
                 + "} "
                 + "}";
-        ExecutionResult result = api.execute(graphQLRequest, requestScope);
-        assertTrue(!result.getErrors().isEmpty());
+
+        assertParsingFails(graphQLRequest);
     }
 
     @Test
@@ -162,41 +177,101 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     }
 
     @Test
-    public void testFetchWithFragments() throws Exception {
-        runComparisonTest("fetchWithFragment");
+    public void testFragmentOnNode() throws Exception {
+        runComparisonTest("fragmentOnNode");
     }
 
     @Test
-    public void testSchemaIntrospection() throws Exception {
-        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
-        RequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, settings);
+    public void testFragmentOnConnection() throws Exception {
+        runComparisonTest("fragmentOnConnection");
+    }
 
+    @Test
+    public void testFragmentOnEdges() throws Exception {
+        runComparisonTest("fragmentOnEdges");
+    }
+
+    @Test
+    public void testFragmentLoop() throws Exception {
+        assertParsingFails(loadGraphQLRequest("fetch/fragmentLoop.graphql"));
+    }
+
+    @Test
+    public void testFragmentInline() throws Exception {
+        assertParsingFails(loadGraphQLRequest("fetch/fragmentInline.graphql"));
+    }
+
+    @Test
+    public void testFragmentUnknown() throws Exception {
+        assertParsingFails(loadGraphQLRequest("fetch/fragmentUnknown.graphql"));
+    }
+
+    @Test
+    public void testVariableDefinition() throws Exception {
+        runComparisonTest("variableDefinition");
+    }
+
+    @Test
+    public void testVariableUnknownReference() throws Exception {
+        assertParsingFails(loadGraphQLRequest("fetch/variableUnknownReference.graphql"));
+    }
+
+    @Test
+    public void testVariableInvalidNonNull() throws Exception {
+        assertParsingFails(loadGraphQLRequest("fetch/variableInvalidNonNull.graphql"));
+    }
+
+    @Test
+    public void testAliasAttribute() throws Exception {
+        runComparisonTest("aliasAttribute");
+    }
+
+    @Test
+    public void testAliasRelationship() throws Exception {
+        runComparisonTest("aliasRelationship");
+    }
+
+    @Test
+    public void testAliasSameRelationship() throws Exception {
+        runComparisonTest("aliasSameRelationship");
+    }
+
+    @Test
+    public void testAliasAmbiguous() throws Exception {
+        assertParsingFails(loadGraphQLRequest("fetch/aliasAmbiguous.graphql"));
+    }
+
+    @Test
+    public void testAliasPartialQueryAmbiguous() throws Exception {
+        assertParsingFails(loadGraphQLRequest("fetch/aliasPartialQueryAmbiguous.graphql"));
+    }
+
+    @Test
+    public void testSchemaIntrospection() {
         String graphQLRequest = "{"
-            + "__schema {"
-            + "types {"
-            + "   name"
-            + "}"
-            + "}"
-            + "}";
-        ExecutionResult result = api.execute(graphQLRequest, requestScope);
+                + "__schema {"
+                + "types {"
+                + "   name"
+                + "}"
+                + "}"
+                + "}";
+
+        ExecutionResult result = runGraphQLRequest(graphQLRequest, new HashMap<>());
 
         assertTrue(result.getErrors().isEmpty());
     }
 
     @Test
-    public void testTypeIntrospection() throws Exception {
-        DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
-        RequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, settings);
-
+    public void testTypeIntrospection() {
         String graphQLRequest = "{"
-            + "__type(name: \"author\") {"
+            + "__type(name: \"Author\") {"
             + "   name"
             + "   fields {"
             + "     name"
             + "   }"
             + "}"
             + "}";
-        ExecutionResult result = api.execute(graphQLRequest, requestScope);
+        ExecutionResult result = runGraphQLRequest(graphQLRequest, new HashMap<>());
 
         assertTrue(result.getErrors().isEmpty());
     }

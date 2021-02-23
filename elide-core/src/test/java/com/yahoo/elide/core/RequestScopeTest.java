@@ -5,18 +5,20 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.ClassType;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
-
+import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -48,14 +50,14 @@ public class RequestScopeTest {
         //       the datastore.
 
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class MyBaseClass {
             @Id
             public long id;
         }
 
         @Entity
-        @Include
+        @Include(rootLevel = false)
         class MyInheritedClass extends MyBaseClass {
             public String myField;
         }
@@ -65,14 +67,14 @@ public class RequestScopeTest {
         dictionary.bindEntity(MyBaseClass.class);
         dictionary.bindEntity(MyInheritedClass.class);
 
-        RequestScope requestScope = new RequestScope(null, "/", null, null, null, null,
+        RequestScope requestScope = new RequestScope(null, "/", NO_VERSION, null, null, null, null, null, UUID.randomUUID(),
                 new ElideSettingsBuilder(null)
                         .withEntityDictionary(dictionary)
                         .build());
 
         String myId = "myId";
         // Test that a new inherited class is counted for base type
-        requestScope.setUUIDForObject(dictionary.getJsonAliasFor(MyInheritedClass.class), myId, new MyInheritedClass());
-        assertNotNull(requestScope.getObjectById(dictionary.getJsonAliasFor(MyBaseClass.class), myId));
+        requestScope.setUUIDForObject(new ClassType(MyInheritedClass.class), myId, new MyInheritedClass());
+        assertNotNull(requestScope.getObjectById(new ClassType(MyBaseClass.class), myId));
     }
 }

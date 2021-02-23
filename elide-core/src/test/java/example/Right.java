@@ -6,13 +6,10 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.SharePermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -24,9 +21,8 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 
-@Include(rootLevel = true, type = "right") // optional here because class has this name
-@SharePermission
-@UpdatePermission(expression = "deny all")
+@Include(type = "right") // optional here because class has this name
+@UpdatePermission(expression = "Prefab.Role.None")
 @Entity
 @Table(name = "xright")     // right is SQL keyword
 public class Right {
@@ -42,7 +38,7 @@ public class Right {
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class
     )
-    @UpdatePermission(expression = "allow all")
+    @UpdatePermission(expression = "Prefab.Role.All")
     public Left getOne2one() {
         return one2one;
     }
@@ -73,7 +69,7 @@ public class Right {
         return id;
     }
 
-    @UpdatePermission(expression = "deny all")
+    @UpdatePermission(expression = "Prefab.Role.None")
     @OneToOne(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class
@@ -86,7 +82,7 @@ public class Right {
         this.noUpdateOne2One = noUpdateOne2One;
     }
 
-    @UpdatePermission(expression = "deny all")
+    @UpdatePermission(expression = "Prefab.Role.None")
     @ManyToMany(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE },
             targetEntity = Left.class
@@ -102,7 +98,7 @@ public class Right {
     @ManyToMany(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE }
     )
-    @UpdatePermission(expression = "allow all")
+    @UpdatePermission(expression = "Prefab.Role.All")
     public Set<Left> getAllowDeleteAtFieldLevel() {
         return allowDeleteAtFieldLevel;
     }

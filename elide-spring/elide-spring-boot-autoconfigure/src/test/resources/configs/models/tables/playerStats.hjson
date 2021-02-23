@@ -1,0 +1,64 @@
+{
+    tables: [{
+        name: playerStats
+        table: PlayerStats
+        description:
+        '''
+        A long description
+        '''
+        cardinality : large
+        readAccess : Prefab.Role.All
+        filterTemplate : createdOn>={{start}};createdOn<{{end}}
+        joins: [
+            {
+                name: playerCountry
+                to: playerCountry
+                kind: toOne
+                definition: '{{playerCountry.id}} = {{countryId}}'
+            }
+        ]
+        measures : [
+            {
+            name : highScore
+            type : INTEGER
+            definition: 'MAX({{highScore}})'
+            }
+        ]
+        dimensions : [
+            {
+                name : name
+                type : TEXT
+                definition : '{{name}}'
+            },
+            {
+                name : countryCode
+                type : TEXT
+                definition : '{{playerCountry.isoCode}}'
+            },
+            {
+                name : createdOn
+                type : TIME
+                definition : '{{createdOn}}'
+                grains:
+                [{
+                    type : DAY
+                    sql : '''
+                    PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+                    '''
+                }]
+            },
+            {
+                name : updatedOn
+                type : TIME
+                definition : '{{updatedOn}}'
+                grains:
+                [{
+                    type : MONTH
+                    sql : '''
+                    PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
+                    '''
+                }]
+            }
+        ]
+    }]
+}

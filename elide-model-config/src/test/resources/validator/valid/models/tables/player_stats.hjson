@@ -1,0 +1,92 @@
+{
+  tables: [{
+      name: PlayerStats
+      friendlyName: Player Statistics
+      table: player_stats
+      schema: gamedb
+      description:
+      // newlines are replaced by single space in handlebar if no helper function is applied
+      '''
+      A long description
+      with newline
+       and additional space at start of this line.
+      '''
+      category: Table Category
+      cardinality : lARge
+      hidden : false
+      readAccess : (user AND member) OR (admin AND NOT gu.est user)
+      filterTemplate : countryIsoCode=={{code}}
+      tags: ['GAME', 'PLAYER',  '''
+      A tag
+      with newline
+      ''']
+      joins: [
+          {
+             name: playerCountry
+             to: Country
+             type: Cross
+          },
+          {
+             name: playerTeam
+             to: Team
+             kind: Tomany
+             type: left
+             definition: '{{playerTeam.id}} = {{ team_id}}'
+          }
+      ]
+
+      measures : [
+          {
+          name : highScore
+          friendlyName : High Score
+          type : INteGER
+          description : very awesome score
+          definition: 'MAX({{score}})'
+          tags: ['PUBLIC']
+          },
+          {
+          name : newHighScore
+          type : INteGER
+          description : very awesome score
+          definition: 'MAX({{score}})'
+          tags: ['PUBLIC']
+          }
+      ]
+      dimensions : [
+         {
+           name : countryIsoCode
+           friendlyName : Country ISO Code
+           type : TEXT
+           category : country detail
+           definition : '{{playerCountry.isoCode}}'
+           values : ['US', 'HK']
+           tags: ['PRIVATE']
+           cardinality: Small
+         },
+         {
+           name : teamRegion
+           type : TEXT
+           definition : '{{playerTeam.region}}'
+           tableSource: PlayerStatsChild.teamRegion
+         },
+         {
+           name : createdOn
+           friendlyName : Created On
+           type : TIME
+           definition : '{{create_on}}'
+           grains:
+            [{
+             type : DaY
+             sql :  '''
+             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+             '''
+            }]
+         },
+         {
+           name : updatedOn
+           type : TIme
+           definition : '{{updated_on}}'
+         }
+      ]
+  }]
+}

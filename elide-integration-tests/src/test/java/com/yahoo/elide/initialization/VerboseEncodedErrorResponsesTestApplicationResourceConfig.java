@@ -5,8 +5,7 @@
  */
 package com.yahoo.elide.initialization;
 
-import com.yahoo.elide.audit.TestAuditLogger;
-
+import com.yahoo.elide.core.audit.TestAuditLogger;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -16,6 +15,6 @@ public class VerboseEncodedErrorResponsesTestApplicationResourceConfig extends R
 
     @Inject
     public VerboseEncodedErrorResponsesTestApplicationResourceConfig(ServiceLocator injector) {
-        register(new EncodedErrorResponsesTestBinder(new TestAuditLogger(), injector, true, false));
+        register(new VerboseErrorResponsesTestBinder(new TestAuditLogger(), injector));
     }
 }

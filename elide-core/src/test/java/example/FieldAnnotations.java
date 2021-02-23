@@ -8,14 +8,13 @@ package example;
 import com.yahoo.elide.annotation.Include;
 
 import java.util.Set;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
-@Include(rootLevel = true, type = "stringId")
+@Include(type = "stringId")
 @Entity
 public class FieldAnnotations {
 

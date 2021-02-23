@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core;
 
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -12,20 +13,24 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-
-import com.yahoo.elide.security.User;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.security.TestUser;
+import com.yahoo.elide.core.security.User;
 import example.Child;
 import example.FunWithPermissions;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSetup {
     private final RequestScope goodUserScope;
+    private final User goodUser;
     PersistentResourceNoopUpdateTest() {
-        goodUserScope = new RequestScope(null, null, null, mock(DataStoreTransaction.class),
-                new User(1), null, elideSettings);
+        goodUser = new TestUser("1");
+        goodUserScope = new RequestScope(null, null, NO_VERSION, null,
+                mock(DataStoreTransaction.class), goodUser, null, null, UUID.randomUUID(), elideSettings);
         initDictionary();
         reset(goodUserScope.getTransaction());
     }
@@ -35,13 +40,11 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
         Child child = newChild(1);
         fun.setRelation3(child);
 
-        User goodUser = new User(1);
-
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(null, null, null, tx, goodUser, null, elideSettings);
-        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
-        PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
+        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, null, UUID.randomUUID(), elideSettings);
+        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, "3", goodScope);
+        PersistentResource<Child> childResource = new PersistentResource<>(child, "1", goodScope);
         //We do not want the update to one method to be called when we add the existing entity to the relation
         funResource.addRelation("relation3", childResource);
 
@@ -53,13 +56,11 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
         FunWithPermissions fun = new FunWithPermissions();
         Child child = newChild(1);
 
-        User goodUser = new User(1);
-
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(null, null, null, tx, goodUser, null, elideSettings);
-        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
-        PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
+        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, null, UUID.randomUUID(), elideSettings);
+        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, "3", goodScope);
+        PersistentResource<Child> childResource = new PersistentResource<>(child, "1", goodScope);
         funResource.addRelation("relation3", childResource);
 
         verify(tx, times(1)).updateToOneRelation(eq(tx), eq(fun), any(), any(), eq(goodScope));
@@ -73,13 +74,11 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
         children.add(child);
         fun.setRelation1(children);
 
-        User goodUser = new User(1);
-
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(null, null, null, tx, goodUser, null, elideSettings);
-        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
-        PersistentResource<Child> childResource = new PersistentResource<>(child, null, null, goodScope);
+        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, null, UUID.randomUUID(), elideSettings);
+        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, "3", goodScope);
+        PersistentResource<Child> childResource = new PersistentResource<>(child, null, goodScope);
         //We do not want the update to one method to be called when we add the existing entity to the relation
         funResource.addRelation("relation1", childResource);
         verify(tx, never()).updateToManyRelation(eq(tx), eq(child), eq("relation1"), any(), any(), eq(goodScope));
@@ -90,13 +89,11 @@ public class PersistentResourceNoopUpdateTest extends PersistenceResourceTestSet
         FunWithPermissions fun = new FunWithPermissions();
         Child child = newChild(1);
 
-        User goodUser = new User(1);
-
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
 
-        RequestScope goodScope = new RequestScope(null, null, null, tx, goodUser, null, elideSettings);
-        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
-        PersistentResource<Child> childResource = new PersistentResource<>(child, null, null, goodScope);
+        RequestScope goodScope = new RequestScope(null, null, NO_VERSION, null, tx, goodUser, null, null, UUID.randomUUID(), elideSettings);
+        PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, "3", goodScope);
+        PersistentResource<Child> childResource = new PersistentResource<>(child, null, goodScope);
         funResource.addRelation("relation1", childResource);
         verify(tx, times(1)).updateToManyRelation(eq(tx), eq(fun), eq("relation1"), any(), any(), eq(goodScope));
     }

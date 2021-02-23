@@ -1,0 +1,79 @@
+{
+  // unsupported: additional property 'name'
+  name: Geography
+  tables:
+  [
+    {
+      // unsupported: name contains '@'
+      name: Country@10
+      table: country
+      // unsupported: cardinality value
+      cardinality: Extra Large
+      filterTemplate: countryIsoCode={{code}};startTime=={{start}}
+      measures:
+      [
+        {
+          name : highScore
+          type : INTEGER
+          description : very awesome score
+          definition: 'MAX({{score}})'
+          // unsupported: class name (@ is not allowed)
+          queryPlanResolver: 'com.yahoo.elide.datastores.aggregation.query@DefaultQueryPlanResolver.class'
+          tags: ['PUBLIC']
+        }
+      ]
+      dimensions:
+      [
+        {
+          // unsupported: field name is 'id'
+          name: id
+          // unsupported: field type
+          type: Float
+          definition: "{{id}}"
+          // unsupported: cardinality value
+          cardinality: Extra small
+          tableSource: abc.def
+        }
+        {
+          // unsupported: field name starts with '_'
+          name: _region
+          type: Text
+          definition: "{{region}}"
+          // unsupported: either values or table source is allowed not both
+          values:
+          [
+            US
+            HK
+          ]
+          tableSource: abc.def
+          // unsupported: tags should be array
+          tags: PRIVATE
+        }
+        {
+          name: createdOn
+          // unsupported field type
+          type: TIMEX
+          definition: "{{create_on}}"
+          grains:
+          [{
+            // unsupported grain type
+            type: Days
+          }]
+        }
+        {
+          name: updatedOn
+          type: Time
+          definition: "{{updated_on}}"
+          grains: [{
+              type: month
+          }]
+        }
+        {
+          name: modifiedOn
+          type: Time
+          definition: "{{modified_on}}"
+        }
+      ]
+    }
+  ]
+}

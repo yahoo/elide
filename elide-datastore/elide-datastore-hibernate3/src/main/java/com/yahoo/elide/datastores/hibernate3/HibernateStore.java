@@ -5,13 +5,12 @@
  */
 package com.yahoo.elide.datastores.hibernate3;
 
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.JPQLDataStore;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.TransactionException;
-
 import com.google.common.base.Preconditions;
-
 import org.hibernate.EntityMode;
 import org.hibernate.HibernateException;
 import org.hibernate.ScrollMode;
@@ -93,7 +92,7 @@ public class HibernateStore implements JPQLDataStore {
     public void populateEntityDictionary(EntityDictionary dictionary) {
         /* bind all entities */
         for (ClassMetadata meta : sessionFactory.getAllClassMetadata().values()) {
-            bindEntityClass(meta.getMappedClass(EntityMode.POJO), dictionary);
+            bindEntityClass(getClassType(meta.getMappedClass(EntityMode.POJO)), dictionary);
         }
     }
 

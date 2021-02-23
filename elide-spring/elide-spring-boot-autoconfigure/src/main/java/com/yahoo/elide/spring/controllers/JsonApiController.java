@@ -7,29 +7,36 @@ package com.yahoo.elide.spring.controllers;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
+import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
+import com.yahoo.elide.spring.security.AuthenticationUser;
+import com.yahoo.elide.utils.HeaderUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
 import lombok.extern.slf4j.Slf4j;
 
-import java.security.Principal;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.Callable;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.MultivaluedHashMap;
 
@@ -57,63 +64,114 @@ public class JsonApiController {
     }
 
     @GetMapping(value = "/**", produces = JSON_API_CONTENT_TYPE)
-    public ResponseEntity<String> elideGet(@RequestParam Map<String, String> allRequestParams,
-                                           HttpServletRequest request, Principal authentication) {
-        String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
-        String baseUrl = getBaseUrlEndpoint();
+    public Callable<ResponseEntity<String>> elideGet(@RequestHeader HttpHeaders requestHeaders,
+                                                     @RequestParam Map<String, String> allRequestParams,
+                                                     HttpServletRequest request, Authentication authentication) {
+        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned = HeaderUtils.removeAuthHeaders(requestHeaders);
+        final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        final User user = new AuthenticationUser(authentication);
+        final String baseUrl = getBaseUrlEndpoint();
 
-        ElideResponse response = elide
-                .get(baseUrl, pathname, new MultivaluedHashMap<>(allRequestParams), authentication);
-        return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+        return new Callable<ResponseEntity<String>>() {
+            @Override
+            public ResponseEntity<String> call() throws Exception {
+                ElideResponse response = elide.get(baseUrl, pathname,
+                        new MultivaluedHashMap<>(allRequestParams), requestHeadersCleaned,
+                        user, apiVersion, UUID.randomUUID());
+                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+            }
+        };
     }
 
     @PostMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE, produces = JSON_API_CONTENT_TYPE)
-    public ResponseEntity<String> elidePost(@RequestBody String body,
-                                            @RequestParam Map<String, String> allRequestParams,
-                                            HttpServletRequest request, Principal authentication) {
-        String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
-        String baseUrl = getBaseUrlEndpoint();
+    public Callable<ResponseEntity<String>> elidePost(@RequestHeader HttpHeaders requestHeaders,
+                                                      @RequestParam Map<String, String> allRequestParams,
+                                                      @RequestBody String body,
+                                                      HttpServletRequest request, Authentication authentication) {
+        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned = HeaderUtils.removeAuthHeaders(requestHeaders);
+        final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        final User user = new AuthenticationUser(authentication);
+        final String baseUrl = getBaseUrlEndpoint();
 
-        ElideResponse response = elide
-                .post(baseUrl, pathname, body, new MultivaluedHashMap<>(allRequestParams), authentication);
-        return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+        return new Callable<ResponseEntity<String>>() {
+            @Override
+            public ResponseEntity<String> call() throws Exception {
+                ElideResponse response = elide.post(baseUrl, pathname, body, new MultivaluedHashMap<>(allRequestParams),
+                        requestHeadersCleaned, user, apiVersion, UUID.randomUUID());
+                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+            }
+        };
     }
 
     @PatchMapping(value = "/**", consumes = { JSON_API_CONTENT_TYPE, JSON_API_PATCH_CONTENT_TYPE})
-    public ResponseEntity<String> elidePatch(@RequestBody String body,
-                                             @RequestParam Map<String, String> allRequestParams,
-                                             HttpServletRequest request, Principal authentication) {
-        String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
-        String baseUrl = getBaseUrlEndpoint();
+    public Callable<ResponseEntity<String>> elidePatch(@RequestHeader HttpHeaders requestHeaders,
+                                                       @RequestParam Map<String, String> allRequestParams,
+                                                       @RequestBody String body,
+                                                       HttpServletRequest request, Authentication authentication) {
+        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned = HeaderUtils.removeAuthHeaders(requestHeaders);
+        final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        final User user = new AuthenticationUser(authentication);
+        final String baseUrl = getBaseUrlEndpoint();
 
-        ElideResponse response = elide
-                .patch(baseUrl, request.getContentType(), request.getContentType(), pathname, body,
-                       new MultivaluedHashMap<>(allRequestParams), authentication);
-        return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+        return new Callable<ResponseEntity<String>>() {
+            @Override
+            public ResponseEntity<String> call() throws Exception {
+                ElideResponse response = elide
+                        .patch(baseUrl, request.getContentType(), request.getContentType(), pathname, body,
+                               new MultivaluedHashMap<>(allRequestParams),
+                               requestHeadersCleaned, user, apiVersion,
+                               UUID.randomUUID());
+                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+            }
+        };
     }
 
     @DeleteMapping(value = "/**")
-    public ResponseEntity<String> elideDelete(HttpServletRequest request,
-                                             @RequestParam Map<String, String> allRequestParams,
-                                             Principal authentication) {
-        String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
-        String baseUrl = getBaseUrlEndpoint();
+    public Callable<ResponseEntity<String>> elideDelete(@RequestHeader HttpHeaders requestHeaders,
+                                                        @RequestParam Map<String, String> allRequestParams,
+                                                        HttpServletRequest request,
+                                                        Authentication authentication) {
+        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned = HeaderUtils.removeAuthHeaders(requestHeaders);
+        final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        final User user = new AuthenticationUser(authentication);
+        final String baseUrl = getBaseUrlEndpoint();
 
-        ElideResponse response = elide
-                .delete(baseUrl, pathname, null, new MultivaluedHashMap<>(allRequestParams), authentication);
-        return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+        return new Callable<ResponseEntity<String>>() {
+            @Override
+            public ResponseEntity<String> call() throws Exception {
+                ElideResponse response = elide.delete(baseUrl, pathname, null,
+                        new MultivaluedHashMap<>(allRequestParams), requestHeadersCleaned,
+                        user, apiVersion, UUID.randomUUID());
+                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+            }
+        };
     }
 
     @DeleteMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE)
-    public ResponseEntity<String> elideDeleteRelationship(@RequestBody String body,
-                                                          @RequestParam Map<String, String> allRequestParams,
-                                                          HttpServletRequest request, Principal authentication) {
-        String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
-        String baseUrl = getBaseUrlEndpoint();
+    public Callable<ResponseEntity<String>> elideDeleteRelation(@RequestHeader HttpHeaders requestHeaders,
+                                                                    @RequestParam Map<String, String> allRequestParams,
+                                                                    @RequestBody String body,
+                                                                    HttpServletRequest request,
+                                                                    Authentication authentication) {
+        final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned = HeaderUtils.removeAuthHeaders(requestHeaders);
+        final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
+        final User user = new AuthenticationUser(authentication);
+        final String baseUrl = getBaseUrlEndpoint();
 
-        ElideResponse response = elide
-                .delete(baseUrl, pathname, body, new MultivaluedHashMap<>(allRequestParams), authentication);
-        return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+        return new Callable<ResponseEntity<String>>() {
+            @Override
+            public ResponseEntity<String> call() throws Exception {
+                ElideResponse response = elide
+                        .delete(baseUrl, pathname, body, new MultivaluedHashMap<>(allRequestParams),
+                                requestHeadersCleaned, user, apiVersion, UUID.randomUUID());
+                return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
+            }
+        };
     }
 
     private String getJsonApiPath(HttpServletRequest request, String prefix) {
@@ -123,8 +181,13 @@ public class JsonApiController {
         return pathname.replaceFirst(prefix, "");
     }
 
-    private String getBaseUrlEndpoint() {
-        return ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
-                + settings.getJsonApi().getPath() + "/";
+    protected String getBaseUrlEndpoint() {
+        String baseUrl = elide.getElideSettings().getBaseUrl();
+
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+        }
+
+        return baseUrl;
     }
 }

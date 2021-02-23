@@ -15,14 +15,14 @@ import javax.persistence.ManyToOne;
 /**
  * A model intended to be ONLY created and read, but never updated
  */
-@Include(rootLevel = true)
+@Include
 @Entity
-@CreatePermission(expression = "allow all")
+@CreatePermission(expression = "Prefab.Role.All")
 public class CreateButNoReadChild extends BaseId {
     private CreateButNoRead otherObject;
 
     @ManyToOne()
-    @ReadPermission(expression = "allow all")
+    @ReadPermission(expression = "Prefab.Role.All")
     public CreateButNoRead getOtherObject() {
         return otherObject;
     }

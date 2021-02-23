@@ -5,24 +5,24 @@
  */
 package example;
 
+import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.PersistentResource;
-import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.OperationCheck;
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.checks.OperationCheck;
 
 import java.util.Optional;
-
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 
 @Entity
-@Include(rootLevel = true, type = "specialread")
+@Include(type = "specialread")
 @ReadPermission(expression = "specialValue")
-@UpdatePermission(expression = "updateOnCreate")
+@UpdatePermission(expression = "Prefab.Role.None")
+@CreatePermission(expression = "Prefab.Role.All")
 public class SpecialRead extends BaseId {
     private String value;
     private Child child;
@@ -48,12 +48,7 @@ public class SpecialRead extends BaseId {
         @Override
         public boolean ok(SpecialRead object, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             // Only able to read new objects with the special value
-            for (PersistentResource resource : requestScope.getNewResources()) {
-                if (resource.getObject() == object) {
-                    return "special value".equals(object.value);
-                }
-            }
-            return false;
+            return "special value".equals(object.value);
         }
     }
 }

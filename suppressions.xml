@@ -8,11 +8,19 @@
         <cve>CVE-2019-14540</cve>
     </suppress>
     <!-- Invalid web socket CVE (flagging wrong package) -->
-    <suppress until="2020-12-01Z">
+    <suppress until="2021-12-01Z">
         <cve>CVE-2020-11050</cve>
     </suppress>
     <!-- Dropwizard Metrics (no fix exists) -->
     <suppress until="2021-12-01Z">
         <cve>CVE-2020-7712</cve>
+    </suppress>
+    <!-- Invalid Spring Security CVE -->
+    <suppress until="2021-12-01Z">
+        <cve>CVE-2018-1258</cve>
+    </suppress>
+    <!-- https://hibernate.atlassian.net/browse/HHH-14225 -->
+    <suppress until="2021-06-01Z">
+        <cve>CVE-2020-25638</cve>
     </suppress>
 </suppressions>

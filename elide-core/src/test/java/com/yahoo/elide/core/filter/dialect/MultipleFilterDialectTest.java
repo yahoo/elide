@@ -5,20 +5,22 @@
  */
 package com.yahoo.elide.core.filter.dialect;
 
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
+import com.yahoo.elide.core.filter.dialect.jsonapi.JoinFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.SubqueryFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -53,13 +55,13 @@ public class MultipleFilterDialectTest {
                 "Hemingway"
         );
 
-        when(dialect1.parseGlobalExpression("/author", queryParams)).thenThrow(new ParseException(""));
-        when(dialect2.parseGlobalExpression("/author", queryParams)).thenReturn(filterExpression);
+        when(dialect1.parseGlobalExpression("/author", queryParams, NO_VERSION)).thenThrow(new ParseException(""));
+        when(dialect2.parseGlobalExpression("/author", queryParams, NO_VERSION)).thenReturn(filterExpression);
 
-        FilterExpression returnExpression = dialect.parseGlobalExpression("/author", queryParams);
+        FilterExpression returnExpression = dialect.parseGlobalExpression("/author", queryParams, NO_VERSION);
 
-        verify(dialect1, times(1)).parseGlobalExpression("/author", queryParams);
-        verify(dialect2, times(1)).parseGlobalExpression("/author", queryParams);
+        verify(dialect1, times(1)).parseGlobalExpression("/author", queryParams, NO_VERSION);
+        verify(dialect2, times(1)).parseGlobalExpression("/author", queryParams, NO_VERSION);
 
         assertEquals(returnExpression, filterExpression);
     }
@@ -90,13 +92,13 @@ public class MultipleFilterDialectTest {
                 "Hemingway"
         );
 
-        when(dialect1.parseTypedExpression("/author", queryParams)).thenThrow(new ParseException(""));
-        when(dialect2.parseTypedExpression("/author", queryParams)).thenReturn(expressionMap);
+        when(dialect1.parseTypedExpression("/author", queryParams, NO_VERSION)).thenThrow(new ParseException(""));
+        when(dialect2.parseTypedExpression("/author", queryParams, NO_VERSION)).thenReturn(expressionMap);
 
-        Map<String, FilterExpression> returnMap = dialect.parseTypedExpression("/author", queryParams);
+        Map<String, FilterExpression> returnMap = dialect.parseTypedExpression("/author", queryParams, NO_VERSION);
 
-        verify(dialect1, times(1)).parseTypedExpression("/author", queryParams);
-        verify(dialect2, times(1)).parseTypedExpression("/author", queryParams);
+        verify(dialect1, times(1)).parseTypedExpression("/author", queryParams, NO_VERSION);
+        verify(dialect2, times(1)).parseTypedExpression("/author", queryParams, NO_VERSION);
 
         assertEquals(returnMap, expressionMap);
     }
@@ -124,7 +126,7 @@ public class MultipleFilterDialectTest {
                 "Hemingway"
         );
 
-        assertThrows(ParseException.class, () -> dialect.parseTypedExpression("/author", queryParams));
+        assertThrows(ParseException.class, () -> dialect.parseTypedExpression("/author", queryParams, NO_VERSION));
     }
 
     /**
@@ -150,7 +152,7 @@ public class MultipleFilterDialectTest {
                 "Hemingway"
         );
 
-        assertThrows(ParseException.class, () -> dialect.parseGlobalExpression("/author", queryParams));
+        assertThrows(ParseException.class, () -> dialect.parseGlobalExpression("/author", queryParams, NO_VERSION));
     }
 
     /**
@@ -178,11 +180,11 @@ public class MultipleFilterDialectTest {
                 "Hemingway"
         );
 
-        when(dialect1.parseGlobalExpression("/author", queryParams)).thenThrow(new ParseException("one"));
-        when(dialect2.parseGlobalExpression("/author", queryParams)).thenThrow(new ParseException("two"));
+        when(dialect1.parseGlobalExpression("/author", queryParams, NO_VERSION)).thenThrow(new ParseException("one"));
+        when(dialect2.parseGlobalExpression("/author", queryParams, NO_VERSION)).thenThrow(new ParseException("two"));
 
         try {
-            dialect.parseGlobalExpression("/author", queryParams);
+            dialect.parseGlobalExpression("/author", queryParams, NO_VERSION);
         } catch (ParseException e) {
             assertEquals("two\none", e.getMessage());
         }
@@ -213,11 +215,11 @@ public class MultipleFilterDialectTest {
                 "Hemingway"
         );
 
-        when(dialect1.parseTypedExpression("/author", queryParams)).thenThrow(new ParseException("one"));
-        when(dialect2.parseTypedExpression("/author", queryParams)).thenThrow(new ParseException("two"));
+        when(dialect1.parseTypedExpression("/author", queryParams, NO_VERSION)).thenThrow(new ParseException("one"));
+        when(dialect2.parseTypedExpression("/author", queryParams, NO_VERSION)).thenThrow(new ParseException("two"));
 
         try {
-            dialect.parseTypedExpression("/author", queryParams);
+            dialect.parseTypedExpression("/author", queryParams, NO_VERSION);
         } catch (ParseException e) {
             assertEquals("two\none", e.getMessage());
         }

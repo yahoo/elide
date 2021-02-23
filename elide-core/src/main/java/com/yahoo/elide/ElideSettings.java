@@ -5,17 +5,17 @@
  */
 package com.yahoo.elide;
 
-import com.yahoo.elide.audit.AuditLogger;
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.EntityDictionary;
-import com.yahoo.elide.core.JSONApiLinks;
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.filter.dialect.JoinFilterDialect;
-import com.yahoo.elide.core.filter.dialect.SubqueryFilterDialect;
+import com.yahoo.elide.core.audit.AuditLogger;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.filter.dialect.graphql.FilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.JoinFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.SubqueryFilterDialect;
+import com.yahoo.elide.core.security.PermissionExecutor;
+import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
-import com.yahoo.elide.security.PermissionExecutor;
-import com.yahoo.elide.utils.coerce.converters.Serde;
-
+import com.yahoo.elide.jsonapi.links.JSONApiLinks;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -35,13 +35,16 @@ public class ElideSettings {
     @Getter private final Function<RequestScope, PermissionExecutor> permissionExecutor;
     @Getter private final List<JoinFilterDialect> joinFilterDialects;
     @Getter private final List<SubqueryFilterDialect> subqueryFilterDialects;
+    @Getter private final FilterDialect graphqlDialect;
     @Getter private final JSONApiLinks jsonApiLinks;
     @Getter private final int defaultMaxPageSize;
     @Getter private final int defaultPageSize;
-    @Getter private final boolean useFilterExpressions;
     @Getter private final int updateStatusCode;
-    @Getter private final boolean returnErrorObjects;
     @Getter private final Map<Class, Serde> serdes;
-    @Getter private final boolean encodeErrorResponses;
     @Getter private final boolean enableJsonLinks;
+    @Getter private final boolean strictQueryParams;
+    @Getter private final String baseUrl;
+    @Getter private final String jsonApiPath;
+    @Getter private final String graphQLApiPath;
+    @Getter private final String exportApiPath;
 }

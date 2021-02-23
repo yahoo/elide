@@ -6,18 +6,21 @@
 
 package com.yahoo.elide.core.datastore.inmemory;
 
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterPredicatePushdownExtractor;
 import com.yahoo.elide.core.filter.expression.InMemoryExecutionVerifier;
 import com.yahoo.elide.core.filter.expression.InMemoryFilterExecutor;
-import com.yahoo.elide.core.pagination.Pagination;
-import com.yahoo.elide.core.sort.Sorting;
-import com.yahoo.elide.security.User;
+import com.yahoo.elide.core.request.Attribute;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.request.Sorting;
+import com.yahoo.elide.core.type.Type;
+
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
@@ -33,27 +36,29 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+
 /**
  * Data Store Transaction that wraps another transaction and provides in-memory filtering, soring, and pagination
  * when the underlying transaction cannot perform the equivalent function.
  */
 public class InMemoryStoreTransaction implements DataStoreTransaction {
 
+    private final DataStoreTransaction tx;
     private static final Comparator<Object> NULL_SAFE_COMPARE = (a, b) -> {
         if (a == null && b == null) {
             return 0;
-        } else if (a == null) {
-            return -1;
-        } else if (b == null) {
-            return 1;
-        } else if (a instanceof Comparable) {
-            return ((Comparable) a).compareTo(b);
-        } else {
-            throw new IllegalStateException("Trying to comparing non-comparable types!");
         }
+        if (a == null) {
+            return -1;
+        }
+        if (b == null) {
+            return 1;
+        }
+        if (a instanceof Comparable) {
+            return ((Comparable) a).compareTo(b);
+        }
+        throw new IllegalStateException("Trying to comparing non-comparable types!");
     };
-
-    private DataStoreTransaction tx;
 
     /**
      * Fetches data from the store.
@@ -71,6 +76,70 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         this.tx = tx;
     }
 
+    @Override
+    public Object getRelation(DataStoreTransaction relationTx,
+                              Object entity,
+                              Relationship relationship,
+                              RequestScope scope) {
+        DataFetcher fetcher = new DataFetcher() {
+            @Override
+            public Object fetch(Optional<FilterExpression> filterExpression,
+                                Optional<Sorting> sorting,
+                                Optional<Pagination> pagination,
+                                RequestScope scope) {
+
+                return tx.getRelation(relationTx, entity, relationship.copyOf()
+                        .projection(relationship.getProjection().copyOf()
+                                .filterExpression(filterExpression.orElse(null))
+                                .sorting(sorting.orElse(null))
+                                .pagination(pagination.orElse(null))
+                                .build()
+                        ).build(), scope);
+            }
+        };
+
+
+        /*
+         * If we are mutating multiple entities, the data store transaction cannot perform filter & pagination directly.
+         * It must be done in memory by Elide as some newly created entities have not yet been persisted.
+         */
+        boolean filterInMemory = scope.getNewPersistentResources().size() > 0;
+        return fetchData(fetcher, Optional.of(entity), relationship.getProjection(), filterInMemory, scope);
+    }
+
+    @Override
+    public Object loadObject(EntityProjection projection,
+                      Serializable id,
+                      RequestScope scope) {
+
+        if (projection.getFilterExpression() == null
+                || tx.supportsFiltering(scope, Optional.empty(), projection) == FeatureSupport.FULL) {
+            return tx.loadObject(projection, id, scope);
+        }
+        return DataStoreTransaction.super.loadObject(projection, id, scope);
+    }
+
+    @Override
+    public Iterable<Object> loadObjects(EntityProjection projection,
+                                        RequestScope scope) {
+
+        DataFetcher fetcher = new DataFetcher() {
+            @Override
+            public Iterable<Object> fetch(Optional<FilterExpression> filterExpression,
+                                          Optional<Sorting> sorting,
+                                          Optional<Pagination> pagination,
+                                          RequestScope scope) {
+
+                return tx.loadObjects(projection.copyOf()
+                        .filterExpression(filterExpression.orElse(null))
+                        .pagination(pagination.orElse(null))
+                        .sorting(sorting.orElse(null))
+                        .build(), scope);
+            }
+        };
+
+        return (Iterable<Object>) fetchData(fetcher, Optional.empty(), projection, false, scope);
+    }
 
     @Override
     public void save(Object entity, RequestScope scope) {
@@ -83,79 +152,47 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public User accessUser(Object opaqueUser) {
-        return tx.accessUser(opaqueUser);
+    public void preCommit(RequestScope scope) {
+        tx.preCommit(scope);
     }
 
     @Override
-    public void preCommit() {
-        tx.preCommit();
-    }
-
-    @Override
-    public <T> T createNewObject(Class<T> entityClass) {
+    public <T> T createNewObject(Type<T> entityClass) {
         return tx.createNewObject(entityClass);
     }
 
     @Override
-    public Object getRelation(DataStoreTransaction relationTx,
-                              Object entity,
-                              String relationName,
-                              Optional<FilterExpression> filterExpression,
-                              Optional<Sorting> sorting,
-                              Optional<Pagination> pagination,
-                              RequestScope scope) {
-
-        Class<?> relationClass = scope.getDictionary().getParameterizedType(entity, relationName);
-
-        DataFetcher fetcher = new DataFetcher() {
-            @Override
-            public Object fetch(Optional<FilterExpression> filterExpression,
-                                Optional<Sorting> sorting,
-                                Optional<Pagination> pagination,
-                                RequestScope scope) {
-
-                return tx.getRelation(relationTx, entity, relationName, filterExpression, sorting, pagination, scope);
-            }
-        };
-
-
-        /*
-         * If we are mutating multiple entities, the data store transaction cannot perform filter & pagination directly.
-         * It must be done in memory by Elide as some newly created entities have not yet been persisted.
-         */
-        boolean filterInMemory = scope.getNewPersistentResources().size() > 0;
-        return fetchData(fetcher, relationClass, filterExpression, sorting, pagination, filterInMemory, scope);
+    public void close() throws IOException {
+        tx.close();
     }
 
     @Override
-    public void updateToManyRelation(DataStoreTransaction relationTx,
-                                     Object entity,
+    public <T, R> void updateToManyRelation(DataStoreTransaction relationTx,
+                                     T entity,
                                      String relationName,
-                                     Set<Object> newRelationships,
-                                     Set<Object> deletedRelationships,
+                                     Set<R> newRelationships,
+                                     Set<R> deletedRelationships,
                                      RequestScope scope) {
         tx.updateToManyRelation(relationTx, entity, relationName, newRelationships, deletedRelationships, scope);
     }
 
     @Override
-    public void updateToOneRelation(DataStoreTransaction relationTx,
-                                    Object entity,
+    public <T, R> void updateToOneRelation(DataStoreTransaction relationTx,
+                                    T entity,
                                     String relationName,
-                                    Object relationshipValue,
+                                    R relationshipValue,
                                     RequestScope scope) {
         tx.updateToOneRelation(relationTx, entity, relationName, relationshipValue, scope);
     }
 
     @Override
-    public Object getAttribute(Object entity, String attributeName, RequestScope scope) {
-        return tx.getAttribute(entity, attributeName, scope);
+    public Object getAttribute(Object entity, Attribute attribute, RequestScope scope) {
+        return tx.getAttribute(entity, attribute, scope);
     }
 
     @Override
-    public void setAttribute(Object entity, String attributeName, Object attributeValue, RequestScope scope) {
-        tx.setAttribute(entity, attributeName, attributeValue, scope);
-
+    public void setAttribute(Object entity, Attribute attribute, RequestScope scope) {
+        tx.setAttribute(entity, attribute, scope);
     }
 
     @Override
@@ -173,45 +210,6 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
         tx.createObject(entity, scope);
     }
 
-    @Override
-    public Object loadObject(Class<?> entityClass,
-                      Serializable id,
-                      Optional<FilterExpression> filterExpression,
-                      RequestScope scope) {
-
-        if (! filterExpression.isPresent()
-                || tx.supportsFiltering(entityClass, filterExpression.get()) == FeatureSupport.FULL) {
-            return tx.loadObject(entityClass, id, filterExpression, scope);
-        }
-        return DataStoreTransaction.super.loadObject(entityClass, id, filterExpression, scope);
-    }
-
-    @Override
-    public Iterable<Object> loadObjects(Class<?> entityClass,
-                                        Optional<FilterExpression> filterExpression,
-                                        Optional<Sorting> sorting,
-                                        Optional<Pagination> pagination,
-                                        RequestScope scope) {
-
-        DataFetcher fetcher = new DataFetcher() {
-            @Override
-            public Iterable<Object> fetch(Optional<FilterExpression> filterExpression,
-                                          Optional<Sorting> sorting,
-                                          Optional<Pagination> pagination,
-                                          RequestScope scope) {
-                return tx.loadObjects(entityClass, filterExpression, sorting, pagination, scope);
-            }
-        };
-
-        return (Iterable<Object>) fetchData(fetcher, entityClass,
-                filterExpression, sorting, pagination, false, scope);
-    }
-
-    @Override
-    public void close() throws IOException {
-        tx.close();
-    }
-
     private Iterable<Object> filterLoadedData(Iterable<Object> loadedRecords,
                                                 Optional<FilterExpression> filterExpression,
                                                 RequestScope scope) {
@@ -227,28 +225,27 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     }
 
     private Object fetchData(DataFetcher fetcher,
-                               Class<?> entityClass,
-                               Optional<FilterExpression> filterExpression,
-                               Optional<Sorting> sorting,
-                               Optional<Pagination> pagination,
+                               Optional<Object> parent,
+                               EntityProjection projection,
                                boolean filterInMemory,
                                RequestScope scope) {
 
+        Optional<FilterExpression> filterExpression = Optional.ofNullable(projection.getFilterExpression());
+
         Pair<Optional<FilterExpression>, Optional<FilterExpression>> expressionSplit = splitFilterExpression(
-                entityClass, filterExpression, filterInMemory, scope);
+                scope, parent, projection, filterInMemory);
 
         Optional<FilterExpression> dataStoreFilter = expressionSplit.getLeft();
         Optional<FilterExpression> inMemoryFilter = expressionSplit.getRight();
 
-        Pair<Optional<Sorting>, Optional<Sorting>> sortSplit = splitSorting(entityClass,
-                sorting, inMemoryFilter.isPresent());
+        Pair<Optional<Sorting>, Optional<Sorting>> sortSplit = splitSorting(scope, parent,
+                projection, inMemoryFilter.isPresent());
 
         Optional<Sorting> dataStoreSort = sortSplit.getLeft();
         Optional<Sorting> inMemorySort = sortSplit.getRight();
 
-        Pair<Optional<Pagination>, Optional<Pagination>> paginationSplit = splitPagination(entityClass,
-                pagination, inMemoryFilter.isPresent(), inMemorySort.isPresent());
-
+        Pair<Optional<Pagination>, Optional<Pagination>> paginationSplit = splitPagination(scope, parent,
+                 projection, inMemoryFilter.isPresent(), inMemorySort.isPresent());
 
         Optional<Pagination> dataStorePagination = paginationSplit.getLeft();
         Optional<Pagination> inMemoryPagination = paginationSplit.getRight();
@@ -268,7 +265,6 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
 
         return sortAndPaginateLoadedData(
                     loadedRecords,
-                    entityClass,
                     inMemorySort,
                     inMemoryPagination,
                     scope);
@@ -276,7 +272,6 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
 
 
     private Iterable<Object> sortAndPaginateLoadedData(Iterable<Object> loadedRecords,
-                                                         Class<?> entityClass,
                                                          Optional<Sorting> sorting,
                                                          Optional<Pagination> pagination,
                                                          RequestScope scope) {
@@ -286,11 +281,9 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
             return loadedRecords;
         }
 
-        EntityDictionary dictionary = scope.getDictionary();
-
         Map<Path, Sorting.SortOrder> sortRules = sorting
-                .map((s) -> s.getValidSortingRules(entityClass, dictionary))
-                .orElse(new HashMap<>());
+                .map(Sorting::getSortingPaths)
+                .orElseGet(HashMap::new);
 
         // No sorting required for this type & no pagination.
         if (sortRules.isEmpty() && ! pagination.isPresent()) {
@@ -322,8 +315,8 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
             endIdx = records.size();
         }
 
-        if (pagination.isGenerateTotals()) {
-            pagination.setPageTotals(records.size());
+        if (pagination.returnPageTotals()) {
+            pagination.setPageTotals((long) records.size());
         }
         return records.subList(offset, endIdx);
     }
@@ -372,26 +365,27 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
      * Splits a filter expression into two components:
      *  - a component that should be pushed down to the data store
      *  - a component that should be executed in memory
-     * @param entityClass The class to filter
-     * @param filterExpression The filter expression
-     * @param filterInMemory Whether or not the transaction requires in memory filtering.
      * @param scope The request context
+     * @param parent If this is a relationship load, the parent object.  Otherwise not set.
+     * @param projection The projection being loaded.
+     * @param filterInMemory Whether or not the transaction requires in memory filtering.
      * @return A pair of filter expressions (data store expression, in memory expression)
      */
     private Pair<Optional<FilterExpression>, Optional<FilterExpression>> splitFilterExpression(
-            Class<?> entityClass,
-            Optional<FilterExpression> filterExpression,
-            boolean filterInMemory,
-            RequestScope scope
+            RequestScope scope,
+            Optional<Object> parent,
+            EntityProjection projection,
+            boolean filterInMemory
     ) {
 
+        Optional<FilterExpression> filterExpression = Optional.ofNullable(projection.getFilterExpression());
         Optional<FilterExpression> inStoreFilterExpression = filterExpression;
         Optional<FilterExpression> inMemoryFilterExpression = Optional.empty();
 
         boolean transactionNeedsInMemoryFiltering = filterInMemory;
 
         if (filterExpression.isPresent()) {
-            FeatureSupport filterSupport = tx.supportsFiltering(entityClass, filterExpression.get());
+            FeatureSupport filterSupport = tx.supportsFiltering(scope, parent, projection);
 
             boolean storeNeedsInMemoryFiltering = filterSupport != FeatureSupport.FULL;
 
@@ -418,17 +412,21 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
      * Splits a sorting object into two components:
      *  - a component that should be pushed down to the data store
      *  - a component that should be executed in memory
-     * @param entityClass The class to filter
-     * @param sorting The sorting object
+     * @param scope The request context
+     * @param parent If this is a relationship load, the parent object.  Otherwise not set.
+     * @param projection The projection being loaded.
      * @param filteredInMemory Whether or not filtering was performed in memory
      * @return A pair of sorting objects (data store sort, in memory sort)
      */
     private Pair<Optional<Sorting>, Optional<Sorting>> splitSorting(
-            Class<?> entityClass,
-            Optional<Sorting> sorting,
+            RequestScope scope,
+            Optional<Object> parent,
+            EntityProjection projection,
             boolean filteredInMemory
     ) {
-        if (sorting.isPresent() && (! tx.supportsSorting(entityClass, sorting.get()) || filteredInMemory)) {
+        Optional<Sorting> sorting = Optional.ofNullable(projection.getSorting());
+
+        if (sorting.isPresent() && (! tx.supportsSorting(scope, parent, projection) || filteredInMemory)) {
             return Pair.of(Optional.empty(), sorting);
         }
         return Pair.of(sorting, Optional.empty());
@@ -438,19 +436,24 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
      * Splits a pagination object into two components:
      *  - a component that should be pushed down to the data store
      *  - a component that should be executed in memory
-     * @param entityClass The class to filter
-     * @param pagination The pagination object
+     * @param scope The request context
+     * @param parent If this is a relationship load, the parent object.  Otherwise not set.
+     * @param projection The projection being loaded.
      * @param filteredInMemory Whether or not filtering was performed in memory
      * @param sortedInMemory Whether or not sorting was performed in memory
      * @return A pair of pagination objects (data store pagination, in memory pagination)
      */
     private Pair<Optional<Pagination>, Optional<Pagination>> splitPagination(
-            Class<?> entityClass,
-            Optional<Pagination> pagination,
+            RequestScope scope,
+            Optional<Object> parent,
+            EntityProjection projection,
             boolean filteredInMemory,
             boolean sortedInMemory
     ) {
-        if (!tx.supportsPagination(entityClass)
+
+        Optional<Pagination> pagination = Optional.ofNullable(projection.getPagination());
+
+        if (!tx.supportsPagination(scope, parent, projection)
                 || filteredInMemory
                 || sortedInMemory) {
             return Pair.of(Optional.empty(), pagination);
@@ -466,4 +469,9 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
             return Pair.of(pagination, Optional.empty());
         }
     }
+
+   @Override
+   public void cancel(RequestScope scope) {
+       tx.cancel(scope);
+   }
 }

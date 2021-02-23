@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>4.6.9-SNAPSHOT</version>
+        <version>5.0.0-pr32-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -46,7 +46,7 @@
     <properties>
         <!-- Versions -->
         <logback.version>1.2.3</logback.version>
-        <metrics.version>4.1.12.1</metrics.version>
+        <metrics.version>4.1.17</metrics.version>
 
         <!-- Settings -->
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
@@ -58,18 +58,35 @@
         <!-- Elide dependency -->
         <dependency>
             <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-datastore-aggregation</artifactId>
+            <version>5.0.0-pr32-SNAPSHOT</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>4.6.9-SNAPSHOT</version>
+            <version>5.0.0-pr32-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>4.6.9-SNAPSHOT</version>
+            <version>5.0.0-pr32-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>4.6.9-SNAPSHOT</version>
+            <version>5.0.0-pr32-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-async</artifactId>
+            <version>5.0.0-pr32-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yahoo.elide</groupId>
+            <artifactId>elide-model-config</artifactId>
+            <version>5.0.0-pr32-SNAPSHOT</version>
         </dependency>
 
         <!-- JPA -->
@@ -89,14 +106,6 @@
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-hikaricp</artifactId>
             <version>${hibernate5.version}</version>
-        </dependency>
-
-        <!-- MySQL Driver -->
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>${version.mysql}</version>
-            <scope>compile</scope>
         </dependency>
 
         <!-- Jetty for embedded web server -->
@@ -164,7 +173,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.12</version>
+            <version>1.18.16</version>
             <scope>compile</scope>
         </dependency>
 
@@ -172,14 +181,18 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>5.7.0</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.7.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -187,7 +200,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>4.6.9-SNAPSHOT</version>
+            <version>5.0.0-pr32-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
@@ -202,7 +215,7 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>4.3.1</version>
+            <version>4.3.3</version>
             <scope>test</scope>
         </dependency>
 
@@ -232,6 +245,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.2.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

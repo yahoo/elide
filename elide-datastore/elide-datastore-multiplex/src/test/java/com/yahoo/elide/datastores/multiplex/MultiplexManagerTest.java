@@ -5,33 +5,31 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-
-import com.yahoo.elide.Injector;
-import com.yahoo.elide.core.DataStore;
-import com.yahoo.elide.core.DataStoreTransaction;
-import com.yahoo.elide.core.EntityDictionary;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.datastores.inmemory.InMemoryDataStore;
 import com.yahoo.elide.example.beans.FirstBean;
 import com.yahoo.elide.example.other.OtherBean;
-
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.IterableUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Optional;
 
 /**
  * MultiplexManager tests.
@@ -40,10 +38,11 @@ import java.util.Optional;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MultiplexManagerTest {
     private MultiplexManager multiplexManager;
+    private EntityDictionary entityDictionary;
 
     @BeforeAll
     public void setup() {
-        final EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
+        entityDictionary = new EntityDictionary(new HashMap<>());
         final InMemoryDataStore inMemoryDataStore1 = new InMemoryDataStore(FirstBean.class.getPackage());
         final InMemoryDataStore inMemoryDataStore2 = new InMemoryDataStore(OtherBean.class.getPackage());
         multiplexManager = new MultiplexManager(inMemoryDataStore1, inMemoryDataStore2);
@@ -53,8 +52,8 @@ public class MultiplexManagerTest {
     @Test
     public void checkLoading() {
         EntityDictionary entityDictionary = multiplexManager.getDictionary();
-        assertNotNull(entityDictionary.getJsonAliasFor(FirstBean.class));
-        assertNotNull(entityDictionary.getJsonAliasFor(OtherBean.class));
+        assertNotNull(entityDictionary.getJsonAliasFor(getClassType(FirstBean.class)));
+        assertNotNull(entityDictionary.getJsonAliasFor(getClassType(OtherBean.class)));
     }
 
     @Test
@@ -63,15 +62,21 @@ public class MultiplexManagerTest {
         object.id = null;
         object.name = "Test";
         try (DataStoreTransaction t = multiplexManager.beginTransaction()) {
-            assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null)
+            assertFalse(t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null)
                     .iterator().hasNext());
             t.createObject(object, null);
-            assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null)
+            assertFalse(t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null)
                     .iterator().hasNext());
             t.commit(null);
         }
         try (DataStoreTransaction t = multiplexManager.beginTransaction()) {
-            Iterable<Object> beans = t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null);
+            Iterable<Object> beans = t.loadObjects(EntityProjection.builder()
+                            .type(FirstBean.class)
+                            .build(), null);
             assertNotNull(beans);
             assertTrue(beans.iterator().hasNext());
             FirstBean bean = (FirstBean) IterableUtils.first(beans);
@@ -87,23 +92,29 @@ public class MultiplexManagerTest {
         final MultiplexManager multiplexManager = new MultiplexManager(ds1, ds2);
         multiplexManager.populateEntityDictionary(entityDictionary);
 
-        assertEquals(ds1, multiplexManager.getSubManager(FirstBean.class));
-        assertEquals(ds2, multiplexManager.getSubManager(OtherBean.class));
+        assertEquals(ds1, multiplexManager.getSubManager(getClassType(FirstBean.class)));
+        assertEquals(ds2, multiplexManager.getSubManager(getClassType(OtherBean.class)));
 
         try (DataStoreTransaction t = ds1.beginTransaction()) {
-            assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null).iterator().hasNext());
+            assertFalse(t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null).iterator().hasNext());
 
             FirstBean firstBean = FirstBean.class.newInstance();
             firstBean.name = "name";
             t.createObject(firstBean, null);
             //t.save(firstBean);
-            assertFalse(t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null).iterator().hasNext());
+            assertFalse(t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null).iterator().hasNext());
             t.commit(null);
         } catch (InstantiationException | IllegalAccessException e) {
             log.error("", e);
         }
         try (DataStoreTransaction t = multiplexManager.beginTransaction()) {
-            FirstBean firstBean = (FirstBean) t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null).iterator().next();
+            FirstBean firstBean = (FirstBean) t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null).iterator().next();
             firstBean.name = "update";
             t.save(firstBean, null);
             OtherBean otherBean = OtherBean.class.newInstance();
@@ -120,7 +131,9 @@ public class MultiplexManagerTest {
         }
         // verify state
         try (DataStoreTransaction t = ds1.beginTransaction()) {
-            Iterable<Object> beans = t.loadObjects(FirstBean.class, Optional.empty(), Optional.empty(), Optional.empty(), null);
+            Iterable<Object> beans = t.loadObjects(EntityProjection.builder()
+                    .type(FirstBean.class)
+                    .build(), null);
             assertNotNull(beans);
             ArrayList<Object> list = Lists.newArrayList(beans.iterator());
             assertEquals(list.size(), 1);

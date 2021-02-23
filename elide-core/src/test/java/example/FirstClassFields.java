@@ -15,11 +15,11 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 
-@CreatePermission(expression = "deny all")
-@ReadPermission(expression = "deny all")
-@UpdatePermission(expression = "deny all")
-@DeletePermission(expression = "deny all")
-@Include(rootLevel = true)
+@CreatePermission(expression = "Prefab.Role.None")
+@ReadPermission(expression = "Prefab.Role.None")
+@UpdatePermission(expression = "Prefab.Role.None")
+@DeletePermission(expression = "Prefab.Role.None")
+@Include
 @Entity
 public class FirstClassFields {
     @Id
@@ -32,10 +32,10 @@ public class FirstClassFields {
     public Left private2;
 
     // Public vars
-    @ReadPermission(expression = "allow all")
+    @ReadPermission(expression = "Prefab.Role.All")
     public String public1;
 
-    @ReadPermission(expression = "allow all")
+    @ReadPermission(expression = "Prefab.Role.All")
     @OneToOne
     public Left public2;
 }

@@ -7,17 +7,18 @@ package com.yahoo.elide.jsonapi.document.processors;
 
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-
 import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
@@ -60,13 +61,16 @@ public class IncludedProcessor implements DocumentProcessor {
      */
     private void addIncludedResources(JsonApiDocument jsonApiDocument, PersistentResource rec,
             List<String> requestedRelationPaths) {
+
+        EntityProjectionMaker maker = new EntityProjectionMaker(rec.getDictionary(), rec.getRequestScope());
+        EntityProjection projection = maker.parseInclude(rec.getResourceType());
         // Process each include relation path
         requestedRelationPaths.forEach(pathParam -> {
             List<String> pathList = Arrays.asList(pathParam.split(RELATION_PATH_SEPARATOR));
 
             pathList.forEach(requestedRelationPath -> {
                 List<String> relationPath = Lists.newArrayList(requestedRelationPath.split(RELATION_PATH_DELIMITER));
-                addResourcesForPath(jsonApiDocument, rec, relationPath);
+                addResourcesForPath(jsonApiDocument, rec, relationPath, projection);
             });
         });
     }
@@ -76,15 +80,17 @@ public class IncludedProcessor implements DocumentProcessor {
      * JsonApiDocument.
      */
     private void addResourcesForPath(JsonApiDocument jsonApiDocument, PersistentResource<?> rec,
-                                     List<String> relationPath) {
+                                     List<String> relationPath,
+                                     EntityProjection projection) {
 
         //Pop off a relation of relation path
         String relation = relationPath.remove(0);
 
-        Optional<FilterExpression> filterExpression = rec.getRequestScope().getExpressionForRelation(rec, relation);
         Set<PersistentResource> collection;
+        Relationship relationship = projection.getRelationship(relation).orElseThrow(IllegalStateException::new);
         try {
-            collection = rec.getRelationCheckedFiltered(relation, filterExpression, Optional.empty(), Optional.empty());
+            collection = rec.getRelationCheckedFiltered(relationship).toList(LinkedHashSet::new).blockingGet();
+
         } catch (ForbiddenAccessException e) {
             return;
         }
@@ -95,7 +101,8 @@ public class IncludedProcessor implements DocumentProcessor {
             //If more relations left in the path, process a level deeper
             if (!relationPath.isEmpty()) {
                 //Use a copy of the relationPath to preserve the path for remaining branches of the relationship tree
-                addResourcesForPath(jsonApiDocument, resource, new ArrayList<>(relationPath));
+                addResourcesForPath(jsonApiDocument, resource, new ArrayList<>(relationPath),
+                        relationship.getProjection());
             }
         });
     }

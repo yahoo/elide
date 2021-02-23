@@ -8,12 +8,11 @@ package example;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.security.ChangeSpec;
-import com.yahoo.elide.security.RequestScope;
-import com.yahoo.elide.security.checks.OperationCheck;
+import com.yahoo.elide.core.security.ChangeSpec;
+import com.yahoo.elide.core.security.RequestScope;
+import com.yahoo.elide.core.security.checks.OperationCheck;
 
 import java.util.Optional;
-
 import javax.persistence.Entity;
 import javax.persistence.Transient;
 
@@ -22,7 +21,7 @@ import javax.persistence.Transient;
  * Used to test computed attributes.
  */
 @Entity
-@Include(rootLevel = true)
+@Include
 public class User extends BaseId {
     private int role;
 
@@ -63,7 +62,7 @@ public class User extends BaseId {
         this.reversedPassword = reversedPassword;
     }
 
-    @UpdatePermission(expression = "adminRoleCheck OR updateOnCreate")
+    @UpdatePermission(expression = "adminRoleCheck")
     public int getRole() {
         return role;
     }
@@ -76,11 +75,6 @@ public class User extends BaseId {
         @Override
         public boolean ok(User user, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return (user.getRole() == 1);
-        }
-
-        @Override
-        public String checkIdentifier() {
-            return "adminRoleCheck";
         }
     }
 }

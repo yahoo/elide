@@ -9,7 +9,6 @@ import com.yahoo.elide.annotation.Include;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -20,7 +19,7 @@ import javax.persistence.OneToMany;
  * Model for publisher.
  */
 @Entity
-@Include
+@Include(rootLevel = false)
 public class Publisher {
     private long id;
     private String name;

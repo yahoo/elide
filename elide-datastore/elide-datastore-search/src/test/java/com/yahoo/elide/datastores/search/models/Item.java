@@ -7,7 +7,6 @@
 package com.yahoo.elide.datastores.search.models;
 
 import com.yahoo.elide.annotation.Include;
-
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
 import org.apache.lucene.analysis.ngram.NGramTokenizerFactory;
 import org.hibernate.search.annotations.Analyze;
@@ -25,7 +24,6 @@ import org.hibernate.search.annotations.SortableField;
 import org.hibernate.search.annotations.Store;
 import org.hibernate.search.annotations.TokenFilterDef;
 import org.hibernate.search.annotations.TokenizerDef;
-
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -34,7 +32,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 @Entity
-@Include(rootLevel = true)
+@Include
 @Indexed
 @Data
 @AnalyzerDef(name = "case_insensitive",

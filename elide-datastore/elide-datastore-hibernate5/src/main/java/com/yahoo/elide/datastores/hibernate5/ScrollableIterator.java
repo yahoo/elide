@@ -7,9 +7,7 @@ package com.yahoo.elide.datastores.hibernate5;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
-
 import org.hibernate.ScrollableResults;
-
 import lombok.NonNull;
 
 import java.util.ConcurrentModificationException;

@@ -6,15 +6,14 @@
 
 package com.yahoo.elide.datastores.search;
 
-import com.yahoo.elide.core.filter.FilterPredicate;
+import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.google.common.base.Preconditions;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -42,7 +41,7 @@ public class FilterExpressionToLuceneQuery implements FilterExpressionVisitor<Qu
     @Override
     public Query visitPredicate(FilterPredicate filterPredicate) {
         Preconditions.checkArgument(filterPredicate.getPath().getPathElements().size() == 1);
-        Preconditions.checkArgument(filterPredicate.getEntityType().equals(entityClass));
+        Preconditions.checkArgument(filterPredicate.getEntityType().equals(getClassType(entityClass)));
 
         Analyzer analyzer = new KeywordAnalyzer();
         QueryParser queryParser = new QueryParser(filterPredicate.getField(), analyzer);
