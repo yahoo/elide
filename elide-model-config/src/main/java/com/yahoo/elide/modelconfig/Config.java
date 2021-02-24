@@ -5,31 +5,30 @@
  */
 package com.yahoo.elide.modelconfig;
 
-import java.io.File;
 /**
  * Dynamic Config enum.
  */
 public enum Config {
 
     TABLE("table",
-          "models" + File.separator + "tables" + File.separator,
-          File.separator + "elideTableSchema.json"),
+          "models/tables/",
+          "/elideTableSchema.json"),
 
     SECURITY("security",
-             "models" + File.separator + "security.hjson",
-             File.separator + "elideSecuritySchema.json"),
+             "models/security.hjson",
+             "/elideSecuritySchema.json"),
 
     MODELVARIABLE("variable",
-                  "models" + File.separator + "variables.hjson",
-                  File.separator + "elideVariableSchema.json"),
+                  "models/variables.hjson",
+                  "/elideVariableSchema.json"),
 
     DBVARIABLE("variable",
-               "db" + File.separator + "variables.hjson",
-               File.separator + "elideVariableSchema.json"),
+               "db/variables.hjson",
+               "/elideVariableSchema.json"),
 
     SQLDBConfig("sqldbconfig",
-                "db" + File.separator + "sql" + File.separator,
-                File.separator + "elideDBConfigSchema.json");
+                "db/sql/",
+                "/elideDBConfigSchema.json");
 
     private final String configType;
     private final String configPath;
