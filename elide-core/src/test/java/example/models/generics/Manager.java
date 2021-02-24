@@ -6,14 +6,11 @@
 
 package example.models.generics;
 
-import com.yahoo.elide.annotation.Include;
-
 import javax.persistence.Entity;
 
 /**
  * Tests a parameterized superclass.
  */
-@Include
 @Entity
 public class Manager extends Overlord<Employee> {
 }

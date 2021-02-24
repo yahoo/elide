@@ -10,7 +10,7 @@ import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -536,18 +536,11 @@ public abstract class SQLUnitTest {
      * Helper for comparing lists of queries.
      */
     protected void compareQueryLists(List<String> expected, List<String> actual) {
-        if (expected == null && actual == null) {
+        if (expected == actual) {
             return;
         }
-        if (expected == null) {
-            fail("Expected a null query List, but actual was non-null");
-            return;
-        }
-        if (actual == null) {
-            fail("Expected a non-null query List, but actual was null");
-            return;
-        }
-
+        assertNotNull(expected, "Expected a null query List, but actual was non-null");
+        assertNotNull(actual, "Expected a non-null query List, but actual was null");
         assertEquals(expected.size(), actual.size(), "Query List sizes do not match");
 
 

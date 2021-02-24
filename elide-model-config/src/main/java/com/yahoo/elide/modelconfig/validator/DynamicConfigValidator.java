@@ -760,8 +760,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
      * @return Path to model dir
      */
     public static String formatClassPath(String filePath) {
-        if (filePath.indexOf(RESOURCES + File.separator) > -1) {
-            return filePath.substring(filePath.indexOf(RESOURCES + File.separator) + RESOURCES_LENGTH + 1);
+        if (filePath.indexOf(RESOURCES + "/") > -1) {
+            return filePath.substring(filePath.indexOf(RESOURCES + "/") + RESOURCES_LENGTH + 1);
         } else if (filePath.indexOf(RESOURCES) > -1) {
             return filePath.substring(filePath.indexOf(RESOURCES) + RESOURCES_LENGTH);
         }

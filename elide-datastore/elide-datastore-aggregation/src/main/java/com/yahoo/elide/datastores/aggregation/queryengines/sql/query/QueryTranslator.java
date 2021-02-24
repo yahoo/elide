@@ -58,7 +58,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
         if (query.isNested()) {
             SQLQuery innerQuery = builder.build();
 
-            builder = SQLQuery.builder().fromClause("(" + innerQuery.toString() + ") AS "
+            builder = SQLQuery.builder().fromClause("(" + innerQuery + ") AS "
                     + applyQuotes(query.getSource().getAlias()));
         }
 

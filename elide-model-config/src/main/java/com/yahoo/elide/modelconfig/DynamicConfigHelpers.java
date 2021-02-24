@@ -17,7 +17,6 @@ import org.hjson.JsonValue;
 import org.hjson.ParseException;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,11 +42,10 @@ public class DynamicConfigHelpers {
      * @return formatted file path.
      */
     public static String formatFilePath(String basePath) {
-        if (isNullOrEmpty(basePath) || basePath.endsWith(File.separator)) {
-            return basePath;
-        } else {
-            return basePath += File.separator;
+        if (!(isNullOrEmpty(basePath) || basePath.endsWith("/"))) {
+            basePath += "/";
         }
+        return basePath;
     }
 
     /**

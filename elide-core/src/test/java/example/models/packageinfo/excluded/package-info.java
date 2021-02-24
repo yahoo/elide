@@ -4,7 +4,7 @@
  * See LICENSE file in project root for terms.
  */
 
-@Include
-package example.models.generics;
+@Exclude
+package example.models.packageinfo.excluded;
 
-import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.Exclude;

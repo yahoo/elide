@@ -68,7 +68,7 @@ public class CoerceUtilTest {
         assertEquals(1, CoerceUtil.coerce(1, (Class<Object>) null),
                      "coerce returns value if target class null");
 
-        assertEquals(null, CoerceUtil.coerce(null, Object.class),
+        assertNull(CoerceUtil.coerce(null, Object.class),
                      "coerce returns value if value is null");
 
         assertEquals(1, (Object) CoerceUtil.coerce(1, int.class),

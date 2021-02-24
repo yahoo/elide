@@ -5,7 +5,8 @@
  */
 package com.yahoo.elide.async.export.formatter;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -91,7 +92,7 @@ public class JSONExportFormatterTest {
         when(scope.getEntityProjection()).thenReturn(projection);
 
         String output = formatter.format(persistentResource, 1);
-        assertEquals(true, output.contains(start));
+        assertTrue(output.contains(start));
     }
 
     @Test
@@ -122,7 +123,7 @@ public class JSONExportFormatterTest {
         when(scope.getEntityProjection()).thenReturn(projection);
 
         String output = formatter.resourceToJSON(elide.getMapper().getObjectMapper(), persistentResource);
-        assertEquals(true, output.contains(start));
+        assertTrue(output.contains(start));
     }
 
     @Test
@@ -131,6 +132,6 @@ public class JSONExportFormatterTest {
         PersistentResource persistentResource = null;
 
         String output = formatter.format(persistentResource, 1);
-        assertEquals(null, output);
+        assertNull(output);
     }
 }

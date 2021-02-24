@@ -31,6 +31,7 @@ import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.ClassType;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import example.Author;
@@ -508,32 +509,53 @@ public class InMemoryStoreTransactionTest {
 
         assertEquals(wrapped, wrapped.getDataStore());
 
-        String tos = store.toString();
-        assertTrue(tos.contains("Data store contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.NoReadEntity} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Author} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Book} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Child} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.ComputedBean} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Editor} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.FieldAnnotations} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.FirstClassFields} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.FunWithPermissions} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Invoice} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Job} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Left} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.LineItem} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.MapColorShape} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.NoDeleteEntity} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.NoShareEntity} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.NoUpdateEntity} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Parent} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Post} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.PrimitiveId} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Publisher} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.Right} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.StringId} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.UpdateAndCreate} contents"));
-        assertTrue(tos.contains("Table ClassType{cls=class example.User} contents"));
+        // extract class names from DataStore string
+        String tos = store.toString()
+                .replace("Data store contents", "")
+                .replace("Table ClassType{cls=class", "").replace("} contents", "")
+                .replace("Wrapped:[", "").replace("]", "")
+                .replace("\n\n", ",")
+                .replace(" ", "").replace("\n", "");
+
+        // make sure count is correct
+        assertEquals(ImmutableSet.copyOf(new String[] {
+            "example.Author",
+            "example.Book",
+            "example.Child",
+            "example.CoerceBean",
+            "example.ComputedBean",
+            "example.Editor",
+            "example.FieldAnnotations",
+            "example.FirstClassFields",
+            "example.FunWithPermissions",
+            "example.Invoice",
+            "example.Job",
+            "example.Left",
+            "example.LineItem",
+            "example.MapColorShape",
+            "example.NoDeleteEntity",
+            "example.NoReadEntity",
+            "example.NoShareEntity",
+            "example.NoUpdateEntity",
+            "example.Parent",
+            "example.Post",
+            "example.PrimitiveId",
+            "example.Publisher",
+            "example.Right",
+            "example.StringId",
+            "example.UpdateAndCreate",
+            "example.User",
+            "example.models.generics.Employee",
+            "example.models.generics.Manager",
+            "example.models.generics.Overlord",
+            "example.models.generics.Peon",
+            "example.models.packageinfo.IncludedPackageLevel",
+            "example.models.packageinfo.included.IncludedSubPackage",
+            "example.models.triggers.Invoice",
+            "example.models.versioned.BookV2",
+            "example.nontransferable.ContainerWithPackageShare",
+            "example.nontransferable.ShareableWithPackageShare",
+            "example.nontransferable.Untransferable"
+        }), ImmutableSet.copyOf(tos.split(",")));
     }
 }
