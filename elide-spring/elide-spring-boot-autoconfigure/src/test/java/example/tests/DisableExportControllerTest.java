@@ -23,8 +23,8 @@ public class DisableExportControllerTest extends IntegrationTest {
 
     @Test
     public void exportControllerTest() {
-    	// A post to export will result in not found, if controller was disabled.
-    	// If controller is enabled, it returns Method Not Allowed. 
+        // A post to export will result in not found, if controller was disabled.
+        // If controller is enabled, it returns Method Not Allowed.
         when()
                 .post("/export/1")
                 .then()
