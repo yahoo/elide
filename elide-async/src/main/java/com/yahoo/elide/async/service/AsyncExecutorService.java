@@ -93,7 +93,7 @@ public class AsyncExecutorService {
             log.error("ExecutionException: {}", e);
             queryObj.setStatus(QueryStatus.FAILURE);
         } catch (TimeoutException e) {
-            log.error("TimeoutException: {}", e);
+            log.debug("TimeoutException: {}", e);
             resultFuture.setSynchronousTimeout(true);
         } catch (Exception e) {
             log.error("Exception: {}", e);

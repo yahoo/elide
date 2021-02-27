@@ -118,7 +118,7 @@ public abstract class IntegrationTest {
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
         // port randomly picked in pom.xml
-        RestAssured.port = getPort();
+        RestAssured.port = getRestAssuredPort();
 
         // embedded jetty server
         Server server = new Server(RestAssured.port);
@@ -175,7 +175,7 @@ public abstract class IntegrationTest {
         }
     }
 
-    public static Integer getPort() {
+    public static Integer getRestAssuredPort() {
         String restassuredPort = System.getProperty("restassured.port", System.getenv("restassured.port"));
         return Integer.parseInt(StringUtils.isNotEmpty(restassuredPort) ? restassuredPort : "9999");
     }
