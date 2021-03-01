@@ -34,53 +34,53 @@ public class Elide4MigrationHelper {
     public static void bindLegacyHooks(EntityDictionary dictionary) {
         dictionary.getBindings().forEach(binding -> {
             binding.getAllMethods().stream()
-                    .forEach(field -> {
+                    .forEach(method -> {
                         String annotationField = null;
                         LifeCycleHookBinding.TransactionPhase phase = null;
                         LifeCycleHookBinding.Operation operation = null;
-                        if (field.isAnnotationPresent(OnCreatePostCommit.class)) {
-                            annotationField = field.getAnnotation(OnCreatePostCommit.class).value();
+                        if (method.isAnnotationPresent(OnCreatePostCommit.class)) {
+                            annotationField = method.getAnnotation(OnCreatePostCommit.class).value();
                             phase = LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
                             operation = LifeCycleHookBinding.Operation.CREATE;
-                        } else if (field.isAnnotationPresent(OnCreatePreCommit.class)) {
-                            annotationField = field.getAnnotation(OnCreatePreCommit.class).value();
+                        } else if (method.isAnnotationPresent(OnCreatePreCommit.class)) {
+                            annotationField = method.getAnnotation(OnCreatePreCommit.class).value();
                             phase = LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
                             operation = LifeCycleHookBinding.Operation.CREATE;
-                        } else if (field.isAnnotationPresent(OnCreatePreSecurity.class)) {
-                            annotationField = field.getAnnotation(OnCreatePreSecurity.class).value();
+                        } else if (method.isAnnotationPresent(OnCreatePreSecurity.class)) {
+                            annotationField = method.getAnnotation(OnCreatePreSecurity.class).value();
                             phase = LifeCycleHookBinding.TransactionPhase.PRESECURITY;
                             operation = LifeCycleHookBinding.Operation.CREATE;
-                        } else if (field.isAnnotationPresent(OnUpdatePostCommit.class)) {
-                            annotationField = field.getAnnotation(OnUpdatePostCommit.class).value();
+                        } else if (method.isAnnotationPresent(OnUpdatePostCommit.class)) {
+                            annotationField = method.getAnnotation(OnUpdatePostCommit.class).value();
                             phase = LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
                             operation = LifeCycleHookBinding.Operation.UPDATE;
-                        } else if (field.isAnnotationPresent(OnUpdatePreCommit.class)) {
-                            annotationField = field.getAnnotation(OnUpdatePreCommit.class).value();
+                        } else if (method.isAnnotationPresent(OnUpdatePreCommit.class)) {
+                            annotationField = method.getAnnotation(OnUpdatePreCommit.class).value();
                             phase = LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
                             operation = LifeCycleHookBinding.Operation.UPDATE;
-                        } else if (field.isAnnotationPresent(OnUpdatePreSecurity.class)) {
-                            annotationField = field.getAnnotation(OnUpdatePreSecurity.class).value();
+                        } else if (method.isAnnotationPresent(OnUpdatePreSecurity.class)) {
+                            annotationField = method.getAnnotation(OnUpdatePreSecurity.class).value();
                             phase = LifeCycleHookBinding.TransactionPhase.PRESECURITY;
                             operation = LifeCycleHookBinding.Operation.UPDATE;
-                        } else if (field.isAnnotationPresent(OnReadPostCommit.class)) {
-                            annotationField = field.getAnnotation(OnReadPostCommit.class).value();
+                        } else if (method.isAnnotationPresent(OnReadPostCommit.class)) {
+                            annotationField = method.getAnnotation(OnReadPostCommit.class).value();
                             phase = LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
                             operation = LifeCycleHookBinding.Operation.READ;
-                        } else if (field.isAnnotationPresent(OnReadPreCommit.class)) {
-                            annotationField = field.getAnnotation(OnReadPreCommit.class).value();
+                        } else if (method.isAnnotationPresent(OnReadPreCommit.class)) {
+                            annotationField = method.getAnnotation(OnReadPreCommit.class).value();
                             phase = LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
                             operation = LifeCycleHookBinding.Operation.READ;
-                        } else if (field.isAnnotationPresent(OnReadPreSecurity.class)) {
-                            annotationField = field.getAnnotation(OnReadPreSecurity.class).value();
+                        } else if (method.isAnnotationPresent(OnReadPreSecurity.class)) {
+                            annotationField = method.getAnnotation(OnReadPreSecurity.class).value();
                             phase = LifeCycleHookBinding.TransactionPhase.PRESECURITY;
                             operation = LifeCycleHookBinding.Operation.READ;
-                        } else if (field.isAnnotationPresent(OnDeletePostCommit.class)) {
+                        } else if (method.isAnnotationPresent(OnDeletePostCommit.class)) {
                             phase = LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
                             operation = LifeCycleHookBinding.Operation.DELETE;
-                        } else if (field.isAnnotationPresent(OnDeletePreCommit.class)) {
+                        } else if (method.isAnnotationPresent(OnDeletePreCommit.class)) {
                             phase = LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
                             operation = LifeCycleHookBinding.Operation.DELETE;
-                        } else if (field.isAnnotationPresent(OnDeletePreSecurity.class)) {
+                        } else if (method.isAnnotationPresent(OnDeletePreSecurity.class)) {
                             phase = LifeCycleHookBinding.TransactionPhase.PRESECURITY;
                             operation = LifeCycleHookBinding.Operation.DELETE;
                         }
@@ -89,14 +89,14 @@ public class Elide4MigrationHelper {
                             if (annotationField != null) {
                                 if (annotationField.equals("*")) {
                                     dictionary.bindTrigger(binding.entityClass, operation, phase,
-                                            generateHook((Method) field), true);
+                                            generateHook((Method) method), true);
                                 } else {
                                     dictionary.bindTrigger(binding.entityClass, annotationField, operation, phase,
-                                            generateHook((Method) field));
+                                            generateHook((Method) method));
                                 }
                             } else {
                                 dictionary.bindTrigger(binding.entityClass, operation, phase,
-                                        generateHook((Method) field), false);
+                                        generateHook((Method) method), false);
                             }
                         }
 
