@@ -36,6 +36,10 @@ public class LegacyTestModel {
     @Setter
     private String field;
 
+    @Getter
+    @Setter
+    private String field2;
+
     @OnCreatePostCommit(value = "field")
     public void fieldCreatePostCommit() {
     }
@@ -118,5 +122,9 @@ public class LegacyTestModel {
 
     @OnReadPreSecurity
     public void classReadPreSecurity() {
+    }
+
+    @OnCreatePreSecurity("*")
+    public void classCreatePreCommitAllUpdates() {
     }
 }

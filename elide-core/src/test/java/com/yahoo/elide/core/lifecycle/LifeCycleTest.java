@@ -148,6 +148,7 @@ public class LifeCycleTest {
         verify(mockModel, times(1)).classReadPreSecurity();
         verify(mockModel, times(1)).classReadPreCommit();
         verify(mockModel, times(1)).classReadPostCommit();
+        verify(mockModel, times(1)).classCreatePreCommitAllUpdates();
         verify(mockModel, times(1)).classCreatePreSecurity();
         verify(mockModel, times(1)).classCreatePreCommit();
         verify(mockModel, times(1)).classCreatePostCommit();
@@ -273,6 +274,7 @@ public class LifeCycleTest {
         verify(mockModel, never()).classUpdatePreSecurity();
         verify(mockModel, never()).classUpdatePreCommit();
         verify(mockModel, never()).classUpdatePostCommit();
+        verify(mockModel, never()).classCreatePreCommitAllUpdates();
         verify(mockModel, never()).classCreatePreSecurity();
         verify(mockModel, never()).classCreatePreCommit();
         verify(mockModel, never()).classCreatePostCommit();
@@ -469,6 +471,7 @@ public class LifeCycleTest {
         verify(mockModel, never()).classReadPreSecurity();
         verify(mockModel, never()).classReadPreCommit();
         verify(mockModel, never()).classReadPostCommit();
+        verify(mockModel, never()).classCreatePreCommitAllUpdates();
         verify(mockModel, never()).classCreatePreSecurity();
         verify(mockModel, never()).classCreatePreCommit();
         verify(mockModel, never()).classCreatePostCommit();
@@ -561,6 +564,7 @@ public class LifeCycleTest {
         verify(mockModel, never()).classReadPostCommit();
         verify(mockModel, never()).classReadPreSecurity();
         verify(mockModel, never()).classReadPreCommit();
+        verify(mockModel, never()).classCreatePreCommitAllUpdates();
         verify(mockModel, never()).classCreatePostCommit();
         verify(mockModel, never()).classCreatePreSecurity();
         verify(mockModel, never()).classCreatePreCommit();
