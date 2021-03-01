@@ -72,8 +72,6 @@ public class LifeCycleTest {
         dictionary.bindEntity(FieldTestModel.class);
         dictionary.bindEntity(PropertyTestModel.class);
         dictionary.bindEntity(LegacyTestModel.class);
-
-        Elide4MigrationHelper.bindLegacyHooks(dictionary);
     }
 
     @Test
