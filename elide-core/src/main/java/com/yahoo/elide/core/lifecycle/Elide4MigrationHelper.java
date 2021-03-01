@@ -79,10 +79,10 @@ public class Elide4MigrationHelper {
                             operation = LifeCycleHookBinding.Operation.DELETE;
                         } else if (field.isAnnotationPresent(OnDeletePreCommit.class)) {
                             phase = LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
-                            operation = LifeCycleHookBinding.Operation.READ;
+                            operation = LifeCycleHookBinding.Operation.DELETE;
                         } else if (field.isAnnotationPresent(OnDeletePreSecurity.class)) {
                             phase = LifeCycleHookBinding.TransactionPhase.PRESECURITY;
-                            operation = LifeCycleHookBinding.Operation.READ;
+                            operation = LifeCycleHookBinding.Operation.DELETE;
                         }
 
                         if (operation != null) {
