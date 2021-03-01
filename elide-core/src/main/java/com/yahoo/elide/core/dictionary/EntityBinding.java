@@ -246,7 +246,7 @@ public class EntityBinding {
         return fields;
     }
 
-    private List<AccessibleObject> getAllMethods() {
+    public List<AccessibleObject> getAllMethods() {
         List<AccessibleObject> methods = new ArrayList<>();
 
         methods.addAll(getInstanceMembers(entityClass.getDeclaredMethods(), (method) -> !method.isSynthetic()));
