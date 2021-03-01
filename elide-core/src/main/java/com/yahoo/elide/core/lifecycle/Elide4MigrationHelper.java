@@ -86,7 +86,7 @@ public class Elide4MigrationHelper {
                         }
 
                         if (operation != null) {
-                            if (annotationField != null) {
+                            if (annotationField != null && ! annotationField.isEmpty()) {
                                 if (annotationField.equals("*")) {
                                     dictionary.bindTrigger(binding.entityClass, operation, phase,
                                             generateHook((Method) method), true);

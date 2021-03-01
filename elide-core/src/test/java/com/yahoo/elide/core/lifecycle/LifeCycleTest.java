@@ -71,6 +71,9 @@ public class LifeCycleTest {
         dictionary = TestDictionary.getTestDictionary();
         dictionary.bindEntity(FieldTestModel.class);
         dictionary.bindEntity(PropertyTestModel.class);
+        dictionary.bindEntity(LegacyTestModel.class);
+
+        Elide4MigrationHelper.bindLegacyHooks(dictionary);
     }
 
     @Test
@@ -118,6 +121,52 @@ public class LifeCycleTest {
         verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(POSTCOMMIT), any());
         verify(mockModel, never()).relationCallback(eq(UPDATE), any(), any());
         verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
+
+        verify(tx).preCommit(any());
+        verify(tx, times(1)).createObject(eq(mockModel), isA(RequestScope.class));
+        verify(tx).flush(isA(RequestScope.class));
+        verify(tx).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
+
+    @Test
+    public void testLegacyElideCreate() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        LegacyTestModel mockModel = mock(LegacyTestModel.class);
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        String body = "{\"data\": {\"type\":\"legacyTestModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
+
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.createNewObject(new ClassType(LegacyTestModel.class))).thenReturn(mockModel);
+
+        ElideResponse response = elide.post(baseUrl, "/legacyTestModel", body, null, NO_VERSION);
+        assertEquals(HttpStatus.SC_CREATED, response.getResponseCode());
+
+        verify(mockModel, times(1)).classReadPreSecurity();
+        verify(mockModel, times(1)).classReadPreCommit();
+        verify(mockModel, times(1)).classReadPostCommit();
+        verify(mockModel, times(1)).classCreatePreSecurity();
+        verify(mockModel, times(1)).classCreatePreCommit();
+        verify(mockModel, times(1)).classCreatePostCommit();
+        verify(mockModel, never()).classUpdatePreCommit();
+        verify(mockModel, never()).classUpdatePostCommit();
+        verify(mockModel, never()).classUpdatePreSecurity();
+        verify(mockModel, never()).classDeletePreCommit();
+        verify(mockModel, never()).classDeletePostCommit();
+        verify(mockModel, never()).classDeletePreSecurity();
+
+        verify(mockModel, times(1)).fieldReadPreSecurity();
+        verify(mockModel, times(1)).fieldReadPreCommit();
+        verify(mockModel, times(1)).fieldReadPostCommit();
+        verify(mockModel, times(1)).fieldCreatePreSecurity();
+        verify(mockModel, times(1)).fieldCreatePreCommit();
+        verify(mockModel, times(1)).fieldCreatePostCommit();
+        verify(mockModel, never()).fieldUpdatePreCommit();
+        verify(mockModel, never()).fieldUpdatePostCommit();
+        verify(mockModel, never()).fieldUpdatePreSecurity();
 
         verify(tx).preCommit(any());
         verify(tx, times(1)).createObject(eq(mockModel), isA(RequestScope.class));
