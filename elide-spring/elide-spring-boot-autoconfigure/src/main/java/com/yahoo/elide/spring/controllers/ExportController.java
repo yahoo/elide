@@ -37,7 +37,7 @@ import javax.servlet.http.HttpServletResponse;
 @Configuration
 @RestController
 @RequestMapping(value = "${elide.async.export.path:/export}")
-@ConditionalOnExpression("${elide.async.export.enabled:false}")
+@ConditionalOnExpression("${elide.async.enabled:false} && ${elide.async.export.enabled:false}")
 public class ExportController {
 
     private ResultStorageEngine resultStorageEngine;
