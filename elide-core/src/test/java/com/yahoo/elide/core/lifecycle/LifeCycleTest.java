@@ -252,6 +252,51 @@ public class LifeCycleTest {
     }
 
     @Test
+    public void testLegacyElideGet() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        LegacyTestModel mockModel = mock(LegacyTestModel.class);
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        when(store.beginReadTransaction()).thenCallRealMethod();
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
+
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        ElideResponse response = elide.get(baseUrl, "/legacyTestModel/1", queryParams, null, NO_VERSION);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
+
+        verify(mockModel, times(1)).classReadPreSecurity();
+        verify(mockModel, times(1)).classReadPreCommit();
+        verify(mockModel, times(1)).classReadPostCommit();
+        verify(mockModel, never()).classUpdatePreSecurity();
+        verify(mockModel, never()).classUpdatePreCommit();
+        verify(mockModel, never()).classUpdatePostCommit();
+        verify(mockModel, never()).classCreatePreSecurity();
+        verify(mockModel, never()).classCreatePreCommit();
+        verify(mockModel, never()).classCreatePostCommit();
+        verify(mockModel, never()).classDeletePreSecurity();
+        verify(mockModel, never()).classDeletePreCommit();
+        verify(mockModel, never()).classDeletePostCommit();
+
+        verify(mockModel, times(1)).fieldReadPreSecurity();
+        verify(mockModel, times(1)).fieldReadPreCommit();
+        verify(mockModel, times(1)).fieldReadPostCommit();
+        verify(mockModel, never()).fieldUpdatePreSecurity();
+        verify(mockModel, never()).fieldUpdatePreCommit();
+        verify(mockModel, never()).fieldUpdatePostCommit();
+        verify(mockModel, never()).fieldCreatePreSecurity();
+        verify(mockModel, never()).fieldCreatePreCommit();
+        verify(mockModel, never()).fieldCreatePostCommit();
+
+        verify(tx).preCommit(any());
+        verify(tx).flush(any());
+        verify(tx).commit(any());
+        verify(tx).close();
+    }
+
+    @Test
     public void testElideGetSparse() throws Exception {
         DataStore store = mock(DataStore.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
@@ -404,6 +449,56 @@ public class LifeCycleTest {
     }
 
     @Test
+    public void testLegacyElidePatch() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        LegacyTestModel mockModel = mock(LegacyTestModel.class);
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        String body = "{\"data\": {\"type\":\"legacyTestModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
+
+        dictionary.setValue(mockModel, "id", "1");
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
+
+        String contentType = JSONAPI_CONTENT_TYPE;
+        ElideResponse response = elide.patch(baseUrl, contentType, contentType, "/legacyTestModel/1", body, null, NO_VERSION);
+        assertEquals(HttpStatus.SC_NO_CONTENT, response.getResponseCode());
+
+        verify(mockModel, never()).classReadPreSecurity();
+        verify(mockModel, never()).classReadPreCommit();
+        verify(mockModel, never()).classReadPostCommit();
+        verify(mockModel, never()).classCreatePreSecurity();
+        verify(mockModel, never()).classCreatePreCommit();
+        verify(mockModel, never()).classCreatePostCommit();
+        verify(mockModel, never()).classDeletePreSecurity();
+        verify(mockModel, never()).classDeletePreCommit();
+        verify(mockModel, never()).classDeletePostCommit();
+
+        verify(mockModel, times(1)).classUpdatePreSecurity();
+        verify(mockModel, times(1)).classUpdatePreCommit();
+        verify(mockModel, times(1)).classUpdatePostCommit();
+
+        verify(mockModel, never()).fieldReadPreSecurity();
+        verify(mockModel, never()).fieldReadPreCommit();
+        verify(mockModel, never()).fieldReadPostCommit();
+        verify(mockModel, never()).fieldCreatePreSecurity();
+        verify(mockModel, never()).fieldCreatePreCommit();
+        verify(mockModel, never()).fieldCreatePostCommit();
+
+        verify(mockModel, times(1)).fieldUpdatePreSecurity();
+        verify(mockModel, times(1)).fieldUpdatePreCommit();
+        verify(mockModel, times(1)).fieldUpdatePostCommit();
+
+        verify(tx).preCommit(any());
+        verify(tx).save(eq(mockModel), isA(RequestScope.class));
+        verify(tx).flush(isA(RequestScope.class));
+        verify(tx).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
+
+    @Test
     public void testElideDelete() throws Exception {
         DataStore store = mock(DataStore.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
@@ -437,6 +532,52 @@ public class LifeCycleTest {
         verify(mockModel, never()).relationCallback(eq(CREATE), any(), any());
         verify(mockModel, never()).relationCallback(eq(READ), any(), any());
         verify(mockModel, never()).relationCallback(eq(DELETE), any(), any());
+
+        verify(tx).preCommit(any());
+        verify(tx).delete(eq(mockModel), isA(RequestScope.class));
+        verify(tx).flush(isA(RequestScope.class));
+        verify(tx).commit(isA(RequestScope.class));
+        verify(tx).close();
+    }
+
+    @Test
+    public void testLegacyElideDelete() throws Exception {
+        DataStore store = mock(DataStore.class);
+        DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        LegacyTestModel mockModel = mock(LegacyTestModel.class);
+
+        Elide elide = getElide(store, dictionary, MOCK_AUDIT_LOGGER);
+
+        dictionary.setValue(mockModel, "id", "1");
+        when(store.beginTransaction()).thenReturn(tx);
+        when(tx.loadObject(isA(EntityProjection.class), any(), isA(RequestScope.class))).thenReturn(mockModel);
+
+        ElideResponse response = elide.delete(baseUrl, "/legacyTestModel/1", "", null, NO_VERSION);
+        assertEquals(HttpStatus.SC_NO_CONTENT, response.getResponseCode());
+
+        verify(mockModel, never()).classUpdatePostCommit();
+        verify(mockModel, never()).classUpdatePreSecurity();
+        verify(mockModel, never()).classUpdatePreCommit();
+        verify(mockModel, never()).classReadPostCommit();
+        verify(mockModel, never()).classReadPreSecurity();
+        verify(mockModel, never()).classReadPreCommit();
+        verify(mockModel, never()).classCreatePostCommit();
+        verify(mockModel, never()).classCreatePreSecurity();
+        verify(mockModel, never()).classCreatePreCommit();
+
+        verify(mockModel, times(1)).classDeletePreSecurity();
+        verify(mockModel, times(1)).classDeletePreCommit();
+        verify(mockModel, times(1)).classDeletePostCommit();
+
+        verify(mockModel, never()).fieldUpdatePostCommit();
+        verify(mockModel, never()).fieldUpdatePreSecurity();
+        verify(mockModel, never()).fieldUpdatePreCommit();
+        verify(mockModel, never()).fieldReadPostCommit();
+        verify(mockModel, never()).fieldReadPreSecurity();
+        verify(mockModel, never()).fieldReadPreCommit();
+        verify(mockModel, never()).fieldCreatePostCommit();
+        verify(mockModel, never()).fieldCreatePreSecurity();
+        verify(mockModel, never()).fieldCreatePreCommit();
 
         verify(tx).preCommit(any());
         verify(tx).delete(eq(mockModel), isA(RequestScope.class));
