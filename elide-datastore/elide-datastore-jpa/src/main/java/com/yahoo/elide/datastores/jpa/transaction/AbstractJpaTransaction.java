@@ -34,8 +34,11 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import javax.persistence.EntityManager;
@@ -55,11 +58,16 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     private final EntityManagerWrapper emWrapper;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final Consumer<EntityManager> jpaTransactionCancel;
+    private final Set<Object> loadedById;
+    private final boolean delegateToInMemoryStore;
 
-    protected AbstractJpaTransaction(EntityManager em, Consumer<EntityManager> jpaTransactionCancel) {
+    protected AbstractJpaTransaction(EntityManager em, Consumer<EntityManager> jpaTransactionCancel,
+                                     boolean delegateToInMemoryStore) {
         this.em = em;
         this.emWrapper = new EntityManagerWrapper(em);
         this.jpaTransactionCancel = jpaTransactionCancel;
+        this.loadedById = new HashSet<>();
+        this.delegateToInMemoryStore = delegateToInMemoryStore;
     }
 
     @Override
@@ -178,7 +186,11 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                     (QueryWrapper) new RootCollectionFetchQueryBuilder(projection, dictionary, emWrapper)
                             .build();
 
-            return (T) query.getQuery().getSingleResult();
+            T result = (T) query.getQuery().getSingleResult();
+
+            loadedById.add(result);
+
+            return result;
         } catch (NoResultException e) {
             return null;
         }
@@ -293,5 +305,26 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     @Override
     public void cancel(RequestScope scope) {
         jpaTransactionCancel.accept(em);
+    }
+
+    @Override
+    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
+        return doInDatabase(parent) ? FeatureSupport.FULL : FeatureSupport.NONE;
+    }
+
+    @Override
+    public <T> boolean supportsSorting(RequestScope scope, Optional<T> parent, EntityProjection projection) {
+        return doInDatabase(parent);
+    }
+
+    @Override
+    public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
+        return doInDatabase(parent);
+    }
+
+    private <T> boolean doInDatabase(Optional<T> parent) {
+        return !delegateToInMemoryStore
+                || !parent.isPresent()
+                || (parent.isPresent() && loadedById.contains(parent.get()));
     }
 }

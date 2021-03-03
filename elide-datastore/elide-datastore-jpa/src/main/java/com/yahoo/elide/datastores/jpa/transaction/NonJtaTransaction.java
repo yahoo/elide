@@ -20,7 +20,12 @@ import javax.persistence.EntityTransaction;
 public class NonJtaTransaction extends AbstractJpaTransaction {
     private final EntityTransaction transaction;
     public NonJtaTransaction(EntityManager entityManager, Consumer<EntityManager> jpaTransactionCancel) {
-        super(entityManager, jpaTransactionCancel);
+        this(entityManager, jpaTransactionCancel, false);
+    }
+
+    public NonJtaTransaction(EntityManager entityManager, Consumer<EntityManager> jpaTransactionCancel,
+                             boolean delegateToInMemoryStore) {
+        super(entityManager, jpaTransactionCancel, delegateToInMemoryStore);
         this.transaction = entityManager.getTransaction();
         entityManager.clear();
     }

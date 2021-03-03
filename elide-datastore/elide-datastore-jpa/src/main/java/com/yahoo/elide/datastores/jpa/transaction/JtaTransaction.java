@@ -22,12 +22,19 @@ import javax.transaction.UserTransaction;
 @Slf4j
 public class JtaTransaction extends AbstractJpaTransaction {
     private final UserTransaction transaction;
+
     public JtaTransaction(EntityManager entityManager, Consumer<EntityManager> txCancel) {
-        this(entityManager, lookupUserTransaction(), txCancel);
+        this(entityManager, lookupUserTransaction(), txCancel, false);
     }
 
-    public JtaTransaction(EntityManager entityManager, UserTransaction transaction, Consumer<EntityManager> txCancel) {
-        super(entityManager, txCancel);
+    public JtaTransaction(EntityManager entityManager, Consumer<EntityManager> txCancel,
+                          boolean delegateToInMemoryStore) {
+        this(entityManager, lookupUserTransaction(), txCancel, delegateToInMemoryStore);
+    }
+
+    public JtaTransaction(EntityManager entityManager, UserTransaction transaction, Consumer<EntityManager> txCancel,
+                          boolean delegateToInMemoryStore) {
+        super(entityManager, txCancel, delegateToInMemoryStore);
         this.transaction = transaction;
     }
 
