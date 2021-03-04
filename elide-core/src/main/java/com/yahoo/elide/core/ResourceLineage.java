@@ -75,7 +75,7 @@ public class ResourceLineage {
             return null;
         }
 
-        return resourcePath.get(resourceMap.size() - 1).resource;
+        return resourcePath.get(resourcePath.size() - 1).resource;
     }
 
     /**
