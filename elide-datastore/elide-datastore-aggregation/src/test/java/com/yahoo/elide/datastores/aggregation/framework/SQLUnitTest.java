@@ -143,6 +143,25 @@ public abstract class SQLUnitTest {
                     .whereFilter(new OrFilterExpression(ratingFilter, highScoreFilter))
                     .build();
         }),
+        WHERE_WITH_ARGUMENTS (() -> {
+            Set<Argument> dayArgument = new HashSet<>();
+            dayArgument.add(Argument.builder().name("grain").value(TimeGrain.DAY).build());
+
+            Map<String, Argument> monthArgument = new HashMap<>();
+            monthArgument.put("grain", Argument.builder().name("grain").value(TimeGrain.MONTH).build());
+
+            FilterPredicate dayFilter = new FilterPredicate(
+                    new Path(playerStatsType, dictionary, "recordedDate", "recordedDate", dayArgument),
+                    Operator.NOTNULL,
+                    new ArrayList<Object>());
+
+            return Query.builder()
+                    .source(playerStatsTable)
+                    .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate", "recordedDate", monthArgument))
+                    .whereFilter(dayFilter)
+                    .build();
+        }),
         HAVING_METRICS_ONLY (() ->
             Query.builder()
                     .source(playerStatsTable)
@@ -639,6 +658,22 @@ public abstract class SQLUnitTest {
             split[split.length - 1] = "`overallRating_207658499` DESC ";
             expectedSQL = String.join(NEWLINE, split);
         }
+        return formatInSingleLine(expectedSQL);
+    }
+
+    protected String getExpectedWhereWithArgumentsSQL() {
+
+        String expectedSQL =
+                          "SELECT \n"
+                        + "    MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,\n"
+                        + "    PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` \n"
+                        + "FROM \n"
+                        + "    `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` \n"
+                        + "WHERE \n"
+                        + "     PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IS NOT NULL \n"
+                        + "GROUP BY \n"
+                        + "     PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ";
+
         return formatInSingleLine(expectedSQL);
     }
 

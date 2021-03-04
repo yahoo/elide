@@ -6,15 +6,19 @@
 package com.yahoo.elide.core.filter.dialect;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
+
 import example.Author;
 import example.Book;
 import example.Job;
 import example.PrimitiveId;
+import example.Publisher;
 import example.StringId;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -38,6 +42,7 @@ public class RSQLFilterDialectTest {
 
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Book.class);
+        dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(StringId.class);
         dictionary.bindEntity(Job.class);
         dictionary.bindEntity(PrimitiveId.class);
@@ -335,7 +340,7 @@ public class RSQLFilterDialectTest {
 
         assertEquals(
                 "author.id INFIX [20]",
-                visitor.visit(comparisonNode, new ClassType(Author.class)).toString()
+                visitor.visit(comparisonNode, new ClassType<Author>(Author.class)).toString()
         );
     }
 
@@ -511,5 +516,36 @@ public class RSQLFilterDialectTest {
                 () -> dialect.parseGlobalExpression("/book", queryParams, NO_VERSION));
 
         assertEquals("Invalid Path: Last Path Element cannot be a collection type", e.getMessage());
+    }
+
+    @Test
+    public void testFilterArgumentParsing() throws Exception {
+
+        FilterExpression expr;
+        Type<Book> bookType = new ClassType<Book>(Book.class);
+
+        expr = assertDoesNotThrow(() -> dialect.parse(bookType, Collections.emptySet(),
+                        "genre=in=(sci-fi,action),title[a:b][x:y]==Hemingway", NO_VERSION));
+        assertEquals("(book.genre IN [sci-fi, action] OR book.title IN [Hemingway])", expr.toString());
+
+        // Empty argument name or value
+        expr = assertDoesNotThrow(() -> dialect.parse(bookType, Collections.emptySet(),
+                        "genre=in=(sci-fi,action),title[a:][:y]==Hemingway", NO_VERSION));
+        assertEquals("(book.genre IN [sci-fi, action] OR book.title IN [Hemingway])", expr.toString());
+
+        // Missing argument name or value (: missing within [])
+        Exception e = assertThrows(ParseException.class, () -> dialect.parse(bookType, Collections.emptySet(),
+                        "genre=in=(sci-fi,action),title[ab][x:y]==Hemingway", NO_VERSION));
+        assertEquals("Failed to parse arguments from filter expression at: title[ab][x:y]", e.getMessage());
+
+        // Anything after first '[' and not within [] is ignored
+        expr = assertDoesNotThrow(() -> dialect.parse(bookType, Collections.emptySet(),
+                        "genre=in=(sci-fi,action),title[a:b][x:y]asdf==Hemingway", NO_VERSION));
+        assertEquals("(book.genre IN [sci-fi, action] OR book.title IN [Hemingway])", expr.toString());
+
+        // Passing arguments for associated attribute.
+        expr = assertDoesNotThrow(() -> dialect.parse(bookType, Collections.emptySet(),
+                        "publisher.name[a:b][x:y]==Penguin", NO_VERSION));
+        assertEquals("book.publisher.name IN [Penguin]", expr.toString());
     }
 }

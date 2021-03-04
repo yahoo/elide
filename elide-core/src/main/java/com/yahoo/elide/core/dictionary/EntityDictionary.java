@@ -1807,7 +1807,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Returns the Collection of all attributes of an argument.
+     * Returns the Collection of all arguments of an attribute.
      * @param cls The entity
      * @param attributeName Name of the argument for ehich arguments are to be retrieved.
      * @return A Set of ArgumentType for the given attribute.
