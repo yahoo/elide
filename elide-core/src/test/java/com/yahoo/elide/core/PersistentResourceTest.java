@@ -68,6 +68,7 @@ import example.Parent;
 import example.Right;
 import example.Shape;
 import example.nontransferable.ContainerWithPackageShare;
+import example.nontransferable.NoTransferBiDirectional;
 import example.nontransferable.ShareableWithPackageShare;
 import example.nontransferable.Untransferable;
 import org.apache.commons.collections4.CollectionUtils;
@@ -2101,6 +2102,46 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         assertTrue(returnVal);
         assertNull(userModel.getNoShare());
+    }
+
+    @Test
+    public void testTransferPermissionErrorOnLineageAncestor() {
+        NoTransferBiDirectional a = new NoTransferBiDirectional();
+        a.setId(1);
+        NoTransferBiDirectional b = new NoTransferBiDirectional();
+        b.setId(2);
+        NoTransferBiDirectional c = new NoTransferBiDirectional();
+        c.setId(3);
+        a.setOther(b);
+        b.setOther(c);
+
+        RequestScope goodScope = buildRequestScope(tx, goodUser);
+        PersistentResource aResource = new PersistentResource(a, "1", goodScope);
+        PersistentResource bResource = new PersistentResource(b, aResource, "other", "2", goodScope);
+        PersistentResource cResource = new PersistentResource(c, bResource, "other", "3", goodScope);
+
+        assertThrows(
+                ForbiddenAccessException.class,
+                () -> cResource.addRelation("other", aResource));
+    }
+
+    @Test
+    public void testTransferPermissionSuccessOnLineageParent() {
+        NoTransferBiDirectional a = new NoTransferBiDirectional();
+        a.setId(1);
+        NoTransferBiDirectional b = new NoTransferBiDirectional();
+        b.setId(2);
+        NoTransferBiDirectional c = new NoTransferBiDirectional();
+        c.setId(3);
+        a.setOther(b);
+        b.setOther(c);
+
+        RequestScope goodScope = buildRequestScope(tx, goodUser);
+        PersistentResource aResource = new PersistentResource(a, "1", goodScope);
+        PersistentResource bResource = new PersistentResource(b, aResource, "other", "2", goodScope);
+        PersistentResource cResource = new PersistentResource(c, bResource, "other", "3", goodScope);
+
+        cResource.addRelation("other", bResource);
     }
 
     @Test

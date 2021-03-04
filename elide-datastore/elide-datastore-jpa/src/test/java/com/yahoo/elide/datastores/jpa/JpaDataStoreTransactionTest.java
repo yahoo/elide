@@ -20,6 +20,8 @@ import com.yahoo.elide.datastores.jpa.transaction.AbstractJpaTransaction;
 import example.Author;
 import example.Book;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.HashMap;
 import java.util.Optional;
@@ -27,12 +29,13 @@ import javax.persistence.EntityManager;
 
 public class JpaDataStoreTransactionTest {
 
-    @Test
-    public void testNoDelegationOnLoadRecords() {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void testNoDelegationOnLoadRecords(boolean delegateToInMemory) {
         EntityManager entityManager = mock(EntityManager.class);
 
         AbstractJpaTransaction tx = new AbstractJpaTransaction(entityManager, (unused) -> {
-        }, true) {
+        }, delegateToInMemory) {
             @Override
             public boolean isOpen() {
                 return false;
@@ -85,10 +88,41 @@ public class JpaDataStoreTransactionTest {
     }
 
     @Test
-    public void testNoDelegationOnCollectionOfOneFetch() throws Exception {
+    public void testNoDelegationOnCollectionOfCollectionsFetch() {
+        EntityManager entityManager = mock(EntityManager.class);
+
+        AbstractJpaTransaction tx = new AbstractJpaTransaction(entityManager, (unused) -> {
+
+        }, false) {
+            @Override
+            public boolean isOpen() {
+                return false;
+            }
+
+            @Override
+            public void begin() {
+
+            }
+        };
+
+        RequestScope scope = mock(RequestScope.class);
+        EntityProjection projection = EntityProjection.builder()
+                .type(Book.class)
+                .build();
+
+        Author author = mock(Author.class);
+        assertEquals(DataStoreTransaction.FeatureSupport.FULL,
+                tx.supportsFiltering(scope, Optional.of(author), projection));
+        assertTrue(tx.supportsSorting(scope, Optional.of(author), projection));
+        assertTrue(tx.supportsPagination(scope, Optional.of(author), projection));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void testNoDelegationOnCollectionOfOneFetch(boolean delegateToInMemory) throws Exception {
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
 
-        JpaDataStoreHarness harness = new JpaDataStoreHarness(true);
+        JpaDataStoreHarness harness = new JpaDataStoreHarness(delegateToInMemory);
         DataStore store = harness.getDataStore();
         store.populateEntityDictionary(dictionary);
 

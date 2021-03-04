@@ -46,6 +46,7 @@ import example.Publisher;
 import example.Right;
 import example.UpdateAndCreate;
 import example.nontransferable.ContainerWithPackageShare;
+import example.nontransferable.NoTransferBiDirectional;
 import example.nontransferable.ShareableWithPackageShare;
 import example.nontransferable.Untransferable;
 import io.reactivex.Observable;
@@ -100,6 +101,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         dictionary.bindEntity(ComputedBean.class);
         dictionary.bindEntity(ContainerWithPackageShare.class);
         dictionary.bindEntity(ShareableWithPackageShare.class);
+        dictionary.bindEntity(NoTransferBiDirectional.class);
         dictionary.bindEntity(Untransferable.class);
         return dictionary;
     }
