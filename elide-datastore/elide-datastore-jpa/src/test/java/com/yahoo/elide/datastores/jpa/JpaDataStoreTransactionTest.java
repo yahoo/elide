@@ -11,11 +11,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.EntityProjection;
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.datastores.jpa.transaction.AbstractJpaTransaction;
 import example.Author;
 import example.Book;
@@ -31,7 +31,8 @@ public class JpaDataStoreTransactionTest {
     public void testNoDelegationOnLoadRecords() {
         EntityManager entityManager = mock(EntityManager.class);
 
-        AbstractJpaTransaction tx = new AbstractJpaTransaction(entityManager, (unused) -> {}, true) {
+        AbstractJpaTransaction tx = new AbstractJpaTransaction(entityManager, (unused) -> {
+        }, true) {
             @Override
             public boolean isOpen() {
                 return false;
@@ -57,7 +58,9 @@ public class JpaDataStoreTransactionTest {
     public void testDelegationOnCollectionOfCollectionsFetch() {
         EntityManager entityManager = mock(EntityManager.class);
 
-        AbstractJpaTransaction tx = new AbstractJpaTransaction(entityManager, (unused) -> {}, true) {
+        AbstractJpaTransaction tx = new AbstractJpaTransaction(entityManager, (unused) -> {
+
+        }, true) {
             @Override
             public boolean isOpen() {
                 return false;
