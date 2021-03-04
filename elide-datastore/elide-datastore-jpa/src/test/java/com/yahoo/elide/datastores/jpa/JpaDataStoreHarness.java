@@ -48,6 +48,10 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
     private final Consumer<EntityManager> txCancel = em -> em.unwrap(Session.class).cancelQuery();
 
     public JpaDataStoreHarness() {
+        this(false);
+    }
+
+    public JpaDataStoreHarness(boolean delegateToInMemoryStore) {
         Map<String, Object> options = new HashMap<>();
         ArrayList<Class<?>> bindClasses = new ArrayList<>();
 

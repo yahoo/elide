@@ -323,8 +323,11 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     }
 
     private <T> boolean doInDatabase(Optional<T> parent) {
+        //In-Memory delegation is disabled.
         return !delegateToInMemoryStore
+                //This is a root level load (so always let the DB do as much as possible.
                 || !parent.isPresent()
+                //We are fetching /book/1/authors so N = 1 in N+1.  No harm in the DB running a query.
                 || (parent.isPresent() && loadedById.contains(parent.get()));
     }
 }

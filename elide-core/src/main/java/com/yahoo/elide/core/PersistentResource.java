@@ -789,7 +789,14 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         final Set<PersistentResource> newResources = getRequestScope().getNewPersistentResources();
 
         for (PersistentResource persistentResource : resourceIdentifiers) {
+
+            //New resources are exempt from NonTransferable checks
             if (!newResources.contains(persistentResource)
+
+                    //This allows nested object composition (A is composed of B is composed of C where
+                    //A & B are created in one request and C is created in a subsequent request).
+                    //Even though B is non-transferable, while creating C in /A/B, C is allowed to
+                    //reference B because B is in the lineage.
                     && !lineage.getRecord(persistentResource.getTypeName()).contains(persistentResource)) {
                 checkPermission(NonTransferable.class, persistentResource);
             }
