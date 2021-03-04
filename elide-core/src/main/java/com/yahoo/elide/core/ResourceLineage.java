@@ -71,7 +71,7 @@ public class ResourceLineage {
      * @return the parent or null if there is no parent.
      */
     public PersistentResource getParent() {
-        if (resourcePath.size() == 0) {
+        if (resourcePath.isEmpty()) {
             return null;
         }
 
