@@ -215,6 +215,10 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
             }
         }
 
+        if (isLoadingById(projection, scope.getDictionary())) {
+            results.forEach(loadedById::add);
+        }
+
         return results;
     }
 
@@ -329,5 +333,36 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                 || !parent.isPresent()
                 //We are fetching /book/1/authors so N = 1 in N+1.  No harm in the DB running a query.
                 || (parent.isPresent() && loadedById.contains(parent.get()));
+    }
+
+    private boolean isLoadingById(EntityProjection projection, EntityDictionary dictionary) {
+        FilterExpression filter = projection.getFilterExpression();
+        if (filter == null || ! (filter instanceof FilterPredicate)) {
+            return false;
+        }
+
+        FilterPredicate predicate = (FilterPredicate) filter;
+
+        //ID filters always use IN operator
+        if (predicate.getOperator() != Operator.IN) {
+            return false;
+        }
+
+        //ID filter cannot traverse relationships
+        if (predicate.getPath().getPathElements().size() > 1) {
+            return false;
+        }
+
+        //ID filter is on a single ID
+        if (predicate.getValues().size() > 1) {
+            return false;
+        }
+
+        //ID filter references the ID field of the model
+        if (dictionary.getIdFieldName(projection.getType()).equals(predicate.getField())) {
+            return true;
+        }
+
+        return false;
     }
 }
