@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.datastores.jpa;
 
-import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -16,10 +15,7 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.request.EntityProjection;
-import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.datastores.jpa.transaction.AbstractJpaTransaction;
 import example.Author;
 import example.Book;
@@ -27,9 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Optional;
 import javax.persistence.EntityManager;
 
@@ -158,108 +152,5 @@ public class JpaDataStoreTransactionTest {
                 readTx.supportsFiltering(scope, Optional.of(loadedAuthor), projection));
         assertTrue(readTx.supportsSorting(scope, Optional.of(loadedAuthor), projection));
         assertTrue(readTx.supportsPagination(scope, Optional.of(loadedAuthor), projection));
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"id==1"})
-    public void testDelegationForFilteredRootCollections(String rsqlFilter) throws Exception {
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
-        dictionary.bindEntity(Author.class);
-        dictionary.bindEntity(Book.class);
-        RSQLFilterDialect dialect = new RSQLFilterDialect(dictionary);
-
-        FilterExpression expression = dialect.parse(new ClassType(Author.class),
-                new HashSet<>(), rsqlFilter, NO_VERSION);
-
-        JpaDataStoreHarness harness = new JpaDataStoreHarness(true);
-        DataStore store = harness.getDataStore();
-        store.populateEntityDictionary(dictionary);
-
-        ElideSettings settings = new ElideSettingsBuilder(store)
-                .withEntityDictionary(dictionary)
-                .build();
-
-        DataStoreTransaction writeTx = store.beginTransaction();
-        RequestScope scope = new RequestScope("", "", "", null, writeTx,
-                null, null, null, null, settings);
-
-        Author saveAuthor = new Author();
-        writeTx.createObject(saveAuthor, scope);
-        writeTx.commit(scope);
-        writeTx.close();
-
-        DataStoreTransaction readTx = store.beginReadTransaction();
-        scope = new RequestScope("", "", "", null, readTx,
-                null, null, null, null, settings);
-
-        EntityProjection rootLoadProjection = EntityProjection.builder()
-                .type(Author.class)
-                .filterExpression(expression)
-                .build();
-
-        Author loadedAuthor = (Author) readTx.loadObjects(rootLoadProjection,  scope).iterator().next();
-
-        EntityProjection projection = EntityProjection.builder()
-                .type(Book.class)
-                .build();
-
-        assertEquals(DataStoreTransaction.FeatureSupport.FULL,
-                readTx.supportsFiltering(scope, Optional.of(loadedAuthor), projection));
-        assertTrue(readTx.supportsSorting(scope, Optional.of(loadedAuthor), projection));
-        assertTrue(readTx.supportsPagination(scope, Optional.of(loadedAuthor), projection));
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"id>0", "name==Foo", "id==1;id==1", "books.authors.id==1", "id=in=(1,2)"})
-    public void testNoDelegationForFilteredRootCollections(String rsqlFilter) throws Exception {
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
-        dictionary.bindEntity(Author.class);
-        dictionary.bindEntity(Book.class);
-        RSQLFilterDialect dialect = new RSQLFilterDialect(dictionary);
-
-        FilterExpression expression = dialect.parse(new ClassType(Author.class),
-                new HashSet<>(), rsqlFilter, NO_VERSION);
-
-        JpaDataStoreHarness harness = new JpaDataStoreHarness(true);
-        DataStore store = harness.getDataStore();
-        store.populateEntityDictionary(dictionary);
-
-        ElideSettings settings = new ElideSettingsBuilder(store)
-                .withEntityDictionary(dictionary)
-                .build();
-
-        DataStoreTransaction writeTx = store.beginTransaction();
-        RequestScope scope = new RequestScope("", "", "", null, writeTx,
-                null, null, null, null, settings);
-
-        Author saveAuthor = new Author();
-        Book saveBook = new Book();
-        saveAuthor.setName("Foo");
-        saveAuthor.setBooks(Arrays.asList(saveBook));
-        saveBook.setAuthors(Arrays.asList(saveAuthor));
-        writeTx.createObject(saveAuthor, scope);
-        writeTx.createObject(saveBook, scope);
-        writeTx.commit(scope);
-        writeTx.close();
-
-        DataStoreTransaction readTx = store.beginReadTransaction();
-        scope = new RequestScope("", "", "", null, readTx,
-                null, null, null, null, settings);
-
-        EntityProjection rootLoadProjection = EntityProjection.builder()
-                .type(Author.class)
-                .filterExpression(expression)
-                .build();
-
-        Author loadedAuthor = (Author) readTx.loadObjects(rootLoadProjection,  scope).iterator().next();
-
-        EntityProjection projection = EntityProjection.builder()
-                .type(Book.class)
-                .build();
-
-        assertEquals(DataStoreTransaction.FeatureSupport.NONE,
-                readTx.supportsFiltering(scope, Optional.of(loadedAuthor), projection));
-        assertFalse(readTx.supportsSorting(scope, Optional.of(loadedAuthor), projection));
-        assertFalse(readTx.supportsPagination(scope, Optional.of(loadedAuthor), projection));
     }
 }

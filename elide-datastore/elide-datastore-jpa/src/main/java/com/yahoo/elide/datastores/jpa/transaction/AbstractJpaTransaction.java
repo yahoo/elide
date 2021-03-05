@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -58,7 +58,8 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     private final EntityManagerWrapper emWrapper;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final Consumer<EntityManager> jpaTransactionCancel;
-    private final Set<Object> loadedById;
+
+    private final Set<Object> singleElementLoads;
     private final boolean delegateToInMemoryStore;
 
     protected AbstractJpaTransaction(EntityManager em, Consumer<EntityManager> jpaTransactionCancel,
@@ -66,7 +67,10 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
         this.em = em;
         this.emWrapper = new EntityManagerWrapper(em);
         this.jpaTransactionCancel = jpaTransactionCancel;
-        this.loadedById = new HashSet<>();
+
+        //We need to verify objects by reference equality (a == b) rather than equals equality in case the
+        //same object is loaded twice from two different collections.
+        this.singleElementLoads = Collections.newSetFromMap(new IdentityHashMap<>());
         this.delegateToInMemoryStore = delegateToInMemoryStore;
     }
 
@@ -188,7 +192,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
 
             T result = (T) query.getQuery().getSingleResult();
 
-            loadedById.add(result);
+            singleElementLoads.add(result);
 
             return result;
         } catch (NoResultException e) {
@@ -215,8 +219,8 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
             }
         }
 
-        if (isLoadingById(projection, scope.getDictionary())) {
-            results.forEach(loadedById::add);
+        if (results.size() == 1) {
+            results.forEach(singleElementLoads::add);
         }
 
         return results;
@@ -245,6 +249,9 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                  */
                 if (filterExpression == null && sorting == null
                         && (pagination == null || (pagination.isDefaultInstance()))) {
+                    if (filteredVal.size() == 1) {
+                        filteredVal.forEach(singleElementLoads::add);
+                    }
                     return (R) val;
                 }
 
@@ -263,9 +270,15 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                                 .build();
 
                 if (query != null) {
-                    return (R) query.getQuery().getResultList();
+                    List results = query.getQuery().getResultList();
+                    if (results.size() == 1) {
+                        results.forEach(singleElementLoads::add);
+                    }
+                    return (R) results;
                 }
             }
+        } else {
+            singleElementLoads.add(val);
         }
         return (R) val;
     }
@@ -331,38 +344,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
         return !delegateToInMemoryStore
                 //This is a root level load (so always let the DB do as much as possible.
                 || !parent.isPresent()
-                //We are fetching /book/1/authors so N = 1 in N+1.  No harm in the DB running a query.
-                || (parent.isPresent() && loadedById.contains(parent.get()));
-    }
-
-    private boolean isLoadingById(EntityProjection projection, EntityDictionary dictionary) {
-        FilterExpression filter = projection.getFilterExpression();
-        if (filter == null || ! (filter instanceof FilterPredicate)) {
-            return false;
-        }
-
-        FilterPredicate predicate = (FilterPredicate) filter;
-
-        //ID filters always use IN operator
-        if (predicate.getOperator() != Operator.IN) {
-            return false;
-        }
-
-        //ID filter cannot traverse relationships
-        if (predicate.getPath().getPathElements().size() > 1) {
-            return false;
-        }
-
-        //ID filter is on a single ID
-        if (predicate.getValues().size() > 1) {
-            return false;
-        }
-
-        //ID filter references the ID field of the model
-        if (dictionary.getIdFieldName(projection.getType()).equals(predicate.getField())) {
-            return true;
-        }
-
-        return false;
+                //We are fetching .../book/1/authors so N = 1 in N+1.  No harm in the DB running a query.
+                || (parent.isPresent() && singleElementLoads.contains(parent.get()));
     }
 }
