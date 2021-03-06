@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.jpa;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -125,6 +124,20 @@ public class NPlusOneIT extends IntegrationTest {
 
         verifyLoggingStatements(
                 "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher"
+        );
+    }
+
+    @Test
+    public void testSingleElementSubcollectionWithFilter() {
+        given()
+                .when().get("/book/1/authors/1/books?filter[book]=title=='Test*'")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+
+        verifyLoggingStatements(
+                "SELECT example_Book FROM example.Book AS example_Book WHERE example_Book.id IN (:XXX)",
+                "SELECT example_Author FROM example.Book example_Book__fetch JOIN example_Book__fetch.authors example_Author WHERE example_Author.id IN (:XXX) AND example_Book__fetch=:XXX",
+                "SELECT example_Book FROM example.Author example_Author__fetch JOIN example_Author__fetch.books example_Book LEFT JOIN FETCH example_Book.publisher WHERE example_Book.title LIKE CONCAT(:XXX, '%') AND example_Author__fetch=:XXX"
         );
     }
 
