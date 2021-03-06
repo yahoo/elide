@@ -7,49 +7,27 @@
 package com.yahoo.elide.datastores.jpa;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
-import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import com.yahoo.elide.datastores.jpa.porting.QueryLogger;
-import com.yahoo.elide.initialization.IntegrationTest;
 import example.Author;
 import example.Book;
 import example.Publisher;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 
 /**
- * Verifies JPQL generation for the JPA Store.
+ * Verifies JPA Store reduces JPQL queries to solve N+1 problem.
  */
-public class NPlusOneIT extends IntegrationTest {
-    private QueryLogger logger;
-
-    public NPlusOneIT() {
-        super();
-        initializeLogger();
-    }
-
-    private void initializeLogger() {
-        if (logger == null) {
-            logger = mock(QueryLogger.class);
-        }
-    }
+public class NPlusOneIT extends JPQLIntegrationTest {
 
     @Override
-    protected DataStoreTestHarness createHarness() {
-        initializeLogger();
-        return new JpaDataStoreHarness(logger, true);
+    protected boolean delegateToInMemoryStore() {
+        return true;
     }
 
     @BeforeEach
@@ -66,7 +44,7 @@ public class NPlusOneIT extends IntegrationTest {
             tx.createObject(book2, null);
 
             Book book3 = new Book();
-            book3.setTitle("Test Book2");
+            book3.setTitle("Test Book3");
             tx.createObject(book3, null);
 
             Author author1 = new Author();
@@ -215,21 +193,18 @@ public class NPlusOneIT extends IntegrationTest {
         );
     }
 
-    private void verifyLoggingStatements(String ... statements) {
-        ArgumentCaptor<String> actual = ArgumentCaptor.forClass(String.class);
-        verify(logger, times(statements.length)).log(actual.capture());
-        List<String> actualAllValues = actual.getAllValues();
-        int idx = 0;
-        for (String statement : statements) {
-            assertEquals(normalizeQuery(statement), normalizeQuery(actualAllValues.get(idx)));
-            idx++;
-        }
-    }
+    @Test
+    public void testSingleElementPersistentCollection() {
+        given()
+                .when().get("/book?filter[book]=title=='Test Book3'&include=authors,authors.books")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
 
-    private static String normalizeQuery(String query) {
-        String normalized = query.replaceAll(":\\w+", ":XXX");
-        normalized = normalized.trim();
-        normalized = normalized.replaceAll("\\s+", " ");
-        return normalized;
+        verifyLoggingStatements(
+                "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher WHERE example_Book.title IN (:XXX)",
+                "SELECT example_Book FROM example.Author example_Author__fetch JOIN example_Author__fetch.books example_Book WHERE example_Book.title IN (:XXX) AND example_Author__fetch=:XXX",
+                "SELECT example_Book FROM example.Author example_Author__fetch JOIN example_Author__fetch.books example_Book WHERE example_Book.title IN (:XXX) AND example_Author__fetch=:XXX",
+                "SELECT example_Book FROM example.Author example_Author__fetch JOIN example_Author__fetch.books example_Book LEFT JOIN FETCH example_Book.publisher WHERE example_Book.title IN (:XXX) AND example_Author__fetch=:XXX"
+        );
     }
 }
