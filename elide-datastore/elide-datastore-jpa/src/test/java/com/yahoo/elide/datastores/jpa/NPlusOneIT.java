@@ -53,12 +53,16 @@ public class NPlusOneIT extends IntegrationTest {
             tx.createObject(book2, null);
 
             Author author = new Author();
-            author.setName("Bob");
+            author.setName("Bob1");
             tx.createObject(author, null);
 
+            Author author2 = new Author();
+            author2.setName("Bob2");
+            tx.createObject(author2, null);
+
             author.setBooks(Arrays.asList(book1, book2));
-            book1.setAuthors(Arrays.asList(author));
-            book2.setAuthors(Arrays.asList(author));
+            book1.setAuthors(Arrays.asList(author, author2));
+            book2.setAuthors(Arrays.asList(author, author2));
 
             tx.commit(null);
         }
@@ -101,9 +105,9 @@ public class NPlusOneIT extends IntegrationTest {
     }
 
     @Test
-    public void testSingleElementRootCollectionWithIncludedAndFilteredSubcollection() {
+    public void testSingleElementRootCollectionWithIncludedAndFilteredSingleElementSubcollection() {
         given()
-                .when().get("/book?filter[book]=title=='Test Book1'&include=authors&filter[author]=name=='Bob'")
+                .when().get("/book?filter[book]=title=='Test Book1'&include=authors&filter[author]=name=='Bob1'")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
 
@@ -116,9 +120,23 @@ public class NPlusOneIT extends IntegrationTest {
     }
 
     @Test
+    public void testSingleElementRootCollectionWithIncludedAndFilteredMultielementSubcollection() {
+        given()
+                .when().get("/book?filter[book]=title=='Test Book1'&include=authors&filter[author]=name=='Bob*'")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+
+        verifyLoggingStatements(
+                "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher WHERE example_Book.title IN (:XXX)",
+                "SELECT example_Author FROM example.Book example_Book__fetch JOIN example_Book__fetch.authors example_Author WHERE example_Author.name LIKE CONCAT(:XXX, '%') AND example_Book__fetch=:XXX",
+                "SELECT example_Author FROM example.Book example_Book__fetch JOIN example_Book__fetch.authors example_Author WHERE example_Author.name LIKE CONCAT(:XXX, '%') AND example_Book__fetch=:XXX"
+        );
+    }
+
+    @Test
     public void testMultiElementRootCollectionWithIncludedAndFilteredSubcollection() {
         given()
-                .when().get("/book?include=authors&filter[author]=name=='Bob'")
+                .when().get("/book?include=authors&filter[author]=name=='Bob1'")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
 
