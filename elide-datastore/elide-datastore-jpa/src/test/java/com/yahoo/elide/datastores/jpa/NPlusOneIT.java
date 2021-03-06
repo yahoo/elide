@@ -7,20 +7,25 @@
 package com.yahoo.elide.datastores.jpa;
 
 import static io.restassured.RestAssured.given;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.datastores.jpa.porting.QueryLogger;
 import com.yahoo.elide.initialization.IntegrationTest;
+import example.Author;
 import example.Book;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Verifies JPQL generation for the JPA Store.
@@ -40,9 +45,20 @@ public class NPlusOneIT extends IntegrationTest {
 
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {
             Book book1 = new Book();
-            book1.setTitle("Test Book");
+            book1.setTitle("Test Book1");
+            tx.createObject(book1, null);
 
-            tx.save(book1, null);
+            Book book2 = new Book();
+            book2.setTitle("Test Book2");
+            tx.createObject(book2, null);
+
+            Author author = new Author();
+            tx.createObject(author, null);
+
+            author.setBooks(Arrays.asList(book1, book2));
+            book1.setAuthors(Arrays.asList(author));
+            book2.setAuthors(Arrays.asList(author));
+
             tx.commit(null);
         }
     }
@@ -54,6 +70,18 @@ public class NPlusOneIT extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK);
 
+        verify(logger, times(1)).log(anyString());
+        verify(logger, times(1)).log(eq("SELECT example_Book FROM example.Book AS example_Book  LEFT JOIN FETCH example_Book.publisher  "));
+    }
+
+    @Test
+    public void testLoadRootCollectionIncludeSubcollection() {
+        given()
+                .when().get("/book?include=authors")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+
+        verify(logger, times(1)).log(anyString());
         verify(logger).log(eq("SELECT example_Book FROM example.Book AS example_Book  LEFT JOIN FETCH example_Book.publisher  "));
     }
 }
