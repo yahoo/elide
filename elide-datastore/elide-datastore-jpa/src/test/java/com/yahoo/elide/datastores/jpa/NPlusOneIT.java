@@ -7,10 +7,9 @@
 package com.yahoo.elide.datastores.jpa;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -23,6 +22,7 @@ import example.Book;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -70,18 +70,49 @@ public class NPlusOneIT extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_OK);
 
-        verify(logger, times(1)).log(anyString());
-        verify(logger, times(1)).log(eq("SELECT example_Book FROM example.Book AS example_Book  LEFT JOIN FETCH example_Book.publisher  "));
+        verifyLoggingStatements(
+                "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher"
+        );
     }
 
     @Test
-    public void testLoadRootCollectionIncludeSubcollection() {
+    public void testMultiElementRootCollectionWithIncludedSubcollection() {
         given()
                 .when().get("/book?include=authors")
                 .then()
                 .statusCode(HttpStatus.SC_OK);
 
-        verify(logger, times(1)).log(anyString());
-        verify(logger).log(eq("SELECT example_Book FROM example.Book AS example_Book  LEFT JOIN FETCH example_Book.publisher  "));
+        verifyLoggingStatements(
+                "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher"
+        );
+    }
+
+    @Test
+    public void testSingleElementRootCollectionWithIncludedSubcollection() {
+        given()
+                .when().get("/book?filter=title=='Test Book1'&include=authors")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+
+        verifyLoggingStatements(
+                "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher WHERE example_Book.title IN (:XXX)"
+        );
+    }
+
+    private void verifyLoggingStatements(String ... statements) {
+        verify(logger, times(statements.length)).log(anyString());
+        for (String statement : statements) {
+            ArgumentCaptor<String> actual = ArgumentCaptor.forClass(String.class);
+
+            verify(logger, times(1)).log(actual.capture());
+            assertEquals(normalizeQuery(statement), normalizeQuery(actual.getValue()));
+        }
+    }
+
+    private static String normalizeQuery(String query) {
+        String normalized = query.replaceAll(":\\w+", ":XXX");
+        normalized = normalized.trim();
+        normalized = normalized.replaceAll("\\s+", " ");
+        return normalized;
     }
 }
