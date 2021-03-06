@@ -26,6 +26,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Verifies JPQL generation for the JPA Store.
@@ -53,6 +54,7 @@ public class NPlusOneIT extends IntegrationTest {
             tx.createObject(book2, null);
 
             Author author = new Author();
+            author.setName("Bob");
             tx.createObject(author, null);
 
             author.setBooks(Arrays.asList(book1, book2));
@@ -99,13 +101,41 @@ public class NPlusOneIT extends IntegrationTest {
         );
     }
 
-    private void verifyLoggingStatements(String ... statements) {
-        verify(logger, times(statements.length)).log(anyString());
-        for (String statement : statements) {
-            ArgumentCaptor<String> actual = ArgumentCaptor.forClass(String.class);
+    @Test
+    public void testSingleElementRootCollectionWithIncludedAndFilteredSubcollection() {
+        given()
+                .when().get("/book?filter[book]=title=='Test Book1'&include=authors&filter[author]=name=='Bob'")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
 
-            verify(logger, times(1)).log(actual.capture());
-            assertEquals(normalizeQuery(statement), normalizeQuery(actual.getValue()));
+        verifyLoggingStatements(
+                "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher WHERE example_Book.title IN (:XXX)",
+                "SELECT example_Author FROM example.Book example_Book__fetch JOIN example_Book__fetch.authors example_Author WHERE example_Author.name IN (:XXX) AND example_Book__fetch=:XXX",
+                "SELECT example_Author FROM example.Book example_Book__fetch JOIN example_Book__fetch.authors example_Author WHERE example_Author.name IN (:XXX) AND example_Book__fetch=:XXX",
+                "SELECT example_Book FROM example.Author example_Author__fetch JOIN example_Author__fetch.books example_Book WHERE example_Book.title IN (:XXX) AND example_Author__fetch=:XXX"
+        );
+    }
+
+    @Test
+    public void testMultiElementRootCollectionWithIncludedAndFilteredSubcollection() {
+        given()
+                .when().get("/book?include=authors&filter[author]=name=='Bob'")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+
+        verifyLoggingStatements(
+                "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher"
+        );
+    }
+
+    private void verifyLoggingStatements(String ... statements) {
+        ArgumentCaptor<String> actual = ArgumentCaptor.forClass(String.class);
+        verify(logger, times(statements.length)).log(actual.capture());
+        List<String> actualAllValues = actual.getAllValues();
+        int idx = 0;
+        for (String statement : statements) {
+            assertEquals(normalizeQuery(statement), normalizeQuery(actualAllValues.get(idx)));
+            idx++;
         }
     }
 
