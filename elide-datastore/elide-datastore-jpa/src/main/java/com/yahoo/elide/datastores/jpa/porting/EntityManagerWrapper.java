@@ -18,18 +18,20 @@ import javax.persistence.EntityManager;
 @Slf4j
 public class EntityManagerWrapper implements Session {
     private EntityManager entityManager;
+    private QueryLogger logger;
 
     public EntityManagerWrapper(EntityManager entityManager) {
-        this.entityManager = entityManager;
+        this(entityManager, (queryText) -> log.debug("HQL Query: {}", queryText));
     }
 
-    private static void logQuery(String queryText) {
-        log.debug("HQL Query: {}", queryText);
+    public EntityManagerWrapper(EntityManager entityManager, QueryLogger logger) {
+        this.entityManager = entityManager;
+        this.logger = logger;
     }
 
     @Override
     public Query createQuery(String queryText) {
-        logQuery(queryText);
+        logger.log(queryText);
         return new QueryWrapper(entityManager.createQuery(queryText));
     }
 }

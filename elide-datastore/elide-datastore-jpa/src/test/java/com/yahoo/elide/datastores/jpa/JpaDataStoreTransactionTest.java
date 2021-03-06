@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.jpa;
 
+import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,7 +36,7 @@ public class JpaDataStoreTransactionTest {
         EntityManager entityManager = mock(EntityManager.class);
 
         AbstractJpaTransaction tx = new AbstractJpaTransaction(entityManager, (unused) -> {
-        }, delegateToInMemory) {
+        }, DEFAULT_LOGGER, delegateToInMemory) {
             @Override
             public boolean isOpen() {
                 return false;
@@ -63,7 +64,7 @@ public class JpaDataStoreTransactionTest {
 
         AbstractJpaTransaction tx = new AbstractJpaTransaction(entityManager, (unused) -> {
 
-        }, true) {
+        }, DEFAULT_LOGGER, true) {
             @Override
             public boolean isOpen() {
                 return false;
@@ -93,7 +94,7 @@ public class JpaDataStoreTransactionTest {
 
         AbstractJpaTransaction tx = new AbstractJpaTransaction(entityManager, (unused) -> {
 
-        }, false) {
+        }, DEFAULT_LOGGER, false) {
             @Override
             public boolean isOpen() {
                 return false;
@@ -122,7 +123,7 @@ public class JpaDataStoreTransactionTest {
     public void testNoDelegationOnCollectionOfOneFetch(boolean delegateToInMemory) throws Exception {
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
 
-        JpaDataStoreHarness harness = new JpaDataStoreHarness(delegateToInMemory);
+        JpaDataStoreHarness harness = new JpaDataStoreHarness(DEFAULT_LOGGER, delegateToInMemory);
         DataStore store = harness.getDataStore();
         store.populateEntityDictionary(dictionary);
 

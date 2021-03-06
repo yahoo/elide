@@ -26,6 +26,7 @@ import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.jpa.porting.EntityManagerWrapper;
+import com.yahoo.elide.datastores.jpa.porting.QueryLogger;
 import com.yahoo.elide.datastores.jpa.porting.QueryWrapper;
 import com.yahoo.elide.datastores.jpa.transaction.checker.PersistentCollectionChecker;
 import lombok.extern.slf4j.Slf4j;
@@ -63,9 +64,10 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     private final boolean delegateToInMemoryStore;
 
     protected AbstractJpaTransaction(EntityManager em, Consumer<EntityManager> jpaTransactionCancel,
+                                     QueryLogger logger,
                                      boolean delegateToInMemoryStore) {
         this.em = em;
-        this.emWrapper = new EntityManagerWrapper(em);
+        this.emWrapper = new EntityManagerWrapper(em, logger);
         this.jpaTransactionCancel = jpaTransactionCancel;
 
         //We need to verify objects by reference equality (a == b) rather than equals equality in case the

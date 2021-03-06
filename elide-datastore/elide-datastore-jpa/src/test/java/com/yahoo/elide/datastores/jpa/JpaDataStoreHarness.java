@@ -6,10 +6,12 @@
 
 package com.yahoo.elide.datastores.jpa;
 
+import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.datastores.jpa.porting.QueryLogger;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import example.Parent;
 import example.models.generics.Manager;
@@ -48,10 +50,10 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
     private final Consumer<EntityManager> txCancel = em -> em.unwrap(Session.class).cancelQuery();
 
     public JpaDataStoreHarness() {
-        this(false);
+        this(DEFAULT_LOGGER, false);
     }
 
-    public JpaDataStoreHarness(boolean delegateToInMemoryStore) {
+    public JpaDataStoreHarness(QueryLogger logger, boolean delegateToInMemoryStore) {
         Map<String, Object> options = new HashMap<>();
         ArrayList<Class<?>> bindClasses = new ArrayList<>();
 
@@ -104,7 +106,7 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
 
         store = new JpaDataStore(
                 () -> emf.createEntityManager(),
-                entityManager -> new NonJtaTransaction(entityManager, txCancel, delegateToInMemoryStore)
+                entityManager -> new NonJtaTransaction(entityManager, txCancel, logger, delegateToInMemoryStore)
         );
     }
 

@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.jpa.transaction;
 
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.datastores.jpa.porting.QueryLogger;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.function.Consumer;
@@ -23,18 +24,9 @@ import javax.transaction.UserTransaction;
 public class JtaTransaction extends AbstractJpaTransaction {
     private final UserTransaction transaction;
 
-    public JtaTransaction(EntityManager entityManager, Consumer<EntityManager> txCancel) {
-        this(entityManager, lookupUserTransaction(), txCancel, false);
-    }
-
-    public JtaTransaction(EntityManager entityManager, Consumer<EntityManager> txCancel,
-                          boolean delegateToInMemoryStore) {
-        this(entityManager, lookupUserTransaction(), txCancel, delegateToInMemoryStore);
-    }
-
     public JtaTransaction(EntityManager entityManager, UserTransaction transaction, Consumer<EntityManager> txCancel,
-                          boolean delegateToInMemoryStore) {
-        super(entityManager, txCancel, delegateToInMemoryStore);
+                          QueryLogger logger, boolean delegateToInMemoryStore) {
+        super(entityManager, txCancel, logger, delegateToInMemoryStore);
         this.transaction = transaction;
     }
 
