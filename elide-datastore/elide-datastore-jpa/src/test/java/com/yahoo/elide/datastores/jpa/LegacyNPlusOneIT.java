@@ -30,26 +30,26 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
- * Verifies JPQL generation for the JPA Store.
+ * Verifies Legacy JPQL generation for the JPA Store.
  */
-public class NPlusOneIT extends IntegrationTest {
+public class LegacyNPlusOneIT extends IntegrationTest {
     private QueryLogger logger;
 
-    public NPlusOneIT() {
+    public LegacyNPlusOneIT() {
         super();
         initializeLogger();
+    }
+
+    @Override
+    protected DataStoreTestHarness createHarness() {
+        initializeLogger();
+        return new JpaDataStoreHarness(logger, false);
     }
 
     private void initializeLogger() {
         if (logger == null) {
             logger = mock(QueryLogger.class);
         }
-    }
-
-    @Override
-    protected DataStoreTestHarness createHarness() {
-        initializeLogger();
-        return new JpaDataStoreHarness(logger, true);
     }
 
     @BeforeEach
@@ -65,10 +65,6 @@ public class NPlusOneIT extends IntegrationTest {
             book2.setTitle("Test Book2");
             tx.createObject(book2, null);
 
-            Book book3 = new Book();
-            book3.setTitle("Test Book2");
-            tx.createObject(book3, null);
-
             Author author1 = new Author();
             author1.setName("Bob1");
             tx.createObject(author1, null);
@@ -77,19 +73,13 @@ public class NPlusOneIT extends IntegrationTest {
             author2.setName("Bob2");
             tx.createObject(author2, null);
 
-            Author author3 = new Author();
-            author3.setName("Bob2");
-            tx.createObject(author3, null);
-
             Publisher publisher = new Publisher();
             tx.createObject(publisher, null);
 
             author1.setBooks(Arrays.asList(book1, book2));
             author2.setBooks(Arrays.asList(book1, book2));
-            author3.setBooks(Arrays.asList(book3));
             book1.setAuthors(Arrays.asList(author1, author2));
             book2.setAuthors(Arrays.asList(author1, author2));
-            book3.setAuthors(Arrays.asList(author3));
 
             book1.setPublisher(publisher);
             book2.setPublisher(publisher);
@@ -160,7 +150,9 @@ public class NPlusOneIT extends IntegrationTest {
         verifyLoggingStatements(
                 "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher WHERE example_Book.title IN (:XXX)",
                 "SELECT example_Author FROM example.Book example_Book__fetch JOIN example_Book__fetch.authors example_Author WHERE example_Author.name LIKE CONCAT(:XXX, '%') AND example_Book__fetch=:XXX",
-                "SELECT example_Author FROM example.Book example_Book__fetch JOIN example_Book__fetch.authors example_Author WHERE example_Author.name LIKE CONCAT(:XXX, '%') AND example_Book__fetch=:XXX"
+                "SELECT example_Author FROM example.Book example_Book__fetch JOIN example_Book__fetch.authors example_Author WHERE example_Author.name LIKE CONCAT(:XXX, '%') AND example_Book__fetch=:XXX",
+                "SELECT example_Book FROM example.Author example_Author__fetch JOIN example_Author__fetch.books example_Book WHERE example_Book.title IN (:XXX) AND example_Author__fetch=:XXX",
+                "SELECT example_Book FROM example.Author example_Author__fetch JOIN example_Author__fetch.books example_Book WHERE example_Book.title IN (:XXX) AND example_Author__fetch=:XXX"
         );
     }
 
@@ -172,7 +164,11 @@ public class NPlusOneIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK);
 
         verifyLoggingStatements(
-                "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher"
+                "SELECT example_Book FROM example.Book AS example_Book LEFT JOIN FETCH example_Book.publisher",
+                "SELECT example_Author FROM example.Book example_Book__fetch JOIN example_Book__fetch.authors example_Author WHERE example_Author.name IN (:XXX) AND example_Book__fetch=:XXX",
+                "SELECT example_Author FROM example.Book example_Book__fetch JOIN example_Book__fetch.authors example_Author WHERE example_Author.name IN (:XXX) AND example_Book__fetch=:XXX",
+                "SELECT example_Author FROM example.Book example_Book__fetch JOIN example_Book__fetch.authors example_Author WHERE example_Author.name IN (:XXX) AND example_Book__fetch=:XXX",
+                "SELECT example_Author FROM example.Book example_Book__fetch JOIN example_Book__fetch.authors example_Author WHERE example_Author.name IN (:XXX) AND example_Book__fetch=:XXX"
         );
     }
 
@@ -221,7 +217,8 @@ public class NPlusOneIT extends IntegrationTest {
         List<String> actualAllValues = actual.getAllValues();
         int idx = 0;
         for (String statement : statements) {
-            assertEquals(normalizeQuery(statement), normalizeQuery(actualAllValues.get(idx)));
+            assertEquals(normalizeQuery(statement), normalizeQuery(actualAllValues.get(idx)),
+                    String.format("Query %s Mismatch", idx));
             idx++;
         }
     }
