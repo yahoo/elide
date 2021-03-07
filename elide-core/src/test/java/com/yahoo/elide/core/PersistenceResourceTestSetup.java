@@ -48,6 +48,7 @@ import example.UpdateAndCreate;
 import example.nontransferable.ContainerWithPackageShare;
 import example.nontransferable.NoTransferBiDirectional;
 import example.nontransferable.ShareableWithPackageShare;
+import example.nontransferable.StrictNoTransfer;
 import example.nontransferable.Untransferable;
 import io.reactivex.Observable;
 import lombok.AllArgsConstructor;
@@ -102,6 +103,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         dictionary.bindEntity(ContainerWithPackageShare.class);
         dictionary.bindEntity(ShareableWithPackageShare.class);
         dictionary.bindEntity(NoTransferBiDirectional.class);
+        dictionary.bindEntity(StrictNoTransfer.class);
         dictionary.bindEntity(Untransferable.class);
         return dictionary;
     }

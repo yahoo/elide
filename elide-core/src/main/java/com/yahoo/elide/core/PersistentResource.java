@@ -798,8 +798,13 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                     //reference B because B & C are part of the same non-transferable object hierarchy.
                     //To do this, the client must be able to read B (since they navigated through it) and also
                     //update the relationship that links B & C.
+
+                    //The object being added (C) is non-transferable
                     || (! dictionary.isTransferable(getResourceType())
-                        && persistentResource.equals(lineage.getParent()))) {
+                    //The object being added to (B) is not strict
+                    && ! dictionary.isStrictNonTransferable(persistentResource.getResourceType())
+                    //B is in C's lineage (/B/C).
+                    && persistentResource.equals(lineage.getParent()))) {
                 continue;
             }
 
