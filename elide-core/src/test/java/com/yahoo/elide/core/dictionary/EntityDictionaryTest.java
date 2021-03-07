@@ -1038,7 +1038,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertTrue(models.contains(new ClassType(BookV2.class)));
 
         models = getBoundClassesByVersion(NO_VERSION);
-        assertEquals(16, models.size());
+        assertEquals(18, models.size());
     }
 
     @Test

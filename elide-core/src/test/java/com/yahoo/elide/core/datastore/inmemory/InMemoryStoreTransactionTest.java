@@ -556,6 +556,7 @@ public class InMemoryStoreTransactionTest {
             "example.nontransferable.ContainerWithPackageShare",
             "example.nontransferable.NoTransferBiDirectional",
             "example.nontransferable.ShareableWithPackageShare",
+            "example.nontransferable.StrictNoTransfer",
             "example.nontransferable.Untransferable"
         }), ImmutableSet.copyOf(tos.split(",")));
     }
