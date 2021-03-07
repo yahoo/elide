@@ -50,7 +50,7 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
     private final Consumer<EntityManager> txCancel = em -> em.unwrap(Session.class).cancelQuery();
 
     public JpaDataStoreHarness() {
-        this(DEFAULT_LOGGER, false);
+        this(DEFAULT_LOGGER, true);
     }
 
     public JpaDataStoreHarness(QueryLogger logger, boolean delegateToInMemoryStore) {

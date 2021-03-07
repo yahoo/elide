@@ -159,6 +159,7 @@ public abstract class IntegrationTest {
 
     @AfterAll
     public final void afterAll() {
+        dataStoreHarness = null;
         log.debug("...Stopping Server...");
         try {
             server.stop();
