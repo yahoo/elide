@@ -63,6 +63,15 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     private final Set<Object> singleElementLoads;
     private final boolean delegateToInMemoryStore;
 
+    /**
+     * Creates a new JPA transaction.
+     * @param em The entity manager / session.
+     * @param jpaTransactionCancel A function which can cancel a session.
+     * @param logger Logs queries.
+     * @param delegateToInMemoryStore When fetching a subcollection from another multi-element collection,
+     *                                whether or not to do sorting, filtering and pagination in memory - or
+     *                                do N+1 queries.
+     */
     protected AbstractJpaTransaction(EntityManager em, Consumer<EntityManager> jpaTransactionCancel,
                                      QueryLogger logger,
                                      boolean delegateToInMemoryStore) {

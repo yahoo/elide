@@ -22,10 +22,24 @@ import javax.persistence.EntityTransaction;
 public class NonJtaTransaction extends AbstractJpaTransaction {
     private final EntityTransaction transaction;
 
+    /**
+     * Creates a new Non-JTA, JPA transaction.
+     * @param entityManager The entity manager / session.
+     * @param jpaTransactionCancel A function which can cancel a session.
+     */
     public NonJtaTransaction(EntityManager entityManager, Consumer<EntityManager> jpaTransactionCancel) {
         this(entityManager, jpaTransactionCancel, DEFAULT_LOGGER, false);
     }
 
+    /**
+     * Creates a new Non-JTA, JPA transaction.
+     * @param entityManager The entity manager / session.
+     * @param jpaTransactionCancel A function which can cancel a session.
+     * @param logger Logs queries.
+     * @param delegateToInMemoryStore When fetching a subcollection from another multi-element collection,
+     *                                whether or not to do sorting, filtering and pagination in memory - or
+     *                                do N+1 queries.
+     */
     public NonJtaTransaction(EntityManager entityManager, Consumer<EntityManager> jpaTransactionCancel,
                              QueryLogger logger,
                              boolean delegateToInMemoryStore) {

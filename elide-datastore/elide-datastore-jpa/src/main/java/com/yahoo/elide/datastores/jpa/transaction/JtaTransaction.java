@@ -24,6 +24,15 @@ import javax.transaction.UserTransaction;
 public class JtaTransaction extends AbstractJpaTransaction {
     private final UserTransaction transaction;
 
+    /**
+     * Creates a new JPA transaction.
+     * @param entityManager The entity manager / session.
+     * @param txCancel A function which can cancel a session.
+     * @param logger Logs queries.
+     * @param delegateToInMemoryStore When fetching a subcollection from another multi-element collection,
+     *                                whether or not to do sorting, filtering and pagination in memory - or
+     *                                do N+1 queries.
+     */
     public JtaTransaction(EntityManager entityManager, UserTransaction transaction, Consumer<EntityManager> txCancel,
                           QueryLogger logger, boolean delegateToInMemoryStore) {
         super(entityManager, txCancel, logger, delegateToInMemoryStore);
