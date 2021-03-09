@@ -67,6 +67,18 @@ public class ResourceLineage {
     }
 
     /**
+     *  Returns the immediate parent resource if one exists.
+     * @return the parent or null if there is no parent.
+     */
+    public PersistentResource getParent() {
+        if (resourcePath.isEmpty()) {
+            return null;
+        }
+
+        return resourcePath.get(resourcePath.size() - 1).resource;
+    }
+
+    /**
      * Gets keys.
      *
      * @return the keys
