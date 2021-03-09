@@ -57,6 +57,8 @@ import example.models.packageinfo.excluded.ExcludedSubPackage;
 import example.models.packageinfo.included.ExcludedBySuperClass;
 import example.models.packageinfo.included.IncludedSubPackage;
 import example.models.versioned.BookV2;
+import example.nontransferable.NoTransferBiDirectional;
+import example.nontransferable.StrictNoTransfer;
 
 import org.junit.jupiter.api.Test;
 
@@ -111,6 +113,8 @@ public class EntityDictionaryTest extends EntityDictionary {
         bindEntity(ExcludedPackageLevel.class);
         bindEntity(ExcludedSubPackage.class);
         bindEntity(ExcludedBySuperClass.class);
+        bindEntity(StrictNoTransfer.class);
+        bindEntity(NoTransferBiDirectional.class);
 
         checkNames.forcePut("user has all access", Role.ALL.class);
     }
@@ -507,11 +511,19 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testIsSharableTrue() throws Exception {
         assertTrue(isTransferable(new ClassType(Right.class)));
+        assertFalse(isStrictNonTransferable(new ClassType(Right.class)));
     }
 
     @Test
     public void testIsSharableFalse() throws Exception {
         assertFalse(isTransferable(new ClassType(Left.class)));
+        assertFalse(isStrictNonTransferable(new ClassType(Left.class)));
+    }
+
+    @Test
+    public void testIsStrictNonTransferable() throws Exception {
+        assertTrue(isStrictNonTransferable(new ClassType(StrictNoTransfer.class)));
+        assertFalse(isStrictNonTransferable(new ClassType(NoTransferBiDirectional.class)));
     }
 
     @Test
@@ -1026,7 +1038,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertTrue(models.contains(new ClassType(BookV2.class)));
 
         models = getBoundClassesByVersion(NO_VERSION);
-        assertEquals(16, models.size());
+        assertEquals(18, models.size());
     }
 
     @Test
