@@ -919,6 +919,18 @@ public class EntityDictionary {
     }
 
     /**
+     * Returns whether or not an entity can ever be shared post creation.
+     *
+     * @param entityClass the entity type to check for the shareable permissions
+     * @return true if entityClass can never be shared post creation.  False otherwise.
+     */
+    public boolean isStrictNonTransferable(Type<?> entityClass) {
+        NonTransferable nonTransferable = getAnnotation(entityClass, NonTransferable.class);
+
+        return (nonTransferable != null && nonTransferable.enabled() && nonTransferable.strict());
+    }
+
+    /**
      * Add given Entity bean to dictionary.
      *
      * @param cls Entity bean class

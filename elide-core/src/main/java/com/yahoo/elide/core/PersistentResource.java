@@ -789,10 +789,26 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         final Set<PersistentResource> newResources = getRequestScope().getNewPersistentResources();
 
         for (PersistentResource persistentResource : resourceIdentifiers) {
-            if (!newResources.contains(persistentResource)
-                    && !lineage.getRecord(persistentResource.getTypeName()).contains(persistentResource)) {
-                checkPermission(NonTransferable.class, persistentResource);
+
+            //New resources are exempt from NonTransferable checks
+            if (newResources.contains(persistentResource)
+                    //This allows nested object hierarchies of non-transferables that are created in more than one
+                    //client request. A & B are created in one request and C is created in a subsequent request).
+                    //Even though B is non-transferable, while creating C in /A/B, C is allowed to
+                    //reference B because B & C are part of the same non-transferable object hierarchy.
+                    //To do this, the client must be able to read B (since they navigated through it) and also
+                    //update the relationship that links B & C.
+
+                    //The object being added (C) is non-transferable
+                    || (! dictionary.isTransferable(getResourceType())
+                    //The object being added to (B) is not strict
+                    && ! dictionary.isStrictNonTransferable(persistentResource.getResourceType())
+                    //B is in C's lineage (/B/C).
+                    && persistentResource.equals(lineage.getParent()))) {
+                continue;
             }
+
+            checkPermission(NonTransferable.class, persistentResource);
         }
     }
 

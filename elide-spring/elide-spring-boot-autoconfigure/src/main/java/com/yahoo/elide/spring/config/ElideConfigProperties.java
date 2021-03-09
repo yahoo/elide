@@ -46,6 +46,11 @@ public class ElideConfigProperties {
     private AggregationStoreProperties aggregationStore = new AggregationStoreProperties();
 
     /**
+     * Settings for the JPA Store.
+     */
+    private JpaStoreProperties jpaStore = new JpaStoreProperties();
+
+    /**
      * Default pagination size for collections if the client doesn't paginate.
      */
     private int pageSize = 500;

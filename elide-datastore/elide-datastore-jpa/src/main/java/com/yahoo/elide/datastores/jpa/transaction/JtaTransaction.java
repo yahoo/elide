@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.jpa.transaction;
 
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
+import com.yahoo.elide.datastores.jpa.porting.QueryLogger;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.function.Consumer;
@@ -22,12 +23,19 @@ import javax.transaction.UserTransaction;
 @Slf4j
 public class JtaTransaction extends AbstractJpaTransaction {
     private final UserTransaction transaction;
-    public JtaTransaction(EntityManager entityManager, Consumer<EntityManager> txCancel) {
-        this(entityManager, lookupUserTransaction(), txCancel);
-    }
 
-    public JtaTransaction(EntityManager entityManager, UserTransaction transaction, Consumer<EntityManager> txCancel) {
-        super(entityManager, txCancel);
+    /**
+     * Creates a new JPA transaction.
+     * @param entityManager The entity manager / session.
+     * @param txCancel A function which can cancel a session.
+     * @param logger Logs queries.
+     * @param delegateToInMemoryStore When fetching a subcollection from another multi-element collection,
+     *                                whether or not to do sorting, filtering and pagination in memory - or
+     *                                do N+1 queries.
+     */
+    public JtaTransaction(EntityManager entityManager, UserTransaction transaction, Consumer<EntityManager> txCancel,
+                          QueryLogger logger, boolean delegateToInMemoryStore) {
+        super(entityManager, txCancel, logger, delegateToInMemoryStore);
         this.transaction = transaction;
     }
 

@@ -26,6 +26,7 @@ import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.jpa.porting.EntityManagerWrapper;
+import com.yahoo.elide.datastores.jpa.porting.QueryLogger;
 import com.yahoo.elide.datastores.jpa.porting.QueryWrapper;
 import com.yahoo.elide.datastores.jpa.transaction.checker.PersistentCollectionChecker;
 import lombok.extern.slf4j.Slf4j;
@@ -34,8 +35,11 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import javax.persistence.EntityManager;
@@ -56,10 +60,29 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final Consumer<EntityManager> jpaTransactionCancel;
 
-    protected AbstractJpaTransaction(EntityManager em, Consumer<EntityManager> jpaTransactionCancel) {
+    private final Set<Object> singleElementLoads;
+    private final boolean delegateToInMemoryStore;
+
+    /**
+     * Creates a new JPA transaction.
+     * @param em The entity manager / session.
+     * @param jpaTransactionCancel A function which can cancel a session.
+     * @param logger Logs queries.
+     * @param delegateToInMemoryStore When fetching a subcollection from another multi-element collection,
+     *                                whether or not to do sorting, filtering and pagination in memory - or
+     *                                do N+1 queries.
+     */
+    protected AbstractJpaTransaction(EntityManager em, Consumer<EntityManager> jpaTransactionCancel,
+                                     QueryLogger logger,
+                                     boolean delegateToInMemoryStore) {
         this.em = em;
-        this.emWrapper = new EntityManagerWrapper(em);
+        this.emWrapper = new EntityManagerWrapper(em, logger);
         this.jpaTransactionCancel = jpaTransactionCancel;
+
+        //We need to verify objects by reference equality (a == b) rather than equals equality in case the
+        //same object is loaded twice from two different collections.
+        this.singleElementLoads = Collections.newSetFromMap(new IdentityHashMap<>());
+        this.delegateToInMemoryStore = delegateToInMemoryStore;
     }
 
     @Override
@@ -178,7 +201,11 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                     (QueryWrapper) new RootCollectionFetchQueryBuilder(projection, dictionary, emWrapper)
                             .build();
 
-            return (T) query.getQuery().getSingleResult();
+            T result = (T) query.getQuery().getSingleResult();
+
+            singleElementLoads.add(result);
+
+            return result;
         } catch (NoResultException e) {
             return null;
         }
@@ -201,6 +228,10 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
             if (pagination.returnPageTotals() && (!results.isEmpty() || pagination.getLimit() == 0)) {
                 pagination.setPageTotals(getTotalRecords(projection, scope.getDictionary()));
             }
+        }
+
+        if (results.size() == 1) {
+            results.forEach(singleElementLoads::add);
         }
 
         return results;
@@ -229,6 +260,9 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                  */
                 if (filterExpression == null && sorting == null
                         && (pagination == null || (pagination.isDefaultInstance()))) {
+                    if (filteredVal.size() == 1) {
+                        filteredVal.forEach(singleElementLoads::add);
+                    }
                     return (R) val;
                 }
 
@@ -247,9 +281,15 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                                 .build();
 
                 if (query != null) {
-                    return (R) query.getQuery().getResultList();
+                    List results = query.getQuery().getResultList();
+                    if (results.size() == 1) {
+                        results.forEach(singleElementLoads::add);
+                    }
+                    return (R) results;
                 }
             }
+        } else {
+            singleElementLoads.add(val);
         }
         return (R) val;
     }
@@ -293,5 +333,29 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
     @Override
     public void cancel(RequestScope scope) {
         jpaTransactionCancel.accept(em);
+    }
+
+    @Override
+    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
+        return doInDatabase(parent) ? FeatureSupport.FULL : FeatureSupport.NONE;
+    }
+
+    @Override
+    public <T> boolean supportsSorting(RequestScope scope, Optional<T> parent, EntityProjection projection) {
+        return doInDatabase(parent);
+    }
+
+    @Override
+    public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
+        return doInDatabase(parent);
+    }
+
+    private <T> boolean doInDatabase(Optional<T> parent) {
+        //In-Memory delegation is disabled.
+        return !delegateToInMemoryStore
+                //This is a root level load (so always let the DB do as much as possible.
+                || !parent.isPresent()
+                //We are fetching .../book/1/authors so N = 1 in N+1.  No harm in the DB running a query.
+                || (parent.isPresent() && singleElementLoads.contains(parent.get()));
     }
 }

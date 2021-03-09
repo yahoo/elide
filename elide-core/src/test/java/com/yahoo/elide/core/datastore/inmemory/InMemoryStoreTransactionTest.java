@@ -554,7 +554,9 @@ public class InMemoryStoreTransactionTest {
             "example.models.triggers.Invoice",
             "example.models.versioned.BookV2",
             "example.nontransferable.ContainerWithPackageShare",
+            "example.nontransferable.NoTransferBiDirectional",
             "example.nontransferable.ShareableWithPackageShare",
+            "example.nontransferable.StrictNoTransfer",
             "example.nontransferable.Untransferable"
         }), ImmutableSet.copyOf(tos.split(",")));
     }
