@@ -40,6 +40,7 @@ public class AsyncAPIUpdateOperation implements Runnable {
             asyncAPIDao.updateAsyncAPIResult(queryResultObj, queryObj.getId(), queryObj.getClass());
 
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             log.error("InterruptedException: {}", e.toString());
             asyncAPIDao.updateStatus(queryObj.getId(), QueryStatus.FAILURE, queryObj.getClass());
         } catch (Exception e) {

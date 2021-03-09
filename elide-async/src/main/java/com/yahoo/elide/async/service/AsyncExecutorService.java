@@ -87,6 +87,7 @@ public class AsyncExecutorService {
             queryObj.setStatus(QueryStatus.COMPLETE);
             queryObj.setUpdatedOn(new Date());
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             log.error("InterruptedException: {}", e.toString());
             queryObj.setStatus(QueryStatus.FAILURE);
         } catch (ExecutionException e) {
