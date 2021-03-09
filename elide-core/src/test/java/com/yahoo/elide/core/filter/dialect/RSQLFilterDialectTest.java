@@ -9,8 +9,13 @@ import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 
@@ -25,8 +30,12 @@ import org.junit.jupiter.api.Test;
 import cz.jirutka.rsql.parser.ast.ComparisonNode;
 import cz.jirutka.rsql.parser.ast.ComparisonOperator;
 
+import java.net.URLEncoder;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -519,33 +528,62 @@ public class RSQLFilterDialectTest {
     }
 
     @Test
-    public void testFilterArgumentParsing() throws Exception {
+    public void testFilterArgumentParsingBadInput() throws Exception {
+
+        Exception exception;
+        Type<Book> bookType = new ClassType<Book>(Book.class);
+
+        // Empty argument name
+        exception = assertThrows(ParseException.class, () -> dialect.parse(bookType, Collections.emptySet(),
+                        "genre=in=(sci-fi,action),title[a:][x:y]==Hemingway", NO_VERSION));
+        assertEquals("Filter expression is not in expected format at: title[a:][x:y]", exception.getMessage());
+
+        // Empty argument value
+        exception = assertThrows(ParseException.class, () -> dialect.parse(bookType, Collections.emptySet(),
+                        "genre=in=(sci-fi,action),title[a:b][:y]==Hemingway", NO_VERSION));
+        assertEquals("Filter expression is not in expected format at: title[a:b][:y]", exception.getMessage());
+
+        // : missing within []
+        exception = assertThrows(ParseException.class, () -> dialect.parse(bookType, Collections.emptySet(),
+                        "genre=in=(sci-fi,action),title[ab][x:y]==Hemingway", NO_VERSION));
+        assertEquals("Filter expression is not in expected format at: title[ab][x:y]", exception.getMessage());
+
+        // Something found after first '[' and not within []
+        exception = assertThrows(ParseException.class, () -> dialect.parse(bookType, Collections.emptySet(),
+                        "genre=in=(sci-fi,action),title[a:b]asdf[x:y]==Hemingway", NO_VERSION));
+        assertEquals("Filter expression is not in expected format at: title[a:b]asdf[x:y]", exception.getMessage());
+
+        // Invalid encoded argument value
+        exception = assertThrows(ParseException.class, () -> dialect.parse(bookType, Collections.emptySet(),
+                        "title[a:b][x:Invalid%_Encoding]==Hemingway", NO_VERSION));
+        assertEquals("Filter expression is not in expected format at: title[a:b][x:Invalid%_Encoding]. URLDecoder: Illegal hex characters in escape (%) pattern - For input string: \"_E\"",
+                        exception.getMessage());
+    }
+
+    @Test
+    public void testFilterArgumentParsingEncodeValues() throws Exception {
 
         FilterExpression expr;
         Type<Book> bookType = new ClassType<Book>(Book.class);
+        String argValue1 = "with space";
+        String argValue2 = ": \" ' ( ) ; , = ! ~ < > ] [";
+        Set<Argument> inputArgs = new HashSet<>();
+        inputArgs.add(Argument.builder().name("arg1").value(argValue1).build());
+        inputArgs.add(Argument.builder().name("arg2").value(argValue2).build());
+        String encodeArgValue1 = URLEncoder.encode(argValue1, "UTF-8");
+        String encodeArgValue2 = URLEncoder.encode(argValue2, "UTF-8");
 
-        expr = assertDoesNotThrow(() -> dialect.parse(bookType, Collections.emptySet(),
-                        "genre=in=(sci-fi,action),title[a:b][x:y]==Hemingway", NO_VERSION));
+        expr = assertDoesNotThrow(
+                        () -> dialect.parse(bookType, Collections.emptySet(), "genre=in=(sci-fi,action),title[arg1:"
+                                        + encodeArgValue1 + "][arg2:" + encodeArgValue2 + "]==Hemingway", NO_VERSION));
         assertEquals("(book.genre IN [sci-fi, action] OR book.title IN [Hemingway])", expr.toString());
 
-        // Empty argument name or value
-        expr = assertDoesNotThrow(() -> dialect.parse(bookType, Collections.emptySet(),
-                        "genre=in=(sci-fi,action),title[a:][:y]==Hemingway", NO_VERSION));
-        assertEquals("(book.genre IN [sci-fi, action] OR book.title IN [Hemingway])", expr.toString());
+        FilterPredicate left = (FilterPredicate) ((OrFilterExpression) expr).getLeft();
+        Set<Argument> leftArgs = left.getPath().getPathElements().get(0).getArguments();
+        assertTrue(leftArgs.isEmpty());
 
-        // Missing argument name or value (: missing within [])
-        Exception e = assertThrows(ParseException.class, () -> dialect.parse(bookType, Collections.emptySet(),
-                        "genre=in=(sci-fi,action),title[ab][x:y]==Hemingway", NO_VERSION));
-        assertEquals("Failed to parse arguments from filter expression at: title[ab][x:y]", e.getMessage());
-
-        // Anything after first '[' and not within [] is ignored
-        expr = assertDoesNotThrow(() -> dialect.parse(bookType, Collections.emptySet(),
-                        "genre=in=(sci-fi,action),title[a:b][x:y]asdf==Hemingway", NO_VERSION));
-        assertEquals("(book.genre IN [sci-fi, action] OR book.title IN [Hemingway])", expr.toString());
-
-        // Passing arguments for associated attribute.
-        expr = assertDoesNotThrow(() -> dialect.parse(bookType, Collections.emptySet(),
-                        "publisher.name[a:b][x:y]==Penguin", NO_VERSION));
-        assertEquals("book.publisher.name IN [Penguin]", expr.toString());
+        FilterPredicate right = (FilterPredicate) ((OrFilterExpression) expr).getRight();
+        Set<Argument> rightArgs = right.getPath().getPathElements().get(0).getArguments();
+        assertTrue(rightArgs.equals(inputArgs));
     }
 }

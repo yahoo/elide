@@ -46,6 +46,9 @@ import cz.jirutka.rsql.parser.ast.OrNode;
 import cz.jirutka.rsql.parser.ast.RSQLOperators;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -65,7 +68,8 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
     private static final String SINGLE_PARAMETER_ONLY = "There can only be a single filter query parameter";
     private static final String INVALID_QUERY_PARAMETER = "Invalid query parameter: ";
     private static final Pattern TYPED_FILTER_PATTERN = Pattern.compile("filter\\[([^\\]]+)\\]");
-    private static final Pattern FILTER_ARGUMENTS_PATTERN = Pattern.compile("\\[(.+?)\\]");
+    // field name followed by zero or more square brackets having non-empty argument name and value separated by ':'
+    private static final String FILTER_SELECTOR_REGEX = "(\\w+)(\\[(\\w+?):([^\\]]+?)\\])*$";
     private static final ComparisonOperator INI = new ComparisonOperator("=ini=", true);
     private static final ComparisonOperator NOT_INI = new ComparisonOperator("=outi=", true);
     private static final ComparisonOperator ISNULL_OP = new ComparisonOperator("=isnull=", false);
@@ -309,6 +313,11 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
             Type entityType = rootEntityType;
 
             for (String associationName : associationNames) {
+
+                if (!associationName.matches(FILTER_SELECTOR_REGEX)) {
+                    throw new RSQLParseException("Filter expression is not in expected format at: " + associationName);
+                }
+
                 // if the association name is "id", replaced it with real id field name
                 // id field name can be "id" or other string, but non-id field can't have name "id".
                 if (associationName.equals(REGULAR_ID_NAME)) {
@@ -316,9 +325,16 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                 }
 
                 Set<Argument> arguments = new HashSet<>();
-                if (associationName.indexOf('[') > 0) {
-                    parseArguments(associationName, arguments);
-                    associationName = associationName.substring(0, associationName.indexOf('['));
+                int argsIndex = associationName.indexOf('[');
+                if (argsIndex > 0) {
+                    try {
+                        parseArguments(associationName.substring(argsIndex), arguments);
+                    } catch (UnsupportedEncodingException | IllegalArgumentException e) {
+                        throw new RSQLParseException(
+                                        String.format("Filter expression is not in expected format at: %s. %s",
+                                                        associationName, e.getMessage()));
+                    }
+                    associationName = associationName.substring(0, argsIndex);
                 }
                 addDefaultArguments(arguments, dictionary.getAttributeArguments(entityType, associationName));
                 String typeName = dictionary.getJsonAliasFor(entityType);
@@ -336,17 +352,16 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
             return new Path(path);
         }
 
-        private void parseArguments(String attributeName, Set<Argument> arguments) {
-            Matcher matcher = FILTER_ARGUMENTS_PATTERN.matcher(attributeName);
+        private void parseArguments(String argsString, Set<Argument> arguments) throws UnsupportedEncodingException {
+            if (argsString == null || argsString.isEmpty()) {
+                return;
+            }
+
+            Matcher matcher = Pattern.compile("\\[(\\w+?):([^\\]]+?)\\]").matcher(argsString);
             while (matcher.find()) {
-                String[] pair = matcher.group(1).split(":", 2);
-                if (pair.length < 2) {
-                    throw new RSQLParseException(
-                                    "Failed to parse arguments from filter expression at: " + attributeName);
-                }
                 arguments.add(Argument.builder()
-                                .name(pair[0])
-                                .value(pair[1])
+                                .name(matcher.group(1))
+                                .value(URLDecoder.decode(matcher.group(2), StandardCharsets.UTF_8.name()))
                                 .build());
             }
         }

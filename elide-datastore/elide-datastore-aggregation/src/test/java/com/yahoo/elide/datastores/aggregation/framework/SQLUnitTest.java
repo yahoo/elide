@@ -378,17 +378,24 @@ public abstract class SQLUnitTest {
             dimnesionProjections.add(playerStatsTable.getDimensionProjection("overallRating", "rating"));
             dimnesionProjections.add(playerStatsTable.getDimensionProjection("playerLevel", "level"));
 
-            Map<String, Argument> arguments = new HashMap<>();
-            arguments.put("grain", Argument.builder().name("grain").value(TimeGrain.MONTH).build());
+            Map<String, Argument> monthArgument = new HashMap<>();
+            monthArgument.put("grain", Argument.builder().name("grain").value(TimeGrain.MONTH).build());
+            Set<Argument> dayArgument = new HashSet<>();
+            dayArgument.add(Argument.builder().name("grain").value(TimeGrain.DAY).build());
 
             // where filter with alias
             FilterPredicate playerLevelFilter = new FilterPredicate(
                             new Path(playerStatsType, dictionary, "playerLevel", "level", new HashSet<>()),
                             Operator.IN,
                             Arrays.asList(1, 2));
+            FilterPredicate dayFilter = new FilterPredicate(
+                            new Path(playerStatsType, dictionary, "recordedDate", "recordedDate", dayArgument),
+                            Operator.NOTNULL,
+                            new ArrayList<Object>());
             // forces a join to look up countryIsoCode
             FilterExpression countryIsoCodeFilter = parseFilterExpression("countryIsoCode==USA", playerStatsType, false);
-            FilterExpression wherePredicate = new AndFilterExpression(playerLevelFilter, countryIsoCodeFilter);
+            AndFilterExpression andFilterExpression = new AndFilterExpression(playerLevelFilter, countryIsoCodeFilter);
+            FilterExpression wherePredicate = new AndFilterExpression(andFilterExpression, dayFilter);
 
             // having filter with alias
             FilterPredicate havingPredicate = new FilterPredicate(
@@ -409,7 +416,7 @@ public abstract class SQLUnitTest {
                     .source(playerStatsTable)
                     .metricProjections(metricProjections)
                     .dimensionProjections(dimnesionProjections)
-                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate", "byMonth", arguments))
+                    .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate", "byMonth", monthArgument))
                     .whereFilter(wherePredicate)
                     .havingFilter(havingPredicate)
                     .sorting(new SortingImpl(sortMap, playerStatsType, sortAttributes, dictionary))
@@ -633,9 +640,11 @@ public abstract class SQLUnitTest {
                         + "            `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`id` \n"
                         + "        WHERE \n"
                         + "            (\n"
-                        + "                CASE WHEN `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` = 'Good' THEN 1 ELSE 2 END IN (:XXX, :XXX) \n"
+                        + "                (CASE WHEN `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` = 'Good' THEN 1 ELSE 2 END IN (:XXX, :XXX) \n"
                         + "                AND \n"
-                        + "                `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`iso_code` IN (:XXX)\n"
+                        + "                `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`iso_code` IN (:XXX)) \n"
+                        + "                AND \n"
+                        + "                PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IS NOT NULL\n"
                         + "            ) \n"
                         + "        GROUP BY \n"
                         + "            `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, \n"
