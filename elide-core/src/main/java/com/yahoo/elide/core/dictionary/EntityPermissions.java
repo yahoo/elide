@@ -115,7 +115,7 @@ public class EntityPermissions implements CheckInstantiator {
 
             return parseExpression(expression);
         } catch (ReflectiveOperationException e) {
-            log.warn("Unknown permission: {}, {}", annotationClass.getName(), e);
+            log.warn("Unknown permission: {}, {}", annotationClass.getName(), e.toString());
             throw new IllegalArgumentException("Unknown permission '" + annotationClass.getName() + "'", e);
         }
     }
