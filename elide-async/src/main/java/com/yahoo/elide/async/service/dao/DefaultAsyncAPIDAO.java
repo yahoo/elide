@@ -170,7 +170,7 @@ public class DefaultAsyncAPIDAO implements AsyncAPIDAO {
             tx.flush(scope);
             tx.commit(scope);
         } catch (IOException e) {
-            log.error("IOException: {}", e);
+            log.error("IOException: {}", e.toString());
             throw new IllegalStateException(e);
         }
         return result;
@@ -193,7 +193,7 @@ public class DefaultAsyncAPIDAO implements AsyncAPIDAO {
                 return loaded;
             });
         } catch (Exception e) {
-            log.error("Exception: {}", e);
+            log.error("Exception: {}", e.toString());
             throw new IllegalStateException(e);
         }
         return asyncAPIList;
