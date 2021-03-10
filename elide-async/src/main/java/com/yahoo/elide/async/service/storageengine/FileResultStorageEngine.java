@@ -45,7 +45,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
 
         try (BufferedWriter writer = getWriter(tableExport.getId())) {
             result
-                .map(record -> record.concat(System.getProperty("line.separator")))
+                .map(record -> record.concat(System.lineSeparator()))
                 .subscribe(
                         recordCharArray -> {
                             writer.write(recordCharArray);

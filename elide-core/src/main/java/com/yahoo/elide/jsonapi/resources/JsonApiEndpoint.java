@@ -14,6 +14,8 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.utils.HeaderUtils;
 import com.yahoo.elide.utils.ResourceUtils;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -167,7 +169,7 @@ public class JsonApiEndpoint {
     protected String getBaseUrlEndpoint(UriInfo uriInfo) {
         String baseUrl = elide.getElideSettings().getBaseUrl();
 
-        if (baseUrl == null || baseUrl.isEmpty()) {
+        if (StringUtils.isEmpty(baseUrl)) {
             //UriInfo has full path appended here already.
             baseUrl = ResourceUtils.resolveBaseUrl(uriInfo);
         }

@@ -415,7 +415,7 @@ public class PermissionExecutorTest {
     public void testUserCheckOnFieldSuccess() {
         PersistentResource resource = newResource(OpenBean.class, false);
         RequestScope requestScope = resource.getRequestScope();
-        ExpressionResult result = requestScope.getPermissionExecutor().checkUserPermissions(new ClassType(OpenBean.class),
+        ExpressionResult result = requestScope.getPermissionExecutor().checkUserPermissions(new ClassType<>(OpenBean.class),
                 ReadPermission.class,
                 "open");
 
@@ -428,7 +428,7 @@ public class PermissionExecutorTest {
         RequestScope requestScope = resource.getRequestScope();
         assertThrows(
                 ForbiddenAccessException.class,
-                () -> requestScope.getPermissionExecutor().checkUserPermissions(new ClassType(SampleBean.class),
+                () -> requestScope.getPermissionExecutor().checkUserPermissions(new ClassType<>(SampleBean.class),
                 ReadPermission.class,
                 "cannotSeeMe"));
     }
@@ -438,7 +438,7 @@ public class PermissionExecutorTest {
         PersistentResource resource = newResource(SampleBean.class, false);
         RequestScope requestScope = resource.getRequestScope();
 
-        ExpressionResult result = requestScope.getPermissionExecutor().checkUserPermissions(new ClassType(SampleBean.class),
+        ExpressionResult result = requestScope.getPermissionExecutor().checkUserPermissions(new ClassType<>(SampleBean.class),
                 ReadPermission.class,
                 "allVisible");
 
