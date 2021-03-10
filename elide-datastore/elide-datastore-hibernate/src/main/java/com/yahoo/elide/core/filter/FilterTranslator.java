@@ -286,7 +286,7 @@ public class FilterTranslator implements FilterOperation<String> {
             throw new BadRequestException("Operator not implemented: " + filterPredicate.getOperator());
         }
 
-        return generator.generate(filterPredicate, aliasGenerator);
+        return generator.generate(filterPredicate, removeThisFromAlias);
     }
 
     private static String greatestClause(List<FilterParameter> params) {
