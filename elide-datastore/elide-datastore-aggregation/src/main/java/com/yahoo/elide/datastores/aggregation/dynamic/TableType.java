@@ -53,7 +53,7 @@ import javax.persistence.Id;
 public class TableType implements Type<DynamicModelInstance> {
     public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
     private static final String SPACE = " ";
-    public static final String NEWLINE = System.getProperty("line.separator");
+    public static final Pattern NEWLINE = Pattern.compile(System.lineSeparator(), Pattern.LITERAL);
 
     protected Table table;
     private Map<Class<? extends Annotation>, Annotation> annotations;
@@ -691,6 +691,6 @@ public class TableType implements Type<DynamicModelInstance> {
     }
 
     private static String replaceNewlineWithSpace(String str) {
-        return (str == null) ? str : str.replace(NEWLINE, SPACE);
+        return (str == null) ? null : NEWLINE.matcher(str).replaceAll(SPACE);
     }
 }
