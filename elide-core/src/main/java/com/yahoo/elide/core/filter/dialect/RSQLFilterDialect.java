@@ -69,7 +69,8 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
     private static final String INVALID_QUERY_PARAMETER = "Invalid query parameter: ";
     private static final Pattern TYPED_FILTER_PATTERN = Pattern.compile("filter\\[([^\\]]+)\\]");
     // field name followed by zero or more square brackets having non-empty argument name and value separated by ':'
-    private static final String FILTER_SELECTOR_REGEX = "(\\w+)(\\[(\\w+?):([^\\]]+?)\\])*$";
+    // eg: orderDate[grain:month] , title[foo:bar][blah:Encoded+Value]
+    private static final String FILTER_SELECTOR_REGEX = "(\\w+)(\\[(\\w+):([^\\]]+)\\])*$";
     private static final ComparisonOperator INI = new ComparisonOperator("=ini=", true);
     private static final ComparisonOperator NOT_INI = new ComparisonOperator("=outi=", true);
     private static final ComparisonOperator ISNULL_OP = new ComparisonOperator("=isnull=", false);
@@ -357,7 +358,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                 return;
             }
 
-            Matcher matcher = Pattern.compile("\\[(\\w+?):([^\\]]+?)\\]").matcher(argsString);
+            Matcher matcher = Pattern.compile("\\[(\\w+):([^\\]]+)\\]").matcher(argsString);
             while (matcher.find()) {
                 arguments.add(Argument.builder()
                                 .name(matcher.group(1))
