@@ -257,13 +257,13 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         String schema = getInheritedSchema(parent, table.getSchema());
         table.setSchema(schema);
 
-        String dbConnectionName = (String) getInheritedConnection(parent, table.getDbConnectionName());
+        String dbConnectionName = getInheritedConnection(parent, table.getDbConnectionName());
         table.setDbConnectionName(dbConnectionName);
 
-        String sql = (String) getInheritedSql(parent, table.getSql());
+        String sql = getInheritedSql(parent, table.getSql());
         table.setSql(sql);
 
-        String tableName = (String) getInheritedTable(parent, table.getTable());
+        String tableName = getInheritedTable(parent, table.getTable());
         table.setTable(tableName);
         // isFact, isHidden, ReadAccess have default Values in schema, so can not be inherited.
         // Other properties (tags, cardinality, etc.) have been categorized as non-inheritable too.
