@@ -26,6 +26,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -168,13 +170,15 @@ public class FilterPredicate implements FilterExpression, Function<RequestScope,
     public static class FilterParameter {
         @Getter private String name;
         @Getter private Object value;
+        private static final Pattern ESCAPE_PATTERN = Pattern.compile("%", Pattern.LITERAL);
+        private static final String ESCAPED = Matcher.quoteReplacement("\\%");
 
         public String getPlaceholder() {
             return ":" + name;
         }
 
         public String escapeMatching() {
-            return value.toString().replace("%", "\\%");
+            return ESCAPE_PATTERN.matcher(value.toString()).replaceAll(ESCAPED);
         }
     }
 }

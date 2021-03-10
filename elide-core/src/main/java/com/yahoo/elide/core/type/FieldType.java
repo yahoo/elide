@@ -75,7 +75,7 @@ public class FieldType implements Field {
 
     @Override
     public Type<?> getType() {
-        return new ClassType(field.getType());
+        return new ClassType<>(field.getType());
     }
 
     @Override
@@ -87,14 +87,14 @@ public class FieldType implements Field {
         java.lang.reflect.Type type = field.getGenericType();
 
         if (type instanceof ParameterizedType && index.isPresent()) {
-            return new ClassType(
+            return new ClassType<>(
                     TypeUtils.getRawType(
                         ((ParameterizedType) type).getActualTypeArguments()[index.get().intValue()],
                         ((ClassType) parentType).getCls()
                     )
             );
         }
-        return new ClassType(TypeUtils.getRawType(type, ((ClassType) parentType).getCls()));
+        return new ClassType<>(TypeUtils.getRawType(type, ((ClassType) parentType).getCls()));
     }
 
     @Override

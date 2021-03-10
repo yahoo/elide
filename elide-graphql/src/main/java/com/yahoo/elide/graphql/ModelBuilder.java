@@ -85,7 +85,7 @@ public class ModelBuilder {
 
         relationshipOpArg = newArgument()
                 .name(ARGUMENT_OPERATION)
-                .type(generator.classToEnumType(new ClassType(RelationshipOp.class)))
+                .type(generator.classToEnumType(new ClassType<>(RelationshipOp.class)))
                 .defaultValue(RelationshipOp.FETCH)
                 .build();
 
