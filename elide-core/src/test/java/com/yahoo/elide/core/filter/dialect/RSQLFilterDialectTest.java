@@ -335,7 +335,7 @@ public class RSQLFilterDialectTest {
 
         assertEquals(
                 "author.id INFIX [20]",
-                visitor.visit(comparisonNode, new ClassType(Author.class)).toString()
+                visitor.visit(comparisonNode, new ClassType<>(Author.class)).toString()
         );
     }
 
