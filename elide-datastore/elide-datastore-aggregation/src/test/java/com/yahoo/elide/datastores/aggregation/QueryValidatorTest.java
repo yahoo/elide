@@ -117,30 +117,6 @@ public class QueryValidatorTest extends SQLUnitTest {
     }
 
     @Test
-    public void testHavingFilterNoAggregatedMetric() throws ParseException {
-        FilterExpression originalFilter = filterParser.parseFilterExpression("lowScore<45", playerStatsType, false);
-        SplitFilterExpressionVisitor visitor = new SplitFilterExpressionVisitor(playerStatsTable);
-        FilterConstraints constraints = originalFilter.accept(visitor);
-        FilterExpression whereFilter = constraints.getWhereExpression();
-        FilterExpression havingFilter = constraints.getHavingExpression();
-
-        Query query = Query.builder()
-                .source(playerStatsTable)
-                .metricProjection(playerStatsTable.getMetricProjection("highScore"))
-                .whereFilter(whereFilter)
-                .havingFilter(havingFilter)
-                .build();
-
-        Set<String> allFields = new HashSet<>(Collections.singletonList("highScore"));
-        QueryValidator validator = new QueryValidator(query, allFields, dictionary);
-
-        InvalidOperationException exception = assertThrows(InvalidOperationException.class, validator::validate);
-        assertEquals(
-                "Invalid operation: Metric field lowScore must be aggregated before filtering in having clause.",
-                exception.getMessage());
-    }
-
-    @Test
     public void testHavingFilterOnDimensionTable() throws ParseException {
         FilterExpression originalFilter = filterParser.parseFilterExpression("country.isoCode==USA,lowScore<45",
                 playerStatsType, false);
