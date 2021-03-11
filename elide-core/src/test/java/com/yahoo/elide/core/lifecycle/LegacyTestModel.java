@@ -40,39 +40,39 @@ public class LegacyTestModel {
     @Setter
     private String field2;
 
-    @OnCreatePostCommit(value = "field")
+    @OnCreatePostCommit("field")
     public void fieldCreatePostCommit() {
     }
 
-    @OnCreatePreCommit(value = "field")
+    @OnCreatePreCommit("field")
     public void fieldCreatePreCommit() {
     }
 
-    @OnCreatePreSecurity(value = "field")
+    @OnCreatePreSecurity("field")
     public void fieldCreatePreSecurity() {
     }
 
-    @OnUpdatePostCommit(value = "field")
+    @OnUpdatePostCommit("field")
     public void fieldUpdatePostCommit() {
     }
 
-    @OnUpdatePreCommit(value = "field")
+    @OnUpdatePreCommit("field")
     public void fieldUpdatePreCommit() {
     }
 
-    @OnUpdatePreSecurity(value = "field")
+    @OnUpdatePreSecurity("field")
     public void fieldUpdatePreSecurity() {
     }
 
-    @OnReadPostCommit(value = "field")
+    @OnReadPostCommit("field")
     public void fieldReadPostCommit() {
     }
 
-    @OnReadPreCommit(value = "field")
+    @OnReadPreCommit("field")
     public void fieldReadPreCommit() {
     }
 
-    @OnReadPreSecurity(value = "field")
+    @OnReadPreSecurity("field")
     public void fieldReadPreSecurity() {
     }
 
@@ -126,5 +126,32 @@ public class LegacyTestModel {
 
     @OnCreatePreSecurity("*")
     public void classCreatePreCommitAllUpdates() {
+    }
+
+    @OnCreatePostCommit("field")
+    @OnCreatePreCommit
+    @OnCreatePreSecurity("field")
+    @OnReadPostCommit
+    @OnReadPreCommit("field")
+    @OnReadPreSecurity
+    @OnUpdatePostCommit("field")
+    @OnUpdatePreCommit
+    @OnUpdatePreSecurity("field")
+    public void fieldMultiple() {
+    }
+
+    @OnCreatePostCommit
+    @OnCreatePreCommit("field")
+    @OnCreatePreSecurity
+    @OnReadPostCommit("field")
+    @OnReadPreCommit
+    @OnReadPreSecurity("field")
+    @OnUpdatePostCommit
+    @OnUpdatePreCommit("field")
+    @OnUpdatePreSecurity
+    @OnDeletePostCommit
+    @OnDeletePreCommit
+    @OnDeletePreSecurity
+    public void classMultiple() {
     }
 }

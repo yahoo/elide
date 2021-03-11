@@ -479,7 +479,7 @@ public enum Operator {
                             .anyMatch(value -> predicate.test(leftHandSideElement, value)));
         }
         return leftHandSide != null && values.stream()
-                .map(value -> CoerceUtil.coerce(value, valueClass))
+                .map(value -> valueClass == null ? value : CoerceUtil.coerce(value, valueClass))
                 .anyMatch(value -> predicate.test(leftHandSide, value));
     }
 

@@ -448,6 +448,16 @@ public class HiveExplainQueryTest extends SQLUnitTest {
     }
 
     @Test
+    public void testWhereWithArguments() {
+        Query query = TestQuery.WHERE_WITH_ARGUMENTS.getQuery();
+
+        String queryStr = engine.explain(query).get(0);
+        queryStr = repeatedWhitespacePattern.matcher(queryStr).replaceAll(" ");
+
+        assertEquals(getExpectedWhereWithArgumentsSQL(), queryStr);
+    }
+
+    @Test
     public void testLeftJoin() throws Exception {
         Query query = TestQuery.LEFT_JOIN.getQuery();
 

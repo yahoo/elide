@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
@@ -25,6 +26,7 @@ import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.google.common.collect.Sets;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -61,6 +63,7 @@ public class EntityProjectionTranslator {
         timeDimensions = resolveTimeDimensions();
         metrics = resolveMetrics();
         splitFilters();
+        addHavingMetrics();
     }
 
     /**
@@ -79,6 +82,7 @@ public class EntityProjectionTranslator {
                 .pagination(ImmutablePagination.from(entityProjection.getPagination()))
                 .bypassingCache(bypassCache)
                 .build();
+
         QueryValidator validator = new QueryValidator(query, getAllFields(), dictionary);
         validator.validate();
         return query;
@@ -98,6 +102,35 @@ public class EntityProjectionTranslator {
         FilterConstraints constraints = filterExpression.accept(visitor);
         whereFilter = constraints.getWhereExpression();
         havingFilter = constraints.getHavingExpression();
+    }
+
+    /**
+     * Adds to the list of queried metrics any metric in the HAVING filter that has not been explicitly requested
+     * by the client.
+     */
+    private void addHavingMetrics() {
+        if (havingFilter == null) {
+            return;
+        }
+
+        //Flatten the HAVING filter expression into a list of predicates...
+        havingFilter.accept(new PredicateExtractionVisitor()).forEach(filterPredicate -> {
+            String fieldName = filterPredicate.getField();
+
+            //If the predicate field is a metric
+            if (queriedTable.getMetric(fieldName) != null) {
+
+                //If the query doesn't contain this metric.
+                if (metrics.stream().noneMatch((metric -> metric.getAlias().equals(fieldName)))) {
+
+                    //Construct a new projection and add it to the query.
+                    MetricProjection havingMetric = engine.constructMetricProjection(
+                            queriedTable.getMetric(fieldName), fieldName, new HashMap<>());
+
+                    metrics.add(havingMetric);
+                }
+            }
+        });
     }
 
     /**

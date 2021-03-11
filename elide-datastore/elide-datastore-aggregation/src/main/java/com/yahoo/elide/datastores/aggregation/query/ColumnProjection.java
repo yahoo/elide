@@ -86,7 +86,7 @@ public interface ColumnProjection extends Serializable {
      * @return request arguments
      */
     default Map<String, Argument> getArguments() {
-        return Collections.EMPTY_MAP;
+        return Collections.emptyMap();
     }
 
     // force implementations to define equals/hashCode
