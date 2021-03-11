@@ -167,23 +167,23 @@ public class EntityHydrator {
 
         switch (((TimeDimensionProjection) column).getGrain()) {
             case SECOND:
-                return new ClassType<>(Second.class);
+                return ClassType.of(Second.class);
             case MINUTE:
-                return new ClassType<>(Minute.class);
+                return ClassType.of(Minute.class);
             case HOUR:
-                return new ClassType<>(Hour.class);
+                return ClassType.of(Hour.class);
             case DAY:
-                return new ClassType<>(Day.class);
+                return ClassType.of(Day.class);
             case ISOWEEK:
-                return new ClassType<>(ISOWeek.class);
+                return ClassType.of(ISOWeek.class);
             case WEEK:
-                return new ClassType<>(Week.class);
+                return ClassType.of(Week.class);
             case MONTH:
-                return new ClassType<>(Month.class);
+                return ClassType.of(Month.class);
             case QUARTER:
-                return new ClassType<>(Quarter.class);
+                return ClassType.of(Quarter.class);
             case YEAR:
-                return new ClassType<>(Year.class);
+                return ClassType.of(Year.class);
             default:
                 throw new IllegalStateException("Invalid grain type");
         }
