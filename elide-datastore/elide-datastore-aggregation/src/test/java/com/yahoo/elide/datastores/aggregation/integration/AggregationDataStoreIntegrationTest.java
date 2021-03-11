@@ -572,7 +572,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                         field(
                                 "playerStats",
                                 arguments(
-                                        argument("filter", "\"highScore<\\\"45\\\"\"")
+                                        argument("filter", "\"highScore>\\\"0\\\"\"")
                                 ),
                                 selections(
                                         field("lowScore")
@@ -581,10 +581,18 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 )
         ).toQuery();
 
-        String errorMessage = "Exception while fetching data (/playerStats) : Invalid operation: "
-                + "Metric field highScore must be aggregated before filtering in having clause.";
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("lowScore", 35)
+                                )
+                        )
+                )
+        ).toResponse();
 
-        runQueryWithExpectedError(graphQLRequest, errorMessage);
+        runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
     /**

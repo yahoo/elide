@@ -76,14 +76,7 @@ public class QueryValidator {
                 throw new InvalidOperationException("Relationship traversal not supported for analytic queries.");
             }
 
-            if (queriedTable.getMetricProjection(fieldName) != null) {
-                if (metrics.stream().noneMatch(m -> m.getAlias().equals(fieldName))) {
-                    throw new InvalidOperationException(
-                            String.format(
-                                    "Metric field %s must be aggregated before filtering in having clause.",
-                                    fieldName));
-                }
-            } else {
+            if (queriedTable.getDimensionProjection(fieldName) != null) {
                 if (dimensionProjections.stream().noneMatch(dim -> dim.getAlias().equals(fieldName))) {
                     throw new InvalidOperationException(
                             String.format(
