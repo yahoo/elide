@@ -117,6 +117,23 @@ public class PermissionExecutorTest {
     }
 
     @Test
+    public void testFailRunAtCommitCheck() throws Exception {
+        @Entity
+        @Include(rootLevel = false)
+        @UpdatePermission(expression = "sampleCommit")
+        class Model { }
+
+        PersistentResource resource = newResource(new Model(), Model.class, false);
+        RequestScope requestScope = resource.getRequestScope();
+
+        // Because the check is runAtCommit, the check is DEFERRED.
+        assertEquals(ExpressionResult.DEFERRED,
+                requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource));
+
+        assertThrows(ForbiddenAccessException.class, () -> requestScope.getPermissionExecutor().executeCommitChecks());
+    }
+
+    @Test
     public void testReadFieldAwareSuccessAllAnyField() {
         PersistentResource resource = newResource(SampleBean.class, false);
         RequestScope requestScope = resource.getRequestScope();
