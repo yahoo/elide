@@ -90,11 +90,11 @@ public interface ElideStandaloneSettings {
         ElideStandaloneAsyncSettings asyncProperties = getAsyncProperties();
 
         if (asyncProperties == null || !asyncProperties.enabled()) {
-            entitiesToExclude.add(new ClassType(AsyncQuery.class));
+            entitiesToExclude.add(new ClassType<>(AsyncQuery.class));
         }
 
         if (asyncProperties == null || !asyncProperties.enableExport()) {
-            entitiesToExclude.add(new ClassType(TableExport.class));
+            entitiesToExclude.add(new ClassType<>(TableExport.class));
         }
 
         return entitiesToExclude;

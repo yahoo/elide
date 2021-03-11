@@ -72,7 +72,7 @@ public class FileResultStorageEngineTest {
         return engine.getResultsByID(queryId).collect(() -> new StringBuilder(),
                 (resultBuilder, tempResult) -> {
                     if (resultBuilder.length() > 0) {
-                        resultBuilder.append(System.getProperty("line.separator"));
+                        resultBuilder.append(System.lineSeparator());
                     }
                     resultBuilder.append(tempResult);
                 }

@@ -767,12 +767,10 @@ public class SwaggerBuilder {
         for (Type<?> clazz : allClasses) {
             if (clazz instanceof ClassType) {
                 models.putAll(converters.readAll(((ClassType) clazz).getCls()));
-            } else if (clazz instanceof Type) {
+            } else {
                 ModelConverterContextImpl context = new ModelConverterContextImpl(Arrays.asList(converter));
                 context.resolve(clazz);
                 models.putAll(context.getDefinedModels());
-            } else {
-                models.putAll(converters.readAll(clazz));
             }
         }
         swagger.setDefinitions(models);

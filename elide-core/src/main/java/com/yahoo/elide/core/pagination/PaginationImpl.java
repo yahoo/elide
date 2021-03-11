@@ -94,7 +94,7 @@ public class PaginationImpl implements Pagination {
                           int systemMaxLimit,
                           Boolean generateTotals,
                           Boolean pageByPages) {
-        this(new ClassType(entityClass), clientOffset, clientLimit,
+        this(new ClassType<>(entityClass), clientOffset, clientLimit,
                 systemDefaultLimit, systemMaxLimit, generateTotals, pageByPages);
     }
 

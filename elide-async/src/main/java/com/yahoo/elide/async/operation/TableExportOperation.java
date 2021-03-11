@@ -91,7 +91,7 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
 
             storeResults(exportObj, engine, finalResults);
 
-            exportResult.setUrl(new URL(generateDownloadURL(exportObj, (RequestScope) scope)));
+            exportResult.setUrl(new URL(generateDownloadURL(exportObj, scope)));
             exportResult.setRecordCount(recordNumber);
         } catch (BadRequestException e) {
             exportResult.setMessage(e.getMessage());
