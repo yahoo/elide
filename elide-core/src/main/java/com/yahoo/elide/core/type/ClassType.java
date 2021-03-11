@@ -255,4 +255,14 @@ public class ClassType<T> implements Type<T> {
     public Optional<Class<T>> getUnderlyingClass() {
         return Optional.of(getCls());
     }
+
+    /**
+     * Construction helper.
+     * @param <T> class type
+     * @param cls The underlying java class.
+     * @return wrapped Type
+     */
+    public static <T> ClassType<T> of(Class<T> cls) {
+        return cls == null ? null : new ClassType<>(cls);
+    }
 }
