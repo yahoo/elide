@@ -28,7 +28,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
@@ -37,25 +36,18 @@ import com.yahoo.elide.async.integration.tests.framework.AsyncIntegrationTestApp
 import com.yahoo.elide.async.models.QueryType;
 import com.yahoo.elide.async.models.ResultType;
 import com.yahoo.elide.core.audit.TestAuditLogger;
-import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
-import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.security.User;
-import com.yahoo.elide.initialization.IntegrationTest;
-import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.yahoo.elide.jsonapi.resources.SecurityContextUser;
 import com.yahoo.elide.test.graphql.EnumFieldSerializer;
 import com.yahoo.elide.test.jsonapi.elements.Resource;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
@@ -65,67 +57,35 @@ import lombok.Data;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.security.Principal;
-import java.util.Map;
-import java.util.concurrent.Executors;
+
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.SecurityContext;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class TableExportIT extends IntegrationTest {
-    private Integer port;
+public class TableExportIT extends AsyncApiIT {
 
     @Data
     private class TableExport {
         private String id;
         private String query;
-
         @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
         private String queryType;
         private Integer asyncAfterSeconds;
         @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
         private String resultType;
-
         @JsonSerialize(using = EnumFieldSerializer.class, as = String.class)
         private String status;
     }
 
-    private static final Resource ENDERS_GAME = resource(
-            type("book"),
-            attributes(
-                    attr("title", "Ender's Game"),
-                    attr("genre", "Science Fiction"),
-                    attr("language", "English")
-            )
-    );
-
-    private static final Resource GAME_OF_THRONES = resource(
-            type("book"),
-            attributes(
-                    attr("title", "Song of Ice and Fire"),
-                    attr("genre", "Mythology Fiction"),
-                    attr("language", "English")
-            )
-    );
-
-    private static final Resource FOR_WHOM_THE_BELL_TOLLS = resource(
-            type("book"),
-            attributes(
-                    attr("title", "For Whom the Bell Tolls"),
-                    attr("genre", "Literary Fiction"),
-                    attr("language", "English")
-            )
-    );
-
     public TableExportIT() {
-        super(AsyncIntegrationTestApplicationResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
-
-        this.port = super.getPort();
+        super("tableExport");
     }
 
     @Override
     public void modifyServletContextHandler() {
+        super.modifyServletContextHandler();
         // Initialize Export End Point
         ServletHolder exportServlet = servletContextHandler.addServlet(ServletContainer.class, "/export/*");
         exportServlet.setInitOrder(3);
@@ -134,7 +94,6 @@ public class TableExportIT extends IntegrationTest {
         exportServlet.setInitParameter("javax.ws.rs.Application", AsyncIntegrationTestApplicationResourceConfig.class.getName());
 
         // Set Attributes to be fetched in AsyncIntegrationTestApplicationResourceConfig
-        this.servletContextHandler.setAttribute(AsyncIntegrationTestApplicationResourceConfig.ASYNC_EXECUTOR_ATTR, Executors.newFixedThreadPool(5));
         try {
             this.servletContextHandler.setAttribute(AsyncIntegrationTestApplicationResourceConfig.STORAGE_DESTINATION_ATTR, Files.createTempDirectory("asyncIT"));
         } catch (IOException e) {
@@ -142,104 +101,8 @@ public class TableExportIT extends IntegrationTest {
         }
     }
 
-    @Override
-    protected DataStoreTestHarness createHarness() {
-        DataStoreTestHarness dataStoreTestHarness = super.createHarness();
-        return new DataStoreTestHarness() {
-                @Override
-                public DataStore getDataStore() {
-                    return new AsyncDelayDataStore(dataStoreTestHarness.getDataStore());
-                }
-                @Override
-                public void cleanseTestData() {
-                    dataStoreTestHarness.cleanseTestData();
-                }
-        };
-    }
-    /**
-     * Creates test data for all tests.
-     */
-    @BeforeEach
-    public void init() {
-        //Create Book: Ender's Game
-        given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .body(
-                        datum(ENDERS_GAME).toJSON()
-                )
-                .post("/book")
-                .then()
-                .statusCode(HttpStatus.SC_CREATED);
-
-        given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .body(
-                        datum(GAME_OF_THRONES).toJSON()
-                )
-                .post("/book")
-                .then()
-                .statusCode(HttpStatus.SC_CREATED);
-
-        given()
-                .contentType(JSONAPI_CONTENT_TYPE)
-                .accept(JSONAPI_CONTENT_TYPE)
-                .body(
-                        datum(FOR_WHOM_THE_BELL_TOLLS).toJSON()
-                )
-                .post("/book")
-                .then()
-                .statusCode(HttpStatus.SC_CREATED);
-    }
-
-    private Response getJSONAPIResponse(String id) throws InterruptedException {
-        Response response = null;
-        int i = 0;
-        while (i < 1000) {
-            Thread.sleep(10);
-            response = given()
-                    .accept("application/vnd.api+json")
-                    .get("/tableExport/" + id);
-
-            String outputResponse = response.jsonPath().getString("data.attributes.status");
-
-            // If Table Export is completed
-            if (outputResponse.equals("COMPLETE")) {
-                break;
-            }
-            assertEquals("PROCESSING", outputResponse, "Table Export has failed.");
-            i++;
-            assertNotEquals(1000, i, "Table Export not completed.");
-        }
-
-        return response;
-    }
-
-    private String getGraphQLResponse(String id) throws InterruptedException {
-        String  responseGraphQL = null;
-        int i = 0;
-        while (i < 1000) {
-            Thread.sleep(10);
-            responseGraphQL = given()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .body("{\"query\":\"{ tableExport(ids: [\\\"" + id + "\\\"]) "
-                            + "{ edges { node { id queryType status result "
-                            + "{ message url httpStatus recordCount } } } } }\","
-                            + "\"variables\":null}")
-                    .post("/graphQL")
-                    .asString();
-            // If Table Export is created and completed
-            if (responseGraphQL.contains("\"status\":\"COMPLETE\"")) {
-                break;
-            }
-            assertTrue(responseGraphQL.contains("\"status\":\"PROCESSING\""), "TableExport has failed.");
-            i++;
-            assertNotEquals(1000, i, "TableExport not completed.");
-        }
-
-        return responseGraphQL;
+    public String getGraphQLResponse(String id) throws InterruptedException {
+        return super.getGraphQLResponse(id, "message url");
     }
 
     /**
@@ -294,14 +157,14 @@ public class TableExportIT extends IntegrationTest {
                 .body("data.attributes.result.message", nullValue())
                 .body("data.attributes.result.recordCount", equalTo(3))
                 .body("data.attributes.result.url",
-                        equalTo("http://localhost:" + port + "/export/edc4a871-dff2-4054-804e-d80075cf830a"))
+                        equalTo("http://localhost:" + getPort() + "/export/edc4a871-dff2-4054-804e-d80075cf830a"))
                 .body("data.attributes.result.httpStatus", equalTo(200));
 
 
         assertEquals("\"title\"\n"
                 + "\"For Whom the Bell Tolls\"\n"
                 + "\"Song of Ice and Fire\"\n"
-                + "\"Ender's Game\"\n", getStoredFileContents(port, "edc4a871-dff2-4054-804e-d80075cf830a"));
+                + "\"Ender's Game\"\n", getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf830a"));
     }
 
     /**
@@ -341,14 +204,14 @@ public class TableExportIT extends IntegrationTest {
                 .body("data.attributes.result.message", nullValue())
                 .body("data.attributes.result.recordCount", equalTo(3))
                 .body("data.attributes.result.url",
-                        equalTo("http://localhost:" + port + "/export/edc4a871-dff2-4054-804e-d80075cf831a"))
+                        equalTo("http://localhost:" + getPort() + "/export/edc4a871-dff2-4054-804e-d80075cf831a"))
                 .body("data.attributes.result.httpStatus", equalTo(200));
 
         assertEquals("[\n"
                 + "{\"title\":\"For Whom the Bell Tolls\"}\n"
                 + ",{\"title\":\"Song of Ice and Fire\"}\n"
                 + ",{\"title\":\"Ender's Game\"}\n"
-                + "]\n", getStoredFileContents(port, "edc4a871-dff2-4054-804e-d80075cf831a"));
+                + "]\n", getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf831a"));
 
     }
 
@@ -405,14 +268,14 @@ public class TableExportIT extends IntegrationTest {
 
         String responseGraphQL = getGraphQLResponse("edc4a871-dff2-4054-804e-d80075cf828e");
         expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
-                + "\"result\":{\"message\":null,\"url\":\"http://localhost:" + port + "/export/edc4a871-dff2-4054-804e-d80075cf828e\","
+                + "\"result\":{\"message\":null,\"url\":\"http://localhost:" + getPort() + "/export/edc4a871-dff2-4054-804e-d80075cf828e\","
                 + "\"httpStatus\":200,\"recordCount\":3}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);
         assertEquals("\"title\"\n"
                 + "\"Ender's Game\"\n"
                 + "\"Song of Ice and Fire\"\n"
-                + "\"For Whom the Bell Tolls\"\n", getStoredFileContents(port, "edc4a871-dff2-4054-804e-d80075cf828e"));
+                + "\"For Whom the Bell Tolls\"\n", getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf828e"));
     }
 
     /**
@@ -477,7 +340,7 @@ public class TableExportIT extends IntegrationTest {
                  .asString();
 
         expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf829e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
-                 + "\"result\":{\"url\":\"http://localhost:" + port + "/export/edc4a871-dff2-4054-804e-d80075cf829e\","
+                 + "\"result\":{\"url\":\"http://localhost:" + getPort() + "/export/edc4a871-dff2-4054-804e-d80075cf829e\","
                  + "\"httpStatus\":200,\"recordCount\":3}}}]}}}";
 
         assertEquals(expectedResponse, responseGraphQL);
@@ -485,7 +348,143 @@ public class TableExportIT extends IntegrationTest {
                 + "{\"title\":\"Ender's Game\"}\n"
                 + ",{\"title\":\"Song of Ice and Fire\"}\n"
                 + ",{\"title\":\"For Whom the Bell Tolls\"}\n"
-                + "]\n", getStoredFileContents(port, "edc4a871-dff2-4054-804e-d80075cf829e"));
+                + "]\n", getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cf829e"));
+    }
+
+    /**
+     * Test for a GraphQL query as a Table Export Request with asyncAfterSeconds value set to 0.
+     * Happy Path Test Scenario 1 with alias.
+     * @throws InterruptedException InterruptedException
+     * @throws IOException IOException
+     */
+    @Test
+    public void graphQLHappyPath1Alias() throws InterruptedException, IOException {
+
+        TableExport queryObj = new TableExport();
+        queryObj.setId("edc4a871-dff2-4054-804e-d80075cab28e");
+        queryObj.setAsyncAfterSeconds(0);
+        queryObj.setQueryType("GRAPHQL_V1_0");
+        queryObj.setStatus("QUEUED");
+        queryObj.setResultType("CSV");
+        queryObj.setQuery("{\"query\":\"{ book { edges { node { bookName:title } } } }\",\"variables\":null}");
+        String graphQLRequest = document(
+                 mutation(
+                         selection(
+                                 field(
+                                         "tableExport",
+                                         arguments(
+                                                 argument("op", "UPSERT"),
+                                                 argument("data", queryObj, UNQUOTED_VALUE)
+                                         ),
+                                         selections(
+                                                 field("id"),
+                                                 field("query"),
+                                                 field("queryType"),
+                                                 field("status"),
+                                                 field("resultType")
+                                         )
+                                 )
+                         )
+                 )
+        ).toQuery();
+
+        String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cab28e\","
+                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { bookName:title } } } }\\\",\\\"variables\\\":null}\","
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
+        JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("sleep", "1000")
+                .accept(MediaType.APPLICATION_JSON)
+                .body(graphQLJsonNode)
+                .post("/graphQL")
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body(equalTo(expectedResponse));
+
+        String responseGraphQL = getGraphQLResponse("edc4a871-dff2-4054-804e-d80075cab28e");
+        expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cab28e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
+                + "\"result\":{\"message\":null,\"url\":\"http://localhost:" + getPort() + "/export/edc4a871-dff2-4054-804e-d80075cab28e\","
+                + "\"httpStatus\":200,\"recordCount\":3}}}]}}}";
+
+        assertEquals(expectedResponse, responseGraphQL);
+        assertEquals("\"bookName\"\n"
+                + "\"Ender's Game\"\n"
+                + "\"Song of Ice and Fire\"\n"
+                + "\"For Whom the Bell Tolls\"\n", getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cab28e"));
+    }
+
+    /**
+     * Test for a GraphQL query as a TableExport Request with asyncAfterSeconds value set to 7.
+     * Also uses alias for columns.
+     * @throws InterruptedException InterruptedException
+     * @throws IOException IOException
+     */
+    @Test
+    public void graphQLHappyPath2Alias() throws InterruptedException, IOException {
+
+        TableExport queryObj = new TableExport();
+        queryObj.setId("edc4a871-dff2-4054-804e-d80075cab29e");
+        queryObj.setAsyncAfterSeconds(7);
+        queryObj.setQueryType("GRAPHQL_V1_0");
+        queryObj.setStatus("QUEUED");
+        queryObj.setResultType("JSON");
+        queryObj.setQuery("{\"query\":\"{ book { edges { node { bookName:title } } } }\",\"variables\":null}");
+        String graphQLRequest = document(
+                 mutation(
+                         selection(
+                                 field(
+                                         "tableExport",
+                                         arguments(
+                                                 argument("op", "UPSERT"),
+                                                 argument("data", queryObj, UNQUOTED_VALUE)
+                                         ),
+                                         selections(
+                                                 field("id"),
+                                                 field("query"),
+                                                 field("queryType"),
+                                                 field("status"),
+                                                 field("resultType")
+                                         )
+                                 )
+                         )
+                 )
+        ).toQuery();
+
+        String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cab29e\","
+                + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { bookName:title } } } }\\\",\\\"variables\\\":null}\","
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\",\"resultType\":\"JSON\"}}]}}}";
+        JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("sleep", "1000")
+                .accept(MediaType.APPLICATION_JSON)
+                .body(graphQLJsonNode)
+                .post("/graphQL")
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body(equalTo(expectedResponse));
+
+        String responseGraphQL = given()
+                 .contentType(MediaType.APPLICATION_JSON)
+                 .accept(MediaType.APPLICATION_JSON)
+                 .body("{\"query\":\"{ tableExport(ids: [\\\"edc4a871-dff2-4054-804e-d80075cab29e\\\"]) "
+                         + "{ edges { node { id queryType status result "
+                         + "{ url httpStatus recordCount } } } } }\","
+                         + "\"variables\":null}")
+                 .post("/graphQL")
+                 .asString();
+
+        expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cab29e\",\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"COMPLETE\","
+                 + "\"result\":{\"url\":\"http://localhost:" + getPort() + "/export/edc4a871-dff2-4054-804e-d80075cab29e\","
+                 + "\"httpStatus\":200,\"recordCount\":3}}}]}}}";
+
+        assertEquals(expectedResponse, responseGraphQL);
+        assertEquals("[\n"
+                + "{\"bookName\":\"Ender's Game\"}\n"
+                + ",{\"bookName\":\"Song of Ice and Fire\"}\n"
+                + ",{\"bookName\":\"For Whom the Bell Tolls\"}\n"
+                + "]\n", getStoredFileContents(getPort(), "edc4a871-dff2-4054-804e-d80075cab29e"));
     }
 
     /**
@@ -1115,7 +1114,7 @@ public class TableExportIT extends IntegrationTest {
                 .body("data.attributes.result.httpStatus", equalTo(200));
 
         // Only Header in the file, no records.
-        String fileContents = getStoredFileContents(port, "0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e");
+        String fileContents = getStoredFileContents(getPort(), "0b0dd4e7-9cdc-4bbc-8db2-5c1491c5ee1e");
 
         assertEquals(1, fileContents.split("\n").length);
         assertTrue(fileContents.contains("field"));
@@ -1237,19 +1236,10 @@ public class TableExportIT extends IntegrationTest {
 
     }
 
-    private JsonNode toJsonNode(String query, Map<String, Object> variables) {
-        ObjectNode graphqlNode = JsonNodeFactory.instance.objectNode();
-        graphqlNode.put("query", query);
-        if (variables != null) {
-            graphqlNode.set("variables", mapper.valueToTree(variables));
-        }
-        return graphqlNode;
-    }
-
     private String getStoredFileContents(Integer port, String id) {
         return given()
                 .when()
-                .get("http://localhost:" + port + "/export/" + id)
+                .get("http://localhost:" + getPort() + "/export/" + id)
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .extract().asString();

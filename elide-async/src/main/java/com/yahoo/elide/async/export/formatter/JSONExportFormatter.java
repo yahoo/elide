@@ -72,7 +72,9 @@ public class JSONExportFormatter implements TableExportFormatter {
         final Set<Attribute> attrFields = resource.getRequestScope().getEntityProjection().getAttributes();
 
         for (Attribute field : attrFields) {
-            attributes.put(field.getName(), resource.getAttribute(field));
+            String alias = field.getAlias();
+            String fieldName = alias != null && !alias.isEmpty() ? alias : field.getName();
+            attributes.put(fieldName, resource.getAttribute(field));
         }
         return attributes;
     }
