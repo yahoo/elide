@@ -12,6 +12,7 @@ import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.Type;
@@ -296,7 +297,9 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
     private String generatePredicatePathReference(Path path, Query query) {
         Path.PathElement last = path.lastElement().get();
 
-        SQLColumnProjection projection = fieldToColumnProjection(query, last.getAlias());
+        Map<String, Argument> arguments = last.getArguments().stream()
+                        .collect(Collectors.toMap(Argument::getName, Function.identity()));
+        SQLColumnProjection projection = fieldToColumnProjection(query, last.getAlias(), arguments);
         return projection.toSQL(referenceTable);
     }
 
@@ -304,6 +307,15 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
         ColumnProjection projection = query.getColumnProjection(fieldName);
         if (projection == null) {
             projection = query.getSource().getColumnProjection(fieldName);
+        }
+        return (SQLColumnProjection) projection;
+    }
+
+    private SQLColumnProjection fieldToColumnProjection(Query query, String fieldName,
+                    Map<String, Argument> arguments) {
+        ColumnProjection projection = query.getColumnProjection(fieldName, arguments);
+        if (projection == null) {
+            projection = query.getSource().getColumnProjection(fieldName, arguments);
         }
         return (SQLColumnProjection) projection;
     }

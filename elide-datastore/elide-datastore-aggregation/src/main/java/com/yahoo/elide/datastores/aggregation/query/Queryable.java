@@ -6,9 +6,11 @@
 
 package com.yahoo.elide.datastores.aggregation.query;
 
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.google.common.collect.Streams;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -68,6 +70,19 @@ public interface Queryable {
     default ColumnProjection getColumnProjection(String name) {
         return getColumnProjections().stream()
                 .filter(dim -> dim.getAlias().equals(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Retrieves a column by name and arguments.
+     * @param name The alias of the column.
+     * @param arguments Arguments provided for the column.
+     * @return The column.
+     */
+    default ColumnProjection getColumnProjection(String name, Map<String, Argument> arguments) {
+        return getColumnProjections().stream()
+                .filter(dim -> dim.getAlias().equals(name) && dim.getArguments().equals(arguments))
                 .findFirst()
                 .orElse(null);
     }

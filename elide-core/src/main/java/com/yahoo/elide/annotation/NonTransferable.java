@@ -27,4 +27,12 @@ public @interface NonTransferable {
      * @return true if enabled.
      */
     boolean enabled() default true;
+
+    /**
+     * Non-strict allows nested object hierarchies of non-transferables that are created in more than one
+     * client request.  A non-transferable, A, can have a relationship updated post creation IF:
+     *  - Another non-transferable, B, is being added to it.
+     *  - A is the request lineage of B.  For example, /A/1/B is the request path.
+     */
+    boolean strict() default false;
 }

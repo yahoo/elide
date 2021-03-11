@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.spring.config;
 
+import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -184,13 +185,13 @@ public class ElideAutoConfiguration {
         AsyncProperties asyncProperties = settings.getAsync();
 
         if (asyncProperties == null || !asyncProperties.isEnabled()) {
-            entitiesToExclude.add(new ClassType(AsyncQuery.class));
+            entitiesToExclude.add(new ClassType<>(AsyncQuery.class));
         }
 
         boolean exportEnabled = isExportEnabled(asyncProperties);
 
         if (!exportEnabled) {
-            entitiesToExclude.add(new ClassType(TableExport.class));
+            entitiesToExclude.add(new ClassType<>(TableExport.class));
         }
 
         return entitiesToExclude;
@@ -297,7 +298,9 @@ public class ElideAutoConfiguration {
 
         JpaDataStore jpaDataStore = new JpaDataStore(
                 entityManagerFactory::createEntityManager,
-                em -> new NonJtaTransaction(em, txCancel));
+                em -> new NonJtaTransaction(em, txCancel,
+                        DEFAULT_LOGGER,
+                        settings.getJpaStore().isDelegateToInMemoryStore()));
 
         if (isAggregationStoreEnabled(settings)) {
             AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder =

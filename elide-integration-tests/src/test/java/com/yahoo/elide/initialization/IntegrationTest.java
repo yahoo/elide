@@ -70,9 +70,7 @@ public abstract class IntegrationTest {
         this.resourceConfig = resourceConfig.getName();
         this.packageName = packageName;
 
-        if (dataStoreHarness == null) {
-            dataStoreHarness = createHarness();
-        }
+        dataStoreHarness = createHarness();
         this.dataStore = dataStoreHarness.getDataStore();
 
         try {
@@ -83,6 +81,10 @@ public abstract class IntegrationTest {
     }
 
     protected DataStoreTestHarness createHarness() {
+        if (dataStoreHarness != null) {
+            return dataStoreHarness;
+        }
+
         try {
             final String dataStoreSupplierName = System.getProperty("dataStoreHarness");
 
@@ -157,6 +159,7 @@ public abstract class IntegrationTest {
 
     @AfterAll
     public final void afterAll() {
+        dataStoreHarness = null;
         log.debug("...Stopping Server...");
         try {
             server.stop();

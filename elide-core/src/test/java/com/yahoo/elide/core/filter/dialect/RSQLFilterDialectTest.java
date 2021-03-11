@@ -6,23 +6,36 @@
 package com.yahoo.elide.core.filter.dialect;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.OrFilterExpression;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.type.Type;
+
 import example.Author;
 import example.Book;
 import example.Job;
 import example.PrimitiveId;
+import example.Publisher;
 import example.StringId;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import cz.jirutka.rsql.parser.ast.ComparisonNode;
 import cz.jirutka.rsql.parser.ast.ComparisonOperator;
 
+import java.net.URLEncoder;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -38,6 +51,7 @@ public class RSQLFilterDialectTest {
 
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Book.class);
+        dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(StringId.class);
         dictionary.bindEntity(Job.class);
         dictionary.bindEntity(PrimitiveId.class);
@@ -335,7 +349,7 @@ public class RSQLFilterDialectTest {
 
         assertEquals(
                 "author.id INFIX [20]",
-                visitor.visit(comparisonNode, new ClassType(Author.class)).toString()
+                visitor.visit(comparisonNode, new ClassType<>(Author.class)).toString()
         );
     }
 
@@ -511,5 +525,65 @@ public class RSQLFilterDialectTest {
                 () -> dialect.parseGlobalExpression("/book", queryParams, NO_VERSION));
 
         assertEquals("Invalid Path: Last Path Element cannot be a collection type", e.getMessage());
+    }
+
+    @Test
+    public void testFilterArgumentParsingBadInput() throws Exception {
+
+        Exception exception;
+        Type<Book> bookType = new ClassType<Book>(Book.class);
+
+        // Empty argument name
+        exception = assertThrows(ParseException.class, () -> dialect.parse(bookType, Collections.emptySet(),
+                        "genre=in=(sci-fi,action),title[a:][x:y]==Hemingway", NO_VERSION));
+        assertEquals("Filter expression is not in expected format at: title[a:][x:y]", exception.getMessage());
+
+        // Empty argument value
+        exception = assertThrows(ParseException.class, () -> dialect.parse(bookType, Collections.emptySet(),
+                        "genre=in=(sci-fi,action),title[a:b][:y]==Hemingway", NO_VERSION));
+        assertEquals("Filter expression is not in expected format at: title[a:b][:y]", exception.getMessage());
+
+        // : missing within []
+        exception = assertThrows(ParseException.class, () -> dialect.parse(bookType, Collections.emptySet(),
+                        "genre=in=(sci-fi,action),title[ab][x:y]==Hemingway", NO_VERSION));
+        assertEquals("Filter expression is not in expected format at: title[ab][x:y]", exception.getMessage());
+
+        // Something found after first '[' and not within []
+        exception = assertThrows(ParseException.class, () -> dialect.parse(bookType, Collections.emptySet(),
+                        "genre=in=(sci-fi,action),title[a:b]asdf[x:y]==Hemingway", NO_VERSION));
+        assertEquals("Filter expression is not in expected format at: title[a:b]asdf[x:y]", exception.getMessage());
+
+        // Invalid encoded argument value
+        exception = assertThrows(ParseException.class, () -> dialect.parse(bookType, Collections.emptySet(),
+                        "title[a:b][x:Invalid%_Encoding]==Hemingway", NO_VERSION));
+        assertEquals("Filter expression is not in expected format at: title[a:b][x:Invalid%_Encoding]. URLDecoder: Illegal hex characters in escape (%) pattern - For input string: \"_E\"",
+                        exception.getMessage());
+    }
+
+    @Test
+    public void testFilterArgumentParsingEncodeValues() throws Exception {
+
+        FilterExpression expr;
+        Type<Book> bookType = new ClassType<Book>(Book.class);
+        String argValue1 = "with space";
+        String argValue2 = ": \" ' ( ) ; , = ! ~ < > ] [";
+        Set<Argument> inputArgs = new HashSet<>();
+        inputArgs.add(Argument.builder().name("arg1").value(argValue1).build());
+        inputArgs.add(Argument.builder().name("arg2").value(argValue2).build());
+        String encodeArgValue1 = URLEncoder.encode(argValue1, "UTF-8");
+        String encodeArgValue2 = URLEncoder.encode(argValue2, "UTF-8");
+
+        expr = assertDoesNotThrow(
+                        () -> dialect.parse(bookType, Collections.emptySet(), "genre=in=(sci-fi,action),title[arg1:"
+                                        + encodeArgValue1 + "][arg2:" + encodeArgValue2 + "]==Hemingway", NO_VERSION));
+        assertEquals("(book.genre IN [sci-fi, action] OR book.title IN [Hemingway])", expr.toString());
+
+        FilterPredicate left = (FilterPredicate) ((OrFilterExpression) expr).getLeft();
+        Set<Argument> leftArgs = left.getPath().getPathElements().get(0).getArguments();
+        assertTrue(leftArgs.isEmpty());
+
+        FilterPredicate right = (FilterPredicate) ((OrFilterExpression) expr).getRight();
+        Set<Argument> rightArgs = right.getPath().getPathElements().get(0).getArguments();
+        assertTrue(rightArgs.equals(inputArgs));
     }
 }

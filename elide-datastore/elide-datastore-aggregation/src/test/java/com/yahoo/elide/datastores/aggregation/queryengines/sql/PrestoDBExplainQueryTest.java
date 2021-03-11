@@ -427,6 +427,17 @@ public class PrestoDBExplainQueryTest extends SQLUnitTest {
     }
 
     @Test
+    public void testWhereWithArguments() {
+        Query query = TestQuery.WHERE_WITH_ARGUMENTS.getQuery();
+
+        String queryStr = engine.explain(query).get(0);
+        queryStr = repeatedWhitespacePattern.matcher(queryStr).replaceAll(" ");
+
+        String expectedStr = getExpectedWhereWithArgumentsSQL().replace(BACKTICK, DOUBLE_QUOTE);
+        assertEquals(expectedStr, queryStr);
+    }
+
+    @Test
     public void testLeftJoin() throws Exception {
         Query query = TestQuery.LEFT_JOIN.getQuery();
 

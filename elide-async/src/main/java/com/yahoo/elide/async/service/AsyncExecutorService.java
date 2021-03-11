@@ -87,16 +87,17 @@ public class AsyncExecutorService {
             queryObj.setStatus(QueryStatus.COMPLETE);
             queryObj.setUpdatedOn(new Date());
         } catch (InterruptedException e) {
-            log.error("InterruptedException: {}", e);
+            Thread.currentThread().interrupt();
+            log.error("InterruptedException: {}", e.toString());
             queryObj.setStatus(QueryStatus.FAILURE);
         } catch (ExecutionException e) {
-            log.error("ExecutionException: {}", e);
+            log.error("ExecutionException: {}", e.toString());
             queryObj.setStatus(QueryStatus.FAILURE);
         } catch (TimeoutException e) {
-            log.debug("TimeoutException: {}", e);
+            log.error("TimeoutException: {}", e.toString());
             resultFuture.setSynchronousTimeout(true);
         } catch (Exception e) {
-            log.error("Exception: {}", e);
+            log.error("Exception: {}", e.toString());
             queryObj.setStatus(QueryStatus.FAILURE);
         } finally {
             asyncResultFutureThreadLocal.set(resultFuture);
