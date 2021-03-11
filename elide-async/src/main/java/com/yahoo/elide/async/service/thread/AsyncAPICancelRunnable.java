@@ -119,7 +119,7 @@ public class AsyncAPICancelRunnable implements Runnable {
                         type);
             }
         } catch (Exception e) {
-            log.error("Exception in scheduled cancellation: {}", e);
+            log.error("Exception in scheduled cancellation: {}", e.toString());
         }
     }
 }

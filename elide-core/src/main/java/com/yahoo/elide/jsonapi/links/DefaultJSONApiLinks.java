@@ -9,6 +9,8 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.ResourceLineage;
 import com.google.common.collect.ImmutableMap;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.List;
 import java.util.Map;
 
@@ -50,11 +52,11 @@ public class DefaultJSONApiLinks implements JSONApiLinks {
     protected String getResourceUrl(PersistentResource resource) {
         StringBuilder result = new StringBuilder();
 
-        if (baseUrl == null || baseUrl.isEmpty()) {
+        if (StringUtils.isEmpty(baseUrl)) {
             if (resource.getRequestScope().getBaseUrlEndPoint() != null) {
                 result.append(resource.getRequestScope().getBaseUrlEndPoint());
                 String jsonApiPath = resource.getRequestScope().getElideSettings().getJsonApiPath();
-                if (jsonApiPath != null && !jsonApiPath.isEmpty()) {
+                if (StringUtils.isNotEmpty(jsonApiPath)) {
                     result.append(jsonApiPath);
                 }
                 result.append("/");

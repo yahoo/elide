@@ -30,7 +30,7 @@ public class EntityBindingTest {
 
     @BeforeAll
     public static void init() {
-        entityBinding = new EntityBinding(entityDictionary, new ClassType(ChildClass.class), "childBinding");
+        entityBinding = new EntityBinding(entityDictionary, new ClassType<>(ChildClass.class), "childBinding");
     }
 
     @Test
@@ -47,7 +47,7 @@ public class EntityBindingTest {
     @Test
     public void testIdField() throws Exception {
         AccessibleObject idField = entityBinding.getIdField();
-        assertEquals(idField, new ClassType(ParentClass.class).getDeclaredField("parentField"));
+        assertEquals(idField, new ClassType<>(ParentClass.class).getDeclaredField("parentField"));
     }
 
     @Test
@@ -58,21 +58,21 @@ public class EntityBindingTest {
     @Test
     public void testIdGeneratedTrueWhenGenerateValue() throws Exception {
         final EntityBinding eb = new EntityBinding(entityDictionary,
-                new ClassType(GeneratedValueClass.class), "testBinding");
+                new ClassType<>(GeneratedValueClass.class), "testBinding");
         assertTrue(eb.isIdGenerated());
     }
 
     @Test
     public void testIdGeneratedTrueWhenMapsId() throws Exception {
         final EntityBinding eb = new EntityBinding(entityDictionary,
-                new ClassType(MapsIdClass.class), "testBinding");
+                new ClassType<>(MapsIdClass.class), "testBinding");
         assertTrue(eb.isIdGenerated());
     }
 
     @Test
     public void testIdGeneratedFalseWhenBadMapsId() throws Exception {
         final EntityBinding eb = new EntityBinding(entityDictionary,
-                new ClassType(BadMapsIdClass.class), "testBinding");
+                new ClassType<>(BadMapsIdClass.class), "testBinding");
         assertFalse(eb.isIdGenerated());
     }
 

@@ -35,6 +35,7 @@ public class AsyncDelayStoreTransaction extends TransactionWrapper {
                 Thread.sleep(Integer.parseInt(sleepTime.get(0)));
             }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             log.debug("Test delay interrupted");
         }
         return super.loadObjects(entityProjection, scope);
