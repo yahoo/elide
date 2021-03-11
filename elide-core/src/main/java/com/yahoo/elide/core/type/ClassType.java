@@ -29,17 +29,17 @@ public class ClassType<T> implements Type<T> {
     public static final List<Method> OBJ_METHODS = ImmutableList.copyOf(
             Arrays.stream(Object.class.getMethods()).map(ClassType::constructMethod).collect(Collectors.toList()));
 
-    public static final ClassType MAP_TYPE = ClassType.of(Map.class);
-    public static final ClassType COLLECTION_TYPE = ClassType.of(Collection.class);
-    public static final ClassType STRING_TYPE = ClassType.of(String.class);
-    public static final ClassType BOOLEAN_TYPE = ClassType.of(Boolean.class);
-    public static final ClassType LONG_TYPE = ClassType.of(Long.class);
-    public static final ClassType BIGDECIMAL_TYPE = ClassType.of(BigDecimal.class);
-    public static final ClassType NUMBER_TYPE = ClassType.of(Number.class);
-    public static final ClassType DATE_TYPE = ClassType.of(Date.class);
-    public static final ClassType OBJECT_TYPE = ClassType.of(Object.class);
-    public static final ClassType CLASS_TYPE = ClassType.of(Class.class);
-    public static final ClassType INTEGER_TYPE = ClassType.of(Integer.class);
+    public static final ClassType<Map> MAP_TYPE = ClassType.of(Map.class);
+    public static final ClassType<Collection> COLLECTION_TYPE = ClassType.of(Collection.class);
+    public static final ClassType<String> STRING_TYPE = ClassType.of(String.class);
+    public static final ClassType<Boolean> BOOLEAN_TYPE = ClassType.of(Boolean.class);
+    public static final ClassType<Long> LONG_TYPE = ClassType.of(Long.class);
+    public static final ClassType<BigDecimal> BIGDECIMAL_TYPE = ClassType.of(BigDecimal.class);
+    public static final ClassType<Number> NUMBER_TYPE = ClassType.of(Number.class);
+    public static final ClassType<Date> DATE_TYPE = ClassType.of(Date.class);
+    public static final ClassType<Object> OBJECT_TYPE = ClassType.of(Object.class);
+    public static final ClassType<Class> CLASS_TYPE = ClassType.of(Class.class);
+    public static final ClassType<Integer> INTEGER_TYPE = ClassType.of(Integer.class);
 
     @Getter
     private Class<T> cls;
@@ -85,13 +85,13 @@ public class ClassType<T> implements Type<T> {
     @Override
     public Field[] getFields() {
         return Arrays.stream(cls.getFields())
-                .map(ClassType::constructField).collect(Collectors.toList()).toArray(new Field[0]);
+                .map(ClassType::constructField).toArray(Field[]::new);
     }
 
     @Override
     public Field[] getDeclaredFields() {
         return Arrays.stream(cls.getDeclaredFields())
-                .map(ClassType::constructField).collect(Collectors.toList()).toArray(new Field[0]);
+                .map(ClassType::constructField).toArray(Field[]::new);
     }
 
     @Override
@@ -102,7 +102,7 @@ public class ClassType<T> implements Type<T> {
     @Override
     public Method[] getConstructors() {
         return Arrays.stream(cls.getConstructors())
-                .map(ClassType::constructMethod).collect(Collectors.toList()).toArray(new Method[0]);
+                .map(ClassType::constructMethod).toArray(Method[]::new);
     }
 
     @Override
@@ -128,13 +128,13 @@ public class ClassType<T> implements Type<T> {
     @Override
     public Method[] getMethods() {
         return Arrays.stream(cls.getMethods())
-                .map(ClassType::constructMethod).collect(Collectors.toList()).toArray(new Method[0]);
+                .map(ClassType::constructMethod).toArray(Method[]::new);
     }
 
     @Override
     public Method[] getDeclaredMethods() {
         return Arrays.stream(cls.getDeclaredMethods())
-                .map(ClassType::constructMethod).collect(Collectors.toList()).toArray(new Method[0]);
+                .map(ClassType::constructMethod).toArray(Method[]::new);
     }
 
     @Override
@@ -154,12 +154,12 @@ public class ClassType<T> implements Type<T> {
     }
 
     @Override
-    public Annotation getAnnotation(Class annotationClass) {
+    public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
         return cls.getAnnotation(annotationClass);
     }
 
     @Override
-    public Annotation getDeclaredAnnotation(Class annotationClass) {
+    public <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass) {
         return cls.getDeclaredAnnotation(annotationClass);
     }
 
@@ -169,11 +169,11 @@ public class ClassType<T> implements Type<T> {
     }
 
     @Override
-    public Method getMethod(String name, Type[] parameterTypes)  throws NoSuchMethodException, SecurityException {
+    public Method getMethod(String name, Type<?>... parameterTypes) throws NoSuchMethodException {
         Class<?>[] typeParams = Arrays.stream(parameterTypes)
                 .map(ClassType.class::cast)
                 .map(classType -> (classType == null) ? null : classType.getCls())
-                .collect(Collectors.toList()).toArray(new Class[0]);
+                .toArray(Class[]::new);
 
         return constructMethod(cls.getMethod(name, typeParams));
     }
