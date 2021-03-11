@@ -23,8 +23,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class EntityProjectionTranslatorTest extends SQLUnitTest {
     private static EntityProjection basicProjection = EntityProjection.builder()
@@ -120,5 +122,40 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
         assertEquals(1, timeDimensions.size());
         assertEquals("recordedDate", timeDimensions.get(0).getAlias());
         assertEquals(TimeGrain.DAY, timeDimensions.get(0).getGrain());
+    }
+
+    @Test
+    public void testHavingClauseMetricsMissingFromProjection() throws ParseException {
+        FilterExpression filter = filterParser.parseFilterExpression("lowScore>45",
+                playerStatsType, false);
+
+        EntityProjection projection = EntityProjection.builder()
+                .type(PlayerStats.class)
+                .filterExpression(filter)
+                .attribute(Attribute.builder()
+                        .type(long.class)
+                        .name("highScore")
+                        .build())
+                .attribute(Attribute.builder()
+                        .type(String.class)
+                        .name("overallRating")
+                        .build())
+                .build();
+
+        EntityProjectionTranslator translator = new EntityProjectionTranslator(
+                engine,
+                playerStatsTable,
+                projection,
+                dictionary,
+                true
+        );
+
+        Query query = translator.getQuery();
+
+        List<String> metricNames = query.getMetricProjections().stream()
+                .map(MetricProjection::getName)
+                .collect(Collectors.toList());
+
+        assertEquals(metricNames, Arrays.asList("highScore", "lowScore"));
     }
 }
