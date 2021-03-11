@@ -1969,17 +1969,12 @@ public class EntityDictionary {
             TransactionPhase phase,
             Operation operation) {
 
-        if (StringUtils.isNotEmpty(annotationField)) {
-            if (annotationField.equals(ALL_FIELDS)) {
-                bindTrigger(binding.entityClass, operation, phase,
-                        generateHook(method), true);
-            } else {
-                bindTrigger(binding.entityClass, annotationField, operation, phase,
-                        generateHook(method));
-            }
+        if (StringUtils.isEmpty(annotationField)) {
+            bindTrigger(binding.entityClass, operation, phase, generateHook(method), false);
+        } else if (annotationField.equals(ALL_FIELDS)) {
+            bindTrigger(binding.entityClass, operation, phase, generateHook(method), true);
         } else {
-            bindTrigger(binding.entityClass, operation, phase,
-                    generateHook(method), false);
+            bindTrigger(binding.entityClass, annotationField, operation, phase, generateHook(method));
         }
     }
 
