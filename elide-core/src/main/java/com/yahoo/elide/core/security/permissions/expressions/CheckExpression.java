@@ -79,6 +79,11 @@ public class CheckExpression implements Expression {
             return result;
         }
 
+        if (mode == EvaluationMode.INLINE_CHECKS_ONLY && check.runAtCommit()) {
+            result = DEFERRED;
+            return result;
+        }
+
         // If we have a valid change spec, do not cache the result or look for a cached result.
         if (changeSpec.isPresent()) {
             log.trace("-- Check has changespec: {}", changeSpec);
