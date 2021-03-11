@@ -39,7 +39,7 @@ public abstract class GraphQLTest {
         dictionary.bindEntity(Address.class);
         dictionary.bindEntity(ParameterizedExample.class);
 
-        dictionary.addArgumentToAttribute(new ClassType<>(ParameterizedExample.class), "attribute",
+        dictionary.addArgumentToAttribute(ClassType.of(ParameterizedExample.class), "attribute",
                 new ArgumentType("argument", ClassType.STRING_TYPE, "defaultValue"));
     }
 }
