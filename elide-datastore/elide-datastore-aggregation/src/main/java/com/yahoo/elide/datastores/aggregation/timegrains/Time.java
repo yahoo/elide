@@ -27,7 +27,7 @@ import java.util.Objects;
 @Data
 public class Time extends Date {
 
-    public static Type<Time> TIME_TYPE = new ClassType<>(Time.class);
+    public static Type<Time> TIME_TYPE = ClassType.of(Time.class);
 
     protected final Serializer serializer;
     protected final boolean supportsYear;

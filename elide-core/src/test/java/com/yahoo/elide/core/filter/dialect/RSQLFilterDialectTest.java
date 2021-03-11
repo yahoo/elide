@@ -349,7 +349,7 @@ public class RSQLFilterDialectTest {
 
         assertEquals(
                 "author.id INFIX [20]",
-                visitor.visit(comparisonNode, new ClassType<>(Author.class)).toString()
+                visitor.visit(comparisonNode, ClassType.of(Author.class)).toString()
         );
     }
 
@@ -531,7 +531,7 @@ public class RSQLFilterDialectTest {
     public void testFilterArgumentParsingBadInput() throws Exception {
 
         Exception exception;
-        Type<Book> bookType = new ClassType<Book>(Book.class);
+        Type<Book> bookType = ClassType.of(Book.class);
 
         // Empty argument name
         exception = assertThrows(ParseException.class, () -> dialect.parse(bookType, Collections.emptySet(),
@@ -564,7 +564,7 @@ public class RSQLFilterDialectTest {
     public void testFilterArgumentParsingEncodeValues() throws Exception {
 
         FilterExpression expr;
-        Type<Book> bookType = new ClassType<Book>(Book.class);
+        Type<Book> bookType = ClassType.of(Book.class);
         String argValue1 = "with space";
         String argValue2 = ": \" ' ( ) ; , = ! ~ < > ] [";
         Set<Argument> inputArgs = new HashSet<>();
