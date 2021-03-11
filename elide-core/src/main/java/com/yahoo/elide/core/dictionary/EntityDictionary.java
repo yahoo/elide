@@ -938,7 +938,7 @@ public class EntityDictionary {
      * @param cls Entity bean class
      */
     public void bindEntity(Class<?> cls) {
-        bindEntity(new ClassType<>(cls));
+        bindEntity(ClassType.of(cls));
     }
 
     /**
@@ -957,7 +957,7 @@ public class EntityDictionary {
      * @param hiddenAnnotations Annotations for hiding a field in API
      */
     public void bindEntity(Class<?> cls, Set<Class<? extends Annotation>> hiddenAnnotations) {
-        bindEntity(new ClassType<>(cls), hiddenAnnotations);
+        bindEntity(ClassType.of(cls), hiddenAnnotations);
     }
 
     /**
@@ -1468,7 +1468,7 @@ public class EntityDictionary {
             Operation operation,
             TransactionPhase phase,
             LifeCycleHook hook) {
-        bindTrigger(new ClassType<>(entityClass), fieldOrMethodName, operation, phase, hook);
+        bindTrigger(ClassType.of(entityClass), fieldOrMethodName, operation, phase, hook);
     }
 
     /**
@@ -1508,7 +1508,7 @@ public class EntityDictionary {
             TransactionPhase phase,
             LifeCycleHook hook,
             boolean allowMultipleInvocations) {
-        bindTrigger(new ClassType<>(entityClass), operation, phase, hook, allowMultipleInvocations);
+        bindTrigger(ClassType.of(entityClass), operation, phase, hook, allowMultipleInvocations);
     }
 
     /**

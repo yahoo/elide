@@ -141,7 +141,7 @@ public class TypeHelper {
     }
 
     public static Type<?> getClassType(Class<?> cls) {
-        return (cls == null) ? null : new ClassType<>(cls);
+        return (cls == null) ? null : ClassType.of(cls);
     }
 
     public static Set<Type<?>> getClassType(Set<Class<?>> cls) {

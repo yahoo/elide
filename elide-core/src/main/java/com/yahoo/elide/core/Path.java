@@ -75,7 +75,7 @@ public class Path {
     }
 
     public Path(Class<?> entityClass, EntityDictionary dictionary, String dotSeparatedPath) {
-        this(new ClassType<>(entityClass), dictionary, dotSeparatedPath);
+        this(ClassType.of(entityClass), dictionary, dotSeparatedPath);
     }
 
     public Path(Type<?> entityClass, EntityDictionary dictionary, String dotSeparatedPath) {
@@ -84,7 +84,7 @@ public class Path {
 
     public Path(Class<?> entityClass, EntityDictionary dictionary, String fieldName,
                 String alias, Set<Argument> arguments) {
-        this(new ClassType<>(entityClass), dictionary, fieldName, alias, arguments);
+        this(ClassType.of(entityClass), dictionary, fieldName, alias, arguments);
     }
 
     public Path(Type<?> entityClass, EntityDictionary dictionary, String fieldName,

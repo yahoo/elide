@@ -62,7 +62,7 @@ public class SortingImpl implements Sorting {
      * @param dictionary The entity dictionary
      */
     public SortingImpl(final Map<String, SortOrder> sortingRules, Class<?> type, EntityDictionary dictionary) {
-        this(sortingRules, new ClassType<>(type), dictionary);
+        this(sortingRules, ClassType.of(type), dictionary);
     }
 
     /**
