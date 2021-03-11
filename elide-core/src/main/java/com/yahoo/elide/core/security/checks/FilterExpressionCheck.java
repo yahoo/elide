@@ -77,6 +77,11 @@ public abstract class FilterExpressionCheck<T> extends OperationCheck<T> {
         }
     }
 
+    @Override
+    public final boolean runAtCommit() {
+        return false;
+    }
+
     /**
      * Converts FieldExpressionPath value to corresponding list of Predicates.
      *
