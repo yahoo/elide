@@ -424,9 +424,9 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                     }
                     throw e;
                 }
-            } else {
-                commitCheckQueue.add(new QueuedCheck(expression, annotationClass));
+                return result;
             }
+            commitCheckQueue.add(new QueuedCheck(expression, annotationClass));
             return DEFERRED;
         }
         if (result == FAIL) {
