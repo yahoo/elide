@@ -572,7 +572,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                         field(
                                 "playerStats",
                                 arguments(
-                                        argument("filter", "\"highScore<\\\"45\\\"\"")
+                                        argument("filter", "\"highScore>\\\"0\\\"\"")
                                 ),
                                 selections(
                                         field("lowScore")
@@ -581,10 +581,18 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 )
         ).toQuery();
 
-        String errorMessage = "Exception while fetching data (/playerStats) : Invalid operation: "
-                + "Metric field highScore must be aggregated before filtering in having clause.";
+        String expected = document(
+                selections(
+                        field(
+                                "playerStats",
+                                selections(
+                                        field("lowScore", 35)
+                                )
+                        )
+                )
+        ).toResponse();
 
-        runQueryWithExpectedError(graphQLRequest, errorMessage);
+        runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
     /**
@@ -1318,6 +1326,44 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("highScore", 1000),
                                         field("byDay", "2019-07-13"),
                                         field("byMonth", "2019-07")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testTimeDimensionArgumentsInFilter() throws Exception {
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "orderDetails",
+                                arguments(
+                                        argument("sort", "\"customerRegion\""),
+                                        argument("filter", "\"orderTime[grain:day]=='2020-09-08'\"")
+                                ),
+                                selections(
+                                        field("customerRegion"),
+                                        field("orderTotal"),
+                                        field("orderTime", arguments(
+                                                   argument("grain", TimeGrain.MONTH)
+                                        ))
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selection(
+                        field(
+                                "orderDetails",
+                                selections(
+                                        field("customerRegion", "Virginia"),
+                                        field("orderTotal", 181.47F),
+                                        field("orderTime", "2020-09")
                                 )
                         )
                 )

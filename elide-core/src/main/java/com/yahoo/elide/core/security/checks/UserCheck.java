@@ -19,4 +19,9 @@ public abstract class UserCheck implements Check {
      * @return True if user check passes, false otherwise
      */
     public abstract boolean ok(User user);
+
+    @Override
+    public final boolean runAtCommit() {
+        return false;
+    }
 }

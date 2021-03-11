@@ -28,6 +28,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDime
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -134,14 +135,7 @@ public class SQLTable extends Table implements Queryable {
     }
 
     public TimeDimensionProjection getTimeDimensionProjection(String fieldName, Map<String, Argument> arguments) {
-        TimeDimension dimension = super.getTimeDimension(fieldName);
-        if (dimension == null) {
-            return null;
-        }
-        return new SQLTimeDimensionProjection(dimension,
-                dimension.getTimezone(),
-                dimension.getName(),
-                arguments);
+        return getTimeDimensionProjection(fieldName, null, arguments);
     }
 
     public TimeDimensionProjection getTimeDimensionProjection(String fieldName, String alias,
@@ -152,7 +146,7 @@ public class SQLTable extends Table implements Queryable {
         }
         return new SQLTimeDimensionProjection(dimension,
                 dimension.getTimezone(),
-                alias,
+                isNullOrEmpty(alias) ? dimension.getName() : alias,
                 arguments);
     }
 
@@ -182,6 +176,11 @@ public class SQLTable extends Table implements Queryable {
 
     @Override
     public ColumnProjection getColumnProjection(String name) {
+        return getColumnProjection(name, Collections.emptyMap());
+    }
+
+    @Override
+    public ColumnProjection getColumnProjection(String name, Map<String, Argument> arguments) {
         Column column = super.getColumn(Column.class, name);
 
         if (column == null) {
@@ -189,7 +188,7 @@ public class SQLTable extends Table implements Queryable {
         }
 
         if (column instanceof TimeDimension) {
-            return getTimeDimensionProjection(name);
+            return getTimeDimensionProjection(name, arguments);
         }
 
         return new SQLColumnProjection() {
@@ -227,6 +226,11 @@ public class SQLTable extends Table implements Queryable {
             @Override
             public ColumnType getColumnType() {
                 return column.getColumnType();
+            }
+
+            @Override
+            public Map<String, Argument> getArguments() {
+                return arguments;
             }
         };
     }

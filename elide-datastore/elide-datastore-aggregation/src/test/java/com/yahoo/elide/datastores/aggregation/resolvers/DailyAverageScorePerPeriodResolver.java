@@ -52,6 +52,7 @@ public class DailyAverageScorePerPeriodResolver implements QueryPlanResolver {
                         .expression(projection.getExpression())
                         .columnType(projection.getColumnType())
                         .valueType(projection.getValueType())
+                        .arguments(projection.getArguments())
                         .build())
                 .build();
 

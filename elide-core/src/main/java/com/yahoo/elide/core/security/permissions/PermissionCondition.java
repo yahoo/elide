@@ -30,14 +30,12 @@ public class PermissionCondition {
     @Getter final Optional<ChangeSpec> changes;
     @Getter final Optional<String> field;
 
-    private static final ImmutableMap<Class<? extends Annotation>, String> PERMISSION_TO_NAME =
-            ImmutableMap.<Class<? extends Annotation>, String>builder()
-                    .put(ReadPermission.class, "READ")
-                    .put(UpdatePermission.class, "UPDATE")
-                    .put(DeletePermission.class, "DELETE")
-                    .put(CreatePermission.class, "CREATE")
-                    .put(NonTransferable.class, "NO TRANSFER")
-                    .build();
+    private static final ImmutableMap<Class<? extends Annotation>, String> PERMISSION_TO_NAME = ImmutableMap.of(
+            ReadPermission.class, "READ",
+            UpdatePermission.class, "UPDATE",
+            DeletePermission.class, "DELETE",
+            CreatePermission.class, "CREATE",
+            NonTransferable.class, "NO TRANSFER");
 
     /**
      * This function attempts to create the appropriate {@link PermissionCondition} based on parameters that may or may
