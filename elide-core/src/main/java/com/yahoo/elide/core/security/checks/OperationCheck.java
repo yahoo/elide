@@ -31,4 +31,13 @@ public abstract class OperationCheck<T> implements Check {
      * @return true if security check passed
      */
     public abstract boolean ok(T object, RequestScope requestScope, Optional<ChangeSpec> changeSpec);
+
+    /**
+     * Should check run inline or be deferred to Commit
+     *
+     * @return true to run at commit
+     */
+    public boolean runAtCommit() {
+        return false;
+    }
 }

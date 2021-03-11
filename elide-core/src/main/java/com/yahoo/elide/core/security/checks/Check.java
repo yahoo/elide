@@ -9,12 +9,4 @@ package com.yahoo.elide.core.security.checks;
  * Permissions are assigned as a set of checks that grant access to the permission.
  */
 public interface Check {
-
-    /**
-     * Should check run inline or be deferred to Commit
-     * @return true to run at commit
-     */
-    default boolean runAtCommit() {
-        return false;
-    }
 }
