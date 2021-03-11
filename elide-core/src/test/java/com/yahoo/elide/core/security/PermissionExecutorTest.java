@@ -99,6 +99,24 @@ public class PermissionExecutorTest {
     }
 
     @Test
+    public void testSuccessfulRunAtCommitCheck() throws Exception {
+        @Entity
+        @Include(rootLevel = false)
+        @UpdatePermission(expression = "sampleCommit")
+        class Model { }
+
+        PersistentResource resource = newResource(new Model(), Model.class, false);
+        RequestScope requestScope = resource.getRequestScope();
+        ChangeSpec cspec = new ChangeSpec(null, null, null, null);
+
+        // Because the check is runAtCommit, the check is DEFERRED.
+        assertEquals(ExpressionResult.DEFERRED,
+                requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, cspec));
+
+        requestScope.getPermissionExecutor().executeCommitChecks();
+    }
+
+    @Test
     public void testReadFieldAwareSuccessAllAnyField() {
         PersistentResource resource = newResource(SampleBean.class, false);
         RequestScope requestScope = resource.getRequestScope();
@@ -483,6 +501,19 @@ public class PermissionExecutorTest {
         @Override
         public boolean ok(Object object, com.yahoo.elide.core.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return !changeSpec.isPresent();
+        }
+    }
+
+    public static final class SampleCommitCheck extends OperationCheck<Object> {
+        @Override
+        public boolean runAtCommit() {
+            return true;
+        }
+
+        @Override
+        public boolean ok(Object object, com.yahoo.elide.core.security.RequestScope requestScope,
+                Optional<ChangeSpec> changeSpec) {
+            return changeSpec.isPresent();
         }
     }
 
