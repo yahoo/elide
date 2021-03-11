@@ -1037,17 +1037,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 .build(), false);
     }
 
-    private Observable<PersistentResource> getRelationCheckedUnfiltered(String relationName) {
-        assertPropertyExists(relationName);
-        return getRelation(com.yahoo.elide.core.request.Relationship.builder()
-                .name(relationName)
-                .alias(relationName)
-                .projection(EntityProjection.builder()
-                        .type(dictionary.getParameterizedType(getResourceType(), relationName))
-                        .build())
-                .build(), true);
-    }
-
     private void assertPropertyExists(String propertyName) {
         if (propertyName == null || dictionary.getParameterizedType(obj, propertyName) == null) {
             throw new InvalidAttributeException(propertyName, this.getTypeName());

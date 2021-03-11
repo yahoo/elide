@@ -91,10 +91,6 @@ public class ResourceLineage {
         return resourcePath;
     }
 
-    private void addRecord(PersistentResource latest) {
-        addRecord(latest, latest.getTypeName());
-    }
-
     @Override
     public int hashCode() {
         return new HashCodeBuilder(13, 123)

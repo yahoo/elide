@@ -63,7 +63,7 @@ public class OperatorTest {
 
     private Path constructPath(Class<?> rootEntity, String pathString) {
         List<Path.PathElement> pathElementsList = new ArrayList<>();
-        Type prevEntity = new ClassType(rootEntity);
+        Type prevEntity = new ClassType<>(rootEntity);
         for (String field : pathString.split("\\.")) {
             Type<?> fieldType = ("id".equals(field.toLowerCase(Locale.ENGLISH)))
                     ? dictionary.getIdType(prevEntity)

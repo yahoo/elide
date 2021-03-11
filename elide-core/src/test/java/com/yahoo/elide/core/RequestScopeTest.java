@@ -74,7 +74,7 @@ public class RequestScopeTest {
 
         String myId = "myId";
         // Test that a new inherited class is counted for base type
-        requestScope.setUUIDForObject(new ClassType(MyInheritedClass.class), myId, new MyInheritedClass());
-        assertNotNull(requestScope.getObjectById(new ClassType(MyBaseClass.class), myId));
+        requestScope.setUUIDForObject(new ClassType<>(MyInheritedClass.class), myId, new MyInheritedClass());
+        assertNotNull(requestScope.getObjectById(new ClassType<>(MyBaseClass.class), myId));
     }
 }

@@ -58,7 +58,7 @@ public class AsyncAPICleanerRunnable implements Runnable {
             FilterExpression fltDeleteExp = new LEPredicate(createdOnPathElement, cleanupDate);
             asyncAPIDao.deleteAsyncAPIAndResultByFilter(fltDeleteExp, type);
         } catch (Exception e) {
-            log.error("Exception in scheduled cleanup: {}", e);
+            log.error("Exception in scheduled cleanup: {}", e.toString());
         }
     }
 
@@ -79,7 +79,7 @@ public class AsyncAPICleanerRunnable implements Runnable {
             AndFilterExpression fltTimeoutExp = new AndFilterExpression(inPredicate, lePredicate);
             asyncAPIDao.updateStatusAsyncAPIByFilter(fltTimeoutExp, QueryStatus.TIMEDOUT, type);
         } catch (Exception e) {
-            log.error("Exception in scheduled cleanup: {}", e);
+            log.error("Exception in scheduled cleanup: {}", e.toString());
         }
     }
 }
