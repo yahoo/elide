@@ -11,6 +11,7 @@ import static com.yahoo.elide.core.type.ClassType.NUMBER_TYPE;
 import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import static com.yahoo.elide.core.utils.TypeHelper.isPrimitiveNumberType;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.Operator;
@@ -28,6 +29,7 @@ import com.yahoo.elide.core.filter.predicates.IsEmptyPredicate;
 import com.yahoo.elide.core.filter.predicates.IsNullPredicate;
 import com.yahoo.elide.core.filter.predicates.NotEmptyPredicate;
 import com.yahoo.elide.core.filter.predicates.NotNullPredicate;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
@@ -44,9 +46,13 @@ import cz.jirutka.rsql.parser.ast.OrNode;
 import cz.jirutka.rsql.parser.ast.RSQLOperators;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,6 +68,12 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
     private static final String SINGLE_PARAMETER_ONLY = "There can only be a single filter query parameter";
     private static final String INVALID_QUERY_PARAMETER = "Invalid query parameter: ";
     private static final Pattern TYPED_FILTER_PATTERN = Pattern.compile("filter\\[([^\\]]+)\\]");
+    // square brackets having non-empty argument name and  encoded agument value separated by ':'
+    // eg: [grain:month] , [foo:bar][blah:Encoded+Value]
+    private static final Pattern FILTER_ARGUMENTS_PATTERN = Pattern.compile("\\[(\\w+):([^\\]]+)\\]");
+    // field name followed by zero or more filter arguments
+    // eg: name, orderDate[grain:month] , title[foo:bar][blah:Encoded+Value]
+    private static final String FILTER_SELECTOR_REGEX = "(\\w+)(" + FILTER_ARGUMENTS_PATTERN + ")*$";
     private static final ComparisonOperator INI = new ComparisonOperator("=ini=", true);
     private static final ComparisonOperator NOT_INI = new ComparisonOperator("=outi=", true);
     private static final ComparisonOperator ISNULL_OP = new ComparisonOperator("=isnull=", false);
@@ -305,12 +317,30 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
             Type entityType = rootEntityType;
 
             for (String associationName : associationNames) {
+
+                if (!associationName.matches(FILTER_SELECTOR_REGEX)) {
+                    throw new RSQLParseException("Filter expression is not in expected format at: " + associationName);
+                }
+
                 // if the association name is "id", replaced it with real id field name
                 // id field name can be "id" or other string, but non-id field can't have name "id".
                 if (associationName.equals(REGULAR_ID_NAME)) {
                     associationName = dictionary.getIdFieldName(entityType);
                 }
 
+                Set<Argument> arguments = new HashSet<>();
+                int argsIndex = associationName.indexOf('[');
+                if (argsIndex > 0) {
+                    try {
+                        parseArguments(associationName.substring(argsIndex), arguments);
+                    } catch (UnsupportedEncodingException | IllegalArgumentException e) {
+                        throw new RSQLParseException(
+                                        String.format("Filter expression is not in expected format at: %s. %s",
+                                                        associationName, e.getMessage()));
+                    }
+                    associationName = associationName.substring(0, argsIndex);
+                }
+                addDefaultArguments(arguments, dictionary.getAttributeArguments(entityType, associationName));
                 String typeName = dictionary.getJsonAliasFor(entityType);
                 Type fieldType = dictionary.getParameterizedType(entityType, associationName);
 
@@ -319,11 +349,42 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                             String.format("No such association %s for type %s", associationName, typeName));
                 }
 
-                path.add(new Path.PathElement(entityType, fieldType, associationName));
+                path.add(new Path.PathElement(entityType, fieldType, associationName, associationName, arguments));
 
                 entityType = fieldType;
             }
             return new Path(path);
+        }
+
+        private void parseArguments(String argsString, Set<Argument> arguments) throws UnsupportedEncodingException {
+            if (argsString == null || argsString.isEmpty()) {
+                return;
+            }
+
+            Matcher matcher = FILTER_ARGUMENTS_PATTERN.matcher(argsString);
+            while (matcher.find()) {
+                arguments.add(Argument.builder()
+                                .name(matcher.group(1))
+                                .value(URLDecoder.decode(matcher.group(2), StandardCharsets.UTF_8.name()))
+                                .build());
+            }
+        }
+
+        private void addDefaultArguments(Set<Argument> clientArguments, Set<ArgumentType> availableArgTypes) {
+
+            Set<String> clientArgNames = clientArguments.stream()
+                            .map(arg -> arg.getName())
+                            .collect(Collectors.toSet());
+
+            // Check if there is any argument which has default value but not provided by client, then add it.
+            availableArgTypes.stream()
+                            .filter(argType -> !clientArgNames.contains(argType.getName()))
+                            .filter(argType -> argType.getDefaultValue() != null)
+                            .map(argType -> Argument.builder()
+                                            .name(argType.getName())
+                                            .value(argType.getDefaultValue())
+                                            .build())
+                            .forEach(clientArguments::add);
         }
 
         @Override
@@ -373,7 +434,9 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
             List<String> arguments = node.getArguments();
 
             Path path;
-            if (relationship.contains(".")) {
+            // '[' means it has arguments
+            // If arguments are passed in filter, it overrides the arguments provided in projection.
+            if (relationship.contains(".") || relationship.contains("[")) {
                 path = buildPath(entityType, relationship);
             } else {
                 path = buildAttribute(entityType, relationship);

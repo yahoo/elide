@@ -1333,4 +1333,42 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
         runQueryWithExpectedResult(graphQLRequest, expected);
     }
+
+    @Test
+    public void testTimeDimensionArgumentsInFilter() throws Exception {
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "orderDetails",
+                                arguments(
+                                        argument("sort", "\"customerRegion\""),
+                                        argument("filter", "\"orderTime[grain:day]=='2020-09-08'\"")
+                                ),
+                                selections(
+                                        field("customerRegion"),
+                                        field("orderTotal"),
+                                        field("orderTime", arguments(
+                                                   argument("grain", TimeGrain.MONTH)
+                                        ))
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selection(
+                        field(
+                                "orderDetails",
+                                selections(
+                                        field("customerRegion", "Virginia"),
+                                        field("orderTotal", 181.47F),
+                                        field("orderTime", "2020-09")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
 }
