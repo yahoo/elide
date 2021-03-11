@@ -45,7 +45,7 @@ public class HasMemberJPQLGeneratorTest {
         HasMemberJPQLGenerator generator = new HasMemberJPQLGenerator(dictionary);
 
         FilterExpression expression = dialect.parseFilterExpression("authors.name=hasmember='Jon Doe'",
-                new ClassType(Book.class),
+                new ClassType<>(Book.class),
                 true);
 
         String actual = generator.generate((FilterPredicate) expression, aliasGenerator);
@@ -62,7 +62,7 @@ public class HasMemberJPQLGeneratorTest {
         HasMemberJPQLGenerator generator = new HasMemberJPQLGenerator(dictionary, true);
 
         FilterExpression expression = dialect.parseFilterExpression("authors.name=hasnomember='Jon Doe'",
-                new ClassType(Book.class),
+                new ClassType<>(Book.class),
                 true);
 
         String actual = generator.generate((FilterPredicate) expression, aliasGenerator);
@@ -79,7 +79,7 @@ public class HasMemberJPQLGeneratorTest {
         HasMemberJPQLGenerator generator = new HasMemberJPQLGenerator(dictionary);
 
         FilterExpression expression = dialect.parseFilterExpression("books.chapters.title=hasmember='A title'",
-                new ClassType(Author.class),
+                new ClassType<>(Author.class),
                 true);
 
         String actual = generator.generate((FilterPredicate) expression, aliasGenerator);
@@ -96,7 +96,7 @@ public class HasMemberJPQLGeneratorTest {
         HasMemberJPQLGenerator generator = new HasMemberJPQLGenerator(dictionary);
 
         FilterExpression expression = dialect.parseFilterExpression("awards=hasmember='Foo'",
-                new ClassType(Book.class),
+                new ClassType<>(Book.class),
                 true);
 
         String actual = generator.generate((FilterPredicate) expression, aliasGenerator);
@@ -112,7 +112,7 @@ public class HasMemberJPQLGeneratorTest {
         HasMemberJPQLGenerator generator = new HasMemberJPQLGenerator(dictionary, true);
 
         FilterExpression expression = dialect.parseFilterExpression("awards=hasnomember='Foo'",
-                new ClassType(Book.class),
+                new ClassType<>(Book.class),
                 true);
 
         String actual = generator.generate((FilterPredicate) expression, aliasGenerator);

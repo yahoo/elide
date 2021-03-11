@@ -25,6 +25,7 @@ import com.yahoo.elide.generated.parsers.CoreParser;
 import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.google.common.collect.Sets;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.Builder;
 import lombok.Data;
@@ -325,7 +326,7 @@ public class EntityProjectionMaker
         Set<String> allAttributes = new LinkedHashSet<>(dictionary.getAttributes(entityClass));
 
         Set<String> sparseFieldsForEntity = sparseFields.get(dictionary.getJsonAliasFor(entityClass));
-        if (sparseFieldsForEntity == null || sparseFieldsForEntity.isEmpty()) {
+        if (CollectionUtils.isEmpty(sparseFieldsForEntity)) {
             sparseFieldsForEntity = allAttributes;
         } else {
             Set<String> allRelationships = new LinkedHashSet<>(dictionary.getRelationships(entityClass));
@@ -345,7 +346,7 @@ public class EntityProjectionMaker
         Set<String> allRelationships = new LinkedHashSet<>(dictionary.getRelationships(entityClass));
         Set<String> sparseFieldsForEntity = sparseFields.get(dictionary.getJsonAliasFor(entityClass));
 
-        if (sparseFieldsForEntity == null || sparseFieldsForEntity.isEmpty()) {
+        if (CollectionUtils.isEmpty(sparseFieldsForEntity)) {
             sparseFieldsForEntity = allRelationships;
         } else {
             Set<String> allAttributes = new LinkedHashSet<>(dictionary.getAttributes(entityClass));

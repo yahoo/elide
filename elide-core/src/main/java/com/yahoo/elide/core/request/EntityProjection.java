@@ -154,7 +154,7 @@ public class EntityProjection {
         }
 
         public EntityProjectionBuilder type(Class<?> cls) {
-            this.type = new ClassType(cls);
+            this.type = new ClassType<>(cls);
             return this;
         }
 

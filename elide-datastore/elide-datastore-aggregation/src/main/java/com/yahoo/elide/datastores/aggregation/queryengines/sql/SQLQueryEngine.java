@@ -377,7 +377,7 @@ public class SQLQueryEngine extends QueryEngine {
         }
 
         for (FilterPredicate filterPredicate : predicates) {
-            boolean isTimeFilter = filterPredicate.getFieldType().equals(new ClassType(Time.class));
+            boolean isTimeFilter = filterPredicate.getFieldType().equals(new ClassType<>(Time.class));
             if (filterPredicate.getOperator().isParameterized()) {
                 boolean shouldEscape = filterPredicate.isMatchingOperator();
                 filterPredicate.getParameters().forEach(param -> {

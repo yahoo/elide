@@ -92,7 +92,7 @@ public abstract class SQLUnitTest {
     protected static MetaDataStore metaDataStore;
 
     private static final DataSource DUMMY_DATASOURCE = new HikariDataSource();
-    private static final String NEWLINE = System.getProperty("line.separator");
+    private static final String NEWLINE = System.lineSeparator();
     protected static QueryEngine engine;
 
     protected QueryEngine.Transaction transaction;
