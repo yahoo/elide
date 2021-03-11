@@ -12,8 +12,9 @@ public interface Check {
 
     /**
      * Should check run inline or be deferred to Commit
+     * @return true to run at commit
      */
-    default boolean runInline() {
-        return true;
+    default boolean runAtCommit() {
+        return false;
     }
 }

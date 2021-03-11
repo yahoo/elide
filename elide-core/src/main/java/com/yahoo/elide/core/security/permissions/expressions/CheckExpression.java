@@ -79,7 +79,7 @@ public class CheckExpression implements Expression {
             return result;
         }
 
-        if (mode == EvaluationMode.INLINE_CHECKS_ONLY && ! check.runInline()) {
+        if (mode == EvaluationMode.INLINE_CHECKS_ONLY && check.runAtCommit()) {
             result = DEFERRED;
             return result;
         }
