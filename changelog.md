@@ -1,5 +1,48 @@
 # Change Log
 
+## 5.0.0-pr32
+4th public release candidate for Elide 5.0
+
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/6c97725cec25be900fd1466f627d3d0e722ed508) N+1 performance improvements in the JPA data store.  The JPA store will now return proxied collections (allowing the ORM to batch fetch the collection) and filter, sort, and paginate in memory whenever fetching a collection (N>1) of collections.  There is a feature flag to enable/disable this behavior. (#1876) 
+
+**API Changes**
+   * [view commit](https://github.com/yahoo/elide/commit/a2c66e96df6239b1e545772308aaf4a9b50df80e) RSQL now supports attribute arguments in filter expressions.  This will allow fully parameterized attributes. (#1877) 
+   * [view commit](https://github.com/yahoo/elide/commit/1c6cfbe04941b27b9de28cf04084744439c8f5e6) The Aggregation Store now supports filters on metrics that have not been requested/projected in the client request. (#1897) 
+
+**Interface Changes**
+The following changes were made to make it easier to migrate from Elide 4:
+
+   * [view commit](https://github.com/yahoo/elide/commit/7fb6049eaa3e53145b5b619668577a3493d60d3e) Added back support for legacy life cycle annotations (#1875)
+   * [view commit](https://github.com/yahoo/elide/commit/f1ed11a1eb4eedc758615352ce8833d50a03386a) Added flag to force OperationChecks to run at transaction commit.
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/852ce04c8dffb0673577d91d0b7e5763f79c52e0) Async IT cleanup (#1855) 
+   * [view commit](https://github.com/yahoo/elide/commit/e2005d6babde1a0da3ba66fc507fc6ecf5773052) Cleanup unnecessary syntax (#1854) 
+   * [view commit](https://github.com/yahoo/elide/commit/8338d3d8de7b5b1b06d27dd2218842db983ed8df) Bump dependency-check-maven from 5.3.2 to 6.1.1 (#1863) 
+   * [view commit](https://github.com/yahoo/elide/commit/6c428b39f2d9cd0e710ee242ee295ec9038680a9) Bump version.jackson from 2.11.3 to 2.12.1 (#1758) 
+   * [view commit](https://github.com/yahoo/elide/commit/59f0c3cafed60c462b82e13e45cd0664afa7b7cf) Cleanup tests (#1856) 
+   * [view commit](https://github.com/yahoo/elide/commit/8dcbfc52f383eea2b5b5ca198585d5f85077c854) Move Include to package-info (#1853) 
+   * [view commit](https://github.com/yahoo/elide/commit/6a959198974a1ea8c7ae6919a8dc4923a4aa0e8d) Fix Config Path to work correctly with Windows (#1865) 
+   * [view commit](https://github.com/yahoo/elide/commit/9fc8e7e8a7d19f1daf708deb099ae09a33ecbc9c) use pipeline cache (#1869) 
+   * [view commit](https://github.com/yahoo/elide/commit/3a131fcc3038464be94d8a9a0d79b1e6c48c12ee) Export Controller Disable on Async Disabled or Export Disabled (#1868) 
+   * [view commit](https://github.com/yahoo/elide/commit/81f658e6ac86ecc9c139e47f8d265fb63b038d48) Bump rxjava from 2.2.20 to 2.2.21 (#1874) 
+   * [view commit](https://github.com/yahoo/elide/commit/93b4c7fce13375d6c93cf2725ab493ce915f6cc1) bump jetty to 9.4.38.v20210224 for CVE-2020-27223 (#1883) 
+   * [view commit](https://github.com/yahoo/elide/commit/36fb16341927b92f9b134e4bde1915e7b33f5e65) Correct exception logging (#1882) 
+   * [view commit](https://github.com/yahoo/elide/commit/8274a6341e06c7201049e8e8f0a48f07bd99a0ef) Cleanup IDE warnings (#1894) 
+   * [view commit](https://github.com/yahoo/elide/commit/d1407c5163212af8f68cbe4e08e335a691e49c82) try-resource block to avoid resource leak (#1898) 
+   * [view commit](https://github.com/yahoo/elide/commit/71e37b70fc4e06b595d633ec6e8a930469c059f2) Removed the duplicate entry for dependency - javax.persistence-api in pom.xml (#1895) 
+   * [view commit](https://github.com/yahoo/elide/commit/bb9afc3d59dd98794601d5fdd039d4f557a2f904) Bump hibernate-search-orm from 5.11.7.Final to 5.11.8.Final (#1878) 
+   * [view commit](https://github.com/yahoo/elide/commit/51e3b057673ad8ec218d888f0225bd8f9c930009) Bump guice from 4.2.3 to 5.0.1 (#1872) 
+   * [view commit](https://github.com/yahoo/elide/commit/adad62718648be6518cb035262ba4eb58ab285a7) refactor async IT and Fix alias in JSON format (#1870) 
+   * [view commit](https://github.com/yahoo/elide/commit/8cf5aeae76f18014a7df0a7e3def703d97ab594f) Bump version.antlr4 from 4.9 to 4.9.1 (#1880) 
+   * [view commit](https://github.com/yahoo/elide/commit/5c7c32d2ab11b27470042513fbfbafc49cf81124) Bump version.jackson from 2.12.1 to 2.12.2 (#1879) 
+   * [view commit](https://github.com/yahoo/elide/commit/b73d1d9ee7cf79c3661badbe017f452b3ce30109) Bump checkstyle from 8.37 to 8.41 (#1871) 
+   * [view commit](https://github.com/yahoo/elide/commit/c19d8c2237e960d792dc2ef6375356433b4fac21) Classtype cleanup (#1905) 
+   * [view commit](https://github.com/yahoo/elide/commit/d31f74535e2e0f67a1d0fa40d33b43f9d49e66df) Bump maven-checkstyle-plugin from 3.1.1 to 3.1.2 (#1860) 
+   * [view commit](https://github.com/yahoo/elide/commit/b8bbc362545cdf9f613508799e3a012d9f4c2b8d) Bump micrometer-core from 1.5.6 to 1.6.4 (#1859) 
+   * [view commit](https://github.com/yahoo/elide/commit/0817c848724a86e4a8b11afa1b5f81966fcaf09e) Bump HikariCP from 3.4.5 to 4.0.2 (#1857) 
+
 ## 5.0.0-pr31
 3rd public release candidate for Elide 5.0
 
