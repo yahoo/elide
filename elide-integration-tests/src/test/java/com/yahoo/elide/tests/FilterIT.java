@@ -1072,6 +1072,64 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    void testPublishDateEqualsFilter() throws JsonProcessingException {
+        /* Test Default */
+        JsonNode result = getAsNode("/book?filter[book.publishDate][in]=0,1454638927412");
+
+        assertEquals(8, result.get("data").size());
+
+        /* Test RSQL Typed */
+        result = getAsNode("/book?filter[book]=publishDate=in=(0,1454638927412)");
+
+        assertEquals(result.get("data").size(), 8);
+    }
+
+    @Test
+    void testPublishDatePrefixFilter() throws JsonProcessingException {
+        /* Test Default */
+        /* publish date = 1454638927412 */
+        JsonNode result = getAsNode("/book?filter[book.publishDate][prefix]=1");
+
+        assertEquals(1, result.get("data").size());
+
+        /* Test RSQL Typed */
+        /* publish date = 1454638927412 */
+        result = getAsNode("/book?filter[book]=publishDate==1*");
+
+        assertEquals(result.get("data").size(), 1);
+    }
+
+    @Test
+    void testPublishDateInfixFilter() throws JsonProcessingException {
+        /* Test Default */
+        /* publish date = 1454638927412 */
+        JsonNode result = getAsNode("/book?filter[book.publishDate][infix]=389");
+
+        assertEquals(1, result.get("data").size());
+
+        /* Test RSQL Typed */
+        /* publish date = 1454638927412 */
+        result = getAsNode("/book?filter[book]=publishDate==*389*");
+
+        assertEquals(result.get("data").size(), 1);
+    }
+
+    @Test
+    void testPublishDatePostfixFilter() throws JsonProcessingException {
+        /* Test Default */
+        /* publish date = 1454638927412 */
+        JsonNode result = getAsNode("/book?filter[book.publishDate][postfix]=412");
+
+        assertEquals(1, result.get("data").size());
+
+        /* Test RSQL Typed */
+        /* publish date = 1454638927412 */
+        result = getAsNode("/book?filter[book]=publishDate==*412");
+
+        assertEquals(result.get("data").size(), 1);
+    }
+
+    @Test
     void testPublishDateGreaterThanFilterSubRecord() throws JsonProcessingException {
         long publishDate;
 
