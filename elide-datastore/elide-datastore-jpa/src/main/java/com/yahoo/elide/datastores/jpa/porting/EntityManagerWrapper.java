@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.jpa.porting;
 
+import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.core.hibernate.Session;
 import lombok.extern.slf4j.Slf4j;
@@ -18,18 +19,20 @@ import javax.persistence.EntityManager;
 @Slf4j
 public class EntityManagerWrapper implements Session {
     private EntityManager entityManager;
+    private QueryLogger logger;
 
     public EntityManagerWrapper(EntityManager entityManager) {
-        this.entityManager = entityManager;
+        this(entityManager, DEFAULT_LOGGER);
     }
 
-    private static void logQuery(String queryText) {
-        log.debug("HQL Query: {}", queryText);
+    public EntityManagerWrapper(EntityManager entityManager, QueryLogger logger) {
+        this.entityManager = entityManager;
+        this.logger = logger;
     }
 
     @Override
     public Query createQuery(String queryText) {
-        logQuery(queryText);
+        logger.log(queryText);
         return new QueryWrapper(entityManager.createQuery(queryText));
     }
 }

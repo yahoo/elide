@@ -24,7 +24,7 @@ public class InvalidConstraintException extends HttpStatusException {
         String message = getMessage();
 
         if (message == null) {
-            return EntityDictionary.getSimpleName(new ClassType(getClass()));
+            return EntityDictionary.getSimpleName(ClassType.of(getClass()));
         }
 
         return message;

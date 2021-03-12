@@ -87,7 +87,7 @@ public abstract class HttpStatusException extends RuntimeException {
     @Override
     public String toString() {
         String message = getMessage();
-        String className = EntityDictionary.getSimpleName(new ClassType(getClass()));
+        String className = EntityDictionary.getSimpleName(ClassType.of(getClass()));
 
         if (message == null) {
             message = className;

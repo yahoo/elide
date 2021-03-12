@@ -6,6 +6,7 @@
 package com.yahoo.elide.standalone.config;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.models.AsyncQuery;
@@ -89,11 +90,11 @@ public interface ElideStandaloneSettings {
         ElideStandaloneAsyncSettings asyncProperties = getAsyncProperties();
 
         if (asyncProperties == null || !asyncProperties.enabled()) {
-            entitiesToExclude.add(new ClassType(AsyncQuery.class));
+            entitiesToExclude.add(ClassType.of(AsyncQuery.class));
         }
 
         if (asyncProperties == null || !asyncProperties.enableExport()) {
-            entitiesToExclude.add(new ClassType(TableExport.class));
+            entitiesToExclude.add(ClassType.of(TableExport.class));
         }
 
         return entitiesToExclude;
@@ -395,7 +396,7 @@ public interface ElideStandaloneSettings {
             EntityManagerFactory entityManagerFactory) {
         DataStore jpaDataStore = new JpaDataStore(
                 () -> entityManagerFactory.createEntityManager(),
-                em -> new NonJtaTransaction(em, TXCANCEL));
+                em -> new NonJtaTransaction(em, TXCANCEL, DEFAULT_LOGGER, true));
 
         DataStore dataStore = new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
 
@@ -410,7 +411,7 @@ public interface ElideStandaloneSettings {
     default DataStore getDataStore(EntityManagerFactory entityManagerFactory) {
         DataStore jpaDataStore = new JpaDataStore(
                 () -> entityManagerFactory.createEntityManager(),
-                em -> new NonJtaTransaction(em, TXCANCEL));
+                em -> new NonJtaTransaction(em, TXCANCEL, DEFAULT_LOGGER, true));
 
         return jpaDataStore;
     }

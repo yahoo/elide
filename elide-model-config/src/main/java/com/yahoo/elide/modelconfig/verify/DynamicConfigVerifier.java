@@ -107,10 +107,9 @@ public class DynamicConfigVerifier {
     public static String readTarContents(String archiveFile) throws FileNotFoundException, IOException {
         StringBuffer sb = new StringBuffer();
         BufferedReader br = null;
-        TarArchiveInputStream archiveInputStream = null;
-        try {
-            archiveInputStream = new TarArchiveInputStream(
-                    new GzipCompressorInputStream(new BufferedInputStream(new FileInputStream(archiveFile))));
+
+        try (TarArchiveInputStream archiveInputStream = new TarArchiveInputStream(
+                new GzipCompressorInputStream(new BufferedInputStream(new FileInputStream(archiveFile))))) {
             TarArchiveEntry entry = archiveInputStream.getNextTarEntry();
             while (entry  != null) {
                 br = new BufferedReader(new InputStreamReader(archiveInputStream));
@@ -121,8 +120,9 @@ public class DynamicConfigVerifier {
                 entry = archiveInputStream.getNextTarEntry();
             }
         } finally {
-            archiveInputStream.close();
-            br.close();
+            if (br != null) {
+               br.close();
+            }
         }
 
         return sb.toString();

@@ -80,20 +80,20 @@ public class PermissionExpressionVisitorTest {
 
     @Test
     public void testComplexModelCreate() {
-        Expression expression = getExpressionForPermission(CreatePermission.class, new ClassType(ComplexEntity.class));
+        Expression expression = getExpressionForPermission(CreatePermission.class, ClassType.of(ComplexEntity.class));
         assertEquals(ExpressionResult.PASS, expression.evaluate(Expression.EvaluationMode.ALL_CHECKS));
     }
 
     @Test
     public void testNamesWithSpaces() {
-        Expression expression = getExpressionForPermission(DeletePermission.class, new ClassType(ComplexEntity.class));
-        Expression expression2 = getExpressionForPermission(UpdatePermission.class, new ClassType(ComplexEntity.class));
+        Expression expression = getExpressionForPermission(DeletePermission.class, ClassType.of(ComplexEntity.class));
+        Expression expression2 = getExpressionForPermission(UpdatePermission.class, ClassType.of(ComplexEntity.class));
         assertEquals(ExpressionResult.PASS, expression.evaluate(Expression.EvaluationMode.ALL_CHECKS));
         assertEquals(ExpressionResult.PASS, expression2.evaluate(Expression.EvaluationMode.ALL_CHECKS));
     }
 
     private Expression getExpressionForPermission(Class<? extends Annotation> permission) {
-        return getExpressionForPermission(permission, new ClassType(Model.class));
+        return getExpressionForPermission(permission, ClassType.of(Model.class));
     }
 
     private Expression getExpressionForPermission(Class<? extends Annotation> permission, Type model) {

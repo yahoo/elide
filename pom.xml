@@ -77,11 +77,11 @@
         <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 
         <!-- dependency versions -->
-        <version.antlr4>4.9</version.antlr4>
+        <version.antlr4>4.9.1</version.antlr4>
         <version.logback>1.2.3</version.logback>
-        <version.jetty>9.4.36.v20210114</version.jetty>
+        <version.jetty>9.4.38.v20210224</version.jetty>
         <version.restassured>4.3.3</version.restassured>
-        <version.jackson>2.12.1</version.jackson>
+        <version.jackson>2.12.2</version.jackson>
         <version.jersey>2.32</version.jersey>
         <version.junit>5.7.1</version.junit>
         <version.junit.platform>1.7.1</version.junit.platform>
@@ -305,7 +305,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-checkstyle-plugin</artifactId>
-                    <version>3.1.1</version>
+                    <version>3.1.2</version>
                     <executions>
                         <execution>
                             <id>validate</id>
@@ -332,7 +332,7 @@
                         <dependency>
                             <groupId>com.puppycrawl.tools</groupId>
                             <artifactId>checkstyle</artifactId>
-                            <version>8.37</version>
+                            <version>8.41</version>
                             <scope>compile</scope>
                         </dependency>
                     </dependencies>

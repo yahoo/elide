@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
 
@@ -203,7 +204,7 @@ public class JsonApiPatch {
             if (!path.contains("relationships")) { // Reserved key for relationships
                 String id = getSingleResource(resources).getId();
 
-                if (id == null || id.isEmpty()) {
+                if (StringUtils.isEmpty(id)) {
                     throw new InvalidEntityBodyException("Patch extension requires all objects to have an assigned "
                             + "ID (temporary or permanent) when assigning relationships.");
                 }

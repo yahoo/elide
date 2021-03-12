@@ -70,9 +70,7 @@ public abstract class IntegrationTest {
         this.resourceConfig = resourceConfig.getName();
         this.packageName = packageName;
 
-        if (dataStoreHarness == null) {
-            dataStoreHarness = createHarness();
-        }
+        dataStoreHarness = createHarness();
         this.dataStore = dataStoreHarness.getDataStore();
 
         try {
@@ -83,6 +81,10 @@ public abstract class IntegrationTest {
     }
 
     protected DataStoreTestHarness createHarness() {
+        if (dataStoreHarness != null) {
+            return dataStoreHarness;
+        }
+
         try {
             final String dataStoreSupplierName = System.getProperty("dataStoreHarness");
 
@@ -118,7 +120,7 @@ public abstract class IntegrationTest {
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
         // port randomly picked in pom.xml
-        RestAssured.port = getPort();
+        RestAssured.port = getRestAssuredPort();
 
         // embedded jetty server
         Server server = new Server(RestAssured.port);
@@ -157,6 +159,7 @@ public abstract class IntegrationTest {
 
     @AfterAll
     public final void afterAll() {
+        dataStoreHarness = null;
         log.debug("...Stopping Server...");
         try {
             server.stop();
@@ -175,7 +178,7 @@ public abstract class IntegrationTest {
         }
     }
 
-    public static Integer getPort() {
+    public static Integer getRestAssuredPort() {
         String restassuredPort = System.getProperty("restassured.port", System.getenv("restassured.port"));
         return Integer.parseInt(StringUtils.isNotEmpty(restassuredPort) ? restassuredPort : "9999");
     }

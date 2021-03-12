@@ -657,7 +657,7 @@ public class QueryEngineTest extends SQLUnitTest {
         sortMap.put("highScore", Sorting.SortOrder.asc);
 
         FilterPredicate predicate = new FilterPredicate(
-                new Path(new ClassType(PlayerStats.class), dictionary, "recordedDate", "byDay",
+                new Path(ClassType.of(PlayerStats.class), dictionary, "recordedDate", "byDay",
                         new HashSet<>(dayArguments.values())),
                 Operator.IN,
                 Lists.newArrayList(new Day(Date.valueOf("2019-07-11"))));
@@ -692,7 +692,7 @@ public class QueryEngineTest extends SQLUnitTest {
         sortMap.put("highScore", Sorting.SortOrder.asc);
 
         FilterPredicate predicate = new FilterPredicate(
-                new Path(new ClassType(PlayerStats.class), dictionary, "recordedDate", "byMonth",
+                new Path(ClassType.of(PlayerStats.class), dictionary, "recordedDate", "byMonth",
                         new HashSet<>(monthArguments.values())),
                 Operator.IN,
                 Lists.newArrayList(new Day(Date.valueOf("2019-07-01"))));
@@ -748,7 +748,7 @@ public class QueryEngineTest extends SQLUnitTest {
                         playerStatsTable.getTimeDimensionProjection("recordedDate", "byDay", dayArguments))
                 .timeDimensionProjection(
                         playerStatsTable.getTimeDimensionProjection("recordedDate", "byMonth", monthArguments))
-                .sorting(new SortingImpl(sortMap, new ClassType(PlayerStats.class), sortAttributes, dictionary))
+                .sorting(new SortingImpl(sortMap, ClassType.of(PlayerStats.class), sortAttributes, dictionary))
                 .build();
 
         List<PlayerStats> results = toList(engine.executeQuery(query, transaction).getData());

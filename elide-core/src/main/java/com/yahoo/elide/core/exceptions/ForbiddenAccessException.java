@@ -42,6 +42,6 @@ public class ForbiddenAccessException extends HttpStatusException {
     }
 
     private static String getMessage(Class<? extends Annotation> permission) {
-        return EntityDictionary.getSimpleName(new ClassType(permission)) + " Denied";
+        return EntityDictionary.getSimpleName(ClassType.of(permission)) + " Denied";
     }
 }

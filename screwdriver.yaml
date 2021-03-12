@@ -1,5 +1,5 @@
 cache:
-   event: ["~/.m2"]
+   pipeline: ["~/.m2"]
 
 shared:
    annotations:

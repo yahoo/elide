@@ -10,7 +10,10 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.JPQLDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.datastores.jpa.porting.QueryLogger;
 import com.yahoo.elide.datastores.jpa.transaction.JpaTransaction;
+
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -20,23 +23,36 @@ import javax.persistence.metamodel.EntityType;
 /**
  * Implementation for JPA EntityManager data store.
  */
+@Slf4j
 public class JpaDataStore implements JPQLDataStore {
+    public static final QueryLogger DEFAULT_LOGGER = (query) -> log.debug("HQL Query: {}", query);
+
     protected final EntityManagerSupplier entityManagerSupplier;
     protected final JpaTransactionSupplier readTransactionSupplier;
     protected final JpaTransactionSupplier writeTransactionSupplier;
     protected final Set<Type<?>> modelsToBind;
+    protected final QueryLogger logger;
+
+    public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
+                        JpaTransactionSupplier readTransactionSupplier,
+                        JpaTransactionSupplier writeTransactionSupplier,
+                        QueryLogger logger,
+                        Type<?> ... models) {
+        this.entityManagerSupplier = entityManagerSupplier;
+        this.readTransactionSupplier = readTransactionSupplier;
+        this.writeTransactionSupplier = writeTransactionSupplier;
+        this.logger = logger;
+        this.modelsToBind = new HashSet<>();
+        for (Type<?> model : models) {
+            modelsToBind.add(model);
+        }
+    }
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier readTransactionSupplier,
                         JpaTransactionSupplier writeTransactionSupplier,
                         Type<?> ... models) {
-        this.entityManagerSupplier = entityManagerSupplier;
-        this.readTransactionSupplier = readTransactionSupplier;
-        this.writeTransactionSupplier = writeTransactionSupplier;
-        this.modelsToBind = new HashSet<>();
-        for (Type<?> model : models) {
-            modelsToBind.add(model);
-        }
+        this(entityManagerSupplier, readTransactionSupplier, writeTransactionSupplier, DEFAULT_LOGGER, models);
     }
 
 

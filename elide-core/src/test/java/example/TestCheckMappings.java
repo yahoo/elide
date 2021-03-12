@@ -32,6 +32,7 @@ public class TestCheckMappings {
                     .put("privatePermission", PrivatePermission.class)
                     .put("sampleOperation", PermissionExecutorTest.SampleOperationCheck.class)
                     .put("sampleOperationInverse", PermissionExecutorTest.SampleOperationCheckInverse.class)
+                    .put("sampleCommit", PermissionExecutorTest.SampleCommitCheck.class)
                     .put("shouldCache", PermissionExecutorTest.ShouldCache.class)
                     .put("peUserCheck", PermissionExecutorTest.UserCheckTest.class)
                     .put("passingOp", PermissionExecutorTest.PassingOperationCheck.class)

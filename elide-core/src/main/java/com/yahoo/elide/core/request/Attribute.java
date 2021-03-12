@@ -51,7 +51,7 @@ public class Attribute {
         }
 
         public Attribute.AttributeBuilder type(Class<?> type) {
-            this.type = new ClassType(type);
+            this.type = ClassType.of(type);
             return this;
         }
     }

@@ -88,7 +88,7 @@ public class MethodType implements Method {
         if (! (method instanceof java.lang.reflect.Method)) {
             throw new UnsupportedOperationException("Constructors cannot be invoked");
         }
-        return new ClassType(((java.lang.reflect.Method) method).getReturnType());
+        return ClassType.of(((java.lang.reflect.Method) method).getReturnType());
     }
 
     @Override
@@ -104,14 +104,14 @@ public class MethodType implements Method {
         java.lang.reflect.Type type = ((java.lang.reflect.Method) method).getGenericReturnType();
 
         if (type instanceof ParameterizedType && index.isPresent()) {
-            return new ClassType(
+            return ClassType.of(
                     TypeUtils.getRawType(
                             ((ParameterizedType) type).getActualTypeArguments()[index.get().intValue()],
                             ((ClassType) parentType).getCls()
                     )
             );
         }
-        return new ClassType(TypeUtils.getRawType(type, ((ClassType) parentType).getCls()));
+        return ClassType.of(TypeUtils.getRawType(type, ((ClassType) parentType).getCls()));
     }
 
     @Override

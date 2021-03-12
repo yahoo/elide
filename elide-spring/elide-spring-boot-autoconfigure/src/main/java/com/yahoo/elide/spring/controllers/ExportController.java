@@ -37,7 +37,7 @@ import javax.servlet.http.HttpServletResponse;
 @Configuration
 @RestController
 @RequestMapping(value = "${elide.async.export.path:/export}")
-@ConditionalOnExpression("${elide.async.export.enabled:false}")
+@ConditionalOnExpression("${elide.async.enabled:false} && ${elide.async.export.enabled:false}")
 public class ExportController {
 
     private ResultStorageEngine resultStorageEngine;
@@ -63,7 +63,7 @@ public class ExportController {
             observableResults
             .subscribe(
                     resultString -> {
-                        outputStream.write(resultString.concat(System.getProperty("line.separator")).getBytes());
+                        outputStream.write(resultString.concat(System.lineSeparator()).getBytes());
                     },
                     error -> {
                         String message = error.getMessage();
@@ -82,7 +82,7 @@ public class ExportController {
                             // Add error message in the attachment as a way to signal errors.
                             outputStream.write(
                                     "Error Occured...."
-                                    .concat(System.getProperty("line.separator"))
+                                    .concat(System.lineSeparator())
                                     .getBytes()
                             );
                             log.debug(e.getMessage());

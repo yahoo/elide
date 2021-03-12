@@ -14,8 +14,21 @@ import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.annotation.LifeCycleHookBinding;
+import com.yahoo.elide.annotation.LifeCycleHookBinding.Operation;
+import com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase;
 import com.yahoo.elide.annotation.NonTransferable;
+import com.yahoo.elide.annotation.OnCreatePostCommit;
+import com.yahoo.elide.annotation.OnCreatePreCommit;
+import com.yahoo.elide.annotation.OnCreatePreSecurity;
+import com.yahoo.elide.annotation.OnDeletePostCommit;
+import com.yahoo.elide.annotation.OnDeletePreCommit;
+import com.yahoo.elide.annotation.OnDeletePreSecurity;
+import com.yahoo.elide.annotation.OnReadPostCommit;
+import com.yahoo.elide.annotation.OnReadPreCommit;
+import com.yahoo.elide.annotation.OnReadPreSecurity;
+import com.yahoo.elide.annotation.OnUpdatePostCommit;
+import com.yahoo.elide.annotation.OnUpdatePreCommit;
+import com.yahoo.elide.annotation.OnUpdatePreSecurity;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
@@ -40,6 +53,7 @@ import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
@@ -111,6 +125,7 @@ public class EntityDictionary {
 
     public final static String REGULAR_ID_NAME = "id";
     private final static ConcurrentHashMap<Type, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
+    private static final String ALL_FIELDS = "*";
 
     /**
      * Instantiate a new EntityDictionary with the provided set of checks. In addition all of the checks
@@ -196,9 +211,9 @@ public class EntityDictionary {
     }
 
     public EntityDictionary(Map<String, Class<? extends Check>> checks,
-                Injector injector,
-                Function<Class, Serde> serdeLookup,
-                Set<Type<?>> entitiesToExclude) {
+            Injector injector,
+            Function<Class, Serde> serdeLookup,
+            Set<Type<?>> entitiesToExclude) {
         this.serdeLookup = serdeLookup;
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
         this.roleChecks = new HashMap<>();
@@ -906,12 +921,24 @@ public class EntityDictionary {
     }
 
     /**
+     * Returns whether or not an entity can ever be shared post creation.
+     *
+     * @param entityClass the entity type to check for the shareable permissions
+     * @return true if entityClass can never be shared post creation.  False otherwise.
+     */
+    public boolean isStrictNonTransferable(Type<?> entityClass) {
+        NonTransferable nonTransferable = getAnnotation(entityClass, NonTransferable.class);
+
+        return (nonTransferable != null && nonTransferable.enabled() && nonTransferable.strict());
+    }
+
+    /**
      * Add given Entity bean to dictionary.
      *
      * @param cls Entity bean class
      */
     public void bindEntity(Class<?> cls) {
-        bindEntity(new ClassType(cls));
+        bindEntity(ClassType.of(cls));
     }
 
     /**
@@ -930,7 +957,7 @@ public class EntityDictionary {
      * @param hiddenAnnotations Annotations for hiding a field in API
      */
     public void bindEntity(Class<?> cls, Set<Class<? extends Annotation>> hiddenAnnotations) {
-        bindEntity(new ClassType(cls), hiddenAnnotations);
+        bindEntity(ClassType.of(cls), hiddenAnnotations);
     }
 
     /**
@@ -962,13 +989,15 @@ public class EntityDictionary {
 
         bindJsonApiToEntity.put(Pair.of(type, version), declaredClass);
         apiVersions.add(version);
-        entityBindings.put(declaredClass, new EntityBinding(this, declaredClass,
-                type, version, hiddenAnnotations));
+        EntityBinding binding = new EntityBinding(this, declaredClass, type, version, hiddenAnnotations);
+        entityBindings.put(declaredClass, binding);
 
         Include include = (Include) getFirstAnnotation(declaredClass, Arrays.asList(Include.class));
         if (include.rootLevel()) {
             bindEntityRoots.add(declaredClass);
         }
+
+        bindLegacyHooks(binding);
     }
 
     /**
@@ -1037,15 +1066,15 @@ public class EntityDictionary {
     }
 
     public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Type<?> cls,
-                                                                        LifeCycleHookBinding.Operation op,
-                                                                        LifeCycleHookBinding.TransactionPhase phase,
-                                                                        String fieldName) {
+            Operation op,
+            TransactionPhase phase,
+            String fieldName) {
         return getEntityBinding(cls).getTriggers(op, phase, fieldName);
     }
 
     public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Type<?> cls,
-                                                                        LifeCycleHookBinding.Operation op,
-                                                                        LifeCycleHookBinding.TransactionPhase phase) {
+            Operation op,
+            TransactionPhase phase) {
         return getEntityBinding(cls).getTriggers(op, phase);
     }
 
@@ -1435,11 +1464,11 @@ public class EntityDictionary {
      * @param hook The callback to invoke.
      */
     public void bindTrigger(Class<?> entityClass,
-                            String fieldOrMethodName,
-                            LifeCycleHookBinding.Operation operation,
-                            LifeCycleHookBinding.TransactionPhase phase,
-                            LifeCycleHook hook) {
-        bindTrigger(new ClassType(entityClass), fieldOrMethodName, operation, phase, hook);
+            String fieldOrMethodName,
+            Operation operation,
+            TransactionPhase phase,
+            LifeCycleHook hook) {
+        bindTrigger(ClassType.of(entityClass), fieldOrMethodName, operation, phase, hook);
     }
 
     /**
@@ -1452,10 +1481,10 @@ public class EntityDictionary {
      * @param hook The callback to invoke.
      */
     public void bindTrigger(Type<?> entityClass,
-                            String fieldOrMethodName,
-                            LifeCycleHookBinding.Operation operation,
-                            LifeCycleHookBinding.TransactionPhase phase,
-                            LifeCycleHook hook) {
+            String fieldOrMethodName,
+            Operation operation,
+            TransactionPhase phase,
+            LifeCycleHook hook) {
         bindIfUnbound(entityClass);
 
         getEntityBinding(entityClass).bindTrigger(operation, phase, fieldOrMethodName, hook);
@@ -1475,11 +1504,11 @@ public class EntityDictionary {
      *                                 CRUD actions on the same model.
      */
     public void bindTrigger(Class<?> entityClass,
-                            LifeCycleHookBinding.Operation operation,
-                            LifeCycleHookBinding.TransactionPhase phase,
-                            LifeCycleHook hook,
-                            boolean allowMultipleInvocations) {
-        bindTrigger(new ClassType(entityClass), operation, phase, hook, allowMultipleInvocations);
+            Operation operation,
+            TransactionPhase phase,
+            LifeCycleHook hook,
+            boolean allowMultipleInvocations) {
+        bindTrigger(ClassType.of(entityClass), operation, phase, hook, allowMultipleInvocations);
     }
 
     /**
@@ -1496,10 +1525,10 @@ public class EntityDictionary {
      *                                 CRUD actions on the same model.
      */
     public void bindTrigger(Type<?> entityClass,
-                            LifeCycleHookBinding.Operation operation,
-                            LifeCycleHookBinding.TransactionPhase phase,
-                            LifeCycleHook hook,
-                            boolean allowMultipleInvocations) {
+            Operation operation,
+            TransactionPhase phase,
+            LifeCycleHook hook,
+            boolean allowMultipleInvocations) {
         bindIfUnbound(entityClass);
 
         if (allowMultipleInvocations) {
@@ -1534,7 +1563,7 @@ public class EntityDictionary {
      * @param <T> The result type.
      * @return The collection of results.
      */
-    public <T> List<T> walkEntityGraph(Set<Type<?>> entities,  Function<Type<?>, T> transform) {
+    public <T> List<T> walkEntityGraph(Set<Type<?>> entities, Function<Type<?>, T> transform) {
         ArrayList<T> results = new ArrayList<>();
         Queue<Type<?>> toVisit = new ArrayDeque<>(entities);
         Set<Type<?>> visited = new HashSet<>();
@@ -1807,7 +1836,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Returns the Collection of all attributes of an argument.
+     * Returns the Collection of all arguments of an attribute.
      * @param cls The entity
      * @param attributeName Name of the argument for ehich arguments are to be retrieved.
      * @return A Set of ArgumentType for the given attribute.
@@ -1879,5 +1908,104 @@ public class EntityDictionary {
         return object instanceof Dynamic
                 ? ((Dynamic) object).getType()
                 : new ClassType(object.getClass());
+    }
+
+    public void bindLegacyHooks(EntityBinding binding) {
+        binding.getAllMethods().stream()
+                .map(Method.class::cast)
+                .forEach(method -> {
+                    if (method.isAnnotationPresent(OnCreatePostCommit.class)) {
+                        bindHookMethod(binding, method, method.getAnnotation(OnCreatePostCommit.class).value(),
+                                TransactionPhase.POSTCOMMIT, Operation.CREATE);
+                    }
+                    if (method.isAnnotationPresent(OnCreatePreCommit.class)) {
+                        bindHookMethod(binding, method, method.getAnnotation(OnCreatePreCommit.class).value(),
+                                TransactionPhase.PRECOMMIT, Operation.CREATE);
+                    }
+                    if (method.isAnnotationPresent(OnCreatePreSecurity.class)) {
+                        bindHookMethod(binding, method, method.getAnnotation(OnCreatePreSecurity.class).value(),
+                                TransactionPhase.PRESECURITY, Operation.CREATE);
+                    }
+                    if (method.isAnnotationPresent(OnUpdatePostCommit.class)) {
+                        bindHookMethod(binding, method, method.getAnnotation(OnUpdatePostCommit.class).value(),
+                                TransactionPhase.POSTCOMMIT, Operation.UPDATE);
+                    }
+                    if (method.isAnnotationPresent(OnUpdatePreCommit.class)) {
+                        bindHookMethod(binding, method, method.getAnnotation(OnUpdatePreCommit.class).value(),
+                                TransactionPhase.PRECOMMIT, Operation.UPDATE);
+                    }
+                    if (method.isAnnotationPresent(OnUpdatePreSecurity.class)) {
+                        bindHookMethod(binding, method, method.getAnnotation(OnUpdatePreSecurity.class).value(),
+                                TransactionPhase.PRESECURITY, Operation.UPDATE);
+                    }
+                    if (method.isAnnotationPresent(OnReadPostCommit.class)) {
+                        bindHookMethod(binding, method, method.getAnnotation(OnReadPostCommit.class).value(),
+                                TransactionPhase.POSTCOMMIT, Operation.READ);
+                    }
+                    if (method.isAnnotationPresent(OnReadPreCommit.class)) {
+                        bindHookMethod(binding, method, method.getAnnotation(OnReadPreCommit.class).value(),
+                                TransactionPhase.PRECOMMIT, Operation.READ);
+                    }
+                    if (method.isAnnotationPresent(OnReadPreSecurity.class)) {
+                        bindHookMethod(binding, method, method.getAnnotation(OnReadPreSecurity.class).value(),
+                                TransactionPhase.PRESECURITY, Operation.READ);
+                    }
+                    if (method.isAnnotationPresent(OnDeletePostCommit.class)) {
+                        bindHookMethod(binding, method, null, TransactionPhase.POSTCOMMIT, Operation.DELETE);
+                    }
+                    if (method.isAnnotationPresent(OnDeletePreCommit.class)) {
+                        bindHookMethod(binding, method, null, TransactionPhase.PRECOMMIT, Operation.DELETE);
+                    }
+                    if (method.isAnnotationPresent(OnDeletePreSecurity.class)) {
+                        bindHookMethod(binding, method, null, TransactionPhase.PRESECURITY, Operation.DELETE);
+                    }
+                });
+    }
+
+    private void bindHookMethod(
+            EntityBinding binding,
+            Method method,
+            String annotationField,
+            TransactionPhase phase,
+            Operation operation) {
+
+        if (StringUtils.isEmpty(annotationField)) {
+            bindTrigger(binding.entityClass, operation, phase, generateHook(method), false);
+        } else if (annotationField.equals(ALL_FIELDS)) {
+            bindTrigger(binding.entityClass, operation, phase, generateHook(method), true);
+        } else {
+            bindTrigger(binding.entityClass, annotationField, operation, phase, generateHook(method));
+        }
+    }
+
+    private static LifeCycleHook generateHook(Method method) {
+        return new LifeCycleHook() {
+            @Override
+            public void execute(Operation operation,
+                    TransactionPhase phase,
+                    Object model,
+                    com.yahoo.elide.core.security.RequestScope scope,
+                    Optional changes) {
+                try {
+                    int paramCount = method.getParameterCount();
+                    Class<?>[] paramTypes = method.getParameterTypes();
+
+                    if (changes.isPresent() && paramCount == 2
+                            && paramTypes[0].isInstance(scope)
+                            && paramTypes[1].isInstance(changes.get())) {
+                        method.invoke(model, scope, changes.get());
+                    } else if (paramCount == 1 && paramTypes[0].isInstance(scope)) {
+                        method.invoke(model, scope);
+                    } else if (paramCount == 0) {
+                        method.invoke(model);
+                    } else {
+                        throw new IllegalArgumentException();
+                    }
+                } catch (ReflectiveOperationException e) {
+                    Throwables.propagateIfPossible(e.getCause());
+                    throw new IllegalArgumentException(e);
+                }
+            }
+        };
     }
 }

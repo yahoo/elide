@@ -63,7 +63,7 @@ public class AggregationDataStore implements DataStore {
         );
 
         /* Add 'grain' argument to each TimeDimensionColumn */
-        for (Table table : queryEngine.getMetaDataStore().getMetaData(new ClassType<>(Table.class))) {
+        for (Table table : queryEngine.getMetaDataStore().getMetaData(ClassType.of(Table.class))) {
             for (TimeDimension timeDim : table.getTimeDimensions()) {
                 dictionary.addArgumentToAttribute(
                         dictionary.getEntityClass(table.getName(), table.getVersion()),
