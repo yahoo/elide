@@ -6,7 +6,6 @@
 package com.yahoo.elide.core.datastore.inmemory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -30,6 +29,7 @@ import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.models.generics.Manager;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import example.Author;
@@ -528,38 +528,48 @@ public class InMemoryStoreTransactionTest {
 
         assertEquals(wrapped, wrapped.getDataStore());
 
-        String tos = store.toString();
-        assertTrue(tos.contains("Data store contents"));
-        assertTrue(tos.contains("Table class example.Author contents"));
-        assertTrue(tos.contains("Table class example.Book contents"));
-        assertTrue(tos.contains("Table class example.Child contents"));
-        assertTrue(tos.contains("Table class example.ComputedBean contents"));
-        assertTrue(tos.contains("Table class example.Editor contents"));
-        assertTrue(tos.contains("Table class example.FieldAnnotations contents"));
-        assertTrue(tos.contains("Table class example.FirstClassFields contents"));
-        assertTrue(tos.contains("Table class example.FunWithPermissions contents"));
-        assertTrue(tos.contains("Table class example.Invoice contents"));
-        assertTrue(tos.contains("Table class example.Job contents"));
-        assertTrue(tos.contains("Table class example.Left contents"));
-        assertTrue(tos.contains("Table class example.LineItem contents"));
-        assertTrue(tos.contains("Table class example.MapColorShape contents"));
-        assertTrue(tos.contains("Table class example.NoDeleteEntity contents"));
-        assertTrue(tos.contains("Table class example.NoReadEntity contents"));
-        assertTrue(tos.contains("Table class example.NoShareEntity contents"));
-        assertTrue(tos.contains("Table class example.NoUpdateEntity contents"));
-        assertTrue(tos.contains("Table class example.Parent contents"));
-        assertTrue(tos.contains("Table class example.Post contents"));
-        assertTrue(tos.contains("Table class example.PrimitiveId contents"));
-        assertTrue(tos.contains("Table class example.Publisher contents"));
-        assertTrue(tos.contains("Table class example.Right contents"));
-        assertTrue(tos.contains("Table class example.StringId contents"));
-        assertTrue(tos.contains("Table class example.UpdateAndCreate contents"));
-        assertTrue(tos.contains("Table class example.User contents"));
-        assertTrue(tos.contains("Table class example.packageshareable.ContainerWithPackageShare contents"));
-        assertTrue(tos.contains("Table class example.packageshareable.ShareableWithPackageShare contents"));
-        assertTrue(tos.contains("Table class example.packageshareable.UnshareableWithEntityUnshare contents"));
-        assertTrue(tos.contains("Table class com.yahoo.elide.models.generics.Employee contents"));
-        assertTrue(tos.contains("Table class com.yahoo.elide.models.generics.Manager contents"));
-        assertFalse(tos.contains("Table class com.yahoo.elide.models.generics.Other contents"));
+        // extract class names from DataStore string
+        String tos = store.toString()
+                .replace("Data store contents", "")
+                .replace("Table class ", "").replace(" contents", "")
+                .replace("Wrapped:[", "").replace("]", "")
+                .replace("\n\n", ",")
+                .replace(" ", "").replace("\n", "");
+
+        // make sure count is correct
+        assertEquals(ImmutableSet.copyOf(new String[] {
+            "example.Author",
+            "example.Book",
+            "example.Child",
+            "example.ComputedBean",
+            "example.Editor",
+            "example.FieldAnnotations",
+            "example.FirstClassFields",
+            "example.FunWithPermissions",
+            "example.Invoice",
+            "example.Job",
+            "example.Left",
+            "example.LineItem",
+            "example.MapColorShape",
+            "example.NoDeleteEntity",
+            "example.NoReadEntity",
+            "example.NoShareEntity",
+            "example.NoUpdateEntity",
+            "example.Parent",
+            "example.Post",
+            "example.PrimitiveId",
+            "example.Publisher",
+            "example.Right",
+            "example.StringId",
+            "example.UpdateAndCreate",
+            "example.User",
+            "example.packageshareable.ContainerWithPackageShare",
+            "example.packageshareable.ShareableWithPackageShare",
+            "example.packageshareable.UnshareableWithEntityUnshare",
+            "com.yahoo.elide.models.generics.Employee",
+            "com.yahoo.elide.models.generics.Manager",
+            "com.yahoo.elide.models.generics.Overlord",
+            "com.yahoo.elide.models.generics.Peon"
+        }), ImmutableSet.copyOf(tos.split(",")), String.join("\n", tos.split(",")));
     }
 }
