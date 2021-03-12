@@ -25,8 +25,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.persistence.Entity;
-
 /**
  * Simple in-memory only database.
  */
@@ -44,18 +42,7 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
         this.beanPackages = beanPackages;
 
         for (Package beanPackage : beanPackages) {
-            ClassScanner.getAnnotatedClasses(beanPackage, Include.class).stream()
-                .filter(modelClass -> modelClass.getName().startsWith(beanPackage.getName()))
-                .filter(modelClass -> dictionary.getFirstAnnotation(modelClass,
-                        Arrays.asList(Include.class, Exclude.class)) instanceof Include)
-                .forEach(modelClass -> dataStore.put(modelClass,
-                        Collections.synchronizedMap(new LinkedHashMap<>())));
-        }
-
-        for (Package beanPackage : beanPackages) {
-            ClassScanner.getAnnotatedClasses(beanPackage, Entity.class).stream()
-                .filter(modelClass -> modelClass.getName().startsWith(beanPackage.getName()))
-                .filter(modelClass -> !dataStore.containsKey(modelClass))
+            ClassScanner.getAllClasses(beanPackage.getName()).stream()
                 .filter(modelClass -> dictionary.getFirstAnnotation(modelClass,
                         Arrays.asList(Include.class, Exclude.class)) instanceof Include)
                 .forEach(modelClass -> dataStore.put(modelClass,

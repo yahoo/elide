@@ -240,6 +240,16 @@ public class EntityBinding {
      */
     private void bindEntityFields(Class<?> cls, String type, Collection<AccessibleObject> fieldOrMethodList) {
         for (AccessibleObject fieldOrMethod : fieldOrMethodList) {
+            // Special handling for Eclipse. Load missing annotations
+            if (fieldOrMethod.getAnnotations().length == 0 && fieldOrMethod instanceof Method) {
+                Method m = (Method) fieldOrMethod;
+                try {
+                    fieldOrMethod = m.getDeclaringClass().getMethod(m.getName(), m.getParameterTypes());
+                } catch (NoSuchMethodException | SecurityException e) {
+                    // Not expected, leave alone
+                }
+            }
+
             bindTriggerIfPresent(OnCreatePreSecurity.class, fieldOrMethod);
             bindTriggerIfPresent(OnDeletePreSecurity.class, fieldOrMethod);
             bindTriggerIfPresent(OnUpdatePreSecurity.class, fieldOrMethod);
@@ -390,7 +400,7 @@ public class EntityBinding {
 
         relationshipsDeque.push(fieldName);
         fieldsToValues.put(fieldName, fieldOrMethod);
-        fieldsToTypes.put(fieldName, fieldType);
+        fieldsToTypes.put(fieldName, fieldType == null ? Void.class : fieldType);
     }
 
     private void bindAttr(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType) {
