@@ -20,6 +20,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.type.AccessibleObject;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.Member;
 import com.yahoo.elide.core.type.Method;
@@ -270,6 +271,18 @@ public class EntityBinding {
                                   Collection<AccessibleObject> fieldOrMethodList,
                                   Set<Class<? extends Annotation>> hiddenAnnotations) {
         for (AccessibleObject fieldOrMethod : fieldOrMethodList) {
+            // Special handling for Eclipse. Load missing annotations by reloading method
+            if (fieldOrMethod.getAnnotations().length == 0 && fieldOrMethod instanceof Method) {
+                Method m = (Method) fieldOrMethod;
+                try {
+                    fieldOrMethod = cls.getMethod(m.getName(),
+                            Arrays.stream(m.getParameterTypes())
+                            .map(ClassType::new)
+                            .toArray(Type[]::new));
+                } catch (NoSuchMethodException | SecurityException e) {
+                    // Not expected, leave alone
+                }
+            }
             bindTriggerIfPresent(fieldOrMethod);
 
             if (fieldOrMethod.isAnnotationPresent(Id.class)) {
