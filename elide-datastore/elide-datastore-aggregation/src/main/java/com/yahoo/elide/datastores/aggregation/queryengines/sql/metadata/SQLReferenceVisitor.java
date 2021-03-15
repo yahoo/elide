@@ -12,6 +12,7 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnVisitor;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
@@ -45,19 +46,19 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
     }
 
     @Override
-    protected String visitFormulaMetric(MetricProjection metric) {
-        return visitFormulaColumn(metric);
+    protected String visitFormulaMetric(Queryable parent, MetricProjection metric) {
+        return visitFormulaColumn(parent, metric);
     }
 
     /**
      * For a FIELD dimension, append its physical columnName to the table alias
      *
+     * @param source The parent which owns the dimension.
      * @param dimension a FIELD dimension
      * @return <code>table.columnName</code>
      */
     @Override
-    protected String visitFieldDimension(ColumnProjection dimension) {
-        Queryable source = dimension.getSource();
+    protected String visitFieldDimension(Queryable source, ColumnProjection dimension) {
 
         //This is a table.  Check if there is a @Column annotation.
         if (source == source.getSource()) {
@@ -77,18 +78,19 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
     }
 
     @Override
-    protected String visitFormulaDimension(ColumnProjection dimension) {
-        return visitFormulaColumn(dimension);
+    protected String visitFormulaDimension(Queryable parent,
+                                           ColumnProjection dimension) {
+        return visitFormulaColumn(parent, dimension);
     }
 
     /**
      * For a FORMULA column, resolve each reference individually and
      *
+     * @param source The parent which owns the column.
      * @param column
      * @return
      */
-    private String visitFormulaColumn(ColumnProjection column) {
-        Queryable source  = column.getSource();
+    private String visitFormulaColumn(Queryable source, ColumnProjection column) {
 
         String expr = column.getExpression();
 
@@ -97,7 +99,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
             String resolvedReference;
 
             //The column is sourced from a query rather than a table.
-            if (column.getSource() != column.getSource().getSource()) {
+            if (source != source.getSource()) {
                 resolvedReference = visitPhysicalReference(reference);
 
             //The reference is a join to another logical column.
@@ -117,7 +119,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
                     resolvedReference = visitPhysicalReference(reference);
                 //A reference to another logical column.
                 } else {
-                    resolvedReference = visitColumn(referenceColumn);
+                    resolvedReference = visitColumn(source, referenceColumn);
                 }
             }
 
@@ -140,11 +142,11 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
 
         tableAliases.push(extendTypeAlias(tableAliases.peek(), joinPath));
         String result;
-        ColumnProjection columnProjection = getColumn(joinPath);
-        if (columnProjection == null) {
+        Column joinToColumn = getColumn(joinPath);
+        if (joinToColumn == null) {
             result = visitPhysicalReference(getFieldName(joinPath));
         } else {
-            result = visitColumn(columnProjection);
+            result = visitColumn(joinToColumn.getTable().toQueryable(), joinToColumn.toProjection());
         }
         tableAliases.pop();
 

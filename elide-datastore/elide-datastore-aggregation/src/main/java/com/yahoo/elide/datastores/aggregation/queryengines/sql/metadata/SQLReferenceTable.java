@@ -117,15 +117,16 @@ public class SQLReferenceTable {
 
         queryable.getColumnProjections().forEach(column -> {
             // validate that there is no reference loop
-            validator.visitColumn(column);
+            validator.visitColumn(queryable, column);
 
             String fieldName = column.getName();
 
             resolvedReferences.get(key).put(
                     fieldName,
-                    new SQLReferenceVisitor(metaDataStore, key.getAlias(fieldName), dialect).visitColumn(column));
+                    new SQLReferenceVisitor(metaDataStore, key.getAlias(fieldName), dialect)
+                            .visitColumn(queryable, column));
 
-            Set<JoinPath> joinPaths = joinVisitor.visitColumn(column);
+            Set<JoinPath> joinPaths = joinVisitor.visitColumn(queryable, column);
             resolvedJoinExpressions.get(key).put(fieldName, getJoinClauses(joinPaths, dialect));
         });
     }
@@ -237,14 +238,10 @@ public class SQLReferenceTable {
         SQLReferenceVisitor visitor =
                         new SQLReferenceVisitor(metaDataStore, fromAlias, dialect);
 
-        return visitor.visitFormulaDimension(new SQLColumnProjection() {
+        return visitor.visitFormulaDimension(table, new SQLColumnProjection() {
             @Override
             public ValueType getValueType() {
                 return null;
-            }
-            @Override
-            public Queryable getSource() {
-                return table.getSource();
             }
             @Override
             public String getName() {

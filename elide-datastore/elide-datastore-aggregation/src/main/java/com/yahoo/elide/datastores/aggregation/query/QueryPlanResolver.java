@@ -13,8 +13,9 @@ public interface QueryPlanResolver {
 
     /**
      * Resolves a projected metric into a query plan.
+     * @param source The queryable that contains the metric.
      * @param projection The metric being projected.
      * @return A query plan for the particular metric.
      */
-    public QueryPlan resolve(MetricProjection projection);
+    public QueryPlan resolve(Query source, MetricProjection projection);
 }

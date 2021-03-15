@@ -16,7 +16,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
@@ -35,7 +34,6 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
 
     private static final String TIME_DIMENSION_REPLACEMENT_REGEX = "\\{\\{(\\s*)}}";
 
-    private Queryable source;
     private String alias;
     private String name;
     private String expression;
@@ -61,7 +59,6 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
         this.valueType = column.getValueType();
         this.expression = column.getExpression();
         this.name = column.getName();
-        this.source = (SQLTable) column.getTable();
         this.grain = getGrainFromArguments(arguments, column);
         this.arguments = arguments;
         this.alias = alias;
@@ -69,10 +66,10 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     }
 
     @Override
-    public String toSQL(SQLReferenceTable table) {
+    public String toSQL(Queryable source, SQLReferenceTable table) {
         //TODO - We will likely migrate to a templating language when we support parameterized metrics.
         return grain.getExpression().replaceFirst(TIME_DIMENSION_REPLACEMENT_REGEX,
-                        table.getResolvedReference(source, name));
+                        table.getResolvedReference(source.getSource(), name));
     }
 
     @Override
@@ -81,24 +78,8 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     }
 
     @Override
-    public SQLTimeDimensionProjection withSource(Queryable source) {
+    public SQLTimeDimensionProjection withExpression(String expression) {
         return SQLTimeDimensionProjection.builder()
-                .source(source)
-                .name(name)
-                .alias(alias)
-                .valueType(valueType)
-                .columnType(columnType)
-                .expression(expression)
-                .arguments(arguments)
-                .grain(grain)
-                .timeZone(timeZone)
-                .build();
-    }
-
-    @Override
-    public SQLTimeDimensionProjection withSourceAndExpression(Queryable source, String expression) {
-        return SQLTimeDimensionProjection.builder()
-                .source(source)
                 .name(name)
                 .alias(alias)
                 .valueType(valueType)

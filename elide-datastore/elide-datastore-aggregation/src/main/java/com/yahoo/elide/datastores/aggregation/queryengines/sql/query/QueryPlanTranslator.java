@@ -7,7 +7,6 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import static com.yahoo.elide.datastores.aggregation.query.QueryPlan.nestColumnProjection;
-import static com.yahoo.elide.datastores.aggregation.query.QueryPlan.withSource;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
@@ -64,13 +63,11 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
         Set<ColumnProjection> dimensions = Streams.concat(plan.getDimensionProjections().stream(),
                 clientQuery.getDimensionProjections().stream())
                 .map(SQLDimensionProjection.class::cast)
-                .map(dim -> dim.withSource(clientQuery.getSource()))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
         Set<TimeDimensionProjection> timeDimensions = Streams.concat(plan.getTimeDimensionProjections().stream(),
                 clientQuery.getTimeDimensionProjections().stream())
                 .map(SQLTimeDimensionProjection.class::cast)
-                .map(dim -> dim.withSource(clientQuery.getSource()))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
         return Query.builder()
@@ -86,10 +83,9 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
 
         return Query.builder()
                 .source(innerQuery)
-                .metricProjections(withSource(innerQuery, plan.getMetricProjections()))
-                .dimensionProjections(nestColumnProjection(innerQuery, clientQuery.getDimensionProjections()))
-                .timeDimensionProjections(nestColumnProjection(innerQuery,
-                        clientQuery.getTimeDimensionProjections()))
+                .metricProjections(plan.getMetricProjections())
+                .dimensionProjections(nestColumnProjection(clientQuery.getDimensionProjections()))
+                .timeDimensionProjections(nestColumnProjection(clientQuery.getTimeDimensionProjections()))
                 .havingFilter(clientQuery.getHavingFilter())
                 .sorting(clientQuery.getSorting())
                 .pagination(clientQuery.getPagination())
@@ -102,10 +98,9 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
 
         return Query.builder()
                 .source(innerQuery)
-                .metricProjections(withSource(innerQuery, plan.getMetricProjections()))
-                .dimensionProjections(nestColumnProjection(innerQuery, clientQuery.getDimensionProjections()))
-                .timeDimensionProjections(nestColumnProjection(innerQuery,
-                        clientQuery.getTimeDimensionProjections()));
+                .metricProjections(plan.getMetricProjections())
+                .dimensionProjections(nestColumnProjection(clientQuery.getDimensionProjections()))
+                .timeDimensionProjections(nestColumnProjection(clientQuery.getTimeDimensionProjections()));
     }
 
     private Query.QueryBuilder visitUnnestedQueryPlan(Queryable plan)  {
@@ -113,18 +108,16 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
         Set<ColumnProjection> dimensions = Streams.concat(plan.getDimensionProjections().stream(),
             clientQuery.getDimensionProjections().stream())
                 .map(SQLDimensionProjection.class::cast)
-                .map((dim) -> dim.withSource(clientQuery.getSource()))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
         Set<TimeDimensionProjection> timeDimensions = Streams.concat(plan.getTimeDimensionProjections().stream(),
             clientQuery.getTimeDimensionProjections().stream())
                 .map(SQLTimeDimensionProjection.class::cast)
-                .map((dim) -> dim.withSource(clientQuery.getSource()))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
         return Query.builder()
                 .source(clientQuery.getSource())
-                .metricProjections(withSource(clientQuery.getSource(), plan.getMetricProjections()))
+                .metricProjections(plan.getMetricProjections())
                 .dimensionProjections(dimensions)
                 .timeDimensionProjections(timeDimensions)
                 .havingFilter(clientQuery.getHavingFilter())

@@ -12,7 +12,8 @@ public interface MetricProjection extends ColumnProjection {
 
     /**
      * Resolves the query plan that would fetch this particular metric.
+     * @param query The parent query
      * @return the resolved query plan.
      */
-    QueryPlan resolve();
+    QueryPlan resolve(Query query);
 }
