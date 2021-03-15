@@ -76,7 +76,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
             if (!query.getMetricProjections().isEmpty()) {
                 builder.groupByClause("GROUP BY " + groupByDimensions.stream()
                         .map(SQLColumnProjection.class::cast)
-                        .map((column) -> column.toSQL(query, referenceTable))
+                        .map((column) -> column.toSQL(query.getSource(), referenceTable))
                         .collect(Collectors.joining(", ")));
             }
         }
@@ -151,7 +151,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
                 .orElse(null);
 
         if (metric != null) {
-            return metric.toSQL(query, referenceTable);
+            return metric.toSQL(query.getSource(), referenceTable);
         } else {
             return generatePredicatePathReference(path, query);
         }
@@ -168,13 +168,13 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
         // TODO: project metric field using table column reference
         List<String> metricProjections = query.getMetricProjections().stream()
                 .map(SQLMetricProjection.class::cast)
-                .map(invocation -> invocation.toSQL(query, referenceTable) + " AS "
+                .map(invocation -> invocation.toSQL(query.getSource(), referenceTable) + " AS "
                                 + applyQuotes(invocation.getSafeAlias()))
                 .collect(Collectors.toList());
 
         List<String> dimensionProjections = query.getAllDimensionProjections().stream()
                 .map(SQLColumnProjection.class::cast)
-                .map(dimension -> dimension.toSQL(query, referenceTable) + " AS "
+                .map(dimension -> dimension.toSQL(query.getSource(), referenceTable) + " AS "
                                 + applyQuotes(dimension.getSafeAlias()))
                 .collect(Collectors.toList());
 
@@ -209,7 +209,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
                     String orderByClause = (plan.getColumnProjections().contains(projection)
                             && dialect.useAliasForOrderByClause())
                             ? applyQuotes(projection.getSafeAlias())
-                            : projection.toSQL(plan, referenceTable);
+                            : projection.toSQL(plan.getSource(), referenceTable);
 
                     return orderByClause + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
                 })
@@ -300,7 +300,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
         Map<String, Argument> arguments = last.getArguments().stream()
                         .collect(Collectors.toMap(Argument::getName, Function.identity()));
         SQLColumnProjection projection = fieldToColumnProjection(query, last.getAlias(), arguments);
-        return projection.toSQL(query, referenceTable);
+        return projection.toSQL(query.getSource(), referenceTable);
     }
 
     private SQLColumnProjection fieldToColumnProjection(Query query, String fieldName) {

@@ -17,11 +17,11 @@ public interface SQLColumnProjection extends ColumnProjection {
 
     /**
      * Generate a SQL fragment for this combination column and client arguments.
-     * @param source the parent query
+     * @param source the queryable that contains the column.
      * @param table symbol table to resolve column name references.
      * @return
      */
     default String toSQL(Queryable source, SQLReferenceTable table) {
-        return table.getResolvedReference(source.getSource(), getName());
+        return table.getResolvedReference(source, getName());
     }
 }
