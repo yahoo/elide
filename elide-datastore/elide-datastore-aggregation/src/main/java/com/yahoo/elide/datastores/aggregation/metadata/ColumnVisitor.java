@@ -11,6 +11,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,30 +34,25 @@ public abstract class ColumnVisitor<T> {
         this.dictionary = metaDataStore.getMetadataDictionary();
     }
 
-    public final ColumnProjection getColumn(Path path) {
-        Column column = metaDataStore.getColumn(path);
-        if (column != null) {
-            return column.getTable().toProjection(column);
-        } else {
-            // Assumption: Must be a Physical Column
-            return null;
-        }
+    public final Column getColumn(Path path) {
+        return metaDataStore.getColumn(path);
     }
 
     /**
      * Visits a column.
      *
+     * @param parent The queryable that owns the column
      * @param column meta data column
      * @return output value
      */
-    public final T visitColumn(ColumnProjection column)  {
+    public final T visitColumn(Queryable parent, ColumnProjection column)  {
         if (column instanceof MetricProjection) {
-            return visitFormulaMetric((MetricProjection) column);
+            return visitFormulaMetric(parent, (MetricProjection) column);
         } else {
             if (column.getColumnType() == ColumnType.FORMULA) {
-                return visitFormulaDimension(column);
+                return visitFormulaDimension(parent, column);
             } else {
-                return visitFieldDimension(column);
+                return visitFieldDimension(parent, column);
             }
         }
     }
@@ -66,11 +62,11 @@ public abstract class ColumnVisitor<T> {
         return null;
     }
 
-    protected abstract T visitFormulaMetric(MetricProjection metric);
+    protected abstract T visitFormulaMetric(Queryable parent, MetricProjection metric);
 
-    protected abstract T visitFormulaDimension(ColumnProjection dimension);
+    protected abstract T visitFormulaDimension(Queryable parent, ColumnProjection dimension);
 
-    protected abstract T visitFieldDimension(ColumnProjection dimension);
+    protected abstract T visitFieldDimension(Queryable parent, ColumnProjection dimension);
 
     /**
      * Use regex to get all references from a formula expression.

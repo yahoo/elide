@@ -345,7 +345,7 @@ public class SQLQueryEngine extends QueryEngine {
 
         //Expand each metric into its own query plan.  Merge them all together.
         for (MetricProjection metricProjection : query.getMetricProjections()) {
-            QueryPlan queryPlan = metricProjection.resolve();
+            QueryPlan queryPlan = metricProjection.resolve(query);
             if (queryPlan != null) {
                 mergedPlan = queryPlan.merge(mergedPlan);
             }
@@ -412,7 +412,7 @@ public class SQLQueryEngine extends QueryEngine {
                 query.getAllDimensionProjections()
                         .stream()
                         .map(SQLColumnProjection.class::cast)
-                        .map((column) -> column.toSQL(queryReferenceTable))
+                        .map((column) -> column.toSQL(query.getSource(), queryReferenceTable))
                         .collect(Collectors.joining(", "));
 
         if (groupByDimensions.isEmpty()) {

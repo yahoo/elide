@@ -10,6 +10,7 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
+import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
@@ -25,8 +26,8 @@ import java.util.Map;
 public class DailyAverageScorePerPeriodResolver implements QueryPlanResolver {
 
     @Override
-    public QueryPlan resolve(MetricProjection projection) {
-        SQLTable table = (SQLTable) projection.getSource();
+    public QueryPlan resolve(Query query, MetricProjection projection) {
+        SQLTable table = (SQLTable) query.getSource();
 
         MetricProjection innerMetric = table.getMetricProjection("highScore");
         TimeDimension innerTimeGrain = table.getTimeDimension("recordedDate");
@@ -34,7 +35,7 @@ public class DailyAverageScorePerPeriodResolver implements QueryPlanResolver {
         arguments.put("grain", Argument.builder().name("grain").value(TimeGrain.DAY).build());
 
         QueryPlan innerQuery = QueryPlan.builder()
-                .source(projection.getSource())
+                .source(query.getSource())
                 .metricProjection(innerMetric)
                 .timeDimensionProjection(new SQLTimeDimensionProjection(
                         innerTimeGrain,
@@ -46,7 +47,6 @@ public class DailyAverageScorePerPeriodResolver implements QueryPlanResolver {
         QueryPlan outerQuery = QueryPlan.builder()
                 .source(innerQuery)
                 .metricProjection(SQLMetricProjection.builder()
-                        .source(innerQuery)
                         .alias(projection.getAlias())
                         .name(projection.getName())
                         .expression(projection.getExpression())

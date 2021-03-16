@@ -80,7 +80,6 @@ public final class QueryKeyExtractor implements FilterExpressionVisitor<Object> 
     }
 
     private void visit(ColumnProjection columnProjection) {
-        visit(columnProjection.getId());
         visit(columnProjection.getAlias());
         visit(columnProjection.getArguments());
     }

@@ -46,7 +46,7 @@ public class QueryKeyExtractorTest {
                 .metricProjection(playerStatsTable.getMetricProjection("highScore"))
                 .build();
         assertEquals(
-                "com_yahoo_elide_datastores_aggregation_example_PlayerStats;{playerStats.highScore;highScore;{}}{}{};;;;",
+                "com_yahoo_elide_datastores_aggregation_example_PlayerStats;{highScore;{}}{}{};;;;",
                 QueryKeyExtractor.extractKey(query));
     }
 
@@ -68,9 +68,9 @@ public class QueryKeyExtractorTest {
                 .pagination(new ImmutablePagination(0, 2, false, true))
                 .build();
         assertEquals("com_yahoo_elide_datastores_aggregation_example_PlayerStats;" // table name
-                        + "{playerStats.highScore;highScore;{}}" // columns
-                        + "{playerStats.overallRating;overallRating;{}}" // group by
-                        + "{playerStats.recordedDate;recordedDate;{}}" // time dimensions
+                        + "{highScore;{}}" // columns
+                        + "{overallRating;{}}" // group by
+                        + "{recordedDate;{}}" // time dimensions
                         + "{P;{{com.yahoo.elide.datastores.aggregation.example.PlayerStats;java.lang.String;countryNickName;}}IN;9;Uncle Sam;}" // where
                         + "{P;{{com.yahoo.elide.datastores.aggregation.example.PlayerStats;long;highScore;}}GT;3;300;}" // having
                         + "{com.yahoo.elide.datastores.aggregation.example.PlayerStats;{{com.yahoo.elide.datastores.aggregation.example.PlayerStats;java.lang.String;playerName;}}asc;}" // sort

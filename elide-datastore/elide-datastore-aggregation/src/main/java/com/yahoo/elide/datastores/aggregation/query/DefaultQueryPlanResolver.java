@@ -10,9 +10,9 @@ package com.yahoo.elide.datastores.aggregation.query;
  */
 public class DefaultQueryPlanResolver implements QueryPlanResolver {
     @Override
-    public QueryPlan resolve(MetricProjection projection) {
+    public QueryPlan resolve(Query source, MetricProjection projection) {
         return QueryPlan.builder()
-                .source(projection.getSource())
+                .source(source.getSource())
                 .metricProjection(projection)
                 .build();
     }

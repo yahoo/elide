@@ -19,6 +19,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueSourceType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -163,6 +164,10 @@ public abstract class Column implements Versioned {
             return ValueSourceType.TABLE;
         }
         return ValueSourceType.NONE;
+    }
+
+    public ColumnProjection toProjection() {
+        return table.toQueryable().getColumnProjection(getName());
     }
 
     @Override

@@ -10,8 +10,6 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
-import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
@@ -25,7 +23,6 @@ import java.util.Map;
 @Builder
 @AllArgsConstructor
 public class SQLDimensionProjection implements SQLColumnProjection {
-    private Queryable source;
     private String name;
     private ValueType valueType;
     private ColumnType columnType;
@@ -36,7 +33,6 @@ public class SQLDimensionProjection implements SQLColumnProjection {
     public SQLDimensionProjection(Dimension dimension,
                                   String alias,
                                   Map<String, Argument> arguments) {
-        this.source = (SQLTable) dimension.getTable();
         this.name = dimension.getName();
         this.expression = dimension.getExpression();
         this.valueType = dimension.getValueType();
@@ -46,22 +42,8 @@ public class SQLDimensionProjection implements SQLColumnProjection {
     }
 
     @Override
-    public SQLDimensionProjection withSource(Queryable source) {
+    public SQLDimensionProjection withExpression(String expression) {
         return SQLDimensionProjection.builder()
-                .source(source)
-                .name(name)
-                .alias(alias)
-                .valueType(valueType)
-                .columnType(columnType)
-                .expression(expression)
-                .arguments(arguments)
-                .build();
-    }
-
-    @Override
-    public SQLDimensionProjection withSourceAndExpression(Queryable source, String expression) {
-        return SQLDimensionProjection.builder()
-                .source(source)
                 .name(name)
                 .alias(alias)
                 .valueType(valueType)

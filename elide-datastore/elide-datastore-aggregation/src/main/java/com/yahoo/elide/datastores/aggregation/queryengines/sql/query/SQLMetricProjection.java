@@ -12,10 +12,9 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanResolver;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
+import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
-import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
@@ -28,7 +27,6 @@ import java.util.Map;
 @Value
 @Builder
 public class SQLMetricProjection implements MetricProjection, SQLColumnProjection {
-    private Queryable source;
     private String name;
     private ValueType valueType;
     private ColumnType columnType;
@@ -40,19 +38,17 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     private QueryPlanResolver queryPlanResolver;
 
     @Override
-    public QueryPlan resolve() {
-        return queryPlanResolver.resolve(this);
+    public QueryPlan resolve(Query query) {
+        return queryPlanResolver.resolve(query, this);
     }
 
-    public SQLMetricProjection(Queryable source,
-                               String name,
+    public SQLMetricProjection(String name,
                                ValueType valueType,
                                ColumnType columnType,
                                String expression,
                                String  alias,
                                Map<String, Argument> arguments,
                                QueryPlanResolver queryPlanResolver) {
-        this.source = source;
         this.name = name;
         this.valueType = valueType;
         this.columnType = columnType;
@@ -65,28 +61,13 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     public SQLMetricProjection(Metric metric,
                                String alias,
                                Map<String, Argument> arguments) {
-        this((SQLTable) metric.getTable(), metric.getName(), metric.getValueType(),
+        this(metric.getName(), metric.getValueType(),
                 metric.getColumnType(), metric.getExpression(), alias, arguments, metric.getQueryPlanResolver());
     }
 
     @Override
-    public SQLMetricProjection withSource(Queryable source) {
+    public SQLMetricProjection withExpression(String expression) {
         return SQLMetricProjection.builder()
-                .source(source)
-                .name(name)
-                .alias(alias)
-                .valueType(valueType)
-                .columnType(columnType)
-                .expression(expression)
-                .arguments(arguments)
-                .queryPlanResolver(queryPlanResolver)
-                .build();
-    }
-
-    @Override
-    public SQLMetricProjection withSourceAndExpression(Queryable source, String expression) {
-        return SQLMetricProjection.builder()
-                .source(source)
                 .name(name)
                 .alias(alias)
                 .valueType(valueType)
