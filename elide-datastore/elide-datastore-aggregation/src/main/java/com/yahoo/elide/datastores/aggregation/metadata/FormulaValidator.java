@@ -9,6 +9,7 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
@@ -23,22 +24,26 @@ import java.util.stream.Collectors;
 public class FormulaValidator extends ColumnVisitor<Void> {
     private final LinkedHashSet<String> visited = new LinkedHashSet<>();
 
+    private static String getColumnId(Queryable parent, ColumnProjection column) {
+        return parent.getName() + "." + column.getName();
+    }
+
     public FormulaValidator(MetaDataStore metaDataStore) {
         super(metaDataStore);
     }
 
     @Override
-    protected Void visitFormulaMetric(MetricProjection metric) {
-        return visitFormulaColumn(metric);
+    protected Void visitFormulaMetric(Queryable parent, MetricProjection metric) {
+        return visitFormulaColumn(parent, metric);
     }
 
     @Override
-    protected Void visitFormulaDimension(ColumnProjection dimension) {
-        return visitFormulaColumn(dimension);
+    protected Void visitFormulaDimension(Queryable parent, ColumnProjection dimension) {
+        return visitFormulaColumn(parent, dimension);
     }
 
     @Override
-    protected Void visitFieldDimension(ColumnProjection dimension) {
+    protected Void visitFieldDimension(Queryable parent, ColumnProjection dimension) {
         return null;
     }
 
@@ -48,36 +53,35 @@ public class FormulaValidator extends ColumnVisitor<Void> {
      * @param column a column defined with {@link MetricFormula} or {@link DimensionFormula}
      * @return null
      */
-    private Void visitFormulaColumn(ColumnProjection column) {
-        if (visited.contains(column.getId())) {
-            throw new IllegalArgumentException(referenceLoopMessage(visited, column));
+    private Void visitFormulaColumn(Queryable source, ColumnProjection column) {
+        if (visited.contains(getColumnId(source, column))) {
+            throw new IllegalArgumentException(referenceLoopMessage(visited, source, column));
         }
 
-        Queryable source = column.getSource();
         Type<?> tableClass = dictionary.getEntityClass(source.getName(), source.getVersion());
 
-        visited.add(column.getId());
+        visited.add(getColumnId(source, column));
         for (String reference : resolveFormulaReferences(column.getExpression())) {
 
             //Column is from a query instead of a table.  Nothing to validate.
-            if (column.getSource() != column.getSource().getSource()) {
+            if (source != source.getSource()) {
                 continue;
             } else if (reference.contains(".")) {
                 JoinPath joinToPath = new JoinPath(tableClass, dictionary, reference);
-                ColumnProjection columnProjection = getColumn(joinToPath);
-                if (columnProjection != null) {
-                    visitColumn(columnProjection);
+                Column joinToColumn = getColumn(joinToPath);
+                if (joinToColumn != null) {
+                    visitColumn(joinToColumn.getTable().toQueryable(), joinToColumn.toProjection());
                 }
             } else {
                 ColumnProjection referenceColumn = source.getColumnProjection(reference);
 
                 // if the reference is to a logical column, check it
                 if (referenceColumn != null && !reference.equals(column.getName())) {
-                    visitColumn(referenceColumn);
+                    visitColumn(source, referenceColumn);
                 }
             }
         }
-        visited.remove(column.getId());
+        visited.remove(getColumnId(source, column));
 
         return null;
     }
@@ -85,10 +89,11 @@ public class FormulaValidator extends ColumnVisitor<Void> {
     /**
      * Construct reference loop message.
      */
-    private static String referenceLoopMessage(LinkedHashSet<String> visited, ColumnProjection conflict) {
+    private static String referenceLoopMessage(LinkedHashSet<String> visited, Queryable source,
+                                               ColumnProjection conflict) {
         return "Formula reference loop found: "
                 + visited.stream()
                     .collect(Collectors.joining("->"))
-                + "->" + conflict.getId();
+                + "->" + getColumnId(source, conflict);
     }
 }

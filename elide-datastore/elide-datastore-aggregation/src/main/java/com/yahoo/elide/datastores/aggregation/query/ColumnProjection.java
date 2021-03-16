@@ -18,11 +18,6 @@ import java.util.Map;
  * Represents a projected column as an alias in a query.
  */
 public interface ColumnProjection extends Serializable {
-    /**
-     * Get the query source associated with the column.
-     * @return the query source
-     */
-    Queryable getSource();
 
     /**
      * Get the projection alias.
@@ -46,14 +41,6 @@ public interface ColumnProjection extends Serializable {
         } else {
             return createSafeAlias(name, alias);
         }
-    }
-
-    /**
-     * Returns a unique identifier for the column.
-     * @return a unique column ID
-     */
-    default String getId() {
-        return getSource().getName() + "." + getName();
     }
 
     /**
@@ -94,21 +81,11 @@ public interface ColumnProjection extends Serializable {
     int hashCode();
 
     /**
-     * Makes a copy of this column with a new source.
-     * @param source The new source.
-     * @return copy of the column projection.
-     */
-    default ColumnProjection withSource(Queryable source) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
      * Makes a copy of this column with a new source and expression.
-     * @param source The new source.
      * @param expression The new expression.
      * @return copy of the column projection.
      */
-    default ColumnProjection withSourceAndExpression(Queryable source, String expression) {
+    default ColumnProjection withExpression(String expression) {
         throw new UnsupportedOperationException();
     }
 

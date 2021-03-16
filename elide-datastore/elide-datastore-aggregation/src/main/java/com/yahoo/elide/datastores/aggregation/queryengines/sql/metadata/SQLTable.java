@@ -192,20 +192,9 @@ public class SQLTable extends Table implements Queryable {
         }
 
         return new SQLColumnProjection() {
-
-            @Override
-            public Queryable getSource() {
-                return SQLTable.this;
-            }
-
             @Override
             public String getAlias() {
                 return column.getName();
-            }
-
-            @Override
-            public String getId() {
-                return column.getId();
             }
 
             @Override
