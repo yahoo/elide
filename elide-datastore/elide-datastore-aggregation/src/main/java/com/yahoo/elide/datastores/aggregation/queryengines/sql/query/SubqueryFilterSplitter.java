@@ -21,6 +21,9 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable
 import lombok.Builder;
 import lombok.Data;
 
+import lombok.Builder;
+import lombok.Data;
+
 import java.util.Set;
 
 /**
@@ -36,6 +39,13 @@ public class SubqueryFilterSplitter
     public static class SplitFilter {
         FilterExpression outer;
         FilterExpression inner;
+    }
+
+    @Data
+    @Builder
+    public static class SplitFilter {
+        FilterExpression outerQueryFilter;
+        FilterExpression innerQueryFilter;
     }
 
     private SQLReferenceTable lookupTable;
