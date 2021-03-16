@@ -44,8 +44,8 @@ public class SubqueryFilterSplitter
     @Data
     @Builder
     public static class SplitFilter {
-        FilterExpression outerQueryFilter;
-        FilterExpression innerQueryFilter;
+        FilterExpression outer;
+        FilterExpression inner;
     }
 
     private SQLReferenceTable lookupTable;

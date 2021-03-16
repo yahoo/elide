@@ -156,11 +156,11 @@ public class SubqueryFilterSplitterTest {
         FilterExpression expression = parse(
                 "(countryUnSeats>3;overallRating=='Foo'),(overallRating=='Bar';overallRating=='Blah')");
 
-        Pair<FilterExpression, FilterExpression> splitExpressions =
+        SubqueryFilterSplitter.SplitFilter splitExpressions =
                 SubqueryFilterSplitter.splitFilter(lookupTable, metaDataStore, expression);
 
-        assertEquals(expression, splitExpressions.getLeft());
-        assertNull(splitExpressions.getRight());
+        assertEquals(expression, splitExpressions.getOuter());
+        assertNull(splitExpressions.getInner());
     }
 
     @Test
@@ -168,11 +168,11 @@ public class SubqueryFilterSplitterTest {
         FilterExpression expression = parse(
                 "(overallRating=='Foobar',overallRating=='Foo'),(overallRating=='Bar',overallRating=='Blah')");
 
-        Pair<FilterExpression, FilterExpression> splitExpressions =
+        SubqueryFilterSplitter.SplitFilter splitExpressions =
                 SubqueryFilterSplitter.splitFilter(lookupTable, metaDataStore, expression);
 
-        assertEquals(expression, splitExpressions.getRight());
-        assertNull(splitExpressions.getLeft());
+        assertEquals(expression, splitExpressions.getInner());
+        assertNull(splitExpressions.getOuter());
     }
 
     private FilterExpression parse(String filter) throws ParseException {
