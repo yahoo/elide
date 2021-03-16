@@ -17,7 +17,6 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
-import org.apache.commons.lang3.tuple.Pair;
 
 import lombok.Builder;
 import lombok.Data;
