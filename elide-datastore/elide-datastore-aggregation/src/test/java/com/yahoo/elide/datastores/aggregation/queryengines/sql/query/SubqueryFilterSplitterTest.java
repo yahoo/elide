@@ -26,7 +26,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -71,22 +70,22 @@ public class SubqueryFilterSplitterTest {
     public void testSinglePredicateNoJoin() throws Exception {
         FilterExpression expression = parse("overallRating=='Foo'");
 
-        Pair<FilterExpression, FilterExpression> splitExpressions =
+        SubqueryFilterSplitter.SplitFilter splitExpressions =
                 SubqueryFilterSplitter.splitFilter(lookupTable, metaDataStore, expression);
 
-        assertNull(splitExpressions.getLeft());
-        assertEquals(expression, splitExpressions.getRight());
+        assertNull(splitExpressions.getOuter());
+        assertEquals(expression, splitExpressions.getInner());
     }
 
     @Test
     public void testSinglePredicateWithJoin() throws Exception {
         FilterExpression expression = parse("countryUnSeats>3");
 
-        Pair<FilterExpression, FilterExpression> splitExpressions =
+        SubqueryFilterSplitter.SplitFilter splitExpressions =
                 SubqueryFilterSplitter.splitFilter(lookupTable, metaDataStore, expression);
 
-        assertNull(splitExpressions.getRight());
-        assertEquals(expression, splitExpressions.getLeft());
+        assertNull(splitExpressions.getInner());
+        assertEquals(expression, splitExpressions.getOuter());
     }
 
     @Test
@@ -95,22 +94,22 @@ public class SubqueryFilterSplitterTest {
         FilterExpression expectedOuter = parse("countryUnSeats>3");
         FilterExpression expectedInner = parse("overallRating=='Foo'");
 
-        Pair<FilterExpression, FilterExpression> splitExpressions =
+        SubqueryFilterSplitter.SplitFilter splitExpressions =
                 SubqueryFilterSplitter.splitFilter(lookupTable, metaDataStore, expression);
 
-        assertEquals(expectedOuter, splitExpressions.getLeft());
-        assertEquals(expectedInner, splitExpressions.getRight());
+        assertEquals(expectedOuter, splitExpressions.getOuter());
+        assertEquals(expectedInner, splitExpressions.getInner());
     }
 
     @Test
     public void testSplitByOr() throws Exception {
         FilterExpression expression = parse("countryUnSeats>3,overallRating=='Foo'");
 
-        Pair<FilterExpression, FilterExpression> splitExpressions =
+        SubqueryFilterSplitter.SplitFilter splitExpressions =
                 SubqueryFilterSplitter.splitFilter(lookupTable, metaDataStore, expression);
 
-        assertEquals(expression, splitExpressions.getLeft());
-        assertNull(splitExpressions.getRight());
+        assertEquals(expression, splitExpressions.getOuter());
+        assertNull(splitExpressions.getInner());
     }
 
     @Test
@@ -121,11 +120,11 @@ public class SubqueryFilterSplitterTest {
         FilterExpression expectedOuter = parse("countryUnSeats>3,overallRating=='Foo'");
         FilterExpression expectedInner = parse("overallRating=='Bar',overallRating=='Blah'");
 
-        Pair<FilterExpression, FilterExpression> splitExpressions =
+        SubqueryFilterSplitter.SplitFilter splitExpressions =
                 SubqueryFilterSplitter.splitFilter(lookupTable, metaDataStore, expression);
 
-        assertEquals(expectedOuter, splitExpressions.getLeft());
-        assertEquals(expectedInner, splitExpressions.getRight());
+        assertEquals(expectedOuter, splitExpressions.getOuter());
+        assertEquals(expectedInner, splitExpressions.getInner());
     }
 
     @Test
@@ -133,11 +132,11 @@ public class SubqueryFilterSplitterTest {
         FilterExpression expression = parse(
                 "(countryUnSeats>3;overallRating=='Foo'),(overallRating=='Bar';overallRating=='Blah')");
 
-        Pair<FilterExpression, FilterExpression> splitExpressions =
+        SubqueryFilterSplitter.SplitFilter splitExpressions =
                 SubqueryFilterSplitter.splitFilter(lookupTable, metaDataStore, expression);
 
-        assertEquals(expression, splitExpressions.getLeft());
-        assertNull(splitExpressions.getRight());
+        assertEquals(expression, splitExpressions.getOuter());
+        assertNull(splitExpressions.getInner());
     }
 
     @Test
@@ -145,11 +144,11 @@ public class SubqueryFilterSplitterTest {
         FilterExpression expression = parse(
                 "(overallRating=='Foobar',overallRating=='Foo'),(overallRating=='Bar',overallRating=='Blah')");
 
-        Pair<FilterExpression, FilterExpression> splitExpressions =
+        SubqueryFilterSplitter.SplitFilter splitExpressions =
                 SubqueryFilterSplitter.splitFilter(lookupTable, metaDataStore, expression);
 
-        assertEquals(expression, splitExpressions.getRight());
-        assertNull(splitExpressions.getLeft());
+        assertEquals(expression, splitExpressions.getInner());
+        assertNull(splitExpressions.getOuter());
     }
 
     private FilterExpression parse(String filter) throws ParseException {

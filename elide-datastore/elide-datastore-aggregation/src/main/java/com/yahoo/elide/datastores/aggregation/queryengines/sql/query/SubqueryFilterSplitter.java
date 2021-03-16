@@ -24,14 +24,19 @@ import lombok.Data;
 
 import java.util.Set;
 
+/**
+ * Splits a filter expression into two parts:
+ * 1. A part that can be safely run on a nested subquery where no joins take place.
+ * 2. A part that must run on the outer query because of joins to other tables.
+ */
 public class SubqueryFilterSplitter
-        implements FilterExpressionVisitor<Pair<FilterExpression, FilterExpression>> {
+        implements FilterExpressionVisitor<SubqueryFilterSplitter.SplitFilter> {
 
     @Data
     @Builder
     public static class SplitFilter {
-        FilterExpression outerQueryFilter;
-        FilterExpression innerQueryFilter;
+        FilterExpression outer;
+        FilterExpression inner;
     }
 
     private SQLReferenceTable lookupTable;
@@ -42,7 +47,7 @@ public class SubqueryFilterSplitter
         this.lookupTable = lookupTable;
     }
 
-    public static Pair<FilterExpression, FilterExpression> splitFilter(
+    public static SplitFilter splitFilter(
             SQLReferenceTable lookupTable,
             MetaDataStore metaDataStore,
             FilterExpression expression) {
@@ -53,7 +58,7 @@ public class SubqueryFilterSplitter
     }
 
     @Override
-    public Pair<FilterExpression, FilterExpression> visitPredicate(FilterPredicate filterPredicate) {
+    public SplitFilter visitPredicate(FilterPredicate filterPredicate) {
         Type<?> tableType = filterPredicate.getEntityType();
         String fieldName = filterPredicate.getField();
 
@@ -62,48 +67,69 @@ public class SubqueryFilterSplitter
         Set<String> joins = lookupTable.getResolvedJoinExpressions(table, fieldName);
 
         if (joins.size() > 0) {
-            return Pair.of(filterPredicate, null);
+            return SplitFilter.builder().outer(filterPredicate).build();
         } else {
-            return Pair.of(null, filterPredicate);
+            return SplitFilter.builder().inner(filterPredicate).build();
         }
     }
 
     @Override
-    public Pair<FilterExpression, FilterExpression> visitAndExpression(AndFilterExpression expression) {
-        Pair<FilterExpression, FilterExpression> lhs = expression.getLeft().accept(this);
-        Pair<FilterExpression, FilterExpression> rhs = expression.getRight().accept(this);
+    public SplitFilter visitAndExpression(AndFilterExpression expression) {
+        SplitFilter lhs = expression.getLeft().accept(this);
+        SplitFilter rhs = expression.getRight().accept(this);
 
-        return Pair.of(
-                AndFilterExpression.fromPair(lhs.getLeft(), rhs.getLeft()),
-                AndFilterExpression.fromPair(lhs.getRight(), rhs.getRight())
-        );
+        return SplitFilter.builder()
+                .outer(AndFilterExpression.fromPair(lhs.getOuter(), rhs.getOuter()))
+                .inner(AndFilterExpression.fromPair(lhs.getInner(), rhs.getInner()))
+                .build();
     }
 
     @Override
-    public Pair<FilterExpression, FilterExpression> visitOrExpression(OrFilterExpression expression) {
-        Pair<FilterExpression, FilterExpression> lhs = expression.getLeft().accept(this);
-        Pair<FilterExpression, FilterExpression> rhs = expression.getRight().accept(this);
+    public SplitFilter visitOrExpression(OrFilterExpression expression) {
+        SplitFilter lhs = expression.getLeft().accept(this);
+        SplitFilter rhs = expression.getRight().accept(this);
 
-        if (lhs.getLeft() != null || rhs.getLeft() != null) {
+        //If either the left or right side of the expression require an outer query, the entire
+        //expression must be run as an outer query.
+        if (lhs.getOuter() != null || rhs.getOuter() != null) {
+
+            //The only operation that splits a filter into inner & outer is AND.  We can recombine
+            //each side using AND and then OR the results.
             FilterExpression combined = OrFilterExpression.fromPair(
-                    AndFilterExpression.fromPair(lhs.getLeft(), lhs.getRight()),
-                    AndFilterExpression.fromPair(rhs.getLeft(), rhs.getRight()));
+                    AndFilterExpression.fromPair(lhs.getOuter(), lhs.getInner()),
+                    AndFilterExpression.fromPair(rhs.getOuter(), rhs.getInner()));
 
-            return Pair.of(combined, null);
+            return SplitFilter.builder()
+                    .outer(combined)
+                    .build();
+
+        //Both left and right are inner queries.
         } else {
-            return Pair.of(null,
-                    OrFilterExpression.fromPair(lhs.getRight(), rhs.getRight())
-            );
+            FilterExpression combined = OrFilterExpression.fromPair(
+                    lhs.getInner(),
+                    rhs.getInner());
+
+            return SplitFilter.builder()
+                    .inner(combined)
+                    .build();
         }
     }
 
     @Override
-    public Pair<FilterExpression, FilterExpression> visitNotExpression(NotFilterExpression expression) {
-        Pair<FilterExpression, FilterExpression> inner = expression.getNegated().accept(this);
+    public SplitFilter visitNotExpression(NotFilterExpression expression) {
+        SplitFilter negated = expression.getNegated().accept(this);
 
-        return Pair.of(
-                inner.getLeft() == null ? null : new NotFilterExpression(inner.getLeft()),
-                inner.getRight() == null ? null : new NotFilterExpression(inner.getRight())
-        );
+        FilterExpression outerFilter = negated.getOuter() == null
+                ? null
+                : new NotFilterExpression(negated.getOuter());
+
+        FilterExpression innerFilter = negated.getInner() == null
+                ? null
+                : new NotFilterExpression(negated.getInner());
+
+        return SplitFilter.builder()
+                .outer(outerFilter)
+                .inner(innerFilter)
+                .build();
     }
 }
