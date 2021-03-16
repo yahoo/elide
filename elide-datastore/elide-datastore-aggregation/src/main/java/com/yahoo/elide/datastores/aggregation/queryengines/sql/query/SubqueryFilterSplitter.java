@@ -19,10 +19,20 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLRefer
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import org.apache.commons.lang3.tuple.Pair;
 
+import lombok.Builder;
+import lombok.Data;
+
 import java.util.Set;
 
 public class SubqueryFilterSplitter
         implements FilterExpressionVisitor<Pair<FilterExpression, FilterExpression>> {
+
+    @Data
+    @Builder
+    public static class SplitFilter {
+        FilterExpression outerQueryFilter;
+        FilterExpression innerQueryFilter;
+    }
 
     private SQLReferenceTable lookupTable;
     private MetaDataStore metaDataStore;
