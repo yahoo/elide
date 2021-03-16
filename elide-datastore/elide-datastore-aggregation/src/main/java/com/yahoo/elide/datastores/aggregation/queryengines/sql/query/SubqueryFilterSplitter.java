@@ -44,7 +44,7 @@ public class SubqueryFilterSplitter
 
     @Override
     public Pair<FilterExpression, FilterExpression> visitPredicate(FilterPredicate filterPredicate) {
-        Type<?> tableType = filterPredicate.getFieldType();
+        Type<?> tableType = filterPredicate.getEntityType();
         String fieldName = filterPredicate.getField();
 
         SQLTable table = (SQLTable) metaDataStore.getTable(tableType);
@@ -61,7 +61,7 @@ public class SubqueryFilterSplitter
     @Override
     public Pair<FilterExpression, FilterExpression> visitAndExpression(AndFilterExpression expression) {
         Pair<FilterExpression, FilterExpression> lhs = expression.getLeft().accept(this);
-        Pair<FilterExpression, FilterExpression> rhs = expression.getLeft().accept(this);
+        Pair<FilterExpression, FilterExpression> rhs = expression.getRight().accept(this);
 
         return Pair.of(
                 AndFilterExpression.fromPair(lhs.getLeft(), rhs.getLeft()),
@@ -72,7 +72,7 @@ public class SubqueryFilterSplitter
     @Override
     public Pair<FilterExpression, FilterExpression> visitOrExpression(OrFilterExpression expression) {
         Pair<FilterExpression, FilterExpression> lhs = expression.getLeft().accept(this);
-        Pair<FilterExpression, FilterExpression> rhs = expression.getLeft().accept(this);
+        Pair<FilterExpression, FilterExpression> rhs = expression.getRight().accept(this);
 
         if (lhs.getLeft() != null || rhs.getLeft() != null) {
             FilterExpression combined = OrFilterExpression.fromPair(
