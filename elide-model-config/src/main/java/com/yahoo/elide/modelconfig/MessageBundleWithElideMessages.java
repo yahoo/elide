@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.modelconfig;
 
+import com.yahoo.elide.modelconfig.jsonformats.ElideArgumentNameFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideCardinalityFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideFieldNameFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideFieldTypeFormatAttr;
@@ -18,6 +19,7 @@ import com.yahoo.elide.modelconfig.jsonformats.ElideRoleFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideTimeFieldTypeFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.JavaClassNameFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.JavaClassNameWithExtFormatAttr;
+import com.yahoo.elide.modelconfig.jsonformats.ValidateArgsPropertiesValidator;
 import com.yahoo.elide.modelconfig.jsonformats.ValidateDimPropertiesValidator;
 import com.yahoo.elide.modelconfig.jsonformats.ValidateTimeDimPropertiesValidator;
 import com.github.fge.jsonschema.messages.JsonSchemaValidationBundle;
@@ -40,6 +42,8 @@ public class MessageBundleWithElideMessages {
         // For Format errors
         msgSourceBuilder.put(ElideFieldNameFormatAttr.FORMAT_KEY, ElideFieldNameFormatAttr.FORMAT_MSG);
         msgSourceBuilder.put(ElideFieldNameFormatAttr.NAME_KEY, ElideFieldNameFormatAttr.NAME_MSG);
+        msgSourceBuilder.put(ElideArgumentNameFormatAttr.FORMAT_KEY, ElideArgumentNameFormatAttr.FORMAT_MSG);
+        msgSourceBuilder.put(ElideArgumentNameFormatAttr.NAME_KEY, ElideArgumentNameFormatAttr.NAME_MSG);
         msgSourceBuilder.put(ElideCardinalityFormatAttr.TYPE_KEY, ElideCardinalityFormatAttr.TYPE_MSG);
         msgSourceBuilder.put(ElideFieldTypeFormatAttr.TYPE_KEY, ElideFieldTypeFormatAttr.TYPE_MSG);
         msgSourceBuilder.put(ElideGrainTypeFormatAttr.TYPE_KEY, ElideGrainTypeFormatAttr.TYPE_MSG);
@@ -60,6 +64,8 @@ public class MessageBundleWithElideMessages {
                         ValidateDimPropertiesValidator.ADDITIONAL_MSG);
         msgSourceBuilder.put(ValidateTimeDimPropertiesValidator.ADDITIONAL_KEY,
                         ValidateTimeDimPropertiesValidator.ADDITIONAL_MSG);
+        msgSourceBuilder.put(ValidateArgsPropertiesValidator.ATMOST_ONE_KEY,
+                        ValidateArgsPropertiesValidator.ATMOST_ONE_MSG);
 
         this.msgBundle = MessageBundles.getBundle(JsonSchemaValidationBundle.class).thaw()
                         .appendSource(msgSourceBuilder.build())

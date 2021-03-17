@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.modelconfig;
 
+import com.yahoo.elide.modelconfig.jsonformats.ElideArgumentNameFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideCardinalityFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideFieldNameFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideFieldTypeFormatAttr;
@@ -18,6 +19,7 @@ import com.yahoo.elide.modelconfig.jsonformats.ElideRoleFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideTimeFieldTypeFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.JavaClassNameFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.JavaClassNameWithExtFormatAttr;
+import com.yahoo.elide.modelconfig.jsonformats.ValidateArgsPropertiesKeyword;
 import com.yahoo.elide.modelconfig.jsonformats.ValidateDimPropertiesKeyword;
 import com.yahoo.elide.modelconfig.jsonformats.ValidateTimeDimPropertiesKeyword;
 import com.github.fge.jsonschema.library.DraftV4Library;
@@ -36,6 +38,7 @@ public class DraftV4LibraryWithElideFormatAttr {
         LibraryBuilder builder = DraftV4Library.get().thaw();
 
         builder.addFormatAttribute(ElideFieldNameFormatAttr.FORMAT_NAME, new ElideFieldNameFormatAttr());
+        builder.addFormatAttribute(ElideArgumentNameFormatAttr.FORMAT_NAME, new ElideArgumentNameFormatAttr());
         builder.addFormatAttribute(ElideCardinalityFormatAttr.FORMAT_NAME, new ElideCardinalityFormatAttr());
         builder.addFormatAttribute(ElideFieldTypeFormatAttr.FORMAT_NAME, new ElideFieldTypeFormatAttr());
         builder.addFormatAttribute(ElideGrainTypeFormatAttr.FORMAT_NAME, new ElideGrainTypeFormatAttr());
@@ -51,6 +54,7 @@ public class DraftV4LibraryWithElideFormatAttr {
 
         builder.addKeyword(new ValidateDimPropertiesKeyword().getKeyword());
         builder.addKeyword(new ValidateTimeDimPropertiesKeyword().getKeyword());
+        builder.addKeyword(new ValidateArgsPropertiesKeyword().getKeyword());
 
         library = builder.freeze();
     }

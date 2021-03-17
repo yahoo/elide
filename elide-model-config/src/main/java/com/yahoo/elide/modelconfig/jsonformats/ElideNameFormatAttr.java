@@ -19,7 +19,7 @@ import com.github.fge.msgsimple.bundle.MessageBundle;
  * </p>
  */
 public class ElideNameFormatAttr extends AbstractFormatAttribute {
-    private static final String NAME_FORMAT_REGEX = "^[A-Za-z][0-9A-Za-z_]*$";
+    public static final String NAME_FORMAT_REGEX = "^[A-Za-z][0-9A-Za-z_]*$";
 
     public static final String FORMAT_NAME = "elideName";
     public static final String FORMAT_KEY = "elideName.error.format";
