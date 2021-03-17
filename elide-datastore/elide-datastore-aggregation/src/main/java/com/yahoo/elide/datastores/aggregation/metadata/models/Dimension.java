@@ -34,6 +34,7 @@ public class Dimension extends Column {
                     DimensionFormula.class,
                     fieldName);
             if (formula == null) {
+                // Physical Reference, not using @DimensionFormula
                 return null;
             } else {
                 ColumnMeta meta = dictionary.getAttributeOrRelationAnnotation(

@@ -16,7 +16,7 @@ import java.util.Set;
 import javax.persistence.Id;
 
 /**
- * Arguments that can be provided into a function.
+ * Arguments that can be provided into a metric function.
  */
 @Include(rootLevel = false, type = "functionArgument")
 @Data
