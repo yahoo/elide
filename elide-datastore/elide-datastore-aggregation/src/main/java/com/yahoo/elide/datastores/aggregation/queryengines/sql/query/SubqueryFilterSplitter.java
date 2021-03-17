@@ -21,9 +21,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable
 import lombok.Builder;
 import lombok.Data;
 
-import lombok.Builder;
-import lombok.Data;
-
 import java.util.Set;
 
 /**
