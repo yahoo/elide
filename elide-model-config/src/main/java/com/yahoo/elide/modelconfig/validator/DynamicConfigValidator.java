@@ -19,6 +19,7 @@ import com.yahoo.elide.modelconfig.Config;
 import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
 import com.yahoo.elide.modelconfig.DynamicConfigSchemaValidator;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
+import com.yahoo.elide.modelconfig.model.Argument;
 import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.modelconfig.model.Dimension;
 import com.yahoo.elide.modelconfig.model.ElideDBConfig;
@@ -171,8 +172,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         this.elideSQLDBConfig.setDbconfigs(readDbConfig());
         this.elideTableConfig.setTables(readTableConfig());
         validateRequiredConfigsProvided();
-        validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs());
-        validateNameUniqueness(this.elideTableConfig.getTables());
+        validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs(), "Multiple DB configs found with the same name: ");
+        validateNameUniqueness(this.elideTableConfig.getTables(), "Multiple Table configs found with the same name: ");
         populateInheritance(this.elideTableConfig);
         validateTableConfig();
         validateJoinedTablesDBConnectionName(this.elideTableConfig);
@@ -492,6 +493,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         for (Table table : elideTableConfig.getTables()) {
 
             validateSql(table.getSql());
+            validateArguments(table.getArguments());
             Set<String> tableFields = new HashSet<>();
 
             table.getDimensions().forEach(dim -> {
@@ -499,12 +501,14 @@ public class DynamicConfigValidator implements DynamicConfiguration {
                 validateSql(dim.getDefinition());
                 validateTableSource(dim.getTableSource());
                 extractChecksFromExpr(dim.getReadAccess(), extractedChecks, visitor);
+                validateArguments(dim.getArguments());
             });
 
             table.getMeasures().forEach(measure -> {
                 validateFieldNameUniqueness(tableFields, measure.getName(), table.getName());
                 validateSql(measure.getDefinition());
                 extractChecksFromExpr(measure.getReadAccess(), extractedChecks, visitor);
+                validateArguments(measure.getArguments());
             });
 
             table.getJoins().forEach(join -> {
@@ -517,6 +521,13 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         }
 
         return true;
+    }
+
+    private void validateArguments(List<Argument> arguments) {
+        validateNameUniqueness(new HashSet<>(arguments), "Multiple Arguments found with the same name: ");
+        arguments.forEach(arg -> {
+            validateTableSource(arg.getTableSource());
+        });
     }
 
     private void validateChecks(Set<String> checks) {
@@ -580,8 +591,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
             return;
         }
 
-        if (hasStaticModel(modelName, NO_VERSION)) {
-            if (!hasStaticField(modelName, NO_VERSION, fieldName)) {
+        if (isStaticModel(modelName, NO_VERSION)) {
+            if (!isFieldInStaticModel(modelName, NO_VERSION, fieldName)) {
                 throw new IllegalStateException("Invalid tableSource : " + tableSource + " . Field : " + fieldName
                                 + " is undefined for non-hjson model: " + modelName);
             }
@@ -623,12 +634,12 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     /**
      * Validates table (or db connection) name is unique across all the dynamic table (or db connection) configs.
      */
-    private static void validateNameUniqueness(Set<? extends Named> configs) {
+    private static void validateNameUniqueness(Set<? extends Named> configs, String errorMsg) {
 
         Set<String> names = new HashSet<>();
         configs.forEach(obj -> {
             if (!names.add(obj.getName().toLowerCase(Locale.ENGLISH))) {
-                throw new IllegalStateException("Duplicate!! Either Table or DB configs found with the same name.");
+                throw new IllegalStateException(errorMsg + obj.getName());
             }
         });
     }
@@ -651,7 +662,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     private void validateJoin(Join join) {
         String joinModelName = join.getTo();
 
-        if (!(elideTableConfig.hasTable(joinModelName) || hasStaticModel(joinModelName, NO_VERSION))) {
+        if (!(elideTableConfig.hasTable(joinModelName) || isStaticModel(joinModelName, NO_VERSION))) {
             throw new IllegalStateException(
                             "Model: " + joinModelName + " is neither included in dynamic models nor in static models");
         }
@@ -768,7 +779,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         return filePath;
     }
 
-    private boolean hasStaticField(String modelName, String version, String fieldName) {
+    private boolean isFieldInStaticModel(String modelName, String version, String fieldName) {
         Type<?> modelType = dictionary.getEntityClass(modelName, version);
         if (modelType == null) {
             return false;
@@ -781,7 +792,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         }
     }
 
-    private boolean hasStaticModel(String modelName, String version) {
+    private boolean isStaticModel(String modelName, String version) {
         Type<?> modelType = dictionary.getEntityClass(modelName, version);
         return modelType != null;
     }

@@ -51,6 +51,7 @@ public class MessageBundleWithElideMessages {
         msgSourceBuilder.put(ElideJoinKindFormatAttr.TYPE_KEY, ElideJoinKindFormatAttr.TYPE_MSG);
         msgSourceBuilder.put(ElideTimeFieldTypeFormatAttr.TYPE_KEY, ElideTimeFieldTypeFormatAttr.TYPE_MSG);
         msgSourceBuilder.put(ElideNameFormatAttr.FORMAT_KEY, ElideNameFormatAttr.FORMAT_MSG);
+        msgSourceBuilder.put(ElideNameFormatAttr.NAME_KEY, ElideNameFormatAttr.NAME_MSG);
         msgSourceBuilder.put(ElideRSQLFilterFormatAttr.FORMAT_KEY, ElideRSQLFilterFormatAttr.FORMAT_MSG);
         msgSourceBuilder.put(JavaClassNameWithExtFormatAttr.FORMAT_KEY, JavaClassNameWithExtFormatAttr.FORMAT_MSG);
         msgSourceBuilder.put(JavaClassNameFormatAttr.FORMAT_KEY, JavaClassNameFormatAttr.FORMAT_MSG);

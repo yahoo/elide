@@ -11,7 +11,7 @@
           to: currencyRates
           kind: toOne
           type: left
-          definition: "{{rates.$id}} = {{$$column.args.currency}} AND {{rates.$date}} = {{date}}"
+          definition: "{{rates.$id}} = {{$$column.args.currency}} AND {{rates.$date}} = {{eventTime}}"
         }
       ]
       measures:
@@ -43,13 +43,13 @@
         {
           name: revenue
           type: MONEY
-          definition: SUM({{$revenue}}) * {{rates.currentRate}}
+          definition: SUM({{$revenue}}) * {{rates.conversionRate}}
           arguments:
           [
             {
               name: currency
               type: TEXT
-              tableSource: rates.id
+              tableSource: currencyRates.currencyCode
             }
             {
               name: format
@@ -91,7 +91,12 @@
       dimensions:
       [
         {
-          name: currentRate
+          name: currencyCode
+          type: TEXT
+          definition: "{{$id}}"
+        }
+        {
+          name: conversionRate
           type: DECIMAL
           definition: "{{$conversion_rate}}"
         }
