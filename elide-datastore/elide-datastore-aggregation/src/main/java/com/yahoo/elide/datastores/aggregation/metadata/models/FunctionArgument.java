@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueSourceType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,6 +33,8 @@ public class FunctionArgument {
 
     private ValueType type;
 
+    private final ValueSourceType valueSourceType;
+
     private Set<String> values;
 
     private String tableSource;
@@ -46,5 +49,6 @@ public class FunctionArgument {
         this.values = argument.getValues();
         this.tableSource = argument.getTableSource();
         this.defaultValue = argument.getDefaultValue();
+        this.valueSourceType = ValueSourceType.getValueSourceType(this.values, this.tableSource);
     }
 }

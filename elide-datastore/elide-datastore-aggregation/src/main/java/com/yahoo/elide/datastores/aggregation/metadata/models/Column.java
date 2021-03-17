@@ -93,7 +93,8 @@ public abstract class Column implements Versioned {
             this.values = new HashSet<>(Arrays.asList(meta.values()));
             this.tags = new HashSet<>(Arrays.asList(meta.tags()));
             this.tableSource = (meta.tableSource().trim().isEmpty()) ? null : meta.tableSource();
-            this.valueSourceType = getValueSourceType();
+            this.valueSourceType = ValueSourceType.getValueSourceType(this.values,
+                    this.tableSource);
             this.cardinality = meta.size();
         } else {
             this.friendlyName = name;
@@ -161,16 +162,6 @@ public abstract class Column implements Versioned {
             return ValueType.TIME;
         }
         return ValueType.getScalarType(fieldClass);
-    }
-
-    private ValueSourceType getValueSourceType() {
-        if (values != null && !values.isEmpty()) {
-            return ValueSourceType.ENUM;
-        }
-        if (tableSource != null) {
-            return ValueSourceType.TABLE;
-        }
-        return ValueSourceType.NONE;
     }
 
     public ColumnProjection toProjection() {
