@@ -38,6 +38,7 @@ import java.util.Set;
     "type",
     "grains",
     "tags",
+    "arguments",
     "values",
     "tableSource"
 })
@@ -82,6 +83,10 @@ public class Dimension implements Named {
     @JsonProperty("tags")
     @JsonDeserialize(as = LinkedHashSet.class)
     private Set<String> tags = new LinkedHashSet<String>();
+
+    @JsonProperty("arguments")
+    @Singular
+    private List<Argument> arguments = new ArrayList<Argument>();
 
     @JsonProperty("values")
     @JsonDeserialize(as = LinkedHashSet.class)

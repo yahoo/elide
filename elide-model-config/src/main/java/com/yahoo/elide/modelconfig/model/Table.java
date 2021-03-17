@@ -38,6 +38,7 @@ import java.util.Set;
     "measures",
     "dimensions",
     "tags",
+    "arguments",
     "extend",
     "sql",
     "table",
@@ -99,6 +100,10 @@ public class Table implements Named {
     @JsonProperty("tags")
     @JsonDeserialize(as = LinkedHashSet.class)
     private Set<String> tags = new LinkedHashSet<String>();
+
+    @JsonProperty("arguments")
+    @Singular
+    private List<Argument> arguments = new ArrayList<Argument>();
 
     @JsonProperty("extend")
     private String extend;

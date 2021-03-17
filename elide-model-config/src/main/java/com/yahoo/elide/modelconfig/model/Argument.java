@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Yahoo Inc.
+ * Copyright 2021, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -14,75 +14,51 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.Singular;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
- * Measures represent metrics that can be aggregated at query time.
+ * Argument Model.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "name",
-    "friendlyName",
     "description",
-    "category",
-    "hidden",
-    "readAccess",
-    "definition",
-    "queryPlanResolver",
     "type",
-    "tags",
-    "arguments",
+    "values",
+    "tableSource",
+    "default"
 })
 @Data
 @EqualsAndHashCode()
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Measure implements Named {
+public class Argument implements Named {
 
     @JsonProperty("name")
     private String name;
 
-    @JsonProperty("friendlyName")
-    private String friendlyName;
-
     @JsonProperty("description")
     private String description;
-
-    @JsonProperty("category")
-    private String category;
-
-    @JsonProperty("hidden")
-    private Boolean hidden = false;
-
-    @JsonProperty("readAccess")
-    private String readAccess = "Prefab.Role.All";
-
-    @JsonProperty("definition")
-    private String definition;
 
     @JsonProperty("type")
     private Type type;
 
-    @JsonProperty("queryPlanResolver")
-    private String queryPlanResolver;
-
-    @JsonProperty("tags")
+    @JsonProperty("values")
     @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<String> tags = new LinkedHashSet<String>();
+    private Set<String> values = new LinkedHashSet<String>();
 
-    @JsonProperty("arguments")
-    @Singular
-    private List<Argument> arguments = new ArrayList<Argument>();
+    @JsonProperty("tableSource")
+    private String tableSource;
+
+    @JsonProperty("default")
+    private Object defaultValue;
 
     /**
-     * Returns description of the measure.
-     * If null, returns the name.
+     * Returns description of the argument.
+     * If null, returns the name
      * @return description
      */
     public String getDescription() {
