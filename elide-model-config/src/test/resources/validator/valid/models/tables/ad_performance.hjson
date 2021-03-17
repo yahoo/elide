@@ -1,0 +1,101 @@
+{
+  tables:
+  [
+    {
+      name: revenueFact
+      table: revenue_fact
+      joins:
+      [
+        {
+          name: rates
+          to: currencyRates
+          kind: toOne
+          type: left
+          definition: "{{rates.$id}} = {{$$column.args.currency}} AND {{rates.$date}} = {{date}}"
+        }
+      ]
+      measures:
+      [
+        {
+          name: impressions
+          type: INTEGER
+          definition: "{{$$column.args.aggregation}}({{$impressions}})"
+          arguments:
+          [
+            {
+              name: aggregation
+              type: TEXT
+              values:
+              [
+                SUM
+                MIN
+                MAX
+              ]
+              default: SUM
+            }
+          ]
+        }
+        {
+          name: impressionsPerUSD
+          type: INTEGER
+          definition: "{{sql table='revenueFact' column='impressions[aggregation:SUM]'}} / {{sql table='revenueFact' column='revenue[currency:USD][format:%240.00]'}}"
+        }
+        {
+          name: revenue
+          type: MONEY
+          definition: SUM({{$revenue}}) * {{rates.currentRate}}
+          arguments:
+          [
+            {
+              name: currency
+              type: TEXT
+              tableSource: rates.id
+            }
+            {
+              name: format
+              type: TEXT
+              default: $0.00
+            }
+          ]
+        }
+      ]
+      dimensions:
+      [
+        {
+          name: campaignId
+          type: INTEGER
+          definition: "{{$campaignId}}"
+        }
+        {
+          name: eventTime
+          type: TIME
+          definition: "{{$date}}"
+          grains:
+          [
+            {
+              type: MONTH
+              sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
+            }
+            {
+              type: DAY
+              sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+            }
+          ]
+        }
+      ]
+    }
+    {
+      name: currencyRates
+      table: currency_rates
+      cardinality: small
+      dimensions:
+      [
+        {
+          name: currentRate
+          type: DECIMAL
+          definition: "{{$conversion_rate}}"
+        }
+      ]
+    }
+  ]
+}

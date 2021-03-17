@@ -62,7 +62,8 @@ public class DynamicConfigSchemaValidatorTest {
     @ParameterizedTest
     @ValueSource(strings = {
             "/validator/valid/models/tables/player_stats.hjson",
-            "/validator/valid/models/tables/player_stats_extends.hjson"})
+            "/validator/valid/models/tables/player_stats_extends.hjson",
+            "/validator/valid/models/tables/ad_performance.hjson"})
     public void testValidTableSchema(String resource) throws Exception {
         String jsonConfig = loadHjsonFromClassPath(resource);
         String fileName = getFileName(resource);

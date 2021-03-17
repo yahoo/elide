@@ -675,7 +675,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         }
 
         references.forEach(reference -> {
-            if (reference.indexOf('.') != -1) {
+            if (!reference.startsWith("$$") && reference.indexOf('.') != -1) {
                 String joinField = reference.substring(0, reference.indexOf('.'));
                 if (!joinField.equals(join.getName())) {
                     throw new IllegalStateException("Join name must be used before '.' in join definition. Found '"
