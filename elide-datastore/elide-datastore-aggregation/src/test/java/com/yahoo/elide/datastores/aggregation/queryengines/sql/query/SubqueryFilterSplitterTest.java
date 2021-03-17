@@ -151,30 +151,6 @@ public class SubqueryFilterSplitterTest {
         assertNull(splitExpressions.getOuter());
     }
 
-    @Test
-    public void testCompoundSplitByOr() throws Exception {
-        FilterExpression expression = parse(
-                "(countryUnSeats>3;overallRating=='Foo'),(overallRating=='Bar';overallRating=='Blah')");
-
-        SubqueryFilterSplitter.SplitFilter splitExpressions =
-                SubqueryFilterSplitter.splitFilter(lookupTable, metaDataStore, expression);
-
-        assertEquals(expression, splitExpressions.getOuter());
-        assertNull(splitExpressions.getInner());
-    }
-
-    @Test
-    public void testAllOrsWithNoJoins() throws Exception {
-        FilterExpression expression = parse(
-                "(overallRating=='Foobar',overallRating=='Foo'),(overallRating=='Bar',overallRating=='Blah')");
-
-        SubqueryFilterSplitter.SplitFilter splitExpressions =
-                SubqueryFilterSplitter.splitFilter(lookupTable, metaDataStore, expression);
-
-        assertEquals(expression, splitExpressions.getInner());
-        assertNull(splitExpressions.getOuter());
-    }
-
     private FilterExpression parse(String filter) throws ParseException {
         return dialect.parse(PLAYER_STATS_TYPE, new HashSet<>(), filter, NO_VERSION);
     }

@@ -41,13 +41,6 @@ public class SubqueryFilterSplitter
         FilterExpression inner;
     }
 
-    @Data
-    @Builder
-    public static class SplitFilter {
-        FilterExpression outer;
-        FilterExpression inner;
-    }
-
     private SQLReferenceTable lookupTable;
     private MetaDataStore metaDataStore;
 
