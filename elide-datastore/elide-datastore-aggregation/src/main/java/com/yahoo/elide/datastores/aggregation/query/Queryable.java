@@ -54,15 +54,6 @@ public interface Queryable {
     }
 
     /**
-     * Looks up the alias for a particular column.
-     * @param columnName The name of the column.
-     * @return The alias for the given column.
-     */
-    default String getAlias(String columnName) {
-        return getAlias();
-    }
-
-    /**
      * Retrieves a column by name.
      * @param name The alias of the column.
      * @return The column.
