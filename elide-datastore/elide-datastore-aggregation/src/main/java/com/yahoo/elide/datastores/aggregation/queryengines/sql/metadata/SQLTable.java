@@ -170,11 +170,6 @@ public class SQLTable extends Table implements Queryable {
     }
 
     @Override
-    public String getAlias(String columnName) {
-        return super.getAlias();
-    }
-
-    @Override
     public ColumnProjection getColumnProjection(String name) {
         return getColumnProjection(name, Collections.emptyMap());
     }
