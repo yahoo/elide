@@ -80,7 +80,7 @@ public class SqlReferenceVisitorTest {
         SQLTable table = (SQLTable) store.getTable(getClassType(TestModel.class));
         ColumnProjection column = table.getDimensionProjection("dimension1");
 
-        String actual = visitor.visitColumn(column);
+        String actual = visitor.visitColumn(table, column);
 
         assertEquals(applyQuotes("test_table.dimension1", getDefaultDialect()), actual);
     }
@@ -91,7 +91,7 @@ public class SqlReferenceVisitorTest {
 
         SQLTable table = (SQLTable) store.getTable(getClassType(TestModel.class));
         ColumnProjection column = table.getDimensionProjection("dimension2");
-        String actual = visitor.visitColumn(column);
+        String actual = visitor.visitColumn(table, column);
 
         assertEquals(applyQuotes("test_table.someColumn", getDefaultDialect()), actual);
     }
@@ -103,7 +103,7 @@ public class SqlReferenceVisitorTest {
         SQLTable table = (SQLTable) store.getTable(getClassType(TestModel.class));
         ColumnProjection column = table.getDimensionProjection("dimension3");
 
-        String actual = visitor.visitColumn(column);
+        String actual = visitor.visitColumn(table, column);
 
         assertEquals(applyQuotes("join_table_joinModel.dimension3", getDefaultDialect()), actual);
     }

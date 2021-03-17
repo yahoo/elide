@@ -72,17 +72,17 @@ public class QueryPlan implements Queryable {
         if (!self.isNested()) {
             return QueryPlan.builder()
                     .source(self.getSource())
-                    .metricProjections(withSource(self.getSource(), metrics))
-                    .dimensionProjections(withSource(self.getSource(), dimensions))
-                    .timeDimensionProjections(withSource(self.getSource(), timeDimensions))
+                    .metricProjections(metrics)
+                    .dimensionProjections(dimensions)
+                    .timeDimensionProjections(timeDimensions)
                     .build();
         } else {
             Queryable mergedSource = ((QueryPlan) self.getSource()).merge((QueryPlan) other.getSource());
             return QueryPlan.builder()
                     .source(mergedSource)
-                    .metricProjections(withSource(self.getSource(), metrics))
-                    .dimensionProjections(withSource(self.getSource(), dimensions))
-                    .timeDimensionProjections(withSource(self.getSource(), timeDimensions))
+                    .metricProjections(metrics)
+                    .dimensionProjections(dimensions)
+                    .timeDimensionProjections(timeDimensions)
                     .build();
         }
     }
@@ -90,36 +90,22 @@ public class QueryPlan implements Queryable {
     public QueryPlan nest() {
         return QueryPlan.builder()
                 .source(this)
-                .metricProjections(nestColumnProjection(this, metricProjections))
-                .dimensionProjections(nestColumnProjection(this, dimensionProjections))
-                .timeDimensionProjections(nestColumnProjection(this, timeDimensionProjections))
+                .metricProjections(nestColumnProjection(metricProjections))
+                .dimensionProjections(nestColumnProjection(dimensionProjections))
+                .timeDimensionProjections(nestColumnProjection(timeDimensionProjections))
                 .build();
-    }
-
-    /**
-     * Makes of a copy of a set of columns all with a new source.
-     * @param source The new source.
-     * @param columns The columns to copy.
-     * @param <T> The column projection type.
-     * @return An ordered set of the column copies.
-     */
-    public static <T extends ColumnProjection> Set<T> withSource(Queryable source, Set<T> columns) {
-        return (Set<T>) columns.stream()
-                .map(column -> column.withSource(source))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
      * Makes of a copy of a set of columns that are being nested in a new parent.  The column expressions are
      * changed to reference the columns by name.
-     * @param parentSource The new parent source.
      * @param columns The columns to copy.
      * @param <T> The column projection type.
      * @return An ordered set of the column copies.
      */
-    public static <T extends ColumnProjection> Set<T> nestColumnProjection(Queryable parentSource, Set<T> columns) {
+    public static <T extends ColumnProjection> Set<T> nestColumnProjection(Set<T> columns) {
         return (Set<T>) columns.stream()
-                .map(column -> column.withSourceAndExpression(parentSource, "{{" + column.getSafeAlias() + "}}"))
+                .map(column -> column.withExpression("{{" + column.getSafeAlias() + "}}"))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }

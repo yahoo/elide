@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnVisitor;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
@@ -30,24 +31,25 @@ public class SQLJoinVisitor extends ColumnVisitor<Set<JoinPath>> {
     }
 
     @Override
-    protected Set<JoinPath> visitFormulaMetric(MetricProjection metric) {
-        return visitFormulaColumn(metric);
+    protected Set<JoinPath> visitFormulaMetric(Queryable parent, MetricProjection metric) {
+        return visitFormulaColumn(parent, metric);
     }
 
     /**
      * FIELD column doesn't need JOINs.
      *
      * @param dimension a FIELD dimension
+     * @param parent The parent which owns the dimension
      * @return empty set
      */
     @Override
-    protected Set<JoinPath> visitFieldDimension(ColumnProjection dimension) {
+    protected Set<JoinPath> visitFieldDimension(Queryable parent, ColumnProjection dimension) {
         return Collections.emptySet();
     }
 
     @Override
-    protected Set<JoinPath> visitFormulaDimension(ColumnProjection dimension) {
-        return visitFormulaColumn(dimension);
+    protected Set<JoinPath> visitFormulaDimension(Queryable parent, ColumnProjection dimension) {
+        return visitFormulaColumn(parent, dimension);
     }
 
     /**
@@ -56,17 +58,17 @@ public class SQLJoinVisitor extends ColumnVisitor<Set<JoinPath>> {
      * @param column a FORMULA column
      * @return all JOINs
      */
-    private Set<JoinPath> visitFormulaColumn(ColumnProjection column) {
+    private Set<JoinPath> visitFormulaColumn(Queryable parent, ColumnProjection column) {
         Set<JoinPath> joinPaths = new HashSet<>();
 
         // only need to add joins for references to fields defined in other table
         for (String reference : resolveFormulaReferences(column.getExpression())) {
 
             //Column is from a query instead of a table.  No joins to generate here.
-            if (column.getSource() != column.getSource().getSource()) {
+            if (parent != parent.getSource()) {
                 continue;
             } else if (reference.contains(".")) {
-                joinPaths.addAll(visitJoinToReference(column, reference));
+                joinPaths.addAll(visitJoinToReference(parent, column, reference));
             }
         }
 
@@ -76,23 +78,24 @@ public class SQLJoinVisitor extends ColumnVisitor<Set<JoinPath>> {
     /**
      * Resolve join path reference from a column.
      *
+     * @param source The parent queryable
      * @param column from column
      * @param joinToPath a dot separated path
      * @return resolved JOIN paths
      */
-    private Set<JoinPath> visitJoinToReference(ColumnProjection column, String joinToPath) {
+    private Set<JoinPath> visitJoinToReference(Queryable source, ColumnProjection column, String joinToPath) {
         Set<JoinPath> joinPaths = new HashSet<>();
 
-        Queryable source = column.getSource();
         JoinPath joinPath = froms.empty()
                 ? new JoinPath(dictionary.getEntityClass(source.getName(), source.getVersion()), dictionary, joinToPath)
                 : froms.peek().extend(joinToPath, dictionary);
         joinPaths.add(joinPath);
 
         froms.add(joinPath);
-        ColumnProjection columnProjection = getColumn(joinPath);
-        if (columnProjection != null) {
-            joinPaths.addAll(Objects.requireNonNull(visitColumn(columnProjection)));
+        Column joinToColumn = getColumn(joinPath);
+        if (joinToColumn != null) {
+            joinPaths.addAll(Objects.requireNonNull(
+                    visitColumn(joinToColumn.getTable().toQueryable(), joinToColumn.toProjection())));
         }
         froms.pop();
 
