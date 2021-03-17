@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
 /**
@@ -91,6 +92,10 @@ public abstract class Table implements Versioned {
     @Exclude
     private final String alias;
 
+    @ManyToOne
+    @ToString.Exclude
+    private final com.yahoo.elide.datastores.aggregation.metadata.models.Function function;
+
     public Table(Type<?> cls, EntityDictionary dictionary) {
         if (!dictionary.getBoundClasses().contains(cls)) {
             throw new IllegalArgumentException(
@@ -139,6 +144,10 @@ public abstract class Table implements Versioned {
             this.tags = new HashSet<>();
             this.cardinality = CardinalitySize.UNKNOWN;
         }
+
+        String functionId = this.id + "[" + this.name + "]";
+        this.function = new com.yahoo.elide.datastores.aggregation.metadata.models.Function(functionId,
+                this.description, new HashSet<>());
     }
 
     private boolean isFact(Type<?> cls, TableMeta meta) {

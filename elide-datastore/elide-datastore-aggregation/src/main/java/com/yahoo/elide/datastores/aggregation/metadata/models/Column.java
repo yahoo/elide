@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 /**
  * Column is the super class of a field in a table, it can be either dimension or metric.
@@ -68,10 +69,14 @@ public abstract class Column implements Versioned {
 
     private final String tableSource;
 
+    @ManyToOne
+    @ToString.Exclude
+    private final Function function;
+
     @ToString.Exclude
     private final Set<String> tags;
 
-    protected Column(Table table, String fieldName, EntityDictionary dictionary) {
+    protected Column(Table table, String fieldName, EntityDictionary dictionary, ConstructFunction constructFunction) {
         this.table = table;
         Type<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
 
@@ -119,6 +124,8 @@ public abstract class Column implements Versioned {
         if (valueType == null) {
             throw new IllegalArgumentException("Unknown data type for " + this.id);
         }
+
+        this.function = constructFunction.construct();
     }
 
     /**
@@ -173,5 +180,13 @@ public abstract class Column implements Versioned {
     @Override
     public String getVersion() {
         return table.getVersion();
+    }
+
+    /**
+     * Dynamically construct a function
+     */
+    @FunctionalInterface
+    public interface ConstructFunction {
+        public Function construct();
     }
 }

@@ -6,16 +6,17 @@
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.FunctionArgumentType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
 
+import java.util.Set;
+
 import javax.persistence.Id;
 
 /**
- * Arguments that can be provided into a metric function.
+ * Arguments that can be provided into a function.
  */
 @Include(rootLevel = false, type = "functionArgument")
 @Data
@@ -31,16 +32,19 @@ public class FunctionArgument {
 
     private ValueType type;
 
-    private FunctionArgumentType functionArgumentType;
+    private Set<String> values;
 
-    private String expression;
+    private String tableSource;
+
+    private Object defaultValue;
 
     public FunctionArgument(String functionName, FunctionArgument argument) {
         this.id = functionName + "." + argument.getName();
         this.name = argument.getName();
         this.description = argument.getDescription();
         this.type = argument.getType();
-        this.functionArgumentType = argument.getFunctionArgumentType();
-        this.expression = argument.getExpression();
+        this.values = argument.getValues();
+        this.tableSource = argument.getTableSource();
+        this.defaultValue = argument.getDefaultValue();
     }
 }

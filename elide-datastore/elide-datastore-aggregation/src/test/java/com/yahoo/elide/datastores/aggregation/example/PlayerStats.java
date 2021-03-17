@@ -189,6 +189,7 @@ public class PlayerStats extends ParameterizedModel {
 
     @DimensionFormula("{{country.nickName}}")
     @ColumnMeta(
+            description = "SubCountry NickName",
             tableSource = "subcountry.nickName"
     )
     public String getCountryNickName() {
