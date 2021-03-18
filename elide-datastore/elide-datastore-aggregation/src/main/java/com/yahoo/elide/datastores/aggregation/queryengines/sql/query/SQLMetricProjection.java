@@ -10,6 +10,7 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanResolver;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -39,11 +40,10 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     private String alias;
     private Map<String, Argument> arguments;
 
-    private final boolean canNest;
-
     //TODO - Temporary hack just to prove out the concept.  This needs to be parameterized by the dialect
-    //and do proper parenthesis matching - which means it can't be a regex.
-    private static final String AGG_FUNCTION = "^(sum|min|max|avg|count)\\(.*?\\)$";
+    //with the set of functions that can be nested and do proper parenthesis matching - which means it can't
+    //be a regex.  We'll need a grammar here.
+    private static final String AGG_FUNCTION = "^(?i)(sum|min|max|count)(?-i)\\(.*?\\)$";
     private static final Pattern AGG_FUNCTION_MATCHER = Pattern.compile(AGG_FUNCTION, Pattern.CASE_INSENSITIVE);
 
     @EqualsAndHashCode.Exclude
@@ -54,6 +54,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
         return queryPlanResolver.resolve(query, this);
     }
 
+    @Builder
     public SQLMetricProjection(String name,
                                ValueType valueType,
                                ColumnType columnType,
@@ -70,7 +71,6 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
         this.queryPlanResolver = queryPlanResolver == null ? new DefaultQueryPlanResolver() : queryPlanResolver;
 
         Matcher matcher = AGG_FUNCTION_MATCHER.matcher(expression);
-        canNest = matcher.matches();
     }
 
     public SQLMetricProjection(Metric metric,
@@ -81,38 +81,34 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     }
 
     @Override
-    public SQLMetricProjection withExpression(String expression) {
+    public boolean canNest() {
+        Matcher matcher = AGG_FUNCTION_MATCHER.matcher(expression);
+        return matcher.matches();
+    }
+
+    @Override
+    public ColumnProjection outerQuery() {
+        Matcher matcher = AGG_FUNCTION_MATCHER.matcher(expression);
+
+        if (! matcher.find()) {
+            throw new UnsupportedOperationException("Metric does not support nesting");
+        }
+
+        String aggFunction = matcher.group(1);
         return SQLMetricProjection.builder()
                 .name(name)
                 .alias(alias)
                 .valueType(valueType)
                 .columnType(columnType)
-                .expression(expression)
+                .expression(aggFunction + "({{" + this.getSafeAlias() + "}})")
                 .arguments(arguments)
                 .queryPlanResolver(queryPlanResolver)
                 .build();
     }
 
     @Override
-    public boolean canNest() {
-        return canNest;
-    }
-
-    @Override
-    public SQLColumnProjection outerQuery() {
-        if (!canNest) {
-            throw new UnsupportedOperationException("Metric does not support nesting");
-        }
-
-        Matcher matcher = AGG_FUNCTION_MATCHER.matcher(expression);
-
-        String aggFunction = matcher.group(1);
-        return (SQLColumnProjection) withExpression(aggFunction + "({{" + this.getSafeAlias() + "}})");
-    }
-
-    @Override
-    public Set<SQLColumnProjection> innerQuery() {
-        if (!canNest) {
+    public Set<ColumnProjection> innerQuery() {
+        if (!canNest()) {
             throw new UnsupportedOperationException("Metric does not support nesting");
         }
 

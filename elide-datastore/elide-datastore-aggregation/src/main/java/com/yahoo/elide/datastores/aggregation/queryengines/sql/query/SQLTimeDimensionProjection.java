@@ -13,6 +13,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
@@ -78,13 +79,13 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     }
 
     @Override
-    public SQLTimeDimensionProjection withExpression(String expression) {
+    public ColumnProjection outerQuery() {
         return SQLTimeDimensionProjection.builder()
                 .name(name)
                 .alias(alias)
                 .valueType(valueType)
                 .columnType(columnType)
-                .expression(expression)
+                .expression("{{" + this.getSafeAlias() + "}}")
                 .arguments(arguments)
                 .grain(grain)
                 .timeZone(timeZone)

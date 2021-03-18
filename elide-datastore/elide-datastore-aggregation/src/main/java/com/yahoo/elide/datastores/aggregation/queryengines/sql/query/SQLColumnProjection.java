@@ -8,15 +8,11 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
-
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Matcher;
 
 /**
  * Column projection that can expand the column into a SQL projection fragment.
@@ -33,15 +29,18 @@ public interface SQLColumnProjection extends ColumnProjection {
         return table.getResolvedReference(source, getName());
     }
 
+    @Override
     default boolean canNest() {
-        return true;
+        return false;
     }
 
-    default SQLColumnProjection outerQuery() {
-        return (SQLColumnProjection) withExpression("{{" + this.getSafeAlias() + "}}");
+    @Override
+    default ColumnProjection outerQuery() {
+        throw new UnsupportedOperationException();
     }
 
-    default Set<SQLColumnProjection> innerQuery() {
+    @Override
+    default Set<ColumnProjection> innerQuery() {
         return new HashSet<>(Arrays.asList(this));
     }
 }
