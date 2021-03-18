@@ -179,8 +179,8 @@ public class ElideStandaloneTest {
                .get("/swagger/doc/test")
                 .then()
                 .statusCode(200)
-                .body("tags.name", containsInAnyOrder("post", "functionArgument", "metric",
-                        "function", "dimension", "column", "table", "asyncQuery",
+                .body("tags.name", containsInAnyOrder("post", "argument", "metric",
+                        "dimension", "column", "table", "asyncQuery",
                         "timeDimensionGrain", "timeDimension", "postView"));
     }
 

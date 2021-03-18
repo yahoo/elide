@@ -21,8 +21,8 @@ import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.dynamic.TableType;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
-import com.yahoo.elide.datastores.aggregation.metadata.models.FunctionArgument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
@@ -196,7 +196,7 @@ public class MetaDataStore implements DataStore {
         addMetaData(table, version);
         table.getColumns().forEach(this::addColumn);
 
-        table.getArguments().forEach(arg -> addFunctionArgument(arg, version));
+        table.getArguments().forEach(arg -> addArgument(arg, version));
     }
 
     /**
@@ -261,16 +261,16 @@ public class MetaDataStore implements DataStore {
             }
         }
 
-        column.getArguments().forEach(arg -> addFunctionArgument(arg, version));
+        column.getArguments().forEach(arg -> addArgument(arg, version));
     }
 
     /**
-     * Add a function argument metadata object.
+     * Add a argument metadata object.
      *
-     * @param functionArgument function argument metadata
+     * @param argument argument metadata
      */
-    private void addFunctionArgument(FunctionArgument functionArgument, String version) {
-        addMetaData(functionArgument, version);
+    private void addArgument(Argument argument, String version) {
+        addMetaData(argument, version);
     }
 
     /**

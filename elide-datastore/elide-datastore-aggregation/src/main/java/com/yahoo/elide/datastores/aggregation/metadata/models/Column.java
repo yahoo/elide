@@ -72,7 +72,7 @@ public abstract class Column implements Versioned {
 
     @OneToMany
     @ToString.Exclude
-    private final Set<FunctionArgument> arguments;
+    private final Set<Argument> arguments;
 
     @ToString.Exclude
     private final Set<String> tags;

@@ -17,13 +17,13 @@ import java.util.Set;
 import javax.persistence.Id;
 
 /**
- * Arguments that can be provided into a function.
+ * Arguments that can be provided into a column.
  */
-@Include(rootLevel = false, type = "functionArgument")
+@Include(rootLevel = false, type = "argument")
 @Data
 @ToString
 @AllArgsConstructor
-public class FunctionArgument {
+public class Argument {
     @Id
     private String id;
 
@@ -41,8 +41,8 @@ public class FunctionArgument {
 
     private Object defaultValue;
 
-    public FunctionArgument(String functionName, FunctionArgument argument) {
-        this.id = functionName + "." + argument.getName();
+    public Argument(String idPrefix, Argument argument) {
+        this.id = idPrefix + "." + argument.getName();
         this.name = argument.getName();
         this.description = argument.getDescription();
         this.type = argument.getType();

@@ -93,7 +93,7 @@ public abstract class Table implements Versioned {
 
     @OneToMany
     @ToString.Exclude
-    private final Set<FunctionArgument> arguments;
+    private final Set<Argument> arguments;
 
     public Table(Type<?> cls, EntityDictionary dictionary) {
         if (!dictionary.getBoundClasses().contains(cls)) {
