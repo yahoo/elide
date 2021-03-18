@@ -13,6 +13,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.AggregateBeforeJoinOptimizer;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
@@ -20,7 +21,9 @@ import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import org.hibernate.Session;
 import lombok.AllArgsConstructor;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.function.Consumer;
 import javax.persistence.EntityManager;
@@ -58,7 +61,8 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
         }
 
         AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder
-                .queryEngine(new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap))
+                .queryEngine(new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap,
+                        new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore)))))
                 .queryLogger(new Slf4jQueryLogger())
                 .build();
 

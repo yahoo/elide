@@ -22,6 +22,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
+import com.yahoo.elide.datastores.aggregation.query.Optimizer;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
@@ -33,6 +34,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.DynamicSQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.AggregateBeforeJoinOptimizer;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryPlanTranslator;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryTranslator;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
@@ -53,9 +55,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
@@ -72,7 +76,8 @@ public class SQLQueryEngine extends QueryEngine {
     private final Map<String, ConnectionDetails> connectionDetailsMap;
 
     public SQLQueryEngine(MetaDataStore metaDataStore, ConnectionDetails defaultConnectionDetails) {
-        this(metaDataStore, defaultConnectionDetails, Collections.emptyMap());
+        this(metaDataStore, defaultConnectionDetails, Collections.emptyMap(),
+                new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))));
     }
 
     /**
@@ -82,7 +87,7 @@ public class SQLQueryEngine extends QueryEngine {
      * @param connectionDetailsMap : Connection Name to DataSource Object and SQL Dialect Object mapping.
      */
     public SQLQueryEngine(MetaDataStore metaDataStore, ConnectionDetails defaultConnectionDetails,
-                    Map<String, ConnectionDetails> connectionDetailsMap) {
+                    Map<String, ConnectionDetails> connectionDetailsMap, Set<Optimizer> optimizers) {
 
         Preconditions.checkNotNull(defaultConnectionDetails);
         Preconditions.checkNotNull(connectionDetailsMap);
