@@ -178,41 +178,8 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.valueSourceType",  equalTo("NONE"))
                 .body("data.attributes.expression",  equalTo("{{player.name}}"))
                 .body("data.attributes.tableSource",  nullValue())
-                .body("data.relationships.table.data.id", equalTo("playerStats"));
-
-        // Check function information on a column using DimensionFormula.
-        given()
-                .accept("application/vnd.api+json")
-                .get("/table/playerStats/dimensions/playerStats.countryNickName?include=function")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("data.attributes.name", equalTo("countryNickName"))
-                .body("data.attributes.friendlyName", equalTo("countryNickName"))
-                .body("data.attributes.valueType",  equalTo("TEXT"))
-                .body("data.attributes.columnType",  equalTo("FORMULA"))
-                .body("data.attributes.expression",  equalTo("{{country.nickName}}"))
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
-                .body("data.relationships.function.data.id", equalTo("playerStats.countryNickName[countryNickName]"))
-                .body("included.id", containsInAnyOrder("playerStats.countryNickName[countryNickName]"))
-                .body("included.attributes.description", containsInAnyOrder("SubCountry NickName")) // No description was set.
-                .body("included.attributes.arguments", containsInAnyOrder(nullValue())); // No Arguments were set.
-
-        // Check function information on a column NOT using DimensionFormula.
-        given()
-                .accept("application/vnd.api+json")
-                .get("/table/planet/dimensions/planet.name?include=function")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("data.attributes.name", equalTo("name"))
-                .body("data.attributes.friendlyName", equalTo("name"))
-                .body("data.attributes.valueType",  equalTo("TEXT"))
-                .body("data.attributes.columnType",  equalTo("FIELD"))
-                .body("data.attributes.expression",  equalTo("name"))
-                .body("data.relationships.table.data.id", equalTo("planet"))
-                .body("data.relationships.function.data.id", nullValue()) // No function found.
-                .body("included.id", nullValue())
-                .body("included.attributes.description", nullValue()) // No description found.
-                .body("included.attributes.arguments", nullValue()); // No Arguments found.
+                .body("data.attributes.arguments", nullValue()); // No Arguments were set.
     }
 
     @Test
@@ -284,6 +251,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.valueType",  equalTo("TIME"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.expression",  equalTo("{{recordedDate}}"))
+                .body("data.attributes.arguments", nullValue()) // No Arguments were set.
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
                 .body("data.relationships.supportedGrains.data.id", containsInAnyOrder("playerStats.recordedDate.day", "playerStats.recordedDate.month"))
                 .body("included.id", containsInAnyOrder("playerStats.recordedDate.day", "playerStats.recordedDate.month"))
@@ -293,40 +261,6 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                                 "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')",
                                         "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')"
                         ));
-
-        // Check function information on a time dimension using dimension formula
-        given()
-                .accept("application/vnd.api+json")
-                .get("/table/playerStats/timeDimensions/playerStats.recordedDate?include=function")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("data.attributes.name", equalTo("recordedDate"))
-                .body("data.attributes.friendlyName", equalTo("recordedDate"))
-                .body("data.attributes.valueType",  equalTo("TIME"))
-                .body("data.attributes.columnType",  equalTo("FORMULA"))
-                .body("data.attributes.expression",  equalTo("{{recordedDate}}"))
-                .body("data.relationships.table.data.id", equalTo("playerStats"))
-                .body("data.relationships.function.data.id", equalTo("playerStats.recordedDate[recordedDate]")) // Used @DimensionFormula.
-                .body("included.id", containsInAnyOrder("playerStats.recordedDate[recordedDate]"))
-                .body("included.attributes.description", containsInAnyOrder(nullValue())) // No description was set.
-                .body("included.attributes.arguments", containsInAnyOrder(nullValue())); // No Arguments were set.
-
-        // Check function information on a time dimension NOT using dimension formula
-        given()
-                .accept("application/vnd.api+json")
-                .get("/table/playerStats/timeDimensions/playerStats.updatedDate?include=function")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("data.attributes.name", equalTo("updatedDate"))
-                .body("data.attributes.friendlyName", equalTo("updatedDate"))
-                .body("data.attributes.valueType",  equalTo("TIME"))
-                .body("data.attributes.columnType",  equalTo("FIELD"))
-                .body("data.attributes.expression",  equalTo("updatedDate"))
-                .body("data.relationships.table.data.id", equalTo("playerStats"))
-                .body("data.relationships.function.data.id", nullValue()) // No function found.
-                .body("included.id", nullValue())
-                .body("included.attributes.description", nullValue()) // No description found.
-                .body("included.attributes.arguments", nullValue()); // No Arguments found.
     }
 
     @Test
@@ -334,7 +268,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/playerStats/metrics/playerStats.lowScore?include=function")
+                .get("/table/playerStats/metrics/playerStats.lowScore")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("lowScore"))
@@ -345,11 +279,8 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.category",  equalTo("Score Category"))
                 .body("data.attributes.description",  equalTo("very low score"))
                 .body("data.attributes.tags",  containsInAnyOrder("PRIVATE"))
-                .body("data.relationships.table.data.id", equalTo("playerStats"))
-                .body("data.relationships.function.data.id", equalTo("playerStats.lowScore[lowScore]"))
-                .body("included.id", containsInAnyOrder("playerStats.lowScore[lowScore]"))
-                .body("included.attributes.description", containsInAnyOrder("very low score"))
-                .body("included.attributes.arguments", containsInAnyOrder(nullValue()));
+                .body("data.attributes.arguments", nullValue()) // No Arguments were set.
+                .body("data.relationships.table.data.id", equalTo("playerStats"));
 
         given()
                 .accept("application/vnd.api+json")
@@ -360,6 +291,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.valueType",  equalTo("DECIMAL"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.expression",  equalTo("({{timeSpent}} / (CASE WHEN SUM({{game_rounds}}) = 0 THEN 1 ELSE {{sessions}} END))"))
+                .body("data.attributes.arguments", nullValue()) // No Arguments were set.
                 .body("data.relationships.table.data.id", equalTo("videoGame"));
 
     }

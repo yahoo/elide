@@ -34,7 +34,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
 /**
@@ -92,9 +91,9 @@ public abstract class Table implements Versioned {
     @Exclude
     private final String alias;
 
-    @ManyToOne
+    @OneToMany
     @ToString.Exclude
-    private final com.yahoo.elide.datastores.aggregation.metadata.models.Function function;
+    private final Set<FunctionArgument> arguments;
 
     public Table(Type<?> cls, EntityDictionary dictionary) {
         if (!dictionary.getBoundClasses().contains(cls)) {
@@ -145,9 +144,8 @@ public abstract class Table implements Versioned {
             this.cardinality = CardinalitySize.UNKNOWN;
         }
 
-        String functionId = this.id + "[" + this.name + "]";
-        this.function = new com.yahoo.elide.datastores.aggregation.metadata.models.Function(functionId,
-                this.description, new HashSet<>());
+        // TODO: Populate Once HJSON Changes are merged and TableMeta Annotation is updated.
+        this.arguments = new HashSet<>();
     }
 
     private boolean isFact(Type<?> cls, TableMeta meta) {

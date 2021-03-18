@@ -34,7 +34,7 @@ public class TimeDimension extends Column {
     TimeZone timezone;
 
     public TimeDimension(Table table, String fieldName, EntityDictionary dictionary) {
-        super(table, fieldName, dictionary, Dimension.getConstructFunction(table, fieldName, dictionary));
+        super(table, fieldName, dictionary);
         timezone = TimeZone.getTimeZone("UTC");
 
         Temporal temporal = dictionary.getAttributeOrRelationAnnotation(

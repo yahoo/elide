@@ -27,8 +27,9 @@ import lombok.ToString;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 
 /**
  * Column is the super class of a field in a table, it can be either dimension or metric.
@@ -69,14 +70,14 @@ public abstract class Column implements Versioned {
 
     private final String tableSource;
 
-    @ManyToOne
+    @OneToMany
     @ToString.Exclude
-    private final Function function;
+    private final Set<FunctionArgument> arguments;
 
     @ToString.Exclude
     private final Set<String> tags;
 
-    protected Column(Table table, String fieldName, EntityDictionary dictionary, ConstructFunction constructFunction) {
+    protected Column(Table table, String fieldName, EntityDictionary dictionary) {
         this.table = table;
         Type<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
 
@@ -126,7 +127,8 @@ public abstract class Column implements Versioned {
             throw new IllegalArgumentException("Unknown data type for " + this.id);
         }
 
-        this.function = constructFunction.construct();
+        // TODO: Populate Once HJSON Changes are merged and ColumnMeta Annotations are updated.
+        this.arguments = new HashSet<>();
     }
 
     /**
@@ -171,13 +173,5 @@ public abstract class Column implements Versioned {
     @Override
     public String getVersion() {
         return table.getVersion();
-    }
-
-    /**
-     * Dynamically construct a function
-     */
-    @FunctionalInterface
-    public interface ConstructFunction {
-        public Function construct();
     }
 }

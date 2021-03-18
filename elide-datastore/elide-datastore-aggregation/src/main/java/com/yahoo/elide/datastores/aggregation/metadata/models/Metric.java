@@ -9,15 +9,12 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-
-import java.util.HashSet;
 
 /**
  * Column which supports aggregation.
@@ -32,7 +29,7 @@ public class Metric extends Column {
     private final QueryPlanResolver queryPlanResolver;
 
     public Metric(Table table, String fieldName, EntityDictionary dictionary) {
-        super(table, fieldName, dictionary, getConstructFunction(table, fieldName, dictionary));
+        super(table, fieldName, dictionary);
         Type<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
 
         MetricFormula formula = dictionary.getAttributeOrRelationAnnotation(
@@ -48,18 +45,5 @@ public class Metric extends Column {
             throw new IllegalStateException("Trying to construct metric field "
                     + getId() + " without @MetricFormula.");
         }
-    }
-
-    private static ConstructFunction getConstructFunction(Table table, String fieldName, EntityDictionary dictionary) {
-        return () -> {
-            Type<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
-            ColumnMeta meta = dictionary.getAttributeOrRelationAnnotation(
-                    tableClass,
-                    ColumnMeta.class,
-                    fieldName);
-            String id = constructColumnName(tableClass, fieldName, dictionary) + "[" + fieldName + "]";
-            String description = meta == null ? null : meta.description();
-            return new Function(id, description, new HashSet<>());
-        };
     }
 }

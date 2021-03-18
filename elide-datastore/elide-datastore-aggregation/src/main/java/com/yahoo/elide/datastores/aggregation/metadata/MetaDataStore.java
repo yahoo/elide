@@ -22,9 +22,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.dynamic.TableType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Function;
 import com.yahoo.elide.datastores.aggregation.metadata.models.FunctionArgument;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
@@ -197,6 +195,8 @@ public class MetaDataStore implements DataStore {
         tables.put(dictionary.getEntityClass(table.getName(), version), table);
         addMetaData(table, version);
         table.getColumns().forEach(this::addColumn);
+
+        table.getArguments().forEach(arg -> addFunctionArgument(arg, version));
     }
 
     /**
@@ -259,19 +259,9 @@ public class MetaDataStore implements DataStore {
             for (TimeDimensionGrain grain : timeDimension.getSupportedGrains()) {
                 addTimeDimensionGrain(grain, version);
             }
-        } else if (column instanceof Metric) {
-            addFunction(((Metric) column).getFunction(), version);
         }
-    }
 
-    /**
-     * Add a metric function metadata object.
-     *
-     * @param metricFunction metric function metadata
-     */
-    private void addFunction(Function metricFunction, String version) {
-        addMetaData(metricFunction, version);
-        metricFunction.getArguments().forEach(arg -> addFunctionArgument(arg, version));
+        column.getArguments().forEach(arg -> addFunctionArgument(arg, version));
     }
 
     /**
