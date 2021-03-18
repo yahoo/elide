@@ -19,7 +19,12 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Metric projection that can expand the metric into a SQL projection fragment.
@@ -33,6 +38,13 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     private String expression;
     private String alias;
     private Map<String, Argument> arguments;
+
+    private final boolean canNest;
+
+    //TODO - Temporary hack just to prove out the concept.  This needs to be parameterized by the dialect
+    //and do proper parenthesis matching - which means it can't be a regex.
+    private static final String AGG_FUNCTION = "^(sum|min|max|avg|count)\\(.*?\\)$";
+    private static final Pattern AGG_FUNCTION_MATCHER = Pattern.compile(AGG_FUNCTION, Pattern.CASE_INSENSITIVE);
 
     @EqualsAndHashCode.Exclude
     private QueryPlanResolver queryPlanResolver;
@@ -56,6 +68,9 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
         this.alias = alias;
         this.arguments = arguments;
         this.queryPlanResolver = queryPlanResolver == null ? new DefaultQueryPlanResolver() : queryPlanResolver;
+
+        Matcher matcher = AGG_FUNCTION_MATCHER.matcher(expression);
+        canNest = matcher.matches();
     }
 
     public SQLMetricProjection(Metric metric,
@@ -76,5 +91,31 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                 .arguments(arguments)
                 .queryPlanResolver(queryPlanResolver)
                 .build();
+    }
+
+    @Override
+    public boolean canNest() {
+        return canNest;
+    }
+
+    @Override
+    public SQLColumnProjection outerQuery() {
+        if (!canNest) {
+            throw new UnsupportedOperationException("Metric does not support nesting");
+        }
+
+        Matcher matcher = AGG_FUNCTION_MATCHER.matcher(expression);
+
+        String aggFunction = matcher.group(1);
+        return (SQLColumnProjection) withExpression(aggFunction + "({{" + this.getSafeAlias() + "}})");
+    }
+
+    @Override
+    public Set<SQLColumnProjection> innerQuery() {
+        if (!canNest) {
+            throw new UnsupportedOperationException("Metric does not support nesting");
+        }
+
+        return new HashSet<>(Arrays.asList(this));
     }
 }

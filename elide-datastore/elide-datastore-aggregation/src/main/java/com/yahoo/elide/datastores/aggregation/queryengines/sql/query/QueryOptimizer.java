@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
-import static com.yahoo.elide.datastores.aggregation.query.QueryPlan.nestColumnProjection;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
@@ -21,6 +20,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable
 import com.google.common.collect.Sets;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,6 +40,13 @@ public class QueryOptimizer implements QueryVisitor<Queryable> {
 
         //If there is no filter, there is nothing to optimize
         if (whereFilter == null) {
+            Queryable newSource = query.getSource().accept(this);
+            return copy(query, newSource);
+        }
+
+        if (! query.getColumnProjections().stream()
+                .map(SQLColumnProjection.class::cast)
+                .allMatch(SQLColumnProjection::canNest)) {
             Queryable newSource = query.getSource().accept(this);
             return copy(query, newSource);
         }
@@ -65,19 +72,19 @@ public class QueryOptimizer implements QueryVisitor<Queryable> {
 
         Query inner = Query.builder()
                 .source(query.getSource().accept(this))
-                .metricProjections(query.getMetricProjections())
+                .metricProjections(innerQueryProjections(query.getMetricProjections()))
                 .dimensionProjections(Sets.union(
-                        query.getDimensionProjections(),
+                        innerQueryProjections(query.getDimensionProjections()),
                         extractInnerQueryJoinProjections(splitFilter.getOuter()))
                 )
-                .timeDimensionProjections(query.getTimeDimensionProjections())
+                .timeDimensionProjections(innerQueryProjections(query.getTimeDimensionProjections()))
                 .whereFilter(splitFilter.getInner())
                 .build();
 
         return Query.builder()
-                .metricProjections(nestColumnProjection(query.getMetricProjections()))
-                .dimensionProjections(nestColumnProjection(query.getDimensionProjections()))
-                .timeDimensionProjections(nestColumnProjection(query.getTimeDimensionProjections()))
+                .metricProjections(outerQueryProjections(query.getMetricProjections()))
+                .dimensionProjections(outerQueryProjections(query.getDimensionProjections()))
+                .timeDimensionProjections(outerQueryProjections(query.getTimeDimensionProjections()))
                 .whereFilter(splitFilter.getOuter())
                 //TODO - Evaluate having filter
                 .havingFilter(query.getHavingFilter())
@@ -120,5 +127,19 @@ public class QueryOptimizer implements QueryVisitor<Queryable> {
                 .bypassingCache(query.isBypassingCache())
                 .source(newSource)
                 .build();
+    }
+
+    private static <T extends ColumnProjection> Set<T> outerQueryProjections(Set<T> columns) {
+        return (Set<T>) columns.stream()
+                .map(SQLColumnProjection.class::cast)
+                .map(SQLColumnProjection::outerQuery)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private static <T extends ColumnProjection> Set<T> innerQueryProjections(Set<T> columns) {
+        return (Set<T>) columns.stream()
+                .map(SQLColumnProjection.class::cast)
+                .flatMap(projection -> projection.innerQuery().stream())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }

@@ -105,7 +105,8 @@ public class QueryPlan implements Queryable {
      */
     public static <T extends ColumnProjection> Set<T> nestColumnProjection(Set<T> columns) {
         return (Set<T>) columns.stream()
-                .map(column -> column.withExpression("{{" + column.getSafeAlias() + "}}"))
+                .map(column ->
+                        column.withExpression("{{" + column.getSafeAlias() + "}}"))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }
