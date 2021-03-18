@@ -390,7 +390,7 @@ public class EntityBinding {
 
         relationshipsDeque.push(fieldName);
         fieldsToValues.put(fieldName, fieldOrMethod);
-        fieldsToTypes.put(fieldName, fieldType == null ? Void.class : fieldType);
+        fieldsToTypes.put(fieldName, fieldType);
     }
 
     private void bindAttr(AccessibleObject fieldOrMethod, String fieldName, Class<?> fieldType) {
@@ -479,6 +479,17 @@ public class EntityBinding {
 
         if (type instanceof ParameterizedType && index.isPresent()) {
             type = ((ParameterizedType) type).getActualTypeArguments()[index.get().intValue()];
+        }
+
+        Class<?> cls = TypeUtils.getRawType(type, parentClass);
+        if (cls != null) {
+            return cls;
+        }
+
+        if (fieldOrMethod instanceof Field) {
+            type = ((Field) fieldOrMethod).getType();
+        } else {
+            type = ((Method) fieldOrMethod).getReturnType();
         }
 
         return TypeUtils.getRawType(type, parentClass);
