@@ -74,6 +74,7 @@ public class SQLQueryEngine extends QueryEngine {
     private final SQLReferenceTable referenceTable;
     private final ConnectionDetails defaultConnectionDetails;
     private final Map<String, ConnectionDetails> connectionDetailsMap;
+    private final Set<Optimizer> optimizers;
 
     public SQLQueryEngine(MetaDataStore metaDataStore, ConnectionDetails defaultConnectionDetails) {
         this(metaDataStore, defaultConnectionDetails, Collections.emptyMap(),
@@ -98,6 +99,7 @@ public class SQLQueryEngine extends QueryEngine {
         this.metadataDictionary = metaDataStore.getMetadataDictionary();
         populateMetaData(metaDataStore);
         this.referenceTable = new SQLReferenceTable(metaDataStore);
+        this.optimizers = optimizers;
     }
 
     private static final Function<ResultSet, Object> SINGLE_RESULT_MAPPER = new Function<ResultSet, Object>() {
@@ -358,9 +360,19 @@ public class SQLQueryEngine extends QueryEngine {
 
         QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query);
 
-        return (mergedPlan == null)
+        Query merged = (mergedPlan == null)
                 ? query
                 : mergedPlan.accept(queryPlanTranslator).build();
+
+        for (Optimizer optimizer : optimizers) {
+            SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, merged);
+
+            if (optimizer.canOptimize(query, queryReferenceTable)) {
+                merged = optimizer.optimize(merged, queryReferenceTable);
+            }
+        }
+
+        return merged;
     }
 
     /**
