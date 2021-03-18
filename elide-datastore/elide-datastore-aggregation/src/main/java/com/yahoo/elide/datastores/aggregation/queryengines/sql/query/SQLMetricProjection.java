@@ -44,6 +44,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     //with the set of functions that can be nested and do proper parenthesis matching - which means it can't
     //be a regex.  We'll need a grammar here.
     private static final String AGG_FUNCTION = "^(?i)(sum|min|max|count)(?-i)\\(.*?\\)$";
+
     private static final Pattern AGG_FUNCTION_MATCHER = Pattern.compile(AGG_FUNCTION, Pattern.CASE_INSENSITIVE);
 
     @EqualsAndHashCode.Exclude
@@ -69,6 +70,8 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
         this.alias = alias;
         this.arguments = arguments;
         this.queryPlanResolver = queryPlanResolver == null ? new DefaultQueryPlanResolver() : queryPlanResolver;
+
+        Matcher matcher = AGG_FUNCTION_MATCHER.matcher(expression);
     }
 
     public SQLMetricProjection(Metric metric,
