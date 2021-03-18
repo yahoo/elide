@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import static com.yahoo.elide.datastores.aggregation.query.ColumnProjection.innerQueryProjections;
+import static com.yahoo.elide.datastores.aggregation.query.ColumnProjection.outerQueryProjections;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
@@ -20,7 +22,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable
 import com.google.common.collect.Sets;
 
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -127,19 +128,5 @@ public class QueryOptimizer implements QueryVisitor<Queryable> {
                 .bypassingCache(query.isBypassingCache())
                 .source(newSource)
                 .build();
-    }
-
-    private static <T extends ColumnProjection> Set<T> outerQueryProjections(Set<T> columns) {
-        return (Set<T>) columns.stream()
-                .map(SQLColumnProjection.class::cast)
-                .map(SQLColumnProjection::outerQuery)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    private static <T extends ColumnProjection> Set<T> innerQueryProjections(Set<T> columns) {
-        return (Set<T>) columns.stream()
-                .map(SQLColumnProjection.class::cast)
-                .flatMap(projection -> projection.innerQuery().stream())
-                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }
