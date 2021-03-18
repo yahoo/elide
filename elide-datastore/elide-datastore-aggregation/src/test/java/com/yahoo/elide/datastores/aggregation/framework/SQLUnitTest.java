@@ -310,6 +310,8 @@ public abstract class SQLUnitTest {
             return Query.builder()
                     .source(playerStatsTable)
                     .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
+                    .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                    .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
                     .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                     .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate", arguments))
                     .build();

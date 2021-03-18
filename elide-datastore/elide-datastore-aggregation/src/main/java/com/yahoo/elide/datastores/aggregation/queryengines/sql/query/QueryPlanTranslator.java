@@ -98,8 +98,8 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
         return Query.builder()
                 .source(innerQuery)
                 .metricProjections(plan.getMetricProjections())
-                .dimensionProjections(outerQueryProjections(clientQuery.getDimensionProjections()))
-                .timeDimensionProjections(outerQueryProjections(clientQuery.getTimeDimensionProjections()));
+                .dimensionProjections(innerQueryProjections(clientQuery.getDimensionProjections()))
+                .timeDimensionProjections(innerQueryProjections(clientQuery.getTimeDimensionProjections()));
     }
 
     private Query.QueryBuilder visitUnnestedQueryPlan(Queryable plan)  {
