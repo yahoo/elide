@@ -91,6 +91,10 @@ public abstract class Table implements Versioned {
     @Exclude
     private final String alias;
 
+    @OneToMany
+    @ToString.Exclude
+    private final Set<Argument> arguments;
+
     public Table(Type<?> cls, EntityDictionary dictionary) {
         if (!dictionary.getBoundClasses().contains(cls)) {
             throw new IllegalArgumentException(
@@ -139,6 +143,9 @@ public abstract class Table implements Versioned {
             this.tags = new HashSet<>();
             this.cardinality = CardinalitySize.UNKNOWN;
         }
+
+        // TODO: Populate Once HJSON Changes are merged and TableMeta Annotation is updated.
+        this.arguments = new HashSet<>();
     }
 
     private boolean isFact(Type<?> cls, TableMeta meta) {

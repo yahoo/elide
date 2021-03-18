@@ -5,11 +5,23 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.enums;
 
+import java.util.Set;
+
 /**
  * Where to source values for type-ahead search.
  */
 public enum ValueSourceType {
     ENUM,
     TABLE,
-    NONE
+    NONE;
+
+    public static ValueSourceType getValueSourceType(Set<String> values, String tableSource) {
+        if (values != null && !values.isEmpty()) {
+            return ValueSourceType.ENUM;
+        }
+        if (tableSource != null) {
+            return ValueSourceType.TABLE;
+        }
+        return ValueSourceType.NONE;
+    }
 }
