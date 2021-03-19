@@ -87,13 +87,7 @@ public class SQLReferenceTable {
      * @return resolved reference
      */
     public String getResolvedReference(Queryable queryable, String fieldName) {
-        String reference = resolvedReferences.get(queryable).get(fieldName);
-
-        if (reference == null) {
-            reference = resolvedReferences.get(queryable.getRoot()).get(fieldName);
-        }
-
-        return reference;
+        return resolvedReferences.get(queryable).get(fieldName);
     }
 
     /**
@@ -105,10 +99,6 @@ public class SQLReferenceTable {
      */
     public Set<String> getResolvedJoinExpressions(Queryable queryable, String fieldName) {
         Set<String> joinExpressions = resolvedJoinExpressions.get(queryable).get(fieldName);
-
-        if (joinExpressions == null) {
-            joinExpressions = resolvedJoinExpressions.get(queryable.getRoot()).get(fieldName);
-        }
 
         if (joinExpressions == null) {
             return new HashSet<>();

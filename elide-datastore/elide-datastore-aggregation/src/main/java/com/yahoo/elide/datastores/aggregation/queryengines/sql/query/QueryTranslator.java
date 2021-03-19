@@ -322,7 +322,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
         ColumnProjection projection = query.getColumnProjection(fieldName, arguments);
 
         if (projection == null) {
-            projection = query.getSource().getColumnProjection(fieldName);
+            projection = query.getSource().getColumnProjection(fieldName, arguments);
         }
         return (SQLColumnProjection) projection;
     }
