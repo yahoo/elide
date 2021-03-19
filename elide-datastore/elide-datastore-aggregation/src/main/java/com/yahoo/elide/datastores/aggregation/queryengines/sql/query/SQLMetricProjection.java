@@ -69,8 +69,6 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
         this.alias = alias;
         this.arguments = arguments;
         this.queryPlanResolver = queryPlanResolver == null ? new DefaultQueryPlanResolver() : queryPlanResolver;
-
-        Matcher matcher = AGG_FUNCTION_MATCHER.matcher(expression);
     }
 
     public SQLMetricProjection(Metric metric,
@@ -82,8 +80,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
     @Override
     public boolean canNest() {
-        Matcher matcher = AGG_FUNCTION_MATCHER.matcher(expression);
-        return matcher.matches();
+        return AGG_FUNCTION_MATCHER.matcher(expression).matches();
     }
 
     @Override

@@ -34,7 +34,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.DynamicSQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.AggregateBeforeJoinOptimizer;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryPlanTranslator;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryTranslator;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
@@ -78,7 +77,7 @@ public class SQLQueryEngine extends QueryEngine {
 
     public SQLQueryEngine(MetaDataStore metaDataStore, ConnectionDetails defaultConnectionDetails) {
         this(metaDataStore, defaultConnectionDetails, Collections.emptyMap(),
-                new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))));
+                new HashSet<>());
     }
 
     /**
