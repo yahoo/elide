@@ -70,7 +70,10 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
         //Handles join for all type of column projects - dimensions, metrics and time dimention
         joinExpressions.addAll(extractJoinExpressions(query.getColumnProjections(), query.getSource()));
 
-        Set<ColumnProjection> groupByDimensions = query.getAllDimensionProjections();
+        Set<ColumnProjection> groupByDimensions = query.getAllDimensionProjections().stream()
+                .map(SQLColumnProjection.class::cast)
+                .filter(dim -> !dim.isVirtual())
+                .collect(Collectors.toSet());
 
         if (!groupByDimensions.isEmpty()) {
             if (!query.getMetricProjections().isEmpty()) {
@@ -174,6 +177,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
 
         List<String> dimensionProjections = query.getAllDimensionProjections().stream()
                 .map(SQLColumnProjection.class::cast)
+                .filter(dim -> ! dim.isVirtual())
                 .map(dimension -> dimension.toSQL(query.getSource(), referenceTable) + " AS "
                                 + applyQuotes(dimension.getSafeAlias()))
                 .collect(Collectors.toList());

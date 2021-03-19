@@ -115,7 +115,7 @@ public class SQLTable extends Table implements Queryable {
         }
         return new SQLDimensionProjection(dimension,
                 isNullOrEmpty(alias) ? dimension.getName() : alias,
-                new HashMap<>());
+                new HashMap<>(), false);
 
     }
 
@@ -125,7 +125,7 @@ public class SQLTable extends Table implements Queryable {
                 .stream()
                 .map((dimension) -> new SQLDimensionProjection(dimension,
                         dimension.getName(),
-                        new HashMap<>()))
+                        new HashMap<>(), false))
                 .collect(Collectors.toSet());
     }
 
@@ -147,7 +147,7 @@ public class SQLTable extends Table implements Queryable {
         return new SQLTimeDimensionProjection(dimension,
                 dimension.getTimezone(),
                 isNullOrEmpty(alias) ? dimension.getName() : alias,
-                arguments);
+                arguments, false);
     }
 
     @Override
@@ -157,7 +157,7 @@ public class SQLTable extends Table implements Queryable {
                 .map((dimension) -> new SQLTimeDimensionProjection(dimension,
                         dimension.getTimezone(),
                         dimension.getName(),
-                        new HashMap<>()))
+                        new HashMap<>(), false))
                 .collect(Collectors.toSet());
     }
 

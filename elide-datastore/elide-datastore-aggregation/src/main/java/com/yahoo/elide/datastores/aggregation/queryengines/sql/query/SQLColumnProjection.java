@@ -43,4 +43,8 @@ public interface SQLColumnProjection extends ColumnProjection {
     default Set<ColumnProjection> innerQuery() {
         return new HashSet<>(Arrays.asList(this));
     }
+
+    default boolean isVirtual() {
+        return false;
+    }
 }

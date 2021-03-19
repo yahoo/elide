@@ -144,14 +144,14 @@ public class SQLQueryEngine extends QueryEngine {
     public ColumnProjection constructDimensionProjection(Dimension dimension,
                                                          String alias,
                                                          Map<String, Argument> arguments) {
-        return new SQLDimensionProjection(dimension, alias, arguments);
+        return new SQLDimensionProjection(dimension, alias, arguments, false);
     }
 
     @Override
     public TimeDimensionProjection constructTimeDimensionProjection(TimeDimension dimension,
                                                                     String alias,
                                                                     Map<String, Argument> arguments) {
-        return new SQLTimeDimensionProjection(dimension, dimension.getTimezone(), alias, arguments);
+        return new SQLTimeDimensionProjection(dimension, dimension.getTimezone(), alias, arguments, false);
     }
 
     @Override
@@ -367,7 +367,7 @@ public class SQLQueryEngine extends QueryEngine {
             SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, merged);
 
             if (optimizer.canOptimize(query, queryReferenceTable)) {
-                //merged = optimizer.optimize(merged, queryReferenceTable);
+                merged = optimizer.optimize(merged, queryReferenceTable);
             }
         }
 

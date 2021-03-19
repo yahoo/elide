@@ -25,6 +25,7 @@ public class SQLPhysicalColumnProjection implements SQLColumnProjection {
     }
 
     @Override
+    //TODO - we need to quote the alias and name
     public String toSQL(Queryable source, SQLReferenceTable table) {
         return source.getAlias() + "." + name;
     }

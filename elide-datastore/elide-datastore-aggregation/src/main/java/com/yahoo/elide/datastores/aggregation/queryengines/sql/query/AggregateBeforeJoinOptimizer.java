@@ -23,6 +23,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable
 import com.google.common.collect.Sets;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -62,7 +63,10 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
 
             return Query.builder()
                     .metricProjections(outerQueryProjections(query.getMetricProjections()))
-                    .dimensionProjections(outerQueryProjections(query.getDimensionProjections()))
+                    .dimensionProjections(Sets.union(
+                            outerQueryProjections(query.getDimensionProjections()),
+                            getVirtualDims((SQLTable) query.getSource(), splitFilter.getOuter())
+                            ))
                     .timeDimensionProjections(outerQueryProjections(query.getTimeDimensionProjections()))
                     .whereFilter(splitFilter.getOuter())
                     .havingFilter(query.getHavingFilter())
@@ -102,13 +106,34 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
         }
     }
 
+    public Set<SQLDimensionProjection> getVirtualDims(SQLTable source, FilterExpression expression) {
+        Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
+
+        Set<SQLDimensionProjection> virtualDims = new HashSet<>();
+        for (FilterPredicate predicate : predicates) {
+            ColumnProjection virtualDim = source.getDimensionProjection(predicate.getField());
+            if (virtualDim != null) {
+                virtualDims.add(
+                        SQLDimensionProjection.builder()
+                        .name(virtualDim.getName())
+                        .columnType(virtualDim.getColumnType())
+                        .valueType(virtualDim.getValueType())
+                        .expression(virtualDim.getExpression())
+                        .arguments(virtualDim.getArguments())
+                        .alias(virtualDim.getAlias())
+                        .virtual(true)
+                        .build());
+            }
+        }
+        return virtualDims;
+    }
+
     @Override
     public boolean canOptimize(Query query, SQLReferenceTable lookupTable) {
         //For simplicity, we will not optimize and already nested query.
         if (query.isNested()) {
             return false;
         }
-
 
         //Every column must be nestable.
         if (! query.getColumnProjections().stream()

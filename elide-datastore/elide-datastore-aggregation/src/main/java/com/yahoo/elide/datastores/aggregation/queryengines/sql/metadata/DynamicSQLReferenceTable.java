@@ -6,8 +6,10 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.google.common.collect.Sets;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -67,6 +69,18 @@ public class DynamicSQLReferenceTable extends SQLReferenceTable {
             joinExpressions = staticReferenceTable.resolvedJoinExpressions.get(queryable.getRoot()).get(fieldName);
         }
 
+        if (joinExpressions == null) {
+            return new HashSet<>();
+        }
+
         return joinExpressions;
+    }
+
+    @Override
+    public Set<SQLColumnProjection> getResolvedJoinProjections(Queryable queryable, String fieldName) {
+        if (staticReferenceTable.resolvedJoinProjections.containsKey(queryable)) {
+            return staticReferenceTable.getResolvedJoinProjections(queryable, fieldName);
+        }
+        return super.getResolvedJoinProjections(queryable, fieldName);
     }
 }

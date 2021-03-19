@@ -48,6 +48,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
     @EqualsAndHashCode.Exclude
     private QueryPlanResolver queryPlanResolver;
+    private boolean virtual;
 
     @Override
     public QueryPlan resolve(Query query) {
@@ -61,7 +62,8 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                                String expression,
                                String  alias,
                                Map<String, Argument> arguments,
-                               QueryPlanResolver queryPlanResolver) {
+                               QueryPlanResolver queryPlanResolver,
+                               boolean virtual) {
         this.name = name;
         this.valueType = valueType;
         this.columnType = columnType;
@@ -69,15 +71,15 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
         this.alias = alias;
         this.arguments = arguments;
         this.queryPlanResolver = queryPlanResolver == null ? new DefaultQueryPlanResolver() : queryPlanResolver;
-
-        Matcher matcher = AGG_FUNCTION_MATCHER.matcher(expression);
+        this.virtual = virtual;
     }
 
     public SQLMetricProjection(Metric metric,
                                String alias,
                                Map<String, Argument> arguments) {
         this(metric.getName(), metric.getValueType(),
-                metric.getColumnType(), metric.getExpression(), alias, arguments, metric.getQueryPlanResolver());
+                metric.getColumnType(), metric.getExpression(), alias, arguments,
+                metric.getQueryPlanResolver(), false);
     }
 
     @Override
@@ -112,5 +114,10 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
         }
 
         return new HashSet<>(Arrays.asList(this));
+    }
+
+    @Override
+    public boolean isVirtual() {
+        return virtual;
     }
 }

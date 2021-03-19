@@ -110,6 +110,10 @@ public class SQLReferenceTable {
             joinExpressions = resolvedJoinExpressions.get(queryable.getRoot()).get(fieldName);
         }
 
+        if (joinExpressions == null) {
+            return new HashSet<>();
+        }
+
         return joinExpressions;
     }
 

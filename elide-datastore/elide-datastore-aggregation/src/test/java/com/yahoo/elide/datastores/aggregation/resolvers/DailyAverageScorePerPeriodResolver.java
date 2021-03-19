@@ -41,7 +41,7 @@ public class DailyAverageScorePerPeriodResolver implements QueryPlanResolver {
                         innerTimeGrain,
                         innerTimeGrain.getTimezone(),
                         "recordedDate_DAY",
-                        arguments
+                        arguments, false
                 )).build();
 
         QueryPlan outerQuery = QueryPlan.builder()
