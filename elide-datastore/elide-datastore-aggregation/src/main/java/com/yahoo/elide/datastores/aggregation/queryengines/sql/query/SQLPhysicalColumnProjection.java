@@ -6,10 +6,14 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
+import com.yahoo.elide.core.utils.TypeHelper;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceVisitor;
 import lombok.EqualsAndHashCode;
 
 /**
@@ -19,15 +23,16 @@ import lombok.EqualsAndHashCode;
 public class SQLPhysicalColumnProjection implements SQLColumnProjection {
 
     private String name;
+    private SQLDialect dialect;
 
-    public SQLPhysicalColumnProjection(String name) {
+    public SQLPhysicalColumnProjection(String name, SQLDialect dialect) {
         this.name = name;
+        this.dialect = dialect;
     }
 
     @Override
-    //TODO - we need to quote the alias and name
     public String toSQL(Queryable source, SQLReferenceTable table) {
-        return source.getAlias() + "." + name;
+        return TypeHelper.getFieldAlias(applyQuotes(source.getAlias(), dialect), applyQuotes(name, dialect));
     }
 
     @Override

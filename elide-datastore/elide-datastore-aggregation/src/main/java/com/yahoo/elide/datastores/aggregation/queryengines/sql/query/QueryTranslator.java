@@ -311,10 +311,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
         ColumnProjection projection = query.getColumnProjection(fieldName);
 
         if (projection == null) {
-
-            //If the query doesn't have the column, the root table should for columns that require joins.
-            //TODO - we should first verify that this field requires a join before we go to the root table.
-            projection = query.getRoot().getColumnProjection(fieldName);
+            projection = query.getSource().getColumnProjection(fieldName);
         }
         return (SQLColumnProjection) projection;
     }
@@ -325,10 +322,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
         ColumnProjection projection = query.getColumnProjection(fieldName, arguments);
 
         if (projection == null) {
-
-            //If the query doesn't have the column, the root table should for columns that require joins.
-            //TODO - we should first verify that this field requires a join before we go to the root table.
-            projection = query.getRoot().getColumnProjection(fieldName, arguments);
+            projection = query.getSource().getColumnProjection(fieldName);
         }
         return (SQLColumnProjection) projection;
     }
