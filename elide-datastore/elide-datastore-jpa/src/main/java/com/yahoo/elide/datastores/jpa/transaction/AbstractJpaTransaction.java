@@ -356,6 +356,6 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
                 //This is a root level load (so always let the DB do as much as possible.
                 || !parent.isPresent()
                 //We are fetching .../book/1/authors so N = 1 in N+1.  No harm in the DB running a query.
-                || (parent.isPresent() && singleElementLoads.contains(parent.get()));
+                || parent.filter(singleElementLoads::contains).isPresent();
     }
 }

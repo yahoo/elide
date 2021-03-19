@@ -49,6 +49,7 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
@@ -1060,7 +1061,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
         Optional<Pagination> pagination = Optional.ofNullable(relationship.getProjection().getPagination());
 
-        if (pagination.isPresent() && !pagination.get().isDefaultInstance()
+        if (pagination.filter(Predicates.not(Pagination::isDefaultInstance)).isPresent()
                 && !CanPaginateVisitor.canPaginate(relationClass, dictionary, requestScope)) {
             throw new BadRequestException(String.format("Cannot paginate %s",
                     dictionary.getJsonAliasFor(relationClass)));

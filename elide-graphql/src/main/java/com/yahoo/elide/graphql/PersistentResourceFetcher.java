@@ -389,9 +389,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         PersistentResource upsertedResource;
         EntityDictionary dictionary = requestScope.getDictionary();
 
-        PersistentResource parentResource = !entity.getParentResource().isPresent()
-                ? null
-                : entity.getParentResource().get().toPersistentResource();
+        PersistentResource parentResource = entity.getParentResource().map(Entity::toPersistentResource).orElse(null);
 
         if (!id.isPresent()) {
             //If the ID is generated, it is safe to assign a temporary UUID.  Otherwise the client must provide one.

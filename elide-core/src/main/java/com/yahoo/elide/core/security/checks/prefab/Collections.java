@@ -69,6 +69,6 @@ public class Collections {
     }
 
     private static boolean changeSpecIsCollection(Optional<ChangeSpec> changeSpec) {
-        return changeSpec.isPresent() && changeSpec.get().getModified() instanceof Collection;
+        return changeSpec.filter(c -> c.getModified() instanceof Collection).isPresent();
     }
 }

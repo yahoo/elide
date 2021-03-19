@@ -540,7 +540,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                 return new FilterPredicate(path, op, Collections.singletonList(value));
             }
 
-            Boolean isStringLike = path.lastElement()
+            boolean isStringLike = path.lastElement()
                     .filter(e -> e.getFieldType().isAssignableFrom(STRING_TYPE))
                     .isPresent();
             if (isStringLike) {
