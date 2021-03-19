@@ -178,7 +178,8 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.valueSourceType",  equalTo("NONE"))
                 .body("data.attributes.expression",  equalTo("{{player.name}}"))
                 .body("data.attributes.tableSource",  nullValue())
-                .body("data.relationships.table.data.id", equalTo("playerStats"));
+                .body("data.relationships.table.data.id", equalTo("playerStats"))
+                .body("data.attributes.arguments", nullValue()); // No Arguments were set.
     }
 
     @Test
@@ -250,6 +251,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.valueType",  equalTo("TIME"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.expression",  equalTo("{{recordedDate}}"))
+                .body("data.attributes.arguments", nullValue()) // No Arguments were set.
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
                 .body("data.relationships.supportedGrains.data.id", containsInAnyOrder("playerStats.recordedDate.day", "playerStats.recordedDate.month"))
                 .body("included.id", containsInAnyOrder("playerStats.recordedDate.day", "playerStats.recordedDate.month"))
@@ -266,7 +268,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/playerStats/metrics/playerStats.lowScore?include=metricFunction")
+                .get("/table/playerStats/metrics/playerStats.lowScore")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("lowScore"))
@@ -277,10 +279,8 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.category",  equalTo("Score Category"))
                 .body("data.attributes.description",  equalTo("very low score"))
                 .body("data.attributes.tags",  containsInAnyOrder("PRIVATE"))
-                .body("data.relationships.table.data.id", equalTo("playerStats"))
-                .body("data.relationships.metricFunction.data.id", equalTo("playerStats.lowScore[lowScore]"))
-                .body("included.id", containsInAnyOrder("playerStats.lowScore[lowScore]"))
-                .body("included.attributes.description", containsInAnyOrder("very low score"));
+                .body("data.attributes.arguments", nullValue()) // No Arguments were set.
+                .body("data.relationships.table.data.id", equalTo("playerStats"));
 
         given()
                 .accept("application/vnd.api+json")
@@ -291,6 +291,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.valueType",  equalTo("DECIMAL"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.expression",  equalTo("({{timeSpent}} / (CASE WHEN SUM({{game_rounds}}) = 0 THEN 1 ELSE {{sessions}} END))"))
+                .body("data.attributes.arguments", nullValue()) // No Arguments were set.
                 .body("data.relationships.table.data.id", equalTo("videoGame"));
 
     }

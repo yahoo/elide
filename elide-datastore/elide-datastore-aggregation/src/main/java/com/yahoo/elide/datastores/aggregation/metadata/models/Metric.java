@@ -9,17 +9,12 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-
-import java.util.HashSet;
-import java.util.Set;
-import javax.persistence.ManyToOne;
 
 /**
  * Column which supports aggregation.
@@ -29,10 +24,6 @@ import javax.persistence.ManyToOne;
 @EqualsAndHashCode(callSuper = true)
 @ToString
 public class Metric extends Column {
-    @ManyToOne
-    @ToString.Exclude
-    private final MetricFunction metricFunction;
-
     @Exclude
     @ToString.Exclude
     private final QueryPlanResolver queryPlanResolver;
@@ -41,22 +32,12 @@ public class Metric extends Column {
         super(table, fieldName, dictionary);
         Type<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
 
-        ColumnMeta meta = dictionary.getAttributeOrRelationAnnotation(
-                tableClass,
-                ColumnMeta.class,
-                fieldName);
-
         MetricFormula formula = dictionary.getAttributeOrRelationAnnotation(
                 tableClass,
                 MetricFormula.class,
                 fieldName);
 
         if (formula != null) {
-            this.metricFunction = constructMetricFunction(
-                    constructColumnName(tableClass, fieldName, dictionary) + "[" + fieldName + "]",
-                    meta == null ? null : meta.description(),
-                    new HashSet<>());
-
             this.queryPlanResolver = dictionary.getInjector().instantiate(formula.queryPlan());
             dictionary.getInjector().inject(this.queryPlanResolver);
 
@@ -64,19 +45,5 @@ public class Metric extends Column {
             throw new IllegalStateException("Trying to construct metric field "
                     + getId() + " without @MetricFormula.");
         }
-    }
-
-    /**
-     * Dynamically construct a metric function
-     *
-     * @param id metric function id
-     * @param description meta description
-     * @param arguments function arguments
-     * @return a metric function instance
-     */
-    protected MetricFunction constructMetricFunction(String id,
-                                                     String description,
-                                                     Set<FunctionArgument> arguments) {
-        return new MetricFunction(id, description, arguments);
     }
 }
