@@ -87,7 +87,13 @@ public class SQLReferenceTable {
      * @return resolved reference
      */
     public String getResolvedReference(Queryable queryable, String fieldName) {
-        return resolvedReferences.get(queryable).get(fieldName);
+        String reference = resolvedReferences.get(queryable).get(fieldName);
+
+        if (reference == null) {
+            reference = resolvedReferences.get(queryable.getRoot()).get(fieldName);
+        }
+
+        return reference;
     }
 
     /**
@@ -98,7 +104,13 @@ public class SQLReferenceTable {
      * @return resolved ON clause expression
      */
     public Set<String> getResolvedJoinExpressions(Queryable queryable, String fieldName) {
-        return resolvedJoinExpressions.get(queryable).get(fieldName);
+        Set<String> joinExpressions = resolvedJoinExpressions.get(queryable).get(fieldName);
+
+        if (joinExpressions == null) {
+            joinExpressions = resolvedJoinExpressions.get(queryable.getRoot()).get(fieldName);
+        }
+
+        return joinExpressions;
     }
 
     /**
@@ -109,7 +121,7 @@ public class SQLReferenceTable {
      * @return resolved ON clause projections (physical or logical) referenced from the given table
      */
     public Set<SQLColumnProjection> getResolvedJoinProjections(Queryable queryable, String fieldName) {
-        return resolvedJoinProjections.get(queryable).get(fieldName);
+        return resolvedJoinProjections.get(queryable).getOrDefault(fieldName, new HashSet<>());
     }
 
     /**

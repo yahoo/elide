@@ -38,7 +38,14 @@ public class DynamicSQLReferenceTable extends SQLReferenceTable {
         if (staticReferenceTable.resolvedReferences.containsKey(queryable)) {
             return staticReferenceTable.getResolvedReference(queryable, fieldName);
         }
-        return resolvedReferences.get(queryable).get(fieldName);
+
+        String reference = resolvedReferences.get(queryable).get(fieldName);
+
+        if (reference == null) {
+            reference = staticReferenceTable.resolvedReferences.get(queryable.getRoot()).get(fieldName);
+        }
+
+        return reference;
     }
 
     /**
@@ -53,6 +60,13 @@ public class DynamicSQLReferenceTable extends SQLReferenceTable {
         if (staticReferenceTable.resolvedJoinExpressions.containsKey(queryable)) {
             return staticReferenceTable.getResolvedJoinExpressions(queryable, fieldName);
         }
-        return resolvedJoinExpressions.get(queryable).get(fieldName);
+
+        Set<String> joinExpressions = resolvedJoinExpressions.get(queryable).get(fieldName);
+
+        if (joinExpressions == null) {
+            joinExpressions = staticReferenceTable.resolvedJoinExpressions.get(queryable.getRoot()).get(fieldName);
+        }
+
+        return joinExpressions;
     }
 }

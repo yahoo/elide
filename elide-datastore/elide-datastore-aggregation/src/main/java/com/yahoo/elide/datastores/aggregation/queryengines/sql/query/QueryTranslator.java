@@ -38,7 +38,7 @@ import java.util.stream.Stream;
 /**
  * Translates a client query into a SQL query.
  */
-public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
+public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuilder> {
 
     private final SQLReferenceTable referenceTable;
     private final EntityDictionary dictionary;
@@ -53,13 +53,13 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
     }
 
     @Override
-    public SQLQuery.SQLQueryBuilder visitQuery(Query query) {
-        SQLQuery.SQLQueryBuilder builder = query.getSource().accept(this);
+    public NativeQuery.NativeQueryBuilder visitQuery(Query query) {
+        NativeQuery.NativeQueryBuilder builder = query.getSource().accept(this);
 
         if (query.isNested()) {
-            SQLQuery innerQuery = builder.build();
+            NativeQuery innerQuery = builder.build();
 
-            builder = SQLQuery.builder().fromClause("(" + innerQuery + ") AS "
+            builder = NativeQuery.builder().fromClause("(" + innerQuery + ") AS "
                     + applyQuotes(query.getSource().getAlias()));
         }
 
@@ -113,8 +113,8 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
     }
 
     @Override
-    public SQLQuery.SQLQueryBuilder visitQueryable(Queryable table) {
-        SQLQuery.SQLQueryBuilder builder = SQLQuery.builder();
+    public NativeQuery.NativeQueryBuilder visitQueryable(Queryable table) {
+        NativeQuery.NativeQueryBuilder builder = NativeQuery.builder();
 
         Type<?> tableCls = dictionary.getEntityClass(table.getName(), table.getVersion());
         String tableAlias = applyQuotes(table.getAlias());
@@ -305,17 +305,26 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
 
     private SQLColumnProjection fieldToColumnProjection(Query query, String fieldName) {
         ColumnProjection projection = query.getColumnProjection(fieldName);
+
         if (projection == null) {
-            projection = query.getSource().getColumnProjection(fieldName);
+
+            //If the query doesn't have the column, the root table should for columns that require joins.
+            //TODO - we should first verify that this field requires a join before we go to the root table.
+            projection = query.getRoot().getColumnProjection(fieldName);
         }
         return (SQLColumnProjection) projection;
     }
 
     private SQLColumnProjection fieldToColumnProjection(Query query, String fieldName,
                     Map<String, Argument> arguments) {
+
         ColumnProjection projection = query.getColumnProjection(fieldName, arguments);
+
         if (projection == null) {
-            projection = query.getSource().getColumnProjection(fieldName, arguments);
+
+            //If the query doesn't have the column, the root table should for columns that require joins.
+            //TODO - we should first verify that this field requires a join before we go to the root table.
+            projection = query.getRoot().getColumnProjection(fieldName, arguments);
         }
         return (SQLColumnProjection) projection;
     }

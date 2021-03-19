@@ -50,6 +50,11 @@ public class SubqueryFilterSplitter
             SQLReferenceTable lookupTable,
             MetaDataStore metaDataStore,
             FilterExpression expression) {
+
+        if (expression == null) {
+            return SplitFilter.builder().build();
+        }
+
         FilterExpressionNormalizationVisitor normalizer = new FilterExpressionNormalizationVisitor();
         FilterExpression normalizedExpression = expression.accept(normalizer);
 

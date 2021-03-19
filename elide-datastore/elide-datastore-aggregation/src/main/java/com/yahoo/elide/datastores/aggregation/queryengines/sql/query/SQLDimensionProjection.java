@@ -43,6 +43,11 @@ public class SQLDimensionProjection implements SQLColumnProjection {
     }
 
     @Override
+    public boolean canNest() {
+        return true;
+    }
+
+    @Override
     public ColumnProjection outerQuery() {
         return SQLDimensionProjection.builder()
                 .name(name)

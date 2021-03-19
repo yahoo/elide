@@ -79,6 +79,11 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     }
 
     @Override
+    public boolean canNest() {
+        return true;
+    }
+
+    @Override
     public ColumnProjection outerQuery() {
         return SQLTimeDimensionProjection.builder()
                 .name(name)
