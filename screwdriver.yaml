@@ -6,6 +6,8 @@ shared:
        screwdriver.cd/cpu: TURBO
        screwdriver.cd/ram: TURBO
    image: maven:3.6.3-jdk-8
+   environment:
+       GIT_SHALLOW_CLONE: false
 
 jobs:
   master-commit:
