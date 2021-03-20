@@ -39,6 +39,10 @@ public enum KeyWord {
         this.name = name;
     }
 
+    public boolean hasName(String name) {
+        return this.name.equals(name);
+    }
+
     public static KeyWord byName(String value) {
         return NAME_MAP.getOrDefault(value, UNKNOWN);
     }

@@ -160,7 +160,7 @@ public class GraphQLEntityProjectionMaker {
             Field rootSelectionField = (Field) rootSelection;
             String entityName = rootSelectionField.getName();
             String aliasName = rootSelectionField.getAlias();
-            if (SCHEMA.equals(entityName) || TYPE.equals(entityName)) {
+            if (SCHEMA.hasName(entityName) || TYPE.hasName(entityName)) {
                 // '__schema' and '__type' would not be handled by entity projection
                 return;
             }
@@ -211,8 +211,8 @@ public class GraphQLEntityProjectionMaker {
         if (fieldSelection instanceof FragmentSpread) {
             addFragment((FragmentSpread) fieldSelection, projectionBuilder);
         } else if (fieldSelection instanceof Field) {
-            if (EDGES.equals(((Field) fieldSelection).getName())
-                    || NODE.equals(((Field) fieldSelection).getName())) {
+            if (EDGES.hasName(((Field) fieldSelection).getName())
+                    || NODE.hasName(((Field) fieldSelection).getName())) {
                 // if this graphql field is 'edges' or 'node', go one level deeper in the graphql document
                 ((Field) fieldSelection).getSelectionSet().getSelections().forEach(
                         selection -> addSelection(selection, projectionBuilder));
@@ -260,13 +260,13 @@ public class GraphQLEntityProjectionMaker {
         if (entityDictionary.getRelationshipType(parentType, fieldName) != RelationshipType.NONE) {
             // handle the case of a relationship field
             addRelationship(field, projectionBuilder);
-        } else if (TYPENAME.equals(fieldName)) {
+        } else if (TYPENAME.hasName(fieldName)) {
             // '__typename' would not be handled by entityProjection
-        } else if (PAGE_INFO.equals(fieldName)) {
+        } else if (PAGE_INFO.hasName(fieldName)) {
             // only 'totalRecords' needs to be added into the projection's pagination
             if (field.getSelectionSet().getSelections().stream()
                     .anyMatch(selection -> selection instanceof Field
-                            && PAGE_INFO_TOTAL_RECORDS.equals(((Field) selection).getName()))) {
+                            && PAGE_INFO_TOTAL_RECORDS.hasName(((Field) selection).getName()))) {
                 addPageTotal(projectionBuilder);
             }
         } else {
