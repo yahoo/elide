@@ -88,7 +88,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     }
 
     public EntityDictionaryTest() {
-        super(Collections.EMPTY_MAP, mock(Injector.class));
+        super(Collections.emptyMap(), mock(Injector.class));
         init();
     }
 
@@ -151,7 +151,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testBindingNoExcludeSet() {
 
-        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), Collections.EMPTY_SET);
+        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), Collections.emptySet());
         testDictionary.bindEntity(Employee.class);
         // Finds the Binding
         assertNotNull(testDictionary.entityBindings.get(ClassType.of(Employee.class)));

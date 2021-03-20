@@ -182,7 +182,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     }
 
     protected void assertQueryEquals(String graphQLRequest, String expectedResponse) throws Exception {
-        assertQueryEquals(graphQLRequest, expectedResponse, Collections.EMPTY_MAP);
+        assertQueryEquals(graphQLRequest, expectedResponse, Collections.emptyMap());
     }
 
     protected void assertQueryEquals(String graphQLRequest, String expectedResponse, Map<String, Object> variables) throws Exception {

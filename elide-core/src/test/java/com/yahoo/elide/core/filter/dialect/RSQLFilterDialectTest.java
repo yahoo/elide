@@ -47,7 +47,7 @@ public class RSQLFilterDialectTest {
 
     @BeforeAll
     public static void init() {
-        EntityDictionary dictionary = new EntityDictionary(Collections.EMPTY_MAP);
+        EntityDictionary dictionary = new EntityDictionary(Collections.emptyMap());
 
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Book.class);

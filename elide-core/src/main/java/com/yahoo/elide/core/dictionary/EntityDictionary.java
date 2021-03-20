@@ -136,7 +136,7 @@ public class EntityDictionary {
      *               to their implementing classes
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks) {
-        this(checks, Collections.EMPTY_SET);
+        this(checks, Collections.emptySet());
     }
 
     /**
@@ -185,7 +185,7 @@ public class EntityDictionary {
      *                 initialize Elide models.
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks, Injector injector) {
-        this(checks, injector, Collections.EMPTY_SET);
+        this(checks, injector, Collections.emptySet());
     }
 
     /**
@@ -207,7 +207,7 @@ public class EntityDictionary {
     public EntityDictionary(Map<String, Class<? extends Check>> checks,
                             Injector injector,
                             Function<Class, Serde> serdeLookup) {
-        this(checks, injector, serdeLookup, Collections.EMPTY_SET);
+        this(checks, injector, serdeLookup, Collections.emptySet());
     }
 
     public EntityDictionary(Map<String, Class<? extends Check>> checks,

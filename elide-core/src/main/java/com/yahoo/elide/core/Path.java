@@ -59,7 +59,7 @@ public class Path {
             this.fieldType = fieldType;
             this.fieldName = fieldName;
             this.alias = fieldName;
-            this.arguments = Collections.EMPTY_SET;
+            this.arguments = Collections.emptySet();
         }
     }
 
@@ -114,7 +114,7 @@ public class Path {
                 currentClass = joinClass;
             } else {
                 elements.add(resolvePathAttribute(currentClass, fieldName,
-                        fieldName, Collections.EMPTY_SET, dictionary));
+                        fieldName, Collections.emptySet(), dictionary));
             }
         }
 

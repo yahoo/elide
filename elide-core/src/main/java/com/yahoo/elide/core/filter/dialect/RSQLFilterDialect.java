@@ -233,7 +233,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                                                   boolean coerceValues,
                                                   boolean allowNestedToManyAssociations) throws ParseException {
         return parseFilterExpression(expressionText, entityType, coerceValues,
-                allowNestedToManyAssociations, Collections.EMPTY_SET);
+                allowNestedToManyAssociations, Collections.emptySet());
 
     }
 
@@ -288,7 +288,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
         private Set<Attribute> attributes;
 
         public RSQL2FilterExpressionVisitor(boolean allowNestedToManyAssociations) {
-            this(allowNestedToManyAssociations, true, Collections.EMPTY_SET);
+            this(allowNestedToManyAssociations, true, Collections.emptySet());
         }
 
         public RSQL2FilterExpressionVisitor(boolean allowNestedToManyAssociations,
