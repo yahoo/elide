@@ -23,7 +23,8 @@ public class ElideFieldNameFormatAttr extends AbstractFormatAttribute {
 
     public static final String FORMAT_NAME = "elideFieldName";
     public static final String NAME_KEY = "elideFieldName.error.name";
-    public static final String NAME_MSG = "Field name [%s] is not allowed. Field name cannot be one of [id, column]";
+    public static final String NAME_MSG =
+                    "Field name [%s] is not allowed. Field name cannot be one of [id, column, sql]";
     public static final String FORMAT_KEY = "elideFieldName.error.format";
     public static final String FORMAT_MSG = "Field name [%s] is not allowed. Field name must start with "
                     + "lower case alphabet and can include alaphabets, numbers and '_' only.";
@@ -41,7 +42,7 @@ public class ElideFieldNameFormatAttr extends AbstractFormatAttribute {
             report.error(newMsg(data, bundle, FORMAT_KEY).putArgument("value", input));
         }
 
-        if (input.equalsIgnoreCase("id") || input.equalsIgnoreCase("column")) {
+        if (input.equalsIgnoreCase("id") || input.equalsIgnoreCase("column") || input.equalsIgnoreCase("sql")) {
             report.error(newMsg(data, bundle, NAME_KEY).putArgument("value", input));
         }
     }

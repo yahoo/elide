@@ -9,7 +9,7 @@
         {
           name: region
           type: TEXT
-          definition: '{{region}}'
+          definition: '{{$region}}'
         }
       ]
     }
@@ -22,7 +22,7 @@
         {
           name: region
           type: TEXT
-          definition: '{{region}}'
+          definition: '{{$region}}'
         }
       ]
     }

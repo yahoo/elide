@@ -31,7 +31,7 @@
              to: Team
              kind: Tomany
              type: left
-             definition: '{{playerTeam.id}} = {{ team_id}}'
+             definition: '{{playerTeam.$id}} = {{ $team_id}}'
           }
       ]
 
@@ -41,14 +41,14 @@
           friendlyName : High Score
           type : INteGER
           description : very awesome score
-          definition: 'MAX({{score}})'
+          definition: 'MAX({{$score}})'
           tags: ['PUBLIC']
           },
           {
           name : newHighScore
           type : INteGER
           description : very awesome score
-          definition: 'MAX({{score}})'
+          definition: 'MAX({{$score}})'
           tags: ['PUBLIC']
           }
       ]
@@ -58,7 +58,7 @@
            friendlyName : Country ISO Code
            type : TEXT
            category : country detail
-           definition : '{{playerCountry.isoCode}}'
+           definition : '{{playerCountry.$isoCode}}'
            values : ['US', 'HK']
            tags: ['PRIVATE']
            cardinality: Small
@@ -73,19 +73,19 @@
            name : createdOn
            friendlyName : Created On
            type : TIME
-           definition : '{{create_on}}'
+           definition : '{{$create_on}}'
            grains:
             [{
              type : DaY
              sql :  '''
-             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+             PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
              '''
             }]
          },
          {
            name : updatedOn
            type : TIme
-           definition : '{{updated_on}}'
+           definition : '{{$updated_on}}'
          }
       ]
   }]

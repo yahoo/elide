@@ -85,8 +85,8 @@ public class Dimension implements Named {
     private Set<String> tags = new LinkedHashSet<String>();
 
     @JsonProperty("arguments")
-    @Singular
-    private List<Argument> arguments = new ArrayList<Argument>();
+    @JsonDeserialize(as = LinkedHashSet.class)
+    private Set<Argument> arguments = new LinkedHashSet<Argument>();
 
     @JsonProperty("values")
     @JsonDeserialize(as = LinkedHashSet.class)
@@ -102,5 +102,15 @@ public class Dimension implements Named {
      */
     public String getDescription() {
         return (this.description == null ? getName() : this.description);
+    }
+
+    /**
+     * Checks if this dimension has provided argument.
+     * @param argName
+     * @return true if this dimension has provided argument.
+     */
+    @Override
+    public boolean hasArgument(String argName) {
+        return hasName(this.arguments, argName);
     }
 }

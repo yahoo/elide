@@ -9,6 +9,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.collect.Streams;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -102,8 +104,8 @@ public class Table implements Named {
     private Set<String> tags = new LinkedHashSet<String>();
 
     @JsonProperty("arguments")
-    @Singular
-    private List<Argument> arguments = new ArrayList<Argument>();
+    @JsonDeserialize(as = LinkedHashSet.class)
+    private Set<Argument> arguments = new LinkedHashSet<Argument>();
 
     @JsonProperty("extend")
     private String extend;
@@ -124,22 +126,55 @@ public class Table implements Named {
     }
 
     /**
-     * Checks recursively if this model or any of its parent models has provided field.
-     * @param elideTableConfig
+     * Checks if this model has provided field.
      * @param fieldName
-     * @return true if this model has provided field
+     * @return true if this model has provided field.
      */
-    public boolean hasField(ElideTableConfig elideTableConfig, String fieldName) {
+    public boolean hasField(String fieldName) {
+        return hasName(this.dimensions, fieldName) || hasName(this.measures, fieldName);
+    }
 
-        if (hasName(this.dimensions, fieldName) || hasName(this.measures, fieldName)) {
-            return true;
-        }
-        if (hasParent()) {
-            Table parent = elideTableConfig.getTable(this.getExtend());
-            return parent.hasField(elideTableConfig, fieldName);
-        }
+    /**
+     * Provides the Field details for provided field name.
+     * @param fieldName
+     * @return Field for provided field name.
+     */
+    public Named getField(String fieldName) {
+        return Streams.concat(this.dimensions.stream(), this.measures.stream())
+                        .filter(col -> col.getName().equals(fieldName))
+                        .findFirst()
+                        .orElse(null);
+    }
 
-        return false;
+    /**
+     * Checks if this model has provided argument.
+     * @param argName
+     * @return true if this model has provided argument.
+     */
+    @Override
+    public boolean hasArgument(String argName) {
+        return hasName(this.arguments, argName);
+    }
+
+    /**
+     * Checks if this model has provided join field.
+     * @param joinName
+     * @return true if this model has provided join field.
+     */
+    public boolean hasJoinField(String joinName) {
+        return hasName(this.joins, joinName);
+    }
+
+    /**
+     * Provides the Join details for provided join name.
+     * @param joinName
+     * @return Join for provided join name.
+     */
+    public Join getJoin(String joinName) {
+        return this.joins.stream()
+                        .filter(join -> join.getName().equals(joinName))
+                        .findFirst()
+                        .orElse(null);
     }
 
     /**

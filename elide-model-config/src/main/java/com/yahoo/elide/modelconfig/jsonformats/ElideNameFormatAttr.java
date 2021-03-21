@@ -23,7 +23,7 @@ public class ElideNameFormatAttr extends AbstractFormatAttribute {
 
     public static final String FORMAT_NAME = "elideName";
     public static final String NAME_KEY = "elideName.error.name";
-    public static final String NAME_MSG = "Name [%s] is not allowed. Name cannot be 'table'";
+    public static final String NAME_MSG = "Name [%s] is not allowed. Name cannot be 'from'";
     public static final String FORMAT_KEY = "elideName.error.format";
     public static final String FORMAT_MSG =
                     "Name [%s] is not allowed. Name must start with an alphabet and can include "
@@ -42,7 +42,7 @@ public class ElideNameFormatAttr extends AbstractFormatAttribute {
             report.error(newMsg(data, bundle, FORMAT_KEY).putArgument("value", input));
         }
 
-        if (input.equalsIgnoreCase("table")) {
+        if (input.equalsIgnoreCase("from")) {
             report.error(newMsg(data, bundle, NAME_KEY).putArgument("value", input));
         }
     }

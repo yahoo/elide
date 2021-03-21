@@ -6,6 +6,8 @@
 package com.yahoo.elide.modelconfig.model;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 
 public interface Named {
     public String getName();
@@ -21,5 +23,17 @@ public interface Named {
                         .stream()
                         .map(obj -> obj.getName())
                         .anyMatch(name::equals);
+    }
+
+    default Set<Argument> getArguments() {
+        return Collections.emptySet();
+    }
+
+    default String getDefinition() {
+        return null;
+    }
+
+    default boolean hasArgument(String argName) {
+        return false;
     }
 }

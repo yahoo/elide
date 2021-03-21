@@ -15,7 +15,7 @@
              name: playerCountry
              to: Country
              kind: toOne
-             definition: '{{playerCountry.id}} = {{country_id}}'
+             definition: '{{playerCountry.$id}} = {{$country_id}}'
           }
       ]
 
@@ -23,19 +23,19 @@
           {
           name : highScore
           type : INTEGER
-          definition: 'MAX({{score}})'
+          definition: 'MAX({{$score}})'
           }
       ]
       dimensions : [
          {
            name : countryIsoCode
            type : TEXT
-           definition : '{{playerCountry.isoCode}}'
+           definition : '{{playerCountry.$isoCode}}'
          },
          {
            name : createdOn
            type : TIME
-           definition : '{{create_on}}'
+           definition : '{{$create_on}}'
            grains:
             [{
              type : DAY

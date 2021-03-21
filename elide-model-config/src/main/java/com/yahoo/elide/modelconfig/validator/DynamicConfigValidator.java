@@ -48,12 +48,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
@@ -79,6 +81,22 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     private static final String CLASSPATH_PATTERN = "classpath*:";
     private static final String FILEPATH_PATTERN = "file:";
     private static final String HJSON_EXTN = "**/*.hjson";
+    private static final String SQL_HELPER_PREFIX = "sql ";
+    private static final String COLUMN_ARGS_PREFIX = "$$column.args.";
+    private static final String TABLE_ARGS_PREFIX = "$$table.args.";
+    private static final String USER_CTX_PREFIX = "$$user.";
+    private static final String REQUEST_CTX_PREFIX = "$$request.";
+    private static final String TABLES_CTX_PREFIX = "$$tables.";
+
+    // eg: sql table='tableName' column='columnName[arg1:value1][arg2:value2]'
+    private static final Pattern SQL_HELPER_PATTERN = Pattern.compile("sql\\s+from='(.+)'\\s+column='(.+)'");
+    // square brackets having non-empty argument name and  encoded agument value separated by ':'
+    // eg: [abc:xyz] , [foo:bar][blah:Encoded+Value]
+    private static final Pattern SQL_HELPER_COLUMN_ARGS_PATTERN = Pattern.compile("\\[(\\w+):([^\\]]+)\\]");
+    // field name followed by zero or more filter arguments
+    // eg: name, orderDate[grain:month] , title[foo:bar][blah:Encoded+Value]
+    private static final Pattern SQL_HELPER_COLUMN_PATTERN =
+                    Pattern.compile("(\\w+)(" + SQL_HELPER_COLUMN_ARGS_PATTERN + ")*$");
 
     @Getter private final ElideTableConfig elideTableConfig = new ElideTableConfig();
     @Getter private ElideSecurityConfig elideSecurityConfig;
@@ -496,35 +514,53 @@ public class DynamicConfigValidator implements DynamicConfiguration {
             validateArguments(table.getArguments());
             Set<String> tableFields = new HashSet<>();
 
+            table.getJoins().forEach(join -> {
+                validateFieldNameUniqueness(tableFields, join.getName(), table.getName());
+                validateSql(join.getDefinition());
+                validateModelExists(join.getTo());
+                if (join.getType() == Join.Type.CROSS && !isNullOrEmpty(join.getDefinition())) {
+                    throw new IllegalStateException(String.format(
+                                    "Join definition is not supported for Cross Join: %s in Model: %s",
+                                    join.getName(), table.getName()));
+                } else if (join.getType() != Join.Type.CROSS && isNullOrEmpty(join.getDefinition())) {
+                    throw new IllegalStateException(String.format(
+                                    "Join definition must be provided for Join: %s in Model: %s",
+                                    join.getName(), table.getName()));
+                }
+            });
+
             table.getDimensions().forEach(dim -> {
                 validateFieldNameUniqueness(tableFields, dim.getName(), table.getName());
+                validateArguments(dim.getArguments());
                 validateSql(dim.getDefinition());
                 validateTableSource(dim.getTableSource());
                 extractChecksFromExpr(dim.getReadAccess(), extractedChecks, visitor);
-                validateArguments(dim.getArguments());
             });
 
             table.getMeasures().forEach(measure -> {
                 validateFieldNameUniqueness(tableFields, measure.getName(), table.getName());
+                validateArguments(measure.getArguments());
                 validateSql(measure.getDefinition());
                 extractChecksFromExpr(measure.getReadAccess(), extractedChecks, visitor);
-                validateArguments(measure.getArguments());
-            });
-
-            table.getJoins().forEach(join -> {
-                validateFieldNameUniqueness(tableFields, join.getName(), table.getName());
-                validateJoin(join);
             });
 
             extractChecksFromExpr(table.getReadAccess(), extractedChecks, visitor);
             validateChecks(extractedChecks);
         }
 
+        // Verify definitions
+        for (Table table : elideTableConfig.getTables()) {
+            // First verify Join definitions.
+            table.getJoins().forEach(join -> validateDefinition(table, join));
+            table.getDimensions().forEach(dim -> validateDefinition(table, dim));
+            table.getMeasures().forEach(measure -> validateDefinition(table, measure));
+        }
+
         return true;
     }
 
-    private void validateArguments(List<Argument> arguments) {
-        validateNameUniqueness(new HashSet<>(arguments), "Multiple Arguments found with the same name: ");
+    private void validateArguments(Set<Argument> arguments) {
+        validateNameUniqueness(arguments, "Multiple Arguments found with the same name: ");
         arguments.forEach(arg -> {
             validateTableSource(arg.getTableSource());
         });
@@ -584,7 +620,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
         if (elideTableConfig.hasTable(modelName)) {
             Table table = elideTableConfig.getTable(modelName);
-            if (!table.hasField(elideTableConfig, fieldName)) {
+            if (!table.hasField(fieldName)) {
                 throw new IllegalStateException("Invalid tableSource : " + tableSource + " . Field : " + fieldName
                                 + " is undefined for hjson model: " + modelName);
             }
@@ -656,46 +692,254 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         }
     }
 
-    /**
-     * Check if input join definition is valid.
-     */
-    private void validateJoin(Join join) {
-        String joinModelName = join.getTo();
+    private void validateDefinition(Table currentModel, Named currentColumn) {
+        Set<String> references = getAllReferences(currentColumn.getDefinition());
 
-        if (!(elideTableConfig.hasTable(joinModelName) || isStaticModel(joinModelName, NO_VERSION))) {
-            throw new IllegalStateException(
-                            "Model: " + joinModelName + " is neither included in dynamic models nor in static models");
+        for (String reference : references) {
+
+            // validate sql handlebar helper
+            // {{sql from=<table/join name> column='<columnName>[<arg1>:<value1>][<argN>:<valueN>]'}}
+            if (isSQLHelper(reference)) {
+                validateSQLHelper(reference, currentModel, currentColumn);
+                continue;
+            }
+
+            // validate arg1 exists when {{$$column.args.arg1}}
+            if (reference.startsWith(COLUMN_ARGS_PREFIX)) {
+                validateArgumentExists(currentModel, currentColumn, reference.substring(COLUMN_ARGS_PREFIX.length()));
+                continue;
+            }
+
+            // validate arg1 exists when {{$$table.args.arg1}}
+            if (reference.startsWith(TABLE_ARGS_PREFIX)) {
+                validateArgumentExists(currentModel, reference.substring(TABLE_ARGS_PREFIX.length()));
+                continue;
+            }
+
+            // Skip validation for $$user, $$request & $$tables
+            if (reference.startsWith(USER_CTX_PREFIX) || reference.startsWith(REQUEST_CTX_PREFIX)
+                            || reference.startsWith(TABLES_CTX_PREFIX)) {
+                continue;
+            }
+
+            // Skip validation for physical column
+            if (reference.indexOf('$') == 0) {
+                continue;
+            }
+
+            // Joined reference eg: {{rates.conversionRate}}
+            if (reference.indexOf('.') != -1) {
+                validateJoinPath(reference, currentModel, currentColumn);
+                continue;
+            }
+
+            // {{highScore}}
+            validateLogicalColumn(reference, currentModel, currentColumn);
+        }
+    }
+
+    private void validateJoinPath(String definition, Table currentModel, Named currentCol) {
+        int dotIndex = definition.indexOf('.');
+        String joinName = definition.substring(0, dotIndex);
+        Join joinedVia;
+
+        if ((currentCol instanceof Join && currentCol.getName().equals(joinName))
+                        || (currentCol instanceof Join == false && currentModel.hasJoinField(joinName))) {
+            joinedVia = currentModel.getJoin(joinName);
+
+        // Name before '.' must match with any of the Join names
+        } else {
+            throw new IllegalArgumentException(String.format(
+                            "Join name must be used before '.'. Found '%s' for Column: %s in Model: %s",
+                            joinName, currentCol.getName(), currentModel.getName()));
         }
 
-        if (join.getType() == Join.Type.CROSS) {
-            return; // Join's definition validation not required.
+        // Any column args required in Join definition must be defined for current dimension/measure.
+        validateCurrentColumnArgsAgainstColumnArgsInJoinDefinition(currentModel, currentCol, joinedVia);
+
+        String invokedModelName = joinedVia.getTo();
+        String invokedColName = definition.substring(dotIndex + 1);
+
+        if (isStaticModel(invokedModelName, NO_VERSION)) {
+            validateNonHJSONColumnInvocation(definition, currentModel, currentCol, invokedModelName, invokedColName);
+            return;
         }
 
-        if (isNullOrEmpty(join.getDefinition())) {
-            throw new IllegalStateException("Join definition must be provided.");
+        if (this.elideTableConfig.hasTable(invokedModelName)) {
+            validateHJSONColumnInvocation(definition, currentModel, currentCol, invokedModelName, invokedColName,
+                            Collections.emptySet());
+            return;
         }
 
-        Matcher matcher = REFERENCE_PARENTHESES.matcher(join.getDefinition());
-        Set<String> references = new HashSet<>();
-        while (matcher.find()) {
-            references.add(matcher.group(1).trim());
+        throw new IllegalArgumentException(String.format(
+                        "Can't invoke '%s' provided in '%s' for Column: %s in Model: %s. "
+                        + ". Undefined Model: %s ",
+                        joinName, definition, currentCol.getName(), currentModel.getName(),
+                        invokedModelName));
+    }
+
+    private void validateCurrentColumnArgsAgainstColumnArgsInJoinDefinition(Table currentModel, Named currentCol,
+                    Join joinedVia) {
+        if (currentCol == joinedVia) {
+            return;
+        }
+        joinedVia.getRequiredColumnArgs().forEach(arg -> {
+            if (!currentCol.hasArgument(arg)) {
+                throw new IllegalArgumentException(String.format(
+                                "Join: %s uses a column argument: %s in its definition in Model: %s. "
+                                                + "This argument must be defined for column: %s",
+                                joinedVia.getName(), arg, currentModel.getName(), currentCol.getName()));
+            }
+        });
+    }
+
+    private void validateLogicalColumn(String definition, Table currentModel, Named currentCol) {
+        String invokedModelName = currentModel.getName();
+        String invokedColName = definition;
+        validateHJSONColumnInvocation(definition, currentModel, currentCol, invokedModelName, invokedColName,
+                        Collections.emptySet());
+    }
+
+    private void validateSQLHelper(String definition, Table currentModel, Named currentCol) {
+        Matcher sqlHandlebarMatcher = SQL_HELPER_PATTERN.matcher(definition);
+        if (!sqlHandlebarMatcher.matches()) {
+            throw new IllegalArgumentException(String.format("sql helper must be in format "
+                            + "\"sql from='<table/join name>' column='<colName>[<arg1>:<val1>][<argN>:<val1N>]'\"."
+                            + " Found %s instead", definition));
         }
 
-        if (references.size() < 2) {
-            throw new IllegalStateException("Atleast 2 unique references are expected in join definition");
+        String fromStr = sqlHandlebarMatcher.group(1);
+        String invokedModelName;
+
+        if (currentModel.getName().equals(fromStr)) {
+            invokedModelName = fromStr;
+
+        // For Join definition, 'from' must match with column's name
+        // For Dimension & Measure definition, 'from' must match with one of Join column's name
+        } else if ((currentCol instanceof Join && currentCol.getName().equals(fromStr))
+                        || (currentCol instanceof Join == false && currentModel.hasJoinField(fromStr))) {
+            Join join = currentModel.getJoin(fromStr);
+            invokedModelName = join.getTo();
+
+        // Invoked Table name must match with either current table or any of the Join names
+        } else {
+            throw new IllegalArgumentException(String.format("Can't invoke '%s' provided in \"%s\". "
+                            + "'From' must match with either current table name or any of the Join names", fromStr,
+                            definition));
         }
 
-        references.forEach(reference -> {
-            if (!reference.startsWith("$$") && reference.indexOf('.') != -1) {
-                String joinField = reference.substring(0, reference.indexOf('.'));
-                if (!joinField.equals(join.getName())) {
-                    throw new IllegalStateException("Join name must be used before '.' in join definition. Found '"
-                                    + joinField + "' instead of '" + join.getName() + "'");
+        String columnStr = sqlHandlebarMatcher.group(2);
+        String invokedColName;
+        Set<String> fixedArgs = new HashSet<>();
+        if (columnStr.indexOf('$') == 0) {
+            invokedColName = columnStr;
+        } else {
+            Matcher sqlColumnMatcher = SQL_HELPER_COLUMN_PATTERN.matcher(columnStr);
+            if (!sqlColumnMatcher.matches()) {
+                throw new IllegalArgumentException(String.format("sql helper must be in format "
+                                + "\"sql from='<table/join name>' column='<colName>[<arg1>:<val1>][<argN>:<val1N>]'\"."
+                                + " Found %s instead", definition));
+            }
+            invokedColName = sqlColumnMatcher.group(1);
+            parseFixedArguments(columnStr.substring(invokedColName.length()), fixedArgs);
+        }
+
+        if (isStaticModel(invokedModelName, NO_VERSION)) {
+            validateNonHJSONColumnInvocation(definition, currentModel, currentCol, invokedModelName, invokedColName);
+            return;
+        }
+
+        if (this.elideTableConfig.hasTable(invokedModelName)) {
+            validateHJSONColumnInvocation(definition, currentModel, currentCol, invokedModelName, invokedColName,
+                            fixedArgs);
+            return;
+        }
+
+        throw new IllegalArgumentException(String.format("Can't invoke '%s' provided in \"%s\". Undefined Model: %s ",
+                        fromStr, definition, invokedModelName));
+    }
+
+    private void validateNonHJSONColumnInvocation(String definition, Table currentModel, Named currentCol,
+                    String invokedModelName, String invokedColName) {
+        if (invokedColName.indexOf('$') == 0) {
+            // No validation needed for physical column
+            return;
+        }
+
+        // Validate column exists in static table.
+        if (!isFieldInStaticModel(invokedModelName, NO_VERSION, invokedColName)) {
+            throw new IllegalArgumentException(String.format(
+                            "Can't invoke '%s' provided in '%s' for Column: %s in Model: %s. "
+                                            + "Column: %s is undefined for non-hjson model: %s",
+                            invokedColName, definition, currentCol.getName(), currentModel.getName(),
+                            invokedColName, invokedModelName));
+        }
+
+        // TODO
+        // Somehow verify column is invoked with correct arguments.
+    }
+
+    private void validateHJSONColumnInvocation(String definition, Table currentModel, Named currentCol,
+                    String invokedModelName, String invokedColName, Set<String> fixedArgs) {
+        if (invokedColName.indexOf('$') == 0) {
+            // No validation needed for physical column
+            return;
+        }
+
+        Table invokedTable = this.elideTableConfig.getTable(invokedModelName);
+        if (!invokedTable.hasField(invokedColName)) {
+            throw new IllegalArgumentException(String.format(
+                            "Can't invoke '%s' provided in '%s' for Column: %s in Model: %s. "
+                                            + "Column: %s is undefined for hjson model: %s",
+                            invokedColName, definition, currentCol.getName(), currentModel.getName(),
+                            invokedColName, invokedModelName));
+        }
+
+        Named invokedCol = invokedTable.getField(invokedColName);
+        if (isSQLHelper(definition)) {
+            validateCurrentColumnArgsAgainstInvokedColumnArgs(definition, currentCol, currentModel, invokedCol,
+                            fixedArgs);
+        } else {
+            validateInvokedColumnArgsHaveDefaultValue(definition, currentCol, currentModel, invokedCol);
+        }
+    }
+
+    private void validateCurrentColumnArgsAgainstInvokedColumnArgs(String definition, Named currentCol,
+                    Table currentModel, Named invokedCol, Set<String> fixedArgs) {
+
+        invokedCol.getArguments().forEach(invokedColArg -> {
+            if (fixedArgs.contains(invokedColArg.getName())) {
+                // Do nothing
+                // May be somehow verify fixed argument value is of invokedColumn's type
+            } else {
+                // Find an argument for current column which matches with invoked column
+                Optional<Argument> argument = currentCol.getArguments().stream()
+                                .filter(currentColArg -> currentColArg.getName().equals(invokedColArg.getName())
+                                                && currentColArg.getType().equals(invokedColArg.getType()))
+                                .findFirst();
+                if (!argument.isPresent()) {
+                    throw new IllegalArgumentException(String.format(
+                                    "Can't invoke '%s' provided in '%s' for Column: %s in Model: %s. "
+                                                    + "Argument: %s with type: %s is required for column: %s",
+                                    invokedCol.getName(), definition, currentCol.getName(), currentModel.getName(),
+                                    invokedColArg.getName(), invokedColArg.getType(), currentCol.getName()));
                 }
             }
         });
+    }
 
-        validateSql(join.getDefinition());
+    private void validateInvokedColumnArgsHaveDefaultValue(String definition, Named currentCol,
+                    Table currentModel, Named invokedCol) {
+
+        invokedCol.getArguments().forEach(invokedColArg -> {
+            if (invokedColArg.getDefaultValue() == null) {
+                throw new IllegalArgumentException(String.format(
+                                "Can't invoke '%s' provided in '%s' for Column: %s in Model: %s. "
+                                                + "Argument: %s for invoked Column: %s must have default value.",
+                                invokedCol.getName(), definition, currentCol.getName(), currentModel.getName(),
+                                invokedColArg.getName(), invokedCol.getName()));
+            }
+        });
     }
 
     /**
@@ -729,6 +973,63 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     private static boolean containsDisallowedWords(String str, String splitter, Set<String> keywords) {
         return DynamicConfigHelpers.isNullOrEmpty(str) ? false
                 : Arrays.stream(str.trim().toUpperCase(Locale.ENGLISH).split(splitter)).anyMatch(keywords::contains);
+    }
+
+    private void validateArgumentExists(Table currentModel, Named currentColumn, String argName) {
+        // Arguments are not supported for Joins. Maintain a set of required Column arguments, and this set must be
+        // validated for each logical column which references this join.
+        if (currentColumn instanceof Join) {
+            ((Join) currentColumn).getRequiredColumnArgs().add(argName);
+            return;
+        }
+        if (!currentColumn.hasArgument(argName)) {
+            throw new IllegalArgumentException(String.format(
+                            "Argument: %s must be defined for Column: %s in Model: %s",
+                            argName, currentColumn.getName(), currentModel.getName()));
+        }
+    }
+
+    private void validateArgumentExists(Table currentModel, String argName) {
+        if (!currentModel.hasArgument(argName)) {
+            throw new IllegalArgumentException(String.format(
+                            "Argument: %s must be defined for Model: %s", argName, currentModel.getName()));
+        }
+    }
+
+    private void validateModelExists(String name) {
+        if (!(elideTableConfig.hasTable(name) || isStaticModel(name, NO_VERSION))) {
+            throw new IllegalStateException(
+                            "Model: " + name + " is neither included in dynamic models nor in static models");
+        }
+    }
+
+    private static Set<String> getAllReferences(String definition) {
+        Set<String> references = new HashSet<>();
+
+        if (isNullOrEmpty(definition)) {
+            return references;
+        }
+
+        Matcher matcher = REFERENCE_PARENTHESES.matcher(definition);
+        while (matcher.find()) {
+            references.add(matcher.group(1).trim());
+        }
+        return references;
+    }
+
+    private static boolean isSQLHelper(String reference) {
+        return reference.startsWith(SQL_HELPER_PREFIX);
+    }
+
+    private static void parseFixedArguments(String argString, Set<String> fixedArgs) {
+        if (isNullOrEmpty(argString)) {
+            return;
+        }
+
+        Matcher sqlColumnArgsMatcher = SQL_HELPER_COLUMN_ARGS_PATTERN.matcher(argString);
+        while (sqlColumnArgsMatcher.find()) {
+            fixedArgs.add(sqlColumnArgsMatcher.group(1));
+        }
     }
 
     /**

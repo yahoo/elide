@@ -11,7 +11,7 @@
           to: currencyRates
           kind: toOne
           type: left
-          definition: "{{rates.$id}} = {{$$column.args.currency}} AND {{rates.$date}} = {{eventTime}}"
+          definition: "{{rates.currencyCode}} = {{$$column.args.currency}} AND {{rates.$date}} = {{eventTime}}"
         }
       ]
       measures:
@@ -38,12 +38,20 @@
         {
           name: impressionsPerUSD
           type: INTEGER
-          definition: "{{sql table='revenueFact' column='impressions[aggregation:SUM]'}} / {{sql table='revenueFact' column='revenue[currency:USD][format:%240.00]'}}"
+          definition: "{{sql from='revenueFact' column='impressions[aggregation:SUM]'}} / {{sql from='revenueFact' column='revenue[currency:USD]'}}"
+          arguments:
+          [
+            {
+              name: format
+              type: TEXT
+              default: 999999D00
+            }
+          ]
         }
         {
           name: revenue
           type: MONEY
-          definition: SUM({{$revenue}}) * {{rates.conversionRate}}
+          definition: TO_CHAR(SUM({{$revenue}}) * {{rates.conversionRate}}, {{$$column.args.format}})
           arguments:
           [
             {
@@ -54,7 +62,7 @@
             {
               name: format
               type: TEXT
-              default: $0.00
+              default: 999999D00
             }
           ]
         }
@@ -98,7 +106,15 @@
         {
           name: conversionRate
           type: DECIMAL
-          definition: "{{$conversion_rate}}"
+          definition: TO_CHAR({{$conversion_rate}}, {{$$column.args.conversionRateFormat}})
+          arguments:
+          [
+            {
+              name: conversionRateFormat
+              type: TEXT
+              default: 999D00
+            }
+          ]
         }
       ]
     }

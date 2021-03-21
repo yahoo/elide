@@ -14,11 +14,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.Singular;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -77,8 +74,8 @@ public class Measure implements Named {
     private Set<String> tags = new LinkedHashSet<String>();
 
     @JsonProperty("arguments")
-    @Singular
-    private List<Argument> arguments = new ArrayList<Argument>();
+    @JsonDeserialize(as = LinkedHashSet.class)
+    private Set<Argument> arguments = new LinkedHashSet<Argument>();
 
     /**
      * Returns description of the measure.
@@ -87,5 +84,15 @@ public class Measure implements Named {
      */
     public String getDescription() {
         return (this.description == null ? getName() : this.description);
+    }
+
+    /**
+     * Checks if this measure has provided argument.
+     * @param argName
+     * @return true if this measure has provided argument.
+     */
+    @Override
+    public boolean hasArgument(String argName) {
+        return hasName(this.arguments, argName);
     }
 }
