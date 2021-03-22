@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.query;
 
+import static com.yahoo.elide.datastores.aggregation.query.ColumnProjection.innerQueryProjections;
+import static com.yahoo.elide.datastores.aggregation.query.ColumnProjection.outerQueryProjections;
 import com.google.common.collect.Streams;
 import lombok.Builder;
 import lombok.NonNull;
@@ -88,24 +90,18 @@ public class QueryPlan implements Queryable {
     }
 
     public QueryPlan nest() {
-        return QueryPlan.builder()
-                .source(this)
-                .metricProjections(nestColumnProjection(metricProjections))
-                .dimensionProjections(nestColumnProjection(dimensionProjections))
-                .timeDimensionProjections(nestColumnProjection(timeDimensionProjections))
+        QueryPlan inner = QueryPlan.builder()
+                .source(this.getSource())
+                .metricProjections(innerQueryProjections(metricProjections))
+                .dimensionProjections(innerQueryProjections(dimensionProjections))
+                .timeDimensionProjections(innerQueryProjections(timeDimensionProjections))
                 .build();
-    }
 
-    /**
-     * Makes of a copy of a set of columns that are being nested in a new parent.  The column expressions are
-     * changed to reference the columns by name.
-     * @param columns The columns to copy.
-     * @param <T> The column projection type.
-     * @return An ordered set of the column copies.
-     */
-    public static <T extends ColumnProjection> Set<T> nestColumnProjection(Set<T> columns) {
-        return (Set<T>) columns.stream()
-                .map(column -> column.withExpression("{{" + column.getSafeAlias() + "}}"))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+        return QueryPlan.builder()
+                .source(inner)
+                .metricProjections(outerQueryProjections(metricProjections))
+                .dimensionProjections(outerQueryProjections(dimensionProjections))
+                .timeDimensionProjections(outerQueryProjections(timeDimensionProjections))
+                .build();
     }
 }
