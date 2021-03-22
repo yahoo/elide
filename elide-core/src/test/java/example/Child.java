@@ -112,10 +112,7 @@ public class Child {
     static public class InitCheck extends OperationCheck<Child> {
         @Override
         public boolean ok(Child child, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            if (child.getParents() != null) {
-                return true;
-            }
-            return false;
+            return child.getParents() != null;
         }
     }
 }

@@ -1173,10 +1173,10 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             RequestScope requestScope) {
         try {
             requestScope.getPermissionExecutor().checkUserPermissions(resourceClass, annotationClass);
+            return false;
         } catch (ForbiddenAccessException e) {
             return true;
         }
-        return false;
     }
 
     /**
