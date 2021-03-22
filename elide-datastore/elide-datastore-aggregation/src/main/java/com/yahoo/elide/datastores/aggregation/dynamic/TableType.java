@@ -244,6 +244,11 @@ public class TableType implements Type<DynamicModelInstance> {
                         }
                         return JoinType.valueOf(join.getType().name());
                     }
+
+                    @Override
+                    public boolean toOne() {
+                        return join.getKind() == Join.Kind.TOONE;
+                    }
                 });
         return annotations;
     }

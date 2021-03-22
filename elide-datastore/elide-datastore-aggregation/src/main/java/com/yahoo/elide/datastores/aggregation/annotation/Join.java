@@ -27,4 +27,10 @@ public @interface Join {
      * @return join type like {@code left, inner, full or cross}
      */
     JoinType type() default JoinType.LEFT;
+
+    /**
+     * Whether this joins to one or to many rows.
+     * @return true if it joins to one row.
+     */
+    boolean toOne() default false;
 }
