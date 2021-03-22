@@ -750,7 +750,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         // Name before '.' must match with any of the Join names
         } else {
             throw new IllegalArgumentException(String.format(
-                            "Join name must be used before '.'. Found '%s' for Column: %s in Model: %s",
+                            "Join name must be used before '.'. Found '%s' for Column: '%s' in Model: '%s'",
                             joinName, currentCol.getName(), currentModel.getName()));
         }
 
@@ -772,8 +772,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         }
 
         throw new IllegalArgumentException(String.format(
-                        "Can't invoke '%s' provided in '%s' for Column: %s in Model: %s. "
-                        + ". Undefined Model: %s ",
+                        "Can't invoke '%s' provided in \"%s\" for Column: '%s' in Model: '%s'. "
+                        + ". Undefined Model: '%s' ",
                         joinName, definition, currentCol.getName(), currentModel.getName(),
                         invokedModelName));
     }
@@ -786,8 +786,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         joinedVia.getRequiredColumnArgs().forEach(arg -> {
             if (!currentCol.hasArgument(arg)) {
                 throw new IllegalArgumentException(String.format(
-                                "Join: %s uses a column argument: %s in its definition in Model: %s. "
-                                                + "This argument must be defined for column: %s",
+                                "Join: '%s' uses a column argument: '%s' in its definition in Model: '%s'. "
+                                                + "This argument must be defined for column: '%s'",
                                 joinedVia.getName(), arg, currentModel.getName(), currentCol.getName()));
             }
         });
@@ -838,7 +838,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
             if (!sqlColumnMatcher.matches()) {
                 throw new IllegalArgumentException(String.format("sql helper must be in format "
                                 + "\"sql from='<table/join name>' column='<colName>[<arg1>:<val1>][<argN>:<val1N>]'\"."
-                                + " Found %s instead", definition));
+                                + " Found \"%s\" instead", definition));
             }
             invokedColName = sqlColumnMatcher.group(1);
             parseFixedArguments(columnStr.substring(invokedColName.length()), fixedArgs);
@@ -855,7 +855,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
             return;
         }
 
-        throw new IllegalArgumentException(String.format("Can't invoke '%s' provided in \"%s\". Undefined Model: %s ",
+        throw new IllegalArgumentException(String.format("Can't invoke '%s' provided in \"%s\". Undefined Model: '%s' ",
                         fromStr, definition, invokedModelName));
     }
 
@@ -869,8 +869,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         // Validate column exists in static table.
         if (!isFieldInStaticModel(invokedModelName, NO_VERSION, invokedColName)) {
             throw new IllegalArgumentException(String.format(
-                            "Can't invoke '%s' provided in '%s' for Column: %s in Model: %s. "
-                                            + "Column: %s is undefined for non-hjson model: %s",
+                            "Can't invoke '%s' provided in \"%s\" for Column: '%s' in Model: '%s'. "
+                                            + "Column: '%s' is undefined for non-hjson model: '%s'",
                             invokedColName, definition, currentCol.getName(), currentModel.getName(),
                             invokedColName, invokedModelName));
         }
@@ -889,8 +889,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         Table invokedTable = this.elideTableConfig.getTable(invokedModelName);
         if (!invokedTable.hasField(invokedColName)) {
             throw new IllegalArgumentException(String.format(
-                            "Can't invoke '%s' provided in '%s' for Column: %s in Model: %s. "
-                                            + "Column: %s is undefined for hjson model: %s",
+                            "Can't invoke '%s' provided in \"%s\" for Column: '%s' in Model: '%s'. "
+                                            + "Column: '%s' is undefined for hjson model: '%s'",
                             invokedColName, definition, currentCol.getName(), currentModel.getName(),
                             invokedColName, invokedModelName));
         }
@@ -919,8 +919,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
                                 .findFirst();
                 if (!argument.isPresent()) {
                     throw new IllegalArgumentException(String.format(
-                                    "Can't invoke '%s' provided in '%s' for Column: %s in Model: %s. "
-                                                    + "Argument: %s with type: %s is required for column: %s",
+                                    "Can't invoke '%s' provided in \"%s\" for Column: '%s' in Model: '%s'. "
+                                                    + "Argument: '%s' with type: '%s' is required for column: '%s'",
                                     invokedCol.getName(), definition, currentCol.getName(), currentModel.getName(),
                                     invokedColArg.getName(), invokedColArg.getType(), currentCol.getName()));
                 }
@@ -934,8 +934,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         invokedCol.getArguments().forEach(invokedColArg -> {
             if (invokedColArg.getDefaultValue() == null) {
                 throw new IllegalArgumentException(String.format(
-                                "Can't invoke '%s' provided in '%s' for Column: %s in Model: %s. "
-                                                + "Argument: %s for invoked Column: %s must have default value.",
+                                "Can't invoke '%s' provided in \"%s\" for Column: '%s' in Model: '%s'. "
+                                                + "Argument: '%s' for invoked Column: '%s' must have default value.",
                                 invokedCol.getName(), definition, currentCol.getName(), currentModel.getName(),
                                 invokedColArg.getName(), invokedCol.getName()));
             }
@@ -984,7 +984,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         }
         if (!currentColumn.hasArgument(argName)) {
             throw new IllegalArgumentException(String.format(
-                            "Argument: %s must be defined for Column: %s in Model: %s",
+                            "Argument: '%s' must be defined for Column: '%s' in Model: '%s'",
                             argName, currentColumn.getName(), currentModel.getName()));
         }
     }
@@ -992,7 +992,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     private void validateArgumentExists(Table currentModel, String argName) {
         if (!currentModel.hasArgument(argName)) {
             throw new IllegalArgumentException(String.format(
-                            "Argument: %s must be defined for Model: %s", argName, currentModel.getName()));
+                            "Argument: '%s' must be defined for Model: '%s'", argName, currentModel.getName()));
         }
     }
 

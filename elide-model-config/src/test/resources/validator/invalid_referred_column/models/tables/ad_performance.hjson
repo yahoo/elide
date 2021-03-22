@@ -1,0 +1,107 @@
+{
+  tables:
+  [
+    {
+      name: revenueFact
+      table: revenue_fact
+      joins:
+      [
+        {
+          name: rates
+          to: currencyRates
+          kind: toOne
+          type: left
+          definition: "{{rates.currencyCode}} = {{$$column.args.currency}} AND {{rates.$date}} = {{eventTime}}"
+        }
+      ]
+      measures:
+      [
+        {
+          name: impressions
+          type: INTEGER
+          definition: "{{$$column.args.aggregation}}({{$impressions}})"
+          arguments:
+          [
+            {
+              name: aggregation
+              type: TEXT
+              values:
+              [
+                SUM
+                MIN
+                MAX
+              ]
+              default: SUM
+            }
+          ]
+        }
+        {
+          name: impressionsPerUSD
+          type: INTEGER
+          //
+          // Referred Column 'revenue' doesn't exist
+          //
+          definition: "{{sql from='revenueFact' column='impressions[aggregation:SUM]'}} / {{sql from='revenueFact' column='revenue[currency:USD]'}}"
+          arguments:
+          [
+            {
+              name: format
+              type: TEXT
+              default: 999999D00
+            }
+          ]
+        }
+      ]
+      dimensions:
+      [
+        {
+          name: campaignId
+          type: INTEGER
+          definition: "{{$campaignId}}"
+        }
+        {
+          name: eventTime
+          type: TIME
+          definition: "{{$date}}"
+          grains:
+          [
+            {
+              type: MONTH
+              sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
+            }
+            {
+              type: DAY
+              sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+            }
+          ]
+        }
+      ]
+    }
+    {
+      name: currencyRates
+      table: currency_rates
+      cardinality: small
+      dimensions:
+      [
+        {
+          name: currencyCode
+          type: TEXT
+          definition: "{{$id}}"
+        }
+        {
+          name: conversionRate
+          type: DECIMAL
+          definition: TO_CHAR({{$conversion_rate}}, {{$$column.args.conversionRateFormat}})
+          arguments:
+          [
+            {
+              name: conversionRateFormat
+              type: TEXT
+              default: 999D00
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

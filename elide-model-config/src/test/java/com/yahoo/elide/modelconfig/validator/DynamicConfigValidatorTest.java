@@ -314,7 +314,7 @@ public class DynamicConfigValidatorTest {
         });
 
         assertEquals("Join name must be used before '.'. Found 'country' for "
-                        + "Column: playerCountry in Model: PlayerStats\n", error);
+                        + "Column: 'playerCountry' in Model: 'PlayerStats'\n", error);
     }
 
     @Test
@@ -363,6 +363,66 @@ public class DynamicConfigValidatorTest {
         });
         assertTrue(error.contains("DBConnection name mismatch between table: "));
         assertTrue(error.contains(" and tables in its Join Clause."));
+    }
+
+    @Test
+    public void testArgumentMissingForSqlInvokedColumn() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() -> DynamicConfigValidator
+                    .main(new String[]{"--configDir", "src/test/resources/validator/sqlhelper_missing_arguments"}));
+
+            assertEquals(2, exitStatus);
+        });
+        assertEquals("Can't invoke 'revenue' provided in \"sql from='revenueFact' column='revenue[currency:USD]'\" for Column: 'impressionsPerUSD' in Model: 'revenueFact'. Argument: 'format' with type: 'TEXT' is required for column: 'impressionsPerUSD'\n",
+                        error);
+    }
+
+    @Test
+    public void testSqlInvokedModelMissing() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() -> DynamicConfigValidator
+                    .main(new String[]{"--configDir", "src/test/resources/validator/sqlhelper_invalid_invoked_model"}));
+
+            assertEquals(2, exitStatus);
+        });
+        assertEquals("Can't invoke 'revenueFactInvalid' provided in \"sql from='revenueFactInvalid' column='impressions[aggregation:SUM]'\". 'From' must match with either current table name or any of the Join names\n",
+                        error);
+    }
+
+    @Test
+    public void testMissingReferredColumn() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() -> DynamicConfigValidator
+                    .main(new String[]{"--configDir", "src/test/resources/validator/invalid_referred_column"}));
+
+            assertEquals(2, exitStatus);
+        });
+        assertEquals("Can't invoke 'revenue' provided in \"sql from='revenueFact' column='revenue[currency:USD]'\" for Column: 'impressionsPerUSD' in Model: 'revenueFact'. Column: 'revenue' is undefined for hjson model: 'revenueFact'\n",
+                        error);
+    }
+
+    @Test
+    public void testReferredColumnHasArgumentWithNoDefault() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() -> DynamicConfigValidator
+                    .main(new String[]{"--configDir", "src/test/resources/validator/referred_column_missing_args_default"}));
+
+            assertEquals(2, exitStatus);
+        });
+        assertEquals("Can't invoke 'conversionRate' provided in \"rates.conversionRate\" for Column: 'revenue' in Model: 'revenueFact'. Argument: 'conversionRateFormat' for invoked Column: 'conversionRate' must have default value.\n",
+                        error);
+    }
+
+    @Test
+    public void testMissingArgumentUsedInJoinDef() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() -> DynamicConfigValidator
+                    .main(new String[]{"--configDir", "src/test/resources/validator/joindef_argument_missing"}));
+
+            assertEquals(2, exitStatus);
+        });
+        assertEquals("Join: 'rates' uses a column argument: 'currency' in its definition in Model: 'revenueFact'. This argument must be defined for column: 'revenue'\n",
+                        error);
     }
 
     @Test
