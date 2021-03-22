@@ -82,13 +82,14 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                               Relationship relationship,
                               RequestScope scope) {
         DataFetcher fetcher = (filterExpression, sorting, pagination, requestScope) ->
-            tx.getRelation(relationTx, entity, relationship.copyOf()
-                    .projection(relationship.getProjection().copyOf()
-                            .filterExpression(filterExpression.orElse(null))
-                            .sorting(sorting.orElse(null))
-                            .pagination(pagination.orElse(null))
-                            .build())
-                    .build(), requestScope);
+                tx.getRelation(relationTx, entity, relationship.copyOf()
+                        .projection(relationship.getProjection().copyOf()
+                                .filterExpression(filterExpression.orElse(null))
+                                .sorting(sorting.orElse(null))
+                                .pagination(pagination.orElse(null))
+                                .build()
+                        ).build(), requestScope);
+
 
         /*
          * If we are mutating multiple entities, the data store transaction cannot perform filter & pagination directly.
@@ -115,11 +116,11 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                                         RequestScope scope) {
 
         DataFetcher fetcher = (filterExpression, sorting, pagination, requestScope) ->
-            tx.loadObjects(projection.copyOf()
-                    .filterExpression(filterExpression.orElse(null))
-                    .pagination(pagination.orElse(null))
-                    .sorting(sorting.orElse(null))
-                    .build(), requestScope);
+                tx.loadObjects(projection.copyOf()
+                        .filterExpression(filterExpression.orElse(null))
+                        .pagination(pagination.orElse(null))
+                        .sorting(sorting.orElse(null))
+                        .build(), requestScope);
 
         return (Iterable<Object>) fetchData(fetcher, Optional.empty(), projection, false, scope);
     }
