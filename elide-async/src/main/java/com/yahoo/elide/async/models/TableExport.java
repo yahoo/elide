@@ -11,6 +11,7 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -29,6 +30,7 @@ import javax.validation.constraints.NotNull;
 @UpdatePermission(expression = "Prefab.Role.None")
 @DeletePermission(expression = "Prefab.Role.None")
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class TableExport extends AsyncAPI {
 
     @Enumerated(EnumType.STRING)
