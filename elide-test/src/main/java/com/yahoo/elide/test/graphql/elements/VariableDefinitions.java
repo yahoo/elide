@@ -42,12 +42,10 @@ public class VariableDefinitions extends Definition {
      *
      * @return a sub-string of a GraphQL query
      */
+    @Override
     public String toGraphQLSpec() {
-        return String.format(
-                "(%s)",
-                getVariableDefinitions().stream()
-                        .map(VariableDefinition::toGraphQLSpec)
-                        .collect(Collectors.joining(" "))
-        );
+        return getVariableDefinitions().stream()
+                .map(VariableDefinition::toGraphQLSpec)
+                .collect(Collectors.joining(" ", "(", ")"));
     }
 }

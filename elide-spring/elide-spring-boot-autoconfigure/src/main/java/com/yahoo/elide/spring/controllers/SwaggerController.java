@@ -102,9 +102,9 @@ public class SwaggerController {
                             .body(documents.values().iterator().next());
                 }
 
-                String body = "[" + documentPaths.stream()
+                String body = documentPaths.stream()
                         .map(key -> '"' + key + '"')
-                        .collect(Collectors.joining(",")) + "]";
+                        .collect(Collectors.joining(",", "[", "]"));
 
                 return ResponseEntity.status(HttpStatus.OK).body(body);
             }
