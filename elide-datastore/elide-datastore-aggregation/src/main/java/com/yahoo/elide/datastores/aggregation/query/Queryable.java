@@ -174,6 +174,19 @@ public interface Queryable {
     }
 
     /**
+     * Gets the root table for the queryable.
+     * @return the root table.
+     */
+    default Queryable getRoot() {
+        Queryable current = this;
+        while (current.isNested()) {
+            current = current.getSource();
+        }
+
+        return current.getSource();
+    }
+
+    /**
      * Returns the depth of the nesting of this Queryable.
      * @return 0 for unnested.  Positive integer for nested..
      */
