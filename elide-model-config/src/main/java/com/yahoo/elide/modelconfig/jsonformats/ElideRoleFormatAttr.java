@@ -12,6 +12,8 @@ import com.github.fge.jsonschema.format.AbstractFormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
+import java.util.regex.Pattern;
+
 /**
  * Format specifier for {@code elideRole} format attribute.
  * <p>
@@ -19,7 +21,7 @@ import com.github.fge.msgsimple.bundle.MessageBundle;
  * </p>
  */
 public class ElideRoleFormatAttr extends AbstractFormatAttribute {
-    private static final String ROLE_FORMAT_REGEX = "^[A-Za-z][0-9A-Za-z. ]*$";
+    private static final Pattern ROLE_FORMAT_REGEX = Pattern.compile("^[A-Za-z][0-9A-Za-z. ]*$");
 
     public static final String FORMAT_NAME = "elideRole";
     public static final String FORMAT_KEY = "elideRole.error.format";
@@ -36,7 +38,7 @@ public class ElideRoleFormatAttr extends AbstractFormatAttribute {
                     throws ProcessingException {
         final String input = data.getInstance().getNode().textValue();
 
-        if (!input.matches(ROLE_FORMAT_REGEX)) {
+        if (!ROLE_FORMAT_REGEX.matcher(input).matches()) {
             report.error(newMsg(data, bundle, FORMAT_KEY).putArgument("value", input));
         }
     }

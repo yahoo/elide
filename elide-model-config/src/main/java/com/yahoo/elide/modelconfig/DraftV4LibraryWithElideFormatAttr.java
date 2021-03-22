@@ -24,7 +24,6 @@ import com.yahoo.elide.modelconfig.jsonformats.ValidateDimPropertiesKeyword;
 import com.yahoo.elide.modelconfig.jsonformats.ValidateTimeDimPropertiesKeyword;
 import com.github.fge.jsonschema.library.DraftV4Library;
 import com.github.fge.jsonschema.library.Library;
-import com.github.fge.jsonschema.library.LibraryBuilder;
 import lombok.Getter;
 
 /**
@@ -35,27 +34,26 @@ public class DraftV4LibraryWithElideFormatAttr {
     private Library library;
 
     public DraftV4LibraryWithElideFormatAttr() {
-        LibraryBuilder builder = DraftV4Library.get().thaw();
-
-        builder.addFormatAttribute(ElideFieldNameFormatAttr.FORMAT_NAME, new ElideFieldNameFormatAttr());
-        builder.addFormatAttribute(ElideArgumentNameFormatAttr.FORMAT_NAME, new ElideArgumentNameFormatAttr());
-        builder.addFormatAttribute(ElideCardinalityFormatAttr.FORMAT_NAME, new ElideCardinalityFormatAttr());
-        builder.addFormatAttribute(ElideFieldTypeFormatAttr.FORMAT_NAME, new ElideFieldTypeFormatAttr());
-        builder.addFormatAttribute(ElideGrainTypeFormatAttr.FORMAT_NAME, new ElideGrainTypeFormatAttr());
-        builder.addFormatAttribute(ElideJoinTypeFormatAttr.FORMAT_NAME, new ElideJoinTypeFormatAttr());
-        builder.addFormatAttribute(ElideJoinKindFormatAttr.FORMAT_NAME, new ElideJoinKindFormatAttr());
-        builder.addFormatAttribute(ElideTimeFieldTypeFormatAttr.FORMAT_NAME, new ElideTimeFieldTypeFormatAttr());
-        builder.addFormatAttribute(ElideNameFormatAttr.FORMAT_NAME, new ElideNameFormatAttr());
-        builder.addFormatAttribute(ElideRSQLFilterFormatAttr.FORMAT_NAME, new ElideRSQLFilterFormatAttr());
-        builder.addFormatAttribute(JavaClassNameWithExtFormatAttr.FORMAT_NAME, new JavaClassNameWithExtFormatAttr());
-        builder.addFormatAttribute(ElideJDBCUrlFormatAttr.FORMAT_NAME, new ElideJDBCUrlFormatAttr());
-        builder.addFormatAttribute(JavaClassNameFormatAttr.FORMAT_NAME, new JavaClassNameFormatAttr());
-        builder.addFormatAttribute(ElideRoleFormatAttr.FORMAT_NAME, new ElideRoleFormatAttr());
-
-        builder.addKeyword(new ValidateDimPropertiesKeyword().getKeyword());
-        builder.addKeyword(new ValidateTimeDimPropertiesKeyword().getKeyword());
-        builder.addKeyword(new ValidateArgsPropertiesKeyword().getKeyword());
-
-        library = builder.freeze();
+        library = DraftV4Library.get().thaw()
+                        .addFormatAttribute(ElideFieldNameFormatAttr.FORMAT_NAME, new ElideFieldNameFormatAttr())
+                        .addFormatAttribute(ElideArgumentNameFormatAttr.FORMAT_NAME, new ElideArgumentNameFormatAttr())
+                        .addFormatAttribute(ElideCardinalityFormatAttr.FORMAT_NAME, new ElideCardinalityFormatAttr())
+                        .addFormatAttribute(ElideFieldTypeFormatAttr.FORMAT_NAME, new ElideFieldTypeFormatAttr())
+                        .addFormatAttribute(ElideGrainTypeFormatAttr.FORMAT_NAME, new ElideGrainTypeFormatAttr())
+                        .addFormatAttribute(ElideJoinTypeFormatAttr.FORMAT_NAME, new ElideJoinTypeFormatAttr())
+                        .addFormatAttribute(ElideJoinKindFormatAttr.FORMAT_NAME, new ElideJoinKindFormatAttr())
+                        .addFormatAttribute(ElideTimeFieldTypeFormatAttr.FORMAT_NAME,
+                                        new ElideTimeFieldTypeFormatAttr())
+                        .addFormatAttribute(ElideNameFormatAttr.FORMAT_NAME, new ElideNameFormatAttr())
+                        .addFormatAttribute(ElideRSQLFilterFormatAttr.FORMAT_NAME, new ElideRSQLFilterFormatAttr())
+                        .addFormatAttribute(JavaClassNameWithExtFormatAttr.FORMAT_NAME,
+                                        new JavaClassNameWithExtFormatAttr())
+                        .addFormatAttribute(ElideJDBCUrlFormatAttr.FORMAT_NAME, new ElideJDBCUrlFormatAttr())
+                        .addFormatAttribute(JavaClassNameFormatAttr.FORMAT_NAME, new JavaClassNameFormatAttr())
+                        .addFormatAttribute(ElideRoleFormatAttr.FORMAT_NAME, new ElideRoleFormatAttr())
+                        .addKeyword(new ValidateDimPropertiesKeyword().getKeyword())
+                        .addKeyword(new ValidateTimeDimPropertiesKeyword().getKeyword())
+                        .addKeyword(new ValidateArgsPropertiesKeyword().getKeyword())
+                        .freeze();
     }
 }

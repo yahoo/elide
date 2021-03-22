@@ -12,6 +12,8 @@ import com.github.fge.jsonschema.format.AbstractFormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
+import java.util.regex.Pattern;
+
 /**
  * Format specifier for {@code elideTimeFieldType} format attribute.
  * <p>
@@ -19,7 +21,7 @@ import com.github.fge.msgsimple.bundle.MessageBundle;
  * </p>
  */
 public class ElideTimeFieldTypeFormatAttr extends AbstractFormatAttribute {
-    private static final String TIME_FIELD_TYPE_REGEX = "^(?i)(Time)$";
+    private static final Pattern TIME_FIELD_TYPE_REGEX = Pattern.compile("^(?i)(Time)$");
 
     public static final String FORMAT_NAME = "elideTimeFieldType";
     public static final String TYPE_KEY = "elideTimeFieldType.error.enum";
@@ -35,7 +37,7 @@ public class ElideTimeFieldTypeFormatAttr extends AbstractFormatAttribute {
                     throws ProcessingException {
         final String input = data.getInstance().getNode().textValue();
 
-        if (!input.matches(TIME_FIELD_TYPE_REGEX)) {
+        if (!TIME_FIELD_TYPE_REGEX.matcher(input).matches()) {
             report.error(newMsg(data, bundle, TYPE_KEY).putArgument("value", input));
         }
     }

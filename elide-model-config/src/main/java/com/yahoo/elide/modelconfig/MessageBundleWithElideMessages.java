@@ -26,7 +26,6 @@ import com.github.fge.jsonschema.messages.JsonSchemaValidationBundle;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 import com.github.fge.msgsimple.load.MessageBundles;
 import com.github.fge.msgsimple.source.MapMessageSource;
-import com.github.fge.msgsimple.source.MapMessageSource.Builder;
 import lombok.Getter;
 
 /**
@@ -37,39 +36,41 @@ public class MessageBundleWithElideMessages {
     private MessageBundle msgBundle;
 
     public MessageBundleWithElideMessages() {
-        Builder msgSourceBuilder = MapMessageSource.newBuilder();
-
-        // For Format errors
-        msgSourceBuilder.put(ElideFieldNameFormatAttr.FORMAT_KEY, ElideFieldNameFormatAttr.FORMAT_MSG);
-        msgSourceBuilder.put(ElideFieldNameFormatAttr.NAME_KEY, ElideFieldNameFormatAttr.NAME_MSG);
-        msgSourceBuilder.put(ElideArgumentNameFormatAttr.FORMAT_KEY, ElideArgumentNameFormatAttr.FORMAT_MSG);
-        msgSourceBuilder.put(ElideArgumentNameFormatAttr.NAME_KEY, ElideArgumentNameFormatAttr.NAME_MSG);
-        msgSourceBuilder.put(ElideCardinalityFormatAttr.TYPE_KEY, ElideCardinalityFormatAttr.TYPE_MSG);
-        msgSourceBuilder.put(ElideFieldTypeFormatAttr.TYPE_KEY, ElideFieldTypeFormatAttr.TYPE_MSG);
-        msgSourceBuilder.put(ElideGrainTypeFormatAttr.TYPE_KEY, ElideGrainTypeFormatAttr.TYPE_MSG);
-        msgSourceBuilder.put(ElideJoinTypeFormatAttr.TYPE_KEY, ElideJoinTypeFormatAttr.TYPE_MSG);
-        msgSourceBuilder.put(ElideJoinKindFormatAttr.TYPE_KEY, ElideJoinKindFormatAttr.TYPE_MSG);
-        msgSourceBuilder.put(ElideTimeFieldTypeFormatAttr.TYPE_KEY, ElideTimeFieldTypeFormatAttr.TYPE_MSG);
-        msgSourceBuilder.put(ElideNameFormatAttr.FORMAT_KEY, ElideNameFormatAttr.FORMAT_MSG);
-        msgSourceBuilder.put(ElideNameFormatAttr.NAME_KEY, ElideNameFormatAttr.NAME_MSG);
-        msgSourceBuilder.put(ElideRSQLFilterFormatAttr.FORMAT_KEY, ElideRSQLFilterFormatAttr.FORMAT_MSG);
-        msgSourceBuilder.put(JavaClassNameWithExtFormatAttr.FORMAT_KEY, JavaClassNameWithExtFormatAttr.FORMAT_MSG);
-        msgSourceBuilder.put(JavaClassNameFormatAttr.FORMAT_KEY, JavaClassNameFormatAttr.FORMAT_MSG);
-        msgSourceBuilder.put(ElideJDBCUrlFormatAttr.FORMAT_KEY, ElideJDBCUrlFormatAttr.FORMAT_MSG);
-        msgSourceBuilder.put(ElideRoleFormatAttr.FORMAT_KEY, ElideRoleFormatAttr.FORMAT_MSG);
-
-        // for Keyword errors
-        msgSourceBuilder.put(ValidateDimPropertiesValidator.ATMOST_ONE_KEY,
-                        ValidateDimPropertiesValidator.ATMOST_ONE_MSG);
-        msgSourceBuilder.put(ValidateDimPropertiesValidator.ADDITIONAL_KEY,
-                        ValidateDimPropertiesValidator.ADDITIONAL_MSG);
-        msgSourceBuilder.put(ValidateTimeDimPropertiesValidator.ADDITIONAL_KEY,
-                        ValidateTimeDimPropertiesValidator.ADDITIONAL_MSG);
-        msgSourceBuilder.put(ValidateArgsPropertiesValidator.ATMOST_ONE_KEY,
-                        ValidateArgsPropertiesValidator.ATMOST_ONE_MSG);
-
         this.msgBundle = MessageBundles.getBundle(JsonSchemaValidationBundle.class).thaw()
-                        .appendSource(msgSourceBuilder.build())
+                        .appendSource(MapMessageSource.newBuilder()
+
+                                        // For Format errors
+                                        .put(ElideFieldNameFormatAttr.FORMAT_KEY, ElideFieldNameFormatAttr.FORMAT_MSG)
+                                        .put(ElideFieldNameFormatAttr.NAME_KEY, ElideFieldNameFormatAttr.NAME_MSG)
+                                        .put(ElideArgumentNameFormatAttr.FORMAT_KEY,
+                                                        ElideArgumentNameFormatAttr.FORMAT_MSG)
+                                        .put(ElideArgumentNameFormatAttr.NAME_KEY, ElideArgumentNameFormatAttr.NAME_MSG)
+                                        .put(ElideCardinalityFormatAttr.TYPE_KEY, ElideCardinalityFormatAttr.TYPE_MSG)
+                                        .put(ElideFieldTypeFormatAttr.TYPE_KEY, ElideFieldTypeFormatAttr.TYPE_MSG)
+                                        .put(ElideGrainTypeFormatAttr.TYPE_KEY, ElideGrainTypeFormatAttr.TYPE_MSG)
+                                        .put(ElideJoinTypeFormatAttr.TYPE_KEY, ElideJoinTypeFormatAttr.TYPE_MSG)
+                                        .put(ElideJoinKindFormatAttr.TYPE_KEY, ElideJoinKindFormatAttr.TYPE_MSG)
+                                        .put(ElideTimeFieldTypeFormatAttr.TYPE_KEY,
+                                                        ElideTimeFieldTypeFormatAttr.TYPE_MSG)
+                                        .put(ElideNameFormatAttr.FORMAT_KEY, ElideNameFormatAttr.FORMAT_MSG)
+                                        .put(ElideNameFormatAttr.NAME_KEY, ElideNameFormatAttr.NAME_MSG)
+                                        .put(ElideRSQLFilterFormatAttr.FORMAT_KEY, ElideRSQLFilterFormatAttr.FORMAT_MSG)
+                                        .put(JavaClassNameWithExtFormatAttr.FORMAT_KEY,
+                                                        JavaClassNameWithExtFormatAttr.FORMAT_MSG)
+                                        .put(JavaClassNameFormatAttr.FORMAT_KEY, JavaClassNameFormatAttr.FORMAT_MSG)
+                                        .put(ElideJDBCUrlFormatAttr.FORMAT_KEY, ElideJDBCUrlFormatAttr.FORMAT_MSG)
+                                        .put(ElideRoleFormatAttr.FORMAT_KEY, ElideRoleFormatAttr.FORMAT_MSG)
+
+                                        // for Keyword errors
+                                        .put(ValidateDimPropertiesValidator.ATMOST_ONE_KEY,
+                                                        ValidateDimPropertiesValidator.ATMOST_ONE_MSG)
+                                        .put(ValidateDimPropertiesValidator.ADDITIONAL_KEY,
+                                                        ValidateDimPropertiesValidator.ADDITIONAL_MSG)
+                                        .put(ValidateTimeDimPropertiesValidator.ADDITIONAL_KEY,
+                                                        ValidateTimeDimPropertiesValidator.ADDITIONAL_MSG)
+                                        .put(ValidateArgsPropertiesValidator.ATMOST_ONE_KEY,
+                                                        ValidateArgsPropertiesValidator.ATMOST_ONE_MSG)
+                                        .build())
                         .freeze();
     }
 }

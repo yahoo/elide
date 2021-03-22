@@ -12,6 +12,8 @@ import com.github.fge.jsonschema.format.AbstractFormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
+import java.util.regex.Pattern;
+
 /**
  * Format specifier for {@code javaClassNameWithExt} format attribute.
  * <p>
@@ -19,8 +21,8 @@ import com.github.fge.msgsimple.bundle.MessageBundle;
  * </p>
  */
 public class JavaClassNameWithExtFormatAttr extends AbstractFormatAttribute {
-    private static final String CLASS_NAME_FORMAT_REGEX =
-                    "^(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*\\.)+class$";
+    private static final Pattern CLASS_NAME_FORMAT_REGEX =
+                    Pattern.compile("^(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*\\.)+class$");
 
     public static final String FORMAT_NAME = "javaClassNameWithExt";
     public static final String FORMAT_KEY = "javaClassNameWithExt.error.format";
@@ -35,7 +37,7 @@ public class JavaClassNameWithExtFormatAttr extends AbstractFormatAttribute {
                     throws ProcessingException {
         final String input = data.getInstance().getNode().textValue();
 
-        if (!input.matches(CLASS_NAME_FORMAT_REGEX)) {
+        if (!CLASS_NAME_FORMAT_REGEX.matcher(input).matches()) {
             report.error(newMsg(data, bundle, FORMAT_KEY).putArgument("value", input));
         }
     }

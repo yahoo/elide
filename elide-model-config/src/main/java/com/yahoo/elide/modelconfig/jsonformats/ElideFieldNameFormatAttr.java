@@ -12,6 +12,8 @@ import com.github.fge.jsonschema.format.AbstractFormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
+import java.util.regex.Pattern;
+
 /**
  * Format specifier for {@code elideFieldName} format attribute.
  * <p>
@@ -19,7 +21,7 @@ import com.github.fge.msgsimple.bundle.MessageBundle;
  * </p>
  */
 public class ElideFieldNameFormatAttr extends AbstractFormatAttribute {
-    private static final String FIELD_NAME_FORMAT_REGEX = "^[a-z][0-9A-Za-z_]*$";
+    private static final Pattern FIELD_NAME_FORMAT_REGEX = Pattern.compile("^[a-z][0-9A-Za-z_]*$");
 
     public static final String FORMAT_NAME = "elideFieldName";
     public static final String NAME_KEY = "elideFieldName.error.name";
@@ -38,7 +40,7 @@ public class ElideFieldNameFormatAttr extends AbstractFormatAttribute {
                     throws ProcessingException {
         final String input = data.getInstance().getNode().textValue();
 
-        if (!input.matches(FIELD_NAME_FORMAT_REGEX)) {
+        if (!FIELD_NAME_FORMAT_REGEX.matcher(input).matches()) {
             report.error(newMsg(data, bundle, FORMAT_KEY).putArgument("value", input));
         }
 

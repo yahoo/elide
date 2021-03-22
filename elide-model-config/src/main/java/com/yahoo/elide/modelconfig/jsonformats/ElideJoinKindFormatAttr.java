@@ -12,6 +12,8 @@ import com.github.fge.jsonschema.format.AbstractFormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
+import java.util.regex.Pattern;
+
 /**
  * Format specifier for {@code elideJoinKind} format attribute.
  * <p>
@@ -19,7 +21,7 @@ import com.github.fge.msgsimple.bundle.MessageBundle;
  * </p>
  */
 public class ElideJoinKindFormatAttr extends AbstractFormatAttribute {
-    private static final String JOIN_KIND_REGEX = "^(?i)(ToOne|ToMany)$";
+    private static final Pattern JOIN_KIND_REGEX = Pattern.compile("^(?i)(ToOne|ToMany)$");
 
     public static final String FORMAT_NAME = "elideJoinKind";
     public static final String TYPE_KEY = "elideJoinKind.error.enum";
@@ -34,7 +36,7 @@ public class ElideJoinKindFormatAttr extends AbstractFormatAttribute {
                     throws ProcessingException {
         final String input = data.getInstance().getNode().textValue();
 
-        if (!input.matches(JOIN_KIND_REGEX)) {
+        if (!JOIN_KIND_REGEX.matcher(input).matches()) {
             report.error(newMsg(data, bundle, TYPE_KEY).putArgument("value", input));
         }
     }

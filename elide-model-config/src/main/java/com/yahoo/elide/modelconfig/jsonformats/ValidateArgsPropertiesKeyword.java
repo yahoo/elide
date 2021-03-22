@@ -65,11 +65,7 @@ public class ValidateArgsPropertiesKeyword {
         @Override
         public JsonNode digest(final JsonNode schema) {
             final ObjectNode node = FACTORY.objectNode();
-            if (schema.get(keyword).asBoolean(true)) {
-                node.put(keyword, true);
-            } else {
-                node.put(keyword, false);
-            }
+            node.put(keyword, schema.get(keyword).asBoolean(true));
 
             return node;
         }

@@ -36,7 +36,7 @@ public class ElideArgumentNameFormatAttr extends AbstractFormatAttribute {
                     throws ProcessingException {
         final String input = data.getInstance().getNode().textValue();
 
-        if (!input.matches(ElideNameFormatAttr.NAME_FORMAT_REGEX)) {
+        if (!ElideNameFormatAttr.NAME_FORMAT_REGEX.matcher(input).matches()) {
             report.error(newMsg(data, bundle, FORMAT_KEY).putArgument("value", input));
         }
 
