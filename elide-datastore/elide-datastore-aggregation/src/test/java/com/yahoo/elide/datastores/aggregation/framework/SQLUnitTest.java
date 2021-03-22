@@ -512,12 +512,7 @@ public abstract class SQLUnitTest {
         connectionDetailsMap.put("SalesDBConnection", new ConnectionDetails(DUMMY_DATASOURCE, sqlDialect));
 
         engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect), connectionDetailsMap,
-<<<<<<< HEAD
-                new HashSet<>());
-=======
                 new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))));
->>>>>>> 5b637731a... Added optimizers and the ability to set them in the SQLQueryEngine
-
         playerStatsTable = (SQLTable) metaDataStore.getTable("playerStats", NO_VERSION);
         videoGameTable = (SQLTable) metaDataStore.getTable("videoGame", NO_VERSION);
     }
