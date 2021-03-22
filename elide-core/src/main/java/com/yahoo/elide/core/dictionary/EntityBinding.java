@@ -591,12 +591,7 @@ public class EntityBinding {
     /**
      * Cache placeholder for no annotation.
      */
-    private static final Annotation NO_ANNOTATION = new Annotation() {
-        @Override
-        public Class<? extends Annotation> annotationType() {
-            return null;
-        }
-    };
+    private static final Annotation NO_ANNOTATION = () -> null;
 
     /**
      * Return annotation from class, parents or package.
