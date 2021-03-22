@@ -77,15 +77,15 @@ public class Dimension implements Named {
 
     @JsonProperty("grains")
     @Singular
-    private List<Grain> grains = new ArrayList<Grain>();
+    private List<Grain> grains = new ArrayList<>();
 
     @JsonProperty("tags")
     @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<String> tags = new LinkedHashSet<String>();
+    private Set<String> tags = new LinkedHashSet<>();
 
     @JsonProperty("values")
     @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<String> values = new LinkedHashSet<String>();
+    private Set<String> values = new LinkedHashSet<>();
 
     @JsonProperty("tableSource")
     private String tableSource;

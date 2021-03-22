@@ -127,7 +127,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
                 ? (List) environment.field.getSelectionSet().getChildren()
                 : new ArrayList<>();
 
-        List<String> fieldName = new ArrayList<String>();
+        List<String> fieldName = new ArrayList<>();
         if (children.size() > 0) {
             children.stream().forEach(i -> { if (i.getClass().equals(Field.class)) {
                     fieldName.add(((Field) i).getName());

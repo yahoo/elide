@@ -86,19 +86,19 @@ public class Table implements Named {
 
     @JsonProperty("joins")
     @Singular
-    private List<Join> joins = new ArrayList<Join>();
+    private List<Join> joins = new ArrayList<>();
 
     @JsonProperty("measures")
     @Singular
-    private List<Measure> measures = new ArrayList<Measure>();
+    private List<Measure> measures = new ArrayList<>();
 
     @JsonProperty("dimensions")
     @Singular
-    private List<Dimension> dimensions = new ArrayList<Dimension>();
+    private List<Dimension> dimensions = new ArrayList<>();
 
     @JsonProperty("tags")
     @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<String> tags = new LinkedHashSet<String>();
+    private Set<String> tags = new LinkedHashSet<>();
 
     @JsonProperty("extend")
     private String extend;
