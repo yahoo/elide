@@ -10,6 +10,7 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
@@ -42,13 +43,13 @@ public class SQLDimensionProjection implements SQLColumnProjection {
     }
 
     @Override
-    public SQLDimensionProjection withExpression(String expression) {
+    public ColumnProjection outerQuery() {
         return SQLDimensionProjection.builder()
                 .name(name)
                 .alias(alias)
                 .valueType(valueType)
                 .columnType(columnType)
-                .expression(expression)
+                .expression("{{" + this.getSafeAlias() + "}}")
                 .arguments(arguments)
                 .build();
     }
