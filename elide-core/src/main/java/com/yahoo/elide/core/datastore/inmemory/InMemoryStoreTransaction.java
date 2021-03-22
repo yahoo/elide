@@ -114,7 +114,7 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     public Iterable<Object> loadObjects(EntityProjection projection,
                                         RequestScope scope) {
 
-        DataFetcher fetcher = (filterExpression,sorting,pagination,requestScope) ->
+        DataFetcher fetcher = (filterExpression, sorting, pagination, requestScope) ->
             tx.loadObjects(projection.copyOf()
                     .filterExpression(filterExpression.orElse(null))
                     .pagination(pagination.orElse(null))
