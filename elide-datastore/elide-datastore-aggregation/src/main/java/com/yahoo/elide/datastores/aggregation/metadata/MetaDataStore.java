@@ -21,10 +21,8 @@ import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.dynamic.TableType;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
-import com.yahoo.elide.datastores.aggregation.metadata.models.FunctionArgument;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
-import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
@@ -42,7 +40,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.Entity;
 
@@ -56,7 +53,8 @@ public class MetaDataStore implements DataStore {
             Arrays.asList(FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class,
                     javax.persistence.Entity.class);
 
-    private static final Function<String, HashMapDataStore> SERVER_ERROR = new Function<String, HashMapDataStore>() {
+    private static final java.util.function.Function<String, HashMapDataStore> SERVER_ERROR =
+            new java.util.function.Function<String, HashMapDataStore>() {
         @Override
         public HashMapDataStore apply(String key) {
             throw new InternalServerErrorException("API version " + key + " not found");
@@ -173,8 +171,8 @@ public class MetaDataStore implements DataStore {
         }
     }
 
-    private final Function<String, HashMapDataStore> getHashMapDataStoreInitializer() {
-        return new Function<String, HashMapDataStore>() {
+    private final java.util.function.Function<String, HashMapDataStore> getHashMapDataStoreInitializer() {
+        return new java.util.function.Function<String, HashMapDataStore>() {
             @Override
             public HashMapDataStore apply(String key) {
                 HashMapDataStore hashMapDataStore = new HashMapDataStore(META_DATA_PACKAGE);
@@ -197,6 +195,8 @@ public class MetaDataStore implements DataStore {
         tables.put(dictionary.getEntityClass(table.getName(), version), table);
         addMetaData(table, version);
         table.getColumns().forEach(this::addColumn);
+
+        table.getArguments().forEach(arg -> addArgument(arg, version));
     }
 
     /**
@@ -259,28 +259,18 @@ public class MetaDataStore implements DataStore {
             for (TimeDimensionGrain grain : timeDimension.getSupportedGrains()) {
                 addTimeDimensionGrain(grain, version);
             }
-        } else if (column instanceof Metric) {
-            addMetricFunction(((Metric) column).getMetricFunction(), version);
         }
+
+        column.getArguments().forEach(arg -> addArgument(arg, version));
     }
 
     /**
-     * Add a metric function metadata object.
+     * Add a argument metadata object.
      *
-     * @param metricFunction metric function metadata
+     * @param argument argument metadata
      */
-    private void addMetricFunction(MetricFunction metricFunction, String version) {
-        addMetaData(metricFunction, version);
-        metricFunction.getArguments().forEach(arg -> addFunctionArgument(arg, version));
-    }
-
-    /**
-     * Add a function argument metadata object.
-     *
-     * @param functionArgument function argument metadata
-     */
-    private void addFunctionArgument(FunctionArgument functionArgument, String version) {
-        addMetaData(functionArgument, version);
+    private void addArgument(Argument argument, String version) {
+        addMetaData(argument, version);
     }
 
     /**
