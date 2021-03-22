@@ -6,6 +6,7 @@
 package com.yahoo.elide.async.models;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.persistence.Embeddable;
 import javax.persistence.Lob;
@@ -15,6 +16,7 @@ import javax.persistence.Lob;
  */
 @Embeddable
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class AsyncQueryResult extends AsyncAPIResult {
     private Integer contentLength;
 

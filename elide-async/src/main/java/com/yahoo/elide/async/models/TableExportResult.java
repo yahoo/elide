@@ -6,6 +6,7 @@
 package com.yahoo.elide.async.models;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.net.URL;
 
@@ -17,6 +18,7 @@ import javax.persistence.Lob;
  */
 @Embeddable
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class TableExportResult extends AsyncAPIResult {
     private URL url;
 
