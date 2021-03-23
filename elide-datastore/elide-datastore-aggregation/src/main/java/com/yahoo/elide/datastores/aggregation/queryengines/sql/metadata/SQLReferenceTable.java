@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
 import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
-import static com.yahoo.elide.core.utils.TypeHelper.getTypeAlias;
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isTableJoin;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -155,7 +154,8 @@ public class SQLReferenceTable {
                             .visitColumn(queryable, column));
 
             Set<JoinPath> joinPaths = joinVisitor.visitColumn(queryable, column);
-            resolvedJoinExpressions.get(key).put(fieldName, getJoinClauses(joinPaths, dialect));
+            resolvedJoinExpressions.get(key).put(fieldName, getJoinClauses(queryable.getSource().getAlias(),
+                    joinPaths, dialect));
             resolvedJoinProjections.get(key).put(fieldName, getJoinProjections(joinPaths, dialect));
         });
     }
@@ -202,23 +202,24 @@ public class SQLReferenceTable {
     /**
      * Create a set of join expressions from join paths.
      *
+     * @param parentAlias the parent alias
      * @param joinPaths paths that require joins
      * @return A set of join expressions
      */
-    private Set<String> getJoinClauses(Set<JoinPath> joinPaths, SQLDialect dialect) {
+    private Set<String> getJoinClauses(String parentAlias, Set<JoinPath> joinPaths, SQLDialect dialect) {
         Set<String> joinExpressions = new LinkedHashSet<>();
-        joinPaths.forEach(path -> addJoinClauses(path, joinExpressions, dialect));
+        joinPaths.forEach(path -> addJoinClauses(parentAlias, path, joinExpressions, dialect));
         return joinExpressions;
     }
 
     /**
      * Add a join clause to a set of join clauses.
      *
+     * @param parentAlias the parent alias
      * @param joinPath join path
      * @param alreadyJoined A set of joins that have already been computed.
      */
-    private void addJoinClauses(JoinPath joinPath, Set<String> alreadyJoined, SQLDialect dialect) {
-        String parentAlias = getTypeAlias(joinPath.getPathElements().get(0).getType());
+    private void addJoinClauses(String parentAlias, JoinPath joinPath, Set<String> alreadyJoined, SQLDialect dialect) {
 
         for (Path.PathElement pathElement : joinPath.getPathElements()) {
             String fieldName = pathElement.getFieldName();

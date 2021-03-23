@@ -9,7 +9,6 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.google.common.collect.Sets;
 
-import java.util.HashSet;
 import java.util.Set;
 
 /**

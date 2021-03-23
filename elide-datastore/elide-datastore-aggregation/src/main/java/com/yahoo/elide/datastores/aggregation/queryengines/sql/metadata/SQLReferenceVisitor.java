@@ -98,14 +98,14 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
         for (String reference : resolveFormulaReferences(column.getExpression())) {
             String resolvedReference;
 
-            //The column is sourced from a query rather than a table.
-            if (source != source.getSource()) {
-                resolvedReference = visitPhysicalReference(reference);
-
             //The reference is a join to another logical column.
-            } else if (reference.contains(".")) {
-                Type<?> tableClass = dictionary.getEntityClass(source.getName(), source.getVersion());
+            if (reference.contains(".")) {
+                Queryable root = source.getRoot();
+                Type<?> tableClass = dictionary.getEntityClass(root.getName(), root.getVersion());
                 resolvedReference = visitTableJoinToReference(tableClass, reference);
+            //The column is sourced from a query rather than a table.
+            } else if (source != source.getSource()) {
+                resolvedReference = visitPhysicalReference(reference);
             } else {
                 ColumnProjection referenceColumn = source.getColumnProjection(reference);
 

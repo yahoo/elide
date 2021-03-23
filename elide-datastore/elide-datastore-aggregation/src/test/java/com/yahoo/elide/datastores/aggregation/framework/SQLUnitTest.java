@@ -51,7 +51,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.AggregateBeforeJoinOptimizer;
 import com.yahoo.elide.datastores.aggregation.timegrains.Day;
 import com.yahoo.elide.datastores.aggregation.timegrains.Hour;
 import com.yahoo.elide.datastores.aggregation.timegrains.ISOWeek;
@@ -512,7 +511,8 @@ public abstract class SQLUnitTest {
         connectionDetailsMap.put("SalesDBConnection", new ConnectionDetails(DUMMY_DATASOURCE, sqlDialect));
 
         engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect), connectionDetailsMap,
-                new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))));
+                //new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))));
+                new HashSet<>());
         playerStatsTable = (SQLTable) metaDataStore.getTable("playerStats", NO_VERSION);
         videoGameTable = (SQLTable) metaDataStore.getTable("videoGame", NO_VERSION);
     }
