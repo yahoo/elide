@@ -48,7 +48,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
     @EqualsAndHashCode.Exclude
     private QueryPlanResolver queryPlanResolver;
-    private boolean virtual;
+    private boolean projected;
 
     @Override
     public QueryPlan resolve(Query query) {
@@ -63,7 +63,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                                String  alias,
                                Map<String, Argument> arguments,
                                QueryPlanResolver queryPlanResolver,
-                               boolean virtual) {
+                               boolean projected) {
         this.name = name;
         this.valueType = valueType;
         this.columnType = columnType;
@@ -71,7 +71,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
         this.alias = alias;
         this.arguments = arguments;
         this.queryPlanResolver = queryPlanResolver == null ? new DefaultQueryPlanResolver() : queryPlanResolver;
-        this.virtual = virtual;
+        this.projected = projected;
     }
 
     public SQLMetricProjection(Metric metric,
@@ -79,7 +79,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                                Map<String, Argument> arguments) {
         this(metric.getName(), metric.getValueType(),
                 metric.getColumnType(), metric.getExpression(), alias, arguments,
-                metric.getQueryPlanResolver(), false);
+                metric.getQueryPlanResolver(), true);
     }
 
     @Override
@@ -104,6 +104,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                 .expression(aggFunction + "({{" + this.getSafeAlias() + "}})")
                 .arguments(arguments)
                 .queryPlanResolver(queryPlanResolver)
+                .projected(projected)
                 .build();
     }
 
@@ -117,7 +118,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     }
 
     @Override
-    public boolean isVirtual() {
-        return virtual;
+    public boolean isProjected() {
+        return projected;
     }
 }

@@ -72,7 +72,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
 
         Set<ColumnProjection> groupByDimensions = query.getAllDimensionProjections().stream()
                 .map(SQLColumnProjection.class::cast)
-                .filter(dim -> !dim.isVirtual())
+                .filter(dim -> dim.isProjected())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
         if (!groupByDimensions.isEmpty()) {
@@ -177,7 +177,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
 
         List<String> dimensionProjections = query.getAllDimensionProjections().stream()
                 .map(SQLColumnProjection.class::cast)
-                .filter(dim -> ! dim.isVirtual())
+                .filter(dim -> dim.isProjected())
                 .map(dimension -> dimension.toSQL(query.getSource(), referenceTable) + " AS "
                                 + applyQuotes(dimension.getSafeAlias()))
                 .collect(Collectors.toList());

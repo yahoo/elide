@@ -30,19 +30,19 @@ public class SQLDimensionProjection implements SQLColumnProjection {
     private String expression;
     private String alias;
     private Map<String, Argument> arguments;
-    private boolean virtual;
+    private boolean projected;
 
     public SQLDimensionProjection(Dimension dimension,
                                   String alias,
                                   Map<String, Argument> arguments,
-                                  boolean virtual) {
+                                  boolean projected) {
         this.name = dimension.getName();
         this.expression = dimension.getExpression();
         this.valueType = dimension.getValueType();
         this.columnType = dimension.getColumnType();
         this.alias = alias;
         this.arguments = arguments;
-        this.virtual = virtual;
+        this.projected = projected;
     }
 
     @Override
@@ -63,7 +63,7 @@ public class SQLDimensionProjection implements SQLColumnProjection {
     }
 
     @Override
-    public boolean isVirtual() {
-        return virtual;
+    public boolean isProjected() {
+        return projected;
     }
 }

@@ -43,7 +43,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     private TimeDimensionGrain grain;
     private TimeZone timeZone;
     private Map<String, Argument> arguments;
-    private boolean virtual;
+    private boolean projected;
 
     /**
      * All argument constructor.
@@ -51,12 +51,13 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
      * @param timeZone The selected time zone.
      * @param alias The client provided alias.
      * @param arguments List of client provided arguments.
+     * @param projected Whether or not this column is part of the projected output.
      */
     public SQLTimeDimensionProjection(TimeDimension column,
                                       TimeZone timeZone,
                                       String alias,
                                       Map<String, Argument> arguments,
-                                      boolean virtual) {
+                                      boolean projected) {
         //TODO remove arguments
         this.columnType = column.getColumnType();
         this.valueType = column.getValueType();
@@ -66,7 +67,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
         this.arguments = arguments;
         this.alias = alias;
         this.timeZone = timeZone;
-        this.virtual = virtual;
+        this.projected = projected;
     }
 
     @Override
@@ -115,7 +116,8 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
                 .orElseThrow(() -> new InvalidParameterizedAttributeException(name, grainArgument));
     }
 
-    public boolean isVirtual() {
-        return virtual;
+    @Override
+    public boolean isProjected() {
+        return projected;
     }
 }

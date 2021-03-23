@@ -121,7 +121,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                         .expression(virtualDim.getExpression())
                         .arguments(virtualDim.getArguments())
                         .alias(virtualDim.getAlias())
-                        .virtual(true)
+                        .projected(false)
                         .build());
             }
         }

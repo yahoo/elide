@@ -144,14 +144,14 @@ public class SQLQueryEngine extends QueryEngine {
     public ColumnProjection constructDimensionProjection(Dimension dimension,
                                                          String alias,
                                                          Map<String, Argument> arguments) {
-        return new SQLDimensionProjection(dimension, alias, arguments, false);
+        return new SQLDimensionProjection(dimension, alias, arguments, true);
     }
 
     @Override
     public TimeDimensionProjection constructTimeDimensionProjection(TimeDimension dimension,
                                                                     String alias,
                                                                     Map<String, Argument> arguments) {
-        return new SQLTimeDimensionProjection(dimension, dimension.getTimezone(), alias, arguments, false);
+        return new SQLTimeDimensionProjection(dimension, dimension.getTimezone(), alias, arguments, true);
     }
 
     @Override

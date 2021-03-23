@@ -44,7 +44,12 @@ public interface SQLColumnProjection extends ColumnProjection {
         return new HashSet<>(Arrays.asList(this));
     }
 
-    default boolean isVirtual() {
-        return false;
+    /**
+     * Returns whether or not this column is projected in the output (included in SELECT) or
+     * only referenced in a filter expression.
+     * @return True if part of the output projection.  False otherwise.
+     */
+    default boolean isProjected() {
+        return true;
     }
 }
