@@ -272,7 +272,7 @@ public class ElideAutoConfiguration {
                                                 SQLDialectFactory.getDialect(dbConfig.getDialect())));
             });
 
-            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap);
+            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap, new HashSet<>());
         } else {
             MetaDataStore metaDataStore = new MetaDataStore(enableMetaDataStore);
             return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);

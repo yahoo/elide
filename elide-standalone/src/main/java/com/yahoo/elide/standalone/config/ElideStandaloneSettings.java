@@ -496,7 +496,7 @@ public interface ElideStandaloneSettings {
                                                 dataSourceConfiguration.getDataSource(dbConfig, dbPasswordExtractor),
                                                 SQLDialectFactory.getDialect(dbConfig.getDialect())));
             });
-            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap);
+            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap, new HashSet<>());
         }
         return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
     }

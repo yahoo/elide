@@ -22,6 +22,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
+import com.yahoo.elide.datastores.aggregation.query.Optimizer;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
@@ -53,9 +54,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
@@ -70,9 +73,11 @@ public class SQLQueryEngine extends QueryEngine {
     private final SQLReferenceTable referenceTable;
     private final ConnectionDetails defaultConnectionDetails;
     private final Map<String, ConnectionDetails> connectionDetailsMap;
+    private final Set<Optimizer> optimizers;
 
     public SQLQueryEngine(MetaDataStore metaDataStore, ConnectionDetails defaultConnectionDetails) {
-        this(metaDataStore, defaultConnectionDetails, Collections.emptyMap());
+        this(metaDataStore, defaultConnectionDetails, Collections.emptyMap(),
+                new HashSet<>());
     }
 
     /**
@@ -82,7 +87,7 @@ public class SQLQueryEngine extends QueryEngine {
      * @param connectionDetailsMap : Connection Name to DataSource Object and SQL Dialect Object mapping.
      */
     public SQLQueryEngine(MetaDataStore metaDataStore, ConnectionDetails defaultConnectionDetails,
-                    Map<String, ConnectionDetails> connectionDetailsMap) {
+                    Map<String, ConnectionDetails> connectionDetailsMap, Set<Optimizer> optimizers) {
 
         Preconditions.checkNotNull(defaultConnectionDetails);
         Preconditions.checkNotNull(connectionDetailsMap);
@@ -93,6 +98,7 @@ public class SQLQueryEngine extends QueryEngine {
         this.metadataDictionary = metaDataStore.getMetadataDictionary();
         populateMetaData(metaDataStore);
         this.referenceTable = new SQLReferenceTable(metaDataStore);
+        this.optimizers = optimizers;
     }
 
     private static final Function<ResultSet, Object> SINGLE_RESULT_MAPPER = new Function<ResultSet, Object>() {
@@ -353,9 +359,19 @@ public class SQLQueryEngine extends QueryEngine {
 
         QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query);
 
-        return (mergedPlan == null)
+        Query merged = (mergedPlan == null)
                 ? query
                 : mergedPlan.accept(queryPlanTranslator).build();
+
+        for (Optimizer optimizer : optimizers) {
+            SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, merged);
+
+            if (optimizer.canOptimize(query, queryReferenceTable)) {
+                merged = optimizer.optimize(merged, queryReferenceTable);
+            }
+        }
+
+        return merged;
     }
 
     /**
