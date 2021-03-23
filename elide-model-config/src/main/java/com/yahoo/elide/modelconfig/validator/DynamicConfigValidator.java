@@ -276,7 +276,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         String tableName = getInheritedTable(parent, table.getTable());
         table.setTable(tableName);
 
-        Set<Argument> arguments = getInheritedArguments(parent, table.getArguments());
+        List<Argument> arguments = getInheritedArguments(parent, table.getArguments());
         table.setArguments(arguments);
         // isFact, isHidden, ReadAccess have default Values in schema, so can not be inherited.
         // Other properties (tags, cardinality, etc.) have been categorized as non-inheritable too.
@@ -365,10 +365,10 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         return getInheritedAttribute(action, tableName);
     }
 
-    private Set<Argument> getInheritedArguments(Table table, Set<Argument> arguments) {
+    private List<Argument> getInheritedArguments(Table table, List<Argument> arguments) {
         Inheritance action = () -> table.getArguments();
 
-        return (Set<Argument>) getInheritedAttribute(action, arguments);
+        return (List<Argument>) getInheritedAttribute(action, arguments);
     }
 
     /**
@@ -546,7 +546,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         return true;
     }
 
-    private void validateArguments(Set<Argument> arguments) {
+    private void validateArguments(List<Argument> arguments) {
         validateNameUniqueness(arguments, "Multiple Arguments found with the same name: ");
         arguments.forEach(arg -> {
             validateTableSource(arg.getTableSource());
@@ -657,7 +657,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     /**
      * Validates table (or db connection) name is unique across all the dynamic table (or db connection) configs.
      */
-    private static void validateNameUniqueness(Set<? extends Named> configs, String errorMsg) {
+    private static void validateNameUniqueness(Collection<? extends Named> configs, String errorMsg) {
 
         Set<String> names = new HashSet<>();
         configs.forEach(obj -> {

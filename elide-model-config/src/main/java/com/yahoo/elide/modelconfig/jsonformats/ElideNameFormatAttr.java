@@ -24,8 +24,6 @@ public class ElideNameFormatAttr extends AbstractFormatAttribute {
     public static final Pattern NAME_FORMAT_REGEX = Pattern.compile("^[A-Za-z][0-9A-Za-z_]*$");
 
     public static final String FORMAT_NAME = "elideName";
-    public static final String NAME_KEY = "elideName.error.name";
-    public static final String NAME_MSG = "Name [%s] is not allowed. Name cannot be 'from'";
     public static final String FORMAT_KEY = "elideName.error.format";
     public static final String FORMAT_MSG =
                     "Name [%s] is not allowed. Name must start with an alphabetic character and can include "
@@ -42,10 +40,6 @@ public class ElideNameFormatAttr extends AbstractFormatAttribute {
 
         if (!NAME_FORMAT_REGEX.matcher(input).matches()) {
             report.error(newMsg(data, bundle, FORMAT_KEY).putArgument("value", input));
-        }
-
-        if (input.equalsIgnoreCase("from")) {
-            report.error(newMsg(data, bundle, NAME_KEY).putArgument("value", input));
         }
     }
 }

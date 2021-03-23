@@ -85,8 +85,8 @@ public class Dimension implements Named {
     private Set<String> tags = new LinkedHashSet<String>();
 
     @JsonProperty("arguments")
-    @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<Argument> arguments = new LinkedHashSet<Argument>();
+    @Singular
+    private List<Argument> arguments = new ArrayList<Argument>();
 
     @JsonProperty("values")
     @JsonDeserialize(as = LinkedHashSet.class)

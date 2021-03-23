@@ -47,7 +47,7 @@ public class HandlebarsHydratorTest {
             + "      ''']\n"
             + "      arguments: [\n"
             + "          {\n"
-            + "             name: format\n"
+            + "             name: scoreFormat\n"
             + "             type: TEXT\n"
             + "             default: 999999D00\n"
             + "          }\n"

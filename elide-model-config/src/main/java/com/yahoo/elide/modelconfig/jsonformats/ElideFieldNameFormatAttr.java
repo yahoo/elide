@@ -28,7 +28,6 @@ public class ElideFieldNameFormatAttr extends AbstractFormatAttribute {
 
     static {
         RESERVED_KEYWORDS_FOR_COLUMN_NAME.add("id");
-        RESERVED_KEYWORDS_FOR_COLUMN_NAME.add("column");
         RESERVED_KEYWORDS_FOR_COLUMN_NAME.add("sql");
     }
 
