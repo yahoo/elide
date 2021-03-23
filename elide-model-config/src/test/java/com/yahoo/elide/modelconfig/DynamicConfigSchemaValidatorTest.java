@@ -96,16 +96,22 @@ public class DynamicConfigSchemaValidatorTest {
                         + "[ERROR]\n"
                         + "object instance has properties which are not allowed by the schema: [\"name\"]\n"
                         + "[ERROR]\n"
+                        + "Instance[/tables/0/arguments/0/type] failed to validate against schema[/definitions/argument/properties/type]. Field type [Number] is not allowed. Supported value is one of [Integer, Decimal, Money, Text, Coordinate, Boolean].\n"
+                        + "[ERROR]\n"
+                        + "Instance[/tables/0/arguments/1/name] failed to validate against schema[/definitions/argument/properties/name]. Argument name [Grain] is not allowed. Argument name cannot be 'grain'.\n"
+                        + "[ERROR]\n"
+                        + "Instance[/tables/0/arguments/2] failed to validate against schema[/definitions/argument]. tableSource and values cannot both be defined for an argument. Choose One or None.\n"
+                        + "[ERROR]\n"
                         + "Instance[/tables/0/cardinality] failed to validate against schema[/properties/tables/items/properties/cardinality]. Cardinality type [Extra Large] is not allowed. Supported value is one of [Tiny, Small, Medium, Large, Huge].\n"
                         + "[ERROR]\n"
                         + "Instance[/tables/0/dimensions/0] failed to validate against schema[/properties/tables/items/properties/dimensions/items]. instance failed to match exactly one schema (matched 0 out of 2)\n"
                         + "    Instance[/tables/0/dimensions/0] failed to validate against schema[/definitions/dimension]. instance failed to match all required schemas (matched only 0 out of 2)\n"
                         + "        Instance[/tables/0/dimensions/0/cardinality] failed to validate against schema[/definitions/dimensionRef/properties/cardinality]. Cardinality type [Extra small] is not allowed. Supported value is one of [Tiny, Small, Medium, Large, Huge].\n"
-                        + "        Instance[/tables/0/dimensions/0/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [id] is not allowed. Field name cannot be 'id'\n"
+                        + "        Instance[/tables/0/dimensions/0/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [id] is not allowed. Field name cannot be one of [column, id, sql]\n"
                         + "        Instance[/tables/0/dimensions/0/type] failed to validate against schema[/definitions/dimension/allOf/1/properties/type]. Field type [Float] is not allowed. Supported value is one of [Integer, Decimal, Money, Text, Coordinate, Boolean].\n"
                         + "    Instance[/tables/0/dimensions/0] failed to validate against schema[/definitions/timeDimension]. instance failed to match all required schemas (matched only 0 out of 2)\n"
                         + "        Instance[/tables/0/dimensions/0/cardinality] failed to validate against schema[/definitions/dimensionRef/properties/cardinality]. Cardinality type [Extra small] is not allowed. Supported value is one of [Tiny, Small, Medium, Large, Huge].\n"
-                        + "        Instance[/tables/0/dimensions/0/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [id] is not allowed. Field name cannot be 'id'\n"
+                        + "        Instance[/tables/0/dimensions/0/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [id] is not allowed. Field name cannot be one of [column, id, sql]\n"
                         + "        Instance[/tables/0/dimensions/0/type] failed to validate against schema[/definitions/timeDimension/allOf/1/properties/type]. Field type [Float] is not allowed. Field type must be [Time] for any time dimension.\n"
                         + "    Instance[/tables/0/dimensions/0] failed to validate against schema[/definitions/timeDimension]. Properties: [tableSource] are not allowed for time dimensions.\n"
                         + "[ERROR]\n"
@@ -132,7 +138,7 @@ public class DynamicConfigSchemaValidatorTest {
                         + "[ERROR]\n"
                         + "Instance[/tables/0/measures/0/queryPlanResolver] failed to validate against schema[/definitions/measure/properties/queryPlanResolver]. Input value[com.yahoo.elide.datastores.aggregation.query@DefaultQueryPlanResolver.class] is not a valid Java class name with .class extension.\n"
                         + "[ERROR]\n"
-                        + "Instance[/tables/0/name] failed to validate against schema[/properties/tables/items/properties/name]. Name [Country@10] is not allowed. Name must start with an alphabet and can include alaphabets, numbers and '_' only.";
+                        + "Instance[/tables/0/name] failed to validate against schema[/properties/tables/items/properties/name]. Name [Country@10] is not allowed. Name must start with an alphabetic character and can include alaphabets, numbers and '_' only.";
 
         assertEquals(expectedMessage, e.getMessage());
     }
@@ -158,7 +164,7 @@ public class DynamicConfigSchemaValidatorTest {
                         + "[ERROR]\n"
                         + "Instance[/dbconfigs/0/driver] failed to validate against schema[/properties/dbconfigs/items/properties/driver]. Input value[11COM.ibm.db2.jdbc.net.DB2Driver] is not a valid Java class name.\n"
                         + "[ERROR]\n"
-                        + "Instance[/dbconfigs/0/name] failed to validate against schema[/properties/dbconfigs/items/properties/name]. Name [11MyDB2Connection] is not allowed. Name must start with an alphabet and can include alaphabets, numbers and '_' only.\n"
+                        + "Instance[/dbconfigs/0/name] failed to validate against schema[/properties/dbconfigs/items/properties/name]. Name [11MyDB2Connection] is not allowed. Name must start with an alphabetic character and can include alaphabets, numbers and '_' only.\n"
                         + "[ERROR]\n"
                         + "Instance[/dbconfigs/0/propertyMap/hibernate.show_sql] failed to validate against schema[/properties/dbconfigs/items/properties/propertyMap/patternProperties/^([A-Za-z0-9_]+[.]?)+$]. instance type (null) does not match any allowed primitive type (allowed: [\"array\",\"boolean\",\"integer\",\"number\",\"object\",\"string\"])\n"
                         + "[ERROR]\n"

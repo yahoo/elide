@@ -38,6 +38,7 @@ import java.util.Set;
     "type",
     "grains",
     "tags",
+    "arguments",
     "values",
     "tableSource"
 })
@@ -83,6 +84,10 @@ public class Dimension implements Named {
     @JsonDeserialize(as = LinkedHashSet.class)
     private Set<String> tags = new LinkedHashSet<String>();
 
+    @JsonProperty("arguments")
+    @JsonDeserialize(as = LinkedHashSet.class)
+    private Set<Argument> arguments = new LinkedHashSet<Argument>();
+
     @JsonProperty("values")
     @JsonDeserialize(as = LinkedHashSet.class)
     private Set<String> values = new LinkedHashSet<String>();
@@ -97,5 +102,14 @@ public class Dimension implements Named {
      */
     public String getDescription() {
         return (this.description == null ? getName() : this.description);
+    }
+
+    /**
+     * Checks if this dimension has provided argument.
+     * @param argName
+     * @return true if this dimension has provided argument.
+     */
+    public boolean hasArgument(String argName) {
+        return hasName(this.arguments, argName);
     }
 }

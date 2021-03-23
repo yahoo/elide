@@ -19,6 +19,7 @@ import com.yahoo.elide.modelconfig.Config;
 import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
 import com.yahoo.elide.modelconfig.DynamicConfigSchemaValidator;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
+import com.yahoo.elide.modelconfig.model.Argument;
 import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.modelconfig.model.Dimension;
 import com.yahoo.elide.modelconfig.model.ElideDBConfig;
@@ -47,6 +48,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -163,17 +165,25 @@ public class DynamicConfigValidator implements DynamicConfiguration {
      * @throws IOException IOException
      */
     public void readAndValidateConfigs() throws IOException {
+        readConfigs();
+        validateConfigs();
+    }
+
+    public void readConfigs() throws IOException {
         this.loadConfigMap();
         this.modelVariables = readVariableConfig(Config.MODELVARIABLE);
         this.elideSecurityConfig = readSecurityConfig();
-        validateSecurityConfig();
         this.dbVariables = readVariableConfig(Config.DBVARIABLE);
         this.elideSQLDBConfig.setDbconfigs(readDbConfig());
         this.elideTableConfig.setTables(readTableConfig());
-        validateRequiredConfigsProvided();
-        validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs());
-        validateNameUniqueness(this.elideTableConfig.getTables());
         populateInheritance(this.elideTableConfig);
+    }
+
+    public void validateConfigs() throws IOException {
+        validateSecurityConfig();
+        validateRequiredConfigsProvided();
+        validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs(), "Multiple DB configs found with the same name: ");
+        validateNameUniqueness(this.elideTableConfig.getTables(), "Multiple Table configs found with the same name: ");
         validateTableConfig();
         validateJoinedTablesDBConnectionName(this.elideTableConfig);
     }
@@ -265,6 +275,9 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
         String tableName = getInheritedTable(parent, table.getTable());
         table.setTable(tableName);
+
+        Set<Argument> arguments = getInheritedArguments(parent, table.getArguments());
+        table.setArguments(arguments);
         // isFact, isHidden, ReadAccess have default Values in schema, so can not be inherited.
         // Other properties (tags, cardinality, etc.) have been categorized as non-inheritable too.
     }
@@ -324,6 +337,10 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         return property == null ? (T) action.inherit() : property;
     }
 
+    private <T> Collection<T> getInheritedAttribute(Inheritance action, Collection<T> property) {
+        return property == null || property.isEmpty() ? (Collection<T>) action.inherit() : property;
+    }
+
     private String getInheritedSchema(Table table, String schema) {
         Inheritance action = () -> table.getSchema();
 
@@ -346,6 +363,12 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         Inheritance action = () -> table.getTable();
 
         return getInheritedAttribute(action, tableName);
+    }
+
+    private Set<Argument> getInheritedArguments(Table table, Set<Argument> arguments) {
+        Inheritance action = () -> table.getArguments();
+
+        return (Set<Argument>) getInheritedAttribute(action, arguments);
     }
 
     /**
@@ -492,18 +515,21 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         for (Table table : elideTableConfig.getTables()) {
 
             validateSql(table.getSql());
+            validateArguments(table.getArguments());
             Set<String> tableFields = new HashSet<>();
 
             table.getDimensions().forEach(dim -> {
                 validateFieldNameUniqueness(tableFields, dim.getName(), table.getName());
                 validateSql(dim.getDefinition());
                 validateTableSource(dim.getTableSource());
+                validateArguments(dim.getArguments());
                 extractChecksFromExpr(dim.getReadAccess(), extractedChecks, visitor);
             });
 
             table.getMeasures().forEach(measure -> {
                 validateFieldNameUniqueness(tableFields, measure.getName(), table.getName());
                 validateSql(measure.getDefinition());
+                validateArguments(measure.getArguments());
                 extractChecksFromExpr(measure.getReadAccess(), extractedChecks, visitor);
             });
 
@@ -517,6 +543,13 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         }
 
         return true;
+    }
+
+    private void validateArguments(Set<Argument> arguments) {
+        validateNameUniqueness(arguments, "Multiple Arguments found with the same name: ");
+        arguments.forEach(arg -> {
+            validateTableSource(arg.getTableSource());
+        });
     }
 
     private void validateChecks(Set<String> checks) {
@@ -573,7 +606,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
         if (elideTableConfig.hasTable(modelName)) {
             Table table = elideTableConfig.getTable(modelName);
-            if (!table.hasField(elideTableConfig, fieldName)) {
+            if (!table.hasField(fieldName)) {
                 throw new IllegalStateException("Invalid tableSource : " + tableSource + " . Field : " + fieldName
                                 + " is undefined for hjson model: " + modelName);
             }
@@ -623,12 +656,12 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     /**
      * Validates table (or db connection) name is unique across all the dynamic table (or db connection) configs.
      */
-    private static void validateNameUniqueness(Set<? extends Named> configs) {
+    private static void validateNameUniqueness(Set<? extends Named> configs, String errorMsg) {
 
         Set<String> names = new HashSet<>();
         configs.forEach(obj -> {
             if (!names.add(obj.getName().toLowerCase(Locale.ENGLISH))) {
-                throw new IllegalStateException("Duplicate!! Either Table or DB configs found with the same name.");
+                throw new IllegalStateException(errorMsg + obj.getName());
             }
         });
     }

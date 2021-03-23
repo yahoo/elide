@@ -32,7 +32,8 @@ import java.util.Set;
     "definition",
     "queryPlanResolver",
     "type",
-    "tags"
+    "tags",
+    "arguments",
 })
 @Data
 @EqualsAndHashCode()
@@ -72,6 +73,10 @@ public class Measure implements Named {
     @JsonDeserialize(as = LinkedHashSet.class)
     private Set<String> tags = new LinkedHashSet<String>();
 
+    @JsonProperty("arguments")
+    @JsonDeserialize(as = LinkedHashSet.class)
+    private Set<Argument> arguments = new LinkedHashSet<Argument>();
+
     /**
      * Returns description of the measure.
      * If null, returns the name.
@@ -79,5 +84,14 @@ public class Measure implements Named {
      */
     public String getDescription() {
         return (this.description == null ? getName() : this.description);
+    }
+
+    /**
+     * Checks if this measure has provided argument.
+     * @param argName
+     * @return true if this measure has provided argument.
+     */
+    public boolean hasArgument(String argName) {
+        return hasName(this.arguments, argName);
     }
 }

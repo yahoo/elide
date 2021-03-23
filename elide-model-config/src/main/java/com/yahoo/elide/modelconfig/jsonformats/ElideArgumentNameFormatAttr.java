@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Yahoo Inc.
+ * Copyright 2021, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -12,26 +12,22 @@ import com.github.fge.jsonschema.format.AbstractFormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
-import java.util.regex.Pattern;
-
 /**
- * Format specifier for {@code elideName} format attribute.
+ * Format specifier for {@code elideArgumentName} format attribute.
  * <p>
- * This specifier will check if a string instance is a valid Elide Name.
+ * This specifier will check if a string instance is a valid Elide Argument Name.
  * </p>
  */
-public class ElideNameFormatAttr extends AbstractFormatAttribute {
-    public static final Pattern NAME_FORMAT_REGEX = Pattern.compile("^[A-Za-z][0-9A-Za-z_]*$");
+public class ElideArgumentNameFormatAttr extends AbstractFormatAttribute {
 
-    public static final String FORMAT_NAME = "elideName";
-    public static final String NAME_KEY = "elideName.error.name";
-    public static final String NAME_MSG = "Name [%s] is not allowed. Name cannot be 'from'";
-    public static final String FORMAT_KEY = "elideName.error.format";
-    public static final String FORMAT_MSG =
-                    "Name [%s] is not allowed. Name must start with an alphabetic character and can include "
-                    + "alaphabets, numbers and '_' only.";
+    public static final String FORMAT_NAME = "elideArgumentName";
+    public static final String NAME_KEY = "elideArgumentName.error.name";
+    public static final String NAME_MSG = "Argument name [%s] is not allowed. Argument name cannot be 'grain'.";
+    public static final String FORMAT_KEY = "elideArgumentName.error.format";
+    public static final String FORMAT_MSG = "Argument name [%s] is not allowed. Name must start with an alphabetic "
+                    + "character and can include alaphabets, numbers and '_' only.";
 
-    public ElideNameFormatAttr() {
+    public ElideArgumentNameFormatAttr() {
         super(FORMAT_NAME, NodeType.STRING);
     }
 
@@ -40,11 +36,11 @@ public class ElideNameFormatAttr extends AbstractFormatAttribute {
                     throws ProcessingException {
         final String input = data.getInstance().getNode().textValue();
 
-        if (!NAME_FORMAT_REGEX.matcher(input).matches()) {
+        if (!ElideNameFormatAttr.NAME_FORMAT_REGEX.matcher(input).matches()) {
             report.error(newMsg(data, bundle, FORMAT_KEY).putArgument("value", input));
         }
 
-        if (input.equalsIgnoreCase("from")) {
+        if (input.equalsIgnoreCase("grain")) {
             report.error(newMsg(data, bundle, NAME_KEY).putArgument("value", input));
         }
     }
