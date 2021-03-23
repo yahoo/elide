@@ -59,6 +59,7 @@ public class SQLDimensionProjection implements SQLColumnProjection {
                 .columnType(columnType)
                 .expression("{{" + this.getSafeAlias() + "}}")
                 .arguments(arguments)
+                .projected(projected)
                 .build();
     }
 

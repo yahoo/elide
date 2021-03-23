@@ -98,6 +98,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
                 .arguments(arguments)
                 .grain(grain)
                 .timeZone(timeZone)
+                .projected(projected)
                 .build();
     }
 
