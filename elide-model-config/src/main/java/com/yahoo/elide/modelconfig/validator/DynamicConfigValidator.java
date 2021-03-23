@@ -535,7 +535,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
             table.getJoins().forEach(join -> {
                 validateFieldNameUniqueness(tableFields, join.getName(), table.getName());
-                validateJoin(join);
+                validateSql(join.getDefinition());
+                validateModelExists(join.getTo());
             });
 
             extractChecksFromExpr(table.getReadAccess(), extractedChecks, visitor);
@@ -679,48 +680,6 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     }
 
     /**
-     * Check if input join definition is valid.
-     */
-    private void validateJoin(Join join) {
-        String joinModelName = join.getTo();
-
-        if (!(elideTableConfig.hasTable(joinModelName) || hasStaticModel(joinModelName, NO_VERSION))) {
-            throw new IllegalStateException(
-                            "Model: " + joinModelName + " is neither included in dynamic models nor in static models");
-        }
-
-        if (join.getType() == Join.Type.CROSS) {
-            return; // Join's definition validation not required.
-        }
-
-        if (isNullOrEmpty(join.getDefinition())) {
-            throw new IllegalStateException("Join definition must be provided.");
-        }
-
-        Matcher matcher = REFERENCE_PARENTHESES.matcher(join.getDefinition());
-        Set<String> references = new HashSet<>();
-        while (matcher.find()) {
-            references.add(matcher.group(1).trim());
-        }
-
-        if (references.size() < 2) {
-            throw new IllegalStateException("Atleast 2 unique references are expected in join definition");
-        }
-
-        references.forEach(reference -> {
-            if (reference.indexOf('.') != -1) {
-                String joinField = reference.substring(0, reference.indexOf('.'));
-                if (!joinField.equals(join.getName())) {
-                    throw new IllegalStateException("Join name must be used before '.' in join definition. Found '"
-                                    + joinField + "' instead of '" + join.getName() + "'");
-                }
-            }
-        });
-
-        validateSql(join.getDefinition());
-    }
-
-    /**
      * Validate role name provided in security config.
      * @return boolean true if all role name passes validation else throw exception
      */
@@ -738,6 +697,13 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         });
 
         return true;
+    }
+
+    private void validateModelExists(String name) {
+        if (!(elideTableConfig.hasTable(name) || hasStaticModel(name, NO_VERSION))) {
+            throw new IllegalStateException(
+                            "Model: " + name + " is neither included in dynamic models nor in static models");
+        }
     }
 
     /**
