@@ -177,6 +177,7 @@ public class ModelBuilder {
                     .argument(pageFirstArgument)
                     .argument(pageOffsetArgument)
                     .argument(buildInputObjectArgument(clazz, true))
+                    .argument(generator.entityArgumentToQueryObject(clazz, dataFetcher, entityDictionary))
                     .type(buildConnectionObject(clazz)));
         }
 

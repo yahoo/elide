@@ -349,11 +349,42 @@ public class GraphQLEntityProjectionMaker {
             addSorting(argument, projectionBuilder);
         } else if (ModelBuilder.ARGUMENT_FILTER.equals(argumentName)) {
             addFilter(argument, projectionBuilder);
+        } else if (isEntityArgument(argumentName, entityDictionary, projectionBuilder.getType())) {
+            addEntityArgument(argument, projectionBuilder);
         } else if (!ModelBuilder.ARGUMENT_OPERATION.equals(argumentName)
                 && !(ModelBuilder.ARGUMENT_IDS.equals(argumentName))
                 && !(ModelBuilder.ARGUMENT_DATA.equals(argumentName))) {
             addAttributeArgument(argument, projectionBuilder);
         }
+    }
+
+    /**
+     * Returns whether or not a GraphQL argument name corresponding to a Entity argument.
+     *
+     * @param argumentName Name key of the GraphQL argument
+     * @param dictionary Instance of EntityDictionary
+     * @param cls Entity Type Class
+     *
+     * @return {@code true} if the name equals to any Entity Argument
+     */
+    private static boolean isEntityArgument(String argumentName, EntityDictionary dictionary, Type<?> cls) {
+        return dictionary.getEntityArguments(cls)
+                .stream()
+                .anyMatch(a -> a.getName().equals(argumentName));
+    }
+
+    /**
+     * Create a {@link com.yahoo.elide.core.request.Argument} object from GraphQL argument and attach it to the building
+     * {@link EntityProjection}.
+     *
+     * @param argument graphQL argument
+     * @param projectionBuilder projection that is being built
+     */
+    private void addEntityArgument(Argument argument, EntityProjectionBuilder projectionBuilder) {
+        projectionBuilder.argument(com.yahoo.elide.core.request.Argument.builder()
+                .name(argument.getName())
+                .value(variableResolver.resolveValue(argument.getValue()))
+                .build());
     }
 
     /**
