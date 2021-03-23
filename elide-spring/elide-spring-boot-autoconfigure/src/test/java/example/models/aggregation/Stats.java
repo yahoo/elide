@@ -33,7 +33,7 @@ public class Stats {
     /**
      * A metric.
      */
-    @MetricFormula("SUM({{measure}})")
+    @MetricFormula("SUM({{$measure}})")
     private long measure;
 
     /**

@@ -12,7 +12,7 @@
             {
                 name : isoCode
                 type : TEXT
-                definition : '{{isoCode}}'
+                definition : '{{$isoCode}}'
             }
         ]
     }]
