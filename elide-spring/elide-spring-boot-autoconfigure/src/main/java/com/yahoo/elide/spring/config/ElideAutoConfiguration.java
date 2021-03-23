@@ -161,7 +161,7 @@ public class ElideAutoConfiguration {
                 && settings.getJsonApi().isEnableLinks()) {
             String baseUrl = settings.getBaseUrl();
 
-            if (baseUrl == null || baseUrl.isEmpty()) {
+            if (StringUtils.isEmpty(baseUrl)) {
                 builder.withJSONApiLinks(new DefaultJSONApiLinks());
             } else {
                 String jsonApiBaseUrl = baseUrl + settings.getJsonApi().getPath() + "/";

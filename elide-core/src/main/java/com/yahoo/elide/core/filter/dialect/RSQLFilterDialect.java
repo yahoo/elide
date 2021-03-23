@@ -36,6 +36,8 @@ import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.RSQLParserException;
 import cz.jirutka.rsql.parser.ast.AndNode;
@@ -357,7 +359,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
         }
 
         private void parseArguments(String argsString, Set<Argument> arguments) throws UnsupportedEncodingException {
-            if (argsString == null || argsString.isEmpty()) {
+            if (StringUtils.isEmpty(argsString)) {
                 return;
             }
 

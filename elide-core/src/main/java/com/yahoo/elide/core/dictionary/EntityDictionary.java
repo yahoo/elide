@@ -59,6 +59,7 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.Getter;
@@ -1432,7 +1433,7 @@ public class EntityDictionary {
      */
     public void addSecurityChecks(Set<Class<?>> classes) {
 
-        if (classes == null || classes.size() == 0) {
+        if (CollectionUtils.isEmpty(classes)) {
             return;
         }
 

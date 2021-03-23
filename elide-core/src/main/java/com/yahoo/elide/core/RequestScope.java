@@ -138,11 +138,11 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
                 ? new ActivePermissionExecutor(this)
                 : permissionExecutorGenerator.apply(this);
 
-        this.queryParams = (queryParams == null || queryParams.size() == 0)
+        this.queryParams = (queryParams == null || queryParams.isEmpty())
                 ? Optional.empty()
                 : Optional.of(queryParams);
 
-        this.requestHeaders = (requestHeaders == null || requestHeaders.size() == 0)
+        this.requestHeaders = (requestHeaders == null || requestHeaders.isEmpty())
                 ? Collections.emptyMap()
                 : requestHeaders;
         registerPreSecurityObservers();

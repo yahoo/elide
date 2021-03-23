@@ -23,6 +23,9 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+
+import org.apache.commons.lang3.StringUtils;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -287,7 +290,7 @@ public abstract class Table implements Versioned {
         Type<?> cls = dictionary.getEntityClass(name, version);
         RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
 
-        if (requiredFilter != null && !requiredFilter.isEmpty()) {
+        if (StringUtils.isNotEmpty(requiredFilter)) {
             try {
                 return filterDialect.parseFilterExpression(requiredFilter, cls, false, true);
             } catch (ParseException e) {
