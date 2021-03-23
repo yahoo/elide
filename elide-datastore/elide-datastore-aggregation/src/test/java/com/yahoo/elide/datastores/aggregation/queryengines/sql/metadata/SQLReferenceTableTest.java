@@ -76,6 +76,6 @@ public class SQLReferenceTableTest {
         SQLPhysicalColumnProjection expected = new SQLPhysicalColumnProjection("player_id", new H2Dialect());
 
         assertEquals(1, joinProjections.size());
-        assertEquals(expected, joinProjections.iterator().next());
+        assertEquals(expected.getName(), joinProjections.iterator().next().getName());
     }
 }
