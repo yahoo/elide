@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.core;
 
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
@@ -100,7 +101,14 @@ public class JoinPath extends Path {
         if (dictionary.isAttribute(entityClass, fieldName)
                         || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
             attributeClass = dictionary.getType(entityClass, fieldName);
+            return new PathElement(entityClass, attributeClass, fieldName);
         }
-        return new PathElement(entityClass, attributeClass, fieldName);
+        // Physical Column Reference starts with $
+        if (fieldName.indexOf('$') == 0) {
+            return new PathElement(entityClass, attributeClass, fieldName);
+        }
+
+        String entityAlias = dictionary.getJsonAliasFor(entityClass);
+        throw new InvalidValueException(entityAlias + " does not contain the field " + fieldName);
     }
 }

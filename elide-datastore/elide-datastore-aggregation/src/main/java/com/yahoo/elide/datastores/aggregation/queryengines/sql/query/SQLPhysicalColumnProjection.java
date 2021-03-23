@@ -21,6 +21,10 @@ public class SQLPhysicalColumnProjection implements SQLColumnProjection {
     private String name;
 
     public SQLPhysicalColumnProjection(String name) {
+        // Physical Column Reference starts with '$'
+        if (name.indexOf('$') == 0) {
+            name = name.substring(1);
+        }
         this.name = name;
     }
 

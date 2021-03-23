@@ -134,7 +134,7 @@ public class PlayerStatsWithRequiredFilter {
         this.highScore = highScore;
     }
 
-    @MetricFormula(value = "{{highScore}}")
+    @MetricFormula(value = "{{$highScore}}")
     @ColumnMeta(description = "highScore with no aggregation")
     public long getHighScoreNoAgg() {
         return highScore;
@@ -143,7 +143,7 @@ public class PlayerStatsWithRequiredFilter {
         this.highScore = highScore;
     }
 
-    @MetricFormula("MIN({{lowScore}})")
+    @MetricFormula("MIN({{$lowScore}})")
     @ColumnMeta(description = "very low score", category = "Score Category")
     public long getLowScore() {
         return lowScore;
@@ -163,7 +163,7 @@ public class PlayerStatsWithRequiredFilter {
         this.overallRating = overallRating;
     }
 
-    @Join("{{country_id}} = {{country.id}}")
+    @Join("{{$country_id}} = {{country.$id}}")
     public Country getCountry() {
         return country;
     }
@@ -199,7 +199,7 @@ public class PlayerStatsWithRequiredFilter {
         this.countryIsoCode = isoCode;
     }
 
-    @Join("{{sub_country_id}} = {{subCountry.id}}")
+    @Join("{{$sub_country_id}} = {{subCountry.$id}}")
     public SubCountry getSubCountry() {
         return subCountry;
     }
@@ -218,7 +218,7 @@ public class PlayerStatsWithRequiredFilter {
         this.subCountryIsoCode = isoCode;
     }
 
-    @Join("{{player_id}} = {{player.id}}")
+    @Join("{{$player_id}} = {{player.$id}}")
     public Player getPlayer() {
         return player;
     }
@@ -227,7 +227,7 @@ public class PlayerStatsWithRequiredFilter {
         this.player = player;
     }
 
-    @Join("{{player2_id}} = {{player2.id}}")
+    @Join("{{$player2_id}} = {{player2.$id}}")
     public Player getPlayer2() {
         return player2;
     }

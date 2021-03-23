@@ -30,7 +30,7 @@ public class PlayerStatsView {
     /**
      * A metric.
      */
-    @MetricFormula("MAX({{highScore}})")
+    @MetricFormula("MAX({{$highScore}})")
     private long highScore;
 
     /**
@@ -38,6 +38,6 @@ public class PlayerStatsView {
      */
     private String countryName;
 
-    @Join("{{player_id}} = {{player.id}}")
+    @Join("{{$player_id}} = {{player.$id}}")
     private Player player;
 }

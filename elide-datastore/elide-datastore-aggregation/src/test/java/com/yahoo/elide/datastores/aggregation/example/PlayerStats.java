@@ -139,7 +139,7 @@ public class PlayerStats extends ParameterizedModel {
         this.id = id;
     }
 
-    @MetricFormula("MAX({{highScore}})")
+    @MetricFormula("MAX({{$highScore}})")
     @ColumnMeta(description = "very awesome score", category = "Score Category")
     public long getHighScore() {
         return fetch("highScore", highScore);
@@ -149,7 +149,7 @@ public class PlayerStats extends ParameterizedModel {
         this.highScore = highScore;
     }
 
-    @MetricFormula("MIN({{lowScore}})")
+    @MetricFormula("MIN({{$lowScore}})")
     @ColumnMeta(description = "very low score", category = "Score Category", tags = {"PRIVATE"})
     public long getLowScore() {
         return fetch("lowScore", lowScore);
@@ -178,7 +178,7 @@ public class PlayerStats extends ParameterizedModel {
         this.overallRating = overallRating;
     }
 
-    @Join("{{country_id}} = {{country.id}}")
+    @Join("{{$country_id}} = {{country.$id}}")
     public Country getCountry() {
         return fetch("country", country);
     }
@@ -219,7 +219,7 @@ public class PlayerStats extends ParameterizedModel {
         this.countryIsoCode = isoCode;
     }
 
-    @Join("{{sub_country_id}} = {{subCountry.id}}")
+    @Join("{{$sub_country_id}} = {{subCountry.$id}}")
     public SubCountry getSubCountry() {
         return fetch("subCountry", subCountry);
     }
@@ -238,7 +238,7 @@ public class PlayerStats extends ParameterizedModel {
         this.subCountryIsoCode = isoCode;
     }
 
-    @Join("{{player_id}} = {{playerRanking.id}}")
+    @Join("{{$player_id}} = {{playerRanking.$id}}")
     public PlayerRanking getPlayerRanking() {
         return fetch("playerRanking", playerRanking);
     }
@@ -247,7 +247,7 @@ public class PlayerStats extends ParameterizedModel {
         this.playerRanking = playerRanking;
     }
 
-    @Join("{{player_id}} = {{player.id}}")
+    @Join("{{$player_id}} = {{player.$id}}")
     public Player getPlayer() {
         return player;
     }
@@ -256,7 +256,7 @@ public class PlayerStats extends ParameterizedModel {
         this.player = player;
     }
 
-    @Join("{{player2_id}} = {{player2.id}}")
+    @Join("{{$player2_id}} = {{player2.$id}}")
     public Player getPlayer2() {
         return player2;
     }
@@ -306,7 +306,7 @@ public class PlayerStats extends ParameterizedModel {
             @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DATE_FORMAT),
             @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT)
     }, timeZone = "UTC")
-    @DimensionFormula("{{recordedDate}}")
+    @DimensionFormula("{{$recordedDate}}")
     public Time getRecordedDate() {
         return fetch("recordedDate", recordedDate);
     }
