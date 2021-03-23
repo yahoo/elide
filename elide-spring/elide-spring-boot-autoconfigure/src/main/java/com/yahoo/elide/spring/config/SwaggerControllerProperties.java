@@ -6,11 +6,13 @@
 package com.yahoo.elide.spring.config;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * Extra controller properties for the Swagger document endpoint.
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class SwaggerControllerProperties extends ControllerProperties {
 
     /**
