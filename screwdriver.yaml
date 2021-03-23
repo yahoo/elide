@@ -7,6 +7,7 @@ shared:
        screwdriver.cd/ram: TURBO
    image: maven:3.6.3-jdk-8
    environment:
+       #Fetches history so Sonar can assign blame.
        GIT_SHALLOW_CLONE: false
 
 jobs:
