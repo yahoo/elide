@@ -65,10 +65,11 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                     .build();
 
             return Query.builder()
-                    .metricProjections(Sets.union(Sets.union(
+                    //Outer HAVING filters may reference columns in the inner query that need to be properly nested.
+                    .metricProjections(Sets.union(
                             outerQueryProjections(query.getMetricProjections()),
-                            getVirtualMetrics((SQLTable) query.getSource(), splitWhere.getOuter())
-                            ), getVirtualMetrics((SQLTable) query.getSource(), query.getHavingFilter())))
+                            outerQueryProjections(getVirtualMetrics((SQLTable) query.getSource(),
+                                    query.getHavingFilter()))))
                     .dimensionProjections(Sets.union(Sets.union(
                             outerQueryProjections(query.getDimensionProjections()),
                             getVirtualDims((SQLTable) query.getSource(), splitWhere.getOuter())
@@ -125,7 +126,6 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
         }
     }
 
-    //TODO - use nesting logic
     public Set<SQLDimensionProjection> getVirtualDims(SQLTable source, FilterExpression expression) {
         if (expression == null) {
             return new HashSet<>();

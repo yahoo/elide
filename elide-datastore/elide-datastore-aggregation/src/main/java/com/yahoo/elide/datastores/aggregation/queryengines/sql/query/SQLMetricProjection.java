@@ -48,7 +48,8 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
     @EqualsAndHashCode.Exclude
     private QueryPlanResolver queryPlanResolver;
-    @Builder.Default private final boolean projected = true;
+    @Builder.Default
+    private boolean projected = true;
 
     @Override
     public QueryPlan resolve(Query query) {
