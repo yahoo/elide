@@ -11,6 +11,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -52,7 +53,7 @@ public class SQLDimensionProjection implements SQLColumnProjection {
     }
 
     @Override
-    public ColumnProjection outerQuery(SQLReferenceTable lookupTable) {
+    public ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable) {
         return SQLDimensionProjection.builder()
                 .name(name)
                 .alias(alias)

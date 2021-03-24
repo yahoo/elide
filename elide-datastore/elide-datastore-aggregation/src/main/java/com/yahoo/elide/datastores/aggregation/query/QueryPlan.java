@@ -93,16 +93,16 @@ public class QueryPlan implements Queryable {
     public QueryPlan nest(SQLReferenceTable lookupTable) {
         QueryPlan inner = QueryPlan.builder()
                 .source(this.getSource())
-                .metricProjections(innerQueryProjections(metricProjections, lookupTable))
-                .dimensionProjections(innerQueryProjections(dimensionProjections, lookupTable))
-                .timeDimensionProjections(innerQueryProjections(timeDimensionProjections, lookupTable))
+                .metricProjections(innerQueryProjections(source, metricProjections, lookupTable))
+                .dimensionProjections(innerQueryProjections(source, dimensionProjections, lookupTable))
+                .timeDimensionProjections(innerQueryProjections(source, timeDimensionProjections, lookupTable))
                 .build();
 
         return QueryPlan.builder()
                 .source(inner)
-                .metricProjections(outerQueryProjections(metricProjections, lookupTable))
-                .dimensionProjections(outerQueryProjections(dimensionProjections, lookupTable))
-                .timeDimensionProjections(outerQueryProjections(timeDimensionProjections, lookupTable))
+                .metricProjections(outerQueryProjections(source, metricProjections, lookupTable))
+                .dimensionProjections(outerQueryProjections(source, dimensionProjections, lookupTable))
+                .timeDimensionProjections(outerQueryProjections(source, timeDimensionProjections, lookupTable))
                 .build();
     }
 }

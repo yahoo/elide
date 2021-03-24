@@ -51,28 +51,29 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
             Query inner = Query.builder()
                     .source(query.getSource().accept(this))
                     .metricProjections(Sets.union(
-                            innerQueryProjections(query.getMetricProjections(), lookupTable),
-                            innerQueryProjections(extractHavingMetrics(query), lookupTable))
+                            innerQueryProjections(query, query.getMetricProjections(), lookupTable),
+                            innerQueryProjections(query, extractHavingMetrics(query), lookupTable))
                     )
                     .dimensionProjections(Sets.union(
-                        Sets.union(innerQueryProjections(query.getDimensionProjections(), lookupTable),
+                        Sets.union(innerQueryProjections(query, query.getDimensionProjections(), lookupTable),
                         extractInnerQueryJoinProjections(query)),
                         extractInnerQueryJoinProjections(splitWhere.getOuter()))
                     )
                     //TODO join projections may either be time dimensions OR regular dimensions - we
                     //should split accordingly
-                    .timeDimensionProjections(innerQueryProjections(query.getTimeDimensionProjections(), lookupTable))
+                    .timeDimensionProjections(innerQueryProjections(query, query.getTimeDimensionProjections(),
+                            lookupTable))
                     .whereFilter(splitWhere.getInner())
                     .build();
 
             return Query.builder()
                     //Outer HAVING filters may reference columns in the inner query that need to be properly nested.
                     .metricProjections(Sets.union(
-                            outerQueryProjections(query.getMetricProjections(), lookupTable),
-                            outerQueryProjections(getVirtualMetrics((SQLTable) query.getSource(),
+                            outerQueryProjections(query, query.getMetricProjections(), lookupTable),
+                            outerQueryProjections(query, getVirtualMetrics((SQLTable) query.getSource(),
                                     query.getHavingFilter()), lookupTable)))
                     .dimensionProjections(Sets.union(Sets.union(
-                            outerQueryProjections(query.getDimensionProjections(), lookupTable),
+                            outerQueryProjections(query, query.getDimensionProjections(), lookupTable),
 
                             //TODO - Do these dimensions also need to be projected in the inner query (assuming they
                             //are not joined? They were never projected in the client query (hence being virtual), but
@@ -80,7 +81,8 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                             //virtual columns that require joins (no nesting) and those that don't (require nesting).
                             getVirtualDims((SQLTable) query.getSource(), splitWhere.getOuter())),
                             getVirtualDims((SQLTable) query.getSource(), query.getHavingFilter())))
-                    .timeDimensionProjections(outerQueryProjections(query.getTimeDimensionProjections(), lookupTable))
+                    .timeDimensionProjections(outerQueryProjections(query, query.getTimeDimensionProjections(),
+                            lookupTable))
                     .whereFilter(splitWhere.getOuter())
                     .havingFilter(query.getHavingFilter())
                     .sorting(query.getSorting())

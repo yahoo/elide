@@ -102,15 +102,17 @@ public interface ColumnProjection extends Serializable {
 
     /**
      * While nesting, convert this projection into its outer query equivalent.
+     * @param source The source of this projection.
      * @param lookupTable Used to answer questions about templated column definitions.
      * @return the outer projection.
      */
-    ColumnProjection outerQuery(SQLReferenceTable lookupTable);
+    ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable);
 
     /**
      * While nesting, convert this projection into its inner query equivalents.
+     * @param source The source of this projection.
      * @param lookupTable Used to answer questions about templated column definitions.
      * @return the set of inner projections linked to the outer projection.
      */
-    Set<ColumnProjection> innerQuery(SQLReferenceTable lookupTable);
+    Set<ColumnProjection> innerQuery(Queryable source, SQLReferenceTable lookupTable);
 }

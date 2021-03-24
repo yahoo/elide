@@ -66,11 +66,11 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
     private Query.QueryBuilder visitInnerQueryPlan(Queryable plan)  {
 
         Set<ColumnProjection> dimensions = Streams.concat(plan.getDimensionProjections().stream(),
-                innerQueryProjections(clientQuery.getDimensionProjections(), lookupTable).stream())
+                innerQueryProjections(clientQuery, clientQuery.getDimensionProjections(), lookupTable).stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
         Set<TimeDimensionProjection> timeDimensions = Streams.concat(plan.getTimeDimensionProjections().stream(),
-                innerQueryProjections(clientQuery.getTimeDimensionProjections(), lookupTable).stream())
+                innerQueryProjections(clientQuery, clientQuery.getTimeDimensionProjections(), lookupTable).stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
         return Query.builder()
@@ -87,8 +87,10 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
         return Query.builder()
                 .source(innerQuery)
                 .metricProjections(plan.getMetricProjections())
-                .dimensionProjections(outerQueryProjections(clientQuery.getDimensionProjections(), lookupTable))
-                .timeDimensionProjections(outerQueryProjections(clientQuery.getTimeDimensionProjections(), lookupTable))
+                .dimensionProjections(outerQueryProjections(clientQuery, clientQuery.getDimensionProjections(),
+                        lookupTable))
+                .timeDimensionProjections(outerQueryProjections(clientQuery, clientQuery.getTimeDimensionProjections(),
+                        lookupTable))
                 .havingFilter(clientQuery.getHavingFilter())
                 .sorting(clientQuery.getSorting())
                 .pagination(clientQuery.getPagination())
@@ -102,8 +104,9 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
         return Query.builder()
                 .source(innerQuery)
                 .metricProjections(plan.getMetricProjections())
-                .dimensionProjections(innerQueryProjections(clientQuery.getDimensionProjections(), lookupTable))
-                .timeDimensionProjections(innerQueryProjections(clientQuery.getTimeDimensionProjections(),
+                .dimensionProjections(innerQueryProjections(clientQuery, clientQuery.getDimensionProjections(),
+                        lookupTable))
+                .timeDimensionProjections(innerQueryProjections(clientQuery, clientQuery.getTimeDimensionProjections(),
                         lookupTable));
     }
 

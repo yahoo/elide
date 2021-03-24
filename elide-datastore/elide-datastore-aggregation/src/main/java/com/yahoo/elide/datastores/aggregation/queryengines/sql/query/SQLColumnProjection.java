@@ -37,12 +37,12 @@ public interface SQLColumnProjection extends ColumnProjection {
     }
 
     @Override
-    default ColumnProjection outerQuery(SQLReferenceTable lookupTable) {
+    default ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    default Set<ColumnProjection> innerQuery(SQLReferenceTable lookupTable) {
+    default Set<ColumnProjection> innerQuery(Queryable source, SQLReferenceTable lookupTable) {
         return new HashSet<>(Arrays.asList(this));
     }
 
@@ -57,31 +57,33 @@ public interface SQLColumnProjection extends ColumnProjection {
 
     /**
      * Nests a set of column projections returning the outer query equivalent.
+     * @param source The source of this projection.
      * @param columns The set of columns to nest.
      * @param lookupTable answers questions that require template resolution.
      * @param <T> The column projection type.
      * @return a set of column projections that have been nested.
      */
-    public static <T extends ColumnProjection> Set<T> outerQueryProjections(Set<T> columns,
+    public static <T extends ColumnProjection> Set<T> outerQueryProjections(Queryable source, Set<T> columns,
                                                                             SQLReferenceTable lookupTable) {
         return (Set<T>) columns.stream()
                 .map(SQLColumnProjection.class::cast)
-                .map(projection -> projection.outerQuery(lookupTable))
+                .map(projection -> projection.outerQuery(source, lookupTable))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
      * Nests a set of column projections returning the inner query equivalents.
+     * @param source The source of this projection.
      * @param columns The set of columns to nest.
      * @param lookupTable answers questions that require template resolution.
      * @param <T> The column projection type.
      * @return a set of column projections that have been nested.
      */
-    public static <T extends ColumnProjection> Set<T> innerQueryProjections(Set<T> columns,
+    public static <T extends ColumnProjection> Set<T> innerQueryProjections(Queryable source, Set<T> columns,
                                                                             SQLReferenceTable lookupTable) {
         return (Set<T>) columns.stream()
                 .map(SQLColumnProjection.class::cast)
-                .flatMap(projection -> projection.innerQuery(lookupTable).stream())
+                .flatMap(projection -> projection.innerQuery(source, lookupTable).stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }
