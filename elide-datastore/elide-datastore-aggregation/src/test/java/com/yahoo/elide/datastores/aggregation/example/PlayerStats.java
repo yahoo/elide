@@ -46,6 +46,8 @@ public class PlayerStats extends ParameterizedModel {
 
     public static final String DATE_FORMAT = "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
     public static final String MONTH_FORMAT = "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')";
+    public static final String QUARTER_FORMAT =
+                    "PARSEDATETIME(CONCAT(FORMATDATETIME({{}}, 'yyyy-'), 3 * QUARTER({{}}) - 2), 'yyyy-MM')";
 
     /**
      * PK.
@@ -304,7 +306,8 @@ public class PlayerStats extends ParameterizedModel {
      */
     @Temporal(grains = {
             @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DATE_FORMAT),
-            @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT)
+            @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT),
+            @TimeGrainDefinition(grain = TimeGrain.QUARTER, expression = QUARTER_FORMAT)
     }, timeZone = "UTC")
     @DimensionFormula("{{recordedDate}}")
     public Time getRecordedDate() {
