@@ -29,6 +29,9 @@ import com.yahoo.elide.datastores.jpa.porting.EntityManagerWrapper;
 import com.yahoo.elide.datastores.jpa.porting.QueryLogger;
 import com.yahoo.elide.datastores.jpa.porting.QueryWrapper;
 import com.yahoo.elide.datastores.jpa.transaction.checker.PersistentCollectionChecker;
+
+import org.apache.commons.collections4.CollectionUtils;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -144,7 +147,7 @@ public abstract class AbstractJpaTransaction implements JpaTransaction {
         if (isOpen()) {
             rollback();
         }
-        if (deferredTasks.size() > 0) {
+        if (CollectionUtils.isNotEmpty(deferredTasks)) {
             throw new IOException("Transaction not closed");
         }
     }

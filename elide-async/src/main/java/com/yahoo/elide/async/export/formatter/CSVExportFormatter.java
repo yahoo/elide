@@ -88,7 +88,7 @@ public class CSVExportFormatter implements TableExportFormatter {
             return "";
         }
 
-        String header = projection.getAttributes().stream()
+        return projection.getAttributes().stream()
         .map(attr -> {
             StringBuilder column = new StringBuilder();
             String alias = attr.getAlias();
@@ -103,21 +103,15 @@ public class CSVExportFormatter implements TableExportFormatter {
             return quotable;
         })
         .collect(Collectors.joining(COMMA));
-
-        return header;
     }
 
     @Override
     public String preFormat(EntityProjection projection, TableExport query) {
-        if (projection == null) {
+        if (projection == null || skipCSVHeader) {
             return null;
         }
 
-        if (!skipCSVHeader) {
-            return generateCSVHeader(projection);
-        };
-
-        return null;
+        return generateCSVHeader(projection);
     }
 
     @Override

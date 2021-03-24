@@ -21,6 +21,7 @@ import com.yahoo.elide.core.utils.JsonParser;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -519,7 +520,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(authorIdsOfLiteraryFiction.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(authorIdsOfLiteraryFiction));
 
         /* Test Default */
         JsonNode result = getAsNode("/book?include=authors&filter[book.genre]=Literary Fiction");
@@ -553,7 +554,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(bookIdsWithNullGenre.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(bookIdsWithNullGenre));
 
         /* Test Default */
         JsonNode result = getAsNode("/book?filter[book.genre][isnull]");
@@ -618,7 +619,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(bookIdsWithNonNullGenre.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(bookIdsWithNonNullGenre));
 
         /* Test Default */
         JsonNode result = getAsNode("/book?filter[book.genre][notnull]");
@@ -932,7 +933,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(authorIdsOfScienceFiction.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(authorIdsOfScienceFiction));
 
         /* Test Default */
         JsonNode result = getAsNode(String.format("/author/%s/books?include=authors&filter[book.genre]=Science Fiction", asimovId));
@@ -959,7 +960,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(bookIdsWithNullGenre.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(bookIdsWithNullGenre));
 
         /* Test Default */
         JsonNode result = getAsNode(String.format("/author/%s/books?filter[book.genre][isnull]", nullNedId));
@@ -1003,7 +1004,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(bookIdsWithNonNullGenre.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(bookIdsWithNonNullGenre));
 
         /* Test Default */
         JsonNode result = getAsNode(String.format("/author/%s/books?filter[book.genre][notnull]", nullNedId));
@@ -1048,7 +1049,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(bookIdsWithNonNullGenre.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(bookIdsWithNonNullGenre));
 
         /* Test Default */
         JsonNode result = getAsNode("/book?filter[book.publishDate][gt]=1");
@@ -1584,7 +1585,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(bookIdsWithEmptyChapters.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(bookIdsWithEmptyChapters));
 
         /* Test Default */
         result = getAsNode("/book?filter[book.chapters][isempty]");
@@ -1632,7 +1633,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(bookIdsWithNonEmptyChapters.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(bookIdsWithNonEmptyChapters));
 
         /* Test Default */
         result = getAsNode(String.format("/author/%s/books?filter[book.chapters][notempty]", nullNedId));
@@ -1682,7 +1683,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(bookIdsWithNonEmptyAwards.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(bookIdsWithNonEmptyAwards));
 
         /* Test Default */
         result = getAsNode("/book?filter[book.awards][notempty]");
@@ -1733,7 +1734,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(bookIdsWithEmptyAwards.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(bookIdsWithEmptyAwards));
 
         /* Test Default */
         result = getAsNode(String.format("/author/%s/books?filter[book.awards][isempty]", nullNedId));

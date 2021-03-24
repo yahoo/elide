@@ -20,6 +20,9 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
 import com.yahoo.elide.graphql.containers.MapEntryContainer;
 import com.google.common.collect.Sets;
+
+import org.apache.commons.collections4.CollectionUtils;
+
 import graphql.language.Field;
 import graphql.language.FragmentSpread;
 import graphql.schema.DataFetcher;
@@ -128,7 +131,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
                 : new ArrayList<>();
 
         List<String> fieldName = new ArrayList<String>();
-        if (children.size() > 0) {
+        if (CollectionUtils.isNotEmpty(children)) {
             children.stream().forEach(i -> { if (i.getClass().equals(Field.class)) {
                     fieldName.add(((Field) i).getName());
                 } else if (i.getClass().equals(FragmentSpread.class)) {
