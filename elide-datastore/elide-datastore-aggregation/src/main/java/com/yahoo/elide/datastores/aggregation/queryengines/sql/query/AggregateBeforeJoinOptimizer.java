@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class AggregateBeforeJoinOptimizer implements Optimizer {
     private MetaDataStore metaDataStore;
@@ -72,8 +73,13 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                                     query.getHavingFilter()))))
                     .dimensionProjections(Sets.union(Sets.union(
                             outerQueryProjections(query.getDimensionProjections()),
-                            getVirtualDims((SQLTable) query.getSource(), splitWhere.getOuter())
-                            ), getVirtualDims((SQLTable) query.getSource(), query.getHavingFilter())))
+
+                            //TODO - Do these dimensions also need to be projected in the inner query (assuming they
+                            //are not joined? They were never projected in the client query (hence being virtual), but
+                            //the inner query will hide them if they are not joins.  We need to differentiate between
+                            //virtual columns that require joins (no nesting) and those that don't (require nesting).
+                            getVirtualDims((SQLTable) query.getSource(), splitWhere.getOuter())),
+                            getVirtualDims((SQLTable) query.getSource(), query.getHavingFilter())))
                     .timeDimensionProjections(outerQueryProjections(query.getTimeDimensionProjections()))
                     .whereFilter(splitWhere.getOuter())
                     .havingFilter(query.getHavingFilter())
@@ -85,13 +91,59 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                     .build();
         }
 
+        private Set<SQLMetricProjection> getInnerQueryMetrics(Query query) {
+            //1.  Inner query metrics requested by client. Nested.
+            //2.  Inner query metrics required for having clause.  Nested.
+            //3.  Inner query metrics required for sort clause.  Nested.
+
+            //We don't need join columns for metrics (we refused to optimize if the metric requires a join).
+            //There is no where clause for metrics.
+
+            return null;
+        }
+
+        private Set<SQLMetricProjection> getOuterQueryMetrics(Query query) {
+            //1.  Outer query metrics requested by client.  Nested.
+            //2.  Outer hidden/virtual query metrics required for having filters.  Nested.
+            //3.  Outer hidden/virtual query metrics required for sort clause.  Nested.
+
+            return null;
+        }
+
+        private Set<SQLDimensionProjection> getInnerQueryDimensions(Query query) {
+            //1.  Inner query group by dimensions requested by client. Nested.
+            //2.  Inner query join columns for GROUP BY dimensions requested by the client. No Nesting.
+            //3.  Inner query join columns for dimensions referenced in filters (where and having). No Nesting.
+
+            //What if a column has two template definitions - one requiring a join and one not requiring a join?
+            //If a column requires any join, it can only live in the outer query.  We'll need to project the physical
+            //columns - both in current table and the join keys to the join table.
+
+            //4.  Inner hidden/virtual query dimensions required for where and having filters (no joins) Nested.
+            //5.  Inner hidden/virtual query dimensions required for sorting (no joins) Nested.
+
+            //What to do if the sort requires a join?
+            //We need to project out query join columns similar to filters and GROUP BY.
+            return null;
+        }
+
+        //We'll need this to work for both dimensions and time dimensions.
+        private Set<SQLDimensionProjection> getOuterQueryDimensions(Query query) {
+            //1.  Outer query group by dimensions requested by client. Nested.
+            //2.  Outer query virtual dimensions required for where clause.  Joins.  No Nesting.
+            //3.  Outer query virtual dimensions required for having clause.  Joins.  No Nesting.
+            //4.  Outer query virtual dimensions required for where clause.  No Joins.  Nesting.
+            //An outer query with an OR clause could include predicates that don't require joins.
+            //5.  Outer query virtual dimensions required for having clause.  No Joins.  Nesting.
+            return null;
+        }
+
         private Set<SQLColumnProjection> extractInnerQueryJoinProjections(Query query) {
             return query.getColumnProjections().stream()
                     .flatMap(column -> {
                         return lookupTable.getResolvedJoinProjections(query.getSource(), column.getName()).stream();
                     })
                     .collect(Collectors.toSet());
-
         }
 
         private Set<MetricProjection> extractHavingMetrics(Query query) {
@@ -192,6 +244,8 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
         //TODO - If any of the group by columns require a join across a toMany relationship,
         //we cannot aggregate with joining first
 
+        //TODO - If a metric requires a join, it must be aggregated post join.  For now, we simply won't optimize.
+
         //There must be at least one join or there is no reason to optimize.  First check the where clause
         //joins.  There is no need to check having clause or sort because those columns must also be in
         //the projection.
@@ -221,5 +275,10 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
         }
 
         return (Query) query.accept(new OptimizerVisitor(lookupTable));
+    }
+
+    @SafeVarargs
+    private static <ColumnProjection> Set<ColumnProjection> combine(Set<ColumnProjection> ...sets) {
+        return Stream.of(sets).flatMap(Set::stream).collect(Collectors.toSet());
     }
 }
