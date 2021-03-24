@@ -9,8 +9,6 @@ import static com.yahoo.elide.modelconfig.DynamicConfigHelpers.isNullOrEmpty;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -21,7 +19,6 @@ import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
@@ -186,37 +183,11 @@ public class SQLTable extends Table implements Queryable {
             return getTimeDimensionProjection(name, arguments);
         }
 
-        return new SQLColumnProjection() {
-            @Override
-            public String getAlias() {
-                return column.getName();
-            }
+        if (column instanceof Metric) {
+            return getMetricProjection(name);
+        }
 
-            @Override
-            public String getName() {
-                return column.getName();
-            }
-
-            @Override
-            public String getExpression() {
-                return column.getExpression();
-            }
-
-            @Override
-            public ValueType getValueType() {
-                return column.getValueType();
-            }
-
-            @Override
-            public ColumnType getColumnType() {
-                return column.getColumnType();
-            }
-
-            @Override
-            public Map<String, Argument> getArguments() {
-                return arguments;
-            }
-        };
+        return getDimensionProjection(name);
     }
 
     @Override

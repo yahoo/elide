@@ -23,6 +23,7 @@ import lombok.Value;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 
 /**
@@ -79,6 +80,9 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
 
     @Override
     public TimeGrain getGrain() {
+        if (grain == null) {
+            System.out.println("HMM");
+        }
         return grain.getGrain();
     }
 
@@ -89,17 +93,38 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
 
     @Override
     public ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable) {
-        return SQLTimeDimensionProjection.builder()
-                .name(name)
-                .alias(alias)
-                .valueType(valueType)
-                .columnType(columnType)
-                .expression("{{" + this.getSafeAlias() + "}}")
-                .arguments(arguments)
-                .grain(grain)
-                .timeZone(timeZone)
-                .projected(projected)
-                .build();
+        Set<SQLColumnProjection> joinProjections = lookupTable.getResolvedJoinProjections(source.getSource(), name);
+
+        boolean requiresJoin = joinProjections.size() > 0;
+
+        boolean inProjection = source.getColumnProjection(name) != null;
+
+        if (requiresJoin) {
+            return SQLTimeDimensionProjection.builder()
+                    .name(name)
+                    .alias(alias)
+                    .valueType(valueType)
+                    .columnType(columnType)
+                    .expression(expression)
+                    .arguments(arguments)
+                    .projected(inProjection)
+                    .grain(grain)
+                    .timeZone(timeZone)
+                    .build();
+        } else {
+            return SQLTimeDimensionProjection.builder()
+                    .name(name)
+                    .alias(alias)
+                    .valueType(valueType)
+                    .columnType(columnType)
+                    .expression("{{" + this.getSafeAlias() + "}}")
+                    .arguments(arguments)
+                    .projected(true)
+                    .grain(grain)
+                    .timeZone(timeZone)
+                    .projected(projected)
+                    .build();
+        }
     }
 
     private TimeDimensionGrain getGrainFromArguments(Map<String, Argument> arguments, TimeDimension column) {

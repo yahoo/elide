@@ -6,28 +6,27 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection.innerQueryProjections;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection.outerQueryProjections;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
-import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Optimizer;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
 import com.google.common.collect.Sets;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.function.Predicate;
 
 public class AggregateBeforeJoinOptimizer implements Optimizer {
     private MetaDataStore metaDataStore;
@@ -50,39 +49,24 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
 
             Query inner = Query.builder()
                     .source(query.getSource().accept(this))
-                    .metricProjections(Sets.union(
-                            innerQueryProjections(query, query.getMetricProjections(), lookupTable),
-                            innerQueryProjections(query, extractHavingMetrics(query), lookupTable))
-                    )
+                    .metricProjections(getInnerQueryColumns(query, SQLMetricProjection.class))
                     .dimensionProjections(Sets.union(
-                        Sets.union(innerQueryProjections(query, query.getDimensionProjections(), lookupTable),
-                        extractInnerQueryJoinProjections(query)),
-                        extractInnerQueryJoinProjections(splitWhere.getOuter()))
+
+                            //Fetch just the projected dimensions.
+                            getInnerQueryColumns(query, SQLDimensionProjection.class),
+
+                            //Fetch all columns that nest as physical column projections.
+                            getInnerQueryColumns(query, SQLColumnProjection.class,
+                                    (predicate) -> predicate instanceof SQLPhysicalColumnProjection))
                     )
-                    //TODO join projections may either be time dimensions OR regular dimensions - we
-                    //should split accordingly
-                    .timeDimensionProjections(innerQueryProjections(query, query.getTimeDimensionProjections(),
-                            lookupTable))
+                    .timeDimensionProjections(getInnerQueryColumns(query, SQLTimeDimensionProjection.class))
                     .whereFilter(splitWhere.getInner())
                     .build();
 
             return Query.builder()
-                    //Outer HAVING filters may reference columns in the inner query that need to be properly nested.
-                    .metricProjections(Sets.union(
-                            outerQueryProjections(query, query.getMetricProjections(), lookupTable),
-                            outerQueryProjections(query, getVirtualMetrics((SQLTable) query.getSource(),
-                                    query.getHavingFilter()), lookupTable)))
-                    .dimensionProjections(Sets.union(Sets.union(
-                            outerQueryProjections(query, query.getDimensionProjections(), lookupTable),
-
-                            //TODO - Do these dimensions also need to be projected in the inner query (assuming they
-                            //are not joined? They were never projected in the client query (hence being virtual), but
-                            //the inner query will hide them if they are not joins.  We need to differentiate between
-                            //virtual columns that require joins (no nesting) and those that don't (require nesting).
-                            getVirtualDims((SQLTable) query.getSource(), splitWhere.getOuter())),
-                            getVirtualDims((SQLTable) query.getSource(), query.getHavingFilter())))
-                    .timeDimensionProjections(outerQueryProjections(query, query.getTimeDimensionProjections(),
-                            lookupTable))
+                    .metricProjections(getOuterQueryColumns(query, SQLMetricProjection.class))
+                    .dimensionProjections(getOuterQueryColumns(query, SQLDimensionProjection.class))
+                    .timeDimensionProjections(getOuterQueryColumns(query, SQLTimeDimensionProjection.class))
                     .whereFilter(splitWhere.getOuter())
                     .havingFilter(query.getHavingFilter())
                     .sorting(query.getSorting())
@@ -93,131 +77,96 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                     .build();
         }
 
-        private Set<SQLMetricProjection> getInnerQueryMetrics(Query query) {
-            //1.  Inner query metrics requested by client. Nested.
-            //2.  Inner query metrics required for having clause but missing in client request.  Nested.
-            //3.  Inner query metrics required for sort clause but missing in client request.  Nested.
+        private <T extends ColumnProjection> Set<T> getInnerQueryColumns(Query query, Class<T> columnType,
+                                                                         Predicate<? super ColumnProjection> filter) {
+            Set<T> projections = new LinkedHashSet<>();
 
-            //We don't need join columns for metrics (we refused to optimize if the metric requires a join).
-            //There is no where clause for metrics.
+            query.getColumnProjections().stream()
+                    .filter(projection -> columnType.isInstance(projection))
+                    .flatMap(projection -> projection.innerQuery(query, lookupTable).stream())
+                    .filter(filter)
+                    .map(columnType::cast)
+                    .forEach(projections::add);
 
-            return null;
+            extractFilterProjections(query, query.getWhereFilter()).stream()
+                    .filter(projection -> columnType.isInstance(projection))
+                    .flatMap(projection -> projection.innerQuery(query, lookupTable).stream())
+                    .filter(filter)
+                    .map(columnType::cast)
+                    .forEach(projections::add);
+
+            extractFilterProjections(query, query.getHavingFilter()).stream()
+                    .filter(projection -> columnType.isInstance(projection))
+                    .flatMap(projection -> projection.innerQuery(query, lookupTable).stream())
+                    .filter(filter)
+                    .map(columnType::cast)
+                    .forEach(projections::add);
+
+            //TODO - Sorting
+
+            return projections;
+
         }
 
-        private Set<SQLMetricProjection> getOuterQueryMetrics(Query query) {
-            //1.  Outer query metrics requested by client.  Nested.
-            //2.  Outer hidden/virtual query metrics required for having filters.  Nested.
-            //3.  Outer hidden/virtual query metrics required for sort clause.  Nested.
-
-            return null;
+        private <T extends ColumnProjection> Set<T> getInnerQueryColumns(Query query, Class<T> columnType) {
+            return getInnerQueryColumns(query, columnType, (projection) -> columnType.isInstance(projection));
         }
 
-        private Set<SQLDimensionProjection> getInnerQueryDimensions(Query query) {
+        private <T extends ColumnProjection> Set<T> getOuterQueryColumns(Query query, Class<T> columnType) {
+            Set<T> projections = new LinkedHashSet<>();
 
-            /* Nesting Rules:
-                - Metrics: everything inside Aggregation function in inner query.  Post agg in outer query.
-                - Dimensions without joins: everything in inner query.  Alias reference in outer query.
-                - Dimensions with joins: Physical columns projected in inner query.  Everything else applied post agg.
-                - Outer columns are virtual if they only appear in HAVING, WHERE, or SORT.
-             */
+            query.getColumnProjections().stream()
+                    .filter(projection -> columnType.isInstance(projection))
+                    .map(projection -> projection.outerQuery(query, lookupTable))
+                    .map(columnType::cast)
+                    .forEach(projections::add);
 
-            return null;
+            extractFilterProjections(query, query.getWhereFilter()).stream()
+                    .filter(projection -> columnType.isInstance(projection))
+                    .map(projection -> projection.outerQuery(query, lookupTable))
+                    .map(columnType::cast)
+                    .forEach(projections::add);
+
+            extractFilterProjections(query, query.getHavingFilter()).stream()
+                    .filter(projection -> columnType.isInstance(projection))
+                    .map(projection -> projection.outerQuery(query, lookupTable))
+                    .map(columnType::cast)
+                    .forEach(projections::add);
+
+            //TODO - Sorting
+            return projections;
         }
 
-        //We'll need this to work for both dimensions and time dimensions.
-        private Set<SQLDimensionProjection> getOuterQueryDimensions(Query query) {
-            return null;
-        }
-
-        private Set<SQLColumnProjection> extractInnerQueryJoinProjections(Query query) {
-            return query.getColumnProjections().stream()
-                    .flatMap(column -> {
-                        return lookupTable.getResolvedJoinProjections(query.getSource(), column.getName()).stream();
-                    })
-                    .collect(Collectors.toSet());
-        }
-
-        private Set<MetricProjection> extractHavingMetrics(Query query) {
-            FilterExpression having = query.getHavingFilter();
-            if (having == null) {
+        private Set<SQLColumnProjection> extractFilterProjections(Query query, FilterExpression expression) {
+            if (expression == null) {
                 return new HashSet<>();
             }
 
-            Collection<FilterPredicate> predicates = having.accept(new PredicateExtractionVisitor());
-
-            return predicates.stream()
-                    .map(predicate -> query.getSource().getMetricProjection(predicate.getField()))
-                    .collect(Collectors.toSet());
-        }
-
-        private Set<SQLColumnProjection> extractInnerQueryJoinProjections(FilterExpression expression) {
             Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
 
-            return predicates.stream()
-                    .flatMap(predicate -> {
-                        return lookupTable.getResolvedJoinProjections(
-                                (SQLTable) metaDataStore.getTable(predicate.getEntityType()),
-                                predicate.getField()
-                        ).stream();
-                    })
-                    .collect(Collectors.toSet());
+            Set<SQLColumnProjection> filterProjections = new LinkedHashSet<>();
+            predicates.stream().forEach((predicate -> {
+                Map<String, Argument> arguments = new HashMap<>();
+                predicate.getParameters().forEach((param) -> {
+                    arguments.put(param.getName(), Argument.builder()
+                            .name(param.getName())
+                            .value(param.getValue())
+                            .build());
+
+                });
+
+                ColumnProjection projection = query.getSource().getColumnProjection(predicate.getField(), arguments);
+
+                filterProjections.add((SQLColumnProjection) projection);
+            }));
+
+            return filterProjections;
         }
 
-        @Override
+       @Override
         public Queryable visitQueryable(Queryable table) {
             return table;
         }
-    }
-
-    public Set<SQLDimensionProjection> getVirtualDims(SQLTable source, FilterExpression expression) {
-        if (expression == null) {
-            return new HashSet<>();
-        }
-        Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
-
-        Set<SQLDimensionProjection> virtualDims = new HashSet<>();
-        for (FilterPredicate predicate : predicates) {
-            ColumnProjection virtualDim = source.getDimensionProjection(predicate.getField());
-            if (virtualDim != null) {
-                virtualDims.add(
-                        SQLDimensionProjection.builder()
-                        .name(virtualDim.getName())
-                        .columnType(virtualDim.getColumnType())
-                        .valueType(virtualDim.getValueType())
-                        .expression(virtualDim.getExpression())
-                        .arguments(virtualDim.getArguments())
-                        .alias(virtualDim.getAlias())
-                        .projected(false)
-                        .build());
-            }
-        }
-        return virtualDims;
-    }
-
-    //TODO - this must use the nesting logic (rather than just going to the inner query).
-    public Set<SQLMetricProjection> getVirtualMetrics(SQLTable source, FilterExpression expression) {
-        if (expression == null) {
-            return new HashSet<>();
-        }
-        Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
-
-        Set<SQLMetricProjection> virtualMeasures = new HashSet<>();
-        for (FilterPredicate predicate : predicates) {
-            MetricProjection virtualMetric = source.getMetricProjection(predicate.getField());
-            if (virtualMetric != null) {
-                virtualMeasures.add(
-                        SQLMetricProjection.builder()
-                                .name(virtualMetric.getName())
-                                .columnType(virtualMetric.getColumnType())
-                                .valueType(virtualMetric.getValueType())
-                                .expression(virtualMetric.getExpression())
-                                .arguments(virtualMetric.getArguments())
-                                .alias(virtualMetric.getAlias())
-                                .projected(false)
-                                .build());
-            }
-        }
-        return virtualMeasures;
     }
 
     @Override
@@ -266,10 +215,5 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
         }
 
         return (Query) query.accept(new OptimizerVisitor(lookupTable));
-    }
-
-    @SafeVarargs
-    private static <ColumnProjection> Set<ColumnProjection> combine(Set<ColumnProjection> ...sets) {
-        return Stream.of(sets).flatMap(Set::stream).collect(Collectors.toSet());
     }
 }

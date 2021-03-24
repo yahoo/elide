@@ -13,12 +13,14 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 
 /**
  * Represents a physical column to be projected as part of a subquery.
  */
 @EqualsAndHashCode
+@Builder
 public class SQLPhysicalColumnProjection implements SQLColumnProjection {
 
     private String name;

@@ -18,6 +18,7 @@ import lombok.Builder;
 import lombok.Value;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Dimension projection that can expand the dimension into a SQL projection fragment.
@@ -54,15 +55,39 @@ public class SQLDimensionProjection implements SQLColumnProjection {
 
     @Override
     public ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable) {
-        return SQLDimensionProjection.builder()
-                .name(name)
-                .alias(alias)
-                .valueType(valueType)
-                .columnType(columnType)
-                .expression("{{" + this.getSafeAlias() + "}}")
-                .arguments(arguments)
-                .projected(projected)
-                .build();
+        /*
+         * Default Behiavior:
+         * - Dimensions without joins: everything in inner query.  Alias reference in outer query.
+         * - Dimensions with joins: Physical columns projected in inner query.  Everything else applied post agg.
+         * - Outer columns are virtual if they only appear in HAVING, WHERE, or SORT.
+         */
+        Set<SQLColumnProjection> joinProjections = lookupTable.getResolvedJoinProjections(source.getSource(), name);
+
+        boolean requiresJoin = joinProjections.size() > 0;
+
+        boolean inProjection = source.getColumnProjection(name) != null;
+
+        if (requiresJoin) {
+            return SQLDimensionProjection.builder()
+                    .name(name)
+                    .alias(alias)
+                    .valueType(valueType)
+                    .columnType(columnType)
+                    .expression(expression)
+                    .arguments(arguments)
+                    .projected(inProjection)
+                    .build();
+        } else {
+            return SQLDimensionProjection.builder()
+                    .name(name)
+                    .alias(alias)
+                    .valueType(valueType)
+                    .columnType(columnType)
+                    .expression("{{" + this.getSafeAlias() + "}}")
+                    .arguments(arguments)
+                    .projected(true)
+                    .build();
+        }
     }
 
     @Override

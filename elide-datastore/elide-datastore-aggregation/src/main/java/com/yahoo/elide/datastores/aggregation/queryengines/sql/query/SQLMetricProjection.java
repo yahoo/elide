@@ -94,6 +94,8 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     public ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable) {
         Matcher matcher = AGG_FUNCTION_MATCHER.matcher(expression);
 
+        boolean inProjection = source.getColumnProjection(name) != null;
+
         if (! matcher.find()) {
             throw new UnsupportedOperationException("Metric does not support nesting");
         }
@@ -107,7 +109,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                 .expression(aggFunction + "({{" + this.getSafeAlias() + "}})")
                 .arguments(arguments)
                 .queryPlanResolver(queryPlanResolver)
-                .projected(projected)
+                .projected(inProjection)
                 .build();
     }
 

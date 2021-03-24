@@ -43,7 +43,22 @@ public interface SQLColumnProjection extends ColumnProjection {
 
     @Override
     default Set<ColumnProjection> innerQuery(Queryable source, SQLReferenceTable lookupTable) {
-        return new HashSet<>(Arrays.asList(this));
+        /*
+         * Default Behiavior:
+         * - Dimensions without joins: everything in inner query.  Alias reference in outer query.
+         * - Dimensions with joins: Physical columns projected in inner query.  Everything else applied post agg.
+         * - Outer columns are virtual if they only appear in HAVING, WHERE, or SORT.
+         */
+        Set<SQLColumnProjection> joinProjections =
+                lookupTable.getResolvedJoinProjections(source.getSource(), getName());
+
+        boolean requiresJoin = joinProjections.size() > 0;
+        if (requiresJoin) {
+            //TODO - we also need to extract physical columns referenced in the column itself.
+            return joinProjections.stream().collect(Collectors.toSet());
+        } else {
+            return new HashSet<>(Arrays.asList(this));
+        }
     }
 
     /**

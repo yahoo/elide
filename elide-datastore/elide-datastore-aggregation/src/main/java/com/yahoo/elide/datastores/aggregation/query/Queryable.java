@@ -149,7 +149,7 @@ public interface Queryable {
      * @return the connectinon details
      */
     default ConnectionDetails getConnectionDetails() {
-        return getSource().getConnectionDetails();
+        return getRoot().getConnectionDetails();
     }
 
     /**
