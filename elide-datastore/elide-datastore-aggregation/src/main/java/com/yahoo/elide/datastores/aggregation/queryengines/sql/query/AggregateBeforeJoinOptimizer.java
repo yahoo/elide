@@ -65,9 +65,8 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                     .build();
 
             return Query.builder()
-                    .metricProjections(Sets.union(Sets.union(Sets.union(
+                    .metricProjections(Sets.union(Sets.union(
                             outerQueryProjections(query.getMetricProjections()),
-                            outerQueryProjections(extractHavingMetrics(query))),
                             getVirtualMetrics((SQLTable) query.getSource(), splitWhere.getOuter())
                             ), getVirtualMetrics((SQLTable) query.getSource(), query.getHavingFilter())))
                     .dimensionProjections(Sets.union(Sets.union(

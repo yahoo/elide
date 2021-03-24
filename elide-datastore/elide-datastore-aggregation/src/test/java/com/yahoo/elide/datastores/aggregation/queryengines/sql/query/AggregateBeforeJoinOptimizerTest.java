@@ -83,7 +83,6 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
 
         String expectedQueryStr2 =
                 "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) AS `highScore`,"
-                        + "MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`lowScore`) AS `lowScore`,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
                         + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate` "
                         + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
