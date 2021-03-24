@@ -16,6 +16,7 @@ import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
@@ -89,7 +90,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     }
 
     @Override
-    public ColumnProjection outerQuery() {
+    public ColumnProjection outerQuery(SQLReferenceTable lookupTable) {
         Matcher matcher = AGG_FUNCTION_MATCHER.matcher(expression);
 
         if (! matcher.find()) {
@@ -110,7 +111,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     }
 
     @Override
-    public Set<ColumnProjection> innerQuery() {
+    public Set<ColumnProjection> innerQuery(SQLReferenceTable lookupTable) {
         if (!canNest()) {
             throw new UnsupportedOperationException("Metric does not support nesting");
         }

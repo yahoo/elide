@@ -88,7 +88,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     }
 
     @Override
-    public ColumnProjection outerQuery() {
+    public ColumnProjection outerQuery(SQLReferenceTable lookupTable) {
         return SQLTimeDimensionProjection.builder()
                 .name(name)
                 .alias(alias)

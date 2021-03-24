@@ -5,8 +5,9 @@
  */
 package com.yahoo.elide.datastores.aggregation.query;
 
-import static com.yahoo.elide.datastores.aggregation.query.ColumnProjection.innerQueryProjections;
-import static com.yahoo.elide.datastores.aggregation.query.ColumnProjection.outerQueryProjections;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection.innerQueryProjections;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection.outerQueryProjections;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.google.common.collect.Streams;
 import lombok.Builder;
 import lombok.NonNull;
@@ -45,7 +46,7 @@ public class QueryPlan implements Queryable {
      * @param other The other query to merge.
      * @return A new merged query plan.
      */
-    public QueryPlan merge(QueryPlan other) {
+    public QueryPlan merge(QueryPlan other, SQLReferenceTable lookupTable) {
         QueryPlan self = this;
 
         if (other == null) {
@@ -53,11 +54,11 @@ public class QueryPlan implements Queryable {
         }
 
         while (other.nestDepth() > self.nestDepth()) {
-            self = self.nest();
+            self = self.nest(lookupTable);
         }
 
         while (self.nestDepth() > other.nestDepth()) {
-            other = other.nest();
+            other = other.nest(lookupTable);
         }
 
         assert (self.isNested() || getSource().equals(other.getSource()));
@@ -79,7 +80,7 @@ public class QueryPlan implements Queryable {
                     .timeDimensionProjections(timeDimensions)
                     .build();
         } else {
-            Queryable mergedSource = ((QueryPlan) self.getSource()).merge((QueryPlan) other.getSource());
+            Queryable mergedSource = ((QueryPlan) self.getSource()).merge((QueryPlan) other.getSource(), lookupTable);
             return QueryPlan.builder()
                     .source(mergedSource)
                     .metricProjections(metrics)
@@ -89,19 +90,19 @@ public class QueryPlan implements Queryable {
         }
     }
 
-    public QueryPlan nest() {
+    public QueryPlan nest(SQLReferenceTable lookupTable) {
         QueryPlan inner = QueryPlan.builder()
                 .source(this.getSource())
-                .metricProjections(innerQueryProjections(metricProjections))
-                .dimensionProjections(innerQueryProjections(dimensionProjections))
-                .timeDimensionProjections(innerQueryProjections(timeDimensionProjections))
+                .metricProjections(innerQueryProjections(metricProjections, lookupTable))
+                .dimensionProjections(innerQueryProjections(dimensionProjections, lookupTable))
+                .timeDimensionProjections(innerQueryProjections(timeDimensionProjections, lookupTable))
                 .build();
 
         return QueryPlan.builder()
                 .source(inner)
-                .metricProjections(outerQueryProjections(metricProjections))
-                .dimensionProjections(outerQueryProjections(dimensionProjections))
-                .timeDimensionProjections(outerQueryProjections(timeDimensionProjections))
+                .metricProjections(outerQueryProjections(metricProjections, lookupTable))
+                .dimensionProjections(outerQueryProjections(dimensionProjections, lookupTable))
+                .timeDimensionProjections(outerQueryProjections(timeDimensionProjections, lookupTable))
                 .build();
     }
 }

@@ -6,8 +6,8 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
-import static com.yahoo.elide.datastores.aggregation.query.ColumnProjection.innerQueryProjections;
-import static com.yahoo.elide.datastores.aggregation.query.ColumnProjection.outerQueryProjections;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection.innerQueryProjections;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection.outerQueryProjections;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
@@ -51,28 +51,28 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
             Query inner = Query.builder()
                     .source(query.getSource().accept(this))
                     .metricProjections(Sets.union(
-                            innerQueryProjections(query.getMetricProjections()),
-                            innerQueryProjections(extractHavingMetrics(query)))
+                            innerQueryProjections(query.getMetricProjections(), lookupTable),
+                            innerQueryProjections(extractHavingMetrics(query), lookupTable))
                     )
                     .dimensionProjections(Sets.union(
-                        Sets.union(innerQueryProjections(query.getDimensionProjections()),
+                        Sets.union(innerQueryProjections(query.getDimensionProjections(), lookupTable),
                         extractInnerQueryJoinProjections(query)),
                         extractInnerQueryJoinProjections(splitWhere.getOuter()))
                     )
                     //TODO join projections may either be time dimensions OR regular dimensions - we
                     //should split accordingly
-                    .timeDimensionProjections(innerQueryProjections(query.getTimeDimensionProjections()))
+                    .timeDimensionProjections(innerQueryProjections(query.getTimeDimensionProjections(), lookupTable))
                     .whereFilter(splitWhere.getInner())
                     .build();
 
             return Query.builder()
                     //Outer HAVING filters may reference columns in the inner query that need to be properly nested.
                     .metricProjections(Sets.union(
-                            outerQueryProjections(query.getMetricProjections()),
+                            outerQueryProjections(query.getMetricProjections(), lookupTable),
                             outerQueryProjections(getVirtualMetrics((SQLTable) query.getSource(),
-                                    query.getHavingFilter()))))
+                                    query.getHavingFilter()), lookupTable)))
                     .dimensionProjections(Sets.union(Sets.union(
-                            outerQueryProjections(query.getDimensionProjections()),
+                            outerQueryProjections(query.getDimensionProjections(), lookupTable),
 
                             //TODO - Do these dimensions also need to be projected in the inner query (assuming they
                             //are not joined? They were never projected in the client query (hence being virtual), but
@@ -80,7 +80,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                             //virtual columns that require joins (no nesting) and those that don't (require nesting).
                             getVirtualDims((SQLTable) query.getSource(), splitWhere.getOuter())),
                             getVirtualDims((SQLTable) query.getSource(), query.getHavingFilter())))
-                    .timeDimensionProjections(outerQueryProjections(query.getTimeDimensionProjections()))
+                    .timeDimensionProjections(outerQueryProjections(query.getTimeDimensionProjections(), lookupTable))
                     .whereFilter(splitWhere.getOuter())
                     .havingFilter(query.getHavingFilter())
                     .sorting(query.getSorting())
@@ -111,67 +111,19 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
         }
 
         private Set<SQLDimensionProjection> getInnerQueryDimensions(Query query) {
-            //1.  Inner query group by dimensions requested by client. Nested.
-            //2.  Inner query join columns for GROUP BY dimensions requested by the client. No Nesting.
-            //3.  Inner query join columns for dimensions referenced in filters (where and having). No Nesting.
-            //4.  Inner query join columns for dimensions referenced in sort.  No Nesting.
 
-            /*
-            Non-projected columns can reference two things:
-              1. Physical Column in current table.
-              2. Physical Column in another table accessed via a JOIN.
-
-            Columns that reference (2) or (1 & 2) need to have physical columns and join columns projected in the inner query.
-            The outer query can then apply the corresponding column definition/template (as if it were applied without nesting).
-            */
-
-            /*
-            Projected columns can reference two things:
-              1. Physical Column in current table.
-              2. Physical Column in another table accessed via a JOIN.
-
-            Columns that reference only (1) will be nested.
-
-            Columns that reference (2) will have join columns projected in the inner query.
-            The outer query can then apply the corresponding column definition/template (as if it were applied without nesting).
-            */
-
-            /*
-            Difference between nesting and physical column projection:
-             - Nesting applies all non-aggregation functions and expressions in inner query.
-             - Physical column projection projects just the physical column in inner query and all
-               functions and expressions get applied in outer query.
-
-             We could do:
-                - Metrics: everything inside Aggregation function in inner query.  Post agg in outer query.
-                - Dimensions: Physical columns projected in inner query.  Everything else applied post agg.
-
-             *****Or we could do: ******* - THIS IS THE WAY
+            /* Nesting Rules:
                 - Metrics: everything inside Aggregation function in inner query.  Post agg in outer query.
                 - Dimensions without joins: everything in inner query.  Alias reference in outer query.
                 - Dimensions with joins: Physical columns projected in inner query.  Everything else applied post agg.
                 - Outer columns are virtual if they only appear in HAVING, WHERE, or SORT.
              */
 
-            //4.  Inner hidden/virtual query dimensions required for where and having filters:
-            //     4a. The column must
-            // (no joins) Nested.
-            //5.  Inner hidden/virtual query dimensions required for sorting (no joins) Nested.
-
-            //We don't need to to project hidden/virtual query dimensions for GROUP by dimensions since they are already
-            //covered in 1.
-
             return null;
         }
 
         //We'll need this to work for both dimensions and time dimensions.
         private Set<SQLDimensionProjection> getOuterQueryDimensions(Query query) {
-            //1.  Outer query group by dimensions requested by client. Nested.
-            //2.  Outer query virtual dimensions required for where clause.  Joins.  No Nesting.
-            //3.  Outer query virtual dimensions required for having clause.  Joins.  No Nesting.
-            //4.  Outer query virtual dimensions required for where clause.  No Joins.  Nesting.
-            //An outer query with an OR clause could include predicates that don't require joins.
-            //5.  Outer query virtual dimensions required for having clause.  No Joins.  Nesting.
             return null;
         }
 

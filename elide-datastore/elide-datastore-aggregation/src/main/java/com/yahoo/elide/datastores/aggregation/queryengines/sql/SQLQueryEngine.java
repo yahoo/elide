@@ -353,11 +353,11 @@ public class SQLQueryEngine extends QueryEngine {
         for (MetricProjection metricProjection : query.getMetricProjections()) {
             QueryPlan queryPlan = metricProjection.resolve(query);
             if (queryPlan != null) {
-                mergedPlan = queryPlan.merge(mergedPlan);
+                mergedPlan = queryPlan.merge(mergedPlan, referenceTable);
             }
         }
 
-        QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query);
+        QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query, referenceTable);
 
         Query merged = (mergedPlan == null)
                 ? query
