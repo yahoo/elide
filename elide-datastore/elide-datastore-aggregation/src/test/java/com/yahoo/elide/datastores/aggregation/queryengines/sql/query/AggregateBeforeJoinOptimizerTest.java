@@ -133,4 +133,54 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
 
         assertFalse(optimizer.canOptimize(query, lookupTable));
     }
+
+    //TODO - Tests to add
+    /*
+    - CONFIRM NESTING ON SIMPLE COLUMN DEFINITIONS - Each column maps to one physical column.
+    - Test Having Clause On Metric In Projection (No Join)
+    - Test Having Clause On Metric Not In Projection (No Join)
+    - Test Where Clause On Metric In Projection (No Join)
+    - Test Where Clause On Metric Not In Projection (No Join)
+    - Test Sort Clause On Metric In Projection (No Join)
+    - Test Sort Clause On Metric Not In Projection (No Join)
+    - Test Having Clause On Dimension In Projection (No Join)
+    - Test Having Clause On Dimension In Projection (Join)
+    - Test Having Clause On Dimension Not In Projection (Join)
+    - Test Having Clause On Dimension Not In Projection (No Join)
+    - Test Where Clause On Dimension In Projection (No Join)
+    - Test Where Clause On Dimension In Projection (Join)
+    - Test Where Clause On Dimension Not In Projection (Join)
+    - Test Where Clause On Dimension Not In Projection (No Join)
+    - Test Sort Clause On Dimension In Projection (No Join)
+    - Test Sort Clause On Dimension In Projection (Join)
+    - Test Sort Clause On Dimension Not In Projection (Join)
+    - Test Sort Clause On Dimension Not In Projection (No Join)
+    - Test Having Clause On TimeDimension In Projection (No Join)
+    - Test Having Clause On TimeDimension In Projection (Join)
+    - Test Having Clause On TimeDimension Not In Projection (Join)
+    - Test Having Clause On TimeDimension Not In Projection (No Join)
+    - Test Where Clause On TimeDimension In Projection (No Join)
+    - Test Where Clause On TimeDimension In Projection (Join)
+    - Test Where Clause On TimeDimension Not In Projection (Join)
+    - Test Where Clause On TimeDimension Not In Projection (No Join)
+    - Test Sort Clause On TimeDimension In Projection (No Join)
+    - Test Sort Clause On TimeDimension In Projection (Join)
+    - Test Sort Clause On TimeDimension Not In Projection (Join)
+    - Test Sort Clause On TimeDimension Not In Projection (No Join)
+
+    - CONFIRM NESTING ON COMPLEX COLUMN DEFINITIONS - Each column maps to one physical column in the
+      current table and one join to a physical column in another table:
+    - Test Having Clause On TimeDimension In Projection
+    - Test Having Clause On TimeDimension Not In Projection
+    - Test Having Clause On Dimension In Projection
+    - Test Having Clause On Dimension Not In Projection
+    - Test Where Clause On TimeDimension In Projection
+    - Test Where Clause On TimeDimension Not In Projection
+    - Test Where Clause On Dimension In Projection
+    - Test Where Clause On Dimension Not In Projection
+    - Test Sort Clause On TimeDimension In Projection
+    - Test Sort Clause On TimeDimension Not In Projection
+    - Test Sort Clause On Dimension In Projection
+    - Test Sort Clause On Dimension Not In Projection
+     */
 }
