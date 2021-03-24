@@ -1306,6 +1306,9 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         )),
                                         field("recordedDate", "byMonth", arguments(
                                                 argument("grain", TimeGrain.MONTH)
+                                        )),
+                                        field("recordedDate", "byQuarter", arguments(
+                                                argument("grain", TimeGrain.QUARTER)
                                         ))
                                 )
                         )
@@ -1319,12 +1322,14 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 selections(
                                         field("highScore", 1234),
                                         field("byDay", "2019-07-12"),
-                                        field("byMonth", "2019-07")
+                                        field("byMonth", "2019-07"),
+                                        field("byQuarter", "2019-07")
                                 ),
                                 selections(
                                         field("highScore", 1000),
                                         field("byDay", "2019-07-13"),
-                                        field("byMonth", "2019-07")
+                                        field("byMonth", "2019-07"),
+                                        field("byQuarter", "2019-07")
                                 )
                         )
                 )
