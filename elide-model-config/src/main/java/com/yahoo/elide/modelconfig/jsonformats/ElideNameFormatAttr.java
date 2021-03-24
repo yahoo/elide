@@ -12,6 +12,8 @@ import com.github.fge.jsonschema.format.AbstractFormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
+import java.util.regex.Pattern;
+
 /**
  * Format specifier for {@code elideName} format attribute.
  * <p>
@@ -19,12 +21,12 @@ import com.github.fge.msgsimple.bundle.MessageBundle;
  * </p>
  */
 public class ElideNameFormatAttr extends AbstractFormatAttribute {
-    private static final String NAME_FORMAT_REGEX = "^[A-Za-z][0-9A-Za-z_]*$";
+    public static final Pattern NAME_FORMAT_REGEX = Pattern.compile("^[A-Za-z][0-9A-Za-z_]*$");
 
     public static final String FORMAT_NAME = "elideName";
     public static final String FORMAT_KEY = "elideName.error.format";
     public static final String FORMAT_MSG =
-                    "Name [%s] is not allowed. Name must start with an alphabet and can include "
+                    "Name [%s] is not allowed. Name must start with an alphabetic character and can include "
                     + "alaphabets, numbers and '_' only.";
 
     public ElideNameFormatAttr() {
@@ -36,7 +38,7 @@ public class ElideNameFormatAttr extends AbstractFormatAttribute {
                     throws ProcessingException {
         final String input = data.getInstance().getNode().textValue();
 
-        if (!input.matches(NAME_FORMAT_REGEX)) {
+        if (!NAME_FORMAT_REGEX.matcher(input).matches()) {
             report.error(newMsg(data, bundle, FORMAT_KEY).putArgument("value", input));
         }
     }

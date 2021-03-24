@@ -45,6 +45,18 @@ public class HandlebarsHydratorTest {
             + "      A tag\n"
             + "      with newline\n"
             + "      ''']\n"
+            + "      arguments: [\n"
+            + "          {\n"
+            + "             name: scoreFormat\n"
+            + "             type: TEXT\n"
+            + "             default: 999999D00\n"
+            + "          }\n"
+            + "          {\n"
+            + "             name: countryCode\n"
+            + "             type: TEXT\n"
+            + "             tableSource: Country.isoCode\n"
+            + "          }\n"
+            + "      ]\n"
             + "      joins: [\n"
             + "          {\n"
             + "             name: playerCountry\n"
@@ -123,7 +135,7 @@ public class HandlebarsHydratorTest {
     public void setup() throws IOException {
         hydrator = new HandlebarsHydrator();
         testClass = new DynamicConfigValidator(CONFIG_PATH);
-        testClass.readAndValidateConfigs();
+        testClass.readConfigs();
     }
 
     @Test
