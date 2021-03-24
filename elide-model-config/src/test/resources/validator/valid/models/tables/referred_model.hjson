@@ -7,9 +7,9 @@
       dimensions:
       [
         {
-          name: region
+          name: isoCode
           type: TEXT
-          definition: '{{region}}'
+          definition: '{{isoCode}}'
         }
       ]
     }
