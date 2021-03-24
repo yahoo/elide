@@ -16,7 +16,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToOne;
 
 /**
- * An author's pen-name
+ * An author's pen-name.
  */
 @Entity
 @Include(rootLevel = false)
