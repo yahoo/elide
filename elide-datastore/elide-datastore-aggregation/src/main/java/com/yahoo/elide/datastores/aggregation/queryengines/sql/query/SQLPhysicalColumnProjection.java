@@ -24,15 +24,14 @@ import lombok.EqualsAndHashCode;
 public class SQLPhysicalColumnProjection implements SQLColumnProjection {
 
     private String name;
-    private SQLDialect dialect;
 
-    public SQLPhysicalColumnProjection(String name, SQLDialect dialect) {
+    public SQLPhysicalColumnProjection(String name) {
         this.name = name;
-        this.dialect = dialect;
     }
 
     @Override
     public String toSQL(Queryable source, SQLReferenceTable table) {
+        SQLDialect dialect = source.getConnectionDetails().getDialect();
         return TypeHelper.getFieldAlias(applyQuotes(source.getAlias(), dialect), applyQuotes(name, dialect));
     }
 

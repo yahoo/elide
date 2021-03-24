@@ -80,9 +80,6 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
 
     @Override
     public TimeGrain getGrain() {
-        if (grain == null) {
-            System.out.println("HMM");
-        }
         return grain.getGrain();
     }
 

@@ -101,6 +101,7 @@ public class QueryPlan implements Queryable {
         return QueryPlan.builder()
                 .source(inner)
                 .metricProjections(outerQueryProjections(source, metricProjections, lookupTable))
+                //TODO - unify nesting logic
                 .dimensionProjections(outerQueryProjections(source, dimensionProjections, lookupTable))
                 .timeDimensionProjections(outerQueryProjections(source, timeDimensionProjections, lookupTable))
                 .build();

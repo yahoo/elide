@@ -156,7 +156,7 @@ public class SQLReferenceTable {
             Set<JoinPath> joinPaths = joinVisitor.visitColumn(queryable, column);
             resolvedJoinExpressions.get(key).put(fieldName, getJoinClauses(queryable.getSource().getAlias(),
                     joinPaths, dialect));
-            resolvedJoinProjections.get(key).put(fieldName, getJoinProjections(joinPaths, dialect));
+            resolvedJoinProjections.get(key).put(fieldName, getJoinProjections(joinPaths));
         });
     }
 
@@ -166,7 +166,7 @@ public class SQLReferenceTable {
      * @param joinPaths paths that require joins
      * @return A set of join expressions
      */
-    private Set<SQLColumnProjection> getJoinProjections(Set<JoinPath> joinPaths, SQLDialect dialect) {
+    private Set<SQLColumnProjection> getJoinProjections(Set<JoinPath> joinPaths) {
         Set<SQLColumnProjection> projections = new HashSet<>();
         for (JoinPath joinPath : joinPaths) {
             Path.PathElement first = joinPath.getPathElements().get(0);
@@ -191,7 +191,7 @@ public class SQLReferenceTable {
                 if (column != null) {
                     projections.add((SQLColumnProjection) column.toProjection());
                 } else {
-                    projections.add(new SQLPhysicalColumnProjection(reference, dialect));
+                    projections.add(new SQLPhysicalColumnProjection(reference));
                 }
             }
         }

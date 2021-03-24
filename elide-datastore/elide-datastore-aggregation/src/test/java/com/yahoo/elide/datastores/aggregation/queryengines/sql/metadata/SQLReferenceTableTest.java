@@ -20,7 +20,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.H2Dialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLPhysicalColumnProjection;
 import org.junit.jupiter.api.Test;
@@ -73,9 +72,9 @@ public class SQLReferenceTableTest {
         Set<SQLColumnProjection> joinProjections =
                 lookupTable.getResolvedJoinProjections(playerStats, "playerName");
 
-        SQLPhysicalColumnProjection expected = new SQLPhysicalColumnProjection("player_id", new H2Dialect());
+        SQLPhysicalColumnProjection expected = new SQLPhysicalColumnProjection("player_id");
 
         assertEquals(1, joinProjections.size());
-        assertEquals(expected.getName(), joinProjections.iterator().next().getName());
+        assertEquals(expected, joinProjections.iterator().next());
     }
 }
