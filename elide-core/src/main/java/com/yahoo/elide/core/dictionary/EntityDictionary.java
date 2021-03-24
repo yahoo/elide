@@ -1369,11 +1369,8 @@ public class EntityDictionary {
     public boolean isComputed(Type<?> entityClass, String fieldName) {
         AccessibleObject fieldOrMethod = getAccessibleObject(entityClass, fieldName);
 
-        if (fieldOrMethod == null) {
-            return false;
-        }
-
-        return (fieldOrMethod.isAnnotationPresent(ComputedAttribute.class)
+        return fieldOrMethod != null
+                && (fieldOrMethod.isAnnotationPresent(ComputedAttribute.class)
                 || fieldOrMethod.isAnnotationPresent(ComputedRelationship.class));
     }
 

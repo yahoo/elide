@@ -362,9 +362,6 @@ public enum Operator {
         return (T entity) -> {
 
             Object val = getFieldValue(entity, fieldPath, requestScope);
-            if (val == null) {
-                return false;
-            }
             if (val instanceof Collection<?>) {
                 return ((Collection<?>) val).isEmpty();
             }
@@ -386,9 +383,6 @@ public enum Operator {
                     .map(last -> CoerceUtil.coerce(values.get(0), last.getFieldType()))
                     .orElseGet(() -> CoerceUtil.coerce(values.get(0), String.class));
 
-            if (val == null) {
-                return false;
-            }
             if (val instanceof Collection<?>) {
                 return ((Collection<?>) val).contains(filterStr);
             }
