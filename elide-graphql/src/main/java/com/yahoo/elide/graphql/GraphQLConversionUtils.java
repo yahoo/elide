@@ -80,7 +80,7 @@ public class GraphQLConversionUtils {
     }
 
     /**
-     * Converts any non-entity type to a GraphQLType
+     * Converts any non-entity type to a GraphQLType.
      * @param clazz - the non-entity type.
      * @return the GraphQLType or null if there is a problem with the underlying model.
      */
@@ -101,7 +101,13 @@ public class GraphQLConversionUtils {
             return Scalars.GraphQLString;
         } else if (clazz.equals(getClassType(BigDecimal.class))) {
             return Scalars.GraphQLBigDecimal;
-        } else if (scalarMap.containsKey(clazz)) {
+        } else {
+            return otherClassToScalarType(clazz);
+        }
+    }
+
+    private GraphQLScalarType otherClassToScalarType(Type<?> clazz) {
+        if (scalarMap.containsKey(clazz)) {
             return scalarMap.get(clazz);
         } else if (ClassType.DATE_TYPE.isAssignableFrom(clazz)) {
             return GraphQLScalars.GRAPHQL_DATE_TYPE;
@@ -449,7 +455,7 @@ public class GraphQLConversionUtils {
     }
 
     /**
-     * Build an Argument list object for the given attribute
+     * Build an Argument list object for the given attribute.
      * @param entityClass The Entity class to which this attribute belongs to.
      * @param attribute The name of the attribute.
      * @param fetcher The data fetcher to associated with the newly created GraphQL Query Type

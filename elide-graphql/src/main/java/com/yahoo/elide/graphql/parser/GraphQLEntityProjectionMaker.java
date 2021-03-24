@@ -57,7 +57,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * This class converts a GraphQL query string into an Elide {@link EntityProjection} using
+ * This class converts a GraphQL query string into an Elide {@link EntityProjection} using.
  * {@link #make(String)} method.
  */
 @Slf4j
@@ -202,7 +202,7 @@ public class GraphQLEntityProjectionMaker {
     }
 
     /**
-     * Add a graphQL {@link Selection} to an {@link EntityProjection}
+     * Add a graphQL {@link Selection} to an {@link EntityProjection}.
      *
      * @param fieldSelection field/fragment to add
      * @param projectionBuilder projection that is being built
@@ -226,7 +226,7 @@ public class GraphQLEntityProjectionMaker {
     }
 
     /**
-     * Resolve a graphQL {@link FragmentSpread} into {@link Selection}s and add them to an {@link EntityProjection}
+     * Resolve a graphQL {@link FragmentSpread} into {@link Selection}s and add them to an {@link EntityProjection}.
      *
      * @param fragment graphQL fragment
      * @param projectionBuilder projection that is being built
@@ -247,7 +247,7 @@ public class GraphQLEntityProjectionMaker {
     }
 
     /**
-     * Add a new graphQL {@link Field} into an {@link EntityProjection}
+     * Add a new graphQL {@link Field} into an {@link EntityProjection}.
      *
      * @param field graphQL field
      * @param projectionBuilder projection that is being built
@@ -503,7 +503,7 @@ public class GraphQLEntityProjectionMaker {
     }
 
     /**
-     * Add a new filter expression to the entityProjection
+     * Add a new filter expression to the entityProjection.
      *
      * @param argument filter argument
      * @param projectionBuilder projection that is being built
@@ -523,7 +523,7 @@ public class GraphQLEntityProjectionMaker {
     }
 
     /**
-     * Construct a filter expression from a string
+     * Construct a filter expression from a string.
      *
      * @param builder entity projection under construction that is being filtered.
      * @param typeName class type name to apply this filter
@@ -543,7 +543,7 @@ public class GraphQLEntityProjectionMaker {
     }
 
     /**
-     * Add argument for a field/relationship of an entity
+     * Add argument for a field/relationship of an entity.
      *
      * @param argument an argument which name should match a field name/alias
      * @param projectionBuilder projection that is being built

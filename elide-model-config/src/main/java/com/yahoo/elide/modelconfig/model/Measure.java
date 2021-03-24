@@ -14,8 +14,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -32,7 +35,8 @@ import java.util.Set;
     "definition",
     "queryPlanResolver",
     "type",
-    "tags"
+    "tags",
+    "arguments",
 })
 @Data
 @EqualsAndHashCode()
@@ -70,7 +74,11 @@ public class Measure implements Named {
 
     @JsonProperty("tags")
     @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<String> tags = new LinkedHashSet<String>();
+    private Set<String> tags = new LinkedHashSet<>();
+
+    @JsonProperty("arguments")
+    @Singular
+    private List<Argument> arguments = new ArrayList<>();
 
     /**
      * Returns description of the measure.
@@ -79,5 +87,14 @@ public class Measure implements Named {
      */
     public String getDescription() {
         return (this.description == null ? getName() : this.description);
+    }
+
+    /**
+     * Checks if this measure has provided argument.
+     * @param argName
+     * @return true if this measure has provided argument.
+     */
+    public boolean hasArgument(String argName) {
+        return hasName(this.arguments, argName);
     }
 }

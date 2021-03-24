@@ -69,7 +69,7 @@ public class ModelBuilder {
     private Set<Type<?>> excludedEntities;
 
     /**
-     * Class constructor, constructs the custom arguments to handle mutations
+     * Class constructor, constructs the custom arguments to handle mutations.
      * @param entityDictionary elide entity dictionary
      * @param nonEntityDictionary elide non-entity dictionary
      * @param dataFetcher graphQL data fetcher
