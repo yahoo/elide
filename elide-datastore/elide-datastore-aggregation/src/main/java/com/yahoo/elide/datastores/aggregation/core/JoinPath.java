@@ -13,10 +13,8 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.google.common.collect.ImmutableList;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -67,35 +65,6 @@ public class JoinPath extends Path {
         toExtend.remove(toExtend.size() - 1);
         toExtend.addAll(extension.getPathElements());
         return new JoinPath(toExtend);
-    }
-
-    /**
-     * Resolve a dot separated path into list of path elements.
-     *
-     * @param entityClass root class e.g. "foo"
-     * @param dictionary dictionary
-     * @param dotSeparatedPath path e.g. "bar.baz"
-     * @return list of path elements e.g. ["foo.bar", "bar.baz"]
-     */
-    private List<PathElement> resolvePathElements(Type<?> entityClass,
-                                                  EntityDictionary dictionary,
-                                                  String dotSeparatedPath) {
-        List<PathElement> elements = new ArrayList<>();
-        String[] fieldNames = dotSeparatedPath.split("\\.");
-
-        Type<?> currentClass = entityClass;
-        for (String fieldName : fieldNames) {
-            if (needNavigation(currentClass, fieldName, dictionary)) {
-                Type<?> joinClass = dictionary.getParameterizedType(currentClass, fieldName);
-                elements.add(new PathElement(currentClass, joinClass, fieldName));
-                currentClass = joinClass;
-            } else {
-                elements.add(resolvePathAttribute(currentClass, fieldName,
-                                fieldName, Collections.emptySet(), dictionary));
-            }
-        }
-
-        return ImmutableList.copyOf(elements);
     }
 
     @Override

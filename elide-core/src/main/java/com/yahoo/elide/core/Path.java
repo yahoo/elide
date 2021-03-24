@@ -100,7 +100,7 @@ public class Path {
      * @param dotSeparatedPath path e.g. "bar.baz"
      * @return list of path elements e.g. ["foo.bar", "bar.baz"]
      */
-    private List<PathElement> resolvePathElements(Type<?> entityClass,
+    protected List<PathElement> resolvePathElements(Type<?> entityClass,
                                                   EntityDictionary dictionary,
                                                   String dotSeparatedPath) {
         List<PathElement> elements = new ArrayList<>();
