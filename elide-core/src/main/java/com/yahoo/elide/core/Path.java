@@ -101,8 +101,8 @@ public class Path {
      * @return list of path elements e.g. ["foo.bar", "bar.baz"]
      */
     protected List<PathElement> resolvePathElements(Type<?> entityClass,
-                                                  EntityDictionary dictionary,
-                                                  String dotSeparatedPath) {
+                                                    EntityDictionary dictionary,
+                                                    String dotSeparatedPath) {
         List<PathElement> elements = new ArrayList<>();
         String[] fieldNames = dotSeparatedPath.split("\\.");
 
@@ -122,10 +122,10 @@ public class Path {
     }
 
     protected PathElement resolvePathAttribute(Type<?> entityClass,
-                                             String fieldName,
-                                             String alias,
-                                             Set<Argument> arguments,
-                                             EntityDictionary dictionary) {
+                                               String fieldName,
+                                               String alias,
+                                               Set<Argument> arguments,
+                                               EntityDictionary dictionary) {
         if (dictionary.isAttribute(entityClass, fieldName)
                 || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
             Type<?> attributeClass = dictionary.getType(entityClass, fieldName);

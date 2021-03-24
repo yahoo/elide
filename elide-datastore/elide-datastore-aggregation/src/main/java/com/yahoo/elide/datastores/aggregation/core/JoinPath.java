@@ -69,10 +69,10 @@ public class JoinPath extends Path {
 
     @Override
     protected PathElement resolvePathAttribute(Type<?> entityClass,
-                                             String fieldName,
-                                             String alias,
-                                             Set<Argument> arguments,
-                                             EntityDictionary dictionary) {
+                                               String fieldName,
+                                               String alias,
+                                               Set<Argument> arguments,
+                                               EntityDictionary dictionary) {
         Type<?> attributeClass = ClassType.OBJECT_TYPE;
         if (dictionary.isAttribute(entityClass, fieldName)
                         || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
