@@ -310,6 +310,8 @@ public abstract class SQLUnitTest {
             return Query.builder()
                     .source(playerStatsTable)
                     .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
+                    .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                    .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
                     .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                     .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate", arguments))
                     .build();
@@ -508,7 +510,8 @@ public abstract class SQLUnitTest {
         connectionDetailsMap.put("mycon", new ConnectionDetails(dataSource, sqlDialect));
         connectionDetailsMap.put("SalesDBConnection", new ConnectionDetails(DUMMY_DATASOURCE, sqlDialect));
 
-        engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect), connectionDetailsMap);
+        engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect), connectionDetailsMap,
+                new HashSet<>());
 
         playerStatsTable = (SQLTable) metaDataStore.getTable("playerStats", NO_VERSION);
         videoGameTable = (SQLTable) metaDataStore.getTable("videoGame", NO_VERSION);

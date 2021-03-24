@@ -21,6 +21,7 @@ import org.hibernate.Session;
 import lombok.AllArgsConstructor;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.function.Consumer;
 import javax.persistence.EntityManager;
@@ -58,7 +59,8 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
         }
 
         AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder
-                .queryEngine(new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap))
+                .queryEngine(new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap,
+                        new HashSet<>()))
                 .queryLogger(new Slf4jQueryLogger())
                 .build();
 

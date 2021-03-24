@@ -10,6 +10,10 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Column projection that can expand the column into a SQL projection fragment.
  */
@@ -23,5 +27,20 @@ public interface SQLColumnProjection extends ColumnProjection {
      */
     default String toSQL(Queryable source, SQLReferenceTable table) {
         return table.getResolvedReference(source, getName());
+    }
+
+    @Override
+    default boolean canNest() {
+        return false;
+    }
+
+    @Override
+    default ColumnProjection outerQuery() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    default Set<ColumnProjection> innerQuery() {
+        return new HashSet<>(Arrays.asList(this));
     }
 }
