@@ -94,7 +94,7 @@ public abstract class SQLUnitTest {
 
     private static final DataSource DUMMY_DATASOURCE = new HikariDataSource();
     private static final String NEWLINE = System.lineSeparator();
-    protected static QueryEngine engine;
+    protected static SQLQueryEngine engine;
 
     protected QueryEngine.Transaction transaction;
     private static SQLTable videoGameTable;
