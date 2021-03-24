@@ -93,8 +93,8 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
 
         private Set<SQLMetricProjection> getInnerQueryMetrics(Query query) {
             //1.  Inner query metrics requested by client. Nested.
-            //2.  Inner query metrics required for having clause.  Nested.
-            //3.  Inner query metrics required for sort clause.  Nested.
+            //2.  Inner query metrics required for having clause but missing in client request.  Nested.
+            //3.  Inner query metrics required for sort clause but missing in client request.  Nested.
 
             //We don't need join columns for metrics (we refused to optimize if the metric requires a join).
             //There is no where clause for metrics.
@@ -114,16 +114,53 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
             //1.  Inner query group by dimensions requested by client. Nested.
             //2.  Inner query join columns for GROUP BY dimensions requested by the client. No Nesting.
             //3.  Inner query join columns for dimensions referenced in filters (where and having). No Nesting.
+            //4.  Inner query join columns for dimensions referenced in sort.  No Nesting.
 
-            //What if a column has two template definitions - one requiring a join and one not requiring a join?
-            //If a column requires any join, it can only live in the outer query.  We'll need to project the physical
-            //columns - both in current table and the join keys to the join table.
+            /*
+            Non-projected columns can reference two things:
+              1. Physical Column in current table.
+              2. Physical Column in another table accessed via a JOIN.
 
-            //4.  Inner hidden/virtual query dimensions required for where and having filters (no joins) Nested.
+            Columns that reference (2) or (1 & 2) need to have physical columns and join columns projected in the inner query.
+            The outer query can then apply the corresponding column definition/template (as if it were applied without nesting).
+            */
+
+            /*
+            Projected columns can reference two things:
+              1. Physical Column in current table.
+              2. Physical Column in another table accessed via a JOIN.
+
+            Columns that reference only (1) will be nested.
+
+            Columns that reference (2) will have join columns projected in the inner query.
+            The outer query can then apply the corresponding column definition/template (as if it were applied without nesting).
+            */
+
+            /*
+            Difference between nesting and physical column projection:
+             - Nesting applies all non-aggregation functions and expressions in inner query.
+             - Physical column projection projects just the physical column in inner query and all
+               functions and expressions get applied in outer query.
+
+             We could do:
+                - Metrics: everything inside Aggregation function in inner query.  Post agg in outer query.
+                - Dimensions: Physical columns projected in inner query.  Everything else applied post agg.
+
+             *****Or we could do: ******* - THIS IS THE WAY
+                - Metrics: everything inside Aggregation function in inner query.  Post agg in outer query.
+                - Dimensions without joins: everything in inner query.  Alias reference in outer query.
+                - Dimensions with joins: Physical columns projected in inner query.  Everything else applied post agg.
+                - Outer columns are virtual if they only appear in HAVING, WHERE, or SORT.
+             */
+
+            //4.  Inner hidden/virtual query dimensions required for where and having filters:
+            //     4a. The column must
+            // (no joins) Nested.
             //5.  Inner hidden/virtual query dimensions required for sorting (no joins) Nested.
 
-            //What to do if the sort requires a join?
-            //We need to project out query join columns similar to filters and GROUP BY.
+            //We don't need to to project hidden/virtual query dimensions for GROUP by dimensions since they are already
+            //covered in 1.
+
             return null;
         }
 
