@@ -21,14 +21,16 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 
 import com.google.common.base.Preconditions;
-import java.util.Stack;
+
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
  * SQLReferenceVisitor convert each column to its full expanded aliased SQL physical expression.
  */
 public class SQLReferenceVisitor extends ColumnVisitor<String> {
     // this visitor is using DFS pattern when traversing columns, use Stack as state tracker
-    private final Stack<String> tableAliases = new Stack<>();
+    private final Deque<String> tableAliases = new ArrayDeque<>();
     private final SQLDialect dialect;
 
     public SQLReferenceVisitor(MetaDataStore metaDataStore, String tableAlias, SQLDialect dialect) {

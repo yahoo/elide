@@ -121,7 +121,7 @@ public class Path {
         return ImmutableList.copyOf(elements);
     }
 
-    private PathElement resolvePathAttribute(Type<?> entityClass,
+    protected PathElement resolvePathAttribute(Type<?> entityClass,
                                              String fieldName,
                                              String alias,
                                              Set<Argument> arguments,
