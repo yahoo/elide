@@ -16,6 +16,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.ToString;
 
 import java.util.LinkedHashSet;
 import java.util.Optional;
@@ -41,6 +42,9 @@ public class EntityProjection {
     private Sorting sorting;
 
     private Pagination pagination;
+    //TODO: Remove this exclude
+    @ToString.Exclude
+    private Set<Argument> arguments;
 
     /**
      * Creates a builder initialized as a copy of this collection
@@ -53,7 +57,8 @@ public class EntityProjection {
                 .relationships(new LinkedHashSet<>(this.relationships))
                 .filterExpression(this.filterExpression)
                 .sorting(this.sorting)
-                .pagination(this.pagination);
+                .pagination(this.pagination)
+                .arguments(new LinkedHashSet<>(this.arguments));
     }
 
     public Set<String> getIncludedRelationsName() {
@@ -124,6 +129,8 @@ public class EntityProjection {
 
         merged.attributes.addAll(toMerge.attributes);
 
+        merged.arguments.addAll(toMerge.arguments);
+
         return merged.build();
     }
 
@@ -138,6 +145,9 @@ public class EntityProjection {
 
         @Getter
         private Set<Attribute> attributes = new LinkedHashSet<>();
+
+        @Getter
+        private Set<Argument> arguments = new LinkedHashSet<>();
 
         @Getter
         private FilterExpression filterExpression;
@@ -168,12 +178,38 @@ public class EntityProjection {
             return this;
         }
 
+        public EntityProjectionBuilder arguments(Set<Argument> arguments) {
+            this.arguments = arguments;
+            return this;
+        }
+
         public EntityProjectionBuilder relationship(String name, EntityProjection projection) {
             return relationship(Relationship.builder()
                     .alias(name)
                     .name(name)
                     .projection(projection)
                     .build());
+        }
+
+        /**
+         * Add a new argument into this project or merge an existing argument that has same name.
+         *
+         * argument argument new argument to add
+         * @return this builder after adding the argument
+         */
+        public EntityProjectionBuilder argument(Argument argument) {
+            String argumentName = argument.getName();
+
+            Argument existing = arguments.stream()
+                    .filter(a -> a.getName().equals(argumentName))
+                    .findFirst().orElse(null);
+
+            if (existing != null) {
+                arguments.remove(existing);
+            }
+            arguments.add(argument);
+
+            return this;
         }
 
         /**

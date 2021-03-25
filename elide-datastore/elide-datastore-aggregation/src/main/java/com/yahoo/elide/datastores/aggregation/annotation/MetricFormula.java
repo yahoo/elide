@@ -70,4 +70,9 @@ public @interface MetricFormula {
     String value();
 
     Class<? extends QueryPlanResolver> queryPlan() default DefaultQueryPlanResolver.class;
+
+    /**
+     * The arguments accepted by this table.
+     */
+    ArgumentDefinition[] arguments() default {};
 }
