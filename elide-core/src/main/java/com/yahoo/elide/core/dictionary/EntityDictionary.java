@@ -1833,6 +1833,15 @@ public class EntityDictionary {
     }
 
     /**
+     * Add a single argument to the Entity.
+     * @param cls The entity
+     * @param argument A single argument
+     */
+    public void addArgumentToEntity(Type<?> cls, ArgumentType argument) {
+        getEntityBinding(cls).addArgumentToEntity(argument);
+    }
+
+    /**
      * Returns the Collection of all arguments of an attribute.
      * @param cls The entity
      * @param attributeName Name of the argument for ehich arguments are to be retrieved.
@@ -1840,6 +1849,15 @@ public class EntityDictionary {
      */
     public Set<ArgumentType> getAttributeArguments(Type<?> cls, String attributeName) {
         return entityBindings.getOrDefault(cls, EMPTY_BINDING).getAttributeArguments(attributeName);
+    }
+
+    /**
+     * Returns the Collection of all arguments of an entity.
+     * @param cls The entity
+     * @return A Set of ArgumentType for the given entity.
+     */
+    public Set<ArgumentType> getEntityArguments(Type<?> cls) {
+        return entityBindings.getOrDefault(cls, EMPTY_BINDING).getEntityArguments();
     }
 
     /**

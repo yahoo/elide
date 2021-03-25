@@ -18,6 +18,7 @@ import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.Method;
 import com.yahoo.elide.core.type.Package;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.datastores.aggregation.annotation.ArgumentDefinition;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
@@ -27,10 +28,12 @@ import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanResolver;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.yahoo.elide.modelconfig.model.Argument;
 import com.yahoo.elide.modelconfig.model.Dimension;
 import com.yahoo.elide.modelconfig.model.Grain;
 import com.yahoo.elide.modelconfig.model.Join;
@@ -40,6 +43,7 @@ import com.yahoo.elide.modelconfig.model.Table;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -371,6 +375,11 @@ public class TableType implements Type<DynamicModelInstance> {
                 }
                 return CardinalitySize.valueOf(table.getCardinality().toUpperCase(Locale.ENGLISH));
             }
+
+            @Override
+            public ArgumentDefinition[] arguments() {
+                return getArgumentDefinitions(table.getArguments());
+            }
         });
 
         String readPermission = table.getReadAccess();
@@ -391,6 +400,51 @@ public class TableType implements Type<DynamicModelInstance> {
         return annotations;
     }
 
+    private static ArgumentDefinition[] getArgumentDefinitions(List<Argument> arguments) {
+        int numArguments = arguments == null ? 0 : arguments.size();
+        ArgumentDefinition[] definitions = new ArgumentDefinition[numArguments];
+        for (int idx = 0; idx < numArguments; idx++) {
+            Argument argument = arguments.get(idx);
+            definitions[idx] = new ArgumentDefinition() {
+
+                @Override
+                public String name() {
+                    return argument.getName();
+                }
+
+                @Override
+                public String description() {
+                    return argument.getDescription();
+                }
+
+                @Override
+                public ValueType type() {
+                    return ValueType.valueOf(argument.getType().toString());
+                }
+
+                @Override
+                public String tableSource() {
+                    return argument.getTableSource();
+                }
+
+                @Override
+                public String[] values() {
+                    return argument.getValues().toArray(new String[0]);
+                }
+
+                @Override
+                public String defaultValue() {
+                    return argument.getDefaultValue().toString();
+                }
+
+                @Override
+                public Class<? extends Annotation> annotationType() {
+                    return ArgumentDefinition.class;
+                }
+            };
+        }
+        return definitions;
+    }
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Measure measure) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
@@ -447,6 +501,11 @@ public class TableType implements Type<DynamicModelInstance> {
         });
 
         annotations.put(MetricFormula.class, new MetricFormula() {
+            @Override
+            public ArgumentDefinition[] arguments() {
+                return getArgumentDefinitions(measure.getArguments());
+            }
+
             @Override
             public Class<? extends Annotation> annotationType() {
                 return MetricFormula.class;
@@ -549,6 +608,10 @@ public class TableType implements Type<DynamicModelInstance> {
         });
 
         annotations.put(DimensionFormula.class, new DimensionFormula() {
+            @Override
+            public ArgumentDefinition[] arguments() {
+                return getArgumentDefinitions(dimension.getArguments());
+            }
 
             @Override
             public Class<? extends Annotation> annotationType() {
