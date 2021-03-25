@@ -9,6 +9,8 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
+
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.async.models.AsyncAPI;
 import com.yahoo.elide.async.models.AsyncAPIResult;
@@ -30,11 +32,11 @@ import java.util.concurrent.Callable;
 @Data
 public abstract class AsyncAPIHook<T extends AsyncAPI> implements LifeCycleHook<T> {
     private final AsyncExecutorService asyncExecutorService;
-    private final Integer maxAsyncAfterSeconds;
+    private final ElideSettings elideSettings;
 
-    public AsyncAPIHook(AsyncExecutorService asyncExecutorService, Integer maxAsyncAfterSeconds) {
+    public AsyncAPIHook(AsyncExecutorService asyncExecutorService, ElideSettings elideSettings) {
         this.asyncExecutorService = asyncExecutorService;
-        this.maxAsyncAfterSeconds = maxAsyncAfterSeconds;
+        this.elideSettings = elideSettings;
     }
 
     /**
@@ -44,7 +46,7 @@ public abstract class AsyncAPIHook<T extends AsyncAPI> implements LifeCycleHook<
      * @throws InvalidValueException InvalidValueException
      */
     protected void validateOptions(AsyncAPI query, RequestScope requestScope) {
-        if (query.getAsyncAfterSeconds() > maxAsyncAfterSeconds) {
+        if (query.getAsyncAfterSeconds() > elideSettings.getMaxAsyncAfterSeconds()) {
             throw new InvalidValueException("Invalid Async After Seconds");
         }
     }
@@ -58,6 +60,10 @@ public abstract class AsyncAPIHook<T extends AsyncAPI> implements LifeCycleHook<
      */
     protected void executeHook(LifeCycleHookBinding.Operation operation, LifeCycleHookBinding.TransactionPhase phase,
             AsyncAPI query, RequestScope requestScope, Callable<AsyncAPIResult> queryWorker) {
+        if (query.getAsyncAfterSeconds() == null) {
+            query.setAsyncAfterSeconds(elideSettings.getMaxAsyncAfterSeconds());
+        }
+
         if (operation.equals(READ) && phase.equals(PRESECURITY)) {
             validateOptions(query, requestScope);
             //We populate the result object when the initial mutation is executed, and then even after executing

@@ -101,6 +101,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                         .withEntityDictionary(dictionary)
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
                         .withExportApiPath("/export")
+                        .withMaxAsyncAfterSeconds(10)
                         .build());
                 bind(elide).to(Elide.class).named("elide");
 
@@ -123,8 +124,8 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                     supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
 
                     // Binding TableExport LifeCycleHook
-                    TableExportHook tableExportHook = new TableExportHook(asyncExecutorService, 10, supportedFormatters,
-                            resultStorageEngine);
+                    TableExportHook tableExportHook = new TableExportHook(asyncExecutorService, elide.getElideSettings(),
+                            supportedFormatters, resultStorageEngine);
                     dictionary.bindTrigger(TableExport.class, READ, PRESECURITY, tableExportHook, false);
                     dictionary.bindTrigger(TableExport.class, CREATE, POSTCOMMIT, tableExportHook, false);
                     dictionary.bindTrigger(TableExport.class, CREATE, PRESECURITY, tableExportHook, false);
@@ -143,7 +144,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                 bind(billingService).to(BillingService.class);
 
                 // Binding AsyncQuery LifeCycleHook
-                AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService, 10);
+                AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService, elide.getElideSettings());
 
                 InvoiceCompletionHook invoiceCompletionHook = new InvoiceCompletionHook(billingService);
 

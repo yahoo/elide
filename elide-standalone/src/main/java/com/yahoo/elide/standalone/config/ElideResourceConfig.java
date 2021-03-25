@@ -196,8 +196,7 @@ public class ElideResourceConfig extends ResourceConfig {
                     }
 
                     // Binding AsyncQuery LifeCycleHook
-                    AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService,
-                            asyncProperties.getMaxAsyncAfterSeconds());
+                    AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService, elideSettings);
 
                     dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, asyncQueryHook, false);
                     dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, asyncQueryHook, false);
@@ -273,13 +272,12 @@ public class ElideResourceConfig extends ResourceConfig {
     private TableExportHook getTableExportHook(AsyncExecutorService asyncExecutorService,
             ElideStandaloneAsyncSettings asyncProperties, Map<ResultType, TableExportFormatter> supportedFormatters,
             ResultStorageEngine engine) {
+        ElideSettings elideSettings = asyncExecutorService.getElide().getElideSettings();
         TableExportHook tableExportHook = null;
         if (asyncProperties.enableExport()) {
-            tableExportHook = new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfterSeconds(),
-                    supportedFormatters, engine);
+            tableExportHook = new TableExportHook(asyncExecutorService, elideSettings, supportedFormatters, engine);
         } else {
-            tableExportHook = new TableExportHook(asyncExecutorService, asyncProperties.getMaxAsyncAfterSeconds(),
-                    supportedFormatters, engine) {
+            tableExportHook = new TableExportHook(asyncExecutorService, elideSettings, supportedFormatters, engine) {
                 @Override
                 public void validateOptions(AsyncAPI export, RequestScope requestScope) {
                     throw new InvalidOperationException("TableExport is not supported.");

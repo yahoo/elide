@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.async.hooks;
 
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.LifeCycleHookBinding.Operation;
 import com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
@@ -32,9 +33,9 @@ public class TableExportHook extends AsyncAPIHook<TableExport> {
     Map<ResultType, TableExportFormatter> supportedFormatters;
     ResultStorageEngine engine;
 
-    public TableExportHook (AsyncExecutorService asyncExecutorService, Integer maxAsyncAfterSeconds,
+    public TableExportHook (AsyncExecutorService asyncExecutorService, ElideSettings settings,
             Map<ResultType, TableExportFormatter> supportedFormatters, ResultStorageEngine engine) {
-        super(asyncExecutorService, maxAsyncAfterSeconds);
+        super(asyncExecutorService, settings);
         this.supportedFormatters = supportedFormatters;
         this.engine = engine;
     }

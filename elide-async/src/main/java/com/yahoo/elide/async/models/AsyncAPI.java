@@ -60,7 +60,7 @@ public abstract class AsyncAPI implements PrincipalOwned {
 
     @Transient
     @ComputedAttribute
-    private Integer asyncAfterSeconds = 10;
+    private Integer asyncAfterSeconds;
 
     /**
      * Set Async API Result.

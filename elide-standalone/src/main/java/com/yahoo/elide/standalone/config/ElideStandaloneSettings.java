@@ -127,6 +127,10 @@ public interface ElideStandaloneSettings {
             builder.withExportApiPath(getAsyncProperties().getExportApiPathSpec().replaceAll("/\\*", ""));
         }
 
+        if (getAsyncProperties().getMaxAsyncAfterSeconds() != null) {
+            builder.withMaxAsyncAfterSeconds(getAsyncProperties().getMaxAsyncAfterSeconds());
+        }
+
         if (enableISO8601Dates()) {
             builder.withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"));
         }
