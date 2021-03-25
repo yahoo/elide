@@ -54,7 +54,7 @@ public class SQLDimensionProjection implements SQLColumnProjection {
     }
 
     @Override
-    public ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable) {
+    public ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable, boolean joinInOuter) {
         /*
          * Default Behiavior:
          * - Dimensions without joins: everything in inner query.  Alias reference in outer query.
@@ -67,7 +67,7 @@ public class SQLDimensionProjection implements SQLColumnProjection {
 
         boolean inProjection = source.getColumnProjection(name) != null;
 
-        if (requiresJoin) {
+        if (requiresJoin && joinInOuter) {
             return SQLDimensionProjection.builder()
                     .name(name)
                     .alias(alias)

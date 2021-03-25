@@ -37,12 +37,12 @@ public interface SQLColumnProjection extends ColumnProjection {
     }
 
     @Override
-    default ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable) {
+    default ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable, boolean joinInOuter) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    default Set<ColumnProjection> innerQuery(Queryable source, SQLReferenceTable lookupTable) {
+    default Set<ColumnProjection> innerQuery(Queryable source, SQLReferenceTable lookupTable, boolean joinInOuter) {
         /*
          * Default Behiavior:
          * - Dimensions without joins: everything in inner query.  Alias reference in outer query.
@@ -53,7 +53,7 @@ public interface SQLColumnProjection extends ColumnProjection {
                 lookupTable.getResolvedJoinProjections(source.getSource(), getName());
 
         boolean requiresJoin = joinProjections.size() > 0;
-        if (requiresJoin) {
+        if (requiresJoin && joinInOuter) {
             //TODO - we also need to extract physical columns referenced in the column itself.
             return joinProjections.stream().collect(Collectors.toSet());
         } else {
@@ -79,10 +79,11 @@ public interface SQLColumnProjection extends ColumnProjection {
      * @return a set of column projections that have been nested.
      */
     public static <T extends ColumnProjection> Set<T> outerQueryProjections(Queryable source, Set<T> columns,
-                                                                            SQLReferenceTable lookupTable) {
+                                                                            SQLReferenceTable lookupTable,
+                                                                            boolean joinInOuter) {
         return (Set<T>) columns.stream()
                 .map(SQLColumnProjection.class::cast)
-                .map(projection -> projection.outerQuery(source, lookupTable))
+                .map(projection -> projection.outerQuery(source, lookupTable, joinInOuter))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
@@ -95,10 +96,11 @@ public interface SQLColumnProjection extends ColumnProjection {
      * @return a set of column projections that have been nested.
      */
     public static <T extends ColumnProjection> Set<T> innerQueryProjections(Queryable source, Set<T> columns,
-                                                                            SQLReferenceTable lookupTable) {
+                                                                            SQLReferenceTable lookupTable,
+                                                                            boolean joinInOuter) {
         return (Set<T>) columns.stream()
                 .map(SQLColumnProjection.class::cast)
-                .flatMap(projection -> projection.innerQuery(source, lookupTable).stream())
+                .flatMap(projection -> projection.innerQuery(source, lookupTable, joinInOuter).stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }

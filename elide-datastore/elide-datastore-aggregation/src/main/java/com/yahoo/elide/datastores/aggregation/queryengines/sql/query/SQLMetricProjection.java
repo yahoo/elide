@@ -87,11 +87,14 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
     @Override
     public boolean canNest() {
-        return AGG_FUNCTION_MATCHER.matcher(expression).matches();
+        //TODO - Phase 1: return false if Calcite can parse & there is a join of any kind.
+        //TODO - Phase 2: return true if Calcite can parse & determine joins independently for inner & outer query
+       return AGG_FUNCTION_MATCHER.matcher(expression).matches();
     }
 
     @Override
-    public ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable) {
+    public ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable, boolean joinInOuter) {
+
         Matcher matcher = AGG_FUNCTION_MATCHER.matcher(expression);
 
         boolean inProjection = source.getColumnProjection(name) != null;
@@ -114,7 +117,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     }
 
     @Override
-    public Set<ColumnProjection> innerQuery(Queryable source, SQLReferenceTable lookupTable) {
+    public Set<ColumnProjection> innerQuery(Queryable source, SQLReferenceTable lookupTable, boolean joinInOuter) {
         if (!canNest()) {
             throw new UnsupportedOperationException("Metric does not support nesting");
         }

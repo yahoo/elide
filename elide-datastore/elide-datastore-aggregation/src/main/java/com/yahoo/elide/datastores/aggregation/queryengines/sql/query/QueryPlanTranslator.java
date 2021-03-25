@@ -66,11 +66,13 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
     private Query.QueryBuilder visitInnerQueryPlan(Queryable plan)  {
 
         Set<ColumnProjection> dimensions = Streams.concat(plan.getDimensionProjections().stream(),
-                innerQueryProjections(clientQuery, clientQuery.getDimensionProjections(), lookupTable).stream())
+                innerQueryProjections(clientQuery, clientQuery.getDimensionProjections(),
+                        lookupTable, false).stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
         Set<TimeDimensionProjection> timeDimensions = Streams.concat(plan.getTimeDimensionProjections().stream(),
-                innerQueryProjections(clientQuery, clientQuery.getTimeDimensionProjections(), lookupTable).stream())
+                innerQueryProjections(clientQuery, clientQuery.getTimeDimensionProjections(),
+                        lookupTable, false).stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
         return Query.builder()
@@ -84,13 +86,15 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
     private Query.QueryBuilder visitOuterQueryPlan(Queryable plan)  {
         Query innerQuery = plan.getSource().accept(this).build();
 
+        //This assumes SORT & HAVING clauses must reference projection columns (verified in QueryValidator).
+        //Otherwise, the SORT & HAVING may reference joins that have not taken place in the inner query.
         return Query.builder()
                 .source(innerQuery)
                 .metricProjections(plan.getMetricProjections())
                 .dimensionProjections(outerQueryProjections(clientQuery, clientQuery.getDimensionProjections(),
-                        lookupTable))
+                        lookupTable, false))
                 .timeDimensionProjections(outerQueryProjections(clientQuery, clientQuery.getTimeDimensionProjections(),
-                        lookupTable))
+                        lookupTable, false))
                 .havingFilter(clientQuery.getHavingFilter())
                 .sorting(clientQuery.getSorting())
                 .pagination(clientQuery.getPagination())
@@ -101,13 +105,14 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
         Query innerQuery = plan.getSource().accept(this).build();
 
 
+        //TODO - Add tests for middle.
         return Query.builder()
                 .source(innerQuery)
                 .metricProjections(plan.getMetricProjections())
                 .dimensionProjections(innerQueryProjections(clientQuery, clientQuery.getDimensionProjections(),
-                        lookupTable))
+                        lookupTable, false))
                 .timeDimensionProjections(innerQueryProjections(clientQuery, clientQuery.getTimeDimensionProjections(),
-                        lookupTable));
+                        lookupTable, false));
     }
 
     private Query.QueryBuilder visitUnnestedQueryPlan(Queryable plan)  {

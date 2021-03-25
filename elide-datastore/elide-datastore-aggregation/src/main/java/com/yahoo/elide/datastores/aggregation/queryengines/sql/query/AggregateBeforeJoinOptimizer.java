@@ -83,21 +83,21 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
 
             query.getColumnProjections().stream()
                     .filter(projection -> columnType.isInstance(projection))
-                    .flatMap(projection -> projection.innerQuery(query, lookupTable).stream())
+                    .flatMap(projection -> projection.innerQuery(query, lookupTable, true).stream())
                     .filter(filter)
                     .map(columnType::cast)
                     .forEach(projections::add);
 
             extractFilterProjections(query, query.getWhereFilter()).stream()
                     .filter(projection -> columnType.isInstance(projection))
-                    .flatMap(projection -> projection.innerQuery(query, lookupTable).stream())
+                    .flatMap(projection -> projection.innerQuery(query, lookupTable, true).stream())
                     .filter(filter)
                     .map(columnType::cast)
                     .forEach(projections::add);
 
             extractFilterProjections(query, query.getHavingFilter()).stream()
                     .filter(projection -> columnType.isInstance(projection))
-                    .flatMap(projection -> projection.innerQuery(query, lookupTable).stream())
+                    .flatMap(projection -> projection.innerQuery(query, lookupTable, true).stream())
                     .filter(filter)
                     .map(columnType::cast)
                     .forEach(projections::add);
@@ -117,19 +117,19 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
 
             query.getColumnProjections().stream()
                     .filter(projection -> columnType.isInstance(projection))
-                    .map(projection -> projection.outerQuery(query, lookupTable))
+                    .map(projection -> projection.outerQuery(query, lookupTable, true))
                     .map(columnType::cast)
                     .forEach(projections::add);
 
             extractFilterProjections(query, query.getWhereFilter()).stream()
                     .filter(projection -> columnType.isInstance(projection))
-                    .map(projection -> projection.outerQuery(query, lookupTable))
+                    .map(projection -> projection.outerQuery(query, lookupTable, true))
                     .map(columnType::cast)
                     .forEach(projections::add);
 
             extractFilterProjections(query, query.getHavingFilter()).stream()
                     .filter(projection -> columnType.isInstance(projection))
-                    .map(projection -> projection.outerQuery(query, lookupTable))
+                    .map(projection -> projection.outerQuery(query, lookupTable, true))
                     .map(columnType::cast)
                     .forEach(projections::add);
 
@@ -184,11 +184,14 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
         //TODO - If any of the group by columns require a join across a toMany relationship,
         //we cannot aggregate with joining first
 
-        //TODO - If a metric requires a join, it must be aggregated post join.  For now, we simply won't optimize.
+        //TODO - If a metric requires a join, the join could be required prior to aggregation or after aggregation
+        //depending on how the join is referenced in the SQL expression.  This requires a more complex understanding
+        //of the native SQL expression and outside the scope.  This will require Calcite parsing and also template
+        //substitution.
 
         //There must be at least one join or there is no reason to optimize.  First check the where clause
         //joins.  There is no need to check having clause or sort because those columns must also be in
-        //the projection.
+        //the projection and we check projections below.
         if (query.getWhereFilter() != null) {
             SubqueryFilterSplitter.SplitFilter splitFilter =
                     SubqueryFilterSplitter.splitFilter(lookupTable, metaDataStore, query.getWhereFilter());
