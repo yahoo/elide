@@ -69,4 +69,9 @@ public @interface DimensionFormula {
      * @return dimension formula
      */
     String value();
+
+    /**
+     * The arguments accepted by this table.
+     */
+    ArgumentDefinition[] arguments() default {};
 }
