@@ -333,6 +333,12 @@ public class OperatorTest {
         fn = Operator.GE.contextualize(constructPath(Author.class, "id"), Arrays.asList("11", "12"), requestScope);
         assertFalse(fn.test(author));
 
+        // between operator
+        fn = Operator.BETWEEN.contextualize(constructPath(Author.class, "id"), Arrays.asList("9", "11"), requestScope);
+        assertTrue(fn.test(author));
+        fn = Operator.NOTBETWEEN.contextualize(constructPath(Author.class, "id"), Arrays.asList("9", "11"), requestScope);
+        assertFalse(fn.test(author));
+
         // when val is null
         author.setId(null);
         fn = Operator.LT.contextualize(constructPath(Author.class, "id"), Collections.singletonList("10"), requestScope);
@@ -343,6 +349,7 @@ public class OperatorTest {
         assertFalse(fn.test(author));
         fn = Operator.GE.contextualize(constructPath(Author.class, "id"), Collections.singletonList("10"), requestScope);
         assertFalse(fn.test(author));
+
     }
 
     @Test
