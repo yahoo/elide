@@ -177,7 +177,7 @@ public class ModelBuilder {
                     .argument(pageFirstArgument)
                     .argument(pageOffsetArgument)
                     .argument(buildInputObjectArgument(clazz, true))
-                    .argument(generator.entityArgumentToQueryObject(clazz, dataFetcher, entityDictionary))
+                    .argument(generator.entityArgumentToQueryObject(clazz, entityDictionary))
                     .type(buildConnectionObject(clazz)));
         }
 
@@ -296,6 +296,7 @@ public class ModelBuilder {
                                 .dataFetcher(dataFetcher)
                                 .argument(relationshipOpArg)
                                 .argument(buildInputObjectArgument(relationshipClass, false))
+                                .argument(generator.entityArgumentToQueryObject(relationshipClass, entityDictionary))
                                 .type(new GraphQLTypeReference(relationshipEntityName))
                 );
             } else {
@@ -309,6 +310,7 @@ public class ModelBuilder {
                                 .argument(pageFirstArgument)
                                 .argument(idArgument)
                                 .argument(buildInputObjectArgument(relationshipClass, true))
+                                .argument(generator.entityArgumentToQueryObject(relationshipClass, entityDictionary))
                                 .type(new GraphQLTypeReference(relationshipEntityName))
                 );
             }
