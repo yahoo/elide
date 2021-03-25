@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Encapsulates GraphQL's DataFetchingEnvironment
+ * Encapsulates GraphQL's DataFetchingEnvironment.
  */
 public class Environment {
     public final GraphQLRequestScope requestScope;
