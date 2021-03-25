@@ -90,6 +90,16 @@ public class QueryPlan implements Queryable {
         }
     }
 
+    /**
+     * Breaks a flat query into a nested query.  There are multiple approaches for how to do this, but
+     * this kind of nesting requires aggregation to happen both in the inner and outer queries.  This allows
+     * query plans with two-pass aggregations to be merged with simpler one-pass aggregation plans.
+     *
+     * The nesting performed here attempts to perform all joins in the inner query.
+     *
+     * @param lookupTable Needed for answering questions about templated SQL column definitions.
+     * @return A nested query plan.
+     */
     public QueryPlan nest(SQLReferenceTable lookupTable) {
         QueryPlan inner = QueryPlan.builder()
                 .source(this.getSource())

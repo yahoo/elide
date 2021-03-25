@@ -28,6 +28,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
+/**
+ * This optimizer attempts to aggregate data prior to table joins by nesting the query into an inner query
+ * (where aggregation occurs) and an outer query (where joins occur).  This optimization works well when the
+ * join is not sparse (common case) but may underperform if the join is sparse (in which case joining first and
+ * then aggregating is preferred).
+ *
+ * It should be noted that this kind of query nesting is currently different than (and not compatible with) nesting
+ * that is done during query planning.  Query planning currently takes the opposite approach - perform joins in the
+ * inner query and avoid them in the outer query.
+ */
 public class AggregateBeforeJoinOptimizer implements Optimizer {
     private MetaDataStore metaDataStore;
 
@@ -77,10 +87,20 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                     .build();
         }
 
+        /**
+         * Extracts all inner query columns of a particular column type (metric, dimension, time dimension)
+         * that match the given filter.
+         * @param query The query to extract columns from.
+         * @param columnType The column type of columns to extract.
+         * @param filter The filter to apply
+         * @param <T> The column type of columns to extract.
+         * @return A set of extracted columns.
+         */
         private <T extends ColumnProjection> Set<T> getInnerQueryColumns(Query query, Class<T> columnType,
                                                                          Predicate<? super ColumnProjection> filter) {
             Set<T> projections = new LinkedHashSet<>();
 
+            //This covers having & sort clauses where the columns are also part of the projection.
             query.getColumnProjections().stream()
                     .filter(projection -> columnType.isInstance(projection))
                     .flatMap(projection -> projection.innerQuery(query, lookupTable, true).stream())
@@ -88,6 +108,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                     .map(columnType::cast)
                     .forEach(projections::add);
 
+            //This covers having & sort clauses where the columns are also part of the projection.
             extractFilterProjections(query, query.getWhereFilter()).stream()
                     .filter(projection -> columnType.isInstance(projection))
                     .flatMap(projection -> projection.innerQuery(query, lookupTable, true).stream())
@@ -95,6 +116,9 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                     .map(columnType::cast)
                     .forEach(projections::add);
 
+            //TODO - Remove this.  Technically, Having and Sort clauses are covered above but the
+            //tests include HAVING clause on a column which is not in the projection (even though the validator
+            //would reject the query).
             extractFilterProjections(query, query.getHavingFilter()).stream()
                     .filter(projection -> columnType.isInstance(projection))
                     .flatMap(projection -> projection.innerQuery(query, lookupTable, true).stream())
@@ -102,10 +126,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                     .map(columnType::cast)
                     .forEach(projections::add);
 
-            //TODO - Sorting
-
             return projections;
-
         }
 
         private <T extends ColumnProjection> Set<T> getInnerQueryColumns(Query query, Class<T> columnType) {
@@ -115,6 +136,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
         private <T extends ColumnProjection> Set<T> getOuterQueryColumns(Query query, Class<T> columnType) {
             Set<T> projections = new LinkedHashSet<>();
 
+            //This covers having & sort clauses where the columns are also part of the projection.
             query.getColumnProjections().stream()
                     .filter(projection -> columnType.isInstance(projection))
                     .map(projection -> projection.outerQuery(query, lookupTable, true))
@@ -127,16 +149,24 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                     .map(columnType::cast)
                     .forEach(projections::add);
 
+            //TODO - Remove this.  Technically, Having and Sort clauses are covered above but the
+            //tests include HAVING clause on a column which is not in the projection (even though the validator
+            //would reject the query).
             extractFilterProjections(query, query.getHavingFilter()).stream()
                     .filter(projection -> columnType.isInstance(projection))
                     .map(projection -> projection.outerQuery(query, lookupTable, true))
                     .map(columnType::cast)
                     .forEach(projections::add);
 
-            //TODO - Sorting
             return projections;
         }
 
+        /**
+         * Extracts the columns referenced in a filter expression.
+         * @param query The parent query.
+         * @param expression The filter expression.
+         * @return set of referenced columns.
+         */
         private Set<SQLColumnProjection> extractFilterProjections(Query query, FilterExpression expression) {
             if (expression == null) {
                 return new HashSet<>();
