@@ -11,7 +11,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 /**
- * Tests model for Issue 1461 (Missing GeneratedValue annotation)
+ * Tests model for Issue 1461 (Missing GeneratedValue annotation).
  */
 @Include(type = "incidents")
 @Entity

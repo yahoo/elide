@@ -20,6 +20,18 @@
       A tag
       with newline
       ''']
+      arguments: [
+          {
+             name: scoreFormat
+             type: TEXT
+             default: 999999D00
+          }
+          {
+             name: countryCode
+             type: TEXT
+             tableSource: Country.isoCode
+          }
+      ]
       joins: [
           {
              name: playerCountry

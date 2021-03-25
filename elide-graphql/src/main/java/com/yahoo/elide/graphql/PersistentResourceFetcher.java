@@ -110,7 +110,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
     }
 
     /**
-     * Checks whether sort/filter/pagination params are passed w unsupported operation
+     * Checks whether sort/filter/pagination params are passed w unsupported operation.
      * @param environment Environment encapsulating graphQL's request environment
      */
     private void filterSortPaginateSanityCheck(Environment environment) {
@@ -121,7 +121,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
     }
 
     /**
-     * log current context for debugging
+     * log current context for debugging.
      * @param operation Current operation
      * @param environment Environment encapsulating graphQL's request environment
      */
@@ -129,7 +129,6 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         List<?> children = (environment.field.getSelectionSet() != null)
                 ? (List) environment.field.getSelectionSet().getChildren()
                 : new ArrayList<>();
-
         List<String> fieldName = new ArrayList<String>();
         if (CollectionUtils.isNotEmpty(children)) {
             children.stream().forEach(i -> { if (i.getClass().equals(Field.class)) {
@@ -153,7 +152,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
     }
 
     /**
-     * handle FETCH operation
+     * handle FETCH operation.
      * @param context Environment encapsulating graphQL's request environment
      * @return list of {@link PersistentResource} objects
      */
@@ -243,7 +242,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
     }
 
     /**
-     * handle UPSERT or UPDATE operation
+     * handle UPSERT or UPDATE operation.
      * @param context Environment encapsulating graphQL's request environment
      * @param updateFunc controls the behavior of how the update (or upsert) is performed.
      * @return Connection object.
@@ -332,7 +331,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
     }
 
     /**
-     * Forms the graph from data {@param input} and executes a function {@param function} on all the nodes
+     * Forms the graph from data {@param input} and executes a function {@param function} on all the nodes.
      * @param entity Resource entity
      * @param function Function to process nodes
      * @param context the request context
@@ -359,7 +358,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
     }
 
     /**
-     * update the relationship between {@param parent} and the resource loaded by given {@param id}
+     * update the relationship between {@param parent} and the resource loaded by given {@param id}.
      * @param entity Resource entity
      * @return {@link PersistentResource} object
      */
@@ -380,7 +379,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
     }
 
     /**
-     * updates or creates existing/new entities
+     * updates or creates existing/new entities.
      * @param entity Resource entity
      * @param context The request context
      * @return {@link PersistentResource} object
@@ -447,7 +446,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
     }
 
     /**
-     * Updates an object
+     * Updates an object.
      * @param toUpdate Entities to update
      * @param entity Resource entity
      * @param attributes Set of entity attributes
@@ -480,7 +479,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
     }
 
     /**
-     * Deletes a resource
+     * Deletes a resource.
      * @param context Environment encapsulating graphQL's request environment
      * @return set of deleted {@link PersistentResource} object(s)
      */
@@ -506,7 +505,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
     }
 
     /**
-     * Removes a relationship, or deletes a root level resource
+     * Removes a relationship, or deletes a root level resource.
      * @param context Environment encapsulating graphQL's request environment
      * @return set of removed {@link PersistentResource} object(s)
      */
