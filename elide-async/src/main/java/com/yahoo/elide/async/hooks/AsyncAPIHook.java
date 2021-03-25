@@ -60,16 +60,29 @@ public abstract class AsyncAPIHook<T extends AsyncAPI> implements LifeCycleHook<
      */
     protected void executeHook(LifeCycleHookBinding.Operation operation, LifeCycleHookBinding.TransactionPhase phase,
             AsyncAPI query, RequestScope requestScope, Callable<AsyncAPIResult> queryWorker) {
-        if (query.getAsyncAfterSeconds() == null) {
-            query.setAsyncAfterSeconds(elideSettings.getMaxAsyncAfterSeconds());
-        }
 
         if (operation.equals(READ) && phase.equals(PRESECURITY)) {
+            // AsyncAfterSeconds is a transient property. When we update the STATUS of an AsyncRequest for
+            // CANCELLATION we do not have the property set. This fails the "validateOptions" method call.
+            // Below code sets the value based on ElideSettings if its null.
+            if (query.getAsyncAfterSeconds() == null) {
+                query.setAsyncAfterSeconds(elideSettings.getMaxAsyncAfterSeconds());
+            }
+
             validateOptions(query, requestScope);
-            //We populate the result object when the initial mutation is executed, and then even after executing
-            //the hooks we return the same object back. QueryRunner.java#L190.
-            //In GraphQL, the only part of the body that is lazily returned is the ID.
-            //ReadPreSecurityHook - Those hooks get evaluated in line with the request processing.
+
+            // Grapqhl AsyncRequest which were submitted with non-zero asyncAfterSeconds were not returning correct
+            // Status. They came back with status QUEUED instead of COMPLETE.
+            // Root Cause:
+            // We populate the result object when the initial mutation is executed, and then even after executing
+            // the hooks we return the same object back. https://github.com/yahoo/elide/blob/
+            // d4901c6f07e57aa179c5afd640c9c67e90a8cdaf/elide-graphql/src/main/java/com/yahoo/elide/graphql/
+            // QueryRunner.java#L190. In GraphQL, the only part of the body that is lazily returned is the ID.
+            // Solution:
+            // We decided to implement the execution flow as a ReadPreSecurityHook.
+            // Those hooks get evaluated in line with the request processing.
+            // Every time its read, we check if the STATUS is Queued AND Result is NULL, then we continue with the
+            // Asynchronous execution call else we exit from the async flow.
             executeAsync(query, queryWorker);
             return;
         }
