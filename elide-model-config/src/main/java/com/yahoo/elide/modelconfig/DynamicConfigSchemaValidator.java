@@ -99,7 +99,7 @@ public class DynamicConfigSchemaValidator {
     }
 
     private static String getErrorMessages(ProcessingReport report) {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         report.forEach(msg -> addEmbeddedMessages(msg.asJson(), list, 0));
 
         return NEWLINE + String.join(NEWLINE, list);

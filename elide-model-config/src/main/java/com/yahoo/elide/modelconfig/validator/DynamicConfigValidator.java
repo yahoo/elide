@@ -233,7 +233,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         //ensures validation is run before populate always.
         validateInheritance(this.elideTableConfig);
 
-        Set<Table> processed = new HashSet<Table>();
+        Set<Table> processed = new HashSet<>();
         elideTableConfig.getTables().stream().forEach(table -> {
             populateInheritance(table, processed);
         });
@@ -256,13 +256,13 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         }
 
         Map<String, Measure> measures = getInheritedMeasures(parent, attributesListToMap(table.getMeasures()));
-        table.setMeasures(new ArrayList<Measure>(measures.values()));
+        table.setMeasures(new ArrayList<>(measures.values()));
 
         Map<String, Dimension> dimensions = getInheritedDimensions(parent, attributesListToMap(table.getDimensions()));
-        table.setDimensions(new ArrayList<Dimension>(dimensions.values()));
+        table.setDimensions(new ArrayList<>(dimensions.values()));
 
         Map<String, Join> joins = getInheritedJoins(parent, attributesListToMap(table.getJoins()));
-        table.setJoins(new ArrayList<Join>(joins.values()));
+        table.setJoins(new ArrayList<>(joins.values()));
 
         String schema = getInheritedSchema(parent, table.getSchema());
         table.setSchema(schema);
@@ -684,7 +684,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
      * @return boolean true if all role name passes validation else throw exception
      */
     private boolean validateSecurityConfig() {
-        Set<String> alreadyDefinedRoles = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+        Set<String> alreadyDefinedRoles = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         alreadyDefinedRoles.addAll(dictionary.getCheckIdentifiers());
 
         elideSecurityConfig.getRoles().forEach(role -> {

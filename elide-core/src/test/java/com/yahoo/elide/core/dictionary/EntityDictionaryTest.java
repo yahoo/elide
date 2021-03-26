@@ -159,7 +159,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testBindingExcludeSet() {
-        Set<Type<?>> entitiesToExclude = new HashSet<Type<?>>();
+        Set<Type<?>> entitiesToExclude = new HashSet<>();
         entitiesToExclude.add(ClassType.of(Employee.class));
 
         EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), entitiesToExclude);
@@ -171,7 +171,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testEntityBindingExcludeSet() {
 
-        Set<Type<?>> entitiesToExclude = new HashSet<Type<?>>();
+        Set<Type<?>> entitiesToExclude = new HashSet<>();
         entitiesToExclude.add(ClassType.of(Employee.class));
 
         EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), entitiesToExclude);

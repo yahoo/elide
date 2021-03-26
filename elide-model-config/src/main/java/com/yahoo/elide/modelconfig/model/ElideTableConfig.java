@@ -32,7 +32,7 @@ public class ElideTableConfig {
 
     @JsonProperty("tables")
     @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<Table> tables = new LinkedHashSet<Table>();
+    private Set<Table> tables = new LinkedHashSet<>();
 
     /**
      * Checks if a dynamic model exists with the given name.
