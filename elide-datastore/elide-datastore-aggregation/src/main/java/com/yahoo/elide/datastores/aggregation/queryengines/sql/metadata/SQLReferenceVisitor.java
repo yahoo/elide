@@ -40,7 +40,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
     }
 
     /**
-     * For physical reference, just append it to the table alias
+     * For physical reference, just append it to the table alias.
      *
      * @param reference physical column name
      * @return <code>table.reference</code>
@@ -59,7 +59,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
     }
 
     /**
-     * For a FIELD dimension, append its physical columnName to the table alias
+     * For a FIELD dimension, append its physical columnName to the table alias.
      *
      * @param source The parent which owns the dimension.
      * @param dimension a FIELD dimension
@@ -96,7 +96,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
     }
 
     /**
-     * For a FORMULA column, resolve each reference individually and
+     * For a FORMULA column, resolve each reference individually and.
      *
      * @param source The parent which owns the column.
      * @param column
@@ -161,7 +161,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
     }
 
     /**
-     * Get name for the last field in a {@link Path}
+     * Get name for the last field in a {@link Path}.
      *
      * @param path path to a field
      * @return field name

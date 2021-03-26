@@ -80,7 +80,7 @@ public class SQLReferenceTable {
     }
 
     /**
-     * Get the resolved physical SQL reference for a field from storage
+     * Get the resolved physical SQL reference for a field from storage.
      *
      * @param queryable table class
      * @param fieldName field name

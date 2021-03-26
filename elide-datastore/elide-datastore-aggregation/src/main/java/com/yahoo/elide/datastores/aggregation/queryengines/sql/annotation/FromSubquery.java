@@ -29,7 +29,7 @@ public @interface FromSubquery {
     String sql();
 
     /**
-     * DB Connection Name for this query
+     * DB Connection Name for this query.
      * @return String DB Connection Name
      */
     // TO DO
