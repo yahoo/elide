@@ -115,7 +115,6 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
                 Queryable root = source.getRoot();
                 Type<?> tableClass = dictionary.getEntityClass(root.getName(), root.getVersion());
                 resolvedReference = visitTableJoinToReference(tableClass, reference);
-              
             //The column is sourced from a query rather than a table OR
             //Physical Column Reference starts with '$'
             } else if (source != source.getSource() || reference.indexOf('$') == 0) {
