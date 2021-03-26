@@ -58,4 +58,17 @@ public class CalciteAggregationExtractorTest {
         assertEquals(1, aggregations.size());
         assertEquals("CUSTOM_SUM(BLAH)", aggregations.get(0));
     }
+
+    @Test
+    public void testAverageFunction() throws Exception {
+        String sql = "AVG(blah)";
+        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config());
+        SqlNode node = sqlParser.parseExpression();
+        CalciteAggregationExtractor extractor = new CalciteAggregationExtractor();
+        List<String> aggregations = node.accept(extractor);
+
+        assertEquals(2, aggregations.size());
+        assertEquals("SUM(BLAH)", aggregations.get(0));
+        assertEquals("COUNT(BLAH)", aggregations.get(1));
+    }
 }

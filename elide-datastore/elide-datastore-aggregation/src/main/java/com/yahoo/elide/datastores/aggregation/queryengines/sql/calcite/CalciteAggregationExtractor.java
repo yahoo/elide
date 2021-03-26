@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class CalciteAggregationExtractor extends SqlBasicVisitor<List<String>> {
 
@@ -48,7 +49,15 @@ public class CalciteAggregationExtractor extends SqlBasicVisitor<List<String>> {
 
         List<String> result = new ArrayList<>();
         StandardAggregations operator = StandardAggregations.find(operatorName);
-        if (operator != null || customAggregationFunctions.contains(operatorName)) {
+        if (operator != null) {
+            List<String> operands = call.getOperandList().stream()
+                    .map(operand -> operand.toSqlString(dialect).getSql())
+                    .collect(Collectors.toList());
+
+            return operator.getInnerAggregations(operands.toArray(new String[0]));
+        }
+
+        if (customAggregationFunctions.contains(operatorName)) {
             result.add(call.toSqlString(dialect).getSql());
             return result;
         }
