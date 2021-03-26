@@ -7,7 +7,6 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.apache.calcite.avatica.util.Casing;
 import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.SqlNode;
@@ -17,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Queue;
 
 public class CalciteOuterAggregationExtractorTest {
 
@@ -28,10 +26,10 @@ public class CalciteOuterAggregationExtractorTest {
 
     @Test
     public void testExpressionParsing() throws Exception {
-        String sql = "        SUM (CASE\n" +
-                "                WHEN 'number_of_lectures' > 20 then 1\n" +
-                "                ELSE 0\n" +
-                "        END) / SUM(blah)";
+        String sql = "        SUM (CASE\n"
+                + "                WHEN 'number_of_lectures' > 20 then 1\n"
+                + "                ELSE 0\n"
+                + "        END) / SUM(blah)";
         SqlParser sqlParser = SqlParser.create(sql, SqlParser.config());
         SqlNode node = sqlParser.parseExpression();
 

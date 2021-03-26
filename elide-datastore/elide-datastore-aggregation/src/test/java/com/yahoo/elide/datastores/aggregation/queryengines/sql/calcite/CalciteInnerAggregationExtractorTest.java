@@ -20,10 +20,10 @@ public class CalciteInnerAggregationExtractorTest {
 
     @Test
     public void testExpressionParsing() throws Exception {
-        String sql = "        SUM (CASE\n" +
-                "                WHEN 'number_of_lectures' > 20 then 1\n" +
-                "                ELSE 0\n" +
-                "        END) / SUM(blah)";
+        String sql = "        SUM (CASE\n"
+                + "                WHEN 'number_of_lectures' > 20 then 1\n"
+                + "                ELSE 0\n"
+                + "        END) / SUM(blah)";
         SqlParser sqlParser = SqlParser.create(sql, SqlParser.config());
         SqlNode node = sqlParser.parseExpression();
         CalciteInnerAggregationExtractor extractor = new CalciteInnerAggregationExtractor();

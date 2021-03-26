@@ -75,6 +75,9 @@ public interface SQLDialect {
      */
     default SqlDialect getCalciteDialect() {
         return new SqlDialect(SqlDialect.EMPTY_CONTEXT
+                .withIdentifierQuoteString("`")
+                .withLiteralQuoteString("`")
+                .withLiteralEscapedQuoteString("`")
                 .withCaseSensitive(true)
                 .withQuotedCasing(Casing.UNCHANGED)
                 .withUnquotedCasing(Casing.UNCHANGED));

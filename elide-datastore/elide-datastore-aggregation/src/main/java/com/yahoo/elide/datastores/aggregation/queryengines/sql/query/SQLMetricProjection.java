@@ -25,23 +25,20 @@ import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 import lombok.Builder;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Value;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 /**
  * Metric projection that can expand the metric into a SQL projection fragment.
  */
-@Value
+@Data
 @Builder
 public class SQLMetricProjection implements MetricProjection, SQLColumnProjection {
     private String name;
@@ -55,7 +52,6 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     private QueryPlanResolver queryPlanResolver;
     @Builder.Default
     private boolean projected = true;
-
 
     @Override
     public QueryPlan resolve(Query query) {
@@ -90,6 +86,14 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     }
 
     @Override
+    public String toSQL(Queryable source, SQLReferenceTable lookupTable) {
+        if (expression.matches(".*\\{\\{\\w+\\}\\}.*")) {
+            return lookupTable.getResolvedReference(source, getName());
+        }
+        return expression;
+    }
+
+    @Override
     public boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
         SQLDialect dialect = source.getConnectionDetails().getDialect();
         String sql = toSQL(source.getSource(), lookupTable);
@@ -117,7 +121,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     @Override
     public ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable, boolean joinInOuter) {
         SQLDialect dialect = source.getConnectionDetails().getDialect();
-        String sql = toSQL(source, lookupTable);
+        String sql = toSQL(source.getSource(), lookupTable);
         SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
 
         SqlNode node;
@@ -127,11 +131,12 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
             throw new IllegalStateException(e);
         }
 
-        CalciteInnerAggregationExtractor innerExtractor = new CalciteInnerAggregationExtractor();
+        CalciteInnerAggregationExtractor innerExtractor = new CalciteInnerAggregationExtractor(
+                dialect.getCalciteDialect(), new HashSet<>());
         List<String> innerAggExpressions = node.accept(innerExtractor);
 
         List<String> innerAggLabels = innerAggExpressions.stream()
-                .map((expression) -> "INNER_AGG_" + expression.hashCode())
+                .map((expression) -> "INNER_AGG_" + (expression.hashCode() & 0xfffffff))
                 .collect(Collectors.toList());
 
 
@@ -143,10 +148,16 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
         String outerAggExpression = transformedParseTree.toSqlString(dialect.getCalciteDialect()).getSql();
 
         //replace INNER_AGG_... with {{INNER_AGG...}}
-        outerAggExpression.replaceAll("(INNER_AGG_\\w+)", "{{$1}}");
+        outerAggExpression = outerAggExpression.replaceAll(
+                dialect.getBeginQuote()
+                        + "?(INNER_AGG_\\w+)"
+                        + dialect.getEndQuote()
+                        + "?", "{{$1}}");
+
+        boolean inProjection = source.getColumnProjection(name) != null;
 
         return SQLMetricProjection.builder()
-                .projected(true)
+                .projected(inProjection)
                 .expression(outerAggExpression)
                 .name(name)
                 .alias(alias)
@@ -159,7 +170,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     @Override
     public Set<ColumnProjection> innerQuery(Queryable source, SQLReferenceTable lookupTable, boolean joinInOuter) {
         SQLDialect dialect = source.getConnectionDetails().getDialect();
-        String sql = toSQL(source, lookupTable);
+        String sql = toSQL(source.getSource(), lookupTable);
         SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
 
         SqlNode node;
@@ -169,11 +180,12 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
             throw new IllegalStateException(e);
         }
 
-        CalciteInnerAggregationExtractor innerExtractor = new CalciteInnerAggregationExtractor();
+        CalciteInnerAggregationExtractor innerExtractor = new CalciteInnerAggregationExtractor(
+                dialect.getCalciteDialect(), new HashSet<>());
         List<String> innerAggExpressions = node.accept(innerExtractor);
 
         List<String> innerAggLabels = innerAggExpressions.stream()
-                .map((expression) -> "INNER_AGG_" + expression.hashCode())
+                .map((expression) -> "INNER_AGG_" + (expression.hashCode() & 0xfffffff))
                 .collect(Collectors.toList());
 
         Set<ColumnProjection> innerAggProjections = new LinkedHashSet<>();
