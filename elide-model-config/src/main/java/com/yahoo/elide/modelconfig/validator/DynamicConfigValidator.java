@@ -636,13 +636,13 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
                 Set<String> joinedTables = table.getJoins()
                         .stream()
-                        .map(join -> join.getTo())
+                        .map(Join::getTo)
                         .collect(Collectors.toSet());
 
                 Set<String> connections = elideTableConfig.getTables()
                         .stream()
                         .filter(t -> joinedTables.contains(t.getName()))
-                        .map(t -> t.getDbConnectionName())
+                        .map(Table::getDbConnectionName)
                         .collect(Collectors.toSet());
 
                 if (connections.size() > 1 || (connections.size() == 1

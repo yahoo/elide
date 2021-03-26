@@ -42,7 +42,7 @@ public class ElideTableConfig {
     public boolean hasTable(String name) {
         return tables
                    .stream()
-                   .map(t -> t.getName())
+                   .map(Named::getName)
                    .anyMatch(name::equals);
     }
 
