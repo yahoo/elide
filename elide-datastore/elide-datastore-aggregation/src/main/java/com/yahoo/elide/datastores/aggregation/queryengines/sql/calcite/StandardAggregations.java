@@ -9,15 +9,24 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Standard aggregation functions common to all database dialects.
+ */
 public enum StandardAggregations {
     SUM("SUM", new String[]{"SUM(%s)"}, "SUM(%s)"),
     COUNT("COUNT", new String[]{"COUNT(%s)"}, "COUNT(%s)"),
     MIN("MIN", new String[]{"MIN(%s)"}, "MIN(%s)"),
     MAX("MAX", new String[]{"MAX(%s)"}, "MAX(%s)"),
-    AVERAGE("AVG", new String[]{"SUM(%s)", "COUNT(%s)"}, "SUM(%s)/COUNT(%s)");
+    AVERAGE("AVG", new String[]{"SUM(%1$s)", "COUNT(%1$s)"}, "SUM(%1$s)/COUNT(%1$s)");
+    //TODO - Add more aggregations functions.
 
+    //The SQL name
     private String name;
+
+    //Set of inner query templates to translate the aggregation function to alternative functions that can be nested.
     private String[] innerTemplates;
+
+    //Outer query template to translate the aggregation function to alternative functions that can be nested.
     private String outerTemplate;
 
     StandardAggregations(String name, String[] innerTemplates, String outerTemplate) {
