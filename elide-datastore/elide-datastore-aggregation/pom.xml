@@ -86,6 +86,13 @@
             <version>1.0.0.Final</version>
         </dependency>
 
+        <!-- Calcite -->
+        <dependency>
+            <groupId>org.apache.calcite</groupId>
+            <artifactId>calcite-core</artifactId>
+            <version>1.26.0</version>
+        </dependency>
+
         <!-- Hibernate Entity Manager -->
         <dependency>
             <groupId>org.hibernate</groupId>
