@@ -208,9 +208,10 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
 
         //Every column must be nestable.
         if (! query.getColumnProjections().stream()
-                .allMatch(ColumnProjection::canNest)) {
+                .allMatch((projection) -> projection.canNest(query, lookupTable))) {
             return false;
         }
+
         //TODO - If any of the group by columns require a join across a toMany relationship,
         //we cannot aggregate with joining first
 

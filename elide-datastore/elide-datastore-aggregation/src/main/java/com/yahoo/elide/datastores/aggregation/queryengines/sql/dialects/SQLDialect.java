@@ -7,6 +7,9 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects;
 
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
+import org.apache.calcite.avatica.util.Casing;
+import org.apache.calcite.config.Lex;
+import org.apache.calcite.sql.SqlDialect;
 
 /**
  * Interface for SQL Dialects used to customize SQL queries for specific persistent storage.
@@ -64,5 +67,24 @@ public interface SQLDialect {
             return new java.sql.Timestamp(time.getTime());
         }
         return new java.sql.Date(time.getTime());
+    }
+
+    /**
+     * Fetches the Calcite dialect associated with this Elide dialect.
+     * @return Calcite dialect
+     */
+    default SqlDialect getCalciteDialect() {
+        return new SqlDialect(SqlDialect.EMPTY_CONTEXT
+                .withCaseSensitive(true)
+                .withQuotedCasing(Casing.UNCHANGED)
+                .withUnquotedCasing(Casing.UNCHANGED));
+    }
+
+    /**
+     * Fetches the Calcite lex associated with this Elide dialect.
+     * @return Calcite lex
+     */
+    default Lex getCalciteLex() {
+        return Lex.MYSQL;
     }
 }

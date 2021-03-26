@@ -49,7 +49,7 @@ public class SQLDimensionProjection implements SQLColumnProjection {
     }
 
     @Override
-    public boolean canNest() {
+    public boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
         return true;
     }
 

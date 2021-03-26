@@ -84,7 +84,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     }
 
     @Override
-    public boolean canNest() {
+    public boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
         return true;
     }
 

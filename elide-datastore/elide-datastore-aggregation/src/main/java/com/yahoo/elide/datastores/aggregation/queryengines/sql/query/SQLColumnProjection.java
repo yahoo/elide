@@ -24,15 +24,15 @@ public interface SQLColumnProjection extends ColumnProjection {
     /**
      * Generate a SQL fragment for this combination column and client arguments.
      * @param source the queryable that contains the column.
-     * @param table symbol table to resolve column name references.
+     * @param lookupTable symbol table to resolve column name references.
      * @return SQL query String for this column
      */
-    default String toSQL(Queryable source, SQLReferenceTable table) {
-        return table.getResolvedReference(source, getName());
+    default String toSQL(Queryable source, SQLReferenceTable lookupTable) {
+        return lookupTable.getResolvedReference(source, getName());
     }
 
     @Override
-    default boolean canNest() {
+    default boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
         return false;
     }
 

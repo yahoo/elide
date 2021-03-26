@@ -94,9 +94,11 @@ public interface ColumnProjection extends Serializable {
 
     /**
      * Whether or not a given projection can be nested into an inner query and outer query.
+     * @param source The source of this projection.
+     * @param lookupTable Used to answer questions about templated column definitions.
      * @return true if the projection can be nested.
      */
-    default boolean canNest() {
+    default boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
         return true;
     }
 
