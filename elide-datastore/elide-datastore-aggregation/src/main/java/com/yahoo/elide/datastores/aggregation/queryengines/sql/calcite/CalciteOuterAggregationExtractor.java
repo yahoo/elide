@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite;
 
-import org.apache.calcite.avatica.util.Casing;
 import org.apache.calcite.sql.SqlCall;
 import org.apache.calcite.sql.SqlDataTypeSpec;
 import org.apache.calcite.sql.SqlDialect;
