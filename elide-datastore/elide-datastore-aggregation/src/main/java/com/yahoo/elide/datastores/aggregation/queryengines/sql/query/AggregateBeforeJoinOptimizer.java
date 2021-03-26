@@ -201,7 +201,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
 
     @Override
     public boolean canOptimize(Query query, SQLReferenceTable lookupTable) {
-        //For simplicity, we will not optimize and already nested query.
+        //For simplicity, we will not optimize an already nested query.
         if (query.isNested()) {
             return false;
         }

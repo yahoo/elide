@@ -97,13 +97,7 @@ public class SQLReferenceTable {
      * @return resolved ON clause expression
      */
     public Set<String> getResolvedJoinExpressions(Queryable queryable, String fieldName) {
-        Set<String> joinExpressions = resolvedJoinExpressions.get(queryable).get(fieldName);
-
-        if (joinExpressions == null) {
-            return new HashSet<>();
-        }
-
-        return joinExpressions;
+        return resolvedJoinExpressions.get(queryable).getOrDefault(fieldName, new HashSet<>());
     }
 
     /**
