@@ -69,14 +69,11 @@ public class DocEndpoint {
     public Response list(@HeaderParam("ApiVersion") String apiVersion) {
         String safeApiVersion = apiVersion == null ? NO_VERSION : apiVersion;
 
-        List<String> documentPaths = documents.keySet().stream()
+        String body = documents.keySet().stream()
                 .filter(key -> key.getLeft().equals(safeApiVersion))
-                .map(key -> key.getRight())
-                .collect(Collectors.toList());
-
-        String body = "[" + documentPaths.stream()
+                .map(Pair::getRight)
                 .map(key -> '"' + key + '"')
-                .collect(Collectors.joining(",")) + "]";
+                .collect(Collectors.joining(",", "[", "]"));
 
         return Response.ok(body).build();
     }

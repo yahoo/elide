@@ -129,9 +129,10 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         List<?> children = (environment.field.getSelectionSet() != null)
                 ? (List) environment.field.getSelectionSet().getChildren()
                 : new ArrayList<>();
-        List<String> fieldName = new ArrayList<String>();
+        List<String> fieldName = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(children)) {
-            children.stream().forEach(i -> { if (i.getClass().equals(Field.class)) {
+            children.stream().forEach(i -> {
+                if (i.getClass().equals(Field.class)) {
                     fieldName.add(((Field) i).getName());
                 } else if (i.getClass().equals(FragmentSpread.class)) {
                     fieldName.add(((FragmentSpread) i).getName());

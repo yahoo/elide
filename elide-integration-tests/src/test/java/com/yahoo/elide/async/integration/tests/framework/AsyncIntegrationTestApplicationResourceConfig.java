@@ -117,8 +117,7 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
                     ResultStorageEngine resultStorageEngine = new FileResultStorageEngine(storageDestination.toAbsolutePath().toString());
                     bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
 
-                    Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<ResultType,
-                            TableExportFormatter>();
+                    Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<>();
                     supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide, false));
                     supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));
 

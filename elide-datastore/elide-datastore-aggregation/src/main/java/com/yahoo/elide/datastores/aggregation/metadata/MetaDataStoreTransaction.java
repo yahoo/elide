@@ -24,11 +24,8 @@ import java.util.function.Function;
  */
 public class MetaDataStoreTransaction implements DataStoreTransaction {
 
-    private static final Function<String, HashMapDataStore> REQUEST_ERROR = new Function<String, HashMapDataStore>() {
-        @Override
-        public HashMapDataStore apply(String key) {
-            throw new BadRequestException("API version " + key + " not found");
-        }
+    private static final Function<String, HashMapDataStore> REQUEST_ERROR = key -> {
+        throw new BadRequestException("API version " + key + " not found");
     };
 
     private final Map<String, HashMapDataStore> hashMapDataStores;

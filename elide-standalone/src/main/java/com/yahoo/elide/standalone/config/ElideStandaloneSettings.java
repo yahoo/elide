@@ -86,7 +86,7 @@ public interface ElideStandaloneSettings {
      * @return Set of Types.
      */
     default Set<Type<?>> getEntitiesToExclude() {
-        Set<Type<?>> entitiesToExclude = new HashSet();
+        Set<Type<?>> entitiesToExclude = new HashSet<>();
         ElideStandaloneAsyncSettings asyncProperties = getAsyncProperties();
 
         if (asyncProperties == null || !asyncProperties.enabled()) {

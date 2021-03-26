@@ -477,6 +477,25 @@ public class GraphQLConversionUtils {
 
     }
 
+    /**
+     * Build an Argument list object for the given entity
+     * @param entityClass The Entity class to which this attribute belongs to.
+     * @param dictionary The dictionary that contains the runtime type information for the parent class.
+     * @return Newly created GraphQLArgument Collection for the given entity
+     */
+    public List<GraphQLArgument> entityArgumentToQueryObject(Type<?> entityClass,
+                                                                EntityDictionary dictionary) {
+        return dictionary.getEntityArguments(entityClass)
+                .stream()
+                .map(argumentType -> newArgument()
+                        .name(argumentType.getName())
+                        .type(fetchScalarOrObjectInput(argumentType.getType()))
+                        .defaultValue(argumentType.getDefaultValue())
+                        .build())
+                .collect(Collectors.toList());
+
+    }
+
 
     private GraphQLOutputType fetchScalarOrObjectOutput(Type<?> conversionClass,
                                                         DataFetcher fetcher) {
