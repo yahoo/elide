@@ -262,7 +262,7 @@ public class TableType implements Type<DynamicModelInstance> {
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Table table) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
-        if (table.getHidden() == null || table.getHidden() == false) {
+        if (table.getHidden() == null || !table.getHidden()) {
             annotations.put(Include.class, new Include() {
 
                 @Override
@@ -450,7 +450,7 @@ public class TableType implements Type<DynamicModelInstance> {
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Measure measure) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
-        if (measure.getHidden() != null && measure.getHidden() == true) {
+        if (measure.getHidden() != null && measure.getHidden()) {
             annotations.put(Exclude.class, new Exclude() {
 
                 @Override
@@ -554,7 +554,7 @@ public class TableType implements Type<DynamicModelInstance> {
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Dimension dimension) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
-        if (dimension.getHidden() != null && dimension.getHidden() == true) {
+        if (dimension.getHidden() != null && dimension.getHidden()) {
             annotations.put(Exclude.class, new Exclude() {
 
                 @Override

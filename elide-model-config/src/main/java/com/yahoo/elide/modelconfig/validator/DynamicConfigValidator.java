@@ -717,8 +717,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
      *         disallowed words else false
      */
     private static boolean containsDisallowedWords(String str, String splitter, Set<String> keywords) {
-        return isBlank(str) ? false
-                : Arrays.stream(str.trim().toUpperCase(Locale.ENGLISH).split(splitter)).anyMatch(keywords::contains);
+        return isNotBlank(str)
+                && Arrays.stream(str.trim().toUpperCase(Locale.ENGLISH).split(splitter)).anyMatch(keywords::contains);
     }
 
     /**

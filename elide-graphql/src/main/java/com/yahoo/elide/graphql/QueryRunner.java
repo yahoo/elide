@@ -100,7 +100,7 @@ public class QueryRunner {
      * @return is a mutation.
      */
     public static boolean isMutation(String query) {
-        return query != null ? query.trim().startsWith(MUTATION) : false;
+        return query != null && query.trim().startsWith(MUTATION);
     }
 
     /**

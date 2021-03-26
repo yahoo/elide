@@ -90,7 +90,7 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
                 result = cache.get(cacheKey);
             }
 
-            boolean isCached = result == null ? false : true;
+            boolean isCached = result != null;
             List<String> queryText = queryEngine.explain(query);
             queryLogger.processQuery(scope.getRequestId(), query, queryText, isCached);
             if (result == null) {
@@ -126,7 +126,7 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
                 scope.getDictionary().getJsonAliasFor(entityProjection.getType()),
                 scope.getApiVersion());
         String bypassCacheStr = scope.getRequestHeaderByName("bypasscache");
-        Boolean bypassCache = (bypassCacheStr != null && bypassCacheStr.equals("true")) ? true : false;
+        Boolean bypassCache = "true".equals(bypassCacheStr);
         EntityProjectionTranslator translator = new EntityProjectionTranslator(
                 queryEngine,
                 table,

@@ -396,8 +396,8 @@ public class ElideAutoConfiguration {
 
     public static boolean isExportEnabled(AsyncProperties asyncProperties) {
 
-        return (asyncProperties == null ||  asyncProperties.getExport() == null) ? false
-                : asyncProperties.getExport().isEnabled();
+        return asyncProperties != null && asyncProperties.getExport() != null
+                && asyncProperties.getExport().isEnabled();
 
     }
 }
