@@ -100,10 +100,7 @@ public class Parent extends BaseId {
     static public class InitCheck extends OperationCheck<Parent> {
         @Override
         public boolean ok(Parent parent, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            if (parent.getChildren() != null && parent.getSpouses() != null) {
-                return true;
-            }
-            return false;
+            return parent.getChildren() != null && parent.getSpouses() != null;
         }
     }
 

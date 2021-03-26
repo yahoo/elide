@@ -36,11 +36,7 @@ public class Chapter {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof Chapter)) {
-            return false;
-        }
-
-        return ((Chapter) obj).naturalKey.equals(naturalKey);
+        return obj instanceof Chapter && ((Chapter) obj).naturalKey.equals(naturalKey);
     }
 
     @Getter @Setter private String title;

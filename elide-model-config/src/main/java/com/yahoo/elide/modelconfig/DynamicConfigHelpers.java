@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import org.apache.commons.lang3.StringUtils;
 import org.hjson.JsonValue;
 import org.hjson.ParseException;
 import lombok.extern.slf4j.Slf4j;
@@ -31,9 +32,11 @@ public class DynamicConfigHelpers {
      * Checks whether input is null or empty.
      * @param input : input string
      * @return true or false
+     * @deprecated use {@link StringUtils#isBlank}
      */
+    @Deprecated
     public static boolean isNullOrEmpty(String input) {
-        return (input == null || input.trim().length() == 0);
+        return StringUtils.isBlank(input);
     }
 
     /**
@@ -42,7 +45,7 @@ public class DynamicConfigHelpers {
      * @return formatted file path.
      */
     public static String formatFilePath(String basePath) {
-        if (!(isNullOrEmpty(basePath) || basePath.endsWith("/"))) {
+        if (StringUtils.isNotBlank(basePath) && !basePath.endsWith("/")) {
             basePath += "/";
         }
         return basePath;

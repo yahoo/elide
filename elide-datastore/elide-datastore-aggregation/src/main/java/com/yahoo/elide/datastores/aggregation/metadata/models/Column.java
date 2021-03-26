@@ -20,6 +20,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueSourceType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import org.apache.commons.lang3.StringUtils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -95,7 +96,7 @@ public abstract class Column implements Versioned {
             this.category = meta.category();
             this.values = new HashSet<>(Arrays.asList(meta.values()));
             this.tags = new HashSet<>(Arrays.asList(meta.tags()));
-            this.tableSource = (meta.tableSource().trim().isEmpty()) ? null : meta.tableSource();
+            this.tableSource = StringUtils.isBlank(meta.tableSource()) ? null : meta.tableSource();
             this.valueSourceType = ValueSourceType.getValueSourceType(this.values,
                     this.tableSource);
             this.cardinality = meta.size();

@@ -59,6 +59,7 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.Getter;
@@ -136,7 +137,7 @@ public class EntityDictionary {
      *               to their implementing classes
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks) {
-        this(checks, Collections.EMPTY_SET);
+        this(checks, Collections.emptySet());
     }
 
     /**
@@ -182,7 +183,7 @@ public class EntityDictionary {
      *                 initialize Elide models.
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks, Injector injector) {
-        this(checks, injector, Collections.EMPTY_SET);
+        this(checks, injector, Collections.emptySet());
     }
 
     /**
@@ -204,7 +205,7 @@ public class EntityDictionary {
     public EntityDictionary(Map<String, Class<? extends Check>> checks,
                             Injector injector,
                             Function<Class, Serde> serdeLookup) {
-        this(checks, injector, serdeLookup, Collections.EMPTY_SET);
+        this(checks, injector, serdeLookup, Collections.emptySet());
     }
 
     public EntityDictionary(Map<String, Class<? extends Check>> checks,
@@ -1365,11 +1366,8 @@ public class EntityDictionary {
     public boolean isComputed(Type<?> entityClass, String fieldName) {
         AccessibleObject fieldOrMethod = getAccessibleObject(entityClass, fieldName);
 
-        if (fieldOrMethod == null) {
-            return false;
-        }
-
-        return (fieldOrMethod.isAnnotationPresent(ComputedAttribute.class)
+        return fieldOrMethod != null
+                && (fieldOrMethod.isAnnotationPresent(ComputedAttribute.class)
                 || fieldOrMethod.isAnnotationPresent(ComputedRelationship.class));
     }
 
@@ -1429,7 +1427,7 @@ public class EntityDictionary {
      */
     public void addSecurityChecks(Set<Class<?>> classes) {
 
-        if (classes == null || classes.size() == 0) {
+        if (CollectionUtils.isEmpty(classes)) {
             return;
         }
 

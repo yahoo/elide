@@ -95,9 +95,9 @@ public class JsonApiDocument {
             return false;
         }
         JsonApiDocument other = (JsonApiDocument) obj;
-        Collection<Resource> resources = Optional.ofNullable(data).map(Data::get).orElse(Collections.emptySet());
+        Collection<Resource> resources = Optional.ofNullable(data).map(Data::get).orElseGet(Collections::emptySet);
         Collection<Resource> otherResources =
-                Optional.ofNullable(other.data).map(Data::get).orElse(Collections.emptySet());
+                Optional.ofNullable(other.data).map(Data::get).orElseGet(Collections::emptySet);
 
         if (resources.size() != otherResources.size() || !resources.stream().allMatch(otherResources::contains)) {
             return false;

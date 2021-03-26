@@ -45,7 +45,7 @@ public class AssignedIdLong {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof AssignedIdLong)) {
+        if (!(obj instanceof AssignedIdLong)) {
             return false;
         }
 

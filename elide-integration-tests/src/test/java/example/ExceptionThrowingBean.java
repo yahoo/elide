@@ -45,7 +45,7 @@ public class ExceptionThrowingBean {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof ExceptionThrowingBean)) {
+        if (!(obj instanceof ExceptionThrowingBean)) {
             return false;
         }
 

@@ -140,13 +140,20 @@ public class TypeHelper {
         return alias == null || alias.equals("");
     }
 
+    /**
+     * Construction helper.
+     * @param cls
+     * @return wrapped Type
+     * @deprecated Use {@link ClassType#of(Class)}
+     */
+    @Deprecated
     public static Type<?> getClassType(Class<?> cls) {
-        return (cls == null) ? null : ClassType.of(cls);
+        return ClassType.of(cls);
     }
 
     public static Set<Type<?>> getClassType(Set<Class<?>> cls) {
         return cls.stream()
-                        .map(TypeHelper::getClassType)
+                        .map(ClassType::of)
                         .collect(Collectors.toSet());
     }
 }

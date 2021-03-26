@@ -15,6 +15,8 @@ import com.yahoo.elide.jsonapi.resources.SecurityContextUser;
 import com.yahoo.elide.utils.HeaderUtils;
 import com.yahoo.elide.utils.ResourceUtils;
 
+import org.apache.commons.lang3.StringUtils;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
@@ -90,7 +92,7 @@ public class GraphQLEndpoint {
     protected String getBaseUrlEndpoint(UriInfo uriInfo) {
         String baseUrl = elide.getElideSettings().getBaseUrl();
 
-        if (baseUrl == null || baseUrl.isEmpty()) {
+        if (StringUtils.isEmpty(baseUrl)) {
             //UriInfo has full path appended here already.
             baseUrl = ResourceUtils.resolveBaseUrl(uriInfo);
         }

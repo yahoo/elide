@@ -252,10 +252,9 @@ public class PersistenceResourceTestSetup extends PersistentResource {
 
         @Override
         public boolean ok(Object object, com.yahoo.elide.core.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            if (changeSpec.isPresent() && (object instanceof ChangeSpecModel)) {
-                return ((ChangeSpecModel) object).checkFunction.apply(changeSpec.get());
-            }
-            throw new IllegalStateException("Something is terribly wrong :(");
+            return changeSpec.filter(c -> object instanceof ChangeSpecModel)
+                    .map(c -> ((ChangeSpecModel) object).checkFunction.apply(c))
+                    .orElseThrow(() -> new IllegalStateException("Something is terribly wrong :("));
         }
     }
 

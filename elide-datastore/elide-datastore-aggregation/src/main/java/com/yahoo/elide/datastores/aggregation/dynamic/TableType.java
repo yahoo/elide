@@ -40,6 +40,8 @@ import com.yahoo.elide.modelconfig.model.Join;
 import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Table;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.HashMap;
@@ -383,7 +385,7 @@ public class TableType implements Type<DynamicModelInstance> {
         });
 
         String readPermission = table.getReadAccess();
-        if (readPermission != null && !readPermission.isEmpty()) {
+        if (StringUtils.isNotEmpty(readPermission)) {
             annotations.put(ReadPermission.class, new ReadPermission() {
 
                 @Override
@@ -531,7 +533,7 @@ public class TableType implements Type<DynamicModelInstance> {
         });
 
         String readPermission = measure.getReadAccess();
-        if (readPermission != null && !readPermission.isEmpty()) {
+        if (StringUtils.isNotEmpty(readPermission)) {
             annotations.put(ReadPermission.class, new ReadPermission() {
 
                 @Override
@@ -625,7 +627,7 @@ public class TableType implements Type<DynamicModelInstance> {
         });
 
         String readPermission = dimension.getReadAccess();
-        if (readPermission != null && !readPermission.isEmpty()) {
+        if (StringUtils.isNotEmpty(readPermission)) {
             annotations.put(ReadPermission.class, new ReadPermission() {
 
                 @Override
@@ -672,7 +674,7 @@ public class TableType implements Type<DynamicModelInstance> {
                             @Override
                             public String expression() {
                                 String sql = grain.getSql();
-                                if (sql == null || sql.isEmpty()) {
+                                if (StringUtils.isEmpty(sql)) {
                                     return "{{}}";
                                 }
                                 return grain.getSql();

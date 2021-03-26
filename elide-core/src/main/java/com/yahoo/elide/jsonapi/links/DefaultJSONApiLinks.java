@@ -9,6 +9,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.ResourceLineage;
 import com.google.common.collect.ImmutableMap;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -66,7 +67,7 @@ public class DefaultJSONApiLinks implements JSONApiLinks {
         }
 
         List<ResourceLineage.LineagePath> path = resource.getLineage().getResourcePath();
-        if (path.size() > 0) {
+        if (CollectionUtils.isNotEmpty(path)) {
             result.append(String.join("/", getPathSegment(path), resource.getId()));
         } else {
             result.append(String.join("/", resource.getTypeName(), resource.getId()));

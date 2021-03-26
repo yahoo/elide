@@ -19,6 +19,8 @@ import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.timegrains.Day;
 import com.yahoo.elide.datastores.aggregation.timegrains.Hour;
 import com.yahoo.elide.datastores.aggregation.timegrains.ISOWeek;
@@ -62,9 +64,13 @@ public class EntityHydrator {
 
         //Get all the projections from the client query.
         Map<String, String> projections = this.query.getMetricProjections().stream()
+                .map(SQLMetricProjection.class::cast)
+                .filter(SQLColumnProjection::isProjected)
                 .collect(Collectors.toMap(MetricProjection::getAlias, MetricProjection::getSafeAlias));
 
         projections.putAll(this.query.getAllDimensionProjections().stream()
+                .map(SQLColumnProjection.class::cast)
+                .filter(SQLColumnProjection::isProjected)
                 .collect(Collectors.toMap(ColumnProjection::getAlias, ColumnProjection::getSafeAlias)));
 
         try {
