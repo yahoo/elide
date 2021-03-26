@@ -373,7 +373,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
         private void addDefaultArguments(Set<Argument> clientArguments, Set<ArgumentType> availableArgTypes) {
 
             Set<String> clientArgNames = clientArguments.stream()
-                            .map(arg -> arg.getName())
+                            .map(Argument::getName)
                             .collect(Collectors.toSet());
 
             // Check if there is any argument which has default value but not provided by client, then add it.

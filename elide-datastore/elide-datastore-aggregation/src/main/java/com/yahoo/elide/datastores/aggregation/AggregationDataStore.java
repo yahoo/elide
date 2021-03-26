@@ -15,6 +15,9 @@ import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Argument;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -62,13 +65,30 @@ public class AggregationDataStore implements DataStore {
                 cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class))
         );
 
-        /* Add 'grain' argument to each TimeDimensionColumn */
         for (Table table : queryEngine.getMetaDataStore().getMetaData(ClassType.of(Table.class))) {
+            /* Add 'grain' argument to each TimeDimensionColumn */
             for (TimeDimension timeDim : table.getTimeDimensions()) {
                 dictionary.addArgumentToAttribute(
                         dictionary.getEntityClass(table.getName(), table.getVersion()),
                         timeDim.getName(),
                         new ArgumentType("grain", ClassType.STRING_TYPE, timeDim.getDefaultGrain().getGrain()));
+            }
+
+            /* Add argument to each Column */
+            for (Column col : table.getColumns()) {
+                for (Argument arg : col.getArguments()) {
+                    dictionary.addArgumentToAttribute(
+                            dictionary.getEntityClass(table.getName(), table.getVersion()),
+                            col.getName(),
+                            new ArgumentType(arg.getName(), ValueType.getType(arg.getType()), arg.getDefaultValue()));
+                }
+            }
+
+            /* Add argument to each Table */
+            for (Argument arg : table.getArguments()) {
+                dictionary.addArgumentToEntity(
+                        dictionary.getEntityClass(table.getName(), table.getVersion()),
+                        new ArgumentType(arg.getName(), ValueType.getType(arg.getType()), arg.getDefaultValue()));
             }
         }
     }

@@ -25,7 +25,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
-import javax.ws.rs.container.TimeoutHandler;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -68,12 +67,9 @@ public class ExportApiEndpoint {
     public void get(@PathParam("asyncQueryId") String asyncQueryId, @Context HttpServletResponse httpServletResponse,
             @Suspended final AsyncResponse asyncResponse) {
         asyncResponse.setTimeout(exportApiProperties.getMaxDownloadTimeSeconds(), TimeUnit.SECONDS);
-        asyncResponse.setTimeoutHandler(new TimeoutHandler() {
-            @Override
-            public void handleTimeout(AsyncResponse asyncResponse) {
-                ResponseBuilder resp = Response.status(Response.Status.REQUEST_TIMEOUT).entity("Timed out.");
-                asyncResponse.resume(resp.build());
-            }
+        asyncResponse.setTimeoutHandler(async -> {
+            ResponseBuilder resp = Response.status(Response.Status.REQUEST_TIMEOUT).entity("Timed out.");
+            async.resume(resp.build());
         });
 
         exportApiProperties.getExecutor().submit(() -> {

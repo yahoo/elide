@@ -101,18 +101,14 @@ public class SQLQueryEngine extends QueryEngine {
         this.optimizers = optimizers;
     }
 
-    private static final Function<ResultSet, Object> SINGLE_RESULT_MAPPER = new Function<ResultSet, Object>() {
-        @Override
-        public Object apply(ResultSet rs) {
-            try {
-                if (rs.next()) {
-                    return rs.getObject(1);
-                } else {
-                    return null;
-                }
-            } catch (SQLException e) {
-                throw new IllegalStateException(e);
+    private static final Function<ResultSet, Object> SINGLE_RESULT_MAPPER = rs -> {
+        try {
+            if (rs.next()) {
+                return rs.getObject(1);
             }
+            return null;
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
         }
     };
 
@@ -305,7 +301,7 @@ public class SQLQueryEngine extends QueryEngine {
      * @return List of SQL string(s) corresponding to the given query.
      */
     public List<String> explain(Query query, SQLDialect dialect) {
-        List<String> queries = new ArrayList<String>();
+        List<String> queries = new ArrayList<>();
         Query expandedQuery = expandMetricQueryPlans(query);
         SQLQuery sql = toSQL(expandedQuery, dialect);
 

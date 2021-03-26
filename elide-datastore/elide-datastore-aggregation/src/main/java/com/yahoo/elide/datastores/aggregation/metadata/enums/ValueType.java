@@ -5,7 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.enums;
 
+import static com.yahoo.elide.core.type.ClassType.BIGDECIMAL_TYPE;
+import static com.yahoo.elide.core.type.ClassType.BOOLEAN_TYPE;
+import static com.yahoo.elide.core.type.ClassType.LONG_TYPE;
+import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
+import static com.yahoo.elide.datastores.aggregation.timegrains.Time.TIME_TYPE;
 
 import com.yahoo.elide.core.type.Type;
 
@@ -47,5 +52,26 @@ public enum ValueType {
 
     public static ValueType getScalarType(Type<?> fieldClass) {
         return SCALAR_TYPES.get(fieldClass);
+    }
+
+    public static Type<?> getType(ValueType valueType) {
+        switch (valueType) {
+            case TIME:
+                return TIME_TYPE;
+            case TEXT:
+                return STRING_TYPE;
+            case INTEGER:
+                return LONG_TYPE;
+            case MONEY:
+                return BIGDECIMAL_TYPE;
+            case DECIMAL:
+                return BIGDECIMAL_TYPE;
+            case COORDINATE:
+                return STRING_TYPE;
+            case BOOLEAN:
+                return BOOLEAN_TYPE;
+            default:
+                return STRING_TYPE;
+        }
     }
 }
