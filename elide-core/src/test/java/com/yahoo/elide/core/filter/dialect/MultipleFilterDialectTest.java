@@ -40,7 +40,7 @@ public class MultipleFilterDialectTest {
 
         MultipleFilterDialect dialect = new MultipleFilterDialect(
                 Arrays.asList(dialect1, dialect2),
-                Collections.EMPTY_LIST
+                Collections.emptyList()
         );
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
@@ -73,10 +73,10 @@ public class MultipleFilterDialectTest {
     public void testTypedExpressionParsing() throws Exception {
         SubqueryFilterDialect dialect1 = mock(SubqueryFilterDialect.class);
         SubqueryFilterDialect dialect2 = mock(SubqueryFilterDialect.class);
-        Map<String, FilterExpression> expressionMap = Collections.EMPTY_MAP;
+        Map<String, FilterExpression> expressionMap = Collections.emptyMap();
 
         MultipleFilterDialect dialect = new MultipleFilterDialect(
-                Collections.EMPTY_LIST,
+                Collections.emptyList(),
                 Arrays.asList(dialect1, dialect2)
         );
 
@@ -110,8 +110,8 @@ public class MultipleFilterDialectTest {
     public void testMissingTypedDialect() throws Exception {
 
         MultipleFilterDialect dialect = new MultipleFilterDialect(
-                Collections.EMPTY_LIST,
-                Collections.EMPTY_LIST
+                Collections.emptyList(),
+                Collections.emptyList()
         );
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
@@ -136,8 +136,8 @@ public class MultipleFilterDialectTest {
     public void testMissingGlobalDialect() throws Exception {
 
         MultipleFilterDialect dialect = new MultipleFilterDialect(
-                Collections.EMPTY_LIST,
-                Collections.EMPTY_LIST
+                Collections.emptyList(),
+                Collections.emptyList()
         );
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
@@ -165,7 +165,7 @@ public class MultipleFilterDialectTest {
 
         MultipleFilterDialect dialect = new MultipleFilterDialect(
                 Arrays.asList(dialect1, dialect2),
-                Collections.EMPTY_LIST
+                Collections.emptyList()
         );
 
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
@@ -199,7 +199,7 @@ public class MultipleFilterDialectTest {
         SubqueryFilterDialect dialect2 = mock(SubqueryFilterDialect.class);
 
         MultipleFilterDialect dialect = new MultipleFilterDialect(
-                Collections.EMPTY_LIST,
+                Collections.emptyList(),
                 Arrays.asList(dialect1, dialect2)
         );
 

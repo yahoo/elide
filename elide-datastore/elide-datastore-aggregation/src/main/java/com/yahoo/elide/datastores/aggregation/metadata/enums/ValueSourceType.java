@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.enums;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import java.util.Set;
 
 /**
@@ -16,7 +18,7 @@ public enum ValueSourceType {
     NONE;
 
     public static ValueSourceType getValueSourceType(Set<String> values, String tableSource) {
-        if (values != null && !values.isEmpty()) {
+        if (CollectionUtils.isNotEmpty(values)) {
             return ValueSourceType.ENUM;
         }
         if (tableSource != null) {

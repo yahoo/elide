@@ -52,7 +52,7 @@ public class SortingImpl implements Sorting {
      * @param dictionary The entity dictionary
      */
     public SortingImpl(final Map<String, SortOrder> sortingRules, Type<?> type, EntityDictionary dictionary) {
-        this(sortingRules, type, Collections.EMPTY_SET, dictionary);
+        this(sortingRules, type, Collections.emptySet(), dictionary);
     }
 
     /**
@@ -173,7 +173,7 @@ public class SortingImpl implements Sorting {
                 .filter(entry -> entry.getKey().equals("sort"))
                 .map(entry -> entry.getValue().get(0))
                 .collect(Collectors.toList());
-        return parseSortRules(sortRules, type, Collections.EMPTY_SET, dictionary);
+        return parseSortRules(sortRules, type, Collections.emptySet(), dictionary);
     }
 
     /**
@@ -184,7 +184,7 @@ public class SortingImpl implements Sorting {
      * @return Sorting object.
      */
     public static Sorting parseSortRule(String sortRule, Type<?> type, EntityDictionary dictionary) {
-        return parseSortRules(Arrays.asList(sortRule), type, Collections.EMPTY_SET, dictionary);
+        return parseSortRules(Arrays.asList(sortRule), type, Collections.emptySet(), dictionary);
     }
 
     /**

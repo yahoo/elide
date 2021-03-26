@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.Streams;
 
+import org.apache.commons.lang3.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -181,7 +182,7 @@ public class Table implements Named {
      * @return true if this model extends another model
      */
     public boolean hasParent() {
-        return !(this.extend == null || this.extend.trim().isEmpty());
+        return StringUtils.isNotBlank(this.extend);
     }
 
     /**

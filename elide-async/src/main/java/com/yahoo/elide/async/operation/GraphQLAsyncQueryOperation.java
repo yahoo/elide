@@ -16,6 +16,8 @@ import com.yahoo.elide.graphql.QueryRunner;
 
 import com.jayway.jsonpath.JsonPath;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
@@ -53,7 +55,7 @@ public class GraphQLAsyncQueryOperation extends AsyncQueryOperation {
         Integer count = null;
         if (response.getResponseCode() == 200) {
             List<Integer> countList = JsonPath.read(response.getBody(), "$..edges.length()");
-            count = countList.size() > 0 ? countList.get(0) : 0;
+            count = CollectionUtils.isNotEmpty(countList) ? countList.get(0) : 0;
         }
         return count;
     }

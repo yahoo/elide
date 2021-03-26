@@ -28,6 +28,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLPhysicalColumnProjection;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Subselect;
 import lombok.Getter;
 
@@ -399,7 +400,7 @@ public class SQLReferenceTable {
      * @return quoted string
      */
     private static String applyQuotes(String str, char beginQuote, char endQuote) {
-        if (str == null || str.trim().isEmpty()) {
+        if (StringUtils.isBlank(str)) {
             return str;
         }
         if (str.contains(PERIOD)) {

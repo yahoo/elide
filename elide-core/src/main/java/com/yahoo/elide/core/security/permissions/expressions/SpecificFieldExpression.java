@@ -44,20 +44,13 @@ public class SpecificFieldExpression implements Expression {
 
     @Override
     public String toString() {
-        if (entityExpression == null && !fieldExpression.isPresent()) {
-            return String.format("%s FOR EXPRESSION []", condition);
-        }
-
-        if (!fieldExpression.isPresent()) {
-             return String.format(
-                    "%s FOR EXPRESSION [ENTITY(%s)]",
-                    condition,
-                    entityExpression);
-        }
-
-        return String.format(
-                    "%s FOR EXPRESSION [FIELD(%s)]",
-                    condition,
-                    fieldExpression.get());
+        return fieldExpression
+                .map(fe -> String.format("%s FOR EXPRESSION [FIELD(%s)]", condition, fe))
+                .orElseGet(() -> {
+                    if (entityExpression == null) {
+                        return String.format("%s FOR EXPRESSION []", condition);
+                    }
+                    return String.format("%s FOR EXPRESSION [ENTITY(%s)]", condition, entityExpression);
+                });
     }
 }

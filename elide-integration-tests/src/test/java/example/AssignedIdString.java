@@ -52,7 +52,7 @@ public class AssignedIdString {
             return super.equals(obj);
         }
 
-        if (obj == null || !(obj instanceof AssignedIdString)) {
+        if (!(obj instanceof AssignedIdString)) {
             return false;
         }
 

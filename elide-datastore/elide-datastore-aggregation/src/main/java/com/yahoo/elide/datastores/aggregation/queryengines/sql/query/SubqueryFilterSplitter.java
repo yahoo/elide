@@ -18,6 +18,8 @@ import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -65,7 +67,7 @@ public class SubqueryFilterSplitter
 
         Set<String> joins = lookupTable.getResolvedJoinExpressions(table, fieldName);
 
-        if (joins.size() > 0) {
+        if (CollectionUtils.isNotEmpty(joins)) {
             return SplitFilter.builder().outer(filterPredicate).build();
         } else {
             return SplitFilter.builder().inner(filterPredicate).build();

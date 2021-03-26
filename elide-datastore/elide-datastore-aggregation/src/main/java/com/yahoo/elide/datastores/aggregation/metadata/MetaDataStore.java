@@ -121,13 +121,8 @@ public class MetaDataStore implements DataStore {
      */
     private static Set<Class<?>> getAllAnnotatedClasses() {
         return ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS, (clazz) -> {
-            if (clazz.getAnnotation(Entity.class) != null) {
-                if (clazz.getAnnotation(Include.class) != null) {
-                    return true;
-                }
-                return false;
-             }
-             return true;
+            return clazz.getAnnotation(Entity.class) == null
+                    || clazz.getAnnotation(Include.class) != null;
         });
     }
 

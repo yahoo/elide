@@ -112,12 +112,11 @@ public class PermissionCondition {
 
     @Override
     public String toString() {
-        Object entity = resource.isPresent() ? resource.get() : entityClass;
+        Object entity = ((Optional) resource).orElse(entityClass);
 
-        String withChanges = changes.isPresent() ? String.format("WITH CHANGES %s", changes.get()) : "";
-        String withField = field.isPresent() ? String.format("WITH FIELD %s", field.get()) : "";
-
-        String withClause = withChanges.isEmpty() ? withField : withChanges;
+        String withClause = changes.map(c -> String.format("WITH CHANGES %s", c))
+                .orElseGet(() -> field.map(f -> String.format("WITH FIELD %s", f))
+                .orElse(""));
 
         return String.format(
                 "%s PERMISSION WAS INVOKED ON %s %s",
