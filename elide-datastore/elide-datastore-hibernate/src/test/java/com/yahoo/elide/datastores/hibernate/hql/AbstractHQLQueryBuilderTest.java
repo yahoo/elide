@@ -67,7 +67,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
 
     private static  EntityProjection getMockEntityProjection() {
         EntityProjection entityProjection = mock(EntityProjection.class);
-        when(entityProjection.getIncludedRelationsName()).thenReturn(new HashSet());
+        when(entityProjection.getIncludedRelationsName()).thenReturn(new HashSet<>());
         return entityProjection;
     }
 

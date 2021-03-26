@@ -180,7 +180,7 @@ public class ElideAutoConfiguration {
     @Bean(name = "entitiesToExclude")
     @ConditionalOnMissingBean
     public Set<Type<?>> getEntitiesToExclude(ElideConfigProperties settings) {
-        Set<Type<?>> entitiesToExclude = new HashSet();
+        Set<Type<?>> entitiesToExclude = new HashSet<>();
 
         AsyncProperties asyncProperties = settings.getAsync();
 

@@ -52,5 +52,5 @@ public class DBConfig implements Named {
 
     @JsonProperty("propertyMap")
     @JsonDeserialize(as = HashMap.class)
-    private Map<String, Object> propertyMap = new HashMap<String, Object>();
+    private Map<String, Object> propertyMap = new HashMap<>();
 }

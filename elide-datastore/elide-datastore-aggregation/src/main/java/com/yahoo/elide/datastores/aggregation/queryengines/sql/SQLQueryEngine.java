@@ -305,7 +305,7 @@ public class SQLQueryEngine extends QueryEngine {
      * @return List of SQL string(s) corresponding to the given query.
      */
     public List<String> explain(Query query, SQLDialect dialect) {
-        List<String> queries = new ArrayList<String>();
+        List<String> queries = new ArrayList<>();
         Query expandedQuery = expandMetricQueryPlans(query);
         SQLQuery sql = toSQL(expandedQuery, dialect);
 
