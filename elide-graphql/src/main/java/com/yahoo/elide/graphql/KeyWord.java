@@ -6,7 +6,12 @@
 
 package com.yahoo.elide.graphql;
 
+import com.google.common.collect.ImmutableMap;
+
 import lombok.Getter;
+
+import java.util.Arrays;
+import java.util.function.Function;
 
 /**
  * Key words used in graphql parsing.
@@ -24,24 +29,21 @@ public enum KeyWord {
     TYPE("__type"),
     UNKNOWN("unknown");
 
+    private static final ImmutableMap<String, KeyWord> NAME_MAP =
+            Arrays.stream(values()).collect(ImmutableMap.toImmutableMap(KeyWord::getName, Function.identity()));
+
     @Getter
-    private String name;
+    private final String name;
 
     KeyWord(String name) {
         this.name = name;
     }
 
-    public boolean equals(String name) {
+    public boolean hasName(String name) {
         return this.name.equals(name);
     }
 
     public static KeyWord byName(String value) {
-        for (KeyWord keyWord : KeyWord.values()) {
-            if (keyWord.equals(value)) {
-                return keyWord;
-            }
-        }
-
-        return UNKNOWN;
+        return NAME_MAP.getOrDefault(value, UNKNOWN);
     }
 }

@@ -103,8 +103,8 @@ public abstract class TableExportOperation implements Callable<AsyncAPIResult> {
             // Follows same flow as GraphQL. The query may result in failure but request was successfully processed.
             exportResult.setHttpStatus(200);
             exportResult.setCompletedOn(new Date());
-            return exportResult;
         }
+        return exportResult;
     }
 
     private Observable<String> concatStringWithObservable(String toConcat, Observable<String> observable,

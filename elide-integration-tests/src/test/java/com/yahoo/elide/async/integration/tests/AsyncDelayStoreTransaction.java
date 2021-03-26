@@ -10,6 +10,9 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.wrapped.TransactionWrapper;
 import com.yahoo.elide.core.request.EntityProjection;
+
+import org.apache.commons.collections4.CollectionUtils;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -31,7 +34,7 @@ public class AsyncDelayStoreTransaction extends TransactionWrapper {
             log.debug("LoadObjects Sleep for delay test");
 
             List<String> sleepTime = scope.getRequestHeaders().get("sleep");
-            if (sleepTime != null && !sleepTime.isEmpty()) {
+            if (CollectionUtils.isNotEmpty(sleepTime)) {
                 Thread.sleep(Integer.parseInt(sleepTime.get(0)));
             }
         } catch (InterruptedException e) {

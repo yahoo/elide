@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
-import static com.yahoo.elide.modelconfig.DynamicConfigHelpers.isNullOrEmpty;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.Type;
@@ -86,7 +86,7 @@ public class SQLTable extends Table implements Queryable {
             return null;
         }
         return new SQLMetricProjection(metric,
-                isNullOrEmpty(alias) ? metric.getName() : alias,
+                isBlank(alias) ? metric.getName() : alias,
                 new HashMap<>());
     }
 
@@ -111,9 +111,8 @@ public class SQLTable extends Table implements Queryable {
             return null;
         }
         return new SQLDimensionProjection(dimension,
-                isNullOrEmpty(alias) ? dimension.getName() : alias,
+                isBlank(alias) ? dimension.getName() : alias,
                 new HashMap<>(), true);
-
     }
 
     @Override
@@ -143,7 +142,7 @@ public class SQLTable extends Table implements Queryable {
         }
         return new SQLTimeDimensionProjection(dimension,
                 dimension.getTimezone(),
-                isNullOrEmpty(alias) ? dimension.getName() : alias,
+                isBlank(alias) ? dimension.getName() : alias,
                 arguments, true);
     }
 

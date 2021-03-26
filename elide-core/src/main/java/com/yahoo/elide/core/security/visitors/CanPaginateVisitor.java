@@ -246,7 +246,7 @@ public class CanPaginateVisitor
 
         List<String> fields = dictionary.getAllFields(resourceClass);
         String resourceName = dictionary.getJsonAliasFor(resourceClass);
-        Set<String> requestedFields = scope.getSparseFields().getOrDefault(resourceName, Collections.EMPTY_SET);
+        Set<String> requestedFields = scope.getSparseFields().getOrDefault(resourceName, Collections.emptySet());
 
         boolean canPaginate = true;
         for (String field : fields) {

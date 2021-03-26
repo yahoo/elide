@@ -87,7 +87,7 @@ public class ModelBuilderTest {
     // This is all important for ensuring we don't duplicate typenames which is a requirement in the latest graphql-java
 
     public ModelBuilderTest() {
-        dictionary = new EntityDictionary(Collections.EMPTY_MAP);
+        dictionary = new EntityDictionary(Collections.emptyMap());
 
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);

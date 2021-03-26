@@ -67,11 +67,7 @@ public class Author {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof Author)) {
-            return false;
-        }
-
-        return ((Author) obj).naturalKey.equals(naturalKey);
+        return obj instanceof Author && ((Author) obj).naturalKey.equals(naturalKey);
     }
 
     @Override

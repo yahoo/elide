@@ -141,11 +141,7 @@ public class ClassType<T> implements Type<T> {
     public boolean isAssignableFrom(Type other) {
         Optional<Class<?>> clazz = other.getUnderlyingClass();
 
-        if (! clazz.isPresent()) {
-            return false;
-        }
-
-        return cls.isAssignableFrom(clazz.get());
+        return clazz.filter(cls::isAssignableFrom).isPresent();
     }
 
     @Override

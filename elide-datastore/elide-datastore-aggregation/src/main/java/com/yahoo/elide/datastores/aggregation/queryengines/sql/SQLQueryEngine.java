@@ -43,6 +43,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricPr
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.StringUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -125,7 +126,7 @@ public class SQLQueryEngine extends QueryEngine {
         }
 
         ConnectionDetails connectionDetails;
-        if (dbConnectionName == null || dbConnectionName.trim().isEmpty()) {
+        if (StringUtils.isBlank(dbConnectionName)) {
             connectionDetails = defaultConnectionDetails;
         } else {
             connectionDetails = Optional.ofNullable(connectionDetailsMap.get(dbConnectionName))

@@ -13,6 +13,8 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.opendevl.JFlat;
 
+import org.apache.commons.lang3.StringUtils;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
@@ -86,11 +88,11 @@ public class CSVExportFormatter implements TableExportFormatter {
             return "";
         }
 
-        String header = projection.getAttributes().stream()
+        return projection.getAttributes().stream()
         .map(attr -> {
             StringBuilder column = new StringBuilder();
             String alias = attr.getAlias();
-            column.append(alias != null && !alias.isEmpty() ? alias : attr.getName());
+            column.append(StringUtils.isNotEmpty(alias) ? alias : attr.getName());
             return column;
         })
         .map(quotable -> {
@@ -101,21 +103,15 @@ public class CSVExportFormatter implements TableExportFormatter {
             return quotable;
         })
         .collect(Collectors.joining(COMMA));
-
-        return header;
     }
 
     @Override
     public String preFormat(EntityProjection projection, TableExport query) {
-        if (projection == null) {
+        if (projection == null || skipCSVHeader) {
             return null;
         }
 
-        if (!skipCSVHeader) {
-            return generateCSVHeader(projection);
-        };
-
-        return null;
+        return generateCSVHeader(projection);
     }
 
     @Override
