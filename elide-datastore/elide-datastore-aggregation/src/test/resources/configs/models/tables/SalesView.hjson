@@ -14,7 +14,7 @@
           to: customerDetails
           type: Left
           // References Physical Columns
-          definition: '{{customer_id}} = {{ customer.id}}'
+          definition: '{{$customer_id}} = {{ customer.$id}}'
         }
         {
           name: delivery
@@ -23,7 +23,7 @@
           // References Logical Columns, multiple join condition
           definition: '''
           {{ orderId}} = {{delivery.orderId}} AND
-          {{ delivery.delivered_on }} > '1970-01-01'
+          {{ delivery.$delivered_on }} > '1970-01-01'
           '''
         }
       ]
@@ -32,7 +32,7 @@
         {
           name: orderTotal
           type: DECIMAL
-          definition: 'SUM({{ order_total }})'
+          definition: 'SUM({{ $order_total }})'
           readAccess: admin.user
         }
       ]
@@ -41,13 +41,13 @@
         {
           name: orderId
           type: TEXT
-          definition: '{{ order_id }}'
+          definition: '{{ $order_id }}'
           readAccess: guest user
         }
         {
           name: courierName
           type: TEXT
-          definition: '{{delivery.courier_name}}'
+          definition: '{{delivery.$courier_name}}'
           readAccess: operator
         }
         {
@@ -74,7 +74,7 @@
           name: orderTime
           type: TIME
           // Physical Column Reference in same table
-          definition: '{{created_on}}'
+          definition: '{{$created_on}}'
           readAccess: guest user
           grains:
           [
@@ -96,7 +96,7 @@
           name: deliveryTime
           type: TIME
           // Physical Column Reference in referred table
-          definition: '{{delivery.delivered_on}}'
+          definition: '{{delivery.$delivered_on}}'
           readAccess: guest user
           grains:
           [{
@@ -171,7 +171,7 @@
           name: region
           to: regionDetails
           // References Physical & Logical Columns
-          definition: '{{zipCode}} = {{region.zip_code}}'
+          definition: '{{zipCode}} = {{region.$zip_code}}'
         }
       ]
       dimensions:
@@ -179,13 +179,13 @@
         {
           name: name
           type: TEXT
-          definition: '{{name}}'
+          definition: '{{$name}}'
           readAccess: guest user
         }
         {
           name: zipCode
           type: INTEGER
-          definition: '{{zip_code}}'
+          definition: '{{$zip_code}}'
           readAccess: guest user
         }
         {
@@ -208,19 +208,19 @@
         {
           name: orderId
           type: TEXT
-          definition: '{{order_id}}'
+          definition: '{{$order_id}}'
           readAccess: guest user
         }
         {
           name: trackingNumber
           type: INTEGER
-          definition: '{{tracking_number}}'
+          definition: '{{$tracking_number}}'
           readAccess: operator
         }
         {
           name: time
           type: TIME
-          definition: '{{delivered_on}}'
+          definition: '{{$delivered_on}}'
           readAccess: guest user
           grains:
           [{

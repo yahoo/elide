@@ -103,9 +103,9 @@ public class Path {
      * @param dotSeparatedPath path e.g. "bar.baz"
      * @return list of path elements e.g. ["foo.bar", "bar.baz"]
      */
-    private List<PathElement> resolvePathElements(Type<?> entityClass,
-                                                  EntityDictionary dictionary,
-                                                  String dotSeparatedPath) {
+    protected List<PathElement> resolvePathElements(Type<?> entityClass,
+                                                    EntityDictionary dictionary,
+                                                    String dotSeparatedPath) {
         List<PathElement> elements = new ArrayList<>();
         String[] fieldNames = dotSeparatedPath.split("\\.");
 
@@ -124,11 +124,11 @@ public class Path {
         return ImmutableList.copyOf(elements);
     }
 
-    private PathElement resolvePathAttribute(Type<?> entityClass,
-                                             String fieldName,
-                                             String alias,
-                                             Set<Argument> arguments,
-                                             EntityDictionary dictionary) {
+    protected PathElement resolvePathAttribute(Type<?> entityClass,
+                                               String fieldName,
+                                               String alias,
+                                               Set<Argument> arguments,
+                                               EntityDictionary dictionary) {
         if (dictionary.isAttribute(entityClass, fieldName)
                 || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
             Type<?> attributeClass = dictionary.getType(entityClass, fieldName);
