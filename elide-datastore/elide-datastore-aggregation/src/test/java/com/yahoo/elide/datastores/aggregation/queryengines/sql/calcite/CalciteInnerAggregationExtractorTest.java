@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
-public class CalciteAggregationExtractorTest {
+public class CalciteInnerAggregationExtractorTest {
 
     @Test
     public void testExpressionParsing() throws Exception {
@@ -26,13 +26,12 @@ public class CalciteAggregationExtractorTest {
                 "        END) / SUM(blah)";
         SqlParser sqlParser = SqlParser.create(sql, SqlParser.config());
         SqlNode node = sqlParser.parseExpression();
-        CalciteAggregationExtractor extractor = new CalciteAggregationExtractor();
+        CalciteInnerAggregationExtractor extractor = new CalciteInnerAggregationExtractor();
         List<String> aggregations = node.accept(extractor);
 
         assertEquals(2, aggregations.size());
         assertEquals("SUM(CASE WHEN 'number_of_lectures' > 20 THEN 1 ELSE 0 END)", aggregations.get(0));
         assertEquals("SUM(BLAH)", aggregations.get(1));
-        System.out.println(aggregations);
     }
 
     @Test
@@ -40,7 +39,7 @@ public class CalciteAggregationExtractorTest {
         String sql = "CUSTOM_SUM(blah)";
         SqlParser sqlParser = SqlParser.create(sql, SqlParser.config());
         SqlNode node = sqlParser.parseExpression();
-        CalciteAggregationExtractor extractor = new CalciteAggregationExtractor();
+        CalciteInnerAggregationExtractor extractor = new CalciteInnerAggregationExtractor();
         List<String> aggregations = node.accept(extractor);
 
         assertTrue(aggregations.isEmpty());
@@ -51,8 +50,8 @@ public class CalciteAggregationExtractorTest {
         String sql = "CUSTOM_SUM(blah)";
         SqlParser sqlParser = SqlParser.create(sql, SqlParser.config());
         SqlNode node = sqlParser.parseExpression();
-        CalciteAggregationExtractor extractor =
-                new CalciteAggregationExtractor(new HashSet<>(Arrays.asList("CUSTOM_SUM")));
+        CalciteInnerAggregationExtractor extractor =
+                new CalciteInnerAggregationExtractor(new HashSet<>(Arrays.asList("CUSTOM_SUM")));
         List<String> aggregations = node.accept(extractor);
 
         assertEquals(1, aggregations.size());
@@ -64,7 +63,7 @@ public class CalciteAggregationExtractorTest {
         String sql = "AVG(blah)";
         SqlParser sqlParser = SqlParser.create(sql, SqlParser.config());
         SqlNode node = sqlParser.parseExpression();
-        CalciteAggregationExtractor extractor = new CalciteAggregationExtractor();
+        CalciteInnerAggregationExtractor extractor = new CalciteInnerAggregationExtractor();
         List<String> aggregations = node.accept(extractor);
 
         assertEquals(2, aggregations.size());

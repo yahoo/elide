@@ -19,26 +19,26 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class CalciteAggregationExtractor extends SqlBasicVisitor<List<String>> {
+public class CalciteInnerAggregationExtractor extends SqlBasicVisitor<List<String>> {
 
     private SqlDialect dialect;
     private Set<String> customAggregationFunctions;
 
-    public CalciteAggregationExtractor() {
+    public CalciteInnerAggregationExtractor() {
         this(new SqlDialect(SqlDialect.EMPTY_CONTEXT
                 .withCaseSensitive(true)
                 .withQuotedCasing(Casing.UNCHANGED)
                 .withUnquotedCasing(Casing.UNCHANGED)), new HashSet<>());
     }
 
-    public CalciteAggregationExtractor(Set<String> customAggregationFunctions) {
+    public CalciteInnerAggregationExtractor(Set<String> customAggregationFunctions) {
         this(new SqlDialect(SqlDialect.EMPTY_CONTEXT
                 .withCaseSensitive(true)
                 .withQuotedCasing(Casing.UNCHANGED)
                 .withUnquotedCasing(Casing.UNCHANGED)), customAggregationFunctions);
     }
 
-    public CalciteAggregationExtractor(SqlDialect dialect, Set<String> customAggregationFunctions) {
+    public CalciteInnerAggregationExtractor(SqlDialect dialect, Set<String> customAggregationFunctions) {
         this.dialect = dialect;
         this.customAggregationFunctions = customAggregationFunctions;
     }
