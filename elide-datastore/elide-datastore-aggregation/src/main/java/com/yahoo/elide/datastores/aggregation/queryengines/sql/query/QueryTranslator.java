@@ -38,7 +38,7 @@ import java.util.stream.Stream;
 /**
  * Translates a client query into a SQL query.
  */
-public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
+public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuilder> {
 
     private final SQLReferenceTable referenceTable;
     private final EntityDictionary dictionary;
@@ -53,13 +53,13 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
     }
 
     @Override
-    public SQLQuery.SQLQueryBuilder visitQuery(Query query) {
-        SQLQuery.SQLQueryBuilder builder = query.getSource().accept(this);
+    public NativeQuery.NativeQueryBuilder visitQuery(Query query) {
+        NativeQuery.NativeQueryBuilder builder = query.getSource().accept(this);
 
         if (query.isNested()) {
-            SQLQuery innerQuery = builder.build();
+            NativeQuery innerQuery = builder.build();
 
-            builder = SQLQuery.builder().fromClause("(" + innerQuery + ") AS "
+            builder = NativeQuery.builder().fromClause("(" + innerQuery + ") AS "
                     + applyQuotes(query.getSource().getAlias()));
         }
 
@@ -70,7 +70,10 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
         //Handles join for all type of column projects - dimensions, metrics and time dimention
         joinExpressions.addAll(extractJoinExpressions(query.getColumnProjections(), query.getSource()));
 
-        Set<ColumnProjection> groupByDimensions = query.getAllDimensionProjections();
+        Set<ColumnProjection> groupByDimensions = query.getAllDimensionProjections().stream()
+                .map(SQLColumnProjection.class::cast)
+                .filter(SQLColumnProjection::isProjected)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         if (!groupByDimensions.isEmpty()) {
             if (!query.getMetricProjections().isEmpty()) {
@@ -113,8 +116,8 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
     }
 
     @Override
-    public SQLQuery.SQLQueryBuilder visitQueryable(Queryable table) {
-        SQLQuery.SQLQueryBuilder builder = SQLQuery.builder();
+    public NativeQuery.NativeQueryBuilder visitQueryable(Queryable table) {
+        NativeQuery.NativeQueryBuilder builder = NativeQuery.builder();
 
         Type<?> tableCls = dictionary.getEntityClass(table.getName(), table.getVersion());
         String tableAlias = applyQuotes(table.getAlias());
@@ -168,12 +171,14 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
         // TODO: project metric field using table column reference
         List<String> metricProjections = query.getMetricProjections().stream()
                 .map(SQLMetricProjection.class::cast)
+                .filter(SQLColumnProjection::isProjected)
                 .map(invocation -> invocation.toSQL(query.getSource(), referenceTable) + " AS "
                                 + applyQuotes(invocation.getSafeAlias()))
                 .collect(Collectors.toList());
 
         List<String> dimensionProjections = query.getAllDimensionProjections().stream()
                 .map(SQLColumnProjection.class::cast)
+                .filter(SQLColumnProjection::isProjected)
                 .map(dimension -> dimension.toSQL(query.getSource(), referenceTable) + " AS "
                                 + applyQuotes(dimension.getSafeAlias()))
                 .collect(Collectors.toList());
@@ -305,6 +310,7 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
 
     private SQLColumnProjection fieldToColumnProjection(Query query, String fieldName) {
         ColumnProjection projection = query.getColumnProjection(fieldName);
+
         if (projection == null) {
             projection = query.getSource().getColumnProjection(fieldName);
         }
@@ -313,7 +319,9 @@ public class QueryTranslator implements QueryVisitor<SQLQuery.SQLQueryBuilder> {
 
     private SQLColumnProjection fieldToColumnProjection(Query query, String fieldName,
                     Map<String, Argument> arguments) {
+
         ColumnProjection projection = query.getColumnProjection(fieldName, arguments);
+
         if (projection == null) {
             projection = query.getSource().getColumnProjection(fieldName, arguments);
         }

@@ -9,8 +9,6 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -21,7 +19,6 @@ import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
@@ -115,8 +112,7 @@ public class SQLTable extends Table implements Queryable {
         }
         return new SQLDimensionProjection(dimension,
                 isBlank(alias) ? dimension.getName() : alias,
-                new HashMap<>());
-
+                new HashMap<>(), true);
     }
 
     @Override
@@ -125,7 +121,7 @@ public class SQLTable extends Table implements Queryable {
                 .stream()
                 .map((dimension) -> new SQLDimensionProjection(dimension,
                         dimension.getName(),
-                        new HashMap<>()))
+                        new HashMap<>(), true))
                 .collect(Collectors.toSet());
     }
 
@@ -147,7 +143,7 @@ public class SQLTable extends Table implements Queryable {
         return new SQLTimeDimensionProjection(dimension,
                 dimension.getTimezone(),
                 isBlank(alias) ? dimension.getName() : alias,
-                arguments);
+                arguments, true);
     }
 
     @Override
@@ -157,7 +153,7 @@ public class SQLTable extends Table implements Queryable {
                 .map((dimension) -> new SQLTimeDimensionProjection(dimension,
                         dimension.getTimezone(),
                         dimension.getName(),
-                        new HashMap<>()))
+                        new HashMap<>(), true))
                 .collect(Collectors.toSet());
     }
 
@@ -186,37 +182,11 @@ public class SQLTable extends Table implements Queryable {
             return getTimeDimensionProjection(name, arguments);
         }
 
-        return new SQLColumnProjection() {
-            @Override
-            public String getAlias() {
-                return column.getName();
-            }
+        if (column instanceof Metric) {
+            return getMetricProjection(name);
+        }
 
-            @Override
-            public String getName() {
-                return column.getName();
-            }
-
-            @Override
-            public String getExpression() {
-                return column.getExpression();
-            }
-
-            @Override
-            public ValueType getValueType() {
-                return column.getValueType();
-            }
-
-            @Override
-            public ColumnType getColumnType() {
-                return column.getColumnType();
-            }
-
-            @Override
-            public Map<String, Argument> getArguments() {
-                return arguments;
-            }
-        };
+        return getDimensionProjection(name);
     }
 
     @Override
