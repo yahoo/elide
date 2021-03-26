@@ -33,11 +33,11 @@ public class ElideSecurityConfig {
 
     @JsonProperty("roles")
     @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<String> roles = new LinkedHashSet<String>();
+    private Set<String> roles = new LinkedHashSet<>();
 
     @JsonProperty("rules")
     @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<Rule> rules = new LinkedHashSet<Rule>();
+    private Set<Rule> rules = new LinkedHashSet<>();
 
     public boolean hasCheckDefined(String role) {
 

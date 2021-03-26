@@ -77,9 +77,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                 .build();
 
-        settings.getSerdes().forEach((targetType, serde) -> {
-            CoerceUtil.register(targetType, serde);
-        });
+        settings.getSerdes().forEach(CoerceUtil::register);
 
         hashMapDataStore = new HashMapDataStore(Author.class.getPackage());
 

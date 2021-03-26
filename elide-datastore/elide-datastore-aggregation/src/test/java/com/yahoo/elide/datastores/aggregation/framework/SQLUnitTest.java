@@ -111,13 +111,13 @@ public abstract class SQLUnitTest {
                     .whereFilter(new FilterPredicate(
                             new Path(PlayerStats.class, dictionary, "overallRating"),
                             Operator.NOTNULL,
-                            new ArrayList<Object>()))
+                            new ArrayList<>()))
                     .build()
         ),
         WHERE_AND (() -> {
             FilterPredicate ratingFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "overallRating"),
-                    Operator.NOTNULL, new ArrayList<Object>());
+                    Operator.NOTNULL, new ArrayList<>());
             FilterPredicate highScoreFilter = new FilterPredicate(
                 new Path(PlayerStats.class, dictionary, "countryIsoCode"),
                     Operator.IN,
@@ -132,7 +132,7 @@ public abstract class SQLUnitTest {
         WHERE_OR (() -> {
             FilterPredicate ratingFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "overallRating"),
-                    Operator.NOTNULL, new ArrayList<Object>());
+                    Operator.NOTNULL, new ArrayList<>());
             FilterPredicate highScoreFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "countryIsoCode"),
                     Operator.IN,
@@ -154,7 +154,7 @@ public abstract class SQLUnitTest {
             FilterPredicate dayFilter = new FilterPredicate(
                     new Path(playerStatsType, dictionary, "recordedDate", "recordedDate", dayArgument),
                     Operator.NOTNULL,
-                    new ArrayList<Object>());
+                    new ArrayList<>());
 
             return Query.builder()
                     .source(playerStatsTable)
@@ -180,13 +180,13 @@ public abstract class SQLUnitTest {
                     .havingFilter(new FilterPredicate(
                             new Path(PlayerStats.class, dictionary, "overallRating"),
                             Operator.NOTNULL,
-                            new ArrayList<Object>()))
+                            new ArrayList<>()))
                     .build()
         ),
         HAVING_METRICS_AND_DIMS (() -> {
             FilterPredicate ratingFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "overallRating"),
-                    Operator.NOTNULL, new ArrayList<Object>());
+                    Operator.NOTNULL, new ArrayList<>());
             FilterPredicate highScoreFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "highScore"),
                     Operator.GT,
@@ -201,7 +201,7 @@ public abstract class SQLUnitTest {
         HAVING_METRICS_OR_DIMS (() -> {
             FilterPredicate ratingFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "overallRating"),
-                    Operator.NOTNULL, new ArrayList<Object>());
+                    Operator.NOTNULL, new ArrayList<>());
             FilterPredicate highScoreFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "highScore"),
                     Operator.GT,
@@ -394,7 +394,7 @@ public abstract class SQLUnitTest {
             FilterPredicate dayFilter = new FilterPredicate(
                             new Path(playerStatsType, dictionary, "recordedDate", "recordedDate", dayArgument),
                             Operator.NOTNULL,
-                            new ArrayList<Object>());
+                            new ArrayList<>());
             // forces a join to look up countryIsoCode
             FilterExpression countryIsoCodeFilter = parseFilterExpression("countryIsoCode==USA", playerStatsType, false);
             AndFilterExpression andFilterExpression = new AndFilterExpression(playerLevelFilter, countryIsoCodeFilter);

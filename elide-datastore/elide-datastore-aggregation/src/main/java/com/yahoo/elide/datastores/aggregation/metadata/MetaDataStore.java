@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.Entity;
 
@@ -53,12 +54,8 @@ public class MetaDataStore implements DataStore {
             Arrays.asList(FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class,
                     javax.persistence.Entity.class);
 
-    private static final java.util.function.Function<String, HashMapDataStore> SERVER_ERROR =
-            new java.util.function.Function<String, HashMapDataStore>() {
-        @Override
-        public HashMapDataStore apply(String key) {
-            throw new InternalServerErrorException("API version " + key + " not found");
-        }
+    private static final Function<String, HashMapDataStore> SERVER_ERROR = key -> {
+        throw new InternalServerErrorException("API version " + key + " not found");
     };
 
     @Getter
@@ -171,16 +168,13 @@ public class MetaDataStore implements DataStore {
         }
     }
 
-    private final java.util.function.Function<String, HashMapDataStore> getHashMapDataStoreInitializer() {
-        return new java.util.function.Function<String, HashMapDataStore>() {
-            @Override
-            public HashMapDataStore apply(String key) {
-                HashMapDataStore hashMapDataStore = new HashMapDataStore(META_DATA_PACKAGE);
-                EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
-                metadataModelClasses.forEach(dictionary::bindEntity);
-                hashMapDataStore.populateEntityDictionary(dictionary);
-                return hashMapDataStore;
-            }
+    private final Function<String, HashMapDataStore> getHashMapDataStoreInitializer() {
+        return key -> {
+            HashMapDataStore hashMapDataStore = new HashMapDataStore(META_DATA_PACKAGE);
+            EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+            metadataModelClasses.forEach(dictionary::bindEntity);
+            hashMapDataStore.populateEntityDictionary(dictionary);
+            return hashMapDataStore;
         };
     }
 

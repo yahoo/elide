@@ -32,5 +32,5 @@ public class ElideDBConfig {
 
     @JsonProperty("dbconfigs")
     @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<DBConfig> dbconfigs = new LinkedHashSet<DBConfig>();
+    private Set<DBConfig> dbconfigs = new LinkedHashSet<>();
 }

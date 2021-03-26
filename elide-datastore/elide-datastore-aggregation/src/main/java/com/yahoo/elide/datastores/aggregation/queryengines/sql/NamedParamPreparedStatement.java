@@ -32,7 +32,7 @@ public class NamedParamPreparedStatement {
 
     @Getter
     private PreparedStatement preparedStatement;
-    private List<String> fields = new ArrayList<String>();
+    private List<String> fields = new ArrayList<>();
 
     public NamedParamPreparedStatement(Connection conn, String namedParamQuery) throws SQLException {
 
