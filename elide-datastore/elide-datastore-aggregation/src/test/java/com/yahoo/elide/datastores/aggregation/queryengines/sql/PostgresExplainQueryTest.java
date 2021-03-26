@@ -153,7 +153,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "PARSEDATETIME(FORMATDATETIME("
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), "
                         + "'yyyy-MM-dd') LIMIT 1 OFFSET 0";
-        List<String> expectedQueryList = new ArrayList<String>();
+        List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(expectedQueryStr1);
         expectedQueryList.add(expectedQueryStr2);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.PAGINATION_TOTAL.getQuery()));
@@ -277,7 +277,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "HAVING MIN(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"lowScore\") > :XXX "
                         + "ORDER BY MIN(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"lowScore\") DESC LIMIT 5 OFFSET 10";
 
-        List<String> expectedQueryList = new ArrayList<String>();
+        List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(expectedQueryStr1);
         expectedQueryList.add(expectedQueryStr2);
 
@@ -309,7 +309,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\", "
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM')\n";
 
-        List<String> expectedQueryList = new ArrayList<String>();
+        List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(exptectedQueryStr);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
@@ -338,7 +338,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') "
                         + "HAVING AVG(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"highScore\") > :XXX\n";
 
-        List<String> expectedQueryList = new ArrayList<String>();
+        List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(exptectedQueryStr);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
@@ -368,7 +368,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\", "
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM')\n";
 
-        List<String> expectedQueryList = new ArrayList<String>();
+        List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(exptectedQueryStr);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
@@ -411,7 +411,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                 + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') "
                 + "LIMIT 1 OFFSET 0\n";
 
-        List<String> expectedQueryList = new ArrayList<String>();
+        List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(exptectedQueryStr1);
         expectedQueryList.add(exptectedQueryStr2);
 
@@ -441,7 +441,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') "
                         + "ORDER BY \"dailyAverageScorePerPeriod\" DESC,\"overallRating\" DESC";
 
-        List<String> expectedQueryList = new ArrayList<String>();
+        List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(exptectedQueryStr);
 
         compareQueryLists(expectedQueryList, engine.explain(query));

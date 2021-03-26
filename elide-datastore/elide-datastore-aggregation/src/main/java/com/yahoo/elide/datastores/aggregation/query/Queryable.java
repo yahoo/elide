@@ -149,7 +149,7 @@ public interface Queryable {
      * @return the connectinon details
      */
     default ConnectionDetails getConnectionDetails() {
-        return getSource().getConnectionDetails();
+        return getRoot().getConnectionDetails();
     }
 
     /**
@@ -171,6 +171,19 @@ public interface Queryable {
 
         //A table with no source is not nested.  Neither is a query with a source table.
         return (source != null && source.getSource() != source);
+    }
+
+    /**
+     * Gets the root table for the queryable.
+     * @return the root table.
+     */
+    default Queryable getRoot() {
+        Queryable current = this;
+        while (current.isNested()) {
+            current = current.getSource();
+        }
+
+        return current.getSource();
     }
 
     /**

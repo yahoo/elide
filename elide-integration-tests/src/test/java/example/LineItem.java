@@ -43,7 +43,7 @@ public class LineItem {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof LineItem)) {
+        if (!(obj instanceof LineItem)) {
             return false;
         }
 

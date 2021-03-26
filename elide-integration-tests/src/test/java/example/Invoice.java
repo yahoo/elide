@@ -44,7 +44,7 @@ public class Invoice {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof Invoice)) {
+        if (!(obj instanceof Invoice)) {
             return false;
         }
 

@@ -15,6 +15,8 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.apache.commons.lang3.StringUtils;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
@@ -73,7 +75,7 @@ public class JSONExportFormatter implements TableExportFormatter {
 
         for (Attribute field : attrFields) {
             String alias = field.getAlias();
-            String fieldName = alias != null && !alias.isEmpty() ? alias : field.getName();
+            String fieldName = StringUtils.isNotEmpty(alias) ? alias : field.getName();
             attributes.put(fieldName, resource.getAttribute(field));
         }
         return attributes;

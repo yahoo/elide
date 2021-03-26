@@ -180,8 +180,7 @@ public class ElideResourceConfig extends ResourceConfig {
                         bind(resultStorageEngine).to(ResultStorageEngine.class).named("resultStorageEngine");
 
                         // Initialize the Formatters.
-                        Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<ResultType,
-                            TableExportFormatter>();
+                        Map<ResultType, TableExportFormatter> supportedFormatters = new HashMap<>();
                         supportedFormatters.put(ResultType.CSV, new CSVExportFormatter(elide,
                                 asyncProperties.skipCSVHeader()));
                         supportedFormatters.put(ResultType.JSON, new JSONExportFormatter(elide));

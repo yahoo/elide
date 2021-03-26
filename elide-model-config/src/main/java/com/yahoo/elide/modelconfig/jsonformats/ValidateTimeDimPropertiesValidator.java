@@ -14,10 +14,9 @@ import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.keyword.validator.AbstractKeywordValidator;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -28,7 +27,7 @@ import java.util.Set;
  */
 public class ValidateTimeDimPropertiesValidator extends AbstractKeywordValidator {
 
-    private static final Set<String> ADDITIONAL_TIME_DIM_PROPERTIES = new HashSet<>(Arrays.asList("grains"));
+    private static final Set<String> ADDITIONAL_TIME_DIM_PROPERTIES = ImmutableSet.of("grains");
 
     public static final String KEYWORD = "validateTimeDimensionProperties";
     public static final String ADDITIONAL_KEY = "validateTimeDimensionProperties.error.addtional";

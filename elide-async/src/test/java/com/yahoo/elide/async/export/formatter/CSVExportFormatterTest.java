@@ -74,7 +74,7 @@ public class CSVExportFormatterTest {
                 + ", \"" + FORMATTER.format(queryObj.getCreatedOn());
 
         // Prepare EntityProjection
-        Set<Attribute> attributes = new LinkedHashSet<Attribute>();
+        Set<Attribute> attributes = new LinkedHashSet<>();
         attributes.add(Attribute.builder().type(TableExport.class).name("query").alias("query").build());
         attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
         attributes.add(Attribute.builder().type(TableExport.class).name("createdOn").build());
@@ -126,7 +126,7 @@ public class CSVExportFormatterTest {
         TableExport queryObj = new TableExport();
 
         // Prepare EntityProjection
-        Set<Attribute> attributes = new LinkedHashSet<Attribute>();
+        Set<Attribute> attributes = new LinkedHashSet<>();
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
 
         String output = formatter.preFormat(projection, queryObj);
@@ -160,7 +160,7 @@ public class CSVExportFormatterTest {
         queryObj.setResultType(ResultType.CSV);
 
         // Prepare EntityProjection
-        Set<Attribute> attributes = new LinkedHashSet<Attribute>();
+        Set<Attribute> attributes = new LinkedHashSet<>();
         attributes.add(Attribute.builder().type(TableExport.class).name("query").alias("query").build());
         attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();
@@ -182,7 +182,7 @@ public class CSVExportFormatterTest {
         queryObj.setResultType(ResultType.CSV);
 
         // Prepare EntityProjection
-        Set<Attribute> attributes = new LinkedHashSet<Attribute>();
+        Set<Attribute> attributes = new LinkedHashSet<>();
         attributes.add(Attribute.builder().type(TableExport.class).name("query").alias("query").build());
         attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();

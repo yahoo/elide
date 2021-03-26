@@ -97,7 +97,7 @@ public class PlayerStatsWithView {
         this.id = id;
     }
 
-    @MetricFormula("MAX({{highScore}})")
+    @MetricFormula("MAX({{$highScore}})")
     @ColumnMeta(description = "very awesome score")
     public long getHighScore() {
         return highScore;
@@ -107,7 +107,7 @@ public class PlayerStatsWithView {
         this.highScore = highScore;
     }
 
-    @MetricFormula("MIN({{lowScore}})")
+    @MetricFormula("MIN({{$lowScore}})")
     public long getLowScore() {
         return lowScore;
     }
@@ -126,7 +126,7 @@ public class PlayerStatsWithView {
         this.overallRating = overallRating;
     }
 
-    @Join("{{country_id}} = {{country.id}}")
+    @Join("{{$country_id}} = {{country.$id}}")
     public Country getCountry() {
         return country;
     }
@@ -135,7 +135,7 @@ public class PlayerStatsWithView {
         this.country = country;
     }
 
-    @Join("{{sub_country_id}} = {{subCountry.id}}")
+    @Join("{{$sub_country_id}} = {{subCountry.$id}}")
     public SubCountry getSubCountry() {
         return subCountry;
     }
@@ -144,7 +144,7 @@ public class PlayerStatsWithView {
         this.subCountry = subCountry;
     }
 
-    @Join("{{player_id}} = {{player.id}}")
+    @Join("{{$player_id}} = {{player.$id}}")
     public Player getPlayer() {
         return player;
     }
@@ -187,12 +187,12 @@ public class PlayerStatsWithView {
         this.subCountryIsoCode = isoCode;
     }
 
-    @Join("{{country_id}} = {{countryView.id}}")
+    @Join("{{$country_id}} = {{countryView.$id}}")
     public CountryView getCountryView() {
         return countryView;
     }
 
-    @DimensionFormula("{{countryView.iso_code}}")
+    @DimensionFormula("{{countryView.$iso_code}}")
     public String getCountryViewIsoCode() {
         return countryViewIsoCode;
     }

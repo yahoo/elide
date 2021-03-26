@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.modelconfig;
 
-import static com.yahoo.elide.modelconfig.DynamicConfigHelpers.isNullOrEmpty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -17,6 +16,7 @@ import com.github.fge.jsonschema.library.Library;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.fge.msgsimple.bundle.MessageBundle;
+import org.apache.commons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -99,7 +99,7 @@ public class DynamicConfigSchemaValidator {
     }
 
     private static String getErrorMessages(ProcessingReport report) {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         report.forEach(msg -> addEmbeddedMessages(msg.asJson(), list, 0));
 
         return NEWLINE + String.join(NEWLINE, list);
@@ -115,7 +115,7 @@ public class DynamicConfigSchemaValidator {
                 String instancePointer = extractPointer(root, "instance");
                 String schemaPointer = extractPointer(root, "schema");
 
-                if (!(isNullOrEmpty(instancePointer) || isNullOrEmpty(schemaPointer))) {
+                if (StringUtils.isNoneBlank(instancePointer, schemaPointer)) {
                     msg = "Instance[" + instancePointer + "] failed to validate against schema[" + schemaPointer + "]. "
                                     + msg;
                 }

@@ -59,6 +59,7 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.Getter;
@@ -136,7 +137,7 @@ public class EntityDictionary {
      *               to their implementing classes
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks) {
-        this(checks, Collections.EMPTY_SET);
+        this(checks, Collections.emptySet());
     }
 
     /**
@@ -157,18 +158,15 @@ public class EntityDictionary {
         initializeChecks();
 
         //Default injector only injects Elide internals.
-        this.injector = new Injector() {
-            @Override
-            public void inject(Object entity) {
-                if (entity instanceof FilterExpressionCheck) {
-                    try {
-                        java.lang.reflect.Field field =
-                                FilterExpressionCheck.class.getDeclaredField("dictionary");
-                        field.setAccessible(true);
-                        field.set(entity, EntityDictionary.this);
-                    } catch (NoSuchFieldException | IllegalAccessException e) {
-                        throw new IllegalStateException(e);
-                    }
+        this.injector = entity -> {
+            if (entity instanceof FilterExpressionCheck) {
+                try {
+                    java.lang.reflect.Field field =
+                            FilterExpressionCheck.class.getDeclaredField("dictionary");
+                    field.setAccessible(true);
+                    field.set(entity, EntityDictionary.this);
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    throw new IllegalStateException(e);
                 }
             }
         };
@@ -185,7 +183,7 @@ public class EntityDictionary {
      *                 initialize Elide models.
      */
     public EntityDictionary(Map<String, Class<? extends Check>> checks, Injector injector) {
-        this(checks, injector, Collections.EMPTY_SET);
+        this(checks, injector, Collections.emptySet());
     }
 
     /**
@@ -207,7 +205,7 @@ public class EntityDictionary {
     public EntityDictionary(Map<String, Class<? extends Check>> checks,
                             Injector injector,
                             Function<Class, Serde> serdeLookup) {
-        this(checks, injector, serdeLookup, Collections.EMPTY_SET);
+        this(checks, injector, serdeLookup, Collections.emptySet());
     }
 
     public EntityDictionary(Map<String, Class<? extends Check>> checks,
@@ -1368,11 +1366,8 @@ public class EntityDictionary {
     public boolean isComputed(Type<?> entityClass, String fieldName) {
         AccessibleObject fieldOrMethod = getAccessibleObject(entityClass, fieldName);
 
-        if (fieldOrMethod == null) {
-            return false;
-        }
-
-        return (fieldOrMethod.isAnnotationPresent(ComputedAttribute.class)
+        return fieldOrMethod != null
+                && (fieldOrMethod.isAnnotationPresent(ComputedAttribute.class)
                 || fieldOrMethod.isAnnotationPresent(ComputedRelationship.class));
     }
 
@@ -1432,7 +1427,7 @@ public class EntityDictionary {
      */
     public void addSecurityChecks(Set<Class<?>> classes) {
 
-        if (classes == null || classes.size() == 0) {
+        if (CollectionUtils.isEmpty(classes)) {
             return;
         }
 
@@ -1997,32 +1992,25 @@ public class EntityDictionary {
     }
 
     private static LifeCycleHook generateHook(Method method) {
-        return new LifeCycleHook() {
-            @Override
-            public void execute(Operation operation,
-                    TransactionPhase phase,
-                    Object model,
-                    com.yahoo.elide.core.security.RequestScope scope,
-                    Optional changes) {
-                try {
-                    int paramCount = method.getParameterCount();
-                    Class<?>[] paramTypes = method.getParameterTypes();
+        return (operation, phase, model, scope, changes) -> {
+            try {
+                int paramCount = method.getParameterCount();
+                Class<?>[] paramTypes = method.getParameterTypes();
 
-                    if (changes.isPresent() && paramCount == 2
-                            && paramTypes[0].isInstance(scope)
-                            && paramTypes[1].isInstance(changes.get())) {
-                        method.invoke(model, scope, changes.get());
-                    } else if (paramCount == 1 && paramTypes[0].isInstance(scope)) {
-                        method.invoke(model, scope);
-                    } else if (paramCount == 0) {
-                        method.invoke(model);
-                    } else {
-                        throw new IllegalArgumentException();
-                    }
-                } catch (ReflectiveOperationException e) {
-                    Throwables.propagateIfPossible(e.getCause());
-                    throw new IllegalArgumentException(e);
+                if (changes.isPresent() && paramCount == 2
+                        && paramTypes[0].isInstance(scope)
+                        && paramTypes[1].isInstance(changes.get())) {
+                    method.invoke(model, scope, changes.get());
+                } else if (paramCount == 1 && paramTypes[0].isInstance(scope)) {
+                    method.invoke(model, scope);
+                } else if (paramCount == 0) {
+                    method.invoke(model);
+                } else {
+                    throw new IllegalArgumentException();
                 }
+            } catch (ReflectiveOperationException e) {
+                Throwables.propagateIfPossible(e.getCause());
+                throw new IllegalArgumentException(e);
             }
         };
     }

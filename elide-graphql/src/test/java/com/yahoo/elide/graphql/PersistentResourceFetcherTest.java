@@ -77,9 +77,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                 .build();
 
-        settings.getSerdes().forEach((targetType, serde) -> {
-            CoerceUtil.register(targetType, serde);
-        });
+        settings.getSerdes().forEach(CoerceUtil::register);
 
         hashMapDataStore = new HashMapDataStore(Author.class.getPackage());
 
@@ -182,7 +180,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
     }
 
     protected void assertQueryEquals(String graphQLRequest, String expectedResponse) throws Exception {
-        assertQueryEquals(graphQLRequest, expectedResponse, Collections.EMPTY_MAP);
+        assertQueryEquals(graphQLRequest, expectedResponse, Collections.emptyMap());
     }
 
     protected void assertQueryEquals(String graphQLRequest, String expectedResponse, Map<String, Object> variables) throws Exception {

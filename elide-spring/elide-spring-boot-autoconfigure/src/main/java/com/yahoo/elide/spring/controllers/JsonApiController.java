@@ -14,6 +14,7 @@ import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.spring.security.AuthenticationUser;
 import com.yahoo.elide.utils.HeaderUtils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Configuration;
@@ -184,7 +185,7 @@ public class JsonApiController {
     protected String getBaseUrlEndpoint() {
         String baseUrl = elide.getElideSettings().getBaseUrl();
 
-        if (baseUrl == null || baseUrl.isEmpty()) {
+        if (StringUtils.isEmpty(baseUrl)) {
             baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
         }
 
