@@ -269,12 +269,9 @@ public class QueryRunner {
             requestScope.getPermissionExecutor().executeCommitChecks();
             if (isMutation(query)) {
                 if (!result.getErrors().isEmpty()) {
-                    HashMap<String, Object> abortedResponseObject = new HashMap<String, Object>() {
-                        {
-                            put("errors", result.getErrors());
-                            put("data", null);
-                        }
-                    };
+                    HashMap<String, Object> abortedResponseObject = new HashMap<>();
+                    abortedResponseObject.put("errors", result.getErrors());
+                    abortedResponseObject.put("data", null);
                     // Do not commit. Throw OK response to process tx.close correctly.
                     throw new WebApplicationException(
                             Response.ok(mapper.writeValueAsString(abortedResponseObject)).build());
