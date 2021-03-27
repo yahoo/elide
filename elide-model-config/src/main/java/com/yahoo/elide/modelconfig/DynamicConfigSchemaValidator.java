@@ -95,6 +95,9 @@ public class DynamicConfigSchemaValidator {
     }
 
     private static String getErrorMessages(ProcessingReport report) {
+        if (report == null) {
+            return null;
+        }
         List<String> list = new ArrayList<>();
         report.forEach(msg -> addEmbeddedMessages(msg.asJson(), list, 0));
 
