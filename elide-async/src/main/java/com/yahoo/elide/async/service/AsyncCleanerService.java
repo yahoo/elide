@@ -34,7 +34,7 @@ public class AsyncCleanerService {
             Integer cancelDelaySeconds, AsyncAPIDAO asyncQueryDao) {
 
         //If query is still running for twice than maxRunTime, then interrupt did not work due to host/app crash.
-        int queryRunTimeThresholdMinutes = Math.round((maxRunTimeSeconds * 2) / 60);
+        int queryRunTimeThresholdMinutes = (int) TimeUnit.SECONDS.toMinutes(maxRunTimeSeconds * 2);
 
         // Setting up query cleaner that marks long running query as TIMEDOUT.
         ScheduledExecutorService cleaner = Executors.newSingleThreadScheduledExecutor();

@@ -8,8 +8,6 @@ package com.yahoo.elide.graphql;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-
 /**
  * Test the Add operation.
  */

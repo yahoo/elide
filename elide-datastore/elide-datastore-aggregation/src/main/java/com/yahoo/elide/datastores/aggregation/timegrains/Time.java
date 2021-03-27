@@ -20,6 +20,7 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Time date type for all analytic model time dimensions.
@@ -132,7 +133,7 @@ public class Time extends Date {
                 boolean supportsMinute,
                 boolean supportsSecond,
                 Serializer formatter) {
-        super(copy.atZone(ZoneOffset.systemDefault()).toEpochSecond() * 1000);
+        super(TimeUnit.SECONDS.toMillis(copy.atZone(ZoneOffset.systemDefault()).toEpochSecond()));
         this.supportsYear = supportsYear;
         this.supportsMonth = supportsMonth;
         this.supportsDay = supportsDay;
