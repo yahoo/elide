@@ -13,7 +13,9 @@ import static com.yahoo.elide.test.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
+import static io.restassured.RestAssured.withArgs;
 import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItems;
@@ -70,6 +72,7 @@ import javax.persistence.Persistence;
 import javax.sql.DataSource;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 
 /**
@@ -1374,5 +1377,60 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         ).toResponse();
 
         runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testSchemaIntrospection() throws Exception {
+        String graphQLRequest = "{"
+                + "__schema {"
+                + "   mutationType {"
+                + "     name "
+                + "     fields {"
+                + "       name "
+                + "       args {"
+                + "          name"
+                + "          defaultValue"
+                + "       }"
+                + "     }"
+                + "   }"
+                + "}"
+                + "}";
+
+        String query = toJsonQuery(graphQLRequest, new HashMap<>());
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(query)
+            .post("/graphQL")
+            .then()
+            .statusCode(HttpStatus.SC_OK)
+            // Verify that the orderDetails Model has an argument "denominator".
+            .body("data.__schema.mutationType.fields.find { it.name == 'orderDetails' }.args.name[7] ", equalTo("denominator"));
+
+        graphQLRequest = "{"
+                + "__type(name: \"OrderDetails\") {"
+                + "   name"
+                + "   fields {"
+                + "     name "
+                + "     args {"
+                + "        name"
+                + "        defaultValue"
+                + "     }"
+                + "   }"
+                + "}"
+                + "}";
+
+        query = toJsonQuery(graphQLRequest, new HashMap<>());
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(query)
+            .post("/graphQL")
+            .then()
+            .statusCode(HttpStatus.SC_OK)
+            // Verify that the orderTotal attribute has an argument "precision".
+            .body("data.__type.fields.find { it.name == 'orderTotal' }.args.name[0]", equalTo("precision"));
     }
 }

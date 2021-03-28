@@ -51,6 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -195,6 +196,10 @@ public class GraphQLEntityProjectionMaker {
                 .type(entityType)
                 .pagination(PaginationImpl.getDefaultPagination(entityType, elideSettings));
 
+        // Add the Entity Arguments to the Projection
+        projectionBuilder.arguments(new HashSet<>(
+                getArguments(entityField, entityDictionary.getEntityArguments(entityType))
+                ));
         entityField.getSelectionSet().getSelections().forEach(selection -> addSelection(selection, projectionBuilder));
         entityField.getArguments().forEach(argument -> addArgument(argument, projectionBuilder));
 
@@ -349,11 +354,10 @@ public class GraphQLEntityProjectionMaker {
             addSorting(argument, projectionBuilder);
         } else if (ModelBuilder.ARGUMENT_FILTER.equals(argumentName)) {
             addFilter(argument, projectionBuilder);
-        } else if (isEntityArgument(argumentName, entityDictionary, projectionBuilder.getType())) {
-            addEntityArgument(argument, projectionBuilder);
         } else if (!ModelBuilder.ARGUMENT_OPERATION.equals(argumentName)
                 && !(ModelBuilder.ARGUMENT_IDS.equals(argumentName))
-                && !(ModelBuilder.ARGUMENT_DATA.equals(argumentName))) {
+                && !(ModelBuilder.ARGUMENT_DATA.equals(argumentName))
+                && !isEntityArgument(argumentName, entityDictionary, projectionBuilder.getType())) {
             addAttributeArgument(argument, projectionBuilder);
         }
     }
@@ -371,20 +375,6 @@ public class GraphQLEntityProjectionMaker {
         return dictionary.getEntityArguments(cls)
                 .stream()
                 .anyMatch(a -> a.getName().equals(argumentName));
-    }
-
-    /**
-     * Create a {@link com.yahoo.elide.core.request.Argument} object from GraphQL argument and attach it to the building
-     * {@link EntityProjection}.
-     *
-     * @param argument graphQL argument
-     * @param projectionBuilder projection that is being built
-     */
-    private void addEntityArgument(Argument argument, EntityProjectionBuilder projectionBuilder) {
-        projectionBuilder.argument(com.yahoo.elide.core.request.Argument.builder()
-                .name(argument.getName())
-                .value(variableResolver.resolveValue(argument.getValue()))
-                .build());
     }
 
     /**
