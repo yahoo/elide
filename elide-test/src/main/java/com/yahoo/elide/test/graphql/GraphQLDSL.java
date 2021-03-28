@@ -209,6 +209,8 @@ public final class GraphQLDSL {
      * @param object  Object to be serialized
      *
      * @return a string
+     *
+     * @throws IllegalStateException
      */
     public static String toJson(Object object) {
         try {
@@ -280,7 +282,7 @@ public final class GraphQLDSL {
     }
 
     /**
-     * Constructs a named query
+     * Constructs a named query.
      *
      * @param name  Query name
      * @param variableDefinitions  Optional variables
