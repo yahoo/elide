@@ -15,6 +15,7 @@ import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.NonEntityDictionary;
 import com.yahoo.elide.core.dictionary.TestDictionary;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.checks.Check;
@@ -32,6 +33,7 @@ import javax.persistence.Id;
 public class PermissionExpressionBuilderTest {
 
     private EntityDictionary dictionary;
+    private NonEntityDictionary nonEntityDictionary;
     private PermissionExpressionBuilder builder;
     private ElideSettings elideSettings;
 
@@ -42,9 +44,10 @@ public class PermissionExpressionBuilderTest {
         checks.put("user has no access", Role.NONE.class);
 
         dictionary = TestDictionary.getTestDictionary(checks);
+        nonEntityDictionary = new NonEntityDictionary();
 
         ExpressionResultCache cache = new ExpressionResultCache();
-        builder = new PermissionExpressionBuilder(cache, dictionary);
+        builder = new PermissionExpressionBuilder(cache, dictionary, nonEntityDictionary);
 
         elideSettings = new ElideSettingsBuilder(null)
                 .withEntityDictionary(dictionary)

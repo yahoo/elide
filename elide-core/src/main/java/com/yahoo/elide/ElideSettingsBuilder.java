@@ -10,6 +10,7 @@ import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.NonEntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.graphql.FilterDialect;
@@ -42,6 +43,7 @@ public class ElideSettingsBuilder {
     private AuditLogger auditLogger;
     private JsonApiMapper jsonApiMapper;
     private EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
+    private NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
     private Function<RequestScope, PermissionExecutor> permissionExecutorFunction = ActivePermissionExecutor::new;
     private List<JoinFilterDialect> joinFilterDialects;
     private List<SubqueryFilterDialect> subqueryFilterDialects;
@@ -81,22 +83,23 @@ public class ElideSettingsBuilder {
     public ElideSettings build() {
         if (joinFilterDialects.isEmpty()) {
             joinFilterDialects.add(new DefaultFilterDialect(entityDictionary));
-            joinFilterDialects.add(new RSQLFilterDialect(entityDictionary));
+            joinFilterDialects.add(new RSQLFilterDialect(entityDictionary, nonEntityDictionary));
         }
 
         if (subqueryFilterDialects.isEmpty()) {
             subqueryFilterDialects.add(new DefaultFilterDialect(entityDictionary));
-            subqueryFilterDialects.add(new RSQLFilterDialect(entityDictionary));
+            subqueryFilterDialects.add(new RSQLFilterDialect(entityDictionary, nonEntityDictionary));
         }
 
         if (graphqlFilterDialect == null) {
-            graphqlFilterDialect = new RSQLFilterDialect(entityDictionary);
+            graphqlFilterDialect = new RSQLFilterDialect(entityDictionary, nonEntityDictionary);
         }
 
         return new ElideSettings(
                 auditLogger,
                 dataStore,
                 entityDictionary,
+                nonEntityDictionary,
                 jsonApiMapper,
                 permissionExecutorFunction,
                 joinFilterDialects,
@@ -122,6 +125,11 @@ public class ElideSettingsBuilder {
 
     public ElideSettingsBuilder withEntityDictionary(EntityDictionary entityDictionary) {
         this.entityDictionary = entityDictionary;
+        return this;
+    }
+
+    public ElideSettingsBuilder withNonEntityDictionary(NonEntityDictionary nonEntityDictionary) {
+        this.nonEntityDictionary = nonEntityDictionary;
         return this;
     }
 

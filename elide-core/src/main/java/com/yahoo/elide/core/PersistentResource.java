@@ -1622,7 +1622,11 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      * @return the value
      */
     public static Object getValue(Object target, String fieldName, RequestScope requestScope) {
-        return requestScope.getDictionary().getValue(target, fieldName, requestScope);
+        try {
+            return requestScope.getDictionary().getValue(target, fieldName, requestScope);
+        } catch(Exception e){
+            return requestScope.getNonEntityDictionary().getValue(target, fieldName, requestScope);
+        }
     }
 
     /**

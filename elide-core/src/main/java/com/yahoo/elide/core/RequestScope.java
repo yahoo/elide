@@ -10,6 +10,7 @@ import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.NonEntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.filter.dialect.ParseException;
@@ -52,6 +53,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     @Getter private final DataStoreTransaction transaction;
     @Getter private final User user;
     @Getter protected final EntityDictionary dictionary;
+    @Getter protected final NonEntityDictionary nonEntityDictionary;
     @Getter private final JsonApiMapper mapper;
     @Getter private final AuditLogger auditLogger;
     @Getter private final Optional<MultivaluedMap<String, String>> queryParams;
@@ -117,6 +119,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.transaction = transaction;
         this.user = user;
         this.dictionary = elideSettings.getDictionary();
+        this.nonEntityDictionary = elideSettings.getNonEntityDictionary();
         this.mapper = elideSettings.getMapper();
         this.auditLogger = elideSettings.getAuditLogger();
         this.filterDialect = new MultipleFilterDialect(elideSettings.getJoinFilterDialects(),
@@ -206,6 +209,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.transaction = outerRequestScope.transaction;
         this.user = outerRequestScope.user;
         this.dictionary = outerRequestScope.dictionary;
+        this.nonEntityDictionary = outerRequestScope.getNonEntityDictionary();
         this.mapper = outerRequestScope.mapper;
         this.auditLogger = outerRequestScope.auditLogger;
         this.queryParams = Optional.empty();

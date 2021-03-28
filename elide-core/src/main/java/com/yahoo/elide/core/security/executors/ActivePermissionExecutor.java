@@ -71,7 +71,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         ExpressionResultCache cache = new ExpressionResultCache();
 
         this.requestScope = requestScope;
-        this.expressionBuilder = new PermissionExpressionBuilder(cache, requestScope.getDictionary());
+        this.expressionBuilder = new PermissionExpressionBuilder(cache, requestScope.getDictionary(), requestScope.getNonEntityDictionary());
         userPermissionCheckCache = new HashMap<>();
         checkStats = new HashMap<>();
         this.verbose = verbose;

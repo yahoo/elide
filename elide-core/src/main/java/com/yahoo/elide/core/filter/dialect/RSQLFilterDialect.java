@@ -10,9 +10,12 @@ import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 import static com.yahoo.elide.core.type.ClassType.NUMBER_TYPE;
 import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import static com.yahoo.elide.core.utils.TypeHelper.isPrimitiveNumberType;
+
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.NonEntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.dialect.graphql.FilterDialect;
@@ -49,16 +52,11 @@ import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.persistence.Embeddable;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
@@ -95,6 +93,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
 
     private final RSQLParser parser;
     private final EntityDictionary dictionary;
+    private final NonEntityDictionary nonEntityDictionary;
     private final CaseSensitivityStrategy caseSensitivityStrategy;
 
     public RSQLFilterDialect(EntityDictionary dictionary) {
@@ -102,8 +101,17 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
     }
 
     public RSQLFilterDialect(EntityDictionary dictionary, CaseSensitivityStrategy caseSensitivityStrategy) {
+        this(dictionary, new NonEntityDictionary(), caseSensitivityStrategy);
+    }
+
+    public RSQLFilterDialect(EntityDictionary dictionary, NonEntityDictionary nonEntityDictionary) {
+        this(dictionary, nonEntityDictionary, new CaseSensitivityStrategy.UseColumnCollation());
+    }
+
+    public RSQLFilterDialect(EntityDictionary dictionary, NonEntityDictionary nonEntityDictionary, CaseSensitivityStrategy caseSensitivityStrategy) {
         parser = new RSQLParser(getDefaultOperatorsWithIsnull());
         this.dictionary = dictionary;
+        this.nonEntityDictionary = nonEntityDictionary;
         this.caseSensitivityStrategy = caseSensitivityStrategy;
     }
 
@@ -341,8 +349,24 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                     associationName = associationName.substring(0, argsIndex);
                 }
                 addDefaultArguments(arguments, dictionary.getAttributeArguments(entityType, associationName));
-                String typeName = dictionary.getJsonAliasFor(entityType);
-                Type fieldType = dictionary.getParameterizedType(entityType, associationName);
+
+                String typeName;
+                Type fieldType;
+                try {
+                    typeName = dictionary.getJsonAliasFor(entityType);
+                    fieldType = dictionary.getParameterizedType(entityType, associationName);
+                } catch(IllegalArgumentException e){
+                    if(dictionary.getFirstAnnotation(entityType,
+                            Arrays.asList(Embeddable.class)) instanceof Embeddable){
+                        nonEntityDictionary.bindEntity(entityType);
+                        typeName = nonEntityDictionary.getJsonAliasFor(entityType);
+                        fieldType = nonEntityDictionary.getParameterizedType(entityType, associationName);
+                    } else {
+                        throw e;
+                    }
+                }
+
+
 
                 if (fieldType == null) {
                     throw new RSQLParseException(
@@ -455,17 +479,34 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
             }
 
             if (op.equals(HASMEMBER_OP) || op.equals(HASNOMEMBER_OP)) {
-                if (FilterPredicate.toManyInPath(dictionary, path)) {
-                    if (FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, COLLECTION_TYPE)) {
-                        throw new RSQLParseException("Invalid Path: Last Path Element cannot be a collection type");
+                try {
+                    if (FilterPredicate.toManyInPath(dictionary, path)) {
+                        if (FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, COLLECTION_TYPE)) {
+                            throw new RSQLParseException("Invalid Path: Last Path Element cannot be a collection type");
+                        }
+                    } else if (!FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, COLLECTION_TYPE)) {
+                        throw new RSQLParseException("Invalid Path: Last Path Element has to be a collection type");
                     }
-                } else if (!FilterPredicate.isLastPathElementAssignableFrom(dictionary, path, COLLECTION_TYPE)) {
-                    throw new RSQLParseException("Invalid Path: Last Path Element has to be a collection type");
+                } catch(IllegalArgumentException e){
+                    if (FilterPredicate.toManyInPath(nonEntityDictionary, path)) {
+                        if (FilterPredicate.isLastPathElementAssignableFrom(nonEntityDictionary, path, COLLECTION_TYPE)) {
+                            throw new RSQLParseException("Invalid Path: Last Path Element cannot be a collection type");
+                        }
+                    } else if (!FilterPredicate.isLastPathElementAssignableFrom(nonEntityDictionary, path, COLLECTION_TYPE)) {
+                        throw new RSQLParseException("Invalid Path: Last Path Element has to be a collection type");
+                    }
                 }
             }
 
-            if (FilterPredicate.toManyInPath(dictionary, path) && !allowNestedToManyAssociations) {
-                throw new RSQLParseException(String.format("Invalid association %s", relationship));
+
+            try {
+                if (FilterPredicate.toManyInPath(dictionary, path) && !allowNestedToManyAssociations) {
+                    throw new RSQLParseException(String.format("Invalid association %s", relationship));
+                }
+            } catch(IllegalArgumentException e){
+                if (FilterPredicate.toManyInPath(nonEntityDictionary, path) && !allowNestedToManyAssociations) {
+                    throw new RSQLParseException(String.format("Invalid association %s", relationship));
+                }
             }
 
             //handles '=isnull=' op before coerce arguments

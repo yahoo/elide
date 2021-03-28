@@ -31,8 +31,12 @@ public class FilterPredicatePushdownExtractor implements FilterExpressionVisitor
             Type<?> entityClass = pathElement.getType();
             String fieldName = pathElement.getFieldName();
 
-            if (dictionary.isComputed(entityClass, fieldName)) {
-                filterInMemory = true;
+            try {
+                if (dictionary.isComputed(entityClass, fieldName)) {
+                    filterInMemory = true;
+                }
+            }catch(Exception e){
+                filterInMemory = false;
             }
         }
 
