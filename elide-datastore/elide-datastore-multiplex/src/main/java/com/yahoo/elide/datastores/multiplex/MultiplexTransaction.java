@@ -143,7 +143,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T, R> R getRelation(DataStoreTransaction relationTx,
+    public <T, R> R getRelation(DataStoreTransaction tx,
                               T entity,
                               Relationship relation,
                               RequestScope scope) {
@@ -152,7 +152,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
         Sorting sorting = relation.getProjection().getSorting();
         Pagination pagination = relation.getProjection().getPagination();
 
-        relationTx = getRelationTransaction(entity, relation.getName());
+        DataStoreTransaction relationTx = getRelationTransaction(entity, relation.getName());
         Type<Object> entityType = EntityDictionary.getType(entity);
         DataStoreTransaction entityTransaction = getTransaction(entityType);
 
@@ -187,21 +187,21 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T, R> void updateToManyRelation(DataStoreTransaction relationTx,
+    public <T, R> void updateToManyRelation(DataStoreTransaction tx,
                                      T entity, String relationName,
                                      Set<R> newRelationships,
                                      Set<R> deletedRelationships,
                                      RequestScope scope) {
-        relationTx = getRelationTransaction(entity, relationName);
+        DataStoreTransaction relationTx = getRelationTransaction(entity, relationName);
         DataStoreTransaction entityTransaction = getTransaction(EntityDictionary.getType(entity));
         entityTransaction.updateToManyRelation(relationTx, entity, relationName,
                 newRelationships, deletedRelationships, scope);
     }
 
     @Override
-    public <T, R> void updateToOneRelation(DataStoreTransaction relationTx, T entity,
+    public <T, R> void updateToOneRelation(DataStoreTransaction tx, T entity,
                                     String relationName, R relationshipValue, RequestScope scope) {
-        relationTx = getRelationTransaction(entity, relationName);
+        DataStoreTransaction relationTx = getRelationTransaction(entity, relationName);
         DataStoreTransaction entityTransaction = getTransaction(EntityDictionary.getType(entity));
         entityTransaction.updateToOneRelation(relationTx, entity, relationName, relationshipValue, scope);
     }
