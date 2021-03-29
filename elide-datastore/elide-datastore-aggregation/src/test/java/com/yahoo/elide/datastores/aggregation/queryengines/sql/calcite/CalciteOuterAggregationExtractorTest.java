@@ -65,4 +65,19 @@ public class CalciteOuterAggregationExtractorTest {
 
         assertEquals(expected, actual);
     }
+
+    @Test
+    public void testVarPopFunction() throws Exception {
+        String sql = "VAR_POP(blah)";
+        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
+        SqlNode node = sqlParser.parseExpression();
+
+        List<List<String>> substitutions = Arrays.asList(Arrays.asList("SUB1", "SUB2", "SUB3"));
+
+        CalciteOuterAggregationExtractor extractor = new CalciteOuterAggregationExtractor(dialect, substitutions);
+        String actual = node.accept(extractor).toSqlString(dialect.getCalciteDialect()).getSql();
+        String expected = "(SUM(`SUB1`) - SUM(`SUB2`) * SUM(`SUB2`) / COUNT(`SUB3`)) / COUNT(`SUB3`)";
+
+        assertEquals(expected, actual);
+    }
 }

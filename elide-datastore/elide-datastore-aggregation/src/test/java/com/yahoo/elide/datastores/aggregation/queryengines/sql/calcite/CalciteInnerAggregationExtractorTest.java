@@ -62,4 +62,19 @@ public class CalciteInnerAggregationExtractorTest {
         assertEquals("SUM(`blah`)", aggregations.get(0).get(0));
         assertEquals("COUNT(`blah`)", aggregations.get(0).get(1));
     }
+
+    @Test
+    public void testVarPopFunction() throws Exception {
+        String sql = "VAR_POP(blah)";
+        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
+        SqlNode node = sqlParser.parseExpression();
+        CalciteInnerAggregationExtractor extractor = new CalciteInnerAggregationExtractor(dialect);
+        List<List<String>> aggregations = node.accept(extractor);
+
+        assertEquals(1, aggregations.size());
+        assertEquals(3, aggregations.get(0).size());
+        assertEquals("SUM(`blah` * `blah`)", aggregations.get(0).get(0));
+        assertEquals("SUM(`blah`)", aggregations.get(0).get(1));
+        assertEquals("COUNT(`blah`)", aggregations.get(0).get(2));
+    }
 }

@@ -64,7 +64,7 @@ public abstract class AbstractSqlDialect implements SQLDialect {
                     .innerTemplate("SUM(%1$s * %1$s)")
                     .innerTemplate("SUM(%1$s)")
                     .innerTemplate("COUNT(%1$s)")
-                    .outerTemplate("SUM(%1$s) - SUM(%2$s) * SUM(%2$s) / COUNT(%3$s)")
+                    .outerTemplate("(SUM(%1$s) - SUM(%2$s) * SUM(%2$s) / COUNT(%3$s)) / COUNT(%3$s)")
                     .build()
     };
 
