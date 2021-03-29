@@ -23,23 +23,23 @@ public class CalciteInnerAggregationExtractorTest {
     @Test
     public void testExpressionParsing() throws Exception {
         String sql = "        SUM (CASE\n"
-                + "                WHEN 'number_of_lectures' > 20 then 1\n"
+                + "                WHEN `number_of_lectures` > 20 then 1\n"
                 + "                ELSE 0\n"
                 + "        END) / SUM(blah)";
-        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config());
+        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
         SqlNode node = sqlParser.parseExpression();
         CalciteInnerAggregationExtractor extractor = new CalciteInnerAggregationExtractor(dialect);
         List<String> aggregations = node.accept(extractor);
 
         assertEquals(2, aggregations.size());
-        assertEquals("SUM(CASE WHEN 'number_of_lectures' > 20 THEN 1 ELSE 0 END)", aggregations.get(0));
-        assertEquals("SUM(BLAH)", aggregations.get(1));
+        assertEquals("SUM(CASE WHEN `number_of_lectures` > 20 THEN 1 ELSE 0 END)", aggregations.get(0));
+        assertEquals("SUM(`blah`)", aggregations.get(1));
     }
 
     @Test
     public void testInvalidAggregationFunction() throws Exception {
         String sql = "CUSTOM_SUM(blah)";
-        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config());
+        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
         SqlNode node = sqlParser.parseExpression();
         CalciteInnerAggregationExtractor extractor = new CalciteInnerAggregationExtractor(dialect);
         List<String> aggregations = node.accept(extractor);
@@ -50,13 +50,13 @@ public class CalciteInnerAggregationExtractorTest {
     @Test
     public void testAverageFunction() throws Exception {
         String sql = "AVG(blah)";
-        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config());
+        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
         SqlNode node = sqlParser.parseExpression();
         CalciteInnerAggregationExtractor extractor = new CalciteInnerAggregationExtractor(dialect);
         List<String> aggregations = node.accept(extractor);
 
         assertEquals(2, aggregations.size());
-        assertEquals("SUM(BLAH)", aggregations.get(0));
-        assertEquals("COUNT(BLAH)", aggregations.get(1));
+        assertEquals("SUM(`blah`)", aggregations.get(0));
+        assertEquals("COUNT(`blah`)", aggregations.get(1));
     }
 }

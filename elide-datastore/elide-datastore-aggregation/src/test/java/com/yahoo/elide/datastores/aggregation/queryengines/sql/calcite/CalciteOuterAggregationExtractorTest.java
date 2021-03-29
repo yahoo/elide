@@ -7,22 +7,18 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import org.apache.calcite.avatica.util.Casing;
-import org.apache.calcite.sql.SqlDialect;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.H2Dialect;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 
 public class CalciteOuterAggregationExtractorTest {
 
-    private SqlDialect dialect = new SqlDialect(SqlDialect.EMPTY_CONTEXT
-            .withCaseSensitive(true)
-            .withQuotedCasing(Casing.UNCHANGED)
-            .withUnquotedCasing(Casing.UNCHANGED));
+    private SQLDialect dialect = new H2Dialect();
 
     @Test
     public void testExpressionParsing() throws Exception {
@@ -30,13 +26,15 @@ public class CalciteOuterAggregationExtractorTest {
                 + "                WHEN 'number_of_lectures' > 20 then 1\n"
                 + "                ELSE 0\n"
                 + "        END) / SUM(blah)";
-        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config());
+
+        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
         SqlNode node = sqlParser.parseExpression();
 
         List<String> substitutions = Arrays.asList("SUB1", "SUB2");
-        CalciteOuterAggregationExtractor extractor = new CalciteOuterAggregationExtractor(substitutions.iterator());
-        String actual = node.accept(extractor).toSqlString(dialect).getSql();
-        String expected = "SUM(SUB1) / SUM(SUB2)";
+        CalciteOuterAggregationExtractor extractor = new CalciteOuterAggregationExtractor(dialect,
+                substitutions.iterator());
+        String actual = node.accept(extractor).toSqlString(dialect.getCalciteDialect()).getSql();
+        String expected = "SUM(`SUB1`) / SUM(`SUB2`)";
 
         assertEquals(expected, actual);
     }
@@ -44,14 +42,14 @@ public class CalciteOuterAggregationExtractorTest {
     @Test
     public void testCustomAggregationFunction() throws Exception {
         String sql = "CUSTOM_SUM(blah)";
-        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config());
+        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
         SqlNode node = sqlParser.parseExpression();
 
         List<String> substitutions = Arrays.asList("SUB1");
-        CalciteOuterAggregationExtractor extractor = new CalciteOuterAggregationExtractor(substitutions.iterator(),
-                new HashSet<>(Arrays.asList("CUSTOM_SUM")));
-        String actual = node.accept(extractor).toSqlString(dialect).getSql();
-        String expected = "CUSTOM_SUM(SUB1)";
+        CalciteOuterAggregationExtractor extractor = new CalciteOuterAggregationExtractor(dialect,
+                substitutions.iterator());
+        String actual = node.accept(extractor).toSqlString(dialect.getCalciteDialect()).getSql();
+        String expected = "`CUSTOM_SUM`(`blah`)";
 
         assertEquals(expected, actual);
     }
