@@ -29,11 +29,13 @@ public class CalciteInnerAggregationExtractorTest {
         SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
         SqlNode node = sqlParser.parseExpression();
         CalciteInnerAggregationExtractor extractor = new CalciteInnerAggregationExtractor(dialect);
-        List<String> aggregations = node.accept(extractor);
+        List<List<String>> aggregations = node.accept(extractor);
 
         assertEquals(2, aggregations.size());
-        assertEquals("SUM(CASE WHEN `number_of_lectures` > 20 THEN 1 ELSE 0 END)", aggregations.get(0));
-        assertEquals("SUM(`blah`)", aggregations.get(1));
+        assertEquals(1, aggregations.get(0).size());
+        assertEquals(1, aggregations.get(1).size());
+        assertEquals("SUM(CASE WHEN `number_of_lectures` > 20 THEN 1 ELSE 0 END)", aggregations.get(0).get(0));
+        assertEquals("SUM(`blah`)", aggregations.get(1).get(0));
     }
 
     @Test
@@ -42,7 +44,7 @@ public class CalciteInnerAggregationExtractorTest {
         SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
         SqlNode node = sqlParser.parseExpression();
         CalciteInnerAggregationExtractor extractor = new CalciteInnerAggregationExtractor(dialect);
-        List<String> aggregations = node.accept(extractor);
+        List<List<String>> aggregations = node.accept(extractor);
 
         assertTrue(aggregations.isEmpty());
     }
@@ -53,10 +55,11 @@ public class CalciteInnerAggregationExtractorTest {
         SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
         SqlNode node = sqlParser.parseExpression();
         CalciteInnerAggregationExtractor extractor = new CalciteInnerAggregationExtractor(dialect);
-        List<String> aggregations = node.accept(extractor);
+        List<List<String>> aggregations = node.accept(extractor);
 
-        assertEquals(2, aggregations.size());
-        assertEquals("SUM(`blah`)", aggregations.get(0));
-        assertEquals("COUNT(`blah`)", aggregations.get(1));
+        assertEquals(1, aggregations.size());
+        assertEquals(2, aggregations.get(0).size());
+        assertEquals("SUM(`blah`)", aggregations.get(0).get(0));
+        assertEquals("COUNT(`blah`)", aggregations.get(0).get(1));
     }
 }

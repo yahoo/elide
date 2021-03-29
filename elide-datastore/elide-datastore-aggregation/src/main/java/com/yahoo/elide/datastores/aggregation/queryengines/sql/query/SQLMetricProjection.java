@@ -131,12 +131,13 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
         }
 
         CalciteInnerAggregationExtractor innerExtractor = new CalciteInnerAggregationExtractor(dialect);
-        List<String> innerAggExpressions = node.accept(innerExtractor);
+        List<List<String>> innerAggExpressions = node.accept(innerExtractor);
 
-        List<String> innerAggLabels = innerAggExpressions.stream()
-                .map((expression) -> "INNER_AGG_" + (expression.hashCode() & 0xfffffff))
+        List<List<String>> innerAggLabels = innerAggExpressions.stream()
+                .map(list -> list.stream()
+                        .map((expression) -> "INNER_AGG_" + (expression.hashCode() & 0xfffffff))
+                        .collect(Collectors.toList()))
                 .collect(Collectors.toList());
-
 
         CalciteOuterAggregationExtractor outerExtractor =
                 new CalciteOuterAggregationExtractor(dialect, innerAggLabels);
@@ -179,7 +180,9 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
         }
 
         CalciteInnerAggregationExtractor innerExtractor = new CalciteInnerAggregationExtractor(dialect);
-        List<String> innerAggExpressions = node.accept(innerExtractor);
+
+        List<String> innerAggExpressions = node.accept(innerExtractor).stream()
+                .flatMap(List::stream).collect(Collectors.toList());
 
         List<String> innerAggLabels = innerAggExpressions.stream()
                 .map((expression) -> "INNER_AGG_" + (expression.hashCode() & 0xfffffff))

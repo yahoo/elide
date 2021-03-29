@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CalciteInnerAggregationExtractor extends SqlBasicVisitor<List<String>> {
+public class CalciteInnerAggregationExtractor extends SqlBasicVisitor<List<List<String>>> {
 
     private SQLDialect dialect;
 
@@ -25,10 +25,10 @@ public class CalciteInnerAggregationExtractor extends SqlBasicVisitor<List<Strin
     }
 
     @Override
-    public List<String> visit(SqlCall call) {
+    public List<List<String>> visit(SqlCall call) {
         String operatorName = call.getOperator().getName();
 
-        List<String> result = new ArrayList<>();
+        List<List<String>> result = new ArrayList<>();
 
         SupportedAggregation operator = dialect.getSupportedAggregation(operatorName);
         if (operator != null) {
@@ -36,11 +36,13 @@ public class CalciteInnerAggregationExtractor extends SqlBasicVisitor<List<Strin
                     .map(operand -> operand.toSqlString(dialect.getCalciteDialect()).getSql())
                     .collect(Collectors.toList());
 
-            return operator.getInnerAggregations(operands.toArray(new String[0]));
+            result.add(operator.getInnerAggregations(operands.toArray(new String[0])));
+
+            return result;
         }
 
         for (SqlNode node : call.getOperandList()) {
-            List<String> operandResults = node.accept(this);
+            List<List<String>> operandResults = node.accept(this);
             if (operandResults != null) {
                 result.addAll(operandResults);
             }
@@ -49,10 +51,10 @@ public class CalciteInnerAggregationExtractor extends SqlBasicVisitor<List<Strin
     }
 
     @Override
-    public List<String> visit(SqlNodeList nodeList) {
-        List<String> result = new ArrayList<>();
+    public List<List<String>> visit(SqlNodeList nodeList) {
+        List<List<String>> result = new ArrayList<>();
         for (SqlNode node : nodeList) {
-            List<String> inner = node.accept(this);
+            List<List<String>> inner = node.accept(this);
             if (inner != null) {
                 result.addAll(inner);
             }

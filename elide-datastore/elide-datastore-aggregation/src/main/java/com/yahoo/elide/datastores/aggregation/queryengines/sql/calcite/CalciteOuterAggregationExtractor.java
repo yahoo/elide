@@ -19,16 +19,19 @@ import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.sql.util.SqlBasicVisitor;
 
+import java.util.ArrayDeque;
 import java.util.List;
+import java.util.Queue;
 
 public class CalciteOuterAggregationExtractor extends SqlBasicVisitor<SqlNode> {
 
     private SQLDialect dialect;
-    private List<String> substitutions;
+    private Queue<List<String>> substitutions;
 
-    public CalciteOuterAggregationExtractor(SQLDialect dialect, List<String> substitutions) {
+    public CalciteOuterAggregationExtractor(SQLDialect dialect, List<List<String>> substitutions) {
         this.dialect = dialect;
-        this.substitutions = substitutions;
+        this.substitutions = new ArrayDeque<>();
+        this.substitutions.addAll(substitutions);
     }
 
     @Override
@@ -37,7 +40,8 @@ public class CalciteOuterAggregationExtractor extends SqlBasicVisitor<SqlNode> {
 
         SupportedAggregation operator = dialect.getSupportedAggregation(operatorName);
         if (operator != null) {
-            String postAggExpression = operator.getOuterAggregation(substitutions.toArray(new String[0]));
+            List<String> expressionsSubs = substitutions.remove();
+            String postAggExpression = operator.getOuterAggregation(expressionsSubs.toArray(new String[0]));
 
             SqlParser sqlParser = SqlParser.create(postAggExpression,
                     SqlParser.config().withLex(dialect.getCalciteLex()));
