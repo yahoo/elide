@@ -6,9 +6,9 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite;
 
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import org.apache.calcite.sql.SqlCall;
 import org.apache.calcite.sql.SqlDataTypeSpec;
-import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.SqlDynamicParam;
 import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlIntervalQualifier;
@@ -18,22 +18,15 @@ import org.apache.calcite.sql.SqlNodeList;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.sql.util.SqlBasicVisitor;
 
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
 public class CalciteOuterAggregationExtractor extends SqlBasicVisitor<SqlNode> {
 
-    private SqlDialect dialect;
-    private Set<String> customAggregationFunctions;
+    private SQLDialect dialect;
     private Iterator<String> substitutions;
 
-    public CalciteOuterAggregationExtractor(Iterator<String> substitutions) {
-        this(substitutions, new HashSet<>());
-    }
-
-    public CalciteOuterAggregationExtractor(Iterator<String> substitutions, Set<String> customAggregationFunctions) {
-        this.customAggregationFunctions = customAggregationFunctions;
+    public CalciteOuterAggregationExtractor(SQLDialect dialect, Iterator<String> substitutions) {
+        this.dialect = dialect;
         this.substitutions = substitutions;
     }
 
@@ -41,8 +34,8 @@ public class CalciteOuterAggregationExtractor extends SqlBasicVisitor<SqlNode> {
     public SqlNode visit(SqlCall call) {
         String operatorName = call.getOperator().getName();
 
-        StandardAggregations operator = StandardAggregations.find(operatorName);
-        if (operator != null || customAggregationFunctions.contains(operatorName)) {
+        SupportedAggregation operator = dialect.getSupportedAggregation(operatorName);
+        if (operator != null) {
             for (int idx = 0; idx < call.getOperandList().size(); idx++) {
                 SqlNode operand = call.getOperandList().get(idx);
                 if (!substitutions.hasNext()) {

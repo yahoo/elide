@@ -6,41 +6,22 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite;
 
-import org.apache.calcite.avatica.util.Casing;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import org.apache.calcite.sql.SqlCall;
-import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlNodeList;
 import org.apache.calcite.sql.util.SqlBasicVisitor;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CalciteInnerAggregationExtractor extends SqlBasicVisitor<List<String>> {
 
-    private SqlDialect dialect;
-    private Set<String> customAggregationFunctions;
+    private SQLDialect dialect;
 
-    public CalciteInnerAggregationExtractor() {
-        this(new SqlDialect(SqlDialect.EMPTY_CONTEXT
-                .withCaseSensitive(true)
-                .withQuotedCasing(Casing.UNCHANGED)
-                .withUnquotedCasing(Casing.UNCHANGED)), new HashSet<>());
-    }
-
-    public CalciteInnerAggregationExtractor(Set<String> customAggregationFunctions) {
-        this(new SqlDialect(SqlDialect.EMPTY_CONTEXT
-                .withCaseSensitive(true)
-                .withQuotedCasing(Casing.UNCHANGED)
-                .withUnquotedCasing(Casing.UNCHANGED)), customAggregationFunctions);
-    }
-
-    public CalciteInnerAggregationExtractor(SqlDialect dialect, Set<String> customAggregationFunctions) {
+    public CalciteInnerAggregationExtractor(SQLDialect dialect) {
         this.dialect = dialect;
-        this.customAggregationFunctions = customAggregationFunctions;
     }
 
     @Override
@@ -48,18 +29,14 @@ public class CalciteInnerAggregationExtractor extends SqlBasicVisitor<List<Strin
         String operatorName = call.getOperator().getName();
 
         List<String> result = new ArrayList<>();
-        StandardAggregations operator = StandardAggregations.find(operatorName);
+
+        SupportedAggregation operator = dialect.getSupportedAggregation(operatorName);
         if (operator != null) {
             List<String> operands = call.getOperandList().stream()
-                    .map(operand -> operand.toSqlString(dialect).getSql())
+                    .map(operand -> operand.toSqlString(dialect.getCalciteDialect()).getSql())
                     .collect(Collectors.toList());
 
             return operator.getInnerAggregations(operands.toArray(new String[0]));
-        }
-
-        if (customAggregationFunctions.contains(operatorName)) {
-            result.add(call.toSqlString(dialect).getSql());
-            return result;
         }
 
         for (SqlNode node : call.getOperandList()) {

@@ -28,7 +28,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -131,8 +130,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
             throw new IllegalStateException(e);
         }
 
-        CalciteInnerAggregationExtractor innerExtractor = new CalciteInnerAggregationExtractor(
-                dialect.getCalciteDialect(), new HashSet<>());
+        CalciteInnerAggregationExtractor innerExtractor = new CalciteInnerAggregationExtractor(dialect);
         List<String> innerAggExpressions = node.accept(innerExtractor);
 
         List<String> innerAggLabels = innerAggExpressions.stream()
@@ -141,7 +139,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
 
         CalciteOuterAggregationExtractor outerExtractor =
-                new CalciteOuterAggregationExtractor(innerAggLabels.iterator());
+                new CalciteOuterAggregationExtractor(dialect, innerAggLabels.iterator());
 
         SqlNode transformedParseTree = node.accept(outerExtractor);
 
@@ -180,8 +178,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
             throw new IllegalStateException(e);
         }
 
-        CalciteInnerAggregationExtractor innerExtractor = new CalciteInnerAggregationExtractor(
-                dialect.getCalciteDialect(), new HashSet<>());
+        CalciteInnerAggregationExtractor innerExtractor = new CalciteInnerAggregationExtractor(dialect);
         List<String> innerAggExpressions = node.accept(innerExtractor);
 
         List<String> innerAggLabels = innerAggExpressions.stream()

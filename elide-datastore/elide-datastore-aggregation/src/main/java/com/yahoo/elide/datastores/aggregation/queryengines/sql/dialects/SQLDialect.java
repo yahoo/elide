@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects;
 
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SupportedAggregation;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import org.apache.calcite.avatica.util.Casing;
 import org.apache.calcite.config.Lex;
@@ -90,4 +91,11 @@ public interface SQLDialect {
     default Lex getCalciteLex() {
         return Lex.MYSQL;
     }
+
+    /**
+     * Fetch the aggregation for the given SQL function name or NULL if not supported.
+     * @param name The name (case insensitive) of the aggregation function or UDF.
+     * @return The supported aggregation or NULL if not supported.
+     */
+    SupportedAggregation getSupportedAggregation(String name);
 }
