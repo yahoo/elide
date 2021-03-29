@@ -91,7 +91,7 @@ public class Measure implements Named {
 
     /**
      * Checks if this measure has provided argument.
-     * @param argName
+     * @param argName Name of the {@link Argument} to  check for.
      * @return true if this measure has provided argument.
      */
     public boolean hasArgument(String argName) {

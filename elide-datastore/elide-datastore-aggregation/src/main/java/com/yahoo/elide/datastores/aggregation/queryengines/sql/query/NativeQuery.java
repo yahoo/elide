@@ -15,7 +15,7 @@ import lombok.NonNull;
  */
 @Data
 @Builder
-public class SQLQuery {
+public class NativeQuery {
 
     private static final String SPACE = " ";
 

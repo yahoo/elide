@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.Streams;
 
+import org.apache.commons.lang3.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -127,7 +128,7 @@ public class Table implements Named {
 
     /**
      * Checks if this model has provided field.
-     * @param fieldName
+     * @param fieldName Name of the {@link Dimension} or {@link Measure} to check for.
      * @return true if this model has provided field.
      */
     public boolean hasField(String fieldName) {
@@ -136,7 +137,7 @@ public class Table implements Named {
 
     /**
      * Provides the Field details for provided field name.
-     * @param fieldName
+     * @param fieldName Name of {@link Dimension} or {@link Measure} to retrieve.
      * @return Field for provided field name.
      */
     public Named getField(String fieldName) {
@@ -148,7 +149,7 @@ public class Table implements Named {
 
     /**
      * Checks if this model has provided argument.
-     * @param argName
+     * @param argName Name of the {@link Argument} to  check for.
      * @return true if this model has provided argument.
      */
     public boolean hasArgument(String argName) {
@@ -157,7 +158,7 @@ public class Table implements Named {
 
     /**
      * Checks if this model has provided join field.
-     * @param joinName
+     * @param joinName Name of the {@link Join} to check for.
      * @return true if this model has provided join field.
      */
     public boolean hasJoinField(String joinName) {
@@ -166,7 +167,7 @@ public class Table implements Named {
 
     /**
      * Provides the Join details for provided join name.
-     * @param joinName
+     * @param joinName Name of the {@link Join} to retrieve.
      * @return Join for provided join name.
      */
     public Join getJoin(String joinName) {
@@ -181,12 +182,12 @@ public class Table implements Named {
      * @return true if this model extends another model
      */
     public boolean hasParent() {
-        return !(this.extend == null || this.extend.trim().isEmpty());
+        return StringUtils.isNotBlank(this.extend);
     }
 
     /**
      * Provides the parent model for this model.
-     * @param elideTableConfig
+     * @param elideTableConfig {@link ElideTableConfig}
      * @return Parent model for this model
      */
     public Table getParent(ElideTableConfig elideTableConfig) {

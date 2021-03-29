@@ -29,7 +29,7 @@ import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.NativeQuery;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,7 +82,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         Mockito.reset(queryLogger);
 
         QueryResult queryResult = QueryResult.builder().data(DATA).build();
-        SQLQuery myQuery = SQLQuery.builder()
+        NativeQuery myQuery = NativeQuery.builder()
                 .fromClause(playerStatsTable.getName())
                 .projectionClause(" ").build();
         when(queryEngine.getTableVersion(playerStatsTable, qeTransaction)).thenReturn("foo");
@@ -113,7 +113,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
 
         String cacheKey = "foo;" + queryKey;
         QueryResult queryResult = QueryResult.builder().data(DATA).build();
-        SQLQuery myQuery = SQLQuery.builder()
+        NativeQuery myQuery = NativeQuery.builder()
                 .fromClause(playerStatsTable.getName())
                 .projectionClause(" ").build();
         when(cache.get(cacheKey)).thenReturn(queryResult);
@@ -142,7 +142,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         Mockito.reset(queryLogger);
 
         QueryResult queryResult = QueryResult.builder().data(DATA).pageTotals(314L).build();
-        SQLQuery myQuery = SQLQuery.builder()
+        NativeQuery myQuery = NativeQuery.builder()
                 .fromClause(playerStatsTable.getName())
                 .projectionClause(" ").build();
         when(cache.get(anyString())).thenReturn(queryResult);
@@ -175,7 +175,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
     public void loadObjectsNoTableVersion() {
         Mockito.reset(queryLogger);
 
-        SQLQuery myQuery = SQLQuery.builder()
+        NativeQuery myQuery = NativeQuery.builder()
                 .fromClause(playerStatsTable.getName())
                 .projectionClause(" ").build();
 
@@ -207,7 +207,7 @@ class AggregationDataStoreTransactionTest extends SQLUnitTest {
         Mockito.reset(queryLogger);
 
         query = Query.builder().source(playerStatsTable).bypassingCache(true).build();
-        SQLQuery myQuery = SQLQuery.builder()
+        NativeQuery myQuery = NativeQuery.builder()
                 .fromClause(playerStatsTable.getName())
                 .projectionClause(" ").build();
 

@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.google.common.collect.Sets;
 
 import java.util.Set;
@@ -27,7 +28,7 @@ public class DynamicSQLReferenceTable extends SQLReferenceTable {
     }
 
     /**
-     * Get the resolved physical SQL reference for a field from storage
+     * Get the resolved physical SQL reference for a field from storage.
      *
      * @param queryable table class
      * @param fieldName field name
@@ -38,6 +39,7 @@ public class DynamicSQLReferenceTable extends SQLReferenceTable {
         if (staticReferenceTable.resolvedReferences.containsKey(queryable)) {
             return staticReferenceTable.getResolvedReference(queryable, fieldName);
         }
+
         return resolvedReferences.get(queryable).get(fieldName);
     }
 
@@ -53,6 +55,15 @@ public class DynamicSQLReferenceTable extends SQLReferenceTable {
         if (staticReferenceTable.resolvedJoinExpressions.containsKey(queryable)) {
             return staticReferenceTable.getResolvedJoinExpressions(queryable, fieldName);
         }
+
         return resolvedJoinExpressions.get(queryable).get(fieldName);
+    }
+
+    @Override
+    public Set<SQLColumnProjection> getResolvedJoinProjections(Queryable queryable, String fieldName) {
+        if (staticReferenceTable.resolvedJoinProjections.containsKey(queryable)) {
+            return staticReferenceTable.getResolvedJoinProjections(queryable, fieldName);
+        }
+        return resolvedJoinProjections.get(queryable).get(fieldName);
     }
 }

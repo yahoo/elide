@@ -29,7 +29,7 @@ public interface Queryable {
     Queryable getSource();
 
     /**
-     * Every queryable needs an alias which uniquely identifies the queryable in an individual query
+     * Every queryable needs an alias which uniquely identifies the queryable in an individual query.
      * @return The alias
      */
     default String getAlias() {
@@ -38,7 +38,7 @@ public interface Queryable {
     }
 
     /**
-     * The name of the queryable
+     * The name of the queryable.
      * @return The name
      */
     default String getName() {
@@ -46,7 +46,7 @@ public interface Queryable {
     }
 
     /**
-     * The version of the queryable
+     * The version of the queryable.
      * @return The version
      */
     default String getVersion() {
@@ -149,7 +149,7 @@ public interface Queryable {
      * @return the connectinon details
      */
     default ConnectionDetails getConnectionDetails() {
-        return getSource().getConnectionDetails();
+        return getRoot().getConnectionDetails();
     }
 
     /**
@@ -171,6 +171,19 @@ public interface Queryable {
 
         //A table with no source is not nested.  Neither is a query with a source table.
         return (source != null && source.getSource() != source);
+    }
+
+    /**
+     * Gets the root table for the queryable.
+     * @return the root table.
+     */
+    default Queryable getRoot() {
+        Queryable current = this;
+        while (current.isNested()) {
+            current = current.getSource();
+        }
+
+        return current.getSource();
     }
 
     /**

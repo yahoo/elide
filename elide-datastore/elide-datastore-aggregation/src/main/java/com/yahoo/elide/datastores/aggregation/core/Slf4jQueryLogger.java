@@ -20,7 +20,7 @@ import java.util.UUID;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * Default Slf4j Logging Implementation of QueryLogger for Elide
+ * Default Slf4j Logging Implementation of QueryLogger for Elide.
  */
 @Slf4j
 public class Slf4jQueryLogger implements QueryLogger {

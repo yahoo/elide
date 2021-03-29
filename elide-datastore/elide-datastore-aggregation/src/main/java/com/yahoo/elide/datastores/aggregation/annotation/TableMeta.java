@@ -39,6 +39,13 @@ public @interface TableMeta {
 
     /**
      * Indicates the size of the table.
+     * @return size
      */
     CardinalitySize size() default CardinalitySize.UNKNOWN;
+
+    /**
+     * The arguments accepted by this table.
+     * @return arguments for the table
+     */
+    ArgumentDefinition[] arguments() default {};
 }

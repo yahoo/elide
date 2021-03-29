@@ -63,11 +63,7 @@ public class SQLJoinVisitor extends ColumnVisitor<Set<JoinPath>> {
 
         // only need to add joins for references to fields defined in other table
         for (String reference : resolveFormulaReferences(column.getExpression())) {
-
-            //Column is from a query instead of a table.  No joins to generate here.
-            if (parent != parent.getSource()) {
-                continue;
-            } else if (reference.contains(".")) {
+            if (reference.contains(".")) {
                 joinPaths.addAll(visitJoinToReference(parent, column, reference));
             }
         }
@@ -86,8 +82,10 @@ public class SQLJoinVisitor extends ColumnVisitor<Set<JoinPath>> {
     private Set<JoinPath> visitJoinToReference(Queryable source, ColumnProjection column, String joinToPath) {
         Set<JoinPath> joinPaths = new HashSet<>();
 
+        Queryable root = source.getRoot();
+
         JoinPath joinPath = froms.empty()
-                ? new JoinPath(dictionary.getEntityClass(source.getName(), source.getVersion()), dictionary, joinToPath)
+                ? new JoinPath(dictionary.getEntityClass(root.getName(), root.getVersion()), dictionary, joinToPath)
                 : froms.peek().extend(joinToPath, dictionary);
         joinPaths.add(joinPath);
 

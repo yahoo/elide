@@ -54,8 +54,7 @@ public class FileResultStorageEngine implements ResultStorageEngine {
                         throwable -> {
                             throw new IllegalStateException(STORE_ERROR, throwable);
                         },
-                        () ->
-                            writer.flush()
+                        writer::flush
                 );
         } catch (IOException e) {
             throw new IllegalStateException(STORE_ERROR, e);

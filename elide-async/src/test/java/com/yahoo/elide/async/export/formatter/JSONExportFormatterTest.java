@@ -73,7 +73,7 @@ public class JSONExportFormatterTest {
                 + "\"queryType\":\"GRAPHQL_V1_0\",\"createdOn\":\"" + FORMATTER.format(queryObj.getCreatedOn()) + "\"}";
 
         // Prepare EntityProjection
-        Set<Attribute> attributes = new LinkedHashSet<Attribute>();
+        Set<Attribute> attributes = new LinkedHashSet<>();
         attributes.add(Attribute.builder().type(TableExport.class).name("query").alias("query").build());
         attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
         attributes.add(Attribute.builder().type(TableExport.class).name("createdOn").build());
@@ -106,7 +106,7 @@ public class JSONExportFormatterTest {
                 + "\"queryType\":\"GRAPHQL_V1_0\"}";
 
         // Prepare EntityProjection
-        Set<Attribute> attributes = new LinkedHashSet<Attribute>();
+        Set<Attribute> attributes = new LinkedHashSet<>();
         attributes.add(Attribute.builder().type(TableExport.class).name("query").alias("query").build());
         attributes.add(Attribute.builder().type(TableExport.class).name("queryType").build());
         EntityProjection projection = EntityProjection.builder().type(TableExport.class).attributes(attributes).build();

@@ -29,34 +29,24 @@ public class MatchesTemplateVisitor implements FilterExpressionVisitor<Boolean> 
 
     @Override
     public Boolean visitPredicate(FilterPredicate filterPredicate) {
-        if (matches(expressionToMatch, filterPredicate)) {
-            return true;
-        }
-        return false;
+        return matches(expressionToMatch, filterPredicate);
     }
 
     @Override
     public Boolean visitAndExpression(AndFilterExpression expression) {
-        if (matches(expressionToMatch, expression)) {
-            return true;
-        }
-        return expression.getLeft().accept(this) || expression.getRight().accept(this);
+        return matches(expressionToMatch, expression)
+                || expression.getLeft().accept(this)
+                || expression.getRight().accept(this);
     }
 
     @Override
     public Boolean visitOrExpression(OrFilterExpression expression) {
-        if (matches(expressionToMatch, expression)) {
-            return true;
-        }
-        return false;
+        return matches(expressionToMatch, expression);
     }
 
     @Override
     public Boolean visitNotExpression(NotFilterExpression expression) {
-        if (matches(expressionToMatch, expression)) {
-            return true;
-        }
-        return false;
+        return matches(expressionToMatch, expression);
     }
 
     private static boolean matches(FilterExpression a, FilterExpression b) {

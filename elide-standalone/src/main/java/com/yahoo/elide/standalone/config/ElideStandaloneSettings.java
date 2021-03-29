@@ -86,7 +86,7 @@ public interface ElideStandaloneSettings {
      * @return Set of Types.
      */
     default Set<Type<?>> getEntitiesToExclude() {
-        Set<Type<?>> entitiesToExclude = new HashSet();
+        Set<Type<?>> entitiesToExclude = new HashSet<>();
         ElideStandaloneAsyncSettings asyncProperties = getAsyncProperties();
 
         if (asyncProperties == null || !asyncProperties.enabled()) {
@@ -456,11 +456,9 @@ public interface ElideStandaloneSettings {
 
         dictionary.scanForSecurityChecks();
 
-        if (dynamicConfiguration.isPresent()) {
-            dynamicConfiguration.get().getRoles().forEach(role -> {
-                dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role));
-            });
-        }
+        dynamicConfiguration.map(DynamicConfiguration::getRoles).orElseGet(Collections::emptySet).forEach(role -> {
+            dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role));
+        });
         return dictionary;
     }
 
@@ -470,16 +468,11 @@ public interface ElideStandaloneSettings {
      * @return MetaDataStore object initialized.
      */
     default MetaDataStore getMetaDataStore(Optional<DynamicConfiguration> dynamicConfiguration) {
-        MetaDataStore metaDataStore = null;
         boolean enableMetaDataStore = getAnalyticProperties().enableMetaDataStore();
 
-        if (dynamicConfiguration.isPresent()) {
-            metaDataStore = new MetaDataStore(dynamicConfiguration.get().getTables(), enableMetaDataStore);
-        } else {
-            metaDataStore = new MetaDataStore(enableMetaDataStore);
-        }
-
-        return metaDataStore;
+        return dynamicConfiguration
+                .map(dc -> new MetaDataStore(dc.getTables(), enableMetaDataStore))
+                .orElseGet(() -> new MetaDataStore(enableMetaDataStore));
     }
 
     /**

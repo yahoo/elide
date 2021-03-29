@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.Entity;
 
@@ -53,12 +54,8 @@ public class MetaDataStore implements DataStore {
             Arrays.asList(FromTable.class, FromSubquery.class, Subselect.class, javax.persistence.Table.class,
                     javax.persistence.Entity.class);
 
-    private static final java.util.function.Function<String, HashMapDataStore> SERVER_ERROR =
-            new java.util.function.Function<String, HashMapDataStore>() {
-        @Override
-        public HashMapDataStore apply(String key) {
-            throw new InternalServerErrorException("API version " + key + " not found");
-        }
+    private static final Function<String, HashMapDataStore> SERVER_ERROR = key -> {
+        throw new InternalServerErrorException("API version " + key + " not found");
     };
 
     @Getter
@@ -124,13 +121,8 @@ public class MetaDataStore implements DataStore {
      */
     private static Set<Class<?>> getAllAnnotatedClasses() {
         return ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS, (clazz) -> {
-            if (clazz.getAnnotation(Entity.class) != null) {
-                if (clazz.getAnnotation(Include.class) != null) {
-                    return true;
-                }
-                return false;
-             }
-             return true;
+            return clazz.getAnnotation(Entity.class) == null
+                    || clazz.getAnnotation(Include.class) != null;
         });
     }
 
@@ -171,16 +163,13 @@ public class MetaDataStore implements DataStore {
         }
     }
 
-    private final java.util.function.Function<String, HashMapDataStore> getHashMapDataStoreInitializer() {
-        return new java.util.function.Function<String, HashMapDataStore>() {
-            @Override
-            public HashMapDataStore apply(String key) {
-                HashMapDataStore hashMapDataStore = new HashMapDataStore(META_DATA_PACKAGE);
-                EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
-                metadataModelClasses.forEach(dictionary::bindEntity);
-                hashMapDataStore.populateEntityDictionary(dictionary);
-                return hashMapDataStore;
-            }
+    private final Function<String, HashMapDataStore> getHashMapDataStoreInitializer() {
+        return key -> {
+            HashMapDataStore hashMapDataStore = new HashMapDataStore(META_DATA_PACKAGE);
+            EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+            metadataModelClasses.forEach(dictionary::bindEntity);
+            hashMapDataStore.populateEntityDictionary(dictionary);
+            return hashMapDataStore;
         };
     }
 
@@ -200,7 +189,7 @@ public class MetaDataStore implements DataStore {
     }
 
     /**
-     * Get a table metadata object
+     * Get a table metadata object.
      *
      * @param tableClass table class
      * @return meta data table
@@ -234,7 +223,7 @@ public class MetaDataStore implements DataStore {
     }
 
     /**
-     * Get a {@link Column} for the last field in a {@link Path}
+     * Get a {@link Column} for the last field in a {@link Path}.
      *
      * @param path path to a field
      * @return meta data column
@@ -304,7 +293,7 @@ public class MetaDataStore implements DataStore {
     }
 
     /**
-     * Get all metadata of a specific metadata class
+     * Get all metadata of a specific metadata class.
      *
      * @param cls metadata class
      * @param <T> metadata class

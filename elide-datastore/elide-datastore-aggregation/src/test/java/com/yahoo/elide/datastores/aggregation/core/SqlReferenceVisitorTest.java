@@ -37,15 +37,15 @@ public class SqlReferenceVisitorTest {
         @Id
         private long id;
 
-        @Join("{{dimension1}} = {{joinModel.dimension1}}")
+        @Join("{{dimension1}} = {{joinModel.$dimension1}}")
         private JoinModel joinModel;
 
         //Logical name matches physical name
-        @DimensionFormula("{{dimension1}}")
+        @DimensionFormula("{{$dimension1}}")
         private String dimension1;
 
         //Logical name does not match physical name
-        @DimensionFormula("{{someColumn}}")
+        @DimensionFormula("{{$someColumn}}")
         private String dimension2;
 
         //Test a join to another table with a matching column name.
@@ -60,7 +60,7 @@ public class SqlReferenceVisitorTest {
         private long id;
 
         //Logical name matches physical name
-        @DimensionFormula("{{dimension3}}")
+        @DimensionFormula("{{$dimension3}}")
         private String dimension3;
     }
 

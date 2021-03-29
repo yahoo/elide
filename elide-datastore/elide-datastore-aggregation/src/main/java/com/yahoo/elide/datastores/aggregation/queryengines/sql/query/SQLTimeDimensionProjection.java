@@ -23,6 +23,7 @@ import lombok.Value;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 
 /**
@@ -43,6 +44,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     private TimeDimensionGrain grain;
     private TimeZone timeZone;
     private Map<String, Argument> arguments;
+    private boolean projected;
 
     /**
      * All argument constructor.
@@ -50,11 +52,13 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
      * @param timeZone The selected time zone.
      * @param alias The client provided alias.
      * @param arguments List of client provided arguments.
+     * @param projected Whether or not this column is part of the projected output.
      */
     public SQLTimeDimensionProjection(TimeDimension column,
                                       TimeZone timeZone,
                                       String alias,
-                                      Map<String, Argument> arguments) {
+                                      Map<String, Argument> arguments,
+                                      boolean projected) {
         //TODO remove arguments
         this.columnType = column.getColumnType();
         this.valueType = column.getValueType();
@@ -64,6 +68,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
         this.arguments = arguments;
         this.alias = alias;
         this.timeZone = timeZone;
+        this.projected = projected;
     }
 
     @Override
@@ -79,17 +84,44 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     }
 
     @Override
-    public ColumnProjection outerQuery() {
-        return SQLTimeDimensionProjection.builder()
-                .name(name)
-                .alias(alias)
-                .valueType(valueType)
-                .columnType(columnType)
-                .expression("{{" + this.getSafeAlias() + "}}")
-                .arguments(arguments)
-                .grain(grain)
-                .timeZone(timeZone)
-                .build();
+    public boolean canNest() {
+        return true;
+    }
+
+    @Override
+    public ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable, boolean joinInOuter) {
+        Set<SQLColumnProjection> joinProjections = lookupTable.getResolvedJoinProjections(source.getSource(), name);
+
+        boolean requiresJoin = joinProjections.size() > 0;
+
+        boolean inProjection = source.getColumnProjection(name) != null;
+
+        if (requiresJoin && joinInOuter) {
+            return SQLTimeDimensionProjection.builder()
+                    .name(name)
+                    .alias(alias)
+                    .valueType(valueType)
+                    .columnType(columnType)
+                    .expression(expression)
+                    .arguments(arguments)
+                    .projected(inProjection)
+                    .grain(grain)
+                    .timeZone(timeZone)
+                    .build();
+        } else {
+            return SQLTimeDimensionProjection.builder()
+                    .name(name)
+                    .alias(alias)
+                    .valueType(valueType)
+                    .columnType(columnType)
+                    .expression("{{" + this.getSafeAlias() + "}}")
+                    .arguments(arguments)
+                    .projected(true)
+                    .grain(grain)
+                    .timeZone(timeZone)
+                    .projected(projected)
+                    .build();
+        }
     }
 
     private TimeDimensionGrain getGrainFromArguments(Map<String, Argument> arguments, TimeDimension column) {
@@ -105,5 +137,10 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
                 .filter(grain -> grain.getGrain().name().toLowerCase(Locale.ENGLISH).equals(grainName))
                 .findFirst()
                 .orElseThrow(() -> new InvalidParameterizedAttributeException(name, grainArgument));
+    }
+
+    @Override
+    public boolean isProjected() {
+        return projected;
     }
 }

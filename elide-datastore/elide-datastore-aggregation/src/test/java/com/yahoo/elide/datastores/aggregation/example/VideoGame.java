@@ -67,17 +67,17 @@ public class VideoGame {
     }
 
     @Column(name = "game_rounds")
-    @MetricFormula("SUM({{game_rounds}})")
+    @MetricFormula("SUM({{$game_rounds}})")
     public Long getSessions() {
         return sessions;
     }
 
-    @MetricFormula("SUM({{timeSpent}})")
+    @MetricFormula("SUM({{$timeSpent}})")
     public Long getTimeSpent() {
         return timeSpent;
     }
 
-    @MetricFormula("({{timeSpent}} / (CASE WHEN SUM({{game_rounds}}) = 0 THEN 1 ELSE {{sessions}} END))")
+    @MetricFormula("({{timeSpent}} / (CASE WHEN SUM({{$game_rounds}}) = 0 THEN 1 ELSE {{sessions}} END))")
     public Float getTimeSpentPerSession() {
         return timeSpentPerSession;
     }
@@ -93,17 +93,17 @@ public class VideoGame {
         return normalizedHighScore;
     }
 
-    @Join(value = "{{player_id}} = {{player.id}}", type = JoinType.LEFT)
+    @Join(value = "{{$player_id}} = {{player.$id}}", type = JoinType.LEFT)
     public Player getPlayer() {
         return player;
     }
 
-    @Join(value = "{{player_id}} = {{playerStats.id}}", type = JoinType.LEFT)
+    @Join(value = "{{$player_id}} = {{playerStats.$id}}", type = JoinType.LEFT)
     public PlayerStats getPlayerStats() {
         return playerStats;
     }
 
-    @Join(value = "{{player_id}} = {{playerInnerJoin.id}}", type = JoinType.INNER)
+    @Join(value = "{{$player_id}} = {{playerInnerJoin.$id}}", type = JoinType.INNER)
     public Player getPlayerInnerJoin() {
         return playerInnerJoin;
     }

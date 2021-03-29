@@ -6,8 +6,9 @@
 package com.yahoo.elide.modelconfig.validator;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
-import static com.yahoo.elide.modelconfig.DynamicConfigHelpers.isNullOrEmpty;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SecurityCheck;
@@ -37,6 +38,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -154,7 +156,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
             System.exit(0);
 
         } catch (Exception e) {
-            String msg = isNullOrEmpty(e.getMessage()) ? "Process Failed!" : e.getMessage();
+            String msg = isBlank(e.getMessage()) ? "Process Failed!" : e.getMessage();
             System.err.println(msg);
             System.exit(2);
         }
@@ -233,7 +235,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         //ensures validation is run before populate always.
         validateInheritance(this.elideTableConfig);
 
-        Set<Table> processed = new HashSet<Table>();
+        Set<Table> processed = new HashSet<>();
         elideTableConfig.getTables().stream().forEach(table -> {
             populateInheritance(table, processed);
         });
@@ -256,13 +258,13 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         }
 
         Map<String, Measure> measures = getInheritedMeasures(parent, attributesListToMap(table.getMeasures()));
-        table.setMeasures(new ArrayList<Measure>(measures.values()));
+        table.setMeasures(new ArrayList<>(measures.values()));
 
         Map<String, Dimension> dimensions = getInheritedDimensions(parent, attributesListToMap(table.getDimensions()));
-        table.setDimensions(new ArrayList<Dimension>(dimensions.values()));
+        table.setDimensions(new ArrayList<>(dimensions.values()));
 
         Map<String, Join> joins = getInheritedJoins(parent, attributesListToMap(table.getJoins()));
-        table.setJoins(new ArrayList<Join>(joins.values()));
+        table.setJoins(new ArrayList<>(joins.values()));
 
         String schema = getInheritedSchema(parent, table.getSchema());
         table.setSchema(schema);
@@ -338,7 +340,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     }
 
     private <T> Collection<T> getInheritedAttribute(Inheritance action, Collection<T> property) {
-        return property == null || property.isEmpty() ? (Collection<T>) action.inherit() : property;
+        return CollectionUtils.isEmpty(property) ? (Collection<T>) action.inherit() : property;
     }
 
     private String getInheritedSchema(Table table, String schema) {
@@ -574,7 +576,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
     private static void extractChecksFromExpr(String readAccess, Set<String> extractedChecks,
                     PermissionExpressionVisitor visitor) {
-        if (!isNullOrEmpty(readAccess)) {
+        if (isNotBlank(readAccess)) {
             ParseTree root = EntityPermissions.parseExpression(readAccess);
             extractedChecks.addAll(visitor.visit(root));
         }
@@ -593,7 +595,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
      * column with in that model.
      */
     private void validateTableSource(String tableSource) {
-        if (isNullOrEmpty(tableSource)) {
+        if (isBlank(tableSource)) {
             return; // Nothing to validate
         }
 
@@ -636,13 +638,13 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
                 Set<String> joinedTables = table.getJoins()
                         .stream()
-                        .map(join -> join.getTo())
+                        .map(Join::getTo)
                         .collect(Collectors.toSet());
 
                 Set<String> connections = elideTableConfig.getTables()
                         .stream()
                         .filter(t -> joinedTables.contains(t.getName()))
-                        .map(t -> t.getDbConnectionName())
+                        .map(Table::getDbConnectionName)
                         .collect(Collectors.toSet());
 
                 if (connections.size() > 1 || (connections.size() == 1
@@ -672,7 +674,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
      * keywords. Throw exception if check fails.
      */
     private static void validateSql(String sqlDefinition) {
-        if (!DynamicConfigHelpers.isNullOrEmpty(sqlDefinition) && (sqlDefinition.contains(SEMI_COLON)
+        if (isNotBlank(sqlDefinition) && (sqlDefinition.contains(SEMI_COLON)
                 || containsDisallowedWords(sqlDefinition, SQL_SPLIT_REGEX, SQL_DISALLOWED_WORDS))) {
             throw new IllegalStateException("sql/definition provided in table config contain either '" + SEMI_COLON
                     + "' or one of these words: " + Arrays.toString(SQL_DISALLOWED_WORDS.toArray()));
@@ -684,7 +686,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
      * @return boolean true if all role name passes validation else throw exception
      */
     private boolean validateSecurityConfig() {
-        Set<String> alreadyDefinedRoles = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+        Set<String> alreadyDefinedRoles = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         alreadyDefinedRoles.addAll(dictionary.getCheckIdentifiers());
 
         elideSecurityConfig.getRoles().forEach(role -> {
@@ -715,7 +717,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
      *         disallowed words else false
      */
     private static boolean containsDisallowedWords(String str, String splitter, Set<String> keywords) {
-        return DynamicConfigHelpers.isNullOrEmpty(str) ? false
+        return isBlank(str) ? false
                 : Arrays.stream(str.trim().toUpperCase(Locale.ENGLISH).split(splitter)).anyMatch(keywords::contains);
     }
 
@@ -754,9 +756,9 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     }
 
     /**
-     * Remove src/.../resources/ from filepath.
-     * @param filePath
-     * @return Path to model dir
+     * Remove src/.../resources/ from class path for configs directory.
+     * @param filePath class path for configs directory.
+     * @return formatted class path for configs directory.
      */
     public static String formatClassPath(String filePath) {
         if (filePath.indexOf(RESOURCES + "/") > -1) {

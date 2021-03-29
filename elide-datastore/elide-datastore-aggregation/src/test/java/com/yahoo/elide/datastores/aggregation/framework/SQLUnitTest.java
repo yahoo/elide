@@ -44,6 +44,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
+import com.yahoo.elide.datastores.aggregation.query.Optimizer;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
@@ -93,7 +94,7 @@ public abstract class SQLUnitTest {
 
     private static final DataSource DUMMY_DATASOURCE = new HikariDataSource();
     private static final String NEWLINE = System.lineSeparator();
-    protected static QueryEngine engine;
+    protected static SQLQueryEngine engine;
 
     protected QueryEngine.Transaction transaction;
     private static SQLTable videoGameTable;
@@ -110,13 +111,13 @@ public abstract class SQLUnitTest {
                     .whereFilter(new FilterPredicate(
                             new Path(PlayerStats.class, dictionary, "overallRating"),
                             Operator.NOTNULL,
-                            new ArrayList<Object>()))
+                            new ArrayList<>()))
                     .build()
         ),
         WHERE_AND (() -> {
             FilterPredicate ratingFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "overallRating"),
-                    Operator.NOTNULL, new ArrayList<Object>());
+                    Operator.NOTNULL, new ArrayList<>());
             FilterPredicate highScoreFilter = new FilterPredicate(
                 new Path(PlayerStats.class, dictionary, "countryIsoCode"),
                     Operator.IN,
@@ -131,7 +132,7 @@ public abstract class SQLUnitTest {
         WHERE_OR (() -> {
             FilterPredicate ratingFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "overallRating"),
-                    Operator.NOTNULL, new ArrayList<Object>());
+                    Operator.NOTNULL, new ArrayList<>());
             FilterPredicate highScoreFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "countryIsoCode"),
                     Operator.IN,
@@ -153,7 +154,7 @@ public abstract class SQLUnitTest {
             FilterPredicate dayFilter = new FilterPredicate(
                     new Path(playerStatsType, dictionary, "recordedDate", "recordedDate", dayArgument),
                     Operator.NOTNULL,
-                    new ArrayList<Object>());
+                    new ArrayList<>());
 
             return Query.builder()
                     .source(playerStatsTable)
@@ -179,13 +180,13 @@ public abstract class SQLUnitTest {
                     .havingFilter(new FilterPredicate(
                             new Path(PlayerStats.class, dictionary, "overallRating"),
                             Operator.NOTNULL,
-                            new ArrayList<Object>()))
+                            new ArrayList<>()))
                     .build()
         ),
         HAVING_METRICS_AND_DIMS (() -> {
             FilterPredicate ratingFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "overallRating"),
-                    Operator.NOTNULL, new ArrayList<Object>());
+                    Operator.NOTNULL, new ArrayList<>());
             FilterPredicate highScoreFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "highScore"),
                     Operator.GT,
@@ -200,7 +201,7 @@ public abstract class SQLUnitTest {
         HAVING_METRICS_OR_DIMS (() -> {
             FilterPredicate ratingFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "overallRating"),
-                    Operator.NOTNULL, new ArrayList<Object>());
+                    Operator.NOTNULL, new ArrayList<>());
             FilterPredicate highScoreFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "highScore"),
                     Operator.GT,
@@ -393,7 +394,7 @@ public abstract class SQLUnitTest {
             FilterPredicate dayFilter = new FilterPredicate(
                             new Path(playerStatsType, dictionary, "recordedDate", "recordedDate", dayArgument),
                             Operator.NOTNULL,
-                            new ArrayList<Object>());
+                            new ArrayList<>());
             // forces a join to look up countryIsoCode
             FilterExpression countryIsoCodeFilter = parseFilterExpression("countryIsoCode==USA", playerStatsType, false);
             AndFilterExpression andFilterExpression = new AndFilterExpression(playerLevelFilter, countryIsoCodeFilter);
@@ -462,7 +463,7 @@ public abstract class SQLUnitTest {
 
     protected Pattern repeatedWhitespacePattern = Pattern.compile("\\s\\s*");
 
-    public static void init(SQLDialect sqlDialect) {
+    public static void init(SQLDialect sqlDialect, Set<Optimizer> optimizers, MetaDataStore metaDataStore) {
         Properties properties = new Properties();
         properties.put("driverClassName", "org.h2.Driver");
 
@@ -478,7 +479,7 @@ public abstract class SQLUnitTest {
             throw new IllegalStateException(e);
         }
 
-        metaDataStore = new MetaDataStore(getClassType(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example")), false);
+        SQLUnitTest.metaDataStore = metaDataStore;
 
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(PlayerStatsWithView.class);
@@ -510,9 +511,8 @@ public abstract class SQLUnitTest {
         connectionDetailsMap.put("mycon", new ConnectionDetails(dataSource, sqlDialect));
         connectionDetailsMap.put("SalesDBConnection", new ConnectionDetails(DUMMY_DATASOURCE, sqlDialect));
 
-        engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect), connectionDetailsMap,
-                new HashSet<>());
-
+        engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect),
+                connectionDetailsMap, optimizers);
         playerStatsTable = (SQLTable) metaDataStore.getTable("playerStats", NO_VERSION);
         videoGameTable = (SQLTable) metaDataStore.getTable("videoGame", NO_VERSION);
     }
@@ -526,6 +526,13 @@ public abstract class SQLUnitTest {
         }
 
         return "";
+    }
+
+    public static void init(SQLDialect dialect) {
+        MetaDataStore metaDataStore = new MetaDataStore(
+                getClassType(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example")),
+                false);
+        init(dialect, new HashSet<>(), metaDataStore);
     }
 
     public static void init() {

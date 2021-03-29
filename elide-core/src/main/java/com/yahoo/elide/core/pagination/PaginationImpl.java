@@ -11,6 +11,9 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+
+import com.google.common.collect.ImmutableMap;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -48,14 +51,12 @@ public class PaginationImpl implements Pagination {
     // For requesting total pages/records be included in the response page meta data
     public static final String PAGE_TOTALS_KEY = "page[totals]";
 
-    public static final Map<String, PaginationKey> PAGE_KEYS = new HashMap<>();
-    static {
-        PAGE_KEYS.put(PAGE_NUMBER_KEY, PaginationKey.number);
-        PAGE_KEYS.put(PAGE_SIZE_KEY, PaginationKey.size);
-        PAGE_KEYS.put(PAGE_OFFSET_KEY, PaginationKey.offset);
-        PAGE_KEYS.put(PAGE_LIMIT_KEY, PaginationKey.limit);
-        PAGE_KEYS.put(PAGE_TOTALS_KEY, PaginationKey.totals);
-    }
+    public static final Map<String, PaginationKey> PAGE_KEYS = ImmutableMap.of(
+            PAGE_NUMBER_KEY, PaginationKey.number,
+            PAGE_SIZE_KEY, PaginationKey.size,
+            PAGE_OFFSET_KEY, PaginationKey.offset,
+            PAGE_LIMIT_KEY, PaginationKey.limit,
+            PAGE_TOTALS_KEY, PaginationKey.totals);
 
     @Getter
     @Setter

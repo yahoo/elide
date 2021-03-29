@@ -62,7 +62,7 @@ public class JSONAPIAsyncQueryOperation extends AsyncQueryOperation {
      * @return MultivaluedMap with query parameters
      */
     public static MultivaluedMap<String, String> getQueryParams(URIBuilder uri) {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         for (NameValuePair queryParam : uri.getQueryParams()) {
             queryParams.add(queryParam.getName(), queryParam.getValue());
         }

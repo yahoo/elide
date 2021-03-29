@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
 import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
-import static com.yahoo.elide.core.utils.TypeHelper.getTypeAlias;
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isTableJoin;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -28,6 +27,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLPhysicalColumnProjection;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Subselect;
 import lombok.Getter;
 
@@ -80,7 +80,7 @@ public class SQLReferenceTable {
     }
 
     /**
-     * Get the resolved physical SQL reference for a field from storage
+     * Get the resolved physical SQL reference for a field from storage.
      *
      * @param queryable table class
      * @param fieldName field name
@@ -98,7 +98,7 @@ public class SQLReferenceTable {
      * @return resolved ON clause expression
      */
     public Set<String> getResolvedJoinExpressions(Queryable queryable, String fieldName) {
-        return resolvedJoinExpressions.get(queryable).get(fieldName);
+        return resolvedJoinExpressions.get(queryable).getOrDefault(fieldName, new HashSet<>());
     }
 
     /**
@@ -109,7 +109,7 @@ public class SQLReferenceTable {
      * @return resolved ON clause projections (physical or logical) referenced from the given table
      */
     public Set<SQLColumnProjection> getResolvedJoinProjections(Queryable queryable, String fieldName) {
-        return resolvedJoinProjections.get(queryable).get(fieldName);
+        return resolvedJoinProjections.get(queryable).getOrDefault(fieldName, new HashSet<>());
     }
 
     /**
@@ -149,7 +149,8 @@ public class SQLReferenceTable {
                             .visitColumn(queryable, column));
 
             Set<JoinPath> joinPaths = joinVisitor.visitColumn(queryable, column);
-            resolvedJoinExpressions.get(key).put(fieldName, getJoinClauses(joinPaths, dialect));
+            resolvedJoinExpressions.get(key).put(fieldName, getJoinClauses(queryable.getSource().getAlias(),
+                    joinPaths, dialect));
             resolvedJoinProjections.get(key).put(fieldName, getJoinProjections(joinPaths));
         });
     }
@@ -196,23 +197,24 @@ public class SQLReferenceTable {
     /**
      * Create a set of join expressions from join paths.
      *
+     * @param parentAlias the parent alias
      * @param joinPaths paths that require joins
      * @return A set of join expressions
      */
-    private Set<String> getJoinClauses(Set<JoinPath> joinPaths, SQLDialect dialect) {
+    private Set<String> getJoinClauses(String parentAlias, Set<JoinPath> joinPaths, SQLDialect dialect) {
         Set<String> joinExpressions = new LinkedHashSet<>();
-        joinPaths.forEach(path -> addJoinClauses(path, joinExpressions, dialect));
+        joinPaths.forEach(path -> addJoinClauses(parentAlias, path, joinExpressions, dialect));
         return joinExpressions;
     }
 
     /**
      * Add a join clause to a set of join clauses.
      *
+     * @param parentAlias the parent alias
      * @param joinPath join path
      * @param alreadyJoined A set of joins that have already been computed.
      */
-    private void addJoinClauses(JoinPath joinPath, Set<String> alreadyJoined, SQLDialect dialect) {
-        String parentAlias = getTypeAlias(joinPath.getPathElements().get(0).getType());
+    private void addJoinClauses(String parentAlias, JoinPath joinPath, Set<String> alreadyJoined, SQLDialect dialect) {
 
         for (Path.PathElement pathElement : joinPath.getPathElements()) {
             String fieldName = pathElement.getFieldName();
@@ -399,7 +401,7 @@ public class SQLReferenceTable {
      * @return quoted string
      */
     private static String applyQuotes(String str, char beginQuote, char endQuote) {
-        if (str == null || str.trim().isEmpty()) {
+        if (StringUtils.isBlank(str)) {
             return str;
         }
         if (str.contains(PERIOD)) {

@@ -45,6 +45,7 @@ import com.yahoo.elide.core.type.Type;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.tuple.Triple;
 
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +72,7 @@ public class FilterTranslator implements FilterOperation<String> {
     static {
         predicateOverrides = new HashMap<>();
 
-        operatorGenerators = new HashMap<>();
+        operatorGenerators = new EnumMap<>(Operator.class);
 
         operatorGenerators.put(IN, new CaseAwareJPQLGenerator(
                 "%s IN (%s)",

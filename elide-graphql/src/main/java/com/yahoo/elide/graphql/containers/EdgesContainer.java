@@ -25,7 +25,7 @@ public class EdgesContainer implements PersistentResourceContainer, GraphQLConta
         String fieldName = context.field.getName();
 
         // TODO: Cursor
-        if (NODE.equals(fieldName)) {
+        if (NODE.hasName(fieldName)) {
             return new NodeContainer(context.parentResource);
         }
 

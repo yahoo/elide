@@ -76,7 +76,7 @@ public class AsyncAPICancelRunnableTest {
                 1577883600000L, QueryStatus.QUEUED);
         AsyncQuery asyncQuery2 = createAsyncQueryTestObject("edc4a871-dff2-4054-804e-d80075cf827d",
                 1577883600000L, QueryStatus.QUEUED);
-        Collection<AsyncAPI> asyncCollection = new ArrayList<AsyncAPI>();
+        Collection<AsyncAPI> asyncCollection = new ArrayList<>();
         asyncCollection.add(asyncQuery1);
         asyncCollection.add(asyncQuery2);
         when(cancelThread.getAsyncAPIDao().loadAsyncAPIByFilter(any(), any())).thenReturn(asyncCollection);
@@ -101,7 +101,7 @@ public class AsyncAPICancelRunnableTest {
                 1577883600000L, QueryStatus.CANCELLED);
         AsyncQuery asyncQuery3 = createAsyncQueryTestObject("edc4a871-dff2-4054-804e-d80075cf826d",
                 1577883600000L, QueryStatus.PROCESSING);
-        Collection<AsyncAPI> asyncCollection = new ArrayList<AsyncAPI>();
+        Collection<AsyncAPI> asyncCollection = new ArrayList<>();
         asyncCollection.add(asyncQuery1);
         asyncCollection.add(asyncQuery2);
         asyncCollection.add(asyncQuery3);
@@ -125,7 +125,7 @@ public class AsyncAPICancelRunnableTest {
                 1577883600000L, QueryStatus.QUEUED);
         AsyncQuery asyncQuery3 = createAsyncQueryTestObject("edc4a871-dff2-4054-804e-d80075cf826d",
                 1577883600000L, QueryStatus.QUEUED);
-        Collection<AsyncAPI> asyncCollection = new ArrayList<AsyncAPI>();
+        Collection<AsyncAPI> asyncCollection = new ArrayList<>();
         asyncCollection.add(asyncQuery1);
         asyncCollection.add(asyncQuery2);
         asyncCollection.add(asyncQuery3);

@@ -19,7 +19,7 @@ public interface Named {
     default boolean hasName(Collection<? extends Named> collection, String name) {
         return collection
                         .stream()
-                        .map(obj -> obj.getName())
+                        .map(Named::getName)
                         .anyMatch(name::equals);
     }
 }

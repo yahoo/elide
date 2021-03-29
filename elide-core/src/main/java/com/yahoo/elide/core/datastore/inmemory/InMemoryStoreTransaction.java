@@ -81,22 +81,14 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
                               Object entity,
                               Relationship relationship,
                               RequestScope scope) {
-        DataFetcher fetcher = new DataFetcher() {
-            @Override
-            public Object fetch(Optional<FilterExpression> filterExpression,
-                                Optional<Sorting> sorting,
-                                Optional<Pagination> pagination,
-                                RequestScope scope) {
-
-                return tx.getRelation(relationTx, entity, relationship.copyOf()
+        DataFetcher fetcher = (filterExpression, sorting, pagination, requestScope) ->
+                tx.getRelation(relationTx, entity, relationship.copyOf()
                         .projection(relationship.getProjection().copyOf()
                                 .filterExpression(filterExpression.orElse(null))
                                 .sorting(sorting.orElse(null))
                                 .pagination(pagination.orElse(null))
                                 .build()
-                        ).build(), scope);
-            }
-        };
+                        ).build(), requestScope);
 
 
         /*
@@ -123,20 +115,12 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     public Iterable<Object> loadObjects(EntityProjection projection,
                                         RequestScope scope) {
 
-        DataFetcher fetcher = new DataFetcher() {
-            @Override
-            public Iterable<Object> fetch(Optional<FilterExpression> filterExpression,
-                                          Optional<Sorting> sorting,
-                                          Optional<Pagination> pagination,
-                                          RequestScope scope) {
-
-                return tx.loadObjects(projection.copyOf()
+        DataFetcher fetcher = (filterExpression, sorting, pagination, requestScope) ->
+                tx.loadObjects(projection.copyOf()
                         .filterExpression(filterExpression.orElse(null))
                         .pagination(pagination.orElse(null))
                         .sorting(sorting.orElse(null))
-                        .build(), scope);
-            }
-        };
+                        .build(), requestScope);
 
         return (Iterable<Object>) fetchData(fetcher, Optional.empty(), projection, false, scope);
     }

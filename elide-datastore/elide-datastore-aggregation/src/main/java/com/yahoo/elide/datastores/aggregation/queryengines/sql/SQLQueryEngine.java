@@ -34,15 +34,16 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.DynamicSQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.NativeQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryPlanTranslator;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryTranslator;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.StringUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -101,18 +102,14 @@ public class SQLQueryEngine extends QueryEngine {
         this.optimizers = optimizers;
     }
 
-    private static final Function<ResultSet, Object> SINGLE_RESULT_MAPPER = new Function<ResultSet, Object>() {
-        @Override
-        public Object apply(ResultSet rs) {
-            try {
-                if (rs.next()) {
-                    return rs.getObject(1);
-                } else {
-                    return null;
-                }
-            } catch (SQLException e) {
-                throw new IllegalStateException(e);
+    private static final Function<ResultSet, Object> SINGLE_RESULT_MAPPER = rs -> {
+        try {
+            if (rs.next()) {
+                return rs.getObject(1);
             }
+            return null;
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
         }
     };
 
@@ -129,7 +126,7 @@ public class SQLQueryEngine extends QueryEngine {
         }
 
         ConnectionDetails connectionDetails;
-        if (dbConnectionName == null || dbConnectionName.trim().isEmpty()) {
+        if (StringUtils.isBlank(dbConnectionName)) {
             connectionDetails = defaultConnectionDetails;
         } else {
             connectionDetails = Optional.ofNullable(connectionDetailsMap.get(dbConnectionName))
@@ -144,14 +141,14 @@ public class SQLQueryEngine extends QueryEngine {
     public ColumnProjection constructDimensionProjection(Dimension dimension,
                                                          String alias,
                                                          Map<String, Argument> arguments) {
-        return new SQLDimensionProjection(dimension, alias, arguments);
+        return new SQLDimensionProjection(dimension, alias, arguments, true);
     }
 
     @Override
     public TimeDimensionProjection constructTimeDimensionProjection(TimeDimension dimension,
                                                                     String alias,
                                                                     Map<String, Argument> arguments) {
-        return new SQLTimeDimensionProjection(dimension, dimension.getTimezone(), alias, arguments);
+        return new SQLTimeDimensionProjection(dimension, dimension.getTimezone(), alias, arguments, true);
     }
 
     @Override
@@ -218,7 +215,7 @@ public class SQLQueryEngine extends QueryEngine {
         Query expandedQuery = expandMetricQueryPlans(query);
 
         // Translate the query into SQL.
-        SQLQuery sql = toSQL(expandedQuery, dialect);
+        NativeQuery sql = toSQL(expandedQuery, dialect);
         String queryString = sql.toString();
 
         QueryResult.QueryResultBuilder resultBuilder = QueryResult.builder();
@@ -242,11 +239,11 @@ public class SQLQueryEngine extends QueryEngine {
         return resultBuilder.build();
     }
 
-    private long getPageTotal(Query query, SQLQuery sql, SqlTransaction sqlTransaction) {
+    private long getPageTotal(Query query, NativeQuery sql, SqlTransaction sqlTransaction) {
         ConnectionDetails details = query.getConnectionDetails();
         DataSource dataSource = details.getDataSource();
         SQLDialect dialect = details.getDialect();
-        SQLQuery paginationSQL = toPageTotalSQL(query, sql, dialect);
+        NativeQuery paginationSQL = toPageTotalSQL(query, sql, dialect);
 
         if (paginationSQL == null) {
             // The query returns the aggregated metric without any dimension.
@@ -305,13 +302,13 @@ public class SQLQueryEngine extends QueryEngine {
      * @return List of SQL string(s) corresponding to the given query.
      */
     public List<String> explain(Query query, SQLDialect dialect) {
-        List<String> queries = new ArrayList<String>();
+        List<String> queries = new ArrayList<>();
         Query expandedQuery = expandMetricQueryPlans(query);
-        SQLQuery sql = toSQL(expandedQuery, dialect);
+        NativeQuery sql = toSQL(expandedQuery, dialect);
 
         Pagination pagination = query.getPagination();
         if (returnPageTotals(pagination)) {
-            SQLQuery paginationSql = toPageTotalSQL(expandedQuery, sql, dialect);
+            NativeQuery paginationSql = toPageTotalSQL(expandedQuery, sql, dialect);
             if (paginationSql != null) {
                 queries.add(paginationSql.toString());
             }
@@ -332,7 +329,7 @@ public class SQLQueryEngine extends QueryEngine {
      * @param sqlDialect the SQL dialect.
      * @return the SQL query.
      */
-    private SQLQuery toSQL(Query query, SQLDialect sqlDialect) {
+    private NativeQuery toSQL(Query query, SQLDialect sqlDialect) {
         SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, query);
 
         QueryTranslator translator = new QueryTranslator(queryReferenceTable, sqlDialect);
@@ -353,11 +350,11 @@ public class SQLQueryEngine extends QueryEngine {
         for (MetricProjection metricProjection : query.getMetricProjections()) {
             QueryPlan queryPlan = metricProjection.resolve(query);
             if (queryPlan != null) {
-                mergedPlan = queryPlan.merge(mergedPlan);
+                mergedPlan = queryPlan.merge(mergedPlan, referenceTable);
             }
         }
 
-        QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query);
+        QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query, referenceTable);
 
         Query merged = (mergedPlan == null)
                 ? query
@@ -420,7 +417,7 @@ public class SQLQueryEngine extends QueryEngine {
      * @param sqlDialect the SQL dialect
      * @return A new query that returns the total number of records.
      */
-    private SQLQuery toPageTotalSQL(Query query, SQLQuery sql, SQLDialect sqlDialect) {
+    private NativeQuery toPageTotalSQL(Query query, NativeQuery sql, SQLDialect sqlDialect) {
 
         SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, query);
         // TODO: refactor this method
@@ -428,6 +425,7 @@ public class SQLQueryEngine extends QueryEngine {
                 query.getAllDimensionProjections()
                         .stream()
                         .map(SQLColumnProjection.class::cast)
+                        .filter(SQLColumnProjection::isProjected)
                         .map((column) -> column.toSQL(query.getSource(), queryReferenceTable))
                         .collect(Collectors.joining(", "));
 
@@ -437,7 +435,7 @@ public class SQLQueryEngine extends QueryEngine {
             return null;
         }
 
-        SQLQuery innerQuery =  SQLQuery.builder()
+        NativeQuery innerQuery =  NativeQuery.builder()
                 .projectionClause(groupByDimensions)
                 .fromClause(sql.getFromClause())
                 .joinClause(sql.getJoinClause())
@@ -446,7 +444,7 @@ public class SQLQueryEngine extends QueryEngine {
                 .havingClause(sql.getHavingClause())
                 .build();
 
-        return SQLQuery.builder()
+        return NativeQuery.builder()
                 .projectionClause("COUNT(*)")
                 .fromClause(String.format("(%s) AS %spagination_subquery%s",
                         innerQuery.toString(), sqlDialect.getBeginQuote(), sqlDialect.getEndQuote()))

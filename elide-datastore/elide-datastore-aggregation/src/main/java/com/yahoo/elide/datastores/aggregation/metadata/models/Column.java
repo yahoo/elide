@@ -20,13 +20,16 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueSourceType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import org.apache.commons.lang3.StringUtils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
@@ -93,7 +96,7 @@ public abstract class Column implements Versioned {
             this.category = meta.category();
             this.values = new HashSet<>(Arrays.asList(meta.values()));
             this.tags = new HashSet<>(Arrays.asList(meta.tags()));
-            this.tableSource = (meta.tableSource().trim().isEmpty()) ? null : meta.tableSource();
+            this.tableSource = StringUtils.isBlank(meta.tableSource()) ? null : meta.tableSource();
             this.valueSourceType = ValueSourceType.getValueSourceType(this.values,
                     this.tableSource);
             this.cardinality = meta.size();
@@ -112,13 +115,24 @@ public abstract class Column implements Versioned {
             columnType = FORMULA;
             expression = dictionary
                     .getAttributeOrRelationAnnotation(tableClass, MetricFormula.class, fieldName).value();
+            MetricFormula metricFormula = dictionary.getAttributeOrRelationAnnotation(tableClass, MetricFormula.class,
+                    fieldName);
+            this.arguments = Arrays.stream(metricFormula.arguments())
+                    .map(argument -> new Argument(getId(), argument))
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
         } else if (dictionary.attributeOrRelationAnnotationExists(tableClass, fieldName, DimensionFormula.class)) {
             columnType = FORMULA;
             expression = dictionary
                     .getAttributeOrRelationAnnotation(tableClass, DimensionFormula.class, fieldName).value();
+            DimensionFormula dimensionFormula = dictionary.getAttributeOrRelationAnnotation(tableClass,
+                    DimensionFormula.class, fieldName);
+            this.arguments = Arrays.stream(dimensionFormula.arguments())
+                    .map(argument -> new Argument(getId(), argument))
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
         } else {
             columnType = FIELD;
             expression = dictionary.getAnnotatedColumnName(tableClass, fieldName);
+            this.arguments = new HashSet<>();
         }
 
         this.valueType = getValueType(tableClass, fieldName, dictionary);
@@ -126,13 +140,10 @@ public abstract class Column implements Versioned {
         if (valueType == null) {
             throw new IllegalArgumentException("Unknown data type for " + this.id);
         }
-
-        // TODO: Populate Once HJSON Changes are merged and ColumnMeta Annotations are updated.
-        this.arguments = new HashSet<>();
     }
 
     /**
-     * Construct a column name as meta data
+     * Construct a column name as meta data.
      *
      * @param tableClass table class
      * @param fieldName field name
@@ -144,7 +155,7 @@ public abstract class Column implements Versioned {
     }
 
     /**
-     * Resolve the value type of a field
+     * Resolve the value type of a field.
      *
      * @param tableClass table class
      * @param fieldName field name

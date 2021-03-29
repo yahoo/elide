@@ -13,6 +13,9 @@ import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidOperatorNegationException;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+
+import org.apache.commons.collections4.CollectionUtils;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -390,9 +393,6 @@ public enum Operator {
         return (T entity) -> {
 
             Object val = getFieldValue(entity, fieldPath, requestScope);
-            if (val == null) {
-                return false;
-            }
             if (val instanceof Collection<?>) {
                 return ((Collection<?>) val).isEmpty();
             }
@@ -414,9 +414,6 @@ public enum Operator {
                     .map(last -> CoerceUtil.coerce(values.get(0), last.getFieldType()))
                     .orElseGet(() -> CoerceUtil.coerce(values.get(0), String.class));
 
-            if (val == null) {
-                return false;
-            }
             if (val instanceof Collection<?>) {
                 return ((Collection<?>) val).contains(filterStr);
             }
@@ -468,7 +465,7 @@ public enum Operator {
     private static <T> Predicate<T> getComparator(Path fieldPath, List<Object> values,
             RequestScope requestScope, Predicate<Integer> condition) {
         return (T entity) -> {
-            if (values.size() == 0) {
+            if (CollectionUtils.isEmpty(values)) {
                 throw new BadRequestException("No value to compare");
             }
             Object fieldVal = getFieldValue(entity, fieldPath, requestScope);

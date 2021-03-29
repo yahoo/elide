@@ -160,7 +160,7 @@ public class GraphQLEntityProjectionMaker {
             Field rootSelectionField = (Field) rootSelection;
             String entityName = rootSelectionField.getName();
             String aliasName = rootSelectionField.getAlias();
-            if (SCHEMA.equals(entityName) || TYPE.equals(entityName)) {
+            if (SCHEMA.hasName(entityName) || TYPE.hasName(entityName)) {
                 // '__schema' and '__type' would not be handled by entity projection
                 return;
             }
@@ -211,8 +211,8 @@ public class GraphQLEntityProjectionMaker {
         if (fieldSelection instanceof FragmentSpread) {
             addFragment((FragmentSpread) fieldSelection, projectionBuilder);
         } else if (fieldSelection instanceof Field) {
-            if (EDGES.equals(((Field) fieldSelection).getName())
-                    || NODE.equals(((Field) fieldSelection).getName())) {
+            if (EDGES.hasName(((Field) fieldSelection).getName())
+                    || NODE.hasName(((Field) fieldSelection).getName())) {
                 // if this graphql field is 'edges' or 'node', go one level deeper in the graphql document
                 ((Field) fieldSelection).getSelectionSet().getSelections().forEach(
                         selection -> addSelection(selection, projectionBuilder));
@@ -260,13 +260,13 @@ public class GraphQLEntityProjectionMaker {
         if (entityDictionary.getRelationshipType(parentType, fieldName) != RelationshipType.NONE) {
             // handle the case of a relationship field
             addRelationship(field, projectionBuilder);
-        } else if (TYPENAME.equals(fieldName)) {
+        } else if (TYPENAME.hasName(fieldName)) {
             // '__typename' would not be handled by entityProjection
-        } else if (PAGE_INFO.equals(fieldName)) {
+        } else if (PAGE_INFO.hasName(fieldName)) {
             // only 'totalRecords' needs to be added into the projection's pagination
             if (field.getSelectionSet().getSelections().stream()
                     .anyMatch(selection -> selection instanceof Field
-                            && PAGE_INFO_TOTAL_RECORDS.equals(((Field) selection).getName()))) {
+                            && PAGE_INFO_TOTAL_RECORDS.hasName(((Field) selection).getName()))) {
                 addPageTotal(projectionBuilder);
             }
         } else {
@@ -349,11 +349,42 @@ public class GraphQLEntityProjectionMaker {
             addSorting(argument, projectionBuilder);
         } else if (ModelBuilder.ARGUMENT_FILTER.equals(argumentName)) {
             addFilter(argument, projectionBuilder);
+        } else if (isEntityArgument(argumentName, entityDictionary, projectionBuilder.getType())) {
+            addEntityArgument(argument, projectionBuilder);
         } else if (!ModelBuilder.ARGUMENT_OPERATION.equals(argumentName)
                 && !(ModelBuilder.ARGUMENT_IDS.equals(argumentName))
                 && !(ModelBuilder.ARGUMENT_DATA.equals(argumentName))) {
             addAttributeArgument(argument, projectionBuilder);
         }
+    }
+
+    /**
+     * Returns whether or not a GraphQL argument name corresponding to a Entity argument.
+     *
+     * @param argumentName Name key of the GraphQL argument
+     * @param dictionary Instance of EntityDictionary
+     * @param cls Entity Type Class
+     *
+     * @return {@code true} if the name equals to any Entity Argument
+     */
+    private static boolean isEntityArgument(String argumentName, EntityDictionary dictionary, Type<?> cls) {
+        return dictionary.getEntityArguments(cls)
+                .stream()
+                .anyMatch(a -> a.getName().equals(argumentName));
+    }
+
+    /**
+     * Create a {@link com.yahoo.elide.core.request.Argument} object from GraphQL argument and attach it to the building
+     * {@link EntityProjection}.
+     *
+     * @param argument graphQL argument
+     * @param projectionBuilder projection that is being built
+     */
+    private void addEntityArgument(Argument argument, EntityProjectionBuilder projectionBuilder) {
+        projectionBuilder.argument(com.yahoo.elide.core.request.Argument.builder()
+                .name(argument.getName())
+                .value(variableResolver.resolveValue(argument.getValue()))
+                .build());
     }
 
     /**
