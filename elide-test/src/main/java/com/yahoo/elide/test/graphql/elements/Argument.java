@@ -39,7 +39,7 @@ public class Argument implements Serializable {
     private final Object value;
 
     /**
-     * Returns a GraphQL query string that representing an argument
+     * Returns a GraphQL query string that representing an argument.
      *
      * @return a sub-string of a GraphQL query
      */

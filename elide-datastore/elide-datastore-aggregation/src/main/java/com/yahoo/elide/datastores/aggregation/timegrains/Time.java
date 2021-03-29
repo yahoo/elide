@@ -10,7 +10,9 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
-import lombok.Data;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -24,7 +26,9 @@ import java.util.Objects;
 /**
  * Time date type for all analytic model time dimensions.
  */
-@Data
+@RequiredArgsConstructor
+@Getter
+@Setter
 public class Time extends Date {
 
     public static Type<Time> TIME_TYPE = ClassType.of(Time.class);
