@@ -33,7 +33,7 @@ import javax.persistence.Id;
  */
 @Include
 @VersionQuery(sql = "SELECT COUNT(*) from playerStats")
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = false)
 @ToString
 @FromTable(name = "playerStats")
 @TableMeta(
