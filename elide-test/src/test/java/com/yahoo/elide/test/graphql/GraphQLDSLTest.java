@@ -224,7 +224,7 @@ public class GraphQLDSLTest {
         assertEquals(expected, actual);
     }
 
-    /**************************************** Response DSL ****************************************/
+    /**************************************** Response DSL. ****************************************/
 
     @Test
     public void verifyBasicResponse() {

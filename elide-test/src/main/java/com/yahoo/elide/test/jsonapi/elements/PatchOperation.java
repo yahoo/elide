@@ -14,6 +14,8 @@ import java.util.LinkedHashMap;
 public class PatchOperation extends LinkedHashMap<String, Object> {
 
    /**
+    * Patch Operation.
+    *
     * @param operation the operation type
     * @param path the operation path
     * @param value the operation value
