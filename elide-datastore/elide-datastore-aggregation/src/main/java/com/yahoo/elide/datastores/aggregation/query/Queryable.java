@@ -29,7 +29,7 @@ public interface Queryable {
     Queryable getSource();
 
     /**
-     * Every queryable needs an alias which uniquely identifies the queryable in an individual query
+     * Every queryable needs an alias which uniquely identifies the queryable in an individual query.
      * @return The alias
      */
     default String getAlias() {
@@ -38,7 +38,7 @@ public interface Queryable {
     }
 
     /**
-     * The name of the queryable
+     * The name of the queryable.
      * @return The name
      */
     default String getName() {
@@ -46,7 +46,7 @@ public interface Queryable {
     }
 
     /**
-     * The version of the queryable
+     * The version of the queryable.
      * @return The version
      */
     default String getVersion() {

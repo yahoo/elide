@@ -54,6 +54,8 @@ public class QueryEngineTest extends SQLUnitTest {
 
     /**
      * Test loading all three records from the table.
+     *
+     * @throws Exception exception
      */
     @Test
     public void testFullTableLoad() throws Exception {
@@ -88,7 +90,9 @@ public class QueryEngineTest extends SQLUnitTest {
     }
 
     /**
-     * Test loading records using {@link FromSubquery}
+     * Test loading records using {@link FromSubquery}.
+     *
+     * @throws Exception exception
      */
     @Test
     public void testFromSubQuery() throws Exception {
@@ -213,6 +217,8 @@ public class QueryEngineTest extends SQLUnitTest {
 
     /**
      * Test sorting by dimension attribute which is not present in the query.
+     *
+     * @throws Exception exception
      */
     @Test
     public void testSortJoin() throws Exception {
@@ -252,6 +258,8 @@ public class QueryEngineTest extends SQLUnitTest {
 
     /**
      * Test pagination.
+     *
+     * @throws Exception exception
      */
     @Test
     public void testPagination() throws Exception {
@@ -336,6 +344,8 @@ public class QueryEngineTest extends SQLUnitTest {
 
     /**
      * Test sorting by two different columns-one metric and one dimension.
+     *
+     * @throws Exception exception
      */
     @Test
     public void testSortByMultipleColumns() throws Exception {
@@ -376,6 +386,8 @@ public class QueryEngineTest extends SQLUnitTest {
 
     /**
      * Test grouping by a dimension with a JoinTo annotation.
+     *
+     * @throws Exception exception
      */
     @Test
     public void testJoinToGroupBy() throws Exception {
@@ -431,6 +443,8 @@ public class QueryEngineTest extends SQLUnitTest {
 
     /**
      * Test grouping by a dimension with a JoinTo annotation.
+     *
+     * @throws Exception exception
      */
     @Test
     public void testJoinToSort() throws Exception {
@@ -471,6 +485,8 @@ public class QueryEngineTest extends SQLUnitTest {
 
     /**
      * Test month grain query.
+     *
+     * @throws Exception exception
      */
     @Test
     public void testTotalScoreByMonth() throws Exception {
@@ -504,6 +520,8 @@ public class QueryEngineTest extends SQLUnitTest {
 
     /**
      * Test filter by time dimension.
+     *
+     * @throws Exception exception
      */
     @Test
     public void testFilterByTemporalDimension() throws Exception {

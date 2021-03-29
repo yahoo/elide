@@ -19,7 +19,7 @@ public interface Optimizer {
     boolean canOptimize(Query query, SQLReferenceTable referenceTable);
 
     /**
-     * Optimizes the query
+     * Optimizes the query.
      * @param query The query to optimize.
      * @return A new optimized query.
      */

@@ -20,7 +20,7 @@ public interface SQLDialect {
     String getDialectType();
 
     /**
-     * Checks whether we need to use alias for orderby
+     * Checks whether we need to use alias for orderby.
      * @return boolean.
      */
     boolean useAliasForOrderByClause();

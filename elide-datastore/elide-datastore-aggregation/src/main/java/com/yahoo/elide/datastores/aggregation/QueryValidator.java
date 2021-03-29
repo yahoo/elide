@@ -131,7 +131,7 @@ public class QueryValidator {
     }
 
     /**
-     * Verifies that the current path can be sorted on
+     * Verifies that the current path can be sorted on.
      * @param path The path that we are validating
      * @param allFields Set of all field names included in initial query
      */
