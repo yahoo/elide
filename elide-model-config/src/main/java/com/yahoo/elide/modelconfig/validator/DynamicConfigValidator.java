@@ -756,9 +756,9 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     }
 
     /**
-     * Remove src/.../resources/ from filepath.
-     * @param filePath
-     * @return Path to model dir
+     * Remove src/.../resources/ from class path for configs directory.
+     * @param filePath class path for configs directory.
+     * @return formatted class path for configs directory.
      */
     public static String formatClassPath(String filePath) {
         if (filePath.indexOf(RESOURCES + "/") > -1) {

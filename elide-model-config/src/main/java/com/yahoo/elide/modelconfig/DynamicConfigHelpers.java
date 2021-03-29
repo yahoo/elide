@@ -53,10 +53,10 @@ public class DynamicConfigHelpers {
 
     /**
      * converts variables hjson string to map of variables.
-     * @param config
+     * @param config HJSON file content.
      * @param schemaValidator JSON schema validator.
      * @return Map of Variables
-     * @throws IOException
+     * @throws IOException If an I/O error or a processing error occurs.
      */
     @SuppressWarnings("unchecked")
     public static Map<String, Object> stringToVariablesPojo(String fileName, String config,
@@ -80,7 +80,7 @@ public class DynamicConfigHelpers {
      * @param variables : variables to resolve.
      * @param schemaValidator JSON schema validator.
      * @return ElideTableConfig Pojo
-     * @throws IOException
+     * @throws IOException If an I/O error or a processing error occurs.
      */
     public static ElideTableConfig stringToElideTablePojo(String fileName, String content,
                     Map<String, Object> variables, DynamicConfigSchemaValidator schemaValidator) throws IOException {
@@ -103,7 +103,7 @@ public class DynamicConfigHelpers {
      * @param variables : variables to resolve.
      * @param schemaValidator JSON schema validator.
      * @return ElideDBConfig Pojo
-     * @throws IOException
+     * @throws IOException If an I/O error or a processing error occurs.
      */
     public static ElideDBConfig stringToElideDBConfigPojo(String fileName, String content,
                     Map<String, Object> variables, DynamicConfigSchemaValidator schemaValidator) throws IOException {
@@ -126,7 +126,7 @@ public class DynamicConfigHelpers {
      * @param variables : variables to resolve.
      * @param schemaValidator JSON schema validator.
      * @return ElideSecurityConfig Pojo
-     * @throws IOException
+     * @throws IOException If an I/O error or a processing error occurs.
      */
     public static ElideSecurityConfig stringToElideSecurityPojo(String fileName, String content,
                     Map<String, Object> variables, DynamicConfigSchemaValidator schemaValidator) throws IOException {
@@ -147,7 +147,7 @@ public class DynamicConfigHelpers {
      * @param jsonConfig of table or security
      * @param variables map from config
      * @return json string with resolved variables
-     * @throws IOException
+     * @throws IOException If an I/O error or a processing error occurs.
      */
     public static String resolveVariables(String jsonConfig, Map<String, Object> variables) throws IOException {
         HandlebarsHydrator hydrator = new HandlebarsHydrator();
