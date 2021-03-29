@@ -15,17 +15,18 @@ import org.apache.calcite.sql.SqlIntervalQualifier;
 import org.apache.calcite.sql.SqlLiteral;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlNodeList;
-import org.apache.calcite.sql.parser.SqlParserPos;
+import org.apache.calcite.sql.parser.SqlParseException;
+import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.sql.util.SqlBasicVisitor;
 
-import java.util.Iterator;
+import java.util.List;
 
 public class CalciteOuterAggregationExtractor extends SqlBasicVisitor<SqlNode> {
 
     private SQLDialect dialect;
-    private Iterator<String> substitutions;
+    private List<String> substitutions;
 
-    public CalciteOuterAggregationExtractor(SQLDialect dialect, Iterator<String> substitutions) {
+    public CalciteOuterAggregationExtractor(SQLDialect dialect, List<String> substitutions) {
         this.dialect = dialect;
         this.substitutions = substitutions;
     }
@@ -36,19 +37,15 @@ public class CalciteOuterAggregationExtractor extends SqlBasicVisitor<SqlNode> {
 
         SupportedAggregation operator = dialect.getSupportedAggregation(operatorName);
         if (operator != null) {
-            for (int idx = 0; idx < call.getOperandList().size(); idx++) {
-                SqlNode operand = call.getOperandList().get(idx);
-                if (!substitutions.hasNext()) {
-                    throw new IllegalStateException("Expecting more substitutions for outer aggregation expansion");
-                }
-                String nextSubstitution = substitutions.next();
-                call.setOperand(idx, new SqlIdentifier(nextSubstitution,
-                        new SqlParserPos(
-                                operand.getParserPosition().getLineNum(),
-                                operand.getParserPosition().getColumnNum(),
-                                operand.getParserPosition().getLineNum(),
-                                operand.getParserPosition().getColumnNum() + nextSubstitution.length() - 1
-                        )));
+            String postAggExpression = operator.getOuterAggregation(substitutions.toArray(new String[0]));
+
+            SqlParser sqlParser = SqlParser.create(postAggExpression,
+                    SqlParser.config().withLex(dialect.getCalciteLex()));
+
+            try {
+                return sqlParser.parseExpression();
+            } catch (SqlParseException e) {
+                throw new IllegalStateException(e);
             }
         } else {
             for (int idx = 0; idx < call.getOperandList().size(); idx++) {

@@ -139,7 +139,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
 
         CalciteOuterAggregationExtractor outerExtractor =
-                new CalciteOuterAggregationExtractor(dialect, innerAggLabels.iterator());
+                new CalciteOuterAggregationExtractor(dialect, innerAggLabels);
 
         SqlNode transformedParseTree = node.accept(outerExtractor);
 

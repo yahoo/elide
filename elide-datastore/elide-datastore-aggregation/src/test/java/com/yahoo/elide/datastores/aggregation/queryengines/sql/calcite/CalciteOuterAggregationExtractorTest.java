@@ -31,8 +31,7 @@ public class CalciteOuterAggregationExtractorTest {
         SqlNode node = sqlParser.parseExpression();
 
         List<String> substitutions = Arrays.asList("SUB1", "SUB2");
-        CalciteOuterAggregationExtractor extractor = new CalciteOuterAggregationExtractor(dialect,
-                substitutions.iterator());
+        CalciteOuterAggregationExtractor extractor = new CalciteOuterAggregationExtractor(dialect, substitutions);
         String actual = node.accept(extractor).toSqlString(dialect.getCalciteDialect()).getSql();
         String expected = "SUM(`SUB1`) / SUM(`SUB2`)";
 
@@ -46,10 +45,23 @@ public class CalciteOuterAggregationExtractorTest {
         SqlNode node = sqlParser.parseExpression();
 
         List<String> substitutions = Arrays.asList("SUB1");
-        CalciteOuterAggregationExtractor extractor = new CalciteOuterAggregationExtractor(dialect,
-                substitutions.iterator());
+        CalciteOuterAggregationExtractor extractor = new CalciteOuterAggregationExtractor(dialect, substitutions);
         String actual = node.accept(extractor).toSqlString(dialect.getCalciteDialect()).getSql();
         String expected = "`CUSTOM_SUM`(`blah`)";
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testAverageFunction() throws Exception {
+        String sql = "AVG(blah)";
+        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
+        SqlNode node = sqlParser.parseExpression();
+
+        List<String> substitutions = Arrays.asList("SUB1");
+        CalciteOuterAggregationExtractor extractor = new CalciteOuterAggregationExtractor(dialect, substitutions);
+        String actual = node.accept(extractor).toSqlString(dialect.getCalciteDialect()).getSql();
+        String expected = "SUM(`SUB1`) / COUNT(`SUB1`)";
 
         assertEquals(expected, actual);
     }
