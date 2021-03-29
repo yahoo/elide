@@ -189,7 +189,7 @@ public class MetaDataStore implements DataStore {
     }
 
     /**
-     * Get a table metadata object
+     * Get a table metadata object.
      *
      * @param tableClass table class
      * @return meta data table
@@ -223,7 +223,7 @@ public class MetaDataStore implements DataStore {
     }
 
     /**
-     * Get a {@link Column} for the last field in a {@link Path}
+     * Get a {@link Column} for the last field in a {@link Path}.
      *
      * @param path path to a field
      * @return meta data column
@@ -293,7 +293,7 @@ public class MetaDataStore implements DataStore {
     }
 
     /**
-     * Get all metadata of a specific metadata class
+     * Get all metadata of a specific metadata class.
      *
      * @param cls metadata class
      * @param <T> metadata class

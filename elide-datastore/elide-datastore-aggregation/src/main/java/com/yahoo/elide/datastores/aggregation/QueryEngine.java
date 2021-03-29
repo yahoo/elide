@@ -25,6 +25,7 @@ import lombok.Getter;
 
 import java.util.List;
 import java.util.Map;
+
 /**
  * A {@link QueryEngine} is an abstraction that an AggregationDataStore leverages to run analytic queries (OLAP style)
  * against an underlying persistence layer.
@@ -98,7 +99,7 @@ public abstract class QueryEngine {
      * @param dimension The dimension column.
      * @param alias The client provide alias.
      * @param arguments The client provided parameterized arguments.
-     * @return
+     * @return DimensionProjection
      */
     public abstract ColumnProjection constructDimensionProjection(Dimension dimension,
                                                                   String alias,
@@ -109,7 +110,7 @@ public abstract class QueryEngine {
      * @param dimension The dimension column.
      * @param alias The client provide alias.
      * @param arguments The client provided parameterized arguments.
-     * @return
+     * @return TimeDimensionProjection
      */
     public abstract TimeDimensionProjection constructTimeDimensionProjection(TimeDimension dimension,
                                                                              String alias,
@@ -119,7 +120,7 @@ public abstract class QueryEngine {
      * @param metric The metric column.
      * @param alias The client provide alias.
      * @param arguments The client provided parameterized arguments.
-     * @return
+     * @return MetricProjection
      */
     public abstract MetricProjection constructMetricProjection(Metric metric,
                                                                String alias,
@@ -154,7 +155,7 @@ public abstract class QueryEngine {
         void close();
 
         /**
-         * Cancels running transaction
+         * Cancels running transaction.
          */
         void cancel();
     }

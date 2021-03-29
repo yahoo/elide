@@ -83,7 +83,7 @@ public interface ColumnProjection extends Serializable {
     int hashCode();
 
     /**
-     * Creates an alias that is not vulnerable to injection
+     * Creates an alias that is not vulnerable to injection.
      * @param name projected column's name
      * @param alias projected column's alias
      * @return an alias for projected column that is not vulnerable to injection

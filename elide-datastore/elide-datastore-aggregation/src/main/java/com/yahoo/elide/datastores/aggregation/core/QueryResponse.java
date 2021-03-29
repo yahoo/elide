@@ -9,7 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * QueryLogger Response Class
+ * QueryLogger Response Class.
  */
 @AllArgsConstructor
 public class QueryResponse {

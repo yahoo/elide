@@ -72,6 +72,7 @@ public @interface DimensionFormula {
 
     /**
      * The arguments accepted by this table.
+     * @return arguments for the dimension
      */
     ArgumentDefinition[] arguments() default {};
 }
