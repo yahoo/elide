@@ -60,12 +60,12 @@ public class DynamicConfigSchemaValidator {
 
     /**
      * Verify config against schema.
-     * @param configType
-     * @param jsonConfig
-     * @param fileName
+     * @param configType {@link Config} type.
+     * @param jsonConfig HJSON file content as JSON string.
+     * @param fileName Name of HJSON file.
      * @return whether config is valid
-     * @throws IOException
-     * @throws ProcessingException
+     * @throws IOException If an I/O error occurs.
+     * @throws ProcessingException If a processing error occurred during validation.
      */
     public boolean verifySchema(Config configType, String jsonConfig, String fileName)
                     throws IOException, ProcessingException {
