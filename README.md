@@ -223,6 +223,10 @@ This project is licensed under the terms of the [Apache 2.0](http://www.apache.o
 Please refer to [LICENSE](LICENSE.txt) for the full terms.
 
 ## Articles
+Intro to Elide video
+
+[![Intro to Elide](http://img.youtube.com/vi/WeFzseAKbzs/0.jpg)](http://www.youtube.com/watch?v=WeFzseAKbzs "Intro to Elide")
+
 [Create a JSON API REST Service With Spring Boot and Elide](https://dzone.com/articles/create-a-json-api-rest-service-with-spring-boot-an)
 
 [Custom Security With a Spring Boot/Elide Json API Server](https://dzone.com/articles/custom-security-with-a-spring-bootelide-json-api-s)
