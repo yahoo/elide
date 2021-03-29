@@ -17,7 +17,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.Singular;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -68,9 +67,11 @@ public class Table implements Named {
     private String dbConnectionName;
 
     @JsonProperty("isFact")
+    @Builder.Default
     private Boolean isFact = true;
 
     @JsonProperty("hidden")
+    @Builder.Default
     private Boolean hidden = false;
 
     @JsonProperty("description")
@@ -86,26 +87,28 @@ public class Table implements Named {
     private String cardinality;
 
     @JsonProperty("readAccess")
+    @Builder.Default
     private String readAccess = "Prefab.Role.All";
 
     @JsonProperty("joins")
-    @Singular
+    @Builder.Default
     private List<Join> joins = new ArrayList<>();
 
     @JsonProperty("measures")
-    @Singular
+    @Builder.Default
     private List<Measure> measures = new ArrayList<>();
 
     @JsonProperty("dimensions")
-    @Singular
+    @Builder.Default
     private List<Dimension> dimensions = new ArrayList<>();
 
     @JsonProperty("tags")
     @JsonDeserialize(as = LinkedHashSet.class)
+    @Builder.Default
     private Set<String> tags = new LinkedHashSet<>();
 
     @JsonProperty("arguments")
-    @Singular
+    @Builder.Default
     private List<Argument> arguments = new ArrayList<>();
 
     @JsonProperty("extend")

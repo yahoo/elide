@@ -43,6 +43,7 @@ public class Join implements Named {
     private Join.Type type;
 
     @JsonProperty("kind")
+    @Builder.Default
     private Join.Kind kind = Join.Kind.TOONE;
 
     @JsonProperty("definition")

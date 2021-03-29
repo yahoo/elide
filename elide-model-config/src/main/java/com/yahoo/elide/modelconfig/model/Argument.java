@@ -48,6 +48,7 @@ public class Argument implements Named {
 
     @JsonProperty("values")
     @JsonDeserialize(as = LinkedHashSet.class)
+    @Builder.Default
     private Set<String> values = new LinkedHashSet<>();
 
     @JsonProperty("tableSource")

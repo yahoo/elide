@@ -14,7 +14,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.Singular;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -58,9 +57,11 @@ public class Measure implements Named {
     private String category;
 
     @JsonProperty("hidden")
+    @Builder.Default
     private Boolean hidden = false;
 
     @JsonProperty("readAccess")
+    @Builder.Default
     private String readAccess = "Prefab.Role.All";
 
     @JsonProperty("definition")
@@ -74,10 +75,11 @@ public class Measure implements Named {
 
     @JsonProperty("tags")
     @JsonDeserialize(as = LinkedHashSet.class)
+    @Builder.Default
     private Set<String> tags = new LinkedHashSet<>();
 
     @JsonProperty("arguments")
-    @Singular
+    @Builder.Default
     private List<Argument> arguments = new ArrayList<>();
 
     /**
