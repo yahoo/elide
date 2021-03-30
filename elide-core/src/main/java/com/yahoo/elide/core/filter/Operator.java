@@ -186,7 +186,19 @@ public enum Operator {
     HASNOMEMBER("hasnomember", true) {
         @Override
         public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
-            return entiry -> !hasMember(fieldPath, values, requestScope).test(entiry);
+            return entity -> !hasMember(fieldPath, values, requestScope).test(entity);
+        }
+    },
+    BETWEEN("between", true) {
+        @Override
+        public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
+            return entity -> between(fieldPath, values, requestScope).test(entity);
+        }
+    },
+    NOTBETWEEN("notbetween", true) {
+        @Override
+        public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
+            return entity -> !between(fieldPath, values, requestScope).test(entity);
         }
     };
 
@@ -213,6 +225,8 @@ public enum Operator {
         NOTEMPTY.negated = ISEMPTY;
         HASMEMBER.negated = HASNOMEMBER;
         HASNOMEMBER.negated = HASMEMBER;
+        BETWEEN.negated = NOTBETWEEN;
+        NOTBETWEEN.negated = BETWEEN;
     }
 
     /**
@@ -348,6 +362,23 @@ public enum Operator {
 
     private static <T> Predicate<T> ge(Path fieldPath, List<Object> values, RequestScope requestScope) {
         return getComparator(fieldPath, values, requestScope, compareResult -> compareResult >= 0);
+    }
+
+    private static <T> Predicate<T> between(Path fieldPath, List<Object> values, RequestScope requestScope) {
+        return (T entity) -> {
+            if (values.size() != 2) {
+                throw new BadRequestException("Between operator expects exactly 2 values");
+            }
+            Object fieldVal = getFieldValue(entity, fieldPath, requestScope);
+
+            if (fieldVal instanceof Collection) {
+                return false;
+            }
+
+            return fieldVal != null
+                    && compare(fieldVal, values.get(0)) >= 0
+                    && compare(fieldVal, values.get(1)) <= 0;
+        };
     }
 
     private static <T> Predicate<T> isTrue() {
