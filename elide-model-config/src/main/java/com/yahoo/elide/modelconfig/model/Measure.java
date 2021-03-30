@@ -13,7 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.Singular;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -40,7 +40,6 @@ import java.util.Set;
 @Data
 @EqualsAndHashCode()
 @AllArgsConstructor
-@NoArgsConstructor
 @Builder
 public class Measure implements Named {
 
@@ -57,12 +56,10 @@ public class Measure implements Named {
     private String category;
 
     @JsonProperty("hidden")
-    @Builder.Default
-    private Boolean hidden = false;
+    private Boolean hidden;
 
     @JsonProperty("readAccess")
-    @Builder.Default
-    private String readAccess = "Prefab.Role.All";
+    private String readAccess;
 
     @JsonProperty("definition")
     private String definition;
@@ -75,12 +72,18 @@ public class Measure implements Named {
 
     @JsonProperty("tags")
     @JsonDeserialize(as = LinkedHashSet.class)
-    @Builder.Default
-    private Set<String> tags = new LinkedHashSet<>();
+    private Set<String> tags;
 
     @JsonProperty("arguments")
-    @Builder.Default
-    private List<Argument> arguments = new ArrayList<>();
+    @Singular
+    private List<Argument> arguments;
+
+    public Measure() {
+        this.hidden = false;
+        this.readAccess = "Prefab.Role.All";
+        this.tags = new LinkedHashSet<>();
+        this.arguments = new ArrayList<>();
+    }
 
     /**
      * Returns description of the measure.

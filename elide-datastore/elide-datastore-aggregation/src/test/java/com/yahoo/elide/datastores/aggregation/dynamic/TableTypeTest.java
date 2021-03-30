@@ -47,10 +47,10 @@ public class TableTypeTest {
     @Test
     void testGetAndSetField() throws Exception {
         Table testTable = Table.builder()
-                .dimensions(Arrays.asList(Dimension.builder()
+                .dimension(Dimension.builder()
                         .name("dim1")
                         .type(Type.BOOLEAN)
-                        .build()))
+                        .build())
                 .build();
 
         TableType testType = new TableType(testTable);
@@ -177,7 +177,7 @@ public class TableTypeTest {
         Table testTable = Table.builder()
                 .table("table1")
                 .name("Table")
-                .measures(Arrays.asList(Measure.builder()
+                .measure(Measure.builder()
                         .type(Type.MONEY)
                         .category("category1")
                         .definition("SUM{{  price}}")
@@ -187,7 +187,7 @@ public class TableTypeTest {
                         .readAccess("Admin")
                         .description("A measure")
                         .tags(tags)
-                        .build()))
+                        .build())
                 .build();
 
         TableType testType = new TableType(testTable);
@@ -217,7 +217,7 @@ public class TableTypeTest {
         Table testTable = Table.builder()
                 .table("table1")
                 .name("Table")
-                .dimensions(Arrays.asList(Dimension.builder()
+                .dimension(Dimension.builder()
                         .type(Type.TEXT)
                         .category("category1")
                         .definition("{{region}}")
@@ -229,7 +229,7 @@ public class TableTypeTest {
                         .tags(tags)
                         .cardinality("small")
                         .tableSource("region.id")
-                        .build()))
+                        .build())
                 .build();
 
         TableType testType = new TableType(testTable);
@@ -258,11 +258,11 @@ public class TableTypeTest {
         Table testTable = Table.builder()
                 .table("table1")
                 .name("Table")
-                .dimensions(Arrays.asList(Dimension.builder()
+                .dimension(Dimension.builder()
                         .type(Type.COORDINATE)
                         .name("location")
                         .values(values)
-                        .build()))
+                        .build())
                 .build();
 
         TableType testType = new TableType(testTable);
@@ -281,7 +281,7 @@ public class TableTypeTest {
         Table testTable = Table.builder()
                 .table("table1")
                 .name("Table")
-                .dimensions(Arrays.asList(Dimension.builder()
+                .dimension(Dimension.builder()
                         .type(Type.TIME)
                         .category("category1")
                         .definition("{{createdOn  }}")
@@ -291,7 +291,7 @@ public class TableTypeTest {
                         .readAccess("Admin")
                         .description("A time dimension")
                         .tags(tags)
-                        .build()))
+                        .build())
                 .build();
 
         TableType testType = new TableType(testTable);
@@ -323,19 +323,19 @@ public class TableTypeTest {
         Table testTable = Table.builder()
                 .table("table1")
                 .name("Table")
-                .dimensions(Arrays.asList(Dimension.builder()
+                .dimension(Dimension.builder()
                         .type(Type.TIME)
                         .definition("{{createdOn}}")
                         .name("createdOn")
-                        .grains(Arrays.asList(Grain.builder()
+                        .grain(Grain.builder()
                                 .sql("some sql")
                                 .type(Grain.GrainType.DAY)
-                                .build(),
-                                Grain.builder()
+                                .build())
+                        .grain(Grain.builder()
                                 .sql("some other sql")
                                 .type(Grain.GrainType.YEAR)
-                                .build()))
-                        .build()))
+                                .build())
+                        .build())
                 .build();
 
         TableType testType = new TableType(testTable);
@@ -356,21 +356,21 @@ public class TableTypeTest {
     void testJoinField() throws Exception {
         Table testTable1 = Table.builder()
                 .name("table1")
-                .joins(Arrays.asList(Join.builder()
+                .join(Join.builder()
                         .definition("{{id }} = {{ table2.id}}")
                         .kind(Join.Kind.TOONE)
                         .type(Join.Type.INNER)
                         .name("join1")
                         .to("table2.dim2")
-                        .build()))
+                        .build())
                 .build();
 
         Table testTable2 = Table.builder()
                 .name("table2")
-                .dimensions(Arrays.asList(Dimension.builder()
+                .dimension(Dimension.builder()
                         .name("dim2")
                         .type(Type.BOOLEAN)
-                        .build()))
+                        .build())
                 .build();
 
         TableType testType1 = new TableType(testTable1);
@@ -397,11 +397,11 @@ public class TableTypeTest {
         Table testTable = Table.builder()
                 .table("table1")
                 .name("Table")
-                .dimensions(Arrays.asList(Dimension.builder()
+                .dimension(Dimension.builder()
                         .name("dim1")
                         .type(Type.BOOLEAN)
                         .hidden(true)
-                        .build()))
+                        .build())
                 .build();
 
         TableType testType = new TableType(testTable);
@@ -420,11 +420,11 @@ public class TableTypeTest {
         Table testTable = Table.builder()
                 .table("table1")
                 .name("Table")
-                .measures(Arrays.asList(Measure.builder()
+                .measure(Measure.builder()
                         .name("measure1")
                         .type(Type.BOOLEAN)
                         .hidden(true)
-                        .build()))
+                        .build())
                 .build();
 
         TableType testType = new TableType(testTable);
@@ -443,11 +443,11 @@ public class TableTypeTest {
         Table testTable = Table.builder()
                 .table("table1")
                 .name("Table")
-                .measures(Arrays.asList(Measure.builder()
+                .measure(Measure.builder()
                         .name("measure1")
                         .type(Type.BOOLEAN)
                         .queryPlanResolver("does.not.exist.class")
-                        .build()))
+                        .build())
                 .build();
 
         TableType testType = new TableType(testTable);
