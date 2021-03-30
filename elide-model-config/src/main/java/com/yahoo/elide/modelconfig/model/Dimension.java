@@ -106,7 +106,7 @@ public class Dimension implements Named {
 
     /**
      * Checks if this dimension has provided argument.
-     * @param argName
+     * @param argName Name of the {@link Argument} to  check for.
      * @return true if this dimension has provided argument.
      */
     public boolean hasArgument(String argName) {

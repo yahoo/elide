@@ -29,7 +29,7 @@ public @interface FromTable {
     String name();
 
     /**
-     * DB Connection Name for this table
+     * DB Connection Name for this table.
      * @return String DB Connection Name
      */
     // TO DO

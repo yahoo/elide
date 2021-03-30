@@ -38,7 +38,7 @@ public class VariableDefinitions extends Definition {
     private final List<VariableDefinition> variableDefinitions;
 
     /**
-     * Returns a GraphQL query string that representing an set of variable definition
+     * Returns a GraphQL query string that representing an set of variable definition.
      *
      * @return a sub-string of a GraphQL query
      */

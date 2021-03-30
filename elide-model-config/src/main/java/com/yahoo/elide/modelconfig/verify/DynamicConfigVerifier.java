@@ -81,9 +81,10 @@ public class DynamicConfigVerifier {
      * @param signature : file containing signature
      * @param publicKey : public key name
      * @return whether the file can be verified by given key and signature
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeyException
-     * @throws SignatureException
+     * @throws NoSuchAlgorithmException If no Provider supports a Signature implementation for the SHA256withRSA
+     *         algorithm.
+     * @throws InvalidKeyException If the {@code publicKey} is invalid.
+     * @throws SignatureException If Signature object is not initialized properly.
      */
     public static boolean verify(String fileContent, String signature, PublicKey publicKey)
             throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
@@ -101,8 +102,8 @@ public class DynamicConfigVerifier {
      * Read Content of all files.
      * @param archiveFile : tar.gz file path
      * @return appended content of all files in tar
-     * @throws FileNotFoundException
-     * @throws IOException
+     * @throws FileNotFoundException If {@code archiveFile} does not exist.
+     * @throws IOException If an I/O error occurs.
      */
     public static String readTarContents(String archiveFile) throws FileNotFoundException, IOException {
         StringBuffer sb = new StringBuffer();

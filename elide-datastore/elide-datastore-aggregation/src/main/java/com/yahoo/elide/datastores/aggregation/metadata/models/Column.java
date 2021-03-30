@@ -143,7 +143,7 @@ public abstract class Column implements Versioned {
     }
 
     /**
-     * Construct a column name as meta data
+     * Construct a column name as meta data.
      *
      * @param tableClass table class
      * @param fieldName field name
@@ -155,7 +155,7 @@ public abstract class Column implements Versioned {
     }
 
     /**
-     * Resolve the value type of a field
+     * Resolve the value type of a field.
      *
      * @param tableClass table class
      * @param fieldName field name

@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 public class NamedParamPreparedStatement {
 
     /**
-     * Parameter Pattern as defined in {@link FilterPredicate#getParameters()}
+     * Parameter Pattern as defined in {@link FilterPredicate#getParameters()}.
      * examples:
      * :overallRating_c82e10a5_0
      * :lowScore_7c4e440_0

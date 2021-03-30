@@ -73,6 +73,7 @@ public @interface MetricFormula {
 
     /**
      * The arguments accepted by this table.
+     * @return arguments for the metric
      */
     ArgumentDefinition[] arguments() default {};
 }

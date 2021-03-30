@@ -23,6 +23,7 @@ public @interface VersionQuery {
 
     /**
      * A String containing an SQL SELECT statement.
+     * @return SQL query String
      */
     String sql();
 }

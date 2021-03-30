@@ -41,7 +41,7 @@ public class JoinPath extends Path {
     }
 
     /**
-     * Extend this path with a extension dot separated path
+     * Extend this path with a extension dot separated path.
      *
      * @param extensionPath extension path append to this join path
      * @param dictionary dictionary
