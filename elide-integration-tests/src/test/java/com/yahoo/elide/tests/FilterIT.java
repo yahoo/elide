@@ -27,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
@@ -1570,6 +1571,40 @@ public class FilterIT extends IntegrationTest {
         JsonNode result = getAsNode(String.format("/author/%s/books?filter[book.title][notnull]=true&sort=title", asimovId));
         JsonNode data = result.get("data");
         assertEquals(data.size(), 2);
+    }
+
+    @Test
+    void testBetweenOperatorOnRoot() throws JsonProcessingException {
+        JsonNode result = getAsNode("/book?filter[book.id][between]=2,4");
+        JsonNode data = result.get("data");
+        assertEquals(3, data.size());
+        for (JsonNode book : data) {
+            assertTrue(Arrays.asList(2, 3, 4).contains(book.get("id").asInt()));
+        }
+
+        result = getAsNode("/book?filter=id=notbetween=(2,4);id!=7");
+        data = result.get("data");
+        assertEquals(4, data.size());
+        for (JsonNode book : data) {
+            assertTrue(Arrays.asList(1, 5, 6, 8).contains(book.get("id").asInt()));
+        }
+    }
+
+    @Test
+    void testBetweenOperatorOnNonRoot() throws JsonProcessingException {
+        JsonNode result = getAsNode(String.format("/author/%s/books?filter[book.id][notbetween]=6,7", nullNedId));
+        JsonNode data = result.get("data");
+        assertEquals(1, data.size());
+        for (JsonNode book : data) {
+            assertEquals(8, book.get("id").asInt());
+        }
+
+        result = getAsNode(String.format("/author/%s/books?filter[book]=id=between=(6,7)", nullNedId));
+        data = result.get("data");
+        assertEquals(1, data.size());
+        for (JsonNode book : data) {
+            assertEquals(7, book.get("id").asInt());
+        }
     }
 
 

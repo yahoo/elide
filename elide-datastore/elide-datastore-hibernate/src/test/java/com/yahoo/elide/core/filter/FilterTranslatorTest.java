@@ -84,6 +84,45 @@ public class FilterTranslatorTest {
     }
 
     @Test
+    public void testBetweenOperator() throws Exception {
+        List<Path.PathElement> authorId = Arrays.asList(
+                new Path.PathElement(Book.class, Author.class, "authors"),
+                new Path.PathElement(Author.class, Long.class, "id")
+        );
+        List<Path.PathElement> publishDate = Arrays.asList(
+                new Path.PathElement(Book.class, Long.class, "publishDate")
+        );
+        FilterPredicate authorPred = new FilterPredicate(new Path(authorId), Operator.BETWEEN, Arrays.asList(1, 15));
+        FilterPredicate publishPred = new FilterPredicate(new Path(publishDate), Operator.NOTBETWEEN, Arrays.asList(1, 15));
+
+
+        AndFilterExpression andFilter = new AndFilterExpression(authorPred, publishPred);
+
+
+        FilterTranslator filterOp = new FilterTranslator(dictionary);
+        String query = filterOp.apply(andFilter, false);
+
+
+        String authorP1 = authorPred.getParameters().get(0).getPlaceholder();
+        String authorP2 = authorPred.getParameters().get(1).getPlaceholder();
+
+
+        String publishP1 = publishPred.getParameters().get(0).getPlaceholder();
+        String publishP2 = publishPred.getParameters().get(1).getPlaceholder();
+
+        String expected = "(authors.id BETWEEN " + authorP1 + " AND " + authorP2 + " AND "
+                + "publishDate NOT BETWEEN " + publishP1 + " AND " + publishP2 + ")";
+        assertEquals(expected, query);
+
+
+        // Assert excepetion if parameter length is not 2
+        assertThrows(IllegalArgumentException.class,
+                () -> filterOp.apply(
+                        new FilterPredicate(new Path(authorId), Operator.BETWEEN, Arrays.asList(3))
+                ));
+    }
+
+    @Test
     public void testMemberOfOperator() throws Exception {
         List<Path.PathElement> path = Arrays.asList(
                 new Path.PathElement(Book.class, String.class, "awards")

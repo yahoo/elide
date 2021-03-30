@@ -226,6 +226,23 @@ public class RSQLFilterDialectTest {
     }
 
     @Test
+    public void testBetweenOperator() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter",
+                "(publishDate=notbetween=(5,10))"
+        );
+
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
+
+        assertEquals(
+                "book.publishDate NOTBETWEEN [5, 10]",
+                expression.toString()
+        );
+    }
+
+    @Test
     public void testSubstringOperator() throws Exception {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
 
