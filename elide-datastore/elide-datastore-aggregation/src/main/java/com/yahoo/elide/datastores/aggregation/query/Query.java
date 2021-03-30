@@ -15,7 +15,9 @@ import lombok.NonNull;
 import lombok.Singular;
 import lombok.Value;
 
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -46,6 +48,8 @@ public class Query implements Queryable {
     private FilterExpression havingFilter;
     private Sorting sorting;
     private ImmutablePagination pagination;
+    @Builder.Default
+    private Map<String, Object> context = new HashMap<>();
 
     @EqualsAndHashCode.Exclude
     private RequestScope scope;
