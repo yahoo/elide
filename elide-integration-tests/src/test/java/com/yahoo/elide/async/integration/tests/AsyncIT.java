@@ -204,8 +204,7 @@ public class AsyncIT extends AsyncApiIT {
                                          selections(
                                                  field("id"),
                                                  field("query"),
-                                                 field("queryType"),
-                                                 field("status")
+                                                 field("queryType")
                                          )
                                  )
                          )
@@ -214,7 +213,7 @@ public class AsyncIT extends AsyncApiIT {
 
         String expectedResponse = "{\"data\":{\"asyncQuery\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\","
                 + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { id title } } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\"}}]}}}";
+                + "\"queryType\":\"GRAPHQL_V1_0\"}}]}}}";
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
         given()
                 .contentType(MediaType.APPLICATION_JSON)
