@@ -133,6 +133,21 @@ public class DefaultFilterDialectTest {
     }
 
     @Test
+    public void testBetweenOperator() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter[author.books.id][between]",
+                "10,20"
+        );
+
+        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams, NO_VERSION);
+
+        assertEquals(1, expressionMap.size());
+        assertEquals("author.books.id BETWEEN [10, 20]", expressionMap.get("author").toString());
+    }
+
+    @Test
     public void testEmptyOperatorException() throws Exception {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
 

@@ -82,6 +82,8 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
     private static final ComparisonOperator ISEMPTY_OP = new ComparisonOperator("=isempty=", false);
     private static final ComparisonOperator HASMEMBER_OP = new ComparisonOperator("=hasmember=", false);
     private static final ComparisonOperator HASNOMEMBER_OP = new ComparisonOperator("=hasnomember=", false);
+    private static final ComparisonOperator BETWEEN_OP = new ComparisonOperator("=between=", true);
+    private static final ComparisonOperator NOTBETWEEN_OP = new ComparisonOperator("=notbetween=", true);
 
     /* Subset of operators that map directly to Elide operators */
     private static final Map<ComparisonOperator, Operator> OPERATOR_MAP =
@@ -92,6 +94,8 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                     .put(RSQLOperators.LESS_THAN_OR_EQUAL, Operator.LE)
                     .put(HASMEMBER_OP, Operator.HASMEMBER)
                     .put(HASNOMEMBER_OP, Operator.HASNOMEMBER)
+                    .put(BETWEEN_OP, Operator.BETWEEN)
+                    .put(NOTBETWEEN_OP, Operator.NOTBETWEEN)
                     .build();
 
 
@@ -118,6 +122,8 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
         operators.add(ISEMPTY_OP);
         operators.add(HASMEMBER_OP);
         operators.add(HASNOMEMBER_OP);
+        operators.add(BETWEEN_OP);
+        operators.add(NOTBETWEEN_OP);
         return operators;
     }
 
