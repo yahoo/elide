@@ -48,8 +48,7 @@ public class CalciteOuterAggregationExtractor extends SqlBasicVisitor<SqlNode> {
             List<String> expressionsSubs = substitutions.remove();
             String postAggExpression = operator.getOuterAggregation(expressionsSubs.toArray(new String[0]));
 
-            SqlParser sqlParser = SqlParser.create(postAggExpression,
-                    SqlParser.config().withLex(dialect.getCalciteLex()));
+            SqlParser sqlParser = SqlParser.create(postAggExpression, CalciteUtils.constructParserConfig(dialect));
 
             try {
                 return sqlParser.parseExpression();

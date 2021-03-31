@@ -23,10 +23,10 @@ public class CalciteInnerAggregationExtractorTest {
     @Test
     public void testExpressionParsing() throws Exception {
         String sql = "        SUM (CASE\n"
-                + "                WHEN `number_of_lectures` > 20 then 1\n"
+                + "                WHEN 'number_of_lectures' > 20 then 1\n"
                 + "                ELSE 0\n"
                 + "        END) / SUM(blah)";
-        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
+        SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
         SqlNode node = sqlParser.parseExpression();
         CalciteInnerAggregationExtractor extractor = new CalciteInnerAggregationExtractor(dialect);
         List<List<String>> aggregations = node.accept(extractor);
@@ -34,14 +34,14 @@ public class CalciteInnerAggregationExtractorTest {
         assertEquals(2, aggregations.size());
         assertEquals(1, aggregations.get(0).size());
         assertEquals(1, aggregations.get(1).size());
-        assertEquals("SUM(CASE WHEN `number_of_lectures` > 20 THEN 1 ELSE 0 END)", aggregations.get(0).get(0));
+        assertEquals("SUM(CASE WHEN 'number_of_lectures' > 20 THEN 1 ELSE 0 END)", aggregations.get(0).get(0));
         assertEquals("SUM(`blah`)", aggregations.get(1).get(0));
     }
 
     @Test
     public void testInvalidAggregationFunction() throws Exception {
         String sql = "CUSTOM_SUM(blah)";
-        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
+        SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
         SqlNode node = sqlParser.parseExpression();
         CalciteInnerAggregationExtractor extractor = new CalciteInnerAggregationExtractor(dialect);
         List<List<String>> aggregations = node.accept(extractor);
@@ -52,7 +52,7 @@ public class CalciteInnerAggregationExtractorTest {
     @Test
     public void testAverageFunction() throws Exception {
         String sql = "AVG(blah)";
-        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
+        SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
         SqlNode node = sqlParser.parseExpression();
         CalciteInnerAggregationExtractor extractor = new CalciteInnerAggregationExtractor(dialect);
         List<List<String>> aggregations = node.accept(extractor);
@@ -66,7 +66,7 @@ public class CalciteInnerAggregationExtractorTest {
     @Test
     public void testVarPopFunction() throws Exception {
         String sql = "VAR_POP(blah)";
-        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
+        SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
         SqlNode node = sqlParser.parseExpression();
         CalciteInnerAggregationExtractor extractor = new CalciteInnerAggregationExtractor(dialect);
         List<List<String>> aggregations = node.accept(extractor);

@@ -27,7 +27,7 @@ public class CalciteOuterAggregationExtractorTest {
                 + "                ELSE 0\n"
                 + "        END) / SUM(blah)";
 
-        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
+        SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
         SqlNode node = sqlParser.parseExpression();
 
         List<List<String>> substitutions = Arrays.asList(Arrays.asList("SUB1"), Arrays.asList("SUB2"));
@@ -41,7 +41,7 @@ public class CalciteOuterAggregationExtractorTest {
     @Test
     public void testCustomAggregationFunction() throws Exception {
         String sql = "CUSTOM_SUM(blah)";
-        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
+        SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
         SqlNode node = sqlParser.parseExpression();
 
         List<List<String>> substitutions = Arrays.asList(Arrays.asList("SUB1"));
@@ -55,7 +55,7 @@ public class CalciteOuterAggregationExtractorTest {
     @Test
     public void testAverageFunction() throws Exception {
         String sql = "AVG(blah)";
-        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
+        SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
         SqlNode node = sqlParser.parseExpression();
 
         List<List<String>> substitutions = Arrays.asList(Arrays.asList("SUB1"));
@@ -69,7 +69,7 @@ public class CalciteOuterAggregationExtractorTest {
     @Test
     public void testVarPopFunction() throws Exception {
         String sql = "VAR_POP(blah)";
-        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
+        SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
         SqlNode node = sqlParser.parseExpression();
 
         List<List<String>> substitutions = Arrays.asList(Arrays.asList("SUB1", "SUB2", "SUB3"));

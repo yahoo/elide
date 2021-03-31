@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl;
 
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.AbstractSqlDialect;
 import org.apache.calcite.avatica.util.Casing;
-import org.apache.calcite.config.Lex;
 import org.apache.calcite.sql.SqlDialect;
 
 public class DruidDialect extends AbstractSqlDialect {
@@ -40,15 +39,8 @@ public class DruidDialect extends AbstractSqlDialect {
     public SqlDialect getCalciteDialect() {
         return new SqlDialect(SqlDialect.EMPTY_CONTEXT
                 .withIdentifierQuoteString(String.valueOf(DOUBLE_QUOTE))
-                .withLiteralQuoteString(String.valueOf(DOUBLE_QUOTE))
-                .withLiteralEscapedQuoteString(String.valueOf(DOUBLE_QUOTE))
                 .withCaseSensitive(true)
                 .withQuotedCasing(Casing.UNCHANGED)
                 .withUnquotedCasing(Casing.UNCHANGED));
-    }
-
-    @Override
-    public Lex getCalciteLex() {
-        return Lex.MYSQL_ANSI;
     }
 }

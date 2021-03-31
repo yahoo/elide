@@ -19,8 +19,11 @@ import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteInnerAggregationExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteOuterAggregationExtractor;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteUtils;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
+import org.apache.calcite.avatica.util.Casing;
+import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
@@ -105,7 +108,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
             return false;
         }
 
-        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
+        SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
 
         try {
             sqlParser.parseExpression();
@@ -125,7 +128,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                                                               boolean joinInOuter) {
         SQLDialect dialect = source.getConnectionDetails().getDialect();
         String sql = toSQL(source.getSource(), lookupTable);
-        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
+        SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
 
         SqlNode node;
         try {
@@ -139,7 +142,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
         List<List<String>> innerAggLabels = innerAggExpressions.stream()
                 .map(list -> list.stream()
-                        .map((expression) -> "INNER_AGG_" + (expression.hashCode() & 0xfffffff))
+                        .map((expression) -> getAggregationLabel(dialect.getCalciteDialect(), expression))
                         .collect(Collectors.toList()))
                 .collect(Collectors.toList());
 
@@ -172,7 +175,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
         //replace INNER_AGG_... with {{INNER_AGG...}}
         outerAggExpression = outerAggExpression.replaceAll(
                 dialect.getBeginQuote()
-                        + "?(INNER_AGG_\\w+)"
+                        + "?(" + getAggregationLabelPrefix(dialect.getCalciteDialect()) + "\\w+)"
                         + dialect.getEndQuote()
                         + "?", "{{$1}}");
 
@@ -208,5 +211,16 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                 .queryPlanResolver(queryPlanResolver)
                 .arguments(arguments)
                 .build();
+    }
+
+    private static String getAggregationLabelPrefix(SqlDialect dialect) {
+        if (dialect.getUnquotedCasing().equals(Casing.TO_LOWER)) {
+            return "inner_agg_";
+        }
+        return "INNER_AGG_";
+    }
+
+    private static String getAggregationLabel(SqlDialect dialect, String expression) {
+        return getAggregationLabelPrefix(dialect) + (expression.hashCode() & 0xfffffff);
     }
 }

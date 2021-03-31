@@ -9,7 +9,6 @@ import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SupportedAggregation;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import org.apache.calcite.avatica.util.Casing;
-import org.apache.calcite.config.Lex;
 import org.apache.calcite.sql.SqlDialect;
 
 /**
@@ -75,21 +74,12 @@ public interface SQLDialect {
      * @return Calcite dialect
      */
     default SqlDialect getCalciteDialect() {
+        String quotes = String.valueOf(getBeginQuote());
         return new SqlDialect(SqlDialect.EMPTY_CONTEXT
-                .withIdentifierQuoteString("`")
-                .withLiteralQuoteString("`")
-                .withLiteralEscapedQuoteString("`")
+                .withIdentifierQuoteString(quotes)
                 .withCaseSensitive(true)
                 .withQuotedCasing(Casing.UNCHANGED)
                 .withUnquotedCasing(Casing.UNCHANGED));
-    }
-
-    /**
-     * Fetches the Calcite lex associated with this Elide dialect.
-     * @return Calcite lex
-     */
-    default Lex getCalciteLex() {
-        return Lex.MYSQL;
     }
 
     /**

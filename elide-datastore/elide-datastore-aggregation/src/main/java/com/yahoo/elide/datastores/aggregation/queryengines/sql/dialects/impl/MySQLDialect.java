@@ -6,6 +6,8 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl;
 
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.AbstractSqlDialect;
+import org.apache.calcite.sql.SqlDialect;
+import org.apache.calcite.sql.dialect.MysqlSqlDialect;
 
 /**
  * MySQL SQLDialect.
@@ -25,5 +27,10 @@ public class MySQLDialect extends AbstractSqlDialect {
     @Override
     public String getFullJoinKeyword() {
         throw new IllegalArgumentException("Full Join is not supported for: " + getDialectType());
+    }
+
+    @Override
+    public SqlDialect getCalciteDialect() {
+        return MysqlSqlDialect.DEFAULT;
     }
 }
