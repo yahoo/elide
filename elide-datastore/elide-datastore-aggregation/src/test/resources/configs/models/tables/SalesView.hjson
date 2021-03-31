@@ -7,6 +7,14 @@
       dbConnectionName: SalesDBConnection
       cardinality: large
       readAccess: guest user
+      arguments:
+      [
+        { // An argument that can be used to divide orderTotal to convert orders in Millions, Thousands, etc.
+          name: denominator
+          type: DECIMAL
+          default: 1
+        }
+      ]
       joins:
       [
         {
@@ -32,8 +40,17 @@
         {
           name: orderTotal
           type: DECIMAL
+          // TODO : Use Arguments
           definition: 'SUM({{ $order_total }})'
           readAccess: admin.user
+          arguments:
+          [
+            { // An argument that can be used to divide orderTotal to convert orders in Millions, Thousands, etc.
+              name: precision
+              type: DECIMAL
+              default: 0.00
+            }
+          ]
         }
       ]
       dimensions:
