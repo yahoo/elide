@@ -10,6 +10,8 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.io.Serializable;
 import java.util.Base64;
 import java.util.Collections;
@@ -103,20 +105,13 @@ public interface ColumnProjection extends Serializable {
     }
 
     /**
-     * While nesting, convert this projection into its outer query equivalent.
-     * @param source The source of this projection.
+     * Translate a column into outer & inner query columns for a two-pass aggregation.
+     * @param source The source query of this projection.
      * @param lookupTable Used to answer questions about templated column definitions.
      * @param joinInOuter If possible, skip required joins in inner query and do the join in the outer query.
-     * @return the outer projection.
+     * @return A pair consisting of the outer column projection and a set of inner column projections.
      */
-    ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable, boolean joinInOuter);
-
-    /**
-     * While nesting, convert this projection into its inner query equivalents.
-     * @param source The source of this projection.
-     * @param lookupTable Used to answer questions about templated column definitions.
-     * @param joinInOuter If possible, skip required joins in inner query and do the join in the outer query.
-     * @return the set of inner projections linked to the outer projection.
-     */
-    Set<ColumnProjection> innerQuery(Queryable source, SQLReferenceTable lookupTable, boolean joinInOuter);
+    Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source,
+                                                       SQLReferenceTable lookupTable,
+                                                       boolean joinInOuter);
 }

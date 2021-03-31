@@ -12,13 +12,17 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Optimizer;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
+
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -26,7 +30,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * This optimizer attempts to aggregate data prior to table joins by nesting the query into an inner query
@@ -57,26 +61,53 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
             SubqueryFilterSplitter.SplitFilter splitWhere =
                     SubqueryFilterSplitter.splitFilter(lookupTable, metaDataStore, query.getWhereFilter());
 
+            Set<ColumnProjection> allProjections = Streams.concat(
+                    query.getColumnProjections().stream(),
+                    extractFilterProjections(query, query.getWhereFilter()).stream())
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+
+            Set<Pair<ColumnProjection, Set<ColumnProjection>>> allProjectionsNested = allProjections.stream()
+                    .map((projection) -> projection.nest(query, lookupTable, true))
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+
+            Set<ColumnProjection> allOuterProjections = allProjectionsNested.stream()
+                    .map(Pair::getLeft)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+
+            Set<ColumnProjection> allInnerProjections = allProjectionsNested.stream()
+                    .map(Pair::getRight)
+                    .flatMap(Set::stream)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+
             Query inner = Query.builder()
                     .source(query.getSource().accept(this))
-                    .metricProjections(getInnerQueryColumns(query, SQLMetricProjection.class))
-                    .dimensionProjections(Sets.union(
-
-                            //Fetch just the projected dimensions.
-                            getInnerQueryColumns(query, SQLDimensionProjection.class),
-
-                            //Fetch all columns that nest as physical column projections.
-                            getInnerQueryColumns(query, SQLColumnProjection.class,
-                                    (predicate) -> predicate instanceof SQLPhysicalColumnProjection))
-                    )
-                    .timeDimensionProjections(getInnerQueryColumns(query, SQLTimeDimensionProjection.class))
+                    .metricProjections(allInnerProjections.stream()
+                                    .filter((predicate) -> predicate instanceof SQLMetricProjection)
+                                    .map(MetricProjection.class::cast)
+                                    .collect(Collectors.toCollection(LinkedHashSet::new)))
+                    .dimensionProjections(allInnerProjections.stream()
+                            .filter((predicate) -> predicate instanceof SQLDimensionProjection
+                                    || predicate instanceof SQLPhysicalColumnProjection)
+                            .collect(Collectors.toCollection(LinkedHashSet::new)))
+                    .timeDimensionProjections(allInnerProjections.stream()
+                            .filter((predicate) -> predicate instanceof SQLTimeDimensionProjection)
+                            .map(SQLTimeDimensionProjection.class::cast)
+                            .collect(Collectors.toCollection(LinkedHashSet::new)))
                     .whereFilter(splitWhere.getInner())
                     .build();
 
             return Query.builder()
-                    .metricProjections(getOuterQueryColumns(query, SQLMetricProjection.class))
-                    .dimensionProjections(getOuterQueryColumns(query, SQLDimensionProjection.class))
-                    .timeDimensionProjections(getOuterQueryColumns(query, SQLTimeDimensionProjection.class))
+                    .metricProjections(allOuterProjections.stream()
+                            .filter((predicate) -> predicate instanceof SQLMetricProjection)
+                            .map(MetricProjection.class::cast)
+                            .collect(Collectors.toCollection(LinkedHashSet::new)))
+                    .dimensionProjections(allOuterProjections.stream()
+                                    .filter((predicate) -> predicate instanceof SQLDimensionProjection)
+                                    .collect(Collectors.toCollection(LinkedHashSet::new)))
+                    .timeDimensionProjections(allOuterProjections.stream()
+                            .filter((predicate) -> predicate instanceof SQLTimeDimensionProjection)
+                            .map(TimeDimensionProjection.class::cast)
+                            .collect(Collectors.toCollection(LinkedHashSet::new)))
                     .whereFilter(splitWhere.getOuter())
                     .havingFilter(query.getHavingFilter())
                     .sorting(query.getSorting())
@@ -85,80 +116,6 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                     .bypassingCache(query.isBypassingCache())
                     .source(inner)
                     .build();
-        }
-
-        /**
-         * Extracts all inner query columns of a particular column type (metric, dimension, time dimension)
-         * that match the given filter.
-         * @param query The query to extract columns from.
-         * @param columnType The column type of columns to extract.
-         * @param filter The filter to apply
-         * @param <T> The column type of columns to extract.
-         * @return A set of extracted columns.
-         */
-        private <T extends ColumnProjection> Set<T> getInnerQueryColumns(Query query, Class<T> columnType,
-                                                                         Predicate<? super ColumnProjection> filter) {
-            Set<T> projections = new LinkedHashSet<>();
-
-            //This covers having & sort clauses where the columns are also part of the projection.
-            query.getColumnProjections().stream()
-                    .filter(projection -> columnType.isInstance(projection))
-                    .flatMap(projection -> projection.innerQuery(query, lookupTable, true).stream())
-                    .filter(filter)
-                    .map(columnType::cast)
-                    .forEach(projections::add);
-
-            //This covers having & sort clauses where the columns are also part of the projection.
-            extractFilterProjections(query, query.getWhereFilter()).stream()
-                    .filter(projection -> columnType.isInstance(projection))
-                    .flatMap(projection -> projection.innerQuery(query, lookupTable, true).stream())
-                    .filter(filter)
-                    .map(columnType::cast)
-                    .forEach(projections::add);
-
-            //TODO - Remove this.  Technically, Having and Sort clauses are covered above but the
-            //tests include HAVING clause on a column which is not in the projection (even though the validator
-            //would reject the query).
-            extractFilterProjections(query, query.getHavingFilter()).stream()
-                    .filter(projection -> columnType.isInstance(projection))
-                    .flatMap(projection -> projection.innerQuery(query, lookupTable, true).stream())
-                    .filter(filter)
-                    .map(columnType::cast)
-                    .forEach(projections::add);
-
-            return projections;
-        }
-
-        private <T extends ColumnProjection> Set<T> getInnerQueryColumns(Query query, Class<T> columnType) {
-            return getInnerQueryColumns(query, columnType, (projection) -> columnType.isInstance(projection));
-        }
-
-        private <T extends ColumnProjection> Set<T> getOuterQueryColumns(Query query, Class<T> columnType) {
-            Set<T> projections = new LinkedHashSet<>();
-
-            //This covers having & sort clauses where the columns are also part of the projection.
-            query.getColumnProjections().stream()
-                    .filter(projection -> columnType.isInstance(projection))
-                    .map(projection -> projection.outerQuery(query, lookupTable, true))
-                    .map(columnType::cast)
-                    .forEach(projections::add);
-
-            extractFilterProjections(query, query.getWhereFilter()).stream()
-                    .filter(projection -> columnType.isInstance(projection))
-                    .map(projection -> projection.outerQuery(query, lookupTable, true))
-                    .map(columnType::cast)
-                    .forEach(projections::add);
-
-            //TODO - Remove this.  Technically, Having and Sort clauses are covered above but the
-            //tests include HAVING clause on a column which is not in the projection (even though the validator
-            //would reject the query).
-            extractFilterProjections(query, query.getHavingFilter()).stream()
-                    .filter(projection -> columnType.isInstance(projection))
-                    .map(projection -> projection.outerQuery(query, lookupTable, true))
-                    .map(columnType::cast)
-                    .forEach(projections::add);
-
-            return projections;
         }
 
         /**

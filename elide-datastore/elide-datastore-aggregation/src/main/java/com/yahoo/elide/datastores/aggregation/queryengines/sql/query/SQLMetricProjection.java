@@ -24,10 +24,12 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLRefer
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
+import org.apache.commons.lang3.tuple.Pair;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -118,7 +120,9 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     }
 
     @Override
-    public ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable, boolean joinInOuter) {
+    public Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source,
+                                                              SQLReferenceTable lookupTable,
+                                                              boolean joinInOuter) {
         SQLDialect dialect = source.getConnectionDetails().getDialect();
         String sql = toSQL(source.getSource(), lookupTable);
         SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
@@ -139,6 +143,25 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                         .collect(Collectors.toList()))
                 .collect(Collectors.toList());
 
+        Set<ColumnProjection> innerAggProjections = new LinkedHashSet<>();
+
+        Iterator<String> labelIt = innerAggLabels.stream().flatMap(List::stream).iterator();
+        Iterator<String> expressionIt = innerAggExpressions.stream().flatMap(List::stream).iterator();
+
+        while (labelIt.hasNext() && expressionIt.hasNext()) {
+            String innerAggExpression = expressionIt.next();
+            String innerAggLabel = labelIt.next();
+
+            innerAggProjections.add(SQLMetricProjection.builder()
+                    .projected(true)
+                    .name(innerAggLabel)
+                    .alias(innerAggLabel)
+                    .expression(innerAggExpression)
+                    .columnType(columnType)
+                    .valueType(valueType)
+                    .build());
+        }
+
         CalciteOuterAggregationExtractor outerExtractor =
                 new CalciteOuterAggregationExtractor(dialect, innerAggLabels);
 
@@ -155,7 +178,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
         boolean inProjection = source.getColumnProjection(name) != null;
 
-        return SQLMetricProjection.builder()
+        ColumnProjection outerProjection = SQLMetricProjection.builder()
                 .projected(inProjection)
                 .expression(outerAggExpression)
                 .name(name)
@@ -164,51 +187,26 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                 .columnType(columnType)
                 .arguments(arguments)
                 .build();
-    }
 
-    @Override
-    public Set<ColumnProjection> innerQuery(Queryable source, SQLReferenceTable lookupTable, boolean joinInOuter) {
-        SQLDialect dialect = source.getConnectionDetails().getDialect();
-        String sql = toSQL(source.getSource(), lookupTable);
-        SqlParser sqlParser = SqlParser.create(sql, SqlParser.config().withLex(dialect.getCalciteLex()));
-
-        SqlNode node;
-        try {
-            node = sqlParser.parseExpression();
-        } catch (SqlParseException e) {
-            throw new IllegalStateException(e);
-        }
-
-        CalciteInnerAggregationExtractor innerExtractor = new CalciteInnerAggregationExtractor(dialect);
-
-        List<String> innerAggExpressions = node.accept(innerExtractor).stream()
-                .flatMap(List::stream).collect(Collectors.toList());
-
-        List<String> innerAggLabels = innerAggExpressions.stream()
-                .map((expression) -> "INNER_AGG_" + (expression.hashCode() & 0xfffffff))
-                .collect(Collectors.toList());
-
-        Set<ColumnProjection> innerAggProjections = new LinkedHashSet<>();
-
-        for (int idx = 0; idx < innerAggExpressions.size(); idx++) {
-            String innerAggExpression = innerAggExpressions.get(idx);
-            String innerAggLabel = innerAggLabels.get(idx);
-
-            innerAggProjections.add(SQLMetricProjection.builder()
-                    .projected(true)
-                    .name(innerAggLabel)
-                    .alias(innerAggLabel)
-                    .expression(innerAggExpression)
-                    .columnType(columnType)
-                    .valueType(valueType)
-                    .build());
-        }
-
-        return innerAggProjections;
+        return Pair.of(outerProjection, innerAggProjections);
     }
 
     @Override
     public boolean isProjected() {
         return projected;
+    }
+
+    @Override
+    public SQLColumnProjection withExpression(String expression, boolean project) {
+        return SQLMetricProjection.builder()
+                .expression(expression)
+                .projected(project)
+                .name(name)
+                .alias(alias)
+                .valueType(valueType)
+                .columnType(columnType)
+                .queryPlanResolver(queryPlanResolver)
+                .arguments(arguments)
+                .build();
     }
 }

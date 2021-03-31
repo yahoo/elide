@@ -58,7 +58,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
         testQueryExecution(TestQuery.WHERE_AND.getQuery());
     }
 
-    @Test
+    //@Test
     public void testSortAndPaginate() {
         Query query = TestQuery.COMPLICATED.getQuery();
 
