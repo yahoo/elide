@@ -217,6 +217,36 @@ public class ModelBuilderTest {
         assertEquals(Scalars.GraphQLString, bookType.getFieldDefinition(FIELD_PUBLISH_DATE).getArgument(TYPE).getType());
     }
 
+    @Test
+    public void checkModelArguments() {
+        // Add test arguments to entities
+        dictionary.addArgumentToEntity(getClassType(Book.class), new ArgumentType("filterBook", ClassType.STRING_TYPE));
+        dictionary.addArgumentToEntity(getClassType(Publisher.class), new ArgumentType("filterPublisher", ClassType.STRING_TYPE));
+        dictionary.addArgumentToEntity(getClassType(Author.class), new ArgumentType("filterAuthor", ClassType.STRING_TYPE));
+
+        DataFetcher fetcher = mock(DataFetcher.class);
+        ModelBuilder builder = new ModelBuilder(dictionary, new NonEntityDictionary(), fetcher, NO_VERSION);
+
+        GraphQLSchema schema = builder.build();
+
+        GraphQLObjectType root = schema.getQueryType();
+        assertNotNull(root);
+        assertNotNull(root.getFieldDefinition(FIELD_BOOK));
+
+        /* The root 'book' should have the "filterBook" argument defined */
+        GraphQLFieldDefinition bookField = root.getFieldDefinition(FIELD_BOOK);
+        assertNotNull(bookField.getArgument("filterBook"));
+
+        /* book.publisher is a "toOne" relationship and has the argument "filterPublisher" defined */
+        GraphQLObjectType bookType = (GraphQLObjectType) schema.getType(TYPE_BOOK);
+        GraphQLFieldDefinition publisherField = bookType.getFieldDefinition(FIELD_PUBLISHER);
+        assertNotNull(publisherField.getArgument("filterPublisher"));
+
+        /* book.authors is a 'to many' relationship and has the argument "filterAuthor" defined */
+        GraphQLFieldDefinition authorField = bookType.getFieldDefinition(FIELD_AUTHORS);
+        assertNotNull(authorField.getArgument("filterAuthor"));
+    }
+
     private GraphQLObjectType getConnectedType(GraphQLObjectType root, String connectionName) {
         GraphQLList edgesType = (GraphQLList) root.getFieldDefinition(EDGES).getType();
         GraphQLObjectType rootType =  (GraphQLObjectType)
