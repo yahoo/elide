@@ -244,7 +244,6 @@ public class TableExportIT extends AsyncApiIT {
                                                  field("id"),
                                                  field("query"),
                                                  field("queryType"),
-                                                 field("status"),
                                                  field("resultType")
                                          )
                                  )
@@ -254,7 +253,7 @@ public class TableExportIT extends AsyncApiIT {
 
         String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cf828e\","
                 + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { title } } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"resultType\":\"CSV\"}}]}}}";
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
         given()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -380,7 +379,6 @@ public class TableExportIT extends AsyncApiIT {
                                                  field("id"),
                                                  field("query"),
                                                  field("queryType"),
-                                                 field("status"),
                                                  field("resultType")
                                          )
                                  )
@@ -390,7 +388,7 @@ public class TableExportIT extends AsyncApiIT {
 
         String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075cab28e\","
                 + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { bookName:title } } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"resultType\":\"CSV\"}}]}}}";
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
         given()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -847,7 +845,6 @@ public class TableExportIT extends AsyncApiIT {
                                                  field("id"),
                                                  field("query"),
                                                  field("queryType"),
-                                                 field("status"),
                                                  field("resultType")
                                          )
                                  )
@@ -857,7 +854,7 @@ public class TableExportIT extends AsyncApiIT {
 
         String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dff2-4054-804e-d80075df828e\","
                 + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { title } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"resultType\":\"CSV\"}}]}}}";
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
         given()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -905,7 +902,6 @@ public class TableExportIT extends AsyncApiIT {
                                                  field("id"),
                                                  field("query"),
                                                  field("queryType"),
-                                                 field("status"),
                                                  field("resultType")
                                          )
                                  )
@@ -915,7 +911,7 @@ public class TableExportIT extends AsyncApiIT {
 
         String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-def2-4054-804e-d80075cf828e\","
                 + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { title } } } author { edges { node { name } } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"resultType\":\"CSV\"}}]}}}";
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
         given()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -963,7 +959,6 @@ public class TableExportIT extends AsyncApiIT {
                                                  field("id"),
                                                  field("query"),
                                                  field("queryType"),
-                                                 field("status"),
                                                  field("resultType")
                                          )
                                  )
@@ -973,7 +968,7 @@ public class TableExportIT extends AsyncApiIT {
 
         String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-daf2-4054-804e-d80075cf828e\","
                 + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { title } } } } { author { edges { node { name } } } }\\\",\\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"resultType\":\"CSV\"}}]}}}";
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
         given()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -1021,7 +1016,6 @@ public class TableExportIT extends AsyncApiIT {
                                                  field("id"),
                                                  field("query"),
                                                  field("queryType"),
-                                                 field("status"),
                                                  field("resultType")
                                          )
                                  )
@@ -1031,7 +1025,7 @@ public class TableExportIT extends AsyncApiIT {
 
         String expectedResponse = "{\"data\":{\"tableExport\":{\"edges\":[{\"node\":{\"id\":\"edc4a871-dbf2-4054-804e-d80075cf828e\","
                 + "\"query\":\"{\\\"query\\\":\\\"{ book { edges { node { title authors {edges { node { name } } } } } } }\\\", \\\"variables\\\":null}\","
-                + "\"queryType\":\"GRAPHQL_V1_0\",\"status\":\"PROCESSING\",\"resultType\":\"CSV\"}}]}}}";
+                + "\"queryType\":\"GRAPHQL_V1_0\",\"resultType\":\"CSV\"}}]}}}";
         JsonNode graphQLJsonNode = toJsonNode(graphQLRequest, null);
         given()
                 .contentType(MediaType.APPLICATION_JSON)
