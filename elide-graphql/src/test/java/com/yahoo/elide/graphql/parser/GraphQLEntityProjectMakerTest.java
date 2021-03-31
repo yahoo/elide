@@ -50,7 +50,9 @@ public class GraphQLEntityProjectMakerTest extends PersistentResourceFetcherTest
          String graphQLRequest = document(
                  selection(
                          field(
-                                 "parameterizedExample",
+                                 "parameterizedExample", arguments(
+                                         argument("entityArgument", "xyz", true)
+                                         ),
                                  selections(
                                          field("attribute", arguments(
                                                  argument("argument", "abc", true)
@@ -66,6 +68,16 @@ public class GraphQLEntityProjectMakerTest extends PersistentResourceFetcherTest
 
          EntityProjection projection = projectionInfo.getProjections().values().iterator().next();
 
+         // Verify Entity Argument
+         assertEquals(1, projection.getArguments().size());
+
+         Argument entityArgument = projection.getArguments().iterator().next();
+
+         assertEquals("entityArgument", entityArgument.getName());
+         assertEquals(String.class, entityArgument.getType());
+         assertEquals("xyz", entityArgument.getValue());
+
+         // Verify Attribute Argument
          assertEquals(1, projection.getAttributes().size());
 
          Attribute attribute = projection.getAttributes().iterator().next();
@@ -98,6 +110,16 @@ public class GraphQLEntityProjectMakerTest extends PersistentResourceFetcherTest
 
         EntityProjection projection = projectionInfo.getProjections().values().iterator().next();
 
+        // Verify Entity Argument
+        assertEquals(1, projection.getArguments().size());
+
+        Argument entityArgument = projection.getArguments().iterator().next();
+
+        assertEquals("entityArgument", entityArgument.getName());
+        assertEquals(String.class, entityArgument.getType());
+        assertEquals("defaultArgValue", entityArgument.getValue());
+
+        // Verify Attribute Argument
         assertEquals(1, projection.getAttributes().size());
 
         Attribute attribute = projection.getAttributes().iterator().next();
