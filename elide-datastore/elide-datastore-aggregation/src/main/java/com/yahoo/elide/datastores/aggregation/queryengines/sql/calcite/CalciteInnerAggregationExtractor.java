@@ -16,6 +16,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Parses a column expression and extracts all aggregation functions as separate expressions for
+ * an inner query.  Aggregation functions that cannot be nested (like AVG(expression) are rewritten
+ * with simpler aggregations that can be: [SUM(expression), COUNT(expression)].  The list of
+ * inner query expressions will be leveraged in the outer query post aggregation expression.
+ */
 public class CalciteInnerAggregationExtractor extends SqlBasicVisitor<List<List<String>>> {
 
     private SQLDialect dialect;

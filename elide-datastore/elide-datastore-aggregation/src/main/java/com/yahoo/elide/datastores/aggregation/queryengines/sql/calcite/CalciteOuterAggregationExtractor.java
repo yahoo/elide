@@ -23,6 +23,11 @@ import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Queue;
 
+/**
+ * Parses a column expression and rewrites the post aggregation expression AST to reference
+ * new aliases defined in the inner query.  Aggregation functions that cannot be nested (like AVG(expression) are
+ * rewritten with simpler aggregations that can be: SUM(INNER_LABEL) / COUNT(INNER_LABEL).
+ */
 public class CalciteOuterAggregationExtractor extends SqlBasicVisitor<SqlNode> {
 
     private SQLDialect dialect;
