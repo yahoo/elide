@@ -48,4 +48,8 @@ public class NativeQuery {
                 + SPACE + orderByClause
                 + SPACE + offsetLimitClause;
     }
+
+    //To avoid lombok javadoc errors.
+    public static class NativeQueryBuilder {
+    }
 }

@@ -105,7 +105,7 @@ public interface ColumnProjection extends Serializable {
     }
 
     /**
-     * Translate a column into outer & inner query columns for a two-pass aggregation.
+     * Translate a column into outer and inner query columns for a two-pass aggregation.
      * @param source The source query of this projection.
      * @param lookupTable Used to answer questions about templated column definitions.
      * @param joinInOuter If possible, skip required joins in inner query and do the join in the outer query.
