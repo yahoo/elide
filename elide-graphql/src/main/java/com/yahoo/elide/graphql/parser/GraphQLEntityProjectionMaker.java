@@ -358,7 +358,15 @@ public class GraphQLEntityProjectionMaker {
                 && !(ModelBuilder.ARGUMENT_IDS.equals(argumentName))
                 && !(ModelBuilder.ARGUMENT_DATA.equals(argumentName))
                 && !isEntityArgument(argumentName, entityDictionary, projectionBuilder.getType())) {
-            addAttributeArgument(argument, projectionBuilder);
+            Type<?> entityType = projectionBuilder.getType();
+            Type<?> attributeType = entityDictionary.getType(entityType, argumentName);
+            if (attributeType == null) {
+                throw new InvalidEntityBodyException(
+                        String.format("Invalid attribute field/alias for argument: {%s}.{%s}",
+                                entityType,
+                                argumentName)
+                );
+            }
         }
     }
 
