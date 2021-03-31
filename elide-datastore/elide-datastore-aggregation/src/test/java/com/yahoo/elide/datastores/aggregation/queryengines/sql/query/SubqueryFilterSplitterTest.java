@@ -16,6 +16,7 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.datastores.aggregation.example.Continent;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerRanking;
@@ -46,6 +47,7 @@ public class SubqueryFilterSplitterTest {
         models.add(ClassType.of(PlayerStats.class));
         models.add(ClassType.of(Country.class));
         models.add(ClassType.of(SubCountry.class));
+        models.add(ClassType.of(Continent.class));
         models.add(ClassType.of(Player.class));
         models.add(ClassType.of(PlayerRanking.class));
 

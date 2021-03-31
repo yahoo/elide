@@ -6,10 +6,10 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isTableJoin;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
@@ -19,6 +19,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
@@ -31,6 +32,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Subselect;
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -38,11 +41,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.persistence.JoinColumn;
+
 /**
  * Table stores all resolved physical reference and join paths of all columns.
  */
 public class SQLReferenceTable {
     public static final String PERIOD = ".";
+    public static final String DOLLAR = "$$";
+    public static final String DOUBLE_DOLLAR = "$$";
+    public static final String COL_PREFIX = "$$column";
+    public static final String TBL_PREFIX = "$$table";
+    public static final String SQL_HELPER_PREFIX = "sql ";
 
     @Getter
     protected final MetaDataStore metaDataStore;
@@ -58,9 +68,11 @@ public class SQLReferenceTable {
 
     protected final Map<Queryable, Map<String, Set<SQLColumnProjection>>> resolvedJoinProjections = new HashMap<>();
 
+    protected final Map<Queryable, TableContext> globalTablesContext = new HashMap<>();
+
     public SQLReferenceTable(MetaDataStore metaDataStore) {
         this(metaDataStore,
-             metaDataStore.getMetaData(getClassType(Table.class))
+             metaDataStore.getMetaData(ClassType.of(Table.class))
                 .stream()
                 .map(SQLTable.class::cast)
                 .collect(Collectors.toSet()));
@@ -113,6 +125,16 @@ public class SQLReferenceTable {
     }
 
     /**
+     * Get the {@link TableContext} for provided table.
+     *
+     * @param queryable table class
+     * @return {@link TableContext} for provided table.
+     */
+    public TableContext getTableContext(Queryable queryable) {
+        return globalTablesContext.get(queryable);
+    }
+
+    /**
      * Resolve all references and joins for a table and store them in this reference table.
      *
      * @param queryable meta data table
@@ -122,6 +144,7 @@ public class SQLReferenceTable {
         //References and joins are stored by their source that produces them (rather than the query that asks for them).
         Queryable key = queryable.getSource();
         SQLDialect dialect = queryable.getSource().getConnectionDetails().getDialect();
+        boolean isNested = queryable.isNested();
         if (!resolvedReferences.containsKey(key)) {
             resolvedReferences.put(key, new HashMap<>());
         }
@@ -134,12 +157,39 @@ public class SQLReferenceTable {
             resolvedJoinProjections.put(key, new HashMap<>());
         }
 
-        FormulaValidator validator = new FormulaValidator(metaDataStore);
+        if (!globalTablesContext.containsKey(key)) {
+
+            if (!isNested) {
+                Type<?> entityClass = dictionary.getEntityClass(key.getName(), key.getVersion());
+                SQLTable table = (SQLTable) metaDataStore.getTable(entityClass);
+
+                TableContext tableCtx = new TableContext(key.getAlias(),
+                                                         dialect,
+                                                         prepareColumnArgsMap(table.getArguments(), TBL_PREFIX));
+                globalTablesContext.put(key, tableCtx);
+                Set<Type<?>> visitedTableContext = new HashSet<>();
+                populateTableContext(entityClass, tableCtx, StringUtils.EMPTY, visitedTableContext);
+            } else {
+                TableContext tableCtx = new TableContext(key.getAlias(),
+                                                         dialect,
+                                                         Collections.emptyMap());
+                globalTablesContext.put(key, tableCtx);
+                queryable.getColumnProjections().forEach(column -> {
+                    tableCtx.put(column.getName(), new ColumnContext(column.getExpression(),
+                                                                     StringUtils.EMPTY,
+                                                                     Collections.emptyMap()));
+                });
+            }
+        }
+
         SQLJoinVisitor joinVisitor = new SQLJoinVisitor(metaDataStore);
 
         queryable.getColumnProjections().forEach(column -> {
-            // validate that there is no reference loop
-            validator.visitColumn(queryable, column);
+            if (!isNested) {
+                // validate that there is no reference loop
+                FormulaValidator validator = new FormulaValidator(globalTablesContext.get(key));
+                validator.validateColumn(queryable, column);
+            }
 
             String fieldName = column.getName();
 
@@ -192,6 +242,56 @@ public class SQLReferenceTable {
         }
 
         return projections;
+    }
+
+    private void populateTableContext(Type<?> entityClass, TableContext tableCtx, String prefixPath,
+                    Set<Type<?>> visitedEntities) {
+
+        Set<Type<?>> entities = new HashSet<Type<?>>(visitedEntities);
+        entities.add(entityClass);
+
+        SQLTable table = (SQLTable) metaDataStore.getTable(entityClass);
+        table.getColumns().forEach(column -> {
+            tableCtx.put(column.getName(), new ColumnContext(column.getExpression(),
+                                                             prefixPath,
+                                                             prepareColumnArgsMap(column.getArguments(), COL_PREFIX)));
+        });
+
+        for (String joinField : dictionary.getFieldNamesWithAnnotations(entityClass,
+                        Arrays.asList(Join.class, JoinColumn.class))) {
+
+            Type<?> joinClass = dictionary.getType(entityClass, joinField);
+            SQLTable joinTable = (SQLTable) metaDataStore.getTable(joinClass);
+            TableContext joinTableCtx = new TableContext(appendAlias(tableCtx.getAlias(), joinField),
+                                                         joinTable.getConnectionDetails().getDialect(),
+                                                         prepareColumnArgsMap(joinTable.getArguments(), TBL_PREFIX));
+            if (!entities.contains(joinClass)) {
+                tableCtx.put(joinField, joinTableCtx);
+                populateTableContext(joinClass, joinTableCtx, appendPath(prefixPath, joinField), entities);
+            }
+        }
+    }
+
+    private String appendPath(String prefixPath, String joinField) {
+        return (prefixPath == null || prefixPath.isEmpty())
+                        ? joinField
+                        : prefixPath + PERIOD + joinField;
+    }
+
+    private Map<String, Object> prepareColumnArgsMap(Set<Argument> availableArgs, String outerMapKey) {
+
+        Map<String, Object> outerArgsMap = new HashMap<>();
+        Map<String, Object> defaultArgs = availableArgs.stream()
+                        .filter(argType -> argType.getDefaultValue() != null)
+                        .collect(Collectors.toMap(Argument::getName, Argument::getDefaultValue));
+
+        if (!defaultArgs.isEmpty()) {
+            Map<String, Object> argsMap = new HashMap<>();
+            outerArgsMap.put(outerMapKey, argsMap);
+            argsMap.put("args", defaultArgs);
+        }
+
+        return outerArgsMap;
     }
 
     /**

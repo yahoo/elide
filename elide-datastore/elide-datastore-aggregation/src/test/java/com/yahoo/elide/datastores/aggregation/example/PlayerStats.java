@@ -10,6 +10,7 @@ import static com.yahoo.elide.datastores.aggregation.example.TimeGrainDefinition
 import static com.yahoo.elide.datastores.aggregation.example.TimeGrainDefinitions.QUARTER_FORMAT;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.type.ParameterizedModel;
+import com.yahoo.elide.datastores.aggregation.annotation.ArgumentDefinition;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
@@ -21,6 +22,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.custom.DailyAverageScorePerPeriodMaker;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import com.yahoo.elide.datastores.aggregation.timegrains.Day;
@@ -44,7 +46,10 @@ import javax.persistence.Id;
         category = "Sports Category",
         tags = {"Game", "Statistics"},
         hints = {"AggregateBeforeJoin", "NoJoinBeforeAggregate"},
-        size = CardinalitySize.LARGE
+        size = CardinalitySize.LARGE,
+        arguments = {
+               @ArgumentDefinition(name = "beginDate", type = ValueType.TEXT, defaultValue = "2020-01-01")
+        }
 )
 public class PlayerStats extends ParameterizedModel {
 
@@ -266,7 +271,12 @@ public class PlayerStats extends ParameterizedModel {
         this.player2 = player2;
     }
 
-    @DimensionFormula("{{playerRanking.ranking}}")
+    @DimensionFormula(
+            value = "{{playerRanking.ranking}}",
+            arguments = {
+                   @ArgumentDefinition(name = "minRanking", type = ValueType.INTEGER, defaultValue = "1")
+            }
+    )
     public Integer getPlayerRank() {
         return fetch("playerRank", playerRank);
     }

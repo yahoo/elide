@@ -5,95 +5,104 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata;
 
-import com.yahoo.elide.core.type.Type;
+import static com.yahoo.elide.core.utils.TypeHelper.nullOrEmpty;
+import static com.yahoo.elide.datastores.aggregation.metadata.ColumnVisitor.resolveFormulaReferences;
+import static com.yahoo.elide.datastores.aggregation.metadata.ColumnVisitor.toFormulaReference;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.DOUBLE_DOLLAR;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
+
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
-import com.yahoo.elide.datastores.aggregation.core.JoinPath;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
-import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.TableContext;
 
-import java.util.LinkedHashSet;
+import com.github.jknack.handlebars.EscapingStrategy;
+import com.github.jknack.handlebars.Handlebars;
+import com.github.jknack.handlebars.HandlebarsException;
+import com.github.jknack.handlebars.Helper;
+import com.github.jknack.handlebars.Options;
+import com.github.jknack.handlebars.TagType;
+import com.github.jknack.handlebars.Template;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * FormulaValidator check whether a column defined with {@link MetricFormula} or
  * {@link DimensionFormula} has reference loop. If so, throw out exception.
  */
-public class FormulaValidator extends ColumnVisitor<Void> {
-    private final LinkedHashSet<String> visited = new LinkedHashSet<>();
+public class FormulaValidator {
+    private final TableContext tableCtx;
+    private final Handlebars handlebars;
 
     private static String getColumnId(Queryable parent, ColumnProjection column) {
-        return parent.getName() + "." + column.getName();
+        return parent.getName() + PERIOD + column.getName();
     }
 
-    public FormulaValidator(MetaDataStore metaDataStore) {
-        super(metaDataStore);
+    public FormulaValidator(TableContext tableCtx) {
+        this.tableCtx = tableCtx;
+        this.handlebars = new Handlebars()
+                        .with(EscapingStrategy.NOOP)
+                        .registerHelper("sql", new Helper<Object>() {
+
+                            @Override
+                            public Object apply(final Object context, final Options options) throws IOException {
+                                String path = options.hash("path");
+                                String from = options.hash("from");
+                                String column = options.hash("column");
+                                int argsIndex = column.indexOf('[');
+
+                                // Remove args from column
+                                column = argsIndex == -1 ? column : column.substring(0, argsIndex);
+                                // Prefix column with join table name
+                                column = nullOrEmpty(from) ? column : from + PERIOD + column;
+                                // Prefix column with current path
+                                column = nullOrEmpty(path) ? column : path + PERIOD + column;
+
+                                return toFormulaReference(column);
+                            }
+                        });
     }
 
-    @Override
-    protected Void visitFormulaMetric(Queryable parent, MetricProjection metric) {
-        return visitFormulaColumn(parent, metric);
-    }
+    public void validateColumn(Queryable source, ColumnProjection column) {
+        String columnId = getColumnId(source, column);
+        Set<String> visited = new HashSet<>();
+        try {
+            String current = getHandlebarVariables(column.getExpression());
+            visited.add(current);
+            Template template = handlebars.compileInline(current);
 
-    @Override
-    protected Void visitFormulaDimension(Queryable parent, ColumnProjection dimension) {
-        return visitFormulaColumn(parent, dimension);
-    }
-
-    @Override
-    protected Void visitFieldDimension(Queryable parent, ColumnProjection dimension) {
-        return null;
-    }
-
-    /**
-     * For a FORMULA column, we just need to check all source columns in the formula expression.
-     *
-     * @param column a column defined with {@link MetricFormula} or {@link DimensionFormula}
-     * @return null
-     */
-    private Void visitFormulaColumn(Queryable source, ColumnProjection column) {
-        if (visited.contains(getColumnId(source, column))) {
-            throw new IllegalArgumentException(referenceLoopMessage(visited, source, column));
-        }
-
-        Type<?> tableClass = dictionary.getEntityClass(source.getName(), source.getVersion());
-
-        visited.add(getColumnId(source, column));
-        for (String reference : resolveFormulaReferences(column.getExpression())) {
-
-            //Column is from a query instead of a table.  Nothing to validate.
-            if (source != source.getSource()) {
-                continue;
-            } else if (reference.contains(".")) {
-                JoinPath joinToPath = new JoinPath(tableClass, dictionary, reference);
-                Column joinToColumn = getColumn(joinToPath);
-                if (joinToColumn != null) {
-                    visitColumn(joinToColumn.getTable().toQueryable(), joinToColumn.toProjection());
+            while (!template.collect(TagType.VAR).isEmpty()) {
+                String resolved = template.apply(tableCtx);
+                current = getHandlebarVariables(resolved);
+                if (!visited.add(current)) {
+                    throw new IllegalArgumentException(
+                                    "Formula validation failed. Reference Loop detected for: " + columnId);
                 }
-            } else {
-                ColumnProjection referenceColumn = source.getColumnProjection(reference);
-
-                // if the reference is to a logical column, check it
-                if (referenceColumn != null && !reference.equals(column.getName())) {
-                    visitColumn(source, referenceColumn);
-                }
+                template = handlebars.compileInline(current);
             }
+        } catch (HandlebarsException e) {
+            throw new IllegalArgumentException(
+                            String.format("Formula validation failed. Possible Reference Loop for: %s. %s", columnId,
+                                            e.getMessage()));
+        } catch (IOException e) {
+            // Do Nothing
         }
-        visited.remove(getColumnId(source, column));
-
-        return null;
     }
 
     /**
-     * Construct reference loop message.
+     * Get the handlebar variables form input string.
+     * eg: for "{{userName}} == {{$$user.identity}} AND {{userEnabled}}"
+     * returns "{{userName}}{{userEnabled}}"
      */
-    private static String referenceLoopMessage(LinkedHashSet<String> visited, Queryable source,
-                                               ColumnProjection conflict) {
-        return "Formula reference loop found: "
-                + visited.stream()
-                    .collect(Collectors.joining("->"))
-                + "->" + getColumnId(source, conflict);
+    private String getHandlebarVariables(String expression) {
+
+        return resolveFormulaReferences(expression).stream()
+                        .filter(expr -> !expr.startsWith(DOUBLE_DOLLAR))
+                        .map(ColumnVisitor::toFormulaReference)
+                        .collect(Collectors.joining());
     }
 }

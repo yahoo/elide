@@ -26,12 +26,12 @@ public class MeasureLoop {
     @Setter
     private long lowScore;
 
-    @MetricFormula("{{lowScore}}")
+    @MetricFormula("MAX({{lowScore}})")
     public long getHighScore() {
         return highScore;
     }
 
-    @MetricFormula("{{highScore}}")
+    @MetricFormula("MIN({{highScore}})")
     public long getLowScore() {
         return lowScore;
     }

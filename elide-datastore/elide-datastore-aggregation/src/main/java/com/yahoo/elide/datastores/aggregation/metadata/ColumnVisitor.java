@@ -91,7 +91,7 @@ public abstract class ColumnVisitor<T> {
      * @param reference referenced field
      * @return formula reference, <code>{{reference}}</code>
      */
-    protected static String toFormulaReference(String reference) {
+    public static String toFormulaReference(String reference) {
         return "{{" + reference + "}}";
     }
 }

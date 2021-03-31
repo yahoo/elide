@@ -5,10 +5,11 @@
  */
 package com.yahoo.elide.datastores.aggregation.annotation.metricformula;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static com.yahoo.elide.datastores.aggregation.annotation.dimensionformula.DimensionFormulaTest.DUMMY_CONNECTION;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.google.common.collect.Sets;
@@ -17,11 +18,15 @@ import org.junit.jupiter.api.Test;
 public class MetricFormulaTest {
     @Test
     public void testReferenceLoop() {
-        MetaDataStore metaDataStore = new MetaDataStore(Sets.newHashSet(getClassType(MeasureLoop.class)), true);
+        MetaDataStore metaDataStore = new MetaDataStore(Sets.newHashSet(ClassType.of(MeasureLoop.class)), true);
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
                 () -> new SQLQueryEngine(metaDataStore, DUMMY_CONNECTION));
-        assertTrue(exception.getMessage().startsWith("Formula reference loop found:"));
+
+        String exception1 = "Formula validation failed. Reference Loop detected for: measureLoop.lowScore";
+        String exception2 = "Formula validation failed. Reference Loop detected for: measureLoop.highScore";
+
+        assertTrue(exception1.equals(exception.getMessage()) || exception2.equals(exception.getMessage()));
     }
 }

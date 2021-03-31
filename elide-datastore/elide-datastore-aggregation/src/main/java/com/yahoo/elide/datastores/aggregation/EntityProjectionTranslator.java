@@ -26,8 +26,6 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.google.common.collect.Sets;
 
-import lombok.NonNull;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -267,7 +265,6 @@ public class EntityProjectionTranslator {
 
         // Populate $$request.columns context
         entityProjection.getAttributes().forEach(attr -> {
-            @NonNull
             String columnName = attr.getName();
             Map<String, Object> columnMap = new HashMap<>();
             columnsMap.put(columnName, columnMap);
