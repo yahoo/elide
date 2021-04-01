@@ -88,6 +88,10 @@ public abstract class Table implements Versioned {
     @ToString.Exclude
     private final Set<String> tags;
 
+    @ToString.Exclude
+    @Exclude
+    private final Set<String> hints;
+
     @Exclude
     @ToString.Exclude
     private final Map<String, Column> columnMap;
@@ -138,6 +142,7 @@ public abstract class Table implements Versioned {
             this.category = meta.category();
             this.requiredFilter = meta.filterTemplate();
             this.tags = new HashSet<>(Arrays.asList(meta.tags()));
+            this.hints = new LinkedHashSet<>(Arrays.asList(meta.hints()));
             this.cardinality = meta.size();
             if (meta.arguments().length == 0) {
                 this.arguments = new HashSet<>();
@@ -152,6 +157,7 @@ public abstract class Table implements Versioned {
             this.category = null;
             this.requiredFilter = null;
             this.tags = new HashSet<>();
+            this.hints = new LinkedHashSet<>();
             this.cardinality = CardinalitySize.UNKNOWN;
             this.arguments = new HashSet<>();
         }

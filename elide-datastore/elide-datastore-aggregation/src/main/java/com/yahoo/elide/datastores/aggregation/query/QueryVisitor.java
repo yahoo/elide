@@ -8,7 +8,7 @@ package com.yahoo.elide.datastores.aggregation.query;
 
 /**
  * Visits a query object hierarchy to construct a type T.  Useful for building translators, validators, etc.
- * @param <T>
+ * @param <T> The type the visitor returns after walking the AST.
  */
 public interface QueryVisitor<T> {
 

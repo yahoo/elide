@@ -367,6 +367,17 @@ public class SQLQueryEngine extends QueryEngine {
 
         for (Optimizer optimizer : optimizers) {
             SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, merged);
+            SQLTable table = (SQLTable) query.getSource();
+
+            //TODO - support hints in table joins & query header.  Query Header hints override join hints which
+            //override table hints.
+            if (table.getHints().contains(optimizer.negateHint())) {
+                continue;
+            }
+
+            if (! table.getHints().contains(optimizer.hint())) {
+                continue;
+            }
 
             if (optimizer.canOptimize(query, queryReferenceTable)) {
                 merged = optimizer.optimize(merged, queryReferenceTable);

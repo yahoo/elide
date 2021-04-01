@@ -45,6 +45,7 @@ public class HandlebarsHydratorTest {
             + "      A tag\n"
             + "      with newline\n"
             + "      ''']\n"
+            + "      hints: ['NoAggregateBeforeJoin']\n"
             + "      arguments: [\n"
             + "          {\n"
             + "             name: scoreFormat\n"
