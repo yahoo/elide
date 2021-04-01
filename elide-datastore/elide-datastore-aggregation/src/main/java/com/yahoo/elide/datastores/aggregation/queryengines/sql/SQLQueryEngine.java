@@ -371,11 +371,11 @@ public class SQLQueryEngine extends QueryEngine {
 
             //TODO - support hints in table joins & query header.  Query Header hints override join hints which
             //override table hints.
-            if (! table.getHints().contains(optimizer.hint())) {
+            if (table.getHints().contains(optimizer.negateHint())) {
                 continue;
             }
 
-            if (table.getHints().contains(optimizer.negateHint())) {
+            if (! table.getHints().contains(optimizer.hint())) {
                 continue;
             }
 
