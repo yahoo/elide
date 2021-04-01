@@ -15,13 +15,13 @@ public interface Optimizer {
 
     /**
      * Returns the hint that identifies this optimizations.
-     * @return
+     * @return The hint which enables this optimization.
      */
     String hint();
 
     /**
      * Returns the hint that disables this optimization.
-     * @return
+     * @return The hint which turns off this optimization.
      */
     default String negateHint() {
         return "No" + hint();

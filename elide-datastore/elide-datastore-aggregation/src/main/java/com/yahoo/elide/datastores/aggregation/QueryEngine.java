@@ -167,7 +167,7 @@ public abstract class QueryEngine {
      * {@link Query}. Results may be taken from a cache, if configured.
      *
      * @param query The query customized for a particular persistent storage or storage client
-     * @param transaction
+     * @param transaction transaction
      * @return query results
      */
     public abstract QueryResult executeQuery(Query query, Transaction transaction);
