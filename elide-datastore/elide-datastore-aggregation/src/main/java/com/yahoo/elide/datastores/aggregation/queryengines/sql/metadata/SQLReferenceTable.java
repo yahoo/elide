@@ -304,6 +304,11 @@ public class SQLReferenceTable {
 
         return visitor.visitFormulaDimension(table, new SQLColumnProjection() {
             @Override
+            public SQLColumnProjection withExpression(String expression, boolean project) {
+                return null;
+            }
+
+            @Override
             public ValueType getValueType() {
                 return null;
             }

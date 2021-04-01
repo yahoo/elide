@@ -10,8 +10,9 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,42 +25,45 @@ public interface SQLColumnProjection extends ColumnProjection {
     /**
      * Generate a SQL fragment for this combination column and client arguments.
      * @param source the queryable that contains the column.
-     * @param table symbol table to resolve column name references.
+     * @param lookupTable symbol table to resolve column name references.
      * @return SQL query String for this column
      */
-    default String toSQL(Queryable source, SQLReferenceTable table) {
-        return table.getResolvedReference(source, getName());
+    default String toSQL(Queryable source, SQLReferenceTable lookupTable) {
+        return lookupTable.getResolvedReference(source, getName());
     }
 
     @Override
-    default boolean canNest() {
+    default boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
         return false;
     }
 
     @Override
-    default ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable, boolean joinInOuter) {
-        throw new UnsupportedOperationException();
-    }
+    default Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source,
+                                                              SQLReferenceTable lookupTable,
+                                                              boolean joinInOuter) {
 
-    @Override
-    default Set<ColumnProjection> innerQuery(Queryable source, SQLReferenceTable lookupTable, boolean joinInOuter) {
-        /*
-         * Default Behiavior:
-         * - Dimensions without joins: everything in inner query.  Alias reference in outer query.
-         * - Dimensions with joins: Physical columns projected in inner query.  Everything else applied post agg.
-         * - Outer columns are virtual if they only appear in HAVING, WHERE, or SORT.
-         */
-        Set<SQLColumnProjection> joinProjections =
-                lookupTable.getResolvedJoinProjections(source.getSource(), getName());
+        Set<SQLColumnProjection> joinProjections = lookupTable.getResolvedJoinProjections(source.getSource(),
+                getName());
 
         boolean requiresJoin = joinProjections.size() > 0;
+
+        boolean inProjection = source.getColumnProjection(getName()) != null;
+
+        ColumnProjection outerProjection;
+        Set<ColumnProjection> innerProjections;
+
         if (requiresJoin && joinInOuter) {
-            //TODO - we also need to extract physical columns referenced in the column itself.
-            return joinProjections.stream().collect(Collectors.toSet());
+            outerProjection = withExpression(getExpression(), inProjection);
+            innerProjections = joinProjections.stream().collect(Collectors.toCollection(LinkedHashSet::new));
         } else {
-            return new HashSet<>(Arrays.asList(this));
+            outerProjection = withExpression("{{" + this.getSafeAlias() + "}}", isProjected());
+            innerProjections = new LinkedHashSet<>(Arrays.asList(this));
         }
+
+        return Pair.of(outerProjection, innerProjections);
     }
+
+    SQLColumnProjection withExpression(String expression, boolean project);
 
     /**
      * Returns whether or not this column is projected in the output (included in SELECT) or
@@ -68,39 +72,5 @@ public interface SQLColumnProjection extends ColumnProjection {
      */
     default boolean isProjected() {
         return true;
-    }
-
-    /**
-     * Nests a set of column projections returning the outer query equivalent.
-     * @param source The source of this projection.
-     * @param columns The set of columns to nest.
-     * @param lookupTable answers questions that require template resolution.
-     * @param <T> The column projection type.
-     * @return a set of column projections that have been nested.
-     */
-    public static <T extends ColumnProjection> Set<T> outerQueryProjections(Queryable source, Set<T> columns,
-                                                                            SQLReferenceTable lookupTable,
-                                                                            boolean joinInOuter) {
-        return (Set<T>) columns.stream()
-                .map(SQLColumnProjection.class::cast)
-                .map(projection -> projection.outerQuery(source, lookupTable, joinInOuter))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    /**
-     * Nests a set of column projections returning the inner query equivalents.
-     * @param source The source of this projection.
-     * @param columns The set of columns to nest.
-     * @param lookupTable answers questions that require template resolution.
-     * @param <T> The column projection type.
-     * @return a set of column projections that have been nested.
-     */
-    public static <T extends ColumnProjection> Set<T> innerQueryProjections(Queryable source, Set<T> columns,
-                                                                            SQLReferenceTable lookupTable,
-                                                                            boolean joinInOuter) {
-        return (Set<T>) columns.stream()
-                .map(SQLColumnProjection.class::cast)
-                .flatMap(projection -> projection.innerQuery(source, lookupTable, joinInOuter).stream())
-                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }

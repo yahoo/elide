@@ -8,9 +8,16 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.request.Sorting;
+import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.Optimizer;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.H2Dialect;
@@ -22,7 +29,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
 
@@ -39,9 +48,9 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
     public void testWhereAnd() {
         Query query = TestQuery.WHERE_AND.getQuery();
         String expectedQueryStr =
-                "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) AS `highScore`,"
+                "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) AS `highScore`,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` AS `overallRating` "
-                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
+                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `INNER_AGG_XXX`,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` AS `country_id` "
                         + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` "
@@ -54,18 +63,36 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                         + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`\n";
 
         compareQueryLists(expectedQueryStr, engine.explain(query));
+
+        testQueryExecution(TestQuery.WHERE_AND.getQuery());
     }
 
     @Test
     public void testSortAndPaginate() {
-        Query query = TestQuery.COMPLICATED.getQuery();
+        Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
+        sortMap.put("highScore", Sorting.SortOrder.desc);
+        // WHERE filter
+        FilterPredicate predicate = new FilterPredicate(
+                new Path(PlayerStats.class, dictionary, "highScore"),
+                Operator.GT,
+                Arrays.asList(9000));
+        Query query = Query.builder()
+                .source(playerStatsTable)
+                .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
+                .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"))
+                .pagination(new ImmutablePagination(10, 5, false, true))
+                .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
+                .havingFilter(predicate)
+                // force a join to look up countryIsoCode
+                .whereFilter(parseFilterExpression("countryIsoCode==USA", playerStatsType, false))
+                .build();
 
         String expectedQueryStr1 =
                 "SELECT COUNT(*) FROM "
                 + "(SELECT `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
                         + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
-                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
-                        + "MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) AS `lowScore`,"
+                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `INNER_AGG_XXX`,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` AS `country_id`,"
                         + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate` "
@@ -79,14 +106,13 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                         + "WHERE `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX_country`.`iso_code` IN (:XXX) "
                         + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
                         + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
-                        + "HAVING MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`lowScore`) > :XXX ) AS `pagination_subquery`\n";
+                        + "HAVING MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) > :XXX ) AS `pagination_subquery`\n";
 
         String expectedQueryStr2 =
-                "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) AS `highScore`,"
+                "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) AS `highScore`,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
                         + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate` "
-                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
-                        + "MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) AS `lowScore`,"
+                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `INNER_AGG_XXX`,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` AS `country_id`,"
                         + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate` "
@@ -100,8 +126,8 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                         + "WHERE `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX_country`.`iso_code` IN (:XXX) "
                         + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
                         + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
-                        + "HAVING MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`lowScore`) > :XXX "
-                        + "ORDER BY MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`lowScore`) "
+                        + "HAVING MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) > :XXX "
+                        + "ORDER BY MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) "
                         + "DESC LIMIT 5 OFFSET 10\n";
         List<String> expectedQueryList = new ArrayList<String>();
         expectedQueryList.add(expectedQueryStr1);
@@ -109,7 +135,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
 
         compareQueryLists(expectedQueryList, engine.explain(query));
 
-        testQueryExecution(TestQuery.COMPLICATED.getQuery());
+        testQueryExecution(query);
     }
 
     @Test
@@ -125,7 +151,13 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
 
     @Test
     public void testNoOptimizationNestedQuery() {
-        Query query = TestQuery.NESTED_METRIC_WITH_WHERE_QUERY.getQuery();
+        Query query = Query.builder()
+                .source(Query.builder()
+                        .source(playerStatsTable)
+                        .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                        .build())
+                .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                .build();
 
         AggregateBeforeJoinOptimizer optimizer = new AggregateBeforeJoinOptimizer(metaDataStore);
 

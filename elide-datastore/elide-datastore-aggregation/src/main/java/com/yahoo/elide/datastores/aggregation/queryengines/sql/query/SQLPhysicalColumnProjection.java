@@ -58,4 +58,9 @@ public class SQLPhysicalColumnProjection implements SQLColumnProjection {
     public ColumnType getColumnType() {
         return ColumnType.FIELD;
     }
+
+    @Override
+    public SQLColumnProjection withExpression(String expression, boolean project) {
+        return SQLPhysicalColumnProjection.builder().name(name).build();
+    }
 }

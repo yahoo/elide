@@ -13,7 +13,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
-import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
@@ -23,7 +22,6 @@ import lombok.Value;
 
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.TimeZone;
 
 /**
@@ -84,44 +82,23 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     }
 
     @Override
-    public boolean canNest() {
+    public boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
         return true;
     }
 
     @Override
-    public ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable, boolean joinInOuter) {
-        Set<SQLColumnProjection> joinProjections = lookupTable.getResolvedJoinProjections(source.getSource(), name);
-
-        boolean requiresJoin = joinProjections.size() > 0;
-
-        boolean inProjection = source.getColumnProjection(name) != null;
-
-        if (requiresJoin && joinInOuter) {
-            return SQLTimeDimensionProjection.builder()
-                    .name(name)
-                    .alias(alias)
-                    .valueType(valueType)
-                    .columnType(columnType)
-                    .expression(expression)
-                    .arguments(arguments)
-                    .projected(inProjection)
-                    .grain(grain)
-                    .timeZone(timeZone)
-                    .build();
-        } else {
-            return SQLTimeDimensionProjection.builder()
-                    .name(name)
-                    .alias(alias)
-                    .valueType(valueType)
-                    .columnType(columnType)
-                    .expression("{{" + this.getSafeAlias() + "}}")
-                    .arguments(arguments)
-                    .projected(true)
-                    .grain(grain)
-                    .timeZone(timeZone)
-                    .projected(projected)
-                    .build();
-        }
+    public SQLColumnProjection withExpression(String expression, boolean project) {
+        return SQLTimeDimensionProjection.builder()
+                .name(name)
+                .alias(alias)
+                .valueType(valueType)
+                .columnType(columnType)
+                .expression(expression)
+                .arguments(arguments)
+                .projected(project)
+                .grain(grain)
+                .timeZone(timeZone)
+                .build();
     }
 
     private TimeDimensionGrain getGrainFromArguments(Map<String, Argument> arguments, TimeDimension column) {

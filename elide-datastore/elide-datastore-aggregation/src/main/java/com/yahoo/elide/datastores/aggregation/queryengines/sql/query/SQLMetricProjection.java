@@ -17,22 +17,32 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteInnerAggregationExtractor;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteOuterAggregationExtractor;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteUtils;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
+import org.apache.calcite.avatica.util.Casing;
+import org.apache.calcite.sql.SqlDialect;
+import org.apache.calcite.sql.SqlNode;
+import org.apache.calcite.sql.parser.SqlParseException;
+import org.apache.calcite.sql.parser.SqlParser;
+import org.apache.commons.lang3.tuple.Pair;
 import lombok.Builder;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Value;
 
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Metric projection that can expand the metric into a SQL projection fragment.
  */
-@Value
+@Data
 @Builder
 public class SQLMetricProjection implements MetricProjection, SQLColumnProjection {
     private String name;
@@ -41,12 +51,6 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     private String expression;
     private String alias;
     private Map<String, Argument> arguments;
-
-    //TODO - Temporary hack just to prove out the concept.  This needs to be parameterized by the dialect
-    //with the set of functions that can be nested and do proper parenthesis matching - which means it can't
-    //be a regex.  We'll need a grammar here.
-    private static final String AGG_FUNCTION = "^(?i)(sum|min|max|count)(?-i)\\(.*?\\)$";
-    private static final Pattern AGG_FUNCTION_MATCHER = Pattern.compile(AGG_FUNCTION, Pattern.CASE_INSENSITIVE);
 
     @EqualsAndHashCode.Exclude
     private QueryPlanResolver queryPlanResolver;
@@ -86,47 +90,137 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     }
 
     @Override
-    public boolean canNest() {
-        //TODO - Phase 1: return false if Calcite can parse & there is a join of any kind.
-        //TODO - Phase 2: return true if Calcite can parse & determine joins independently for inner & outer query
-       return AGG_FUNCTION_MATCHER.matcher(expression).matches();
+    public String toSQL(Queryable source, SQLReferenceTable lookupTable) {
+        if (expression.matches(".*\\{\\{.*\\}\\}.*")) {
+            return lookupTable.getResolvedReference(source, getName());
+        }
+        return expression;
     }
 
     @Override
-    public ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable, boolean joinInOuter) {
+    public boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
+        SQLDialect dialect = source.getConnectionDetails().getDialect();
+        String sql = toSQL(source.getSource(), lookupTable);
 
-        Matcher matcher = AGG_FUNCTION_MATCHER.matcher(expression);
+        if (lookupTable.getResolvedJoinProjections(source.getSource(), name).size() > 0) {
+            //We currently don't support nesting metrics with joins.
+            //A join could be part of the aggregation (inner) or post aggregation (outer) expression.
+            return false;
+        }
+
+        SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
+
+        try {
+            sqlParser.parseExpression();
+        } catch (SqlParseException e) {
+
+            //If calcite can't parse the expression, we can't nest it.
+            return false;
+        }
+
+        //TODO - Phase 2: return true if Calcite can parse & determine joins independently for inner & outer query
+        return true;
+    }
+
+    @Override
+    public Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source,
+                                                              SQLReferenceTable lookupTable,
+                                                              boolean joinInOuter) {
+        SQLDialect dialect = source.getConnectionDetails().getDialect();
+        String sql = toSQL(source.getSource(), lookupTable);
+        SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
+
+        SqlNode node;
+        try {
+            node = sqlParser.parseExpression();
+        } catch (SqlParseException e) {
+            throw new IllegalStateException(e);
+        }
+
+        CalciteInnerAggregationExtractor innerExtractor = new CalciteInnerAggregationExtractor(dialect);
+        List<List<String>> innerAggExpressions = node.accept(innerExtractor);
+
+        List<List<String>> innerAggLabels = innerAggExpressions.stream()
+                .map(list -> list.stream()
+                        .map((expression) -> getAggregationLabel(dialect.getCalciteDialect(), expression))
+                        .collect(Collectors.toList()))
+                .collect(Collectors.toList());
+
+        Set<ColumnProjection> innerAggProjections = new LinkedHashSet<>();
+
+        Iterator<String> labelIt = innerAggLabels.stream().flatMap(List::stream).iterator();
+        Iterator<String> expressionIt = innerAggExpressions.stream().flatMap(List::stream).iterator();
+
+        while (labelIt.hasNext() && expressionIt.hasNext()) {
+            String innerAggExpression = expressionIt.next();
+            String innerAggLabel = labelIt.next();
+
+            innerAggProjections.add(SQLMetricProjection.builder()
+                    .projected(true)
+                    .name(innerAggLabel)
+                    .alias(innerAggLabel)
+                    .expression(innerAggExpression)
+                    .columnType(columnType)
+                    .valueType(valueType)
+                    .build());
+        }
+
+        CalciteOuterAggregationExtractor outerExtractor =
+                new CalciteOuterAggregationExtractor(dialect, innerAggLabels);
+
+        SqlNode transformedParseTree = node.accept(outerExtractor);
+
+        String outerAggExpression = transformedParseTree.toSqlString(dialect.getCalciteDialect()).getSql();
+
+        //replace INNER_AGG_... with {{INNER_AGG...}}
+        outerAggExpression = outerAggExpression.replaceAll(
+                dialect.getBeginQuote()
+                        + "?(" + getAggregationLabelPrefix(dialect.getCalciteDialect()) + "\\w+)"
+                        + dialect.getEndQuote()
+                        + "?", "{{$1}}");
 
         boolean inProjection = source.getColumnProjection(name) != null;
 
-        if (! matcher.find()) {
-            throw new UnsupportedOperationException("Metric does not support nesting");
-        }
-
-        String aggFunction = matcher.group(1);
-        return SQLMetricProjection.builder()
+        ColumnProjection outerProjection = SQLMetricProjection.builder()
+                .projected(inProjection)
+                .expression(outerAggExpression)
                 .name(name)
                 .alias(alias)
                 .valueType(valueType)
                 .columnType(columnType)
-                .expression(aggFunction + "({{" + this.getSafeAlias() + "}})")
                 .arguments(arguments)
-                .queryPlanResolver(queryPlanResolver)
-                .projected(inProjection)
                 .build();
-    }
 
-    @Override
-    public Set<ColumnProjection> innerQuery(Queryable source, SQLReferenceTable lookupTable, boolean joinInOuter) {
-        if (!canNest()) {
-            throw new UnsupportedOperationException("Metric does not support nesting");
-        }
-
-        return new HashSet<>(Arrays.asList(this));
+        return Pair.of(outerProjection, innerAggProjections);
     }
 
     @Override
     public boolean isProjected() {
         return projected;
+    }
+
+    @Override
+    public SQLColumnProjection withExpression(String expression, boolean project) {
+        return SQLMetricProjection.builder()
+                .expression(expression)
+                .projected(project)
+                .name(name)
+                .alias(alias)
+                .valueType(valueType)
+                .columnType(columnType)
+                .queryPlanResolver(queryPlanResolver)
+                .arguments(arguments)
+                .build();
+    }
+
+    private static String getAggregationLabelPrefix(SqlDialect dialect) {
+        if (dialect.getUnquotedCasing().equals(Casing.TO_LOWER)) {
+            return "inner_agg_";
+        }
+        return "INNER_AGG_";
+    }
+
+    private static String getAggregationLabel(SqlDialect dialect, String expression) {
+        return getAggregationLabelPrefix(dialect) + (expression.hashCode() & 0xfffffff);
     }
 }

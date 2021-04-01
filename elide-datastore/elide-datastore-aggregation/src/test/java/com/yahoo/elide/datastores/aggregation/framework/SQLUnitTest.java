@@ -598,7 +598,7 @@ public abstract class SQLUnitTest {
      * Because this is for unit testing, the only time a ParseException should occur
      * is when a test is incorrectly configured.
      */
-    private static FilterExpression parseFilterExpression(String expressionText, Type<?> entityType,
+    protected static FilterExpression parseFilterExpression(String expressionText, Type<?> entityType,
                                                           boolean allowNestedToManyAssociations) {
         try {
             return filterParser.parseFilterExpression(expressionText, entityType, allowNestedToManyAssociations);

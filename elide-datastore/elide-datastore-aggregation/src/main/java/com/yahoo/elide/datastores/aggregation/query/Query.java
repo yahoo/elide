@@ -73,4 +73,8 @@ public class Query implements Queryable {
         return Stream.concat(getDimensionProjections().stream(), getTimeDimensionProjections().stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
+
+    //To avoid lombok javadoc errors.
+    public static class QueryBuilder {
+    }
 }
