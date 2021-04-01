@@ -358,7 +358,15 @@ public class GraphQLEntityProjectionMaker {
                 && !(ModelBuilder.ARGUMENT_IDS.equals(argumentName))
                 && !(ModelBuilder.ARGUMENT_DATA.equals(argumentName))
                 && !isEntityArgument(argumentName, entityDictionary, projectionBuilder.getType())) {
-            addAttributeArgument(argument, projectionBuilder);
+            Type<?> entityType = projectionBuilder.getType();
+            Type<?> attributeType = entityDictionary.getType(entityType, argumentName);
+            if (attributeType == null) {
+                throw new InvalidEntityBodyException(
+                        String.format("Invalid attribute field/alias for argument: {%s}.{%s}",
+                                entityType,
+                                argumentName)
+                );
+            }
         }
     }
 
@@ -529,55 +537,6 @@ public class GraphQLEntityProjectionMaker {
             return filterDialect.parse(builder.getType(), builder.getAttributes(), (String) filterString, apiVersion);
         } catch (ParseException e) {
             throw new BadRequestException(e.getMessage() + "\n" + e.getMessage());
-        }
-    }
-
-    /**
-     * Add argument for a field/relationship of an entity.
-     *
-     * @param argument an argument which name should match a field name/alias
-     * @param projectionBuilder projection that is being built
-     */
-    private void addAttributeArgument(Argument argument, EntityProjectionBuilder projectionBuilder) {
-        String argumentName = argument.getName();
-        Type<?> entityType = projectionBuilder.getType();
-
-        Attribute existingAttribute = projectionBuilder.getAttributeByAlias(argumentName);
-
-        com.yahoo.elide.core.request.Argument elideArgument = com.yahoo.elide.core.request.Argument.builder()
-                .name(argumentName)
-                .value(variableResolver.resolveValue(argument.getValue()))
-                .build();
-
-        if (existingAttribute != null) {
-            // add a new argument to the existing attribute
-            Attribute toAdd = Attribute.builder()
-                    .type(existingAttribute.getType())
-                    .name(existingAttribute.getName())
-                    .alias(existingAttribute.getAlias())
-                    .argument(elideArgument)
-                    .build();
-
-            projectionBuilder.attribute(toAdd);
-        } else {
-            Type<?> attributeType = entityDictionary.getType(entityType, argumentName);
-            if (attributeType == null) {
-                throw new InvalidEntityBodyException(
-                        String.format("Invalid attribute field/alias for argument: {%s}.{%s}",
-                                entityType,
-                                argumentName)
-                );
-            }
-
-            // create a new attribute if this attribute doesn't exist in the projection
-            Attribute toAdd = Attribute.builder()
-                    .type(attributeType)
-                    .name(argumentName)
-                    .alias(argumentName)
-                    .argument(elideArgument)
-                    .build();
-
-            projectionBuilder.attribute(toAdd);
         }
     }
 
