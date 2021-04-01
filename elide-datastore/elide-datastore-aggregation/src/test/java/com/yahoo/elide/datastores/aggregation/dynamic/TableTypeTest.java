@@ -24,7 +24,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
-import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanResolver;
+import com.yahoo.elide.datastores.aggregation.query.DefaultMetricProjectionMaker;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.modelconfig.model.Dimension;
@@ -207,7 +207,7 @@ public class TableTypeTest {
 
         MetricFormula metricFormula = field.getAnnotation(MetricFormula.class);
         assertEquals("SUM{{price}}", metricFormula.value());
-        assertEquals(DefaultQueryPlanResolver.class, metricFormula.queryPlan());
+        assertEquals(DefaultMetricProjectionMaker.class, metricFormula.maker());
     }
 
     @Test
@@ -446,7 +446,7 @@ public class TableTypeTest {
                 .measure(Measure.builder()
                         .name("measure1")
                         .type(Type.BOOLEAN)
-                        .queryPlanResolver("does.not.exist.class")
+                        .maker("does.not.exist.class")
                         .build())
                 .build();
 
@@ -455,6 +455,6 @@ public class TableTypeTest {
 
         MetricFormula metricFormula = field.getAnnotation(MetricFormula.class);
 
-        assertThrows(IllegalStateException.class, () -> metricFormula.queryPlan());
+        assertThrows(IllegalStateException.class, () -> metricFormula.maker());
     }
 }

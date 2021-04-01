@@ -39,7 +39,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryPlanTr
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryTranslator;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import com.google.common.base.Preconditions;
@@ -155,7 +154,8 @@ public class SQLQueryEngine extends QueryEngine {
     public MetricProjection constructMetricProjection(Metric metric,
                                                       String alias,
                                                       Map<String, Argument> arguments) {
-        return new SQLMetricProjection(metric, alias, arguments);
+
+        return metric.getMetricProjectionMaker().make(metric, alias, arguments);
     }
 
     /**

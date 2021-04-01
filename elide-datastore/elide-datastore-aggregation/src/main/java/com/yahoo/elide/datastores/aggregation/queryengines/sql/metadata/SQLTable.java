@@ -85,7 +85,8 @@ public class SQLTable extends Table implements Queryable {
         if (metric == null) {
             return null;
         }
-        return new SQLMetricProjection(metric,
+
+        return metric.getMetricProjectionMaker().make(metric,
                 isBlank(alias) ? metric.getName() : alias,
                 new HashMap<>());
     }

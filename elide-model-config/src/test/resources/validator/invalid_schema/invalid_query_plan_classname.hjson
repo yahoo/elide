@@ -34,7 +34,7 @@
           type : INTEGER
           description : very awesome score
           definition: 'MAX({{score}})'
-          queryPlanResolver: 'a.b'
+          maker: 'a.b'
           tags: ['PUBLIC']
           }
       ]

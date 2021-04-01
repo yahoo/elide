@@ -16,10 +16,10 @@ import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
+import com.yahoo.elide.datastores.aggregation.custom.DailyAverageScorePerPeriodMaker;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
-import com.yahoo.elide.datastores.aggregation.resolvers.DailyAverageScorePerPeriodResolver;
 import com.yahoo.elide.datastores.aggregation.timegrains.Day;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import lombok.EqualsAndHashCode;
@@ -161,7 +161,7 @@ public class PlayerStats extends ParameterizedModel {
         this.lowScore = lowScore;
     }
 
-    @MetricFormula(value = "AVG({{highScore}})", queryPlan = DailyAverageScorePerPeriodResolver.class)
+    @MetricFormula(value = "AVG({{highScore}})", maker = DailyAverageScorePerPeriodMaker.class)
     public float getDailyAverageScorePerPeriod() {
         return fetch("dailyAverageScorePerPeriod", dailyAverageScorePerPeriod);
     }

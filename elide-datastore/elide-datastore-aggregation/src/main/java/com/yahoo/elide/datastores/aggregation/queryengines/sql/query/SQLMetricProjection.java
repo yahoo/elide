@@ -11,11 +11,9 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
-import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanResolver;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
-import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteInnerAggregationExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteOuterAggregationExtractor;
@@ -30,7 +28,6 @@ import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -52,14 +49,15 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     private String alias;
     private Map<String, Argument> arguments;
 
-    @EqualsAndHashCode.Exclude
-    private QueryPlanResolver queryPlanResolver;
     @Builder.Default
     private boolean projected = true;
 
     @Override
     public QueryPlan resolve(Query query) {
-        return queryPlanResolver.resolve(query, this);
+        return QueryPlan.builder()
+                .source(query.getSource())
+                .metricProjection(this)
+                .build();
     }
 
     @Builder
@@ -69,7 +67,6 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                                String expression,
                                String  alias,
                                Map<String, Argument> arguments,
-                               QueryPlanResolver queryPlanResolver,
                                boolean projected) {
         this.name = name;
         this.valueType = valueType;
@@ -77,7 +74,6 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
         this.expression = expression;
         this.alias = alias;
         this.arguments = arguments;
-        this.queryPlanResolver = queryPlanResolver == null ? new DefaultQueryPlanResolver() : queryPlanResolver;
         this.projected = projected;
     }
 
@@ -85,8 +81,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                                String alias,
                                Map<String, Argument> arguments) {
         this(metric.getName(), metric.getValueType(),
-                metric.getColumnType(), metric.getExpression(), alias, arguments,
-                metric.getQueryPlanResolver(), true);
+                metric.getColumnType(), metric.getExpression(), alias, arguments, true);
     }
 
     @Override
@@ -208,7 +203,6 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                 .alias(alias)
                 .valueType(valueType)
                 .columnType(columnType)
-                .queryPlanResolver(queryPlanResolver)
                 .arguments(arguments)
                 .build();
     }

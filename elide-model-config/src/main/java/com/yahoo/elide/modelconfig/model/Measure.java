@@ -33,7 +33,7 @@ import java.util.Set;
     "hidden",
     "readAccess",
     "definition",
-    "queryPlanResolver",
+    "maker",
     "type",
     "tags",
     "arguments",
@@ -69,8 +69,8 @@ public class Measure implements Named {
     @JsonProperty("type")
     private Type type;
 
-    @JsonProperty("queryPlanResolver")
-    private String queryPlanResolver;
+    @JsonProperty("maker")
+    private String maker;
 
     @JsonProperty("tags")
     @JsonDeserialize(as = LinkedHashSet.class)
