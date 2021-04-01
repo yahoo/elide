@@ -26,6 +26,12 @@ public @interface TableMeta {
     String [] tags() default {};
 
     /**
+     * Optimizer & query planning hints
+     * @return The list of supported hints.
+     */
+    String [] hints() default {};
+
+    /**
      * Whether or not querying this table requires a client provided filter.
      * @return The required filter template.
      */

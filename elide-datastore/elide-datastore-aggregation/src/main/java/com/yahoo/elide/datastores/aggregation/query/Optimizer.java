@@ -12,6 +12,21 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLRefer
  * Optimizes query plans.
  */
 public interface Optimizer {
+
+    /**
+     * Returns the hint that identifies this optimizations.
+     * @return
+     */
+    String hint();
+
+    /**
+     * Returns the hint that disables this optimization.
+     * @return
+     */
+    default String negateHint() {
+        return "No" + hint();
+    }
+
     /**
      * Verifies if this optimizer can execute on the given query.
      * @return True if the query can be optimized by this optimizer.

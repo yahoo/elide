@@ -40,6 +40,7 @@ import javax.persistence.Id;
         description = "Player Statistics",
         category = "Sports Category",
         tags = {"Game", "Statistics"},
+        hints = {"AggregateBeforeJoin, NoJoinBeforeAggregate"},
         size = CardinalitySize.LARGE
 )
 public class PlayerStats extends ParameterizedModel {

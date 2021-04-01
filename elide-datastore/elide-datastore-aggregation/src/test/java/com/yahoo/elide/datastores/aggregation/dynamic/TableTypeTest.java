@@ -66,6 +66,7 @@ public class TableTypeTest {
     @Test
     void testTableAnnotations() throws Exception {
         Set<String> tags = new HashSet<>(Arrays.asList("tag1", "tag2"));
+        Set<String> hints = new HashSet<>(Arrays.asList("hint1", "hint2"));
 
         Table testTable = Table.builder()
                 .cardinality("medium")
@@ -80,6 +81,7 @@ public class TableTypeTest {
                 .isFact(true)
                 .filterTemplate("a==b")
                 .tags(tags)
+                .hints(hints)
                 .build();
 
         TableType testType = new TableType(testTable);
@@ -98,6 +100,7 @@ public class TableTypeTest {
         assertEquals("category1", tableMeta.category());
         assertTrue(tableMeta.isFact());
         assertEquals(tags, new HashSet<>(Arrays.asList(tableMeta.tags())));
+        assertEquals(hints, new HashSet<>(Arrays.asList(tableMeta.hints())));
         assertEquals("a==b", tableMeta.filterTemplate());
 
         ReadPermission readPermission = (ReadPermission) testType.getAnnotation(ReadPermission.class);

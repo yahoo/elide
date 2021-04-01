@@ -157,6 +157,11 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
     }
 
     @Override
+    public String hint() {
+        return "AggregateBeforeJoin";
+    }
+
+    @Override
     public boolean canOptimize(Query query, SQLReferenceTable lookupTable) {
         //For simplicity, we will not optimize an already nested query.
         if (query.isNested()) {

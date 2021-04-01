@@ -356,6 +356,11 @@ public class TableType implements Type<DynamicModelInstance> {
             }
 
             @Override
+            public String[] hints() {
+                return table.getHints().toArray(new String[0]);
+            }
+
+            @Override
             public String[] tags() {
                 return table.getTags().toArray(new String[0]);
             }

@@ -159,6 +159,15 @@
                         "type": "string"
                     }
                 },
+                "hints": {
+                    "title": "Optimizer Hints",
+                    "description": "An array of hint names to control the optimizer",
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "arguments": {
                     "title": "Measure arguments",
                     "description": "An array of supported arguments for measure",
