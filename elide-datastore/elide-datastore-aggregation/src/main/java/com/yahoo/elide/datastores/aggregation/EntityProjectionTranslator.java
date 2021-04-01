@@ -13,6 +13,7 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
@@ -25,10 +26,13 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.google.common.collect.Sets;
 
+import lombok.NonNull;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -48,16 +52,18 @@ public class EntityProjectionTranslator {
     private FilterExpression whereFilter;
     private FilterExpression havingFilter;
     private EntityDictionary dictionary;
+    private User user;
     private Boolean bypassCache;
 
 
     public EntityProjectionTranslator(QueryEngine engine, Table table,
                                       EntityProjection entityProjection, EntityDictionary dictionary,
-                                      Boolean bypassCache) {
+                                      User user, Boolean bypassCache) {
         this.engine = engine;
         this.queriedTable = table;
         this.entityProjection = entityProjection;
         this.dictionary = dictionary;
+        this.user = user;
         this.bypassCache  = bypassCache;
         dimensionProjections = resolveNonTimeDimensions();
         timeDimensions = resolveTimeDimensions();
@@ -80,6 +86,7 @@ public class EntityProjectionTranslator {
                 .havingFilter(havingFilter)
                 .sorting(entityProjection.getSorting())
                 .pagination(ImmutablePagination.from(entityProjection.getPagination()))
+                .context(prepareQueryContext())
                 .bypassingCache(bypassCache)
                 .build();
 
@@ -229,5 +236,46 @@ public class EntityProjectionTranslator {
         Set<String> allFields = getAttributes();
         allFields.addAll(getRelationships());
         return allFields;
+    }
+
+    private Map<String, Object> prepareQueryContext() {
+        Map<String, Object> context = new HashMap<>();
+        populateUserContext(context);
+        populateRequestContext(context);
+        return context;
+    }
+
+    private void populateUserContext(Map<String, Object> context) {
+        Map<String, Object> userMap = new HashMap<>();
+        context.put("$$user", userMap);
+        userMap.put("identity", user.getName());
+    }
+
+    private void populateRequestContext(Map<String, Object> context) {
+
+        Map<String, Object> requestMap = new HashMap<>();
+        context.put("$$request", requestMap);
+        Map<String, Object> tableMap = new HashMap<>();
+        requestMap.put("table", tableMap);
+        Map<String, Object> columnsMap = new HashMap<>();
+        requestMap.put("columns", columnsMap);
+
+        // Populate $$request.table context
+        tableMap.put("name", queriedTable.getName());
+        tableMap.put("args", entityProjection.getArguments().stream()
+                        .collect(Collectors.toMap(Argument::getName, Argument::getValue)));
+
+        // Populate $$request.columns context
+        entityProjection.getAttributes().forEach(attr -> {
+            @NonNull
+            String columnName = attr.getName();
+            Map<String, Object> columnMap = new HashMap<>();
+            columnsMap.put(columnName, columnMap);
+
+            // Populate $$request.columns.column context
+            columnMap.put("name", attr.getName());
+            columnMap.put("args", attr.getArguments().stream()
+                            .collect(Collectors.toMap(Argument::getName, Argument::getValue)));
+        });
     }
 }
