@@ -41,5 +41,7 @@ public abstract class GraphQLTest {
 
         dictionary.addArgumentToAttribute(ClassType.of(ParameterizedExample.class), "attribute",
                 new ArgumentType("argument", ClassType.STRING_TYPE, "defaultValue"));
+        dictionary.addArgumentToEntity(ClassType.of(ParameterizedExample.class),
+                new ArgumentType("entityArgument", ClassType.STRING_TYPE, "defaultArgValue"));
     }
 }
