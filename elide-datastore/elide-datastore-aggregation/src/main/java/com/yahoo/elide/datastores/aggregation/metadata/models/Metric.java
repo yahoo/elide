@@ -10,7 +10,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
-import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjectionMaker;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -26,7 +26,7 @@ import lombok.ToString;
 public class Metric extends Column {
     @Exclude
     @ToString.Exclude
-    private final QueryPlanResolver queryPlanResolver;
+    private final MetricProjectionMaker metricProjectionMaker;
 
     public Metric(Table table, String fieldName, EntityDictionary dictionary) {
         super(table, fieldName, dictionary);
@@ -38,8 +38,8 @@ public class Metric extends Column {
                 fieldName);
 
         if (formula != null) {
-            this.queryPlanResolver = dictionary.getInjector().instantiate(formula.queryPlan());
-            dictionary.getInjector().inject(this.queryPlanResolver);
+            this.metricProjectionMaker = dictionary.getInjector().instantiate(formula.maker());
+            dictionary.getInjector().inject(this.metricProjectionMaker);
 
         } else {
             throw new IllegalStateException("Trying to construct metric field "

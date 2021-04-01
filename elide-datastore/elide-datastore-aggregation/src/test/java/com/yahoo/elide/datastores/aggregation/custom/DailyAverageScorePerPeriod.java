@@ -4,15 +4,15 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.datastores.aggregation.resolvers;
+package com.yahoo.elide.datastores.aggregation.custom;
 
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
-import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
@@ -21,12 +21,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Query plan resolver for the dailyAverageScorePerPeriod metric in the PlayerStats table.
+ * Custom metric projection for daily average score per time period.
  */
-public class DailyAverageScorePerPeriodResolver implements QueryPlanResolver {
+public class DailyAverageScorePerPeriod extends SQLMetricProjection {
+
+    public DailyAverageScorePerPeriod(Metric metric,
+                                      String alias,
+                                      Map<String, Argument> arguments) {
+        super(metric.getName(), metric.getValueType(), metric.getColumnType(), metric.getExpression(),
+                alias, arguments, true);
+    }
 
     @Override
-    public QueryPlan resolve(Query query, MetricProjection projection) {
+    public QueryPlan resolve(Query query) {
         SQLTable table = (SQLTable) query.getSource();
 
         MetricProjection innerMetric = table.getMetricProjection("highScore");
@@ -47,12 +54,12 @@ public class DailyAverageScorePerPeriodResolver implements QueryPlanResolver {
         QueryPlan outerQuery = QueryPlan.builder()
                 .source(innerQuery)
                 .metricProjection(SQLMetricProjection.builder()
-                        .alias(projection.getAlias())
-                        .name(projection.getName())
-                        .expression(projection.getExpression())
-                        .columnType(projection.getColumnType())
-                        .valueType(projection.getValueType())
-                        .arguments(projection.getArguments())
+                        .alias(getAlias())
+                        .name(getName())
+                        .expression(getExpression())
+                        .columnType(getColumnType())
+                        .valueType(getValueType())
+                        .arguments(getArguments())
                         .build())
                 .build();
 

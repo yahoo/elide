@@ -50,6 +50,7 @@ public class CalciteUtils {
         }
         return SqlParser.config()
                 .withQuoting(quoting)
+                .withConformance(calciteDialect.getConformance())
                 .withUnquotedCasing(calciteDialect.getUnquotedCasing())
                 .withQuotedCasing(calciteDialect.getQuotedCasing())
                 .withCharLiteralStyles(new HashSet<>(Arrays.asList(CharLiteralStyle.STANDARD)))
