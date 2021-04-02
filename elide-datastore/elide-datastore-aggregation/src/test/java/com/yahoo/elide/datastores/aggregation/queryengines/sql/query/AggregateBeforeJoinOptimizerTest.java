@@ -11,6 +11,8 @@ import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.Operator;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
@@ -200,7 +202,6 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
     public void testHavingOnMetric() {
         SQLTable gameRevenueTable = (SQLTable) metaDataStore.getTable("gameRevenue", NO_VERSION);
 
-        // WHERE filter
         FilterPredicate predicate = new FilterPredicate(
                 new Path(GameRevenue.class, dictionary, "revenue"),
                 Operator.GT,
@@ -225,12 +226,58 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
         testQueryExecution(query);
     }
 
+    @Test
+    public void testHavingOnDimensionNoJoin() {
+        SQLTable gameRevenueTable = (SQLTable) metaDataStore.getTable("gameRevenue", NO_VERSION);
+
+        FilterExpression expression = new OrFilterExpression(
+                new FilterPredicate(
+                        new Path(GameRevenue.class, dictionary, "revenue"),
+                        Operator.GT,
+                        Arrays.asList(9000)
+                ),
+                new FilterPredicate(
+                        new Path(GameRevenue.class, dictionary, "category"),
+                        Operator.IN,
+                        Arrays.asList("foo")
+                )
+        );
+
+        Query query = Query.builder()
+                .source(gameRevenueTable)
+                .metricProjection(gameRevenueTable.getMetricProjection("revenue"))
+                .dimensionProjection(gameRevenueTable.getDimensionProjection("countryIsoCode"))
+                .dimensionProjection(gameRevenueTable.getDimensionProjection("category"))
+                .havingFilter(expression)
+                .build();
+
+        compareQueryLists("SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country`.`iso_code` AS `countryIsoCode`,"
+                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` AS `category` "
+                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id`,"
+                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` AS `category` "
+                        + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
+                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id`, "
+                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` ) "
+                        + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
+                        + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country` "
+                        + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country`.`id` "
+                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country`.`iso_code`, "
+                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` "
+                        + "HAVING (MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX "
+                        + "OR `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` IN (:XXX))\n",
+                engine.explain(query));
+
+        testQueryExecution(query);
+    }
+
     //TODO - Tests to add
     /*
     - CONFIRM NESTING ON SIMPLE COLUMN DEFINITIONS - Each column maps to one physical column.
     - * Test Having Clause On Metric In Projection (No Join)
     - * Test Sort Clause On Metric In Projection (No Join)
-    - Test Having Clause On Dimension In Projection (No Join)
+    - * Test Having Clause On Dimension In Projection (No Join)
     - Test Having Clause On Dimension In Projection (Join)
     - Test Where Clause On Dimension In Projection (No Join)
     - Test Where Clause On Dimension In Projection (Join)
