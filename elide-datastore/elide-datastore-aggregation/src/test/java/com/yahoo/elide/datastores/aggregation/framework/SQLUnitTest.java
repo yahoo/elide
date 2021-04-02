@@ -33,6 +33,7 @@ import com.yahoo.elide.datastores.aggregation.example.Continent;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.CountryView;
 import com.yahoo.elide.datastores.aggregation.example.CountryViewNested;
+import com.yahoo.elide.datastores.aggregation.example.GameRevenue;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
@@ -491,6 +492,7 @@ public abstract class SQLUnitTest {
         dictionary.bindEntity(CountryView.class);
         dictionary.bindEntity(CountryViewNested.class);
         dictionary.bindEntity(Continent.class);
+        dictionary.bindEntity(GameRevenue.class);
         filterParser = new RSQLFilterDialect(dictionary);
 
         //Manually register the serdes because we are not running a complete Elide service.
