@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.datastores.aggregation.example;
 
+import static com.yahoo.elide.datastores.aggregation.example.TimeGrainDefinitions.DATE_FORMAT;
+import static com.yahoo.elide.datastores.aggregation.example.TimeGrainDefinitions.MONTH_FORMAT;
+import static com.yahoo.elide.datastores.aggregation.example.TimeGrainDefinitions.QUARTER_FORMAT;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.type.ParameterizedModel;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
@@ -44,11 +47,6 @@ import javax.persistence.Id;
         size = CardinalitySize.LARGE
 )
 public class PlayerStats extends ParameterizedModel {
-
-    public static final String DATE_FORMAT = "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
-    public static final String MONTH_FORMAT = "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')";
-    public static final String QUARTER_FORMAT =
-                    "PARSEDATETIME(CONCAT(FORMATDATETIME({{}}, 'yyyy-'), 3 * QUARTER({{}}) - 2), 'yyyy-MM')";
 
     /**
      * PK.

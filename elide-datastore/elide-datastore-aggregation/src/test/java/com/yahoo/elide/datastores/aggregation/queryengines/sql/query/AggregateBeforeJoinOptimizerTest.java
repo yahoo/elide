@@ -9,6 +9,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
@@ -44,7 +45,8 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
     @BeforeAll
     public static void init() {
         MetaDataStore metaDataStore = new MetaDataStore(
-                getClassType(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example")),
+                getClassType(ClassScanner.getAnnotatedClasses("com.yahoo.elide.datastores.aggregation.example",
+                        Include.class)),
                 false);
         Set<Optimizer> optimizers = new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore)));
         init(new H2Dialect(), optimizers, metaDataStore);
@@ -337,22 +339,22 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`," +
-                "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country`.`iso_code` AS `countryIsoCode`," +
-                "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` AS `category` " +
-                "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`," +
-                "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id`," +
-                "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` AS `category` " +
-                "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` " +
-                "WHERE `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` IN (:XXX) " +
-                "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id`, " +
-                "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` ) " +
-                "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` " +
-                "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country` " +
-                "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country`.`id` " +
-                "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country`.`iso_code`, " +
-                "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` " +
-                "HAVING MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX\n";
+        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country`.`iso_code` AS `countryIsoCode`,"
+                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` AS `category` "
+                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id`,"
+                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` AS `category` "
+                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
+                + "WHERE `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` IN (:XXX) "
+                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id`, "
+                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` ) "
+                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country` "
+                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country`.`id` "
+                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country`.`iso_code`, "
+                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` "
+                + "HAVING MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX\n";
 
         compareQueryLists(expected, engine.explain(query));
 

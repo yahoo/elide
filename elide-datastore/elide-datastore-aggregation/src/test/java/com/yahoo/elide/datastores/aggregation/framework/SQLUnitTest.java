@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
@@ -532,7 +533,8 @@ public abstract class SQLUnitTest {
 
     public static void init(SQLDialect dialect) {
         MetaDataStore metaDataStore = new MetaDataStore(
-                getClassType(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example")),
+                getClassType(ClassScanner.getAnnotatedClasses("com.yahoo.elide.datastores.aggregation.example",
+                        Include.class)),
                 false);
         init(dialect, new HashSet<>(), metaDataStore);
     }
