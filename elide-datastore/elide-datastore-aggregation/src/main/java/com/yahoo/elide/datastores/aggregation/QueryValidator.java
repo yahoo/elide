@@ -33,8 +33,8 @@ public class QueryValidator {
     private Set<String> allFields;
     private EntityDictionary dictionary;
     private Queryable queriedTable;
-    private Set<MetricProjection> metrics;
-    private Set<ColumnProjection> dimensionProjections;
+    private List<MetricProjection> metrics;
+    private List<ColumnProjection> dimensionProjections;
 
     public QueryValidator(Query query, Set<String> allFields, EntityDictionary dictionary) {
         this.query = query;

@@ -26,7 +26,6 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -126,7 +125,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
          */
         private Set<SQLColumnProjection> extractFilterProjections(Query query, FilterExpression expression) {
             if (expression == null) {
-                return new HashSet<>();
+                return new LinkedHashSet<>();
             }
 
             Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());

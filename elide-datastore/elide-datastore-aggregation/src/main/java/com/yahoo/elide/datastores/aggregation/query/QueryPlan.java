@@ -14,6 +14,7 @@ import lombok.Singular;
 import lombok.Value;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,15 +30,15 @@ public class QueryPlan implements Queryable {
 
     @Singular
     @NonNull
-    private Set<MetricProjection> metricProjections;
+    private List<MetricProjection> metricProjections;
 
     @Singular
     @NonNull
-    private Set<ColumnProjection> dimensionProjections;
+    private List<ColumnProjection> dimensionProjections;
 
     @Singular
     @NonNull
-    private Set<TimeDimensionProjection> timeDimensionProjections;
+    private List<TimeDimensionProjection> timeDimensionProjections;
 
     /**
      * Merges two query plans together.  The order of merged metrics and dimensions is preserved such that
