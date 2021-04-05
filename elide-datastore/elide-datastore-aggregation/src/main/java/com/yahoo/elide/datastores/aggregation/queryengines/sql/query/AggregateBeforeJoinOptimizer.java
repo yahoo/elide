@@ -63,7 +63,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
 
             Set<ColumnProjection> allProjections = Streams.concat(
                     query.getColumnProjections().stream(),
-                    extractFilterProjections(query, query.getWhereFilter()).stream())
+                    extractFilterProjections(query, splitWhere.getOuter()).stream())
                     .collect(Collectors.toCollection(LinkedHashSet::new));
 
             Set<Pair<ColumnProjection, Set<ColumnProjection>>> allProjectionsNested = allProjections.stream()
