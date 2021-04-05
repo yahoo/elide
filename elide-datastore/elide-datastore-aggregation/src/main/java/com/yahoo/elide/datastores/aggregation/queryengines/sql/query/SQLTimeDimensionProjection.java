@@ -13,16 +13,22 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
+import org.apache.commons.lang3.tuple.Pair;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
 
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 /**
  * Column projection that can expand the column into a SQL projection fragment.
@@ -72,8 +78,9 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     @Override
     public String toSQL(Queryable source, SQLReferenceTable table) {
         //TODO - We will likely migrate to a templating language when we support parameterized metrics.
+
         return grain.getExpression().replaceAll(TIME_DIMENSION_REPLACEMENT_REGEX,
-                        table.getResolvedReference(source, name));
+                table.getResolvedReference(source, name));
     }
 
     @Override
@@ -84,6 +91,46 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     @Override
     public boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
         return true;
+    }
+
+    @Override
+    public Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source,
+                                                              SQLReferenceTable lookupTable,
+                                                              boolean joinInOuter) {
+
+        Set<SQLColumnProjection> joinProjections = lookupTable.getResolvedJoinProjections(source.getSource(),
+                getName());
+
+        boolean requiresJoin = joinProjections.size() > 0;
+
+        boolean inProjection = source.getColumnProjection(getName()) != null;
+
+        ColumnProjection outerProjection;
+        Set<ColumnProjection> innerProjections;
+
+        if (requiresJoin && joinInOuter) {
+            outerProjection = withExpression(getExpression(), inProjection);
+            innerProjections = joinProjections.stream().collect(Collectors.toCollection(LinkedHashSet::new));
+        } else {
+            outerProjection = SQLTimeDimensionProjection.builder()
+                    .name(name)
+                    .alias(alias)
+                    .valueType(valueType)
+                    .columnType(columnType)
+
+                    //This grain removes the extra time grain formatting on the outer query.
+                    .grain(new TimeDimensionGrain(
+                            this.getName(),
+                            grain.getGrain()))
+                    .expression("{{" + this.getSafeAlias() + "}}")
+                    .projected(isProjected())
+                    .arguments(arguments)
+                    .timeZone(timeZone)
+                    .build();
+            innerProjections = new LinkedHashSet<>(Arrays.asList(this));
+        }
+
+        return Pair.of(outerProjection, innerProjections);
     }
 
     @Override

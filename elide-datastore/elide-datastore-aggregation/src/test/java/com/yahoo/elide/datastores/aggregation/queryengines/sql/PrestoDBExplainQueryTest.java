@@ -268,30 +268,14 @@ public class PrestoDBExplainQueryTest extends SQLUnitTest {
     public void testNestedMetricQuery() {
         Query query = TestQuery.NESTED_METRIC_QUERY.getQuery();
 
-        String exptectedQueryStr =
-                "SELECT AVG(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"highScore\") AS \"dailyAverageScorePerPeriod\","
-                        + "MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"INNER_AGG_XXX\") AS \"highScore\","
-                        + "MIN(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"INNER_AGG_XXX\") AS \"lowScore\","
-                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\" AS \"overallRating\","
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
-                        + "FROM (SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
-                        + "MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"INNER_AGG_XXX\","
-                        + "MIN(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"lowScore\") AS \"INNER_AGG_XXX\","
-                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS \"overallRating\","
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate_XXX\","
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
-                        + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" GROUP BY "
-                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') ) "
-                        + "AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\" GROUP BY "
-                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\", "
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM')\n";
+        String exptectedQueryStr = getExpectedNestedMetricQuery().replace(BACKTICK, DOUBLE_QUOTE);
 
         List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(exptectedQueryStr);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
+
+        testQueryExecution(TestQuery.NESTED_METRIC_QUERY.getQuery());
     }
 
     @Test

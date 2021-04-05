@@ -295,7 +295,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"inner_agg_XXX\") AS \"highScore\","
                         + "MIN(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"inner_agg_XXX\") AS \"lowScore\","
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\" AS \"overallRating\","
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
+                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\" AS \"recordedDate\" "
                         + "FROM (SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
                         + "MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"inner_agg_XXX\","
                         + "MIN(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"lowScore\") AS \"inner_agg_XXX\","
@@ -308,7 +308,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') ) "
                         + "AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\" GROUP BY "
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\", "
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM')\n";
+                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\"\n";
 
         List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(exptectedQueryStr);

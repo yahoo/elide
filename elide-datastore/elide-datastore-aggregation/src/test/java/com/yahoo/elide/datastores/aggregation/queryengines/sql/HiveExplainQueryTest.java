@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.AbstractSqlDialect.BACKTICK;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.AbstractSqlDialect.DOUBLE_QUOTE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -286,30 +288,14 @@ public class HiveExplainQueryTest extends SQLUnitTest {
     public void testNestedMetricQuery() {
         Query query = TestQuery.NESTED_METRIC_QUERY.getQuery();
 
-        String exptectedQueryStr =
-                "SELECT AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) AS `dailyAverageScorePerPeriod`,"
-                        + "MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) AS `highScore`,"
-                        + "MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) AS `lowScore`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
-                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
-                        + "MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `INNER_AGG_XXX`,"
-                        + "MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) AS `INNER_AGG_XXX`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
-                        + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` GROUP BY "
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
-                        + "AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX` GROUP BY "
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM')\n";
+        String exptectedQueryStr = getExpectedNestedMetricQuery();
 
         List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(exptectedQueryStr);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
+
+        testQueryExecution(TestQuery.NESTED_METRIC_QUERY.getQuery());
     }
 
     @Test
@@ -319,7 +305,7 @@ public class HiveExplainQueryTest extends SQLUnitTest {
         String exptectedQueryStr =
                 "SELECT AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) "
                         + "AS `dailyAverageScorePerPeriod`,`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
+                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` AS `recordedDate` "
                         + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
                         + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
@@ -330,7 +316,7 @@ public class HiveExplainQueryTest extends SQLUnitTest {
                         + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
                         + "AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX` GROUP BY "
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') "
+                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` "
                         + "HAVING AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) "
                         + "> :XXX\n";
 
@@ -347,7 +333,7 @@ public class HiveExplainQueryTest extends SQLUnitTest {
         String exptectedQueryStr =
                 "SELECT AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) "
                         + "AS `dailyAverageScorePerPeriod`,`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
+                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` AS `recordedDate` "
                         + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
                         + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
@@ -360,7 +346,7 @@ public class HiveExplainQueryTest extends SQLUnitTest {
                         + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
                         + "AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX` GROUP BY "
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM')\n";
+                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`\n";
 
         List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(exptectedQueryStr);
@@ -374,7 +360,7 @@ public class HiveExplainQueryTest extends SQLUnitTest {
 
         String exptectedQueryStr1 = "SELECT COUNT(*) FROM "
                 + "(SELECT `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') "
+                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` "
                 + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
                 + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
                 + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
@@ -385,11 +371,11 @@ public class HiveExplainQueryTest extends SQLUnitTest {
                 + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
                 + "AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX` "
                 + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) AS `pagination_subquery`\n";
+                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` ) AS `pagination_subquery`\n";
 
         String exptectedQueryStr2 = "SELECT AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) "
                 + "AS `dailyAverageScorePerPeriod`,`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
+                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` AS `recordedDate` "
                 + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
                 + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
                 + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
@@ -400,7 +386,7 @@ public class HiveExplainQueryTest extends SQLUnitTest {
                 + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
                 + "AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX` GROUP BY "
                 + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') "
+                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` "
                 + "LIMIT 0,1\n";
 
         List<String> expectedQueryList = new ArrayList<>();
@@ -417,7 +403,7 @@ public class HiveExplainQueryTest extends SQLUnitTest {
         String exptectedQueryStr =
                 "SELECT AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) "
                         + "AS `dailyAverageScorePerPeriod`,`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
+                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` AS `recordedDate` "
                         + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
                         + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
@@ -428,7 +414,7 @@ public class HiveExplainQueryTest extends SQLUnitTest {
                         + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
                         + "AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX` GROUP BY "
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') "
+                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` "
                         + "ORDER BY AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) DESC,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` DESC";
 

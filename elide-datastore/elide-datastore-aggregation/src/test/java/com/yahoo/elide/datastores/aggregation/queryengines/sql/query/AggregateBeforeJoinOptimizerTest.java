@@ -99,7 +99,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
         String expectedQueryStr1 =
                 "SELECT COUNT(*) FROM "
                 + "(SELECT `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
+                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` "
                         + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `INNER_AGG_XXX`,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` AS `country_id`,"
@@ -113,13 +113,13 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                         + "ON `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX_country`.`id` "
                         + "WHERE `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX_country`.`iso_code` IN (:XXX) "
                         + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
+                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` "
                         + "HAVING MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) > :XXX ) AS `pagination_subquery`\n";
 
         String expectedQueryStr2 =
                 "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) AS `highScore`,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate` "
+                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` AS `recordedDate` "
                         + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `INNER_AGG_XXX`,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
                         + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` AS `country_id`,"
@@ -133,7 +133,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                         + "ON `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX_country`.`id` "
                         + "WHERE `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX_country`.`iso_code` IN (:XXX) "
                         + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
+                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` "
                         + "HAVING MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) > :XXX "
                         + "ORDER BY MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) "
                         + "DESC LIMIT 5 OFFSET 10\n";
@@ -575,7 +575,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
 
         String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
                 + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country`.`iso_code` AS `countryIsoCode`,"
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `saleDate` "
+                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` AS `saleDate` "
                 + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
                 + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id`,"
                 + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `saleDate` "
@@ -583,11 +583,10 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id`, "
                 + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ) "
                 + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country`.`id` "
+                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country` ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country`.`id` "
                 + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country`.`iso_code`, "
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
-                + "ORDER BY PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') DESC\n";
+                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` "
+                + "ORDER BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` DESC\n";
 
         compareQueryLists(expected, engine.explain(query));
 
