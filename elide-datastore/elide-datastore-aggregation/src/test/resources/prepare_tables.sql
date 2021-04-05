@@ -90,4 +90,4 @@ CREATE TABLE IF NOT EXISTS gameRevenue
       country_id VARCHAR(255),
       category VARCHAR(255)
     );
-TRUNCATE TABLE playerStats;
+TRUNCATE TABLE gameRevenue;
