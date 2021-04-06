@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
@@ -29,6 +30,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -133,13 +135,10 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
             Set<SQLColumnProjection> filterProjections = new LinkedHashSet<>();
             predicates.stream().forEach((predicate -> {
                 Map<String, Argument> arguments = new HashMap<>();
-                predicate.getParameters().forEach((param) -> {
-                    arguments.put(param.getName(), Argument.builder()
-                            .name(param.getName())
-                            .value(param.getValue())
-                            .build());
 
-                });
+                predicate.getPath().lastElement().get().getArguments().forEach((argument -> {
+                    arguments.put(argument.getName(), argument);
+                }));
 
                 ColumnProjection projection = query.getSource().getColumnProjection(predicate.getField(), arguments);
 
