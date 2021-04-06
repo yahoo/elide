@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
-import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
@@ -30,7 +29,6 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**

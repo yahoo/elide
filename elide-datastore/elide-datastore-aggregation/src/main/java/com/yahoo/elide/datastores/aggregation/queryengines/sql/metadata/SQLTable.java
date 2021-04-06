@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -133,6 +134,12 @@ public class SQLTable extends Table implements Queryable {
 
     public TimeDimensionProjection getTimeDimensionProjection(String fieldName, Map<String, Argument> arguments) {
         return getTimeDimensionProjection(fieldName, null, arguments);
+    }
+
+    public TimeDimensionProjection getTimeDimensionProjection(String fieldName, Set<Argument> arguments) {
+        Map<String, Argument> argumentMap =
+                arguments.stream().collect(Collectors.toMap(Argument::getName, argument -> argument));
+        return getTimeDimensionProjection(fieldName, null, argumentMap);
     }
 
     public TimeDimensionProjection getTimeDimensionProjection(String fieldName, String alias,
