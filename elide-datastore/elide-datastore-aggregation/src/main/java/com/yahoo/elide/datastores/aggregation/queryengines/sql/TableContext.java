@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
+package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
@@ -25,8 +25,8 @@ import java.util.Set;
  */
 @AllArgsConstructor
 @Getter
-@Builder
 @ToString
+@Builder
 public class TableContext extends HashMap<String, Object> {
 
     private final String alias;
@@ -35,7 +35,7 @@ public class TableContext extends HashMap<String, Object> {
     @Builder.Default
     private final Map<String, TableContext> joins = new HashMap<>();
     @Builder.Default
-    private final HandlebarResolvor resolver = new HandlebarResolvor();
+    private final HandlebarResolver resolver = new HandlebarResolver();
 
     public Object get(Object key) {
 

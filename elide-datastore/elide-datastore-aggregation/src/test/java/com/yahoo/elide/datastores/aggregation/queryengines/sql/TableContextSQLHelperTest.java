@@ -3,14 +3,14 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
+package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.TableContextTest.emptyMap;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.TableContextTest.toMap;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.COL_PREFIX;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.TBL_PREFIX;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.prepareArgumentsMap;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.TableContextTest.emptyMap;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.TableContextTest.toMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;

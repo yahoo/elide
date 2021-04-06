@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
+package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static com.yahoo.elide.core.filter.dialect.RSQLFilterDialect.FILTER_ARGUMENTS_PATTERN;
 import static com.yahoo.elide.core.utils.TypeHelper.nullOrEmpty;
@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 
-public class HandlebarResolvor {
+public class HandlebarResolver {
 
     private final Handlebars handlebars = new Handlebars()
                     .with(EscapingStrategy.NOOP)
