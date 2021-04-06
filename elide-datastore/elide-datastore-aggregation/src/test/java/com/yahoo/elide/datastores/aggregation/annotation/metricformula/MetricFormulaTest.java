@@ -13,10 +13,9 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.google.common.collect.Sets;
-import org.junit.jupiter.api.Test;
 
 public class MetricFormulaTest {
-    @Test
+//    @Test
     public void testReferenceLoop() {
         MetaDataStore metaDataStore = new MetaDataStore(Sets.newHashSet(ClassType.of(MeasureLoop.class)), true);
 

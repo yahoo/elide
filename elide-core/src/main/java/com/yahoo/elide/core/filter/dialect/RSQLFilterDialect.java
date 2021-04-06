@@ -72,7 +72,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
     private static final Pattern TYPED_FILTER_PATTERN = Pattern.compile("filter\\[([^\\]]+)\\]");
     // square brackets having non-empty argument name and  encoded agument value separated by ':'
     // eg: [grain:month] , [foo:bar][blah:Encoded+Value]
-    private static final Pattern FILTER_ARGUMENTS_PATTERN = Pattern.compile("\\[(\\w+):([^\\]]+)\\]");
+    public static final Pattern FILTER_ARGUMENTS_PATTERN = Pattern.compile("\\[(\\w+):([^\\]]+)\\]");
     // field name followed by zero or more filter arguments
     // eg: name, orderDate[grain:month] , title[foo:bar][blah:Encoded+Value]
     private static final String FILTER_SELECTOR_REGEX = "(\\w+)(" + FILTER_ARGUMENTS_PATTERN + ")*$";

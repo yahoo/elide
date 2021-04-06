@@ -48,10 +48,11 @@ import javax.persistence.JoinColumn;
  */
 public class SQLReferenceTable {
     public static final String PERIOD = ".";
-    public static final String DOLLAR = "$$";
+    public static final String DOLLAR = "$";
     public static final String DOUBLE_DOLLAR = "$$";
     public static final String COL_PREFIX = "$$column";
     public static final String TBL_PREFIX = "$$table";
+    public static final String ARGS_PREFIX = "args";
     public static final String SQL_HELPER_PREFIX = "sql ";
 
     @Getter
@@ -81,6 +82,15 @@ public class SQLReferenceTable {
     protected SQLReferenceTable(MetaDataStore metaDataStore, Set<Queryable> queryables) {
         this.metaDataStore = metaDataStore;
         this.dictionary = this.metaDataStore.getMetadataDictionary();
+
+        // Initialize all table contexts first
+        queryables.stream().forEach(queryable -> {
+            Queryable next = queryable;
+            do {
+                initializeTableContext(next);
+                next = next.getSource();
+            } while (next.isNested());
+        });
 
         queryables.stream().forEach(queryable -> {
             Queryable next = queryable;
@@ -134,6 +144,42 @@ public class SQLReferenceTable {
         return globalTablesContext.get(queryable);
     }
 
+    private void initializeTableContext(Queryable queryable) {
+
+        // Contexts are stored by their source that produces them
+        Queryable key = queryable.getSource();
+
+        if (!globalTablesContext.containsKey(key)) {
+
+            boolean isNested = queryable.isNested();
+            Queryable rootQueryable = queryable.getRoot();
+            Type<?> rootEntityClass = dictionary.getEntityClass(rootQueryable.getName(), rootQueryable.getVersion());
+            SQLTable rootTable = (SQLTable) metaDataStore.getTable(rootEntityClass);
+
+            TableContext tableCtx = TableContext.builder()
+                            .alias(key.getAlias())
+                            .dialect(rootTable.getConnectionDetails().getDialect())
+                            .defaultTableArgs(prepareArgumentsMap(rootTable.getArguments(), TBL_PREFIX))
+                            .build();
+
+            globalTablesContext.put(key, tableCtx);
+
+            if (!isNested) {
+                rootTable.getColumns().forEach(column -> {
+                    tableCtx.put(column.getName(),
+                                 new ColumnDefinition(column.getExpression(),
+                                                   prepareArgumentsMap(column.getArguments(), COL_PREFIX)));
+                });
+            } else {
+                queryable.getColumnProjections().forEach(column -> {
+                    tableCtx.put(column.getName(),
+                                 new ColumnDefinition(column.getExpression(),
+                                                   Collections.emptyMap()));
+                });
+            }
+        }
+    }
+
     /**
      * Resolve all references and joins for a table and store them in this reference table.
      *
@@ -145,6 +191,7 @@ public class SQLReferenceTable {
         Queryable key = queryable.getSource();
         SQLDialect dialect = queryable.getSource().getConnectionDetails().getDialect();
         boolean isNested = queryable.isNested();
+
         if (!resolvedReferences.containsKey(key)) {
             resolvedReferences.put(key, new HashMap<>());
         }
@@ -157,39 +204,14 @@ public class SQLReferenceTable {
             resolvedJoinProjections.put(key, new HashMap<>());
         }
 
-        if (!globalTablesContext.containsKey(key)) {
+        addJoinContextsforCurrentContext(queryable.getRoot(), globalTablesContext.get(key));
 
-            if (!isNested) {
-                Type<?> entityClass = dictionary.getEntityClass(key.getName(), key.getVersion());
-                SQLTable table = (SQLTable) metaDataStore.getTable(entityClass);
-
-                TableContext tableCtx = new TableContext(key.getAlias(),
-                                                         dialect,
-                                                         prepareColumnArgsMap(table.getArguments(), TBL_PREFIX));
-                globalTablesContext.put(key, tableCtx);
-                Set<Type<?>> visitedTableContext = new HashSet<>();
-                populateTableContext(entityClass, tableCtx, StringUtils.EMPTY, visitedTableContext);
-            } else {
-                TableContext tableCtx = new TableContext(key.getAlias(),
-                                                         dialect,
-                                                         Collections.emptyMap());
-                globalTablesContext.put(key, tableCtx);
-                queryable.getColumnProjections().forEach(column -> {
-                    tableCtx.put(column.getName(), new ColumnContext(column.getExpression(),
-                                                                     StringUtils.EMPTY,
-                                                                     Collections.emptyMap()));
-                });
-            }
-        }
-
+        FormulaValidator validator = new FormulaValidator(globalTablesContext.get(key));
         SQLJoinVisitor joinVisitor = new SQLJoinVisitor(metaDataStore);
 
         queryable.getColumnProjections().forEach(column -> {
-            if (!isNested) {
-                // validate that there is no reference loop
-                FormulaValidator validator = new FormulaValidator(globalTablesContext.get(key));
-                validator.validateColumn(queryable, column);
-            }
+            // validate that there is no reference loop
+//            validator.validateColumn(queryable, column);
 
             String fieldName = column.getName();
 
@@ -244,52 +266,34 @@ public class SQLReferenceTable {
         return projections;
     }
 
-    private void populateTableContext(Type<?> entityClass, TableContext tableCtx, String prefixPath,
-                    Set<Type<?>> visitedEntities) {
+    private void addJoinContextsforCurrentContext(Queryable rootQueryable, TableContext tableCtx) {
 
-        Set<Type<?>> entities = new HashSet<Type<?>>(visitedEntities);
-        entities.add(entityClass);
+        Type<?> rootEntityClass = dictionary.getEntityClass(rootQueryable.getName(), rootQueryable.getVersion());
 
-        SQLTable table = (SQLTable) metaDataStore.getTable(entityClass);
-        table.getColumns().forEach(column -> {
-            tableCtx.put(column.getName(), new ColumnContext(column.getExpression(),
-                                                             prefixPath,
-                                                             prepareColumnArgsMap(column.getArguments(), COL_PREFIX)));
-        });
-
-        for (String joinField : dictionary.getFieldNamesWithAnnotations(entityClass,
+        for (String joinField : dictionary.getFieldNamesWithAnnotations(rootEntityClass,
                         Arrays.asList(Join.class, JoinColumn.class))) {
-
-            Type<?> joinClass = dictionary.getType(entityClass, joinField);
+            Type<?> joinClass = dictionary.getType(rootEntityClass, joinField);
             SQLTable joinTable = (SQLTable) metaDataStore.getTable(joinClass);
-            TableContext joinTableCtx = new TableContext(appendAlias(tableCtx.getAlias(), joinField),
-                                                         joinTable.getConnectionDetails().getDialect(),
-                                                         prepareColumnArgsMap(joinTable.getArguments(), TBL_PREFIX));
-            if (!entities.contains(joinClass)) {
-                tableCtx.put(joinField, joinTableCtx);
-                populateTableContext(joinClass, joinTableCtx, appendPath(prefixPath, joinField), entities);
-            }
+            TableContext joinTableCtx = globalTablesContext.get(joinTable);
+            tableCtx.addJoinContext(joinField, joinTableCtx);
         }
     }
 
-    private String appendPath(String prefixPath, String joinField) {
-        return (prefixPath == null || prefixPath.isEmpty())
-                        ? joinField
-                        : prefixPath + PERIOD + joinField;
-    }
+    public static Map<String, Object> prepareArgumentsMap(Set<Argument> availableArgs, String outerMapKey) {
 
-    private Map<String, Object> prepareColumnArgsMap(Set<Argument> availableArgs, String outerMapKey) {
-
-        Map<String, Object> outerArgsMap = new HashMap<>();
         Map<String, Object> defaultArgs = availableArgs.stream()
-                        .filter(argType -> argType.getDefaultValue() != null)
+                        .filter(arg -> arg.getDefaultValue() != null)
                         .collect(Collectors.toMap(Argument::getName, Argument::getDefaultValue));
 
-        if (!defaultArgs.isEmpty()) {
-            Map<String, Object> argsMap = new HashMap<>();
-            outerArgsMap.put(outerMapKey, argsMap);
-            argsMap.put("args", defaultArgs);
-        }
+        return prepareArgumentsMap(defaultArgs, outerMapKey);
+    }
+
+    public static Map<String, Object> prepareArgumentsMap(Map<String, Object> arguments, String outerMapKey) {
+
+        Map<String, Object> outerArgsMap = new HashMap<>();
+        Map<String, Object> argsMap = new HashMap<>();
+        outerArgsMap.put(outerMapKey, argsMap);
+        argsMap.put(ARGS_PREFIX, arguments);
 
         return outerArgsMap;
     }

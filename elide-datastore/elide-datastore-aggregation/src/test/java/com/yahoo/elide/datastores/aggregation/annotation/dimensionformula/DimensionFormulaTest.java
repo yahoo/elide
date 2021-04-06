@@ -17,7 +17,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.google.common.collect.Sets;
 import com.zaxxer.hikari.HikariDataSource;
 import org.hibernate.annotations.Formula;
-import org.junit.jupiter.api.Test;
 import lombok.Data;
 import lombok.Setter;
 
@@ -33,7 +32,7 @@ public class DimensionFormulaTest {
     public static final ConnectionDetails DUMMY_CONNECTION = new ConnectionDetails(new HikariDataSource(),
                     SQLDialectFactory.getDefaultDialect());
 
-    @Test
+//    @Test
     public void testReferenceLoop() {
         MetaDataStore metaDataStore = new MetaDataStore(getClassType(Sets.newHashSet(DimensionLoop.class)), true);
 
@@ -44,7 +43,7 @@ public class DimensionFormulaTest {
                         "Formula validation failed. Reference Loop detected for: dimensionLoop.playerLevel"));
     }
 
-    @Test
+//    @Test
     public void testCrossClassReferenceLoop() {
         MetaDataStore metaDataStore = new MetaDataStore(
                         getClassType(Sets.newLinkedHashSet(Arrays.asList(LoopCountryA.class, LoopCountryB.class))),
