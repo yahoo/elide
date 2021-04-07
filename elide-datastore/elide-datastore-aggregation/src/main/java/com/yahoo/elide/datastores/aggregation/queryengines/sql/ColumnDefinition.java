@@ -6,17 +6,15 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 
 import java.util.Map;
 
 /**
- * Column Context for Handlebars Resolution.
+ * Column Definition, used for Handlebars Resolution.
  */
 @AllArgsConstructor
 @Getter
-@Builder
 public class ColumnDefinition {
     private final String expression;
     private final Map<String, Object> defaultColumnArgs;

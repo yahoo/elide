@@ -87,7 +87,7 @@ public class SQLReferenceTableTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testTableContext() {
-        TableContext tableContext = lookupTable.getTableContext(playerStats);
+        TableContext tableContext = lookupTable.getGlobalTableContext(playerStats);
 
         Map<String, Object> tableDefaultArgsContext = tableContext.getDefaultTableArgs();
 

@@ -73,16 +73,21 @@ public class SQLReferenceTable {
 
     protected final Map<Queryable, TableContext> globalTablesContext = new HashMap<>();
 
+    protected final SQLReferenceTable staticReferenceTable;
+
     public SQLReferenceTable(MetaDataStore metaDataStore) {
         this(metaDataStore,
              metaDataStore.getMetaData(ClassType.of(Table.class))
                 .stream()
                 .map(SQLTable.class::cast)
-                .collect(Collectors.toSet()));
+                .collect(Collectors.toSet()),
+             null);
     }
 
-    protected SQLReferenceTable(MetaDataStore metaDataStore, Set<Queryable> queryables) {
+    protected SQLReferenceTable(MetaDataStore metaDataStore, Set<Queryable> queryables,
+                    SQLReferenceTable staticReferenceTable) {
         this.metaDataStore = metaDataStore;
+        this.staticReferenceTable = staticReferenceTable;
         this.dictionary = this.metaDataStore.getMetadataDictionary();
 
         // Initialize all table contexts first
@@ -90,6 +95,19 @@ public class SQLReferenceTable {
             Queryable next = queryable;
             do {
                 initializeTableContext(next);
+                next = next.getSource();
+            } while (next.isNested());
+        });
+
+        // Link table contexts with each other
+        queryables.stream().forEach(queryable -> {
+            Queryable next = queryable;
+            do {
+                Queryable key = next.getSource();
+                addJoinContextsforCurrentContext(next.getRoot(), globalTablesContext.get(key));
+                if (next.isNested()) {
+                    addSourceContextforCurrentContext(key.getSource(), globalTablesContext.get(key));
+                }
                 next = next.getSource();
             } while (next.isNested());
         });
@@ -142,7 +160,7 @@ public class SQLReferenceTable {
      * @param queryable table class
      * @return {@link TableContext} for provided table.
      */
-    public TableContext getTableContext(Queryable queryable) {
+    public TableContext getGlobalTableContext(Queryable queryable) {
         return globalTablesContext.get(queryable);
     }
 
@@ -206,16 +224,14 @@ public class SQLReferenceTable {
             resolvedJoinProjections.put(key, new HashMap<>());
         }
 
-        addJoinContextsforCurrentContext(queryable.getRoot(), globalTablesContext.get(key));
-
         FormulaValidator validator = new FormulaValidator(globalTablesContext.get(key));
         SQLJoinVisitor joinVisitor = new SQLJoinVisitor(metaDataStore);
 
         queryable.getColumnProjections().forEach(column -> {
-            // validate that there is no reference loop
-//            validator.validateColumn(queryable, column);
-
             String fieldName = column.getName();
+
+            // validate that there is no reference loop
+            validator.validateColumn(queryable, column);
 
             resolvedReferences.get(key).put(
                     fieldName,
@@ -276,9 +292,13 @@ public class SQLReferenceTable {
                         Arrays.asList(Join.class, JoinColumn.class))) {
             Type<?> joinClass = dictionary.getType(rootEntityClass, joinField);
             SQLTable joinTable = (SQLTable) metaDataStore.getTable(joinClass);
-            TableContext joinTableCtx = globalTablesContext.get(joinTable);
+            TableContext joinTableCtx = getGlobalTableContext(joinTable);
             tableCtx.addJoinContext(joinField, joinTableCtx);
         }
+    }
+
+    private void addSourceContextforCurrentContext(Queryable sourceQueryable, TableContext tableCtx) {
+        tableCtx.addSourceContext(getGlobalTableContext(sourceQueryable));
     }
 
     public static Map<String, Object> prepareArgumentsMap(Set<Argument> availableArgs, String outerMapKey) {

@@ -11,19 +11,19 @@ import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.S
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.github.jknack.handlebars.HandlebarsException;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * TableContext for Handlebars Resolution.
  */
-@AllArgsConstructor
 @Getter
 @ToString
 @Builder
@@ -36,6 +36,8 @@ public class TableContext extends HashMap<String, Object> {
     private final Map<String, TableContext> joins = new HashMap<>();
     @Builder.Default
     private final HandlebarResolver resolver = new HandlebarResolver();
+    @Builder.Default
+    private final List<TableContext> sourceCtx = new ArrayList<>();
 
     public Object get(Object key) {
 
@@ -46,6 +48,7 @@ public class TableContext extends HashMap<String, Object> {
                             .dialect(joinTblCtx.dialect)
                             .defaultTableArgs(joinTblCtx.defaultTableArgs)
                             .joins(joinTblCtx.joins)
+                            .sourceCtx(joinTblCtx.sourceCtx)
                             .build();
 
             newCtx.putAll(joinTblCtx);
@@ -71,6 +74,22 @@ public class TableContext extends HashMap<String, Object> {
         this.joins.put(joinName, joinCtx);
     }
 
+    public void addSourceContext(TableContext sourceCtx) {
+        this.sourceCtx.add(sourceCtx);
+    }
+
+    public TableContext getSourceContext() {
+        if (this.sourceCtx.isEmpty()) {
+            return null;
+        }
+        return this.sourceCtx.get(0);
+    }
+
+    /**
+     * Gets the {@link ColumnDefinition} for provided column.
+     * @param key Column Name
+     * @return If key is a column name then returns {@link ColumnDefinition} else null.
+     */
     public ColumnDefinition getColumnDefinition(String key) {
         Object value = super.get(key);
         if (value instanceof ColumnDefinition) {

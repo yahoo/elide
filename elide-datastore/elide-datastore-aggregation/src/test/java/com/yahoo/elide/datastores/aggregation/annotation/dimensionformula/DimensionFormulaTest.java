@@ -17,6 +17,8 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.google.common.collect.Sets;
 import com.zaxxer.hikari.HikariDataSource;
 import org.hibernate.annotations.Formula;
+import org.junit.jupiter.api.Test;
+
 import lombok.Data;
 import lombok.Setter;
 
@@ -26,24 +28,27 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
-
 public class DimensionFormulaTest {
 
     public static final ConnectionDetails DUMMY_CONNECTION = new ConnectionDetails(new HikariDataSource(),
                     SQLDialectFactory.getDefaultDialect());
 
-//    @Test
+    @Test
     public void testReferenceLoop() {
         MetaDataStore metaDataStore = new MetaDataStore(getClassType(Sets.newHashSet(DimensionLoop.class)), true);
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
                 () -> new SQLQueryEngine(metaDataStore, DUMMY_CONNECTION));
-        assertTrue(exception.getMessage().startsWith(
-                        "Formula validation failed. Reference Loop detected for: dimensionLoop.playerLevel"));
+
+        String exception1 = "Formula validation failed for: dimensionLoop.playerLevel1. Reference Loop detected.";
+
+        String exception2 = "Formula validation failed for: dimensionLoop.playerLevel2. Reference Loop detected.";
+
+        assertTrue(exception1.equals(exception.getMessage()) || exception2.equals(exception.getMessage()));
     }
 
-//    @Test
+    @Test
     public void testCrossClassReferenceLoop() {
         MetaDataStore metaDataStore = new MetaDataStore(
                         getClassType(Sets.newLinkedHashSet(Arrays.asList(LoopCountryA.class, LoopCountryB.class))),
@@ -53,10 +58,11 @@ public class DimensionFormulaTest {
                 IllegalArgumentException.class,
                 () -> new SQLQueryEngine(metaDataStore, DUMMY_CONNECTION));
 
-        String exception1 = "Formula validation failed. Possible Reference Loop for: loopCountryB.inUsa. java.lang.Throwable: Couldn't find: countryB";
+        String exception1 = "Formula validation failed for: loopCountryA.inUsa. Reference Loop detected.";
 
-        String exception2 = "Formula validation failed. Possible Reference Loop for: loopCountryA.inUsa. java.lang.Throwable: Couldn't find: countryA";
+        String exception2 = "Formula validation failed for: loopCountryB.inUsa. Reference Loop detected.";
 
+        System.out.println(exception.getMessage());
         assertTrue(exception1.equals(exception.getMessage()) || exception2.equals(exception.getMessage()));
     }
 }

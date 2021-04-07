@@ -6,10 +6,9 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.TableContext;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.google.common.collect.Sets;
-
-import lombok.Getter;
 
 import java.util.Set;
 
@@ -19,15 +18,8 @@ import java.util.Set;
  */
 public class DynamicSQLReferenceTable extends SQLReferenceTable {
 
-    //Stores the static table references
-    @Getter
-    private final SQLReferenceTable staticReferenceTable;
-
-
     public DynamicSQLReferenceTable(SQLReferenceTable staticReferenceTable, Queryable query) {
-        super(staticReferenceTable.getMetaDataStore(), Sets.newHashSet(query));
-
-        this.staticReferenceTable = staticReferenceTable;
+        super(staticReferenceTable.getMetaDataStore(), Sets.newHashSet(query), staticReferenceTable);
     }
 
     /**
@@ -68,5 +60,13 @@ public class DynamicSQLReferenceTable extends SQLReferenceTable {
             return staticReferenceTable.getResolvedJoinProjections(queryable, fieldName);
         }
         return resolvedJoinProjections.get(queryable).get(fieldName);
+    }
+
+    @Override
+    public TableContext getGlobalTableContext(Queryable queryable) {
+        if (staticReferenceTable.globalTablesContext.containsKey(queryable)) {
+            return staticReferenceTable.getGlobalTableContext(queryable);
+        }
+        return globalTablesContext.get(queryable);
     }
 }
