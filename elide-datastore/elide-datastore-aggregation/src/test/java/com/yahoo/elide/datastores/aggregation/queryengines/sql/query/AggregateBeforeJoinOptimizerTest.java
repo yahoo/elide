@@ -642,6 +642,58 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
     }
 
     @Test
+    public void testHavingOnTimeDimensionInProjectionNotRequiringJoinWithArguments() {
+        SQLTable gameRevenueTable = (SQLTable) metaDataStore.getTable("gameRevenue", NO_VERSION);
+        Set<Argument> arguments = new HashSet<>();
+        arguments.add(Argument.builder()
+                .name("grain")
+                .value("MONTH")
+                .build());
+
+        FilterExpression expression = new OrFilterExpression(
+                new FilterPredicate(
+                        new Path(GameRevenue.class, dictionary, "revenue"),
+                        Operator.GT,
+                        Arrays.asList(9000)
+                ),
+                new FilterPredicate(
+                        new Path(GameRevenue.class, dictionary, "saleDate", "saleDate", arguments),
+                        Operator.IN,
+                        Arrays.asList("foo")
+                )
+        );
+
+        Query query = Query.builder()
+                .source(gameRevenueTable)
+                .metricProjection(gameRevenueTable.getMetricProjection("revenue"))
+                .dimensionProjection(gameRevenueTable.getDimensionProjection("countryIsoCode"))
+                .timeDimensionProjection(gameRevenueTable.getTimeDimensionProjection("saleDate", arguments))
+                .havingFilter(expression)
+                .build();
+
+        compareQueryLists("SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country`.`iso_code` AS `countryIsoCode`,"
+                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` AS `saleDate` "
+                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id`,"
+                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') AS `saleDate` "
+                        + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
+                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id`, "
+                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') ) "
+                        + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
+                        + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country` "
+                        + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country`.`id` "
+                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country`.`iso_code`, "
+                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` "
+                        + "HAVING (MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX "
+                        + "OR `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` IN (:XXX))\n",
+
+                engine.explain(query));
+
+        testQueryExecution(query);
+    }
+
+    @Test
     public void testHavingOnTimeDimensionInProjectionRequiringJoin() {
         SQLTable gameRevenueTable = (SQLTable) metaDataStore.getTable("gameRevenue", NO_VERSION);
 
@@ -904,6 +956,45 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 + "LEFT OUTER JOIN `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats` "
                 + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`player_stats_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats`.`id` "
                 + "WHERE PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX) "
+                + "GROUP BY PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd')\n";
+
+        compareQueryLists(expected, engine.explain(query));
+
+        testQueryExecution(query);
+    }
+
+    @Test
+    public void testWhereOnTimeDimensionInProjectionRequiringJoinWithArguments() {
+        SQLTable gameRevenueTable = (SQLTable) metaDataStore.getTable("gameRevenue", NO_VERSION);
+
+        Set<Argument> arguments = new HashSet<>();
+        arguments.add(Argument.builder()
+                .name("grain")
+                .value("MONTH")
+                .build());
+
+        FilterExpression where =
+                new FilterPredicate(
+                        new Path(GameRevenue.class, dictionary, "sessionDate", "sessionDate", arguments),
+                        Operator.IN,
+                        Arrays.asList("foo"));
+
+        Query query = Query.builder()
+                .source(gameRevenueTable)
+                .timeDimensionProjection(gameRevenueTable.getTimeDimensionProjection("sessionDate"))
+                .metricProjection(gameRevenueTable.getMetricProjection("revenue"))
+                .whereFilter(where)
+                .build();
+
+        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `sessionDate` "
+                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
+                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
+                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` ) AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats` "
+                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`player_stats_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats`.`id` "
+                + "WHERE PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX) "
                 + "GROUP BY PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd')\n";
 
         compareQueryLists(expected, engine.explain(query));
