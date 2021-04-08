@@ -105,9 +105,6 @@ public class SQLReferenceTable {
             do {
                 Queryable key = next.getSource();
                 addJoinContextsforCurrentContext(next.getRoot(), globalTablesContext.get(key));
-                if (next.isNested()) {
-                    addSourceContextforCurrentContext(key.getSource(), globalTablesContext.get(key));
-                }
                 next = next.getSource();
             } while (next.isNested());
         });
@@ -176,27 +173,34 @@ public class SQLReferenceTable {
             Type<?> rootEntityClass = dictionary.getEntityClass(rootQueryable.getName(), rootQueryable.getVersion());
             SQLTable rootTable = (SQLTable) metaDataStore.getTable(rootEntityClass);
 
-            TableContext tableCtx = TableContext.builder()
-                            .alias(key.getAlias())
-                            .dialect(rootTable.getConnectionDetails().getDialect())
-                            .defaultTableArgs(prepareArgumentsMap(rootTable.getArguments(), TBL_PREFIX))
-                            .build();
-
-            globalTablesContext.put(key, tableCtx);
+            TableContext tableCtx;
 
             if (!isNested) {
+                tableCtx = TableContext.builder()
+                                .alias(key.getAlias())
+                                .dialect(rootTable.getConnectionDetails().getDialect())
+                                .defaultTableArgs(prepareArgumentsMap(rootTable.getArguments(), TBL_PREFIX))
+                                .build();
+
                 rootTable.getColumns().forEach(column -> {
                     tableCtx.put(column.getName(),
                                  new ColumnDefinition(column.getExpression(),
-                                                   prepareArgumentsMap(column.getArguments(), COL_PREFIX)));
+                                                      prepareArgumentsMap(column.getArguments(), COL_PREFIX)));
                 });
             } else {
+                tableCtx = TableContext.builder()
+                                .alias(key.getAlias())
+                                .dialect(rootTable.getConnectionDetails().getDialect())
+                                .defaultTableArgs(Collections.emptyMap())
+                                .build();
+
                 queryable.getColumnProjections().forEach(column -> {
                     tableCtx.put(column.getName(),
                                  new ColumnDefinition(column.getExpression(),
-                                                   Collections.emptyMap()));
+                                                      Collections.emptyMap()));
                 });
             }
+            globalTablesContext.put(key, tableCtx);
         }
     }
 
@@ -210,7 +214,6 @@ public class SQLReferenceTable {
         //References and joins are stored by their source that produces them (rather than the query that asks for them).
         Queryable key = queryable.getSource();
         SQLDialect dialect = queryable.getSource().getConnectionDetails().getDialect();
-        boolean isNested = queryable.isNested();
 
         if (!resolvedReferences.containsKey(key)) {
             resolvedReferences.put(key, new HashMap<>());
@@ -295,10 +298,6 @@ public class SQLReferenceTable {
             TableContext joinTableCtx = getGlobalTableContext(joinTable);
             tableCtx.addJoinContext(joinField, joinTableCtx);
         }
-    }
-
-    private void addSourceContextforCurrentContext(Queryable sourceQueryable, TableContext tableCtx) {
-        tableCtx.addSourceContext(getGlobalTableContext(sourceQueryable));
     }
 
     public static Map<String, Object> prepareArgumentsMap(Set<Argument> availableArgs, String outerMapKey) {

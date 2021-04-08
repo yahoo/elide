@@ -11,8 +11,6 @@ import static com.yahoo.elide.datastores.aggregation.metadata.ColumnVisitor.toFo
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.SQL_HELPER_PREFIX;
 
-import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
-import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ColumnDefinition;
@@ -29,8 +27,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * FormulaValidator check whether a column defined with {@link MetricFormula} or
- * {@link DimensionFormula} has reference loop. If so, throw out exception.
+ * FormulaValidator validates the expression for any {@link ColumnProjection}. Ensures logical column references exists
+ * and there are no cycles between them.
  */
 public class FormulaValidator {
     private static final String PERIOD_REGEX = "[.]";
@@ -82,11 +80,10 @@ public class FormulaValidator {
                             String.format("Formula validation failed for: %s. Reference Loop detected.", columnId));
         }
 
-        TableContext srcCtx = tblCtx.getSourceContext();
         ColumnDefinition columnDefinition = tblCtx.getColumnDefinition(columnName);
-        if (columnDefinition == null && srcCtx != null) {
-            checkCycle(srcCtx, columnName, columnId, alreadyVisited);
-            return;
+        if (columnDefinition == null) {
+            throw new IllegalArgumentException(String.format(
+                            "Formula validation failed for: %s. Couldn't find column: %s.", columnId, columnName));
         }
 
         String expr = columnDefinition.getExpression();
@@ -98,6 +95,7 @@ public class FormulaValidator {
                 continue;
             }
 
+            // Change {{sql from='joinName' column='columnName[a1:v1][a2:v2]'}} to joinName.columnName
             if (reference.startsWith(SQL_HELPER_PREFIX)) {
                 try {
                     Template template = handlebars.compileInline(toFormulaReference(reference));
@@ -109,6 +107,7 @@ public class FormulaValidator {
 
             int dotIndex = reference.lastIndexOf('.');
             if (dotIndex >= 0) {
+                // eg: join1.col1 or join1.join2.col1
                 String joinTables = reference.substring(0, dotIndex);
                 String joinCol = reference.substring(dotIndex + 1);
 

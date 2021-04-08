@@ -38,7 +38,8 @@ public class TableContextSQLHelperTest {
                         "TO_CHAR(SUM({{$revenue}}) * {{rates.conversionRate}}, {{$$column.args.format}})",
                         prepareArgumentsMap(toMap("format", "999999D00"), COL_PREFIX));
 
-        ColumnDefinition revenueOverride = new ColumnDefinition(
+        // Using sql helper for invoking 'conversionRate' in 'rates' table
+        ColumnDefinition revenueUsingSqlHelper = new ColumnDefinition(
                         "TO_CHAR(SUM({{$revenue}}) * {{sql from='rates' column='conversionRate'}}, {{$$column.args.format}})",
                         prepareArgumentsMap(toMap("format", "999999D00"), COL_PREFIX));
 
@@ -48,7 +49,7 @@ public class TableContextSQLHelperTest {
 
         revenueFact.put("impressions", impressions);
         revenueFact.put("revenue", revenue);
-        revenueFact.put("revenueOverride", revenueOverride);
+        revenueFact.put("revenueUsingSqlHelper", revenueUsingSqlHelper);
         revenueFact.put("impressionsPerUSD", impressionsPerUSD);
 
 
@@ -76,13 +77,15 @@ public class TableContextSQLHelperTest {
         assertEquals("MAX(`revenueFact`.`impressions`)",
                      revenueFact.get("impressions"));
 
+        // default value of 'format' argument is used for 'conversion_rate' column
         assertEquals("TO_CHAR(SUM(`revenueFact`.`revenue`) * TO_CHAR(`revenueFact_rates`.`conversion_rate`, 999D00), "
                         + "999999D00)",
                      revenueFact.get("revenue"));
 
+        // invoking column's value of 'format' argument is used for 'conversion_rate' column
         assertEquals("TO_CHAR(SUM(`revenueFact`.`revenue`) * TO_CHAR(`revenueFact_rates`.`conversion_rate`, 999999D00), "
                         + "999999D00)",
-                     revenueFact.get("revenueOverride"));
+                     revenueFact.get("revenueUsingSqlHelper"));
 
         assertEquals("SUM(`revenueFact`.`impressions`) / TO_CHAR(SUM(`revenueFact`.`revenue`) * "
                         + "TO_CHAR(`revenueFact_rates`.`conversion_rate`, 999D00), 999999D0000)",

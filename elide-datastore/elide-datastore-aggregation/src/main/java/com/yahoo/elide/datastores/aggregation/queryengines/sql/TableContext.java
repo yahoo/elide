@@ -15,9 +15,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,8 +34,6 @@ public class TableContext extends HashMap<String, Object> {
     private final Map<String, TableContext> joins = new HashMap<>();
     @Builder.Default
     private final HandlebarResolver resolver = new HandlebarResolver();
-    @Builder.Default
-    private final List<TableContext> sourceCtx = new ArrayList<>();
 
     public Object get(Object key) {
 
@@ -48,7 +44,6 @@ public class TableContext extends HashMap<String, Object> {
                             .dialect(joinTblCtx.dialect)
                             .defaultTableArgs(joinTblCtx.defaultTableArgs)
                             .joins(joinTblCtx.joins)
-                            .sourceCtx(joinTblCtx.sourceCtx)
                             .build();
 
             newCtx.putAll(joinTblCtx);
@@ -72,17 +67,6 @@ public class TableContext extends HashMap<String, Object> {
 
     public void addJoinContext(String joinName, TableContext joinCtx) {
         this.joins.put(joinName, joinCtx);
-    }
-
-    public void addSourceContext(TableContext sourceCtx) {
-        this.sourceCtx.add(sourceCtx);
-    }
-
-    public TableContext getSourceContext() {
-        if (this.sourceCtx.isEmpty()) {
-            return null;
-        }
-        return this.sourceCtx.get(0);
     }
 
     /**

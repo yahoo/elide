@@ -25,6 +25,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 
+/**
+ * Helper class for resolving handlebars.
+ */
 public class HandlebarResolver {
 
     private final Handlebars handlebars = new Handlebars()
@@ -121,6 +124,7 @@ public class HandlebarResolver {
 
         ColumnDefinition invokedColumn = new ColumnDefinition(invokedColumnOrig.getExpression(),
                                                               prepareArgumentsMap(invokedColumnArgs, COL_PREFIX));
+        // Override existing definition with new definition.
         newCtx.put(columnName, invokedColumn);
 
         return resolveHandlebars(newCtx, columnName, invokedColumn);

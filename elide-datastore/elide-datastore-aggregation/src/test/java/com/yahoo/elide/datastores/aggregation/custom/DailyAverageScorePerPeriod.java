@@ -56,7 +56,7 @@ public class DailyAverageScorePerPeriod extends SQLMetricProjection {
                 .metricProjection(SQLMetricProjection.builder()
                         .alias(getAlias())
                         .name(getName())
-                        .expression(getExpression())
+                        .expression("AVG({{$highScore}})")
                         .columnType(getColumnType())
                         .valueType(getValueType())
                         .arguments(getArguments())

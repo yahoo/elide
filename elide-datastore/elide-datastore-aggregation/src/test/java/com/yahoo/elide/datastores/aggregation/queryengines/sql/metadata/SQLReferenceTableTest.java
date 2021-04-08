@@ -98,7 +98,7 @@ public class SQLReferenceTableTest {
         assertEquals(1, tableArgs.size());
         assertEquals("2020-01-01", tableArgs.get("beginDate"));
 
-        // For 'playerRank' column, {{$$column.args.beginDate}} should resolve to "1"
+        // For 'playerRank' column, {{$$column.args.minRanking}} should resolve to "1"
         ColumnDefinition columnContext = (ColumnDefinition) tableContext.getColumnDefinition("playerRank");
         Map<String, Object> columnDefaultArgsContext = columnContext.getDefaultColumnArgs();
         Map<String, Object> columnArgs =
