@@ -5,9 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.COL_PREFIX;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.TBL_PREFIX;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.prepareArgumentsMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
@@ -27,20 +24,20 @@ public class TableContextTest {
         orderDetails = TableContext.builder()
                         .alias("OrderDetails")
                         .dialect(SQLDialectFactory.getH2Dialect())
-                        .defaultTableArgs(prepareArgumentsMap(toMap("denominator", "1000"), TBL_PREFIX))
+                        .defaultTableArgs(toMap("denominator", "1000"))
                         .build();
 
         ColumnDefinition customerState = new ColumnDefinition(
                         "{{customer.stateName}} AND {{customer.zipCode}} * {{$$column.args.multiplier}} / {{$$table.args.denominator}}",
-                        prepareArgumentsMap(toMap("multiplier", "26"), COL_PREFIX));
+                        toMap("multiplier", "26"));
 
         ColumnDefinition customerStateName = new ColumnDefinition(
                         "{{customer.region.name}} OR {{customer.region.$name}}",
-                        prepareArgumentsMap(emptyMap(), COL_PREFIX));
+                        emptyMap());
 
         ColumnDefinition cost = new ColumnDefinition(
                         "{{delivery.deliveryCost}} * {{$$column.args.multiplier}} + {{$orderTotal}} / {{$$table.args.denominator}}",
-                        prepareArgumentsMap(toMap("multiplier", "0.1"), COL_PREFIX));
+                        toMap("multiplier", "0.1"));
 
         orderDetails.put("customerState", customerState);
         orderDetails.put("customerStateName", customerStateName);
@@ -50,12 +47,12 @@ public class TableContextTest {
         TableContext delivery = TableContext.builder()
                         .alias("OrderDetails_delivery")
                         .dialect(SQLDialectFactory.getH2Dialect())
-                        .defaultTableArgs(prepareArgumentsMap(emptyMap(), TBL_PREFIX))
+                        .defaultTableArgs(emptyMap())
                         .build();
 
         ColumnDefinition deliveryCost = new ColumnDefinition(
                         "{{$cost}} * {{$$column.args.multiplier}}",
-                        prepareArgumentsMap(toMap("multiplier", "1.0"), COL_PREFIX));
+                        toMap("multiplier", "1.0"));
 
         delivery.put("deliveryCost", deliveryCost);
 
@@ -63,16 +60,16 @@ public class TableContextTest {
         TableContext customer = TableContext.builder()
                         .alias("OrderDetails_customer")
                         .dialect(SQLDialectFactory.getH2Dialect())
-                        .defaultTableArgs(prepareArgumentsMap(toMap("minZipCode", "10001"), TBL_PREFIX))
+                        .defaultTableArgs(toMap("minZipCode", "10001"))
                         .build();
 
         ColumnDefinition stateName = new ColumnDefinition(
                         "{{region.name}} OR {{region.$name}} == '{{$$column.args.customerRegion}}' OR {{zipCode}} > {{$$table.args.minZipCode}}",
-                        prepareArgumentsMap(toMap("customerRegion", "Virginia"), COL_PREFIX));
+                        toMap("customerRegion", "Virginia"));
 
         ColumnDefinition zipCode = new ColumnDefinition(
                         "{{$zipCode}}",
-                        prepareArgumentsMap(emptyMap(), COL_PREFIX));
+                        emptyMap());
 
         customer.put("stateName", stateName);
         customer.put("zipCode", zipCode);
@@ -81,12 +78,12 @@ public class TableContextTest {
         TableContext region = TableContext.builder()
                         .alias("OrderDetails_customer_region")
                         .dialect(SQLDialectFactory.getH2Dialect())
-                        .defaultTableArgs(prepareArgumentsMap(toMap("stateNamePrefix", "New"), TBL_PREFIX))
+                        .defaultTableArgs(toMap("stateNamePrefix", "New"))
                         .build();
 
         ColumnDefinition name = new ColumnDefinition(
                         "{{$name}} starts with '{{$$table.args.stateNamePrefix}}'",
-                        prepareArgumentsMap(toMap("defaultState", "Virginia"), COL_PREFIX));
+                        toMap("defaultState", "Virginia"));
         region.put("name", name);
 
         // Link tables

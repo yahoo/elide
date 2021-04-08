@@ -122,7 +122,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
                     .grain(new TimeDimensionGrain(
                             this.getName(),
                             grain.getGrain()))
-                    .expression("{{" + this.getSafeAlias() + "}}")
+                    .expression("{{$" + this.getSafeAlias() + "}}")
                     .projected(isProjected())
                     .arguments(arguments)
                     .timeZone(timeZone)

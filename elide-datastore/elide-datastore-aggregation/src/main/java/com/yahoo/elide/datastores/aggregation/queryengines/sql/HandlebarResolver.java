@@ -7,9 +7,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static com.yahoo.elide.core.filter.dialect.RSQLFilterDialect.FILTER_ARGUMENTS_PATTERN;
 import static com.yahoo.elide.core.utils.TypeHelper.nullOrEmpty;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.ARGS_PREFIX;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.COL_PREFIX;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.prepareArgumentsMap;
 
 import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Handlebars;
@@ -29,6 +26,10 @@ import java.util.regex.Matcher;
  * Helper class for resolving handlebars.
  */
 public class HandlebarResolver {
+
+    public static final String COL_PREFIX = "$$column";
+    public static final String TBL_PREFIX = "$$table";
+    public static final String ARGS_PREFIX = "args";
 
     private final Handlebars handlebars = new Handlebars()
                     .with(EscapingStrategy.NOOP)
@@ -59,6 +60,36 @@ public class HandlebarResolver {
                         }
                     });
 
+    @SuppressWarnings("unchecked")
+    private String resolveInvokeColumn(String columnName, TableContext currentTableCtx,
+                    TableContext invokedTableCtx, Map<String, Object> pinnedArgs) {
+        ColumnDefinition invokedColumnOrig = invokedTableCtx.getColumnDefinition(columnName);
+
+        // Build a new Context for resolving this invoked column
+        TableContext newCtx = TableContext.builder()
+                        .alias(invokedTableCtx.getAlias())
+                        .dialect(invokedTableCtx.getDialect())
+                        .defaultTableArgs(invokedTableCtx.getDefaultTableArgs())
+                        .joins(invokedTableCtx.getJoins())
+                        .build();
+        newCtx.putAll(invokedTableCtx);
+
+        // Build a new ColumnDefinition overriding arguments
+        Map<String, Object> defaultInvokedColumnArgs = invokedColumnOrig.getDefaultColumnArgs();
+        Map<String, Object> currentColumnArgs = (Map<String, Object>)
+                        ((Map<String, Object>) currentTableCtx.get(COL_PREFIX)).get(ARGS_PREFIX);
+        Map<String, Object> invokedColumnArgs = new HashMap<>();
+        invokedColumnArgs.putAll(defaultInvokedColumnArgs);
+        invokedColumnArgs.putAll(currentColumnArgs);
+        invokedColumnArgs.putAll(pinnedArgs);
+
+        ColumnDefinition invokedColumn = new ColumnDefinition(invokedColumnOrig.getExpression(), invokedColumnArgs);
+        // Override existing definition with new definition.
+        newCtx.put(columnName, invokedColumn);
+
+        return resolveHandlebars(newCtx, columnName, invokedColumn);
+    }
+
     public String resolveHandlebars(TableContext tableCtx, String columnName, ColumnDefinition columnDef) {
 
         Map<String, Object> columnArgsContext = columnDef.getDefaultColumnArgs();
@@ -74,8 +105,8 @@ public class HandlebarResolver {
                         .build();
         newCtx.putAll(tableCtx);
 
-        newCtx.putAll(tableArgsContext);
-        newCtx.putAll(columnArgsContext);
+        newCtx.putAll(prepareArgumentsMap(tableArgsContext, TBL_PREFIX));
+        newCtx.putAll(prepareArgumentsMap(columnArgsContext, COL_PREFIX));
 
         try {
             Template template = handlebars.compileInline(columnDef.getExpression());
@@ -98,35 +129,13 @@ public class HandlebarResolver {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private String resolveInvokeColumn(String columnName, TableContext currentTableCtx,
-                    TableContext invokedTableCtx, Map<String, Object> pinnedArgs) {
-        ColumnDefinition invokedColumnOrig = invokedTableCtx.getColumnDefinition(columnName);
+    private static Map<String, Object> prepareArgumentsMap(Map<String, Object> arguments, String outerMapKey) {
 
-        // Build a new Context for resolving this invoked column
-        TableContext newCtx = TableContext.builder()
-                        .alias(invokedTableCtx.getAlias())
-                        .dialect(invokedTableCtx.getDialect())
-                        .defaultTableArgs(invokedTableCtx.getDefaultTableArgs())
-                        .joins(invokedTableCtx.getJoins())
-                        .build();
-        newCtx.putAll(invokedTableCtx);
+        Map<String, Object> outerArgsMap = new HashMap<>();
+        Map<String, Object> argsMap = new HashMap<>();
+        outerArgsMap.put(outerMapKey, argsMap);
+        argsMap.put(ARGS_PREFIX, arguments);
 
-        // Build a new ColumnDefinition overriding arguments
-        Map<String, Object> defaultInvokedColumnArgs = (Map<String, Object>) ((Map<String, Object>) invokedColumnOrig
-                        .getDefaultColumnArgs().get(COL_PREFIX)).get(ARGS_PREFIX);
-        Map<String, Object> currentColumnArgs =
-                        (Map<String, Object>) ((Map<String, Object>) currentTableCtx.get(COL_PREFIX)).get(ARGS_PREFIX);
-        Map<String, Object> invokedColumnArgs = new HashMap<>();
-        invokedColumnArgs.putAll(defaultInvokedColumnArgs);
-        invokedColumnArgs.putAll(currentColumnArgs);
-        invokedColumnArgs.putAll(pinnedArgs);
-
-        ColumnDefinition invokedColumn = new ColumnDefinition(invokedColumnOrig.getExpression(),
-                                                              prepareArgumentsMap(invokedColumnArgs, COL_PREFIX));
-        // Override existing definition with new definition.
-        newCtx.put(columnName, invokedColumn);
-
-        return resolveHandlebars(newCtx, columnName, invokedColumn);
+        return outerArgsMap;
     }
 }

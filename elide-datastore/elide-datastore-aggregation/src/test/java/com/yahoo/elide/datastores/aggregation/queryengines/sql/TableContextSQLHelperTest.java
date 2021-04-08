@@ -8,9 +8,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.TableContextTest.emptyMap;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.TableContextTest.toMap;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.COL_PREFIX;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.TBL_PREFIX;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.prepareArgumentsMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
@@ -27,25 +24,25 @@ public class TableContextSQLHelperTest {
         revenueFact = TableContext.builder()
                         .alias("revenueFact")
                         .dialect(SQLDialectFactory.getH2Dialect())
-                        .defaultTableArgs(prepareArgumentsMap(toMap("denominator", "1000"), TBL_PREFIX))
+                        .defaultTableArgs(toMap("denominator", "1000"))
                         .build();
 
         ColumnDefinition impressions = new ColumnDefinition(
                         "{{$$column.args.aggregation}}({{$impressions}})",
-                        prepareArgumentsMap(toMap("aggregation", "MAX"), COL_PREFIX));
+                        toMap("aggregation", "MAX"));
 
         ColumnDefinition revenue = new ColumnDefinition(
                         "TO_CHAR(SUM({{$revenue}}) * {{rates.conversionRate}}, {{$$column.args.format}})",
-                        prepareArgumentsMap(toMap("format", "999999D00"), COL_PREFIX));
+                        toMap("format", "999999D00"));
 
         // Using sql helper for invoking 'conversionRate' in 'rates' table
         ColumnDefinition revenueUsingSqlHelper = new ColumnDefinition(
                         "TO_CHAR(SUM({{$revenue}}) * {{sql from='rates' column='conversionRate'}}, {{$$column.args.format}})",
-                        prepareArgumentsMap(toMap("format", "999999D00"), COL_PREFIX));
+                        toMap("format", "999999D00"));
 
         ColumnDefinition impressionsPerUSD = new ColumnDefinition(
                         "{{sql column='impressions[aggregation:SUM]'}} / {{sql column='revenue[format:999999D0000]'}}",
-                        prepareArgumentsMap(emptyMap(), COL_PREFIX));
+                        emptyMap());
 
         revenueFact.put("impressions", impressions);
         revenueFact.put("revenue", revenue);
@@ -57,12 +54,12 @@ public class TableContextSQLHelperTest {
         TableContext currencyRates = TableContext.builder()
                         .alias("revenueFact_currencyRates")
                         .dialect(SQLDialectFactory.getH2Dialect())
-                        .defaultTableArgs(prepareArgumentsMap(emptyMap(), TBL_PREFIX))
+                        .defaultTableArgs(emptyMap())
                         .build();
 
         ColumnDefinition conversionRate = new ColumnDefinition(
                         "TO_CHAR({{$conversion_rate}}, {{$$column.args.format}})",
-                        prepareArgumentsMap(toMap("format", "999D00"), COL_PREFIX));
+                        toMap("format", "999D00"));
 
         currencyRates.put("conversionRate", conversionRate);
 

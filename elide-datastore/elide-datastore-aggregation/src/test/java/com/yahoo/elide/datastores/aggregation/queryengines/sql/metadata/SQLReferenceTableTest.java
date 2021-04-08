@@ -84,27 +84,20 @@ public class SQLReferenceTableTest {
         assertEquals(expected, joinProjections.iterator().next());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testTableContext() {
         TableContext tableContext = lookupTable.getGlobalTableContext(playerStats);
 
-        Map<String, Object> tableDefaultArgsContext = tableContext.getDefaultTableArgs();
+        Map<String, Object> tableDefaultArgs = tableContext.getDefaultTableArgs();
 
         // For primary table, {{$$table.args.beginDate}} should resolve to "2020-01-01"
-        Map<String, Object> tableArgs =
-                        (Map<String, Object>) ((Map<String, Object>) tableDefaultArgsContext.get("$$table"))
-                                        .get("args");
-        assertEquals(1, tableArgs.size());
-        assertEquals("2020-01-01", tableArgs.get("beginDate"));
+        assertEquals(1, tableDefaultArgs.size());
+        assertEquals("2020-01-01", tableDefaultArgs.get("beginDate"));
 
         // For 'playerRank' column, {{$$column.args.minRanking}} should resolve to "1"
-        ColumnDefinition columnContext = (ColumnDefinition) tableContext.getColumnDefinition("playerRank");
-        Map<String, Object> columnDefaultArgsContext = columnContext.getDefaultColumnArgs();
-        Map<String, Object> columnArgs =
-                        (Map<String, Object>) ((Map<String, Object>) columnDefaultArgsContext.get("$$column"))
-                                        .get("args");
-        assertEquals(1, columnArgs.size());
-        assertEquals("1", columnArgs.get("minRanking"));
+        ColumnDefinition columnDef = (ColumnDefinition) tableContext.getColumnDefinition("playerRank");
+        Map<String, Object> columnDefaultArgs = columnDef.getDefaultColumnArgs();
+        assertEquals(1, columnDefaultArgs.size());
+        assertEquals("1", columnDefaultArgs.get("minRanking"));
     }
 }

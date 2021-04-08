@@ -9,7 +9,6 @@ import static com.yahoo.elide.core.utils.TypeHelper.nullOrEmpty;
 import static com.yahoo.elide.datastores.aggregation.metadata.ColumnVisitor.resolveFormulaReferences;
 import static com.yahoo.elide.datastores.aggregation.metadata.ColumnVisitor.toFormulaReference;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.SQL_HELPER_PREFIX;
 
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
@@ -31,7 +30,8 @@ import java.util.Set;
  * and there are no cycles between them.
  */
 public class FormulaValidator {
-    private static final String PERIOD_REGEX = "[.]";
+    public static final String SQL_HELPER_PREFIX = "sql ";
+    public static final String PERIOD_REGEX = "[.]";
     private final Handlebars handlebars;
     private final TableContext tblCtx;
 

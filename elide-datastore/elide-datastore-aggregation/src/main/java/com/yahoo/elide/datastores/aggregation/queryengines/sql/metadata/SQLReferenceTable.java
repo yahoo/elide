@@ -50,12 +50,6 @@ import javax.persistence.JoinColumn;
  */
 public class SQLReferenceTable {
     public static final String PERIOD = ".";
-    public static final String DOLLAR = "$";
-    public static final String DOUBLE_DOLLAR = "$$";
-    public static final String COL_PREFIX = "$$column";
-    public static final String TBL_PREFIX = "$$table";
-    public static final String ARGS_PREFIX = "args";
-    public static final String SQL_HELPER_PREFIX = "sql ";
 
     @Getter
     protected final MetaDataStore metaDataStore;
@@ -179,13 +173,13 @@ public class SQLReferenceTable {
                 tableCtx = TableContext.builder()
                                 .alias(key.getAlias())
                                 .dialect(rootTable.getConnectionDetails().getDialect())
-                                .defaultTableArgs(prepareArgumentsMap(rootTable.getArguments(), TBL_PREFIX))
+                                .defaultTableArgs(getDefaultArgumentsMap(rootTable.getArguments()))
                                 .build();
 
                 rootTable.getColumns().forEach(column -> {
                     tableCtx.put(column.getName(),
                                  new ColumnDefinition(column.getExpression(),
-                                                      prepareArgumentsMap(column.getArguments(), COL_PREFIX)));
+                                                      getDefaultArgumentsMap(column.getArguments())));
                 });
             } else {
                 tableCtx = TableContext.builder()
@@ -300,23 +294,11 @@ public class SQLReferenceTable {
         }
     }
 
-    public static Map<String, Object> prepareArgumentsMap(Set<Argument> availableArgs, String outerMapKey) {
+    private static Map<String, Object> getDefaultArgumentsMap(Set<Argument> availableArgs) {
 
-        Map<String, Object> defaultArgs = availableArgs.stream()
+        return availableArgs.stream()
                         .filter(arg -> arg.getDefaultValue() != null)
                         .collect(Collectors.toMap(Argument::getName, Argument::getDefaultValue));
-
-        return prepareArgumentsMap(defaultArgs, outerMapKey);
-    }
-
-    public static Map<String, Object> prepareArgumentsMap(Map<String, Object> arguments, String outerMapKey) {
-
-        Map<String, Object> outerArgsMap = new HashMap<>();
-        Map<String, Object> argsMap = new HashMap<>();
-        outerArgsMap.put(outerMapKey, argsMap);
-        argsMap.put(ARGS_PREFIX, arguments);
-
-        return outerArgsMap;
     }
 
     /**
