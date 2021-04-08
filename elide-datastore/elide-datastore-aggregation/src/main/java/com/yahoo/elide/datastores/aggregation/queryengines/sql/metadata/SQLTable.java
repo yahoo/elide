@@ -27,6 +27,7 @@ import lombok.Getter;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -92,13 +93,13 @@ public class SQLTable extends Table implements Queryable {
     }
 
     @Override
-    public Set<MetricProjection> getMetricProjections() {
+    public List<MetricProjection> getMetricProjections() {
         return super.getMetrics().stream()
                 .map((metric) ->
                         new SQLMetricProjection(metric,
                                 metric.getName(),
                                 new HashMap<>()))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -117,13 +118,13 @@ public class SQLTable extends Table implements Queryable {
     }
 
     @Override
-    public Set<ColumnProjection> getDimensionProjections() {
+    public List<ColumnProjection> getDimensionProjections() {
         return super.getDimensions()
                 .stream()
                 .map((dimension) -> new SQLDimensionProjection(dimension,
                         dimension.getName(),
                         new HashMap<>(), true))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -133,6 +134,12 @@ public class SQLTable extends Table implements Queryable {
 
     public TimeDimensionProjection getTimeDimensionProjection(String fieldName, Map<String, Argument> arguments) {
         return getTimeDimensionProjection(fieldName, null, arguments);
+    }
+
+    public TimeDimensionProjection getTimeDimensionProjection(String fieldName, Set<Argument> arguments) {
+        Map<String, Argument> argumentMap =
+                arguments.stream().collect(Collectors.toMap(Argument::getName, argument -> argument));
+        return getTimeDimensionProjection(fieldName, null, argumentMap);
     }
 
     public TimeDimensionProjection getTimeDimensionProjection(String fieldName, String alias,
@@ -148,22 +155,22 @@ public class SQLTable extends Table implements Queryable {
     }
 
     @Override
-    public Set<TimeDimensionProjection> getTimeDimensionProjections() {
+    public List<TimeDimensionProjection> getTimeDimensionProjections() {
         return super.getTimeDimensions()
                 .stream()
                 .map((dimension) -> new SQLTimeDimensionProjection(dimension,
                         dimension.getTimezone(),
                         dimension.getName(),
                         new HashMap<>(), true))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Set<ColumnProjection> getColumnProjections() {
+    public List<ColumnProjection> getColumnProjections() {
         return super.getColumns()
                 .stream()
                 .map(column -> getColumnProjection(column.getName()))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 
     @Override

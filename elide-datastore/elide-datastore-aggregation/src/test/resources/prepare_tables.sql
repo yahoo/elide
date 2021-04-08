@@ -83,3 +83,13 @@ TRUNCATE TABLE planets;
 INSERT INTO planets VALUES (1, 'Mercury');
 INSERT INTO planets VALUES (2, 'Venus');
 INSERT INTO planets VALUES (3, 'Earth');
+
+CREATE TABLE IF NOT EXISTS gameRevenue
+    (
+      revenue BIGINT,
+      country_id VARCHAR(255),
+      player_stats_id VARCHAR(255),
+      category VARCHAR(255),
+      saleDate DATETIME
+    );
+TRUNCATE TABLE gameRevenue;
