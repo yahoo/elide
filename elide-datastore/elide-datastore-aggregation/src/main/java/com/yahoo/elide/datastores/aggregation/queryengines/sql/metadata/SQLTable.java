@@ -218,10 +218,21 @@ public class SQLTable extends Table implements Queryable {
         return getDimensionProjection(name);
     }
 
+    /**
+     * Looks up a join by name.
+     * @param joinName The join name.
+     * @return SQLJoin or null.
+     */
     public SQLJoin getJoin(String joinName) {
         return joins.get(joinName);
     }
 
+    /**
+     * Looks up a join by name and returns the corresponding SQLTable being joined to.
+     * @param store The store where all the SQL tables live.
+     * @param joinName The join to lookup.
+     * @return SQLTable or null.
+     */
     public SQLTable getJoinTable(MetaDataStore store, String joinName) {
         SQLJoin join = getJoin(joinName);
         if (join == null) {
@@ -231,6 +242,13 @@ public class SQLTable extends Table implements Queryable {
         return store.getTable(join.getJoinTableType());
     }
 
+    /**
+     * Looks up to see if a given field is a join field or just an attribute.
+     * @param store The metadata store.
+     * @param modelType The model type in question.
+     * @param fieldName The field name in question.
+     * @return True if the field is a join field.  False otherwise.
+     */
     public static boolean isTableJoin(MetaDataStore store, Type<?> modelType, String fieldName) {
         SQLTable table = store.getTable(modelType);
 
