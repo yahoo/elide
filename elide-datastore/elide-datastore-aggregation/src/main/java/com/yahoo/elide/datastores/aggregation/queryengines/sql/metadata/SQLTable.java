@@ -6,9 +6,12 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.datastores.aggregation.annotation.Join;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -41,15 +44,32 @@ public class SQLTable extends Table implements Queryable {
     @Getter
     private ConnectionDetails connectionDetails;
 
+    private Map<String, SQLJoin> joins;
+
     public SQLTable(Type<?> cls,
                     EntityDictionary dictionary,
                     ConnectionDetails connectionDetails) {
         super(cls, dictionary);
         this.connectionDetails = connectionDetails;
+        this.joins = new HashMap<>();
+
+        EntityBinding binding = dictionary.getEntityBinding(cls);
+        binding.fieldsToValues.forEach((name, field) -> {
+            if (field.isAnnotationPresent(Join.class)) {
+                Join join = field.getAnnotation(Join.class);
+                joins.put(name, SQLJoin.builder()
+                        .name(name)
+                        .joinType(join.type())
+                        .joinExpression(join.value())
+                        .joinTableType(dictionary.getParameterizedType(cls, name))
+                        .toOne(join.toOne())
+                        .build());
+            }
+        });
     }
 
     public SQLTable(Type<?> cls, EntityDictionary dictionary) {
-        super(cls, dictionary);
+        this(cls, dictionary, null);
     }
 
     @Override
@@ -195,6 +215,21 @@ public class SQLTable extends Table implements Queryable {
         }
 
         return getDimensionProjection(name);
+    }
+
+    public SQLTable getJoinTable(MetaDataStore store, String joinName) {
+        SQLJoin join = joins.get(joinName);
+        if (join == null) {
+            return null;
+        }
+
+        return store.getTable(join.getJoinTableType());
+    }
+
+    public static boolean isTableJoin(MetaDataStore store, Type<?> modelType, String fieldName) {
+        SQLTable table = store.getTable(modelType);
+
+        return (table.getJoinTable(store, fieldName) != null);
     }
 
     @Override

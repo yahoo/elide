@@ -77,7 +77,7 @@ public class SqlReferenceVisitorTest {
     public void testMatchingPhysicalReference() {
         SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "test_table", getDefaultDialect());
 
-        SQLTable table = (SQLTable) store.getTable(getClassType(TestModel.class));
+        SQLTable table = store.getTable(getClassType(TestModel.class));
         ColumnProjection column = table.getDimensionProjection("dimension1");
 
         String actual = visitor.visitColumn(table, column);
@@ -89,7 +89,7 @@ public class SqlReferenceVisitorTest {
     public void testMismatchingPhysicalReference() {
         SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "test_table", getDefaultDialect());
 
-        SQLTable table = (SQLTable) store.getTable(getClassType(TestModel.class));
+        SQLTable table = store.getTable(getClassType(TestModel.class));
         ColumnProjection column = table.getDimensionProjection("dimension2");
         String actual = visitor.visitColumn(table, column);
 
@@ -100,7 +100,7 @@ public class SqlReferenceVisitorTest {
     public void testJoinReference() {
         SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "join_table", getDefaultDialect());
 
-        SQLTable table = (SQLTable) store.getTable(getClassType(TestModel.class));
+        SQLTable table = store.getTable(getClassType(TestModel.class));
         ColumnProjection column = table.getDimensionProjection("dimension3");
 
         String actual = visitor.visitColumn(table, column);

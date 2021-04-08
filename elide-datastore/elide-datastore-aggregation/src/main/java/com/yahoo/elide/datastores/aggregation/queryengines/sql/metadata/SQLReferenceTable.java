@@ -7,7 +7,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
 import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
-import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isTableJoin;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable.isTableJoin;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
@@ -221,7 +221,7 @@ public class SQLReferenceTable {
             Type<?> parentClass = pathElement.getType();
 
             // Nothing left to join.
-            if (!dictionary.isRelation(parentClass, fieldName) && !isTableJoin(parentClass, fieldName, dictionary)) {
+            if (!dictionary.isRelation(parentClass, fieldName) && !isTableJoin(metaDataStore, parentClass, fieldName)) {
                 return;
             }
 

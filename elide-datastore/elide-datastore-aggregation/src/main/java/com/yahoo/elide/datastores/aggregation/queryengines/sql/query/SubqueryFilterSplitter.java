@@ -68,7 +68,7 @@ public class SubqueryFilterSplitter
         Type<?> tableType = filterPredicate.getEntityType();
         String fieldName = filterPredicate.getField();
 
-        SQLTable table = (SQLTable) metaDataStore.getTable(tableType);
+        SQLTable table = metaDataStore.getTable(tableType);
 
         Set<String> joins = lookupTable.getResolvedJoinExpressions(table, fieldName);
 

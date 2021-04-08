@@ -13,6 +13,7 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,33 +23,32 @@ import java.util.Set;
  * JoinPath extends {@link Path} to allow navigation through {@link Join} annotation.
  */
 public class JoinPath extends Path {
-    public JoinPath(Path other) {
-        this(other.getPathElements());
-    }
+    private MetaDataStore store;
 
-    public JoinPath(List<PathElement> pathElements) {
+    public JoinPath(List<PathElement> pathElements, MetaDataStore store) {
         super(pathElements);
+        this.store = store;
     }
 
-    public JoinPath(Type<?> entityClass, EntityDictionary dictionary, String dotSeparatedPath) {
-        pathElements = resolvePathElements(entityClass, dictionary, dotSeparatedPath);
+    public JoinPath(Type<?> entityClass, MetaDataStore store, String dotSeparatedPath) {
+        this.store = store;
+        pathElements = resolvePathElements(entityClass, store.getMetadataDictionary(), dotSeparatedPath);
     }
 
     @Override
     protected boolean needNavigation(Type<?> entityClass, String fieldName, EntityDictionary dictionary) {
         return dictionary.isRelation(entityClass, fieldName)
-                || MetaDataStore.isTableJoin(entityClass, fieldName, dictionary);
+                || SQLTable.isTableJoin(store, entityClass, fieldName);
     }
 
     /**
      * Extend this path with a extension dot separated path.
      *
      * @param extensionPath extension path append to this join path
-     * @param dictionary dictionary
      * @return expended join path e.g. <code>[A.B]/[B.C] + C.D = [A.B]/[B.C]/[C.D]</code>
      */
-    public JoinPath extend(String extensionPath, EntityDictionary dictionary) {
-        return extendJoinPath(this, new JoinPath(lastElement().get().getType(), dictionary, extensionPath));
+    public JoinPath extend(String extensionPath) {
+        return extendJoinPath(this, new JoinPath(lastElement().get().getType(), store, extensionPath), store);
     }
 
     /**
@@ -60,11 +60,11 @@ public class JoinPath extends Path {
      * @param <P> path extension
      * @return extended path <code>[A.B]/[B.C]/[C.D]</code>
      */
-    private static <P extends Path> JoinPath extendJoinPath(Path path, P extension) {
+    private static <P extends Path> JoinPath extendJoinPath(Path path, P extension, MetaDataStore store) {
         List<Path.PathElement> toExtend = new ArrayList<>(path.getPathElements());
         toExtend.remove(toExtend.size() - 1);
         toExtend.addAll(extension.getPathElements());
-        return new JoinPath(toExtend);
+        return new JoinPath(toExtend, store);
     }
 
     @Override

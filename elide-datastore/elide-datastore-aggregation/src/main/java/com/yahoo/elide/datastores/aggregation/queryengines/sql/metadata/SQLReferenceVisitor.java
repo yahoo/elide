@@ -142,7 +142,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
      * @return resolved reference
      */
     private String visitTableJoinToReference(Type<?> tableClass, String joinToPath) {
-        JoinPath joinPath = new JoinPath(tableClass, dictionary, joinToPath);
+        JoinPath joinPath = new JoinPath(tableClass, metaDataStore, joinToPath);
 
         tableAliases.push(extendTypeAlias(tableAliases.peek(), joinPath));
         String result;
