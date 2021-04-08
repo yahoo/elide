@@ -56,7 +56,7 @@ public class SQLReferenceTableTest {
 
         lookupTable = new SQLReferenceTable(metaDataStore);
 
-        playerStats = (SQLTable) metaDataStore.getTable(ClassType.of(PlayerStats.class));
+        playerStats = metaDataStore.getTable(ClassType.of(PlayerStats.class));
     }
 
     @Test

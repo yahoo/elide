@@ -85,8 +85,8 @@ public class SQLJoinVisitor extends ColumnVisitor<Set<JoinPath>> {
         Queryable root = source.getRoot();
 
         JoinPath joinPath = froms.empty()
-                ? new JoinPath(dictionary.getEntityClass(root.getName(), root.getVersion()), dictionary, joinToPath)
-                : froms.peek().extend(joinToPath, dictionary);
+                ? new JoinPath(dictionary.getEntityClass(root.getName(), root.getVersion()), metaDataStore, joinToPath)
+                : froms.peek().extend(joinToPath);
         joinPaths.add(joinPath);
 
         froms.add(joinPath);

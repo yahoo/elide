@@ -194,8 +194,8 @@ public class MetaDataStore implements DataStore {
      * @param tableClass table class
      * @return meta data table
      */
-    public Table getTable(Type<?> tableClass) {
-        return tables.get(tableClass);
+    public <T extends Table> T getTable(Type<?> tableClass) {
+        return (T) tables.get(tableClass);
     }
 
     /**
@@ -300,7 +300,6 @@ public class MetaDataStore implements DataStore {
      * @return all metadata of given class
      */
     public <T> Set<T> getMetaData(Type<T> cls) {
-
         String version = EntityDictionary.getModelVersion(cls);
         HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version, SERVER_ERROR);
         return hashMapDataStore.get(cls).values().stream().map(obj -> (T) obj).collect(Collectors.toSet());
@@ -322,18 +321,6 @@ public class MetaDataStore implements DataStore {
      */
     public static boolean isMetricField(EntityDictionary dictionary, Type<?> cls, String fieldName) {
         return dictionary.attributeOrRelationAnnotationExists(cls, fieldName, MetricFormula.class);
-    }
-
-    /**
-     * Returns whether a field in a table/entity is actually a JOIN to other table/entity.
-     *
-     * @param cls table/entity class
-     * @param fieldName field name
-     * @param dictionary metadata dictionary
-     * @return True if this field is a table join
-     */
-    public static boolean isTableJoin(Type<?> cls, String fieldName, EntityDictionary dictionary) {
-        return dictionary.getAttributeOrRelationAnnotation(cls, Join.class, fieldName) != null;
     }
 
     @Override

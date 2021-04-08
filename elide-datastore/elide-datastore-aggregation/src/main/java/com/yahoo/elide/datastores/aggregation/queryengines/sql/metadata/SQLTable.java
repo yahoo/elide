@@ -6,9 +6,13 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.join;
+import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.datastores.aggregation.annotation.Join;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -41,15 +45,32 @@ public class SQLTable extends Table implements Queryable {
     @Getter
     private ConnectionDetails connectionDetails;
 
+    private Map<String, SQLJoin> joins;
+
     public SQLTable(Type<?> cls,
                     EntityDictionary dictionary,
                     ConnectionDetails connectionDetails) {
         super(cls, dictionary);
         this.connectionDetails = connectionDetails;
+        this.joins = new HashMap<>();
+
+        EntityBinding binding = dictionary.getEntityBinding(cls);
+        binding.fieldsToValues.forEach((name, field) -> {
+            if (field.isAnnotationPresent(Join.class)) {
+                Join join = field.getAnnotation(Join.class);
+                joins.put(name, SQLJoin.builder()
+                        .name(name)
+                        .joinType(join.type())
+                        .joinExpression(join.value())
+                        .joinTableType(dictionary.getParameterizedType(cls, name))
+                        .toOne(join.toOne())
+                        .build());
+            }
+        });
     }
 
     public SQLTable(Type<?> cls, EntityDictionary dictionary) {
-        super(cls, dictionary);
+        this(cls, dictionary, null);
     }
 
     @Override
@@ -195,6 +216,43 @@ public class SQLTable extends Table implements Queryable {
         }
 
         return getDimensionProjection(name);
+    }
+
+    /**
+     * Looks up a join by name.
+     * @param joinName The join name.
+     * @return SQLJoin or null.
+     */
+    public SQLJoin getJoin(String joinName) {
+        return joins.get(joinName);
+    }
+
+    /**
+     * Looks up a join by name and returns the corresponding SQLTable being joined to.
+     * @param store The store where all the SQL tables live.
+     * @param joinName The join to lookup.
+     * @return SQLTable or null.
+     */
+    public SQLTable getJoinTable(MetaDataStore store, String joinName) {
+        SQLJoin join = getJoin(joinName);
+        if (join == null) {
+            return null;
+        }
+
+        return store.getTable(join.getJoinTableType());
+    }
+
+    /**
+     * Looks up to see if a given field is a join field or just an attribute.
+     * @param store The metadata store.
+     * @param modelType The model type in question.
+     * @param fieldName The field name in question.
+     * @return True if the field is a join field.  False otherwise.
+     */
+    public static boolean isTableJoin(MetaDataStore store, Type<?> modelType, String fieldName) {
+        SQLTable table = store.getTable(modelType);
+
+        return (table.getJoinTable(store, fieldName) != null);
     }
 
     @Override

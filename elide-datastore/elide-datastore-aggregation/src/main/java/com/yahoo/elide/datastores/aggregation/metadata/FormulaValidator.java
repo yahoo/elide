@@ -67,7 +67,7 @@ public class FormulaValidator extends ColumnVisitor<Void> {
             if (source != source.getSource()) {
                 continue;
             } else if (reference.contains(".")) {
-                JoinPath joinToPath = new JoinPath(tableClass, dictionary, reference);
+                JoinPath joinToPath = new JoinPath(tableClass, metaDataStore, reference);
                 Column joinToColumn = getColumn(joinToPath);
                 if (joinToColumn != null) {
                     visitColumn(joinToColumn.getTable().toQueryable(), joinToColumn.toProjection());
