@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.join;
 import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.Argument;
@@ -217,8 +218,12 @@ public class SQLTable extends Table implements Queryable {
         return getDimensionProjection(name);
     }
 
+    public SQLJoin getJoin(String joinName) {
+        return joins.get(joinName);
+    }
+
     public SQLTable getJoinTable(MetaDataStore store, String joinName) {
-        SQLJoin join = joins.get(joinName);
+        SQLJoin join = getJoin(joinName);
         if (join == null) {
             return null;
         }
