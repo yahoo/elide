@@ -21,6 +21,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.SecurityCheck;
+import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -77,6 +78,8 @@ import javax.persistence.AccessType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
@@ -245,6 +248,17 @@ public class EntityDictionaryTest extends EntityDictionary {
             annotation = getAttributeOrRelationAnnotation(ClassType.of(FunWithPermissions.class), ReadPermission.class, field);
             assertTrue(annotation instanceof ReadPermission, "Every field should return a ReadPermission annotation");
         }
+    }
+
+    @Test
+    public void testGetFieldNamesWithAnnotations() {
+        ClassType<?> classType = ClassType.of(FunWithPermissions.class);
+        assertEquals(new HashSet<>(Arrays.asList("relation1", "relation3", "field4")),
+                     getFieldNamesWithAnnotations(classType, Arrays.asList(JoinColumn.class, UpdatePermission.class)));
+        assertEquals(new HashSet<>(Arrays.asList("relation1", "relation2", "relation3", "relation4", "relation5")),
+                     getFieldNamesWithAnnotations(classType, Arrays.asList(OneToOne.class, OneToMany.class)));
+        assertEquals(new HashSet<>(Arrays.asList("relation3")),
+                     getFieldNamesWithAnnotations(classType, Arrays.asList(JoinColumn.class)));
     }
 
     @Test
