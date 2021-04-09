@@ -7,11 +7,10 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
 import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
-import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isTableJoin;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable.isTableJoin;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnVisitor;
@@ -169,12 +168,10 @@ public class SQLReferenceTable {
             String fieldName = first.getFieldName();
             Type<?> parentClass = first.getType();
 
-            Join join = dictionary.getAttributeOrRelationAnnotation(
-                    parentClass,
-                    Join.class,
-                    fieldName);
+            SQLTable table = metaDataStore.getTable(parentClass);
+            SQLJoin join = table.getJoin(fieldName);
 
-            String joinClause = join.value();
+            String joinClause = join.getJoinExpression();
 
             for (String reference : ColumnVisitor.resolveFormulaReferences(joinClause)) {
                 if (reference.contains(".")) {
@@ -221,7 +218,7 @@ public class SQLReferenceTable {
             Type<?> parentClass = pathElement.getType();
 
             // Nothing left to join.
-            if (!dictionary.isRelation(parentClass, fieldName) && !isTableJoin(parentClass, fieldName, dictionary)) {
+            if (!dictionary.isRelation(parentClass, fieldName) && !isTableJoin(metaDataStore, parentClass, fieldName)) {
                 return;
             }
 
@@ -255,16 +252,14 @@ public class SQLReferenceTable {
         // resolve the right hand side of JOIN
         String joinSource = constructTableOrSubselect(joinClass, dialect);
 
-        Join join = dictionary.getAttributeOrRelationAnnotation(
-                fromClass,
-                Join.class,
-                joinField);
+        SQLTable table = metaDataStore.getTable(fromClass);
+        SQLJoin join = table.getJoin(joinField);
 
         String joinKeyword = join == null
                 ? dialect.getJoinKeyword(JoinType.LEFT)
-                : dialect.getJoinKeyword(join.type());
+                : dialect.getJoinKeyword(join.getJoinType());
 
-        if (join != null && join.type().equals(JoinType.CROSS)) {
+        if (join != null && join.getJoinType().equals(JoinType.CROSS)) {
             return String.format("%s %s AS %s",
                     joinKeyword,
                     joinSource,
@@ -280,7 +275,7 @@ public class SQLReferenceTable {
                         dictionary.getAnnotatedColumnName(
                                 joinClass,
                                 dictionary.getIdFieldName(joinClass)))
-                : getJoinClause(fromClass, fromAlias, join.value(), dialect);
+                : getJoinClause(fromClass, fromAlias, join.getJoinExpression(), dialect);
 
         return String.format("%s %s AS %s ON %s",
                 joinKeyword,
@@ -303,6 +298,11 @@ public class SQLReferenceTable {
                         new SQLReferenceVisitor(metaDataStore, fromAlias, dialect);
 
         return visitor.visitFormulaDimension(table, new SQLColumnProjection() {
+            @Override
+            public SQLColumnProjection withExpression(String expression, boolean project) {
+                return null;
+            }
+
             @Override
             public ValueType getValueType() {
                 return null;

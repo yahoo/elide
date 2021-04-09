@@ -39,7 +39,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryPlanTr
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryTranslator;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import com.google.common.base.Preconditions;
@@ -155,7 +154,8 @@ public class SQLQueryEngine extends QueryEngine {
     public MetricProjection constructMetricProjection(Metric metric,
                                                       String alias,
                                                       Map<String, Argument> arguments) {
-        return new SQLMetricProjection(metric, alias, arguments);
+
+        return metric.getMetricProjectionMaker().make(metric, alias, arguments);
     }
 
     /**
@@ -350,6 +350,11 @@ public class SQLQueryEngine extends QueryEngine {
         for (MetricProjection metricProjection : query.getMetricProjections()) {
             QueryPlan queryPlan = metricProjection.resolve(query);
             if (queryPlan != null) {
+                if (mergedPlan != null && mergedPlan.isNested() && !queryPlan.canNest(referenceTable)) {
+                    //TODO - Run multiple queries.
+                    throw new UnsupportedOperationException("Cannot merge a nested query with a metric that "
+                            + "doesn't support nesting");
+                }
                 mergedPlan = queryPlan.merge(mergedPlan, referenceTable);
             }
         }
@@ -358,10 +363,21 @@ public class SQLQueryEngine extends QueryEngine {
 
         Query merged = (mergedPlan == null)
                 ? query
-                : mergedPlan.accept(queryPlanTranslator).build();
+                : queryPlanTranslator.translate(mergedPlan);
 
         for (Optimizer optimizer : optimizers) {
             SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, merged);
+            SQLTable table = (SQLTable) query.getSource();
+
+            //TODO - support hints in table joins & query header.  Query Header hints override join hints which
+            //override table hints.
+            if (table.getHints().contains(optimizer.negateHint())) {
+                continue;
+            }
+
+            if (! table.getHints().contains(optimizer.hint())) {
+                continue;
+            }
 
             if (optimizer.canOptimize(query, queryReferenceTable)) {
                 merged = optimizer.optimize(merged, queryReferenceTable);

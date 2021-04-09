@@ -272,7 +272,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
      * @param source queried table
      * @return A set of Join expressions that capture a relationship traversal.
      */
-    private Set<String> extractJoinExpressions(Set<ColumnProjection> columnProjections,
+    private Set<String> extractJoinExpressions(List<ColumnProjection> columnProjections,
                                            Queryable source) {
         return columnProjections.stream()
                 .map(column -> referenceTable.getResolvedJoinExpressions(source, column.getName()))

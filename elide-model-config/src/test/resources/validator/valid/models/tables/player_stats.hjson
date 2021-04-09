@@ -20,6 +20,7 @@
       A tag
       with newline
       ''']
+      hints: ['NoAggregateBeforeJoin']
       arguments: [
           {
              name: scoreFormat

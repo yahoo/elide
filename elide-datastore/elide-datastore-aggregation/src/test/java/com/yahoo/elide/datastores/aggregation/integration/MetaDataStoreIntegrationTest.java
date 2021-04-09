@@ -161,6 +161,13 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                         "playerStats.highScore", "playerStats.dailyAverageScorePerPeriod"))
                 .body("data.relationships.timeDimensions.data.id", containsInAnyOrder("playerStats.recordedDate",
                         "playerStats.updatedDate"));
+        // Verify Table Arguments
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/orderDetails?include=arguments")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.relationships.arguments.data.id", containsInAnyOrder("orderDetails.denominator"));
     }
 
     @Test
@@ -295,6 +302,15 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.arguments", nullValue()) // No Arguments were set.
                 .body("data.relationships.table.data.id", equalTo("videoGame"));
 
+        // Verify Metric Arguments
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/orderDetails/metrics/orderDetails.orderTotal?include=arguments")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("orderTotal"))
+                .body("data.attributes.friendlyName", equalTo("orderTotal"))
+                .body("data.relationships.arguments.data.id", containsInAnyOrder("orderDetails.orderTotal.precision"));
     }
 
     @Test

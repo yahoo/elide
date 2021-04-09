@@ -29,8 +29,8 @@ import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
-import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanResolver;
-import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
+import com.yahoo.elide.datastores.aggregation.query.DefaultMetricProjectionMaker;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjectionMaker;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.modelconfig.model.Argument;
@@ -356,6 +356,11 @@ public class TableType implements Type<DynamicModelInstance> {
             }
 
             @Override
+            public String[] hints() {
+                return table.getHints().toArray(new String[0]);
+            }
+
+            @Override
             public String[] tags() {
                 return table.getTags().toArray(new String[0]);
             }
@@ -519,13 +524,13 @@ public class TableType implements Type<DynamicModelInstance> {
             }
 
             @Override
-            public Class<? extends QueryPlanResolver> queryPlan() {
-                if (measure.getQueryPlanResolver() == null || measure.getQueryPlanResolver().isEmpty()) {
-                    return DefaultQueryPlanResolver.class;
+            public Class<? extends MetricProjectionMaker> maker() {
+                if (measure.getMaker() == null || measure.getMaker().isEmpty()) {
+                    return DefaultMetricProjectionMaker.class;
                 }
 
                 try {
-                    return (Class<? extends QueryPlanResolver>) Class.forName(measure.getQueryPlanResolver());
+                    return (Class<? extends MetricProjectionMaker>) Class.forName(measure.getMaker());
                 } catch (ClassNotFoundException e) {
                     throw new IllegalStateException(e);
                 }

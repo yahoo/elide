@@ -132,6 +132,7 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
                 table,
                 entityProjection,
                 scope.getDictionary(),
+                scope.getUser(),
                 bypassCache);
 
         Query query = translator.getQuery();

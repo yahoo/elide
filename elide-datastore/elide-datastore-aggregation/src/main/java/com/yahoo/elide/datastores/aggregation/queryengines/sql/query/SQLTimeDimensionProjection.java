@@ -17,14 +17,18 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
+import org.apache.commons.lang3.tuple.Pair;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
 
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 /**
  * Column projection that can expand the column into a SQL projection fragment.
@@ -74,8 +78,9 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     @Override
     public String toSQL(Queryable source, SQLReferenceTable table) {
         //TODO - We will likely migrate to a templating language when we support parameterized metrics.
+
         return grain.getExpression().replaceAll(TIME_DIMENSION_REPLACEMENT_REGEX,
-                        table.getResolvedReference(source, name));
+                table.getResolvedReference(source, name));
     }
 
     @Override
@@ -84,44 +89,63 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     }
 
     @Override
-    public boolean canNest() {
+    public boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
         return true;
     }
 
     @Override
-    public ColumnProjection outerQuery(Queryable source, SQLReferenceTable lookupTable, boolean joinInOuter) {
-        Set<SQLColumnProjection> joinProjections = lookupTable.getResolvedJoinProjections(source.getSource(), name);
+    public Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source,
+                                                              SQLReferenceTable lookupTable,
+                                                              boolean joinInOuter) {
+
+        Set<SQLColumnProjection> joinProjections = lookupTable.getResolvedJoinProjections(source.getSource(),
+                getName());
 
         boolean requiresJoin = joinProjections.size() > 0;
 
-        boolean inProjection = source.getColumnProjection(name) != null;
+        boolean inProjection = source.getColumnProjection(getName(), getArguments()) != null;
+
+        ColumnProjection outerProjection;
+        Set<ColumnProjection> innerProjections;
 
         if (requiresJoin && joinInOuter) {
-            return SQLTimeDimensionProjection.builder()
-                    .name(name)
-                    .alias(alias)
-                    .valueType(valueType)
-                    .columnType(columnType)
-                    .expression(expression)
-                    .arguments(arguments)
-                    .projected(inProjection)
-                    .grain(grain)
-                    .timeZone(timeZone)
-                    .build();
+            outerProjection = withExpression(getExpression(), inProjection);
+            innerProjections = joinProjections.stream().collect(Collectors.toCollection(LinkedHashSet::new));
         } else {
-            return SQLTimeDimensionProjection.builder()
+            outerProjection = SQLTimeDimensionProjection.builder()
                     .name(name)
                     .alias(alias)
                     .valueType(valueType)
                     .columnType(columnType)
+
+                    //This grain removes the extra time grain formatting on the outer query.
+                    .grain(new TimeDimensionGrain(
+                            this.getName(),
+                            grain.getGrain()))
                     .expression("{{" + this.getSafeAlias() + "}}")
+                    .projected(isProjected())
                     .arguments(arguments)
-                    .projected(true)
-                    .grain(grain)
                     .timeZone(timeZone)
-                    .projected(projected)
                     .build();
+            innerProjections = new LinkedHashSet<>(Arrays.asList(this));
         }
+
+        return Pair.of(outerProjection, innerProjections);
+    }
+
+    @Override
+    public SQLColumnProjection withExpression(String expression, boolean project) {
+        return SQLTimeDimensionProjection.builder()
+                .name(name)
+                .alias(alias)
+                .valueType(valueType)
+                .columnType(columnType)
+                .expression(expression)
+                .arguments(arguments)
+                .projected(project)
+                .grain(grain)
+                .timeZone(timeZone)
+                .build();
     }
 
     private TimeDimensionGrain getGrainFromArguments(Map<String, Argument> arguments, TimeDimension column) {

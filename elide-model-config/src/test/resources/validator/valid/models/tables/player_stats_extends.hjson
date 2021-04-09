@@ -12,7 +12,7 @@
             type : Text
             description : very awesome score
             definition: 'MAX({{score}})'
-            queryPlanResolver: 'com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanResolver.class'
+            maker: 'com.yahoo.elide.datastores.aggregation.query.DefaultMetricProjectionMaker.class'
             tags: ['PUBLIC']
           },
           {

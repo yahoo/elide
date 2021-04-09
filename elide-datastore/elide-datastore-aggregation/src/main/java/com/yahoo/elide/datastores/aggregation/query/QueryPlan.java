@@ -5,16 +5,16 @@
  */
 package com.yahoo.elide.datastores.aggregation.query;
 
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection.innerQueryProjections;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection.outerQueryProjections;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.google.common.collect.Streams;
+import org.apache.commons.lang3.tuple.Pair;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Singular;
 import lombok.Value;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,15 +30,15 @@ public class QueryPlan implements Queryable {
 
     @Singular
     @NonNull
-    private Set<MetricProjection> metricProjections;
+    private List<MetricProjection> metricProjections;
 
     @Singular
     @NonNull
-    private Set<ColumnProjection> dimensionProjections;
+    private List<ColumnProjection> dimensionProjections;
 
     @Singular
     @NonNull
-    private Set<TimeDimensionProjection> timeDimensionProjections;
+    private List<TimeDimensionProjection> timeDimensionProjections;
 
     /**
      * Merges two query plans together.  The order of merged metrics and dimensions is preserved such that
@@ -54,10 +54,14 @@ public class QueryPlan implements Queryable {
         }
 
         while (other.nestDepth() > self.nestDepth()) {
+            //TODO - update the reference table on each call to nest.
+            //Needed for nesting depth > 2
             self = self.nest(lookupTable);
         }
 
         while (self.nestDepth() > other.nestDepth()) {
+            //TODO - update the reference table on each call to nest.
+            //Needed for nesting depth > 2
             other = other.nest(lookupTable);
         }
 
@@ -91,6 +95,15 @@ public class QueryPlan implements Queryable {
     }
 
     /**
+     * Tests whether or not this plan can be nested.
+     * @param lookupTable Used for resolving expression templates.
+     * @return True if the projection can be nested.  False otherwise.
+     */
+    public boolean canNest(SQLReferenceTable lookupTable) {
+        return getColumnProjections().stream().allMatch(projection -> projection.canNest(source, lookupTable));
+    }
+
+    /**
      * Breaks a flat query into a nested query.  There are multiple approaches for how to do this, but
      * this kind of nesting requires aggregation to happen both in the inner and outer queries.  This allows
      * query plans with two-pass aggregations to be merged with simpler one-pass aggregation plans.
@@ -101,20 +114,53 @@ public class QueryPlan implements Queryable {
      * @return A nested query plan.
      */
     public QueryPlan nest(SQLReferenceTable lookupTable) {
+        if (!canNest(lookupTable)) {
+            throw new UnsupportedOperationException("Cannot nest this query plan");
+        }
+
+        Set<Pair<ColumnProjection, Set<ColumnProjection>>> nestedMetrics = metricProjections.stream()
+                .map(projection -> projection.nest(source, lookupTable, false))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        Set<Pair<ColumnProjection, Set<ColumnProjection>>> nestedDimensions = dimensionProjections.stream()
+                .map(projection -> projection.nest(source, lookupTable, false))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        Set<Pair<ColumnProjection, Set<ColumnProjection>>> nestedTimeDimensions = timeDimensionProjections.stream()
+                .map(projection -> projection.nest(source, lookupTable, false))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
         QueryPlan inner = QueryPlan.builder()
                 .source(this.getSource())
-                .metricProjections(innerQueryProjections(source, metricProjections, lookupTable, false))
-                .dimensionProjections(innerQueryProjections(source, dimensionProjections, lookupTable, false))
-                .timeDimensionProjections(innerQueryProjections(source, timeDimensionProjections,
-                        lookupTable, false))
+                .metricProjections(nestedMetrics.stream()
+                        .map(Pair::getRight)
+                        .flatMap(Set::stream)
+                        .map(MetricProjection.class::cast)
+                        .collect(Collectors.toCollection(LinkedHashSet::new)))
+                .dimensionProjections(nestedDimensions.stream()
+                        .map(Pair::getRight)
+                        .flatMap(Set::stream)
+                        .collect(Collectors.toCollection(LinkedHashSet::new)))
+                .timeDimensionProjections(nestedTimeDimensions.stream()
+                        .map(Pair::getRight)
+                        .flatMap(Set::stream)
+                        .map(TimeDimensionProjection.class::cast)
+                        .collect(Collectors.toCollection(LinkedHashSet::new)))
                 .build();
 
         return QueryPlan.builder()
                 .source(inner)
-                .metricProjections(outerQueryProjections(source, metricProjections, lookupTable, false))
-                .dimensionProjections(outerQueryProjections(source, dimensionProjections, lookupTable, false))
-                .timeDimensionProjections(outerQueryProjections(source, timeDimensionProjections,
-                        lookupTable, false))
+                .metricProjections(nestedMetrics.stream()
+                        .map(Pair::getLeft)
+                        .map(MetricProjection.class::cast)
+                        .collect(Collectors.toCollection(LinkedHashSet::new)))
+                .dimensionProjections(nestedDimensions.stream()
+                        .map(Pair::getLeft)
+                        .collect(Collectors.toCollection(LinkedHashSet::new)))
+                .timeDimensionProjections(nestedTimeDimensions.stream()
+                        .map(Pair::getLeft)
+                        .map(TimeDimensionProjection.class::cast)
+                        .collect(Collectors.toCollection(LinkedHashSet::new)))
                 .build();
     }
 }

@@ -138,9 +138,9 @@
                     "description": "The definition of the metric",
                     "type": "string"
                 },
-                "queryPlanResolver": {
-                    "title": "query plan resolver class",
-                    "description": "The JVM function class which maps a metric to a query plan",
+                "maker": {
+                    "title": "Metric Projection Maker",
+                    "description": "Registers a custom function to create a projection for this metric",
                     "type": "string",
                     "format": "javaClassNameWithExt"
                 },
@@ -153,6 +153,15 @@
                 "tags": {
                     "title": "Measure tags",
                     "description": "An array of string based tags for measures",
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "hints": {
+                    "title": "Optimizer Hints",
+                    "description": "An array of hint names to control the optimizer",
                     "type": "array",
                     "uniqueItems": true,
                     "items": {
