@@ -27,7 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -229,7 +229,7 @@ public abstract class AbstractHQLQueryBuilder {
     }
 
     protected String extractToOneMergeJoins(Type<?> entityClass, String alias,
-                                            Function<String, Boolean> skipRelation) {
+                                            Predicate<String> skipRelation) {
         List<String> relationshipNames = dictionary.getRelationships(entityClass);
         StringBuilder joinString = new StringBuilder("");
         for (String relationshipName : relationshipNames) {
@@ -238,7 +238,7 @@ public abstract class AbstractHQLQueryBuilder {
             }
             RelationshipType type = dictionary.getRelationshipType(entityClass, relationshipName);
             if (type.isToOne() && !type.isComputed()) {
-                if (skipRelation.apply(relationshipName)) {
+                if (skipRelation.test(relationshipName)) {
                     continue;
                 }
                 String joinKey = alias + PERIOD + relationshipName;

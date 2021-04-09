@@ -25,8 +25,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiPredicate;
-import java.util.function.Function;
+import java.util.function.IntPredicate;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -73,14 +74,14 @@ public enum Operator {
     PREFIX("prefix", true) {
         @Override
         public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
-            return prefix(fieldPath, values, requestScope, Function.identity());
+            return prefix(fieldPath, values, requestScope, UnaryOperator.identity());
         }
     },
 
     POSTFIX("postfix", true) {
         @Override
         public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
-            return postfix(fieldPath, values, requestScope, Function.identity());
+            return postfix(fieldPath, values, requestScope, UnaryOperator.identity());
         }
     },
 
@@ -94,7 +95,7 @@ public enum Operator {
     INFIX("infix", true) {
         @Override
         public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
-            return infix(fieldPath, values, requestScope, Function.identity());
+            return infix(fieldPath, values, requestScope, UnaryOperator.identity());
         }
     },
 
@@ -202,7 +203,7 @@ public enum Operator {
         }
     };
 
-    public static final Function<String, String> FOLD_CASE = s -> s.toLowerCase(Locale.ENGLISH);
+    public static final UnaryOperator<String> FOLD_CASE = s -> s.toLowerCase(Locale.ENGLISH);
     @Getter private final String notation;
     @Getter private final boolean parameterized;
     private Operator negated;
@@ -264,7 +265,7 @@ public enum Operator {
     //
     // String-like In with optional transformation
     private static <T> Predicate<T> in(Path fieldPath, List<Object> values,
-            RequestScope requestScope, Function<String, String> transform) {
+            RequestScope requestScope, UnaryOperator<String> transform) {
         return (T entity) -> {
 
             BiPredicate predicate = (a, b) -> {
@@ -285,7 +286,7 @@ public enum Operator {
     //
     // String-like prefix matching with optional transformation
     private static <T> Predicate<T> prefix(Path fieldPath, List<Object> values,
-            RequestScope requestScope, Function<String, String> transform) {
+            RequestScope requestScope, UnaryOperator<String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new BadRequestException("PREFIX can only take one argument");
@@ -305,7 +306,7 @@ public enum Operator {
     //
     // String-like postfix matching with optional transformation
     private static <T> Predicate<T> postfix(Path fieldPath, List<Object> values,
-            RequestScope requestScope, Function<String, String> transform) {
+            RequestScope requestScope, UnaryOperator<String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new BadRequestException("POSTFIX can only take one argument");
@@ -325,7 +326,7 @@ public enum Operator {
     //
     // String-like infix matching with optional transformation
     private static <T> Predicate<T> infix(Path fieldPath, List<Object> values,
-            RequestScope requestScope, Function<String, String> transform) {
+            RequestScope requestScope, UnaryOperator<String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new BadRequestException("INFIX can only take one argument");
@@ -418,7 +419,7 @@ public enum Operator {
                 return ((Collection<?>) val).contains(filterStr);
             }
             if (val instanceof Map<?, ?>) {
-                return ((Map<?, ?>) val).keySet().contains(filterStr);
+                return ((Map<?, ?>) val).containsKey(filterStr);
             }
 
             return false;
@@ -463,7 +464,7 @@ public enum Operator {
     }
 
     private static <T> Predicate<T> getComparator(Path fieldPath, List<Object> values,
-            RequestScope requestScope, Predicate<Integer> condition) {
+            RequestScope requestScope, IntPredicate condition) {
         return (T entity) -> {
             if (CollectionUtils.isEmpty(values)) {
                 throw new BadRequestException("No value to compare");

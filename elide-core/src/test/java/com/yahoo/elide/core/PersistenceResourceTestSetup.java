@@ -62,7 +62,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
+import java.util.function.Predicate;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
@@ -199,7 +200,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
 
         @ReadPermission(expression = "Prefab.Role.None")
         @UpdatePermission(expression = "Prefab.Role.None")
-        public Function<ChangeSpec, Boolean> checkFunction;
+        public Predicate<ChangeSpec> checkFunction;
 
         @UpdatePermission(expression = "changeSpecNonCollection")
         public String testAttr;
@@ -215,7 +216,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         @UpdatePermission(expression = "changeSpecCollection")
         public List<Child> otherKids;
 
-        public ChangeSpecModel(final Function<ChangeSpec, Boolean> checkFunction) {
+        public ChangeSpecModel(final Predicate<ChangeSpec> checkFunction) {
             this.checkFunction = checkFunction;
         }
     }
@@ -242,7 +243,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
                 if (!(spec.getModified() instanceof Collection)) {
                     return false;
                 }
-                return ((ChangeSpecModel) object).checkFunction.apply(spec);
+                return ((ChangeSpecModel) object).checkFunction.test(spec);
             }
             throw new IllegalStateException("Something is terribly wrong :(");
         }
@@ -253,7 +254,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         @Override
         public boolean ok(Object object, com.yahoo.elide.core.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
             return changeSpec.filter(c -> object instanceof ChangeSpecModel)
-                    .map(c -> ((ChangeSpecModel) object).checkFunction.apply(c))
+                    .map(c -> ((ChangeSpecModel) object).checkFunction.test(c))
                     .orElseThrow(() -> new IllegalStateException("Something is terribly wrong :("));
         }
     }
