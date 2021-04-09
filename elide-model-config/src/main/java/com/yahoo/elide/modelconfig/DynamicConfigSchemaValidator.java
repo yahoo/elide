@@ -70,8 +70,6 @@ public class DynamicConfigSchemaValidator {
     public boolean verifySchema(Config configType, String jsonConfig, String fileName)
                     throws IOException, ProcessingException {
         ProcessingReport results = null;
-        boolean isSuccess = false;
-
         switch (configType) {
         case TABLE :
             results = this.tableSchema.validate(new ObjectMapper().readTree(jsonConfig), true);
@@ -90,15 +88,16 @@ public class DynamicConfigSchemaValidator {
             log.error("Not a valid config type :" + configType);
             break;
         }
-        isSuccess = (results == null ? false : results.isSuccess());
-
-        if (!isSuccess) {
+        if (results == null || !results.isSuccess()) {
             throw new IllegalStateException("Schema validation failed for: " + fileName + getErrorMessages(results));
         }
-        return isSuccess;
+        return true;
     }
 
     private static String getErrorMessages(ProcessingReport report) {
+        if (report == null) {
+            return null;
+        }
         List<String> list = new ArrayList<>();
         report.forEach(msg -> addEmbeddedMessages(msg.asJson(), list, 0));
 

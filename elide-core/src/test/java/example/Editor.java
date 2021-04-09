@@ -61,7 +61,7 @@ public class Editor {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Editor && ((Editor) obj).naturalKey.equals(naturalKey);
+        return obj instanceof Editor && naturalKey.equals(((Editor) obj).naturalKey);
     }
 
     @ComputedAttribute

@@ -54,7 +54,7 @@ public class Author {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Author && ((Author) obj).naturalKey.equals(naturalKey);
+        return obj instanceof Author && naturalKey.equals(((Author) obj).naturalKey);
     }
 
     @Getter @Setter

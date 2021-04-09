@@ -68,6 +68,7 @@ public class SearchDataStore implements DataStore {
                     }
                 }
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 throw new IllegalStateException(e);
             } finally {
                 em.close();

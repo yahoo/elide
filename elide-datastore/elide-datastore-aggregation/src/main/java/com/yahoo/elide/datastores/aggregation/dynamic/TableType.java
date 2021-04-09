@@ -262,7 +262,15 @@ public class TableType implements Type<DynamicModelInstance> {
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Table table) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
-        if (table.getHidden() == null || table.getHidden() == false) {
+        if (Boolean.TRUE.equals(table.getHidden())) {
+            annotations.put(Exclude.class, new Exclude() {
+
+                @Override
+                public Class<? extends Annotation> annotationType() {
+                    return Exclude.class;
+                }
+            });
+        } else {
             annotations.put(Include.class, new Include() {
 
                 @Override
@@ -278,14 +286,6 @@ public class TableType implements Type<DynamicModelInstance> {
                 @Override
                 public String type() {
                     return table.getName();
-                }
-            });
-        } else {
-            annotations.put(Exclude.class, new Exclude() {
-
-                @Override
-                public Class<? extends Annotation> annotationType() {
-                    return Exclude.class;
                 }
             });
         }
@@ -455,7 +455,7 @@ public class TableType implements Type<DynamicModelInstance> {
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Measure measure) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
-        if (measure.getHidden() != null && measure.getHidden() == true) {
+        if (Boolean.TRUE.equals(measure.getHidden())) {
             annotations.put(Exclude.class, new Exclude() {
 
                 @Override
@@ -559,7 +559,7 @@ public class TableType implements Type<DynamicModelInstance> {
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Dimension dimension) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
-        if (dimension.getHidden() != null && dimension.getHidden() == true) {
+        if (Boolean.TRUE.equals(dimension.getHidden())) {
             annotations.put(Exclude.class, new Exclude() {
 
                 @Override
