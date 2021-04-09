@@ -60,9 +60,8 @@ public class RelationshipTerminalState extends BaseState {
         Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
 
         Map<String, Relationship> relationships = record.toResource(parentProjection).getRelationships();
-        Relationship relationship = null;
-        if (relationships != null) {
-            relationship = relationships.get(relationshipName);
+        if (relationships != null && relationships.containsKey(relationshipName)) {
+            Relationship relationship = relationships.get(relationshipName);
 
             // Handle valid relationship
 
