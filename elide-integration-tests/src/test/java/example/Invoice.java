@@ -44,12 +44,6 @@ public class Invoice {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Invoice)) {
-            return false;
-        }
-
-        Invoice other = (Invoice) obj;
-
-        return id == other.id;
+        return obj instanceof Invoice && id == ((Invoice) obj).id;
     }
 }

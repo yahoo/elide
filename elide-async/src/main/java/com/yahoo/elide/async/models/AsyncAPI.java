@@ -86,10 +86,6 @@ public abstract class AsyncAPI implements PrincipalOwned {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof AsyncAPI) || this.getClass() != obj.getClass()) {
-            return false;
-        }
-
-        return ((AsyncAPI) obj).id.equals(id);
+        return obj instanceof AsyncAPI && this.getClass() == obj.getClass() && id.equals(((AsyncAPI) obj).id);
     }
 }

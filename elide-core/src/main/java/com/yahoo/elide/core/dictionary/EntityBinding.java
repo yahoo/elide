@@ -705,6 +705,6 @@ public class EntityBinding {
      * @return A Set of ArgumentType for the given entity.
      */
     public Set<ArgumentType> getEntityArguments() {
-        return new HashSet<ArgumentType>(entityArguments.values());
+        return new HashSet<>(entityArguments.values());
     }
 }

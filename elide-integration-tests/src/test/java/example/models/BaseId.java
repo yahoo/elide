@@ -42,6 +42,6 @@ public abstract class BaseId {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof BaseId && ((BaseId) obj).naturalKey.equals(naturalKey);
+        return obj instanceof BaseId && naturalKey.equals(((BaseId) obj).naturalKey);
     }
 }
