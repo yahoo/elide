@@ -39,7 +39,7 @@ import io.restassured.response.Response;
 
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 
 /**
@@ -284,7 +284,7 @@ class PaginateIT extends IntegrationTest {
             .statusCode(OK_200);
 
         Response authors = get("/author").then().extract().response();
-        Function<String, String> findAuthorId = name ->
+        UnaryOperator<String> findAuthorId = name ->
             authors.path("data.find { it.attributes.name=='" + name + "' }.id");
 
         asimovId = findAuthorId.apply("Isaac Asimov");
