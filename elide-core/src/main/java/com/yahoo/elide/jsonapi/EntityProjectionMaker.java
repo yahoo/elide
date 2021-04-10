@@ -52,8 +52,8 @@ public class EntityProjectionMaker
     @Data
     @Builder
     public static class NamedEntityProjection {
-        private String name;
-        private EntityProjection projection;
+        private final String name;
+        private final EntityProjection projection;
     }
 
     public static final String INCLUDE = "include";

@@ -28,33 +28,33 @@ import java.util.stream.Stream;
 public class Query implements Queryable {
 
     @NonNull
-    private Queryable source;
+    private final Queryable source;
 
     @Singular
     @NonNull
-    private Set<MetricProjection> metricProjections;
+    private final Set<MetricProjection> metricProjections;
 
     @Singular
     @NonNull
-    private Set<ColumnProjection> dimensionProjections;
+    private final Set<ColumnProjection> dimensionProjections;
 
     @Singular
     @NonNull
-    private Set<TimeDimensionProjection> timeDimensionProjections;
+    private final Set<TimeDimensionProjection> timeDimensionProjections;
 
-    private FilterExpression whereFilter;
-    private FilterExpression havingFilter;
-    private Sorting sorting;
-    private ImmutablePagination pagination;
+    private final FilterExpression whereFilter;
+    private final FilterExpression havingFilter;
+    private final Sorting sorting;
+    private final ImmutablePagination pagination;
 
     @EqualsAndHashCode.Exclude
-    private RequestScope scope;
+    private final RequestScope scope;
 
     /**
      * Whether to bypass the {@link QueryEngine} cache for this query.
      */
     @EqualsAndHashCode.Exclude
-    private boolean bypassingCache;
+    private final boolean bypassingCache;
 
     @Override
     public <T> T accept(QueryVisitor<T> visitor) {

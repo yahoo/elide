@@ -18,7 +18,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Singular;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -54,10 +53,10 @@ import java.util.Set;
 public class Table implements Named {
 
     @JsonProperty("name")
-    private String name;
+    private final String name;
 
     @JsonProperty("friendlyName")
-    private String friendlyName;
+    private final String friendlyName;
 
     @JsonProperty("schema")
     private String schema;
@@ -66,25 +65,25 @@ public class Table implements Named {
     private String dbConnectionName;
 
     @JsonProperty("isFact")
-    private Boolean isFact;
+    private final Boolean isFact;
 
     @JsonProperty("hidden")
-    private Boolean hidden;
+    private final Boolean hidden;
 
     @JsonProperty("description")
-    private String description;
+    private final String description;
 
     @JsonProperty("category")
-    private String category;
+    private final String category;
 
     @JsonProperty("filterTemplate")
-    private String filterTemplate;
+    private final String filterTemplate;
 
     @JsonProperty("cardinality")
-    private String cardinality;
+    private final String cardinality;
 
     @JsonProperty("readAccess")
-    private String readAccess;
+    private final String readAccess;
 
     @JsonProperty("joins")
     @Singular
@@ -100,31 +99,20 @@ public class Table implements Named {
 
     @JsonProperty("tags")
     @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<String> tags;
+    private final Set<String> tags;
 
     @JsonProperty("arguments")
     @Singular
     private List<Argument> arguments;
 
     @JsonProperty("extend")
-    private String extend;
+    private final String extend;
 
     @JsonProperty("sql")
     private String sql;
 
     @JsonProperty("table")
     private String table;
-
-    public Table() {
-        this.isFact = true;
-        this.hidden = false;
-        this.readAccess = "Prefab.Role.All";
-        this.joins = new ArrayList<>();
-        this.measures = new ArrayList<>();
-        this.dimensions = new ArrayList<>();
-        this.tags = new LinkedHashSet<>();
-        this.arguments = new ArrayList<>();
-    }
 
     /**
      * Returns description of the table object.

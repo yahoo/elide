@@ -19,10 +19,10 @@ import lombok.Value;
 @Builder
 public class QueryResult<T> {
     @NonNull
-    private Iterable<T> data;
+    private final Iterable<T> data;
 
     /**
      * Total record count. Null unless Query had Pagination with {@link Pagination#returnPageTotals()} set.
      */
-    private Long pageTotals;
+    private final Long pageTotals;
 }

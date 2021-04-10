@@ -26,19 +26,19 @@ import java.util.stream.Collectors;
 public class QueryPlan implements Queryable {
 
     @NonNull
-    private Queryable source;
+    private final Queryable source;
 
     @Singular
     @NonNull
-    private Set<MetricProjection> metricProjections;
+    private final Set<MetricProjection> metricProjections;
 
     @Singular
     @NonNull
-    private Set<ColumnProjection> dimensionProjections;
+    private final Set<ColumnProjection> dimensionProjections;
 
     @Singular
     @NonNull
-    private Set<TimeDimensionProjection> timeDimensionProjections;
+    private final Set<TimeDimensionProjection> timeDimensionProjections;
 
     /**
      * Merges two query plans together.  The order of merged metrics and dimensions is preserved such that

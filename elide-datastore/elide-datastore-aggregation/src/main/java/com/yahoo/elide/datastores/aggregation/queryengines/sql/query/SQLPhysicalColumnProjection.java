@@ -23,7 +23,7 @@ import lombok.EqualsAndHashCode;
 @Builder
 public class SQLPhysicalColumnProjection implements SQLColumnProjection {
 
-    private String name;
+    private final String name;
 
     public SQLPhysicalColumnProjection(String name) {
         // Physical Column Reference starts with '$'

@@ -12,7 +12,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 /**
  * Grain can have SQL expressions that can substitute column
@@ -26,16 +25,15 @@ import lombok.NoArgsConstructor;
 @Data
 @EqualsAndHashCode()
 @AllArgsConstructor
-@NoArgsConstructor
 @Builder
 public class Grain {
 
 
     @JsonProperty("type")
-    private Grain.GrainType type;
+    private final Grain.GrainType type;
 
     @JsonProperty("sql")
-    private String sql;
+    private final String sql;
 
     public enum GrainType {
 

@@ -31,20 +31,20 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class EntityProjection {
     @NonNull
-    private Type<?> type;
+    private final Type<?> type;
 
-    private Set<Attribute> attributes;
+    private final Set<Attribute> attributes;
 
-    private Set<Relationship> relationships;
+    private final Set<Relationship> relationships;
 
-    private FilterExpression filterExpression;
+    private final FilterExpression filterExpression;
 
     private Sorting sorting;
 
-    private Pagination pagination;
+    private final Pagination pagination;
     //TODO: Remove this exclude
     @ToString.Exclude
-    private Set<Argument> arguments;
+    private final Set<Argument> arguments;
 
     /**
      * Creates a builder initialized as a copy of this collection

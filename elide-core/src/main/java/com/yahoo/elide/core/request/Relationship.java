@@ -25,9 +25,9 @@ public class Relationship {
     }
 
     @NonNull
-    private String name;
+    private final String name;
 
-    private String alias;
+    private final String alias;
 
     @NonNull
     private EntityProjection projection;

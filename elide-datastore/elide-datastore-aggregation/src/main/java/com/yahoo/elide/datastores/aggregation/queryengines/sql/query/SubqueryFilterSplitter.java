@@ -40,8 +40,8 @@ public class SubqueryFilterSplitter
         FilterExpression inner;
     }
 
-    private SQLReferenceTable lookupTable;
-    private MetaDataStore metaDataStore;
+    private final SQLReferenceTable lookupTable;
+    private final MetaDataStore metaDataStore;
 
     public SubqueryFilterSplitter(MetaDataStore metaDataStore, SQLReferenceTable lookupTable) {
         this.metaDataStore = metaDataStore;

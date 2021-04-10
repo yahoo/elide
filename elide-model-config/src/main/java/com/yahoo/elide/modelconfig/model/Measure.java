@@ -15,7 +15,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Singular;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,46 +43,39 @@ import java.util.Set;
 public class Measure implements Named {
 
     @JsonProperty("name")
-    private String name;
+    private final String name;
 
     @JsonProperty("friendlyName")
-    private String friendlyName;
+    private final String friendlyName;
 
     @JsonProperty("description")
-    private String description;
+    private final String description;
 
     @JsonProperty("category")
-    private String category;
+    private final String category;
 
     @JsonProperty("hidden")
-    private Boolean hidden;
+    private final Boolean hidden;
 
     @JsonProperty("readAccess")
-    private String readAccess;
+    private final String readAccess;
 
     @JsonProperty("definition")
-    private String definition;
+    private final String definition;
 
     @JsonProperty("type")
-    private Type type;
+    private final Type type;
 
     @JsonProperty("queryPlanResolver")
-    private String queryPlanResolver;
+    private final String queryPlanResolver;
 
     @JsonProperty("tags")
     @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<String> tags;
+    private final Set<String> tags;
 
     @JsonProperty("arguments")
     @Singular
-    private List<Argument> arguments;
-
-    public Measure() {
-        this.hidden = false;
-        this.readAccess = "Prefab.Role.All";
-        this.tags = new LinkedHashSet<>();
-        this.arguments = new ArrayList<>();
-    }
+    private final List<Argument> arguments;
 
     /**
      * Returns description of the measure.

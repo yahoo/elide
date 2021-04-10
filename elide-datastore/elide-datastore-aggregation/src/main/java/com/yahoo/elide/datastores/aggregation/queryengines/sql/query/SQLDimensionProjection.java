@@ -27,13 +27,13 @@ import java.util.Set;
 @Builder
 @AllArgsConstructor
 public class SQLDimensionProjection implements SQLColumnProjection {
-    private String name;
-    private ValueType valueType;
-    private ColumnType columnType;
-    private String expression;
-    private String alias;
-    private Map<String, Argument> arguments;
-    private boolean projected;
+    private final String name;
+    private final ValueType valueType;
+    private final ColumnType columnType;
+    private final String expression;
+    private final String alias;
+    private final Map<String, Argument> arguments;
+    private final boolean projected;
 
     public SQLDimensionProjection(Dimension dimension,
                                   String alias,

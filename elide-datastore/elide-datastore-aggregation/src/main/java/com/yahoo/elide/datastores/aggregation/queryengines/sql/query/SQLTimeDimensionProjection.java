@@ -36,15 +36,15 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
 
     private static final String TIME_DIMENSION_REPLACEMENT_REGEX = "\\{\\{(\\s*)}}";
 
-    private String alias;
-    private String name;
-    private String expression;
-    private ValueType valueType;
-    private ColumnType columnType;
-    private TimeDimensionGrain grain;
-    private TimeZone timeZone;
-    private Map<String, Argument> arguments;
-    private boolean projected;
+    private final String alias;
+    private final String name;
+    private final String expression;
+    private final ValueType valueType;
+    private final ColumnType columnType;
+    private final TimeDimensionGrain grain;
+    private final TimeZone timeZone;
+    private final Map<String, Argument> arguments;
+    private final boolean projected;
 
     /**
      * All argument constructor.
@@ -124,7 +124,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
         }
     }
 
-    private TimeDimensionGrain getGrainFromArguments(Map<String, Argument> arguments, TimeDimension column) {
+    private final TimeDimensionGrain getGrainFromArguments(Map<String, Argument> arguments, TimeDimension column) {
         Argument grainArgument = arguments.get("grain");
 
         if (grainArgument == null) {

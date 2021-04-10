@@ -35,12 +35,12 @@ import java.util.regex.Pattern;
 @Value
 @Builder
 public class SQLMetricProjection implements MetricProjection, SQLColumnProjection {
-    private String name;
-    private ValueType valueType;
-    private ColumnType columnType;
-    private String expression;
-    private String alias;
-    private Map<String, Argument> arguments;
+    private final String name;
+    private final ValueType valueType;
+    private final ColumnType columnType;
+    private final String expression;
+    private final String alias;
+    private final Map<String, Argument> arguments;
 
     //TODO - Temporary hack just to prove out the concept.  This needs to be parameterized by the dialect
     //with the set of functions that can be nested and do proper parenthesis matching - which means it can't
@@ -51,7 +51,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     @EqualsAndHashCode.Exclude
     private QueryPlanResolver queryPlanResolver;
     @Builder.Default
-    private boolean projected = true;
+    private final boolean projected = true;
 
     @Override
     public QueryPlan resolve(Query query) {

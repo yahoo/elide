@@ -24,17 +24,17 @@ import java.util.Set;
 public class Attribute {
     @NonNull
     @ToString.Exclude
-    private Type<?> type;
+    private final Type<?> type;
 
     @NonNull
-    private String name;
+    private final String name;
 
     @ToString.Exclude
-    private String alias;
+    private final String alias;
 
     @Singular
     @ToString.Exclude
-    private Set<Argument> arguments;
+    private final Set<Argument> arguments;
 
     private Attribute(@NonNull Type<?> type, @NonNull String name, String alias, Set<Argument> arguments) {
         this.type = type;

@@ -15,7 +15,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Singular;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -48,59 +47,50 @@ import java.util.Set;
 public class Dimension implements Named {
 
     @JsonProperty("name")
-    private String name;
+    private final String name;
 
     @JsonProperty("friendlyName")
-    private String friendlyName;
+    private final String friendlyName;
 
     @JsonProperty("description")
-    private String description;
+    private final String description;
 
     @JsonProperty("category")
-    private String category;
+    private final String category;
 
     @JsonProperty("hidden")
-    private Boolean hidden;
+    private final Boolean hidden;
 
     @JsonProperty("readAccess")
-    private String readAccess;
+    private final String readAccess;
 
     @JsonProperty("definition")
-    private String definition;
+    private final String definition;
 
     @JsonProperty("cardinality")
-    private String cardinality;
+    private final String cardinality;
 
     @JsonProperty("type")
-    private Type type;
+    private final Type type;
 
     @JsonProperty("grains")
     @Singular
-    private List<Grain> grains;
+    private final List<Grain> grains;
 
     @JsonProperty("tags")
     @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<String> tags;
+    private final Set<String> tags;
 
     @JsonProperty("arguments")
     @Singular
-    private List<Argument> arguments;
+    private final List<Argument> arguments;
 
     @JsonProperty("values")
     @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<String> values;
+    private final Set<String> values;
 
     @JsonProperty("tableSource")
-    private String tableSource;
-
-    public Dimension() {
-        this.hidden = false;
-        this.readAccess = "Prefab.Role.All";
-        this.grains = new ArrayList<>();
-        this.tags = new LinkedHashSet<>();
-        this.values = new LinkedHashSet<>();
-        this.arguments = new ArrayList<>();
-    }
+    private final String tableSource;
 
     /**
      * Returns description of the dimension.

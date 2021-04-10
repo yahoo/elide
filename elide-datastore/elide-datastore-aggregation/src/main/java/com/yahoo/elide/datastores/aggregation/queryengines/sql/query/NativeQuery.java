@@ -20,23 +20,23 @@ public class NativeQuery {
     private static final String SPACE = " ";
 
     @NonNull
-    private String fromClause;
+    private final String fromClause;
 
     @NonNull
-    private String projectionClause;
+    private final String projectionClause;
 
     @Builder.Default
-    private String joinClause = "";
+    private final String joinClause = "";
     @Builder.Default
-    private String whereClause = "";
+    private final String whereClause = "";
     @Builder.Default
-    private String groupByClause = "";
+    private final String groupByClause = "";
     @Builder.Default
-    private String havingClause = "";
+    private final String havingClause = "";
     @Builder.Default
-    private String orderByClause = "";
+    private final String orderByClause = "";
     @Builder.Default
-    private String offsetLimitClause = "";
+    private final String offsetLimitClause = "";
 
     @Override
     public String toString() {

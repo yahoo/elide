@@ -33,23 +33,19 @@ import lombok.EqualsAndHashCode;
 public class Join implements Named {
 
     @JsonProperty("name")
-    private String name;
+    private final String name;
 
     @JsonProperty("to")
-    private String to;
+    private final String to;
 
     @JsonProperty("type")
-    private Join.Type type;
+    private final Join.Type type;
 
     @JsonProperty("kind")
-    private Join.Kind kind;
+    private final Join.Kind kind;
 
     @JsonProperty("definition")
-    private String definition;
-
-    public Join() {
-        this.kind = Join.Kind.TOONE;
-    }
+    private final String definition;
 
     public enum Kind {
 

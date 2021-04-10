@@ -36,27 +36,23 @@ import java.util.Set;
 public class Argument implements Named {
 
     @JsonProperty("name")
-    private String name;
+    private final String name;
 
     @JsonProperty("description")
-    private String description;
+    private final String description;
 
     @JsonProperty("type")
-    private Type type;
+    private final Type type;
 
     @JsonProperty("values")
     @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<String> values;
+    private final Set<String> values;
 
     @JsonProperty("tableSource")
-    private String tableSource;
+    private final String tableSource;
 
     @JsonProperty("default")
-    private Object defaultValue;
-
-    public Argument() {
-        this.values = new LinkedHashSet<>();
-    }
+    private final Object defaultValue;
 
     /**
      * Returns description of the argument.

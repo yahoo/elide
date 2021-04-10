@@ -18,9 +18,9 @@ import lombok.Value;
 public class Argument {
 
     @NonNull
-    String name;
+    private final String name;
 
-    Object value;
+    private final Object value;
 
     /**
      * Returns the argument type.
