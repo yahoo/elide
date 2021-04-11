@@ -45,4 +45,22 @@ public class QueryWrapper implements Query {
         this.query = query.setParameter(name, values);
         return this;
     }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T uniqueResult() {
+        return (T) query.getSingleResult();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> Iterable<T> scroll() {
+        return () -> query.getResultStream().iterator();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> Iterable<T> list() {
+        return query.getResultList();
+    }
 }
