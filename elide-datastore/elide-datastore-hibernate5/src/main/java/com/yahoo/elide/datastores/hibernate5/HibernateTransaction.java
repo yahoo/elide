@@ -8,9 +8,11 @@ package com.yahoo.elide.datastores.hibernate5;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.hibernate.JPQLTransaction;
+import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.datastores.hibernate5.porting.SessionWrapper;
 
 import org.hibernate.FlushMode;
+import org.hibernate.ObjectNotFoundException;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.collection.internal.AbstractPersistentCollection;
@@ -18,9 +20,12 @@ import org.hibernate.collection.internal.AbstractPersistentCollection;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.function.Predicate;
 
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceException;
 
 /**
@@ -31,7 +36,6 @@ public class HibernateTransaction extends JPQLTransaction {
 
     private final Session session;
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
-    private final boolean isScrollEnabled;
     /**
      * Constructor.
      *
@@ -47,7 +51,6 @@ public class HibernateTransaction extends JPQLTransaction {
         if (flushMode != FlushMode.COMMIT && flushMode != FlushMode.MANUAL) {
             session.setHibernateFlushMode(FlushMode.COMMIT);
         }
-        this.isScrollEnabled = isScrollEnabled;
     }
 
     @Override
@@ -95,6 +98,18 @@ public class HibernateTransaction extends JPQLTransaction {
     }
 
     @Override
+    public <T> T loadObject(EntityProjection projection,
+            Serializable id,
+            RequestScope scope) {
+
+        try {
+            return super.loadObject(projection, id, scope);
+        } catch (ObjectNotFoundException | NoResultException e) {
+            return null;
+        }
+    }
+
+    @Override
     public void close() throws IOException {
         if (session.isOpen() && session.getTransaction().getStatus().canRollback()) {
             session.getTransaction().rollback();
@@ -107,9 +122,8 @@ public class HibernateTransaction extends JPQLTransaction {
         session.cancelQuery();
     }
 
-
     @Override
-    protected boolean isAbstractCollection(Collection<?> collection) {
-        return collection instanceof AbstractPersistentCollection;
+    protected Predicate<Collection<?>> isPersistentCollection() {
+        return AbstractPersistentCollection.class::isInstance;
     }
 }

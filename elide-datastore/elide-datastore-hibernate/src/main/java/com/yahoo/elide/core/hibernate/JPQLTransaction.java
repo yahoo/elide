@@ -29,6 +29,7 @@ import com.yahoo.elide.core.type.Type;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.function.Predicate;
 
 /**
  * Hibernate Transaction implementation.
@@ -136,7 +137,7 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
 
         EntityDictionary dictionary = scope.getDictionary();
         Object val = com.yahoo.elide.core.PersistentResource.getValue(entity, relation.getName(), scope);
-        if (val instanceof Collection && isAbstractCollection((Collection<?>) val)) {
+        if (val instanceof Collection && isPersistentCollection().test((Collection<?>) val)) {
 
             /*
              * If there is no filtering or sorting required in the data store, and the pagination is default,
@@ -169,7 +170,7 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
         return (R) val;
     }
 
-    protected abstract boolean isAbstractCollection(Collection<?> collection);
+    protected abstract Predicate<Collection<?>> isPersistentCollection();
 
     /**
      * Returns the total record count for a root entity and an optional filter expression.
