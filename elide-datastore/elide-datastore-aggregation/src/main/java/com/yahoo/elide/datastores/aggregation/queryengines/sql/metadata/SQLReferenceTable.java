@@ -6,15 +6,16 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable.isTableJoin;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
@@ -52,9 +53,11 @@ public class SQLReferenceTable {
     //Stores  MAP<Queryable, MAP<fieldName, join expression>>
     protected final Map<Queryable, Map<String, Set<String>>> resolvedJoinExpressions = new HashMap<>();
 
+    protected final Map<Queryable, TableContext> globalTablesContext = new HashMap<>();
+
     public SQLReferenceTable(MetaDataStore metaDataStore) {
         this(metaDataStore,
-             metaDataStore.getMetaData(getClassType(Table.class))
+             metaDataStore.getMetaData(ClassType.of(Table.class))
                 .stream()
                 .map(SQLTable.class::cast)
                 .collect(Collectors.toSet()));
@@ -73,6 +76,7 @@ public class SQLReferenceTable {
            .forEach(queryable -> {
                Queryable next = queryable;
                do {
+                  initializeTableContext(next);
                   resolveAndStoreAllReferencesAndJoins(next);
                   next = next.getSource();
                } while (next.isNested());
@@ -99,6 +103,41 @@ public class SQLReferenceTable {
      */
     public Set<String> getResolvedJoinExpressions(Queryable queryable, String fieldName) {
         return resolvedJoinExpressions.get(queryable).getOrDefault(fieldName, new HashSet<>());
+    }
+
+    public TableContext getGlobalTableContext(Queryable queryable) {
+        return globalTablesContext.get(queryable);
+    }
+
+    private void initializeTableContext(Queryable queryable) {
+
+        // Contexts are stored by their source that produces them
+        Queryable key = queryable.getSource();
+        boolean isNested = queryable.isNested();
+
+        if (!globalTablesContext.containsKey(key)) {
+
+            TableContext tableCtx = TableContext.builder()
+                            .queryable(queryable)
+                            .alias(key.getAlias())
+                            .metaDataStore(metaDataStore)
+                            .build();
+
+            queryable.getColumnProjections().forEach(column -> {
+                if (!isNested && column.getColumnType() == ColumnType.FIELD) {
+                    tableCtx.put(column.getName(), "{{$" + column.getExpression() + "}}");
+                } else {
+                    tableCtx.put(column.getName(), column.getExpression());
+                }
+            });
+
+            queryable.getJoins().forEach((name, join) -> {
+                SQLTable joinTable = metaDataStore.getTable(join.getJoinTableType());
+                tableCtx.addJoin(name, joinTable);
+            });
+
+            globalTablesContext.put(key, tableCtx);
+        }
     }
 
     /**

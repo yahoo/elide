@@ -79,7 +79,10 @@ public abstract class ColumnVisitor<T> {
         List<String> references = new ArrayList<>();
 
         while (matcher.find()) {
-            references.add(matcher.group(1));
+            String value = matcher.group(1);
+            if (!value.startsWith("$$") && !value.startsWith("sql ")) {
+                references.add(value);
+            }
         }
 
         return references;
