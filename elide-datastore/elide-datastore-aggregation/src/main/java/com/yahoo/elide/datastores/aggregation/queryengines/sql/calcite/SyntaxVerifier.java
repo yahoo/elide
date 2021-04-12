@@ -18,6 +18,7 @@ import org.apache.calcite.sql.SqlNodeList;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.sql.util.SqlBasicVisitor;
+import lombok.Getter;
 
 /**
  * Verifies whether Elide can parse a SQL expression with Calcite AND that
@@ -25,6 +26,9 @@ import org.apache.calcite.sql.util.SqlBasicVisitor;
  */
 public class SyntaxVerifier extends SqlBasicVisitor<Boolean> {
     private SQLDialect dialect;
+
+    @Getter
+    private String lastError;
 
     public SyntaxVerifier(SQLDialect dialect) {
         this.dialect = dialect;
@@ -37,6 +41,7 @@ public class SyntaxVerifier extends SqlBasicVisitor<Boolean> {
         try {
             node = sqlParser.parseExpression();
         } catch (SqlParseException e) {
+            lastError = e.getMessage();
             return false;
         }
 
@@ -59,6 +64,7 @@ public class SyntaxVerifier extends SqlBasicVisitor<Boolean> {
 
             //We don't understand the operator so we can't nest safely.
             if (operator == null) {
+                lastError = "Unknown operator: " + operatorName;
                 return false;
             }
         }

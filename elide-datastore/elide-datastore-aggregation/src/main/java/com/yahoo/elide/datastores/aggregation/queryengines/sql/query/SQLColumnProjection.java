@@ -13,6 +13,8 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
  * Column projection that can expand the column into a SQL projection fragment.
  */
 public interface SQLColumnProjection extends ColumnProjection {
+    public static Logger LOGGER = LoggerFactory.getLogger(SQLColumnProjection.class);
 
     /**
      * Generate a SQL fragment for this combination column and client arguments.
@@ -38,7 +41,13 @@ public interface SQLColumnProjection extends ColumnProjection {
     default boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
         SQLDialect dialect = source.getConnectionDetails().getDialect();
         String sql = toSQL(source.getSource(), lookupTable);
-        return new SyntaxVerifier(dialect).verify(sql);
+        SyntaxVerifier verifier = new SyntaxVerifier(dialect);
+        boolean canNest = verifier.verify(sql);
+        if (! canNest) {
+            LOGGER.debug("Unable to nest {} because {}", this.getName(), verifier.getLastError());
+        }
+
+        return canNest;
     }
 
     @Override
