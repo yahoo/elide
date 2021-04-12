@@ -8,6 +8,8 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SyntaxVerifier;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -34,7 +36,9 @@ public interface SQLColumnProjection extends ColumnProjection {
 
     @Override
     default boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
-        return false;
+        SQLDialect dialect = source.getConnectionDetails().getDialect();
+        String sql = toSQL(source.getSource(), lookupTable);
+        return new SyntaxVerifier(dialect).verify(sql);
     }
 
     @Override
