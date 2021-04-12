@@ -95,7 +95,7 @@ public class ExpressionParser {
                     Template template = handlebars.compileInline(toFormulaReference(referenceName));
                     referenceName = template.apply(Collections.emptyMap());
                 } catch (IOException e) {
-                    // Do Nothing
+                    throw new IllegalStateException(e.getMessage());
                 }
             }
 
