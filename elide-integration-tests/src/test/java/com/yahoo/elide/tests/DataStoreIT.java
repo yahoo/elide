@@ -6,7 +6,6 @@
 package com.yahoo.elide.tests;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.linkage;
@@ -20,6 +19,7 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.yahoo.elide.test.jsonapi.elements.Data;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -31,6 +31,7 @@ import example.Filtered;
 import example.TestCheckMappings;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -41,6 +42,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.ws.rs.core.MultivaluedHashMap;
 
+@Tag("skipInMemory") // Do not test Memory Datastores
 public class DataStoreIT extends IntegrationTest {
     private final ObjectMapper mapper;
     private final Elide elide;
@@ -80,20 +82,24 @@ public class DataStoreIT extends IntegrationTest {
     public void setUp() throws IOException {
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {
 
-            tx.save(tx.createNewObject(getClassType(Filtered.class)), null);
-            tx.save(tx.createNewObject(getClassType(Filtered.class)), null);
-            tx.save(tx.createNewObject(getClassType(Filtered.class)), null);
+            tx.createObject(tx.createNewObject(ClassType.of(Filtered.class)), null);
+            tx.createObject(tx.createNewObject(ClassType.of(Filtered.class)), null);
+            tx.createObject(tx.createNewObject(ClassType.of(Filtered.class)), null);
 
-            Author georgeMartin = new Author();
+            Author georgeMartin = tx.createNewObject(ClassType.of(Author.class));
+            tx.createObject(georgeMartin, null);
             georgeMartin.setName("George R. R. Martin");
 
-            Book book1 = new Book();
+            Book book1 = tx.createNewObject(ClassType.of(Book.class));
+            tx.createObject(book1, null);
             book1.setTitle(SONG_OF_ICE_AND_FIRE);
             book1.setAuthors(Arrays.asList(georgeMartin));
-            Book book2 = new Book();
+            Book book2 = tx.createNewObject(ClassType.of(Book.class));
+            tx.createObject(book2, null);
             book2.setTitle(CLASH_OF_KINGS);
             book2.setAuthors(Arrays.asList(georgeMartin));
-            Book book3 = new Book();
+            Book book3 = tx.createNewObject(ClassType.of(Book.class));
+            tx.createObject(book3, null);
             book3.setTitle(STORM_OF_SWORDS);
             book3.setAuthors(Arrays.asList(georgeMartin));
 
@@ -115,7 +121,8 @@ public class DataStoreIT extends IntegrationTest {
     private static void addChapters(int numberOfChapters, Book book, DataStoreTransaction tx) {
         Set<Chapter> chapters = new HashSet<>();
         for (int idx = 0; idx < numberOfChapters; idx++) {
-            Chapter chapter = new Chapter();
+            Chapter chapter = tx.createNewObject(ClassType.of(Chapter.class));
+            tx.createObject(chapter, null);
             chapter.setTitle("Chapter" + idx);
             tx.save(chapter, null);
             chapters.add(chapter);
@@ -128,6 +135,7 @@ public class DataStoreIT extends IntegrationTest {
         MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         ElideResponse response = elide.get(BASEURL, "/book", queryParams, goodUser, NO_VERSION);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(ALL_BOOKS_COUNT, result.get(DATA).size());
@@ -145,6 +153,7 @@ public class DataStoreIT extends IntegrationTest {
         MultivaluedHashMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         ElideResponse response = elide.get(BASEURL, "/author/1/books", queryParams, goodUser, NO_VERSION);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(ALL_BOOKS_COUNT, result.get(DATA).size());
@@ -163,6 +172,7 @@ public class DataStoreIT extends IntegrationTest {
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         queryParams.put("filter[book.chapterCount]", Arrays.asList("20"));
         ElideResponse response = elide.get(BASEURL, "/book", queryParams, goodUser, NO_VERSION);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(1, result.get(DATA).size());
@@ -177,6 +187,7 @@ public class DataStoreIT extends IntegrationTest {
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         queryParams.put("filter[book.chapterCount]", Arrays.asList("20"));
         ElideResponse response = elide.get(BASEURL, "/author/1/books", queryParams, goodUser, NO_VERSION);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(1, result.get(DATA).size());
@@ -191,6 +202,7 @@ public class DataStoreIT extends IntegrationTest {
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         queryParams.put("sort", Arrays.asList("-chapterCount"));
         ElideResponse response = elide.get(BASEURL, "/book", queryParams, goodUser, NO_VERSION);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(ALL_BOOKS_COUNT, result.get(DATA).size());
@@ -209,6 +221,7 @@ public class DataStoreIT extends IntegrationTest {
         queryParams.put("fields[book]", Arrays.asList("title,chapterCount"));
         queryParams.put("sort", Arrays.asList("-chapterCount"));
         ElideResponse response = elide.get(BASEURL, "/author/1/books", queryParams, goodUser, NO_VERSION);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
 
         JsonNode result = mapper.readTree(response.getBody());
         assertEquals(ALL_BOOKS_COUNT, result.get(DATA).size());
@@ -230,7 +243,7 @@ public class DataStoreIT extends IntegrationTest {
         );
 
         ElideResponse response = elide.get(BASEURL, "filtered", new MultivaluedHashMap<>(), goodUser, NO_VERSION);
-        assertEquals(response.getResponseCode(), HttpStatus.SC_OK);
+        assertEquals(HttpStatus.SC_OK, response.getResponseCode());
         assertEquals(data.toJSON(), response.getBody());
     }
 
