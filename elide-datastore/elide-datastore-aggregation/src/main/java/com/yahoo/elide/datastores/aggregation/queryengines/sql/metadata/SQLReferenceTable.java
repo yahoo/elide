@@ -69,13 +69,16 @@ public class SQLReferenceTable {
         this.metaDataStore = metaDataStore;
         this.dictionary = this.metaDataStore.getMetadataDictionary();
 
-        queryables.stream().forEach(queryable -> {
-            Queryable next = queryable;
-            do {
-                resolveAndStoreAllReferencesAndJoins(next);
-                next = next.getSource();
-            } while (next.isNested());
-        });
+        queryables
+           .stream()
+           .filter(queryable -> queryable.isNested() || queryable.isRoot())
+           .forEach(queryable -> {
+               Queryable next = queryable;
+               do {
+                  resolveAndStoreAllReferencesAndJoins(next);
+                  next = next.getSource();
+               } while (next.isNested());
+           });
     }
 
     /**
@@ -138,7 +141,7 @@ public class SQLReferenceTable {
 
         queryable.getColumnProjections().forEach(column -> {
             // validate that there is no reference loop
-            validator.visitColumn(queryable, column);
+            validator.parse(queryable, column);
 
             String fieldName = column.getName();
 

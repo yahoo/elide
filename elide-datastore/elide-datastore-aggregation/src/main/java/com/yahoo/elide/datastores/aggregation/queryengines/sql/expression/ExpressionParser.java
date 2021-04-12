@@ -6,6 +6,9 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
+import static com.yahoo.elide.core.utils.TypeHelper.nullOrEmpty;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
@@ -14,10 +17,16 @@ import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-
+import com.github.jknack.handlebars.EscapingStrategy;
+import com.github.jknack.handlebars.Handlebars;
+import com.github.jknack.handlebars.Helper;
+import com.github.jknack.handlebars.Options;
+import com.github.jknack.handlebars.Template;
 import com.google.common.base.Preconditions;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,13 +38,42 @@ import java.util.regex.Pattern;
 public class ExpressionParser {
 
     private static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
+    private static final String SQL_HELPER_PREFIX = "sql ";
 
     private MetaDataStore metaDataStore;
     private EntityDictionary dictionary;
+    private final Handlebars handlebars = new Handlebars()
+                    .with(EscapingStrategy.NOOP)
+                    .registerHelper("sql", new Helper<Object>() {
+
+                        @Override
+                        public Object apply(final Object context, final Options options) throws IOException {
+                            String from = options.hash("from");
+                            String column = options.hash("column");
+                            int argsIndex = column.indexOf('[');
+
+                            // Remove args from column
+                            column = argsIndex == -1 ? column : column.substring(0, argsIndex);
+                            // Prefix column with join table name
+                            column = nullOrEmpty(from) ? column : from + PERIOD + column;
+
+                            return column;
+                        }
+                    });
 
     public ExpressionParser(MetaDataStore store) {
         this.dictionary = store.getMetadataDictionary();
         this.metaDataStore = store;
+    }
+
+    /**
+     * Parses the column or join expression and returns the list of discovered references.
+     * @param source The source table where the column or join expression lives.
+     * @param column {@link ColumnProjection}
+     * @return A list of discovered references.
+     */
+    public List<Reference> parse(Queryable source, ColumnProjection column) {
+        return parse(source, column.getExpression());
     }
 
     /**
@@ -50,6 +88,17 @@ public class ExpressionParser {
         List<Reference> results = new ArrayList<>();
 
         for (String referenceName : referenceNames) {
+
+            // Change `sql from='joinName' column='columnName[a1:v1][a2:v2]'` to `joinName.columnName`
+            if (referenceName.startsWith(SQL_HELPER_PREFIX)) {
+                try {
+                    Template template = handlebars.compileInline(toFormulaReference(referenceName));
+                    referenceName = template.apply(Collections.emptyMap());
+                } catch (IOException e) {
+                    // Do Nothing
+                }
+            }
+
             if (referenceName.startsWith("$$")) {
                 continue;
             }
@@ -91,7 +140,7 @@ public class ExpressionParser {
                     .builder()
                     .source(source)
                     .column(column)
-                    .references(parse(source, column.getExpression()))
+                    .references(parse(source, column))
                     .build();
         }
     }
@@ -140,5 +189,15 @@ public class ExpressionParser {
         }
 
         return references;
+    }
+
+    /**
+     * Convert a resolved formula reference back to a reference presented in formula format.
+     *
+     * @param reference referenced field
+     * @return formula reference, <code>{{reference}}</code>
+     */
+    private static String toFormulaReference(String reference) {
+        return "{{" + reference + "}}";
     }
 }

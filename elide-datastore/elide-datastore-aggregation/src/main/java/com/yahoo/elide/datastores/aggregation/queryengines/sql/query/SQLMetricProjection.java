@@ -159,7 +159,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                 dialect.getBeginQuote()
                         + "?(" + getAggregationLabelPrefix(dialect.getCalciteDialect()) + "\\w+)"
                         + dialect.getEndQuote()
-                        + "?", "{{$1}}");
+                        + "?", "{{\\$" + "$1" + "}}");
 
         boolean inProjection = source.getColumnProjection(name, arguments) != null;
 

@@ -69,7 +69,7 @@ public interface SQLColumnProjection extends ColumnProjection {
             outerProjection = withExpression(getExpression(), inProjection);
             innerProjections = joinProjections.stream().collect(Collectors.toCollection(LinkedHashSet::new));
         } else {
-            outerProjection = withExpression("{{" + this.getSafeAlias() + "}}", isProjected());
+            outerProjection = withExpression("{{$" + this.getSafeAlias() + "}}", isProjected());
             innerProjections = new LinkedHashSet<>(Arrays.asList(this));
         }
 
