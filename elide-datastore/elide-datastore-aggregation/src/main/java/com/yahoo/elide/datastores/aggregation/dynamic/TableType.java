@@ -98,22 +98,7 @@ public class TableType implements Type<DynamicModelInstance> {
 
     @Override
     public Package getPackage() {
-        return new Package() {
-            @Override
-            public <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass) {
-                return null;
-            }
-
-            @Override
-            public String getName() {
-                return "config";
-            }
-
-            @Override
-            public Package getParentPackage() {
-                return null;
-            }
-        };
+        return new ConfigPackage();
     }
 
     @Override
@@ -263,13 +248,7 @@ public class TableType implements Type<DynamicModelInstance> {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
         if (Boolean.TRUE.equals(table.getHidden())) {
-            annotations.put(Exclude.class, new Exclude() {
-
-                @Override
-                public Class<? extends Annotation> annotationType() {
-                    return Exclude.class;
-                }
-            });
+            annotations.put(Exclude.class, new ExcludeAnnotation());
         } else {
             annotations.put(Include.class, new Include() {
 
@@ -456,13 +435,7 @@ public class TableType implements Type<DynamicModelInstance> {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
         if (Boolean.TRUE.equals(measure.getHidden())) {
-            annotations.put(Exclude.class, new Exclude() {
-
-                @Override
-                public Class<? extends Annotation> annotationType() {
-                    return Exclude.class;
-                }
-            });
+            annotations.put(Exclude.class, new ExcludeAnnotation());
         }
 
         annotations.put(ColumnMeta.class, new ColumnMeta() {
@@ -560,13 +533,7 @@ public class TableType implements Type<DynamicModelInstance> {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
         if (Boolean.TRUE.equals(dimension.getHidden())) {
-            annotations.put(Exclude.class, new Exclude() {
-
-                @Override
-                public Class<? extends Annotation> annotationType() {
-                    return Exclude.class;
-                }
-            });
+            annotations.put(Exclude.class, new ExcludeAnnotation());
         }
 
         annotations.put(ColumnMeta.class, new ColumnMeta() {
@@ -767,5 +734,29 @@ public class TableType implements Type<DynamicModelInstance> {
 
     private static String replaceNewlineWithSpace(String str) {
         return (str == null) ? null : NEWLINE.matcher(str).replaceAll(SPACE);
+    }
+
+    private final class ConfigPackage implements Package {
+        @Override
+        public <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass) {
+            return null;
+        }
+
+        @Override
+        public String getName() {
+            return "config";
+        }
+
+        @Override
+        public Package getParentPackage() {
+            return null;
+        }
+    }
+
+    private static final class ExcludeAnnotation implements Exclude {
+        @Override
+        public Class<? extends Annotation> annotationType() {
+            return Exclude.class;
+        }
     }
 }
