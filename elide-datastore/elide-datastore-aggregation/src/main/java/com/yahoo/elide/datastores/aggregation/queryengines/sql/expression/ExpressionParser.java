@@ -56,6 +56,7 @@ public class ExpressionParser {
             if (referenceName.startsWith("$")) {
                 results.add(PhysicalReference
                         .builder()
+                        .source(source)
                         .name(referenceName.substring(1))
                         .build());
             } else if (referenceName.contains(".")) {
@@ -64,6 +65,7 @@ public class ExpressionParser {
                 Reference reference = buildReferenceFromField(source, referenceName);
                 results.add(LogicalReference
                         .builder()
+                        .source(source)
                         .column(source.getColumnProjection(referenceName))
                         .reference(reference)
                         .build());
@@ -81,11 +83,13 @@ public class ExpressionParser {
         if (column.getColumnType() == ColumnType.FIELD) {
             return PhysicalReference
                     .builder()
+                    .source(source)
                     .name(column.getName())
                     .build();
         } else {
             return LogicalReference
                     .builder()
+                    .source(source)
                     .column(column)
                     .references(parse(source, column.getExpression()))
                     .build();
@@ -99,22 +103,24 @@ public class ExpressionParser {
         JoinPath joinPath = new JoinPath(tableClass, metaDataStore, referenceName);
 
         Path.PathElement lastElement = joinPath.lastElement().get();
+        Queryable joinSource = metaDataStore.getTable(lastElement.getType());
         String fieldName = lastElement.getFieldName();
 
         Reference reference;
         if (fieldName.startsWith("$")) {
             reference = PhysicalReference
                     .builder()
+                    .source(joinSource)
                     .name(fieldName.substring(1))
                     .build();
         } else {
-            Queryable joinSource = metaDataStore.getTable(lastElement.getType());
             reference = buildReferenceFromField(joinSource, fieldName);
         }
 
         return JoinReference
                 .builder()
                 .path(joinPath)
+                .source(source)
                 .reference(reference)
                 .build();
     }

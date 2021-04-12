@@ -72,7 +72,10 @@ public class ExpressionParserTest {
         List<Reference> references = parser.parse(playerStats, recordedDate.getExpression());
 
         assertTrue(references.size() == 1);
-        assertEquals(PhysicalReference.builder().name("recordedDate").build(), references.get(0));
+        assertEquals(PhysicalReference.builder()
+                .name("recordedDate")
+                .source(playerStats)
+                .build(), references.get(0));
     }
 
     @Test
@@ -84,9 +87,11 @@ public class ExpressionParserTest {
         assertTrue(references.size() == 1);
         assertEquals(LogicalReference
                 .builder()
+                .source(playerStats)
                 .column(playerStats.getColumnProjection("overallRating"))
                 .reference(PhysicalReference
                         .builder()
+                        .source(playerStats)
                         .name("overallRating")
                         .build())
                 .build(), references.get(0));
@@ -101,15 +106,19 @@ public class ExpressionParserTest {
         assertTrue(references.size() == 1);
         assertEquals(JoinReference
                 .builder()
+                .source(playerStats)
                 .path(new JoinPath(ClassType.of(PlayerStats.class), metaDataStore, "country.inUsa"))
                 .reference(LogicalReference
                         .builder()
+                        .source(country)
                         .column(country.getColumnProjection("inUsa"))
                         .reference(LogicalReference
                                 .builder()
+                                .source(country)
                                 .column(country.getColumnProjection("name"))
                                 .reference(PhysicalReference
                                         .builder()
+                                        .source(country)
                                         .name("name")
                                         .build()
                                 )
@@ -117,5 +126,28 @@ public class ExpressionParserTest {
                         )
                         .build())
                 .build(), references.get(0));
+    }
+
+    @Test
+    public void testMultipleReferences() {
+        List<Reference> references = parser.parse(playerStats, "{{$country_id}} = {{country.$id}}");
+
+        assertTrue(references.size() == 2);
+
+        assertEquals(PhysicalReference.builder()
+                .name("country_id")
+                .source(playerStats)
+                .build(), references.get(0));
+
+        assertEquals(JoinReference
+                .builder()
+                .source(playerStats)
+                .path(new JoinPath(ClassType.of(PlayerStats.class), metaDataStore, "country.$id"))
+                .reference(PhysicalReference
+                        .builder()
+                        .source(country)
+                        .name("id")
+                        .build())
+                .build(), references.get(1));
     }
 }

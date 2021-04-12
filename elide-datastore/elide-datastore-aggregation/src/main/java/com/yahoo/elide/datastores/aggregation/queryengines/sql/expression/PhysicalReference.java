@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
@@ -16,6 +17,8 @@ import lombok.Value;
 @Value
 @Builder
 public class PhysicalReference implements Reference {
+    @NonNull
+    private Queryable source;
 
     @NonNull
     private String name;
