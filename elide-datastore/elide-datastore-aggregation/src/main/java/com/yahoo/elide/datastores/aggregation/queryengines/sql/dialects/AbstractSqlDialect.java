@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects;
 
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SupportedAggregation;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SupportedOperation;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -31,6 +32,45 @@ public abstract class AbstractSqlDialect implements SQLDialect {
     public static final String CROSS_JOIN_SYNTAX = "CROSS JOIN";
 
     protected HashMap<String, SupportedAggregation> supportedAggregations;
+    protected HashMap<String, SupportedOperation> supportedOperations;
+
+    protected static SupportedOperation[] STANDARD_OPERATIONS = {
+            SupportedOperation.builder().name("/").build(),
+            SupportedOperation.builder().name("+").build(),
+            SupportedOperation.builder().name("-").build(),
+            SupportedOperation.builder().name("*").build(),
+            SupportedOperation.builder().name("%").build(),
+            SupportedOperation.builder().name("MOD").build(),
+            SupportedOperation.builder().name("UNION").build(),
+            SupportedOperation.builder().name("INTERSECT").build(),
+            SupportedOperation.builder().name("INTERSECT").build(),
+            SupportedOperation.builder().name("IN").build(),
+            SupportedOperation.builder().name("NOT IN").build(),
+            SupportedOperation.builder().name(">").build(),
+            SupportedOperation.builder().name("<").build(),
+            SupportedOperation.builder().name(">=").build(),
+            SupportedOperation.builder().name("<=").build(),
+            SupportedOperation.builder().name("=").build(),
+            SupportedOperation.builder().name("<>").build(),
+            SupportedOperation.builder().name("OR").build(),
+            SupportedOperation.builder().name("AND").build(),
+            SupportedOperation.builder().name("NOT").build(),
+            SupportedOperation.builder().name("LIKE").build(),
+            SupportedOperation.builder().name("BETWEEN").build(),
+            SupportedOperation.builder().name("CASE").build(),
+            SupportedOperation.builder().name("COALESCE").build(),
+            SupportedOperation.builder().name("EXISTS").build(),
+            SupportedOperation.builder().name("IS NULL").build(),
+            SupportedOperation.builder().name("IS NOT NULL").build(),
+            SupportedOperation.builder().name("IS TRUE").build(),
+            SupportedOperation.builder().name("IS NOT TRUE").build(),
+            SupportedOperation.builder().name("IS FALSE").build(),
+            SupportedOperation.builder().name("IS NOT FALSE").build(),
+            SupportedOperation.builder().name("CAST").build(),
+            SupportedOperation.builder().name("FLOOR").build(),
+            SupportedOperation.builder().name("CEILING").build(),
+            SupportedOperation.builder().name("TRIM").build()
+    };
 
     protected static SupportedAggregation[] STANDARD_AGGREGATIONS = {
             SupportedAggregation.builder()
@@ -71,6 +111,10 @@ public abstract class AbstractSqlDialect implements SQLDialect {
     public AbstractSqlDialect() {
         supportedAggregations = Arrays.stream(STANDARD_AGGREGATIONS)
                 .collect(Collectors.toMap(SupportedAggregation::getName, Function.identity(),
+                        (a, b) -> a, HashMap::new));
+
+        supportedOperations = Arrays.stream(STANDARD_OPERATIONS)
+                .collect(Collectors.toMap(SupportedOperation::getName, Function.identity(),
                         (a, b) -> a, HashMap::new));
     }
 
@@ -130,5 +174,10 @@ public abstract class AbstractSqlDialect implements SQLDialect {
     @Override
     public SupportedAggregation getSupportedAggregation(String name) {
         return supportedAggregations.getOrDefault(name.toUpperCase(Locale.ENGLISH), null);
+    }
+
+    @Override
+    public SupportedOperation getSupportedOperation(String name) {
+        return supportedOperations.getOrDefault(name.toUpperCase(Locale.ENGLISH), null);
     }
 }
