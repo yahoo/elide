@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
 import lombok.Builder;
+import lombok.NonNull;
 import lombok.Value;
 
 /**
@@ -16,6 +17,7 @@ import lombok.Value;
 @Builder
 public class PhysicalReference implements Reference {
 
+    @NonNull
     private String name;
 
     @Override

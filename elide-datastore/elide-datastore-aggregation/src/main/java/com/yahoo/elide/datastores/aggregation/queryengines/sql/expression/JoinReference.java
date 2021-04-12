@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import lombok.Builder;
+import lombok.NonNull;
 import lombok.Value;
 
 /**
@@ -17,7 +18,10 @@ import lombok.Value;
 @Builder
 public class JoinReference implements Reference {
 
+    @NonNull
     private Reference reference;
+
+    @NonNull
     private JoinPath path;
 
     @Override

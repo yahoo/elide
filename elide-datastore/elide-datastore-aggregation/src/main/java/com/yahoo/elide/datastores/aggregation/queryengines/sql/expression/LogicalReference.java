@@ -6,7 +6,9 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import lombok.Builder;
+import lombok.NonNull;
 import lombok.Singular;
 import lombok.Value;
 
@@ -21,6 +23,9 @@ public class LogicalReference implements Reference {
 
     @Singular
     private List<Reference> references;
+
+    @NonNull
+    private ColumnProjection column;
 
     @Override
     public <T> T accept(ReferenceVisitor<T> visitor) {

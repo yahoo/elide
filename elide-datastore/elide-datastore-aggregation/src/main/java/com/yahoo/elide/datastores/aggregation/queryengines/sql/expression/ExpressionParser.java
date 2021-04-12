@@ -61,9 +61,11 @@ public class ExpressionParser {
             } else if (referenceName.contains(".")) {
                 results.add(buildJoin(source, referenceName));
             } else {
+                Reference reference = buildReferenceFromField(source, referenceName);
                 results.add(LogicalReference
                         .builder()
-                        .reference(buildReferenceFromField(source, referenceName))
+                        .column(source.getColumnProjection(referenceName))
+                        .reference(reference)
                         .build());
             }
         }
@@ -84,6 +86,7 @@ public class ExpressionParser {
         } else {
             return LogicalReference
                     .builder()
+                    .column(column)
                     .references(parse(source, column.getExpression()))
                     .build();
         }

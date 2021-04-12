@@ -37,6 +37,7 @@ public class ExpressionParserTest {
 
     private ExpressionParser parser;
     private SQLTable playerStats;
+    private SQLTable country;
     private MetaDataStore metaDataStore;
 
     public ExpressionParserTest() {
@@ -61,6 +62,7 @@ public class ExpressionParserTest {
 
         parser = new ExpressionParser(metaDataStore);
         playerStats = (SQLTable) metaDataStore.getTable(ClassType.of(PlayerStats.class));
+        country = (SQLTable) metaDataStore.getTable(ClassType.of(Country.class));
     }
 
     @Test
@@ -82,6 +84,7 @@ public class ExpressionParserTest {
         assertTrue(references.size() == 1);
         assertEquals(LogicalReference
                 .builder()
+                .column(playerStats.getColumnProjection("overallRating"))
                 .reference(PhysicalReference
                         .builder()
                         .name("overallRating")
@@ -101,8 +104,10 @@ public class ExpressionParserTest {
                 .path(new JoinPath(ClassType.of(PlayerStats.class), metaDataStore, "country.inUsa"))
                 .reference(LogicalReference
                         .builder()
+                        .column(country.getColumnProjection("inUsa"))
                         .reference(LogicalReference
                                 .builder()
+                                .column(country.getColumnProjection("name"))
                                 .reference(PhysicalReference
                                         .builder()
                                         .name("name")
