@@ -40,7 +40,8 @@ public interface SQLColumnProjection extends ColumnProjection {
      * @return SQL query String for this column
      */
     default String toSQL(Queryable source, SQLReferenceTable lookupTable) {
-        return lookupTable.getResolvedReference(source, getName());
+        //TODO: Add query context to Table Context before calling get
+        return lookupTable.getGlobalTableContext(source).get(getName()).toString();
     }
 
     @Override

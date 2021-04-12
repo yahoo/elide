@@ -88,7 +88,8 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     @Override
     public String toSQL(Queryable source, SQLReferenceTable lookupTable) {
         if (expression.matches(".*\\{\\{.*\\}\\}.*")) {
-            return lookupTable.getResolvedReference(source, getName());
+            //TODO: Add query context to Table Context before calling get
+            return lookupTable.getGlobalTableContext(source).get(getName()).toString();
         }
         return expression;
     }
