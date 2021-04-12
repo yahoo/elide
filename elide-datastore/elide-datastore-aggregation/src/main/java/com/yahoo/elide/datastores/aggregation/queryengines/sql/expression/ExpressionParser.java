@@ -11,6 +11,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 
@@ -58,47 +59,61 @@ public class ExpressionParser {
                         .name(referenceName.substring(1))
                         .build());
             } else if (referenceName.contains(".")) {
-                Queryable root = source.getRoot();
-                Type<?> tableClass = dictionary.getEntityClass(root.getName(), root.getVersion());
-
-                JoinPath joinPath = new JoinPath(tableClass, metaDataStore, referenceName);
-
-                Path.PathElement lastElement = joinPath.lastElement().get();
-                String fieldName = lastElement.getFieldName();
-
-                Reference reference;
-                if (fieldName.startsWith("$")) {
-                    reference = PhysicalReference
-                            .builder()
-                            .name(fieldName.substring(1))
-                            .build();
-                } else {
-                    Queryable joinSource = metaDataStore.getTable(lastElement.getType());
-                    ColumnProjection projection = joinSource.getColumnProjection(fieldName);
-
-                    reference = LogicalReference
-                            .builder()
-                            .references(parse(joinSource, projection.getExpression()))
-                            .build();
-                }
-
-                results.add(JoinReference
-                        .builder()
-                        .path(joinPath)
-                        .reference(reference)
-                        .build());
+                results.add(buildJoin(source, referenceName));
             } else {
-                ColumnProjection column = source.getColumnProjection(referenceName);
-                Preconditions.checkNotNull(column);
-
                 results.add(LogicalReference
                         .builder()
-                        .references(parse(source, column.getExpression()))
+                        .reference(buildReferenceFromField(source, referenceName))
                         .build());
             }
         }
 
         return results;
+    }
+
+    private Reference buildReferenceFromField(Queryable source, String fieldName) {
+        ColumnProjection column = source.getColumnProjection(fieldName);
+
+        Preconditions.checkNotNull(column);
+
+        if (column.getColumnType() == ColumnType.FIELD) {
+            return PhysicalReference
+                    .builder()
+                    .name(column.getName())
+                    .build();
+        } else {
+            return LogicalReference
+                    .builder()
+                    .references(parse(source, column.getExpression()))
+                    .build();
+        }
+    }
+
+    private JoinReference buildJoin(Queryable source, String referenceName) {
+        Queryable root = source.getRoot();
+        Type<?> tableClass = dictionary.getEntityClass(root.getName(), root.getVersion());
+
+        JoinPath joinPath = new JoinPath(tableClass, metaDataStore, referenceName);
+
+        Path.PathElement lastElement = joinPath.lastElement().get();
+        String fieldName = lastElement.getFieldName();
+
+        Reference reference;
+        if (fieldName.startsWith("$")) {
+            reference = PhysicalReference
+                    .builder()
+                    .name(fieldName.substring(1))
+                    .build();
+        } else {
+            Queryable joinSource = metaDataStore.getTable(lastElement.getType());
+            reference = buildReferenceFromField(joinSource, fieldName);
+        }
+
+        return JoinReference
+                .builder()
+                .path(joinPath)
+                .reference(reference)
+                .build();
     }
 
     /**
