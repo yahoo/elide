@@ -89,11 +89,6 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     }
 
     @Override
-    public boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
-        return true;
-    }
-
-    @Override
     public Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source,
                                                               SQLReferenceTable lookupTable,
                                                               boolean joinInOuter) {
