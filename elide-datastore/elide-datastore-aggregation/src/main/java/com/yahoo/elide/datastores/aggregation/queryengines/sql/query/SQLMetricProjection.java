@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import static com.yahoo.elide.core.utils.TypeHelper.nullOrEmpty;
+
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
@@ -94,6 +96,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
     @Override
     public boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
+
         if (lookupTable.getResolvedJoinProjections(source.getSource(), name).size() > 0) {
             //We currently don't support nesting metrics with joins.
             //A join could be part of the aggregation (inner) or post aggregation (outer) expression.

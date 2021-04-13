@@ -71,6 +71,9 @@ public class SQLReferenceTable {
 
         queryables
            .stream()
+           // If Queryable is root, then its SQLTable.
+           // We need to store references only for SQLTable and Nested Queries (Queryable -> Queryable -> SQLTable).
+           // In case of Query -> SQLTable. Query doesn't know about all logical references.
            .filter(queryable -> queryable.isNested() || queryable.isRoot())
            .forEach(queryable -> {
                Queryable next = queryable;
