@@ -6,8 +6,6 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
-import static com.yahoo.elide.core.utils.TypeHelper.nullOrEmpty;
-
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;

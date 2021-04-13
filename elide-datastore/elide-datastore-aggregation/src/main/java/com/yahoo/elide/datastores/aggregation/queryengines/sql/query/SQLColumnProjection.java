@@ -41,6 +41,14 @@ public interface SQLColumnProjection extends ColumnProjection {
     default boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
         SQLDialect dialect = source.getConnectionDetails().getDialect();
         String sql = toSQL(source.getSource(), lookupTable);
+
+        // TODO: Remove this when switching to TableContext
+        // Resolved Reference would be empty if value is not provided in @MetricFormula as value is optional.
+        // Once we change this to use TableContext, then it should be able to resolve expression directly.
+        if (this instanceof SQLMetricProjection && sql.equals("")) {
+            return true;
+        }
+
         SyntaxVerifier verifier = new SyntaxVerifier(dialect);
         boolean canNest = verifier.verify(sql);
         if (! canNest) {
