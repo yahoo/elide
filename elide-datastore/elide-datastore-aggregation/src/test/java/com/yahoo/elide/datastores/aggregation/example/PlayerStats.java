@@ -160,7 +160,7 @@ public class PlayerStats extends ParameterizedModel {
         this.lowScore = lowScore;
     }
 
-    @MetricFormula(value = "AVG({{highScore}})", maker = DailyAverageScorePerPeriodMaker.class)
+    @MetricFormula(maker = DailyAverageScorePerPeriodMaker.class)
     public float getDailyAverageScorePerPeriod() {
         return fetch("dailyAverageScorePerPeriod", dailyAverageScorePerPeriod);
     }

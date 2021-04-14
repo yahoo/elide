@@ -32,18 +32,38 @@ public class Metric extends Column {
         super(table, fieldName, dictionary);
         Type<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
 
-        MetricFormula formula = dictionary.getAttributeOrRelationAnnotation(
-                tableClass,
-                MetricFormula.class,
-                fieldName);
+        MetricFormula formula = dictionary.getAttributeOrRelationAnnotation(tableClass, MetricFormula.class, fieldName);
 
-        if (formula != null) {
-            this.metricProjectionMaker = dictionary.getInjector().instantiate(formula.maker());
-            dictionary.getInjector().inject(this.metricProjectionMaker);
+        verfiyFormula(formula);
 
-        } else {
-            throw new IllegalStateException("Trying to construct metric field "
-                    + getId() + " without @MetricFormula.");
+        this.metricProjectionMaker = dictionary.getInjector().instantiate(formula.maker());
+        dictionary.getInjector().inject(this.metricProjectionMaker);
+    }
+
+    private void verfiyFormula(MetricFormula formula) {
+        if (formula == null) {
+            throw new IllegalStateException("Trying to construct metric field " + getId() + " without @MetricFormula.");
+        }
+
+        String defaultValue;
+        Class<?> defaultMaker;
+
+        try {
+            defaultValue = (String) MetricFormula.class.getDeclaredMethod("value").getDefaultValue();
+            defaultMaker = (Class<?>) MetricFormula.class.getDeclaredMethod("maker").getDefaultValue();
+        } catch (NoSuchMethodException | SecurityException e) {
+            throw new IllegalStateException("Error encountered while constructing metric field: " + getId()
+                            + ". " + e.getMessage());
+        }
+
+        if (formula.value().equals(defaultValue) && formula.maker().equals(defaultMaker)) {
+            throw new IllegalStateException("Trying to construct metric field " + getId()
+                            + " with default values. Provide either value or maker in @MetricFormula.");
+        }
+
+        if (!formula.value().equals(defaultValue) && !formula.maker().equals(defaultMaker)) {
+            throw new IllegalStateException("Trying to construct metric field " + getId()
+                            + " with value and maker. Provide either one in @MetricFormula, both are not allowed.");
         }
     }
 }
