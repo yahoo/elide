@@ -187,6 +187,14 @@ public interface Queryable {
     }
 
     /**
+     * Determines if this queryable is root table.
+     * @return true if this queryable is root table.
+     */
+    default boolean isRoot() {
+        return this == this.getRoot();
+    }
+
+    /**
      * Returns the depth of the nesting of this Queryable.
      * @return 0 for unnested.  Positive integer for nested..
      */

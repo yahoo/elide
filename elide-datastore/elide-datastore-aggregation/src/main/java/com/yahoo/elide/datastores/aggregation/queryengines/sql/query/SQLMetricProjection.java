@@ -94,6 +94,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
     @Override
     public boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
+
         if (lookupTable.getResolvedJoinProjections(source.getSource(), name).size() > 0) {
             //We currently don't support nesting metrics with joins.
             //A join could be part of the aggregation (inner) or post aggregation (outer) expression.
@@ -159,7 +160,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                 dialect.getBeginQuote()
                         + "?(" + getAggregationLabelPrefix(dialect.getCalciteDialect()) + "\\w+)"
                         + dialect.getEndQuote()
-                        + "?", "{{$1}}");
+                        + "?", "{{\\$" + "$1" + "}}");
 
         boolean inProjection = source.getColumnProjection(name, arguments) != null;
 

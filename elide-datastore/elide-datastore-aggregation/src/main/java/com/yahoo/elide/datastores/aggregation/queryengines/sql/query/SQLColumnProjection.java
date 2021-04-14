@@ -41,6 +41,7 @@ public interface SQLColumnProjection extends ColumnProjection {
     default boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
         SQLDialect dialect = source.getConnectionDetails().getDialect();
         String sql = toSQL(source.getSource(), lookupTable);
+
         SyntaxVerifier verifier = new SyntaxVerifier(dialect);
         boolean canNest = verifier.verify(sql);
         if (! canNest) {
@@ -69,7 +70,7 @@ public interface SQLColumnProjection extends ColumnProjection {
             outerProjection = withExpression(getExpression(), inProjection);
             innerProjections = joinProjections.stream().collect(Collectors.toCollection(LinkedHashSet::new));
         } else {
-            outerProjection = withExpression("{{" + this.getSafeAlias() + "}}", isProjected());
+            outerProjection = withExpression("{{$" + this.getSafeAlias() + "}}", isProjected());
             innerProjections = new LinkedHashSet<>(Arrays.asList(this));
         }
 
