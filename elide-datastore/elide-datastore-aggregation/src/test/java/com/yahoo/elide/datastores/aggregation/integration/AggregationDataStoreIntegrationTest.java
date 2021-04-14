@@ -1236,7 +1236,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "orderDetails",
                                 arguments(
                                         argument("sort", "\"orderTime\""),
-                                        argument("filter", "\"orderTime=='2020-08',orderTotal>50\"") //No Grain Arg passed, but so based on Alias argument is assigned.
+                                        argument("filter", "\"orderTime=='2020-08-01',orderTotal>50\"") //No Grain Arg passed, so works based on Alias's argument in Selection.
                                 ),
                                 selections(
                                         field("orderTotal"),
