@@ -1203,6 +1203,79 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     }
 
     @Test
+    public void testTimeDimMismatchArgsWithDefaultSelect() throws Exception {
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "orderDetails",
+                                arguments(
+                                        argument("sort", "\"customerRegion\""),
+                                        argument("filter", "\"orderTime[grain:DAY]=='2020-08',orderTotal>50\"")
+                                ),
+                                selections(
+                                        field("orderTotal"),
+                                        field("customerRegion"),
+                                        field("orderTime") //Default Grain for OrderTime is Month.
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "Exception while fetching data (/orderDetails) : Invalid operation: Time Dimension field orderTime must use the same grain argument in the projection and the having clause.";
+
+        runQueryWithExpectedError(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testTimeDimMismatchArgsWithDefaultFilter() throws Exception {
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "orderDetails",
+                                arguments(
+                                        argument("sort", "\"customerRegion\""),
+                                        argument("filter", "\"orderTime=='2020-08',orderTotal>50\"") //No Grain Arg passed, but so based on Alias argument is assigned.
+                                ),
+                                selections(
+                                        field("orderTotal"),
+                                        field("customerRegion"),
+                                        field("orderTime", arguments(
+                                                argument("grain", TimeGrain.DAY)
+                                        ))
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "orderDetails",
+                                selections(
+                                        field("orderTotal", 181.47F),
+                                        field("customerRegion", "Virginia"),
+                                        field("orderTime", "2020-09-08")
+                                ),
+                                selections(
+                                        field("orderTotal", 78.87F),
+                                        field("customerRegion", "Virginia"),
+                                        field("orderTime", "2020-09-09")
+                                ),
+                                selections(
+                                        field("orderTotal", 103.72F),
+                                        field("customerRegion", "Virginia"),
+                                        field("orderTime", "2020-08-30")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
     public void testAdminRole() throws Exception {
 
         String graphQLRequest = document(
