@@ -3,7 +3,6 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-
 package com.yahoo.elide.datastores.aggregation.custom;
 
 import com.yahoo.elide.core.request.Argument;
@@ -13,6 +12,8 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
@@ -30,6 +31,11 @@ public class DailyAverageScorePerPeriod extends SQLMetricProjection {
                                       Map<String, Argument> arguments) {
         super(metric.getName(), metric.getValueType(), metric.getColumnType(), metric.getExpression(),
                 alias, arguments, true);
+    }
+
+    public DailyAverageScorePerPeriod(SQLMetricProjection projection, String expression) {
+        super(projection.getName(), projection.getValueType(), projection.getColumnType(), expression,
+                        projection.getAlias(), projection.getArguments(), true);
     }
 
     @Override
@@ -53,16 +59,17 @@ public class DailyAverageScorePerPeriod extends SQLMetricProjection {
 
         QueryPlan outerQuery = QueryPlan.builder()
                 .source(innerQuery)
-                .metricProjection(SQLMetricProjection.builder()
-                        .alias(getAlias())
-                        .name(getName())
-                        .expression(getExpression())
-                        .columnType(getColumnType())
-                        .valueType(getValueType())
-                        .arguments(getArguments())
-                        .build())
+                .metricProjection(new DailyAverageScorePerPeriod(this, "AVG({{$highScore}})"))
                 .build();
 
         return outerQuery;
+    }
+
+    // TODO: Remove this when switching to TableContext
+    // Resolved Reference would be empty if value is not provided in @MetricFormula as value is optional.
+    // Once we change this to use TableContext, then it should be able to resolve expression directly.
+    @Override
+    public boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
+        return true;
     }
 }
