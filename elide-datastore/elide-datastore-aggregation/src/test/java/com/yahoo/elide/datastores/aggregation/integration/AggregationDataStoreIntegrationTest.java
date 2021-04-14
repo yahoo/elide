@@ -1235,7 +1235,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                         field(
                                 "orderDetails",
                                 arguments(
-                                        argument("sort", "\"customerRegion\""),
+                                        argument("sort", "\"orderTime\""),
                                         argument("filter", "\"orderTime=='2020-08',orderTotal>50\"") //No Grain Arg passed, but so based on Alias argument is assigned.
                                 ),
                                 selections(
@@ -1254,6 +1254,11 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                         field(
                                 "orderDetails",
                                 selections(
+                                        field("orderTotal", 103.72F),
+                                        field("customerRegion", "Virginia"),
+                                        field("orderTime", "2020-08-30")
+                                ),
+                                selections(
                                         field("orderTotal", 181.47F),
                                         field("customerRegion", "Virginia"),
                                         field("orderTime", "2020-09-08")
@@ -1262,11 +1267,6 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("orderTotal", 78.87F),
                                         field("customerRegion", "Virginia"),
                                         field("orderTime", "2020-09-09")
-                                ),
-                                selections(
-                                        field("orderTotal", 103.72F),
-                                        field("customerRegion", "Virginia"),
-                                        field("orderTime", "2020-08-30")
                                 )
                         )
                 )

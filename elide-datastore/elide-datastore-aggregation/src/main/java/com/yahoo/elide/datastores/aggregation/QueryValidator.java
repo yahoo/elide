@@ -90,7 +90,7 @@ public class QueryValidator {
                 dimensionProjections
                     .stream()
                     .filter(dim -> dim.getAlias().equals(fieldName)
-                    		&& TimeDimensionProjection.class.isAssignableFrom(dim.getClass()))
+                            && TimeDimensionProjection.class.isAssignableFrom(dim.getClass()))
                     .forEach(dim -> {
                         Object grain = dim.getArguments().get("grain").getValue();
                         if (last.getArguments().stream().noneMatch(arg -> (arg.getValue()).equals(grain))) {
