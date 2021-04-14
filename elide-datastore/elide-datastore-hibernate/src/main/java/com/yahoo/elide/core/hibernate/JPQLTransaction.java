@@ -28,7 +28,11 @@ import com.yahoo.elide.core.type.Type;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /**
@@ -38,6 +42,9 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
 
     private final Session sessionWrapper;
     private final boolean isScrollEnabled;
+    private final Set<Object> singleElementLoads;
+    private final boolean delegateToInMemoryStore;
+
 
     /**
      * Constructor.
@@ -45,9 +52,14 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
      * @param session Hibernate session
      * @param isScrollEnabled Whether or not scrolling is enabled
      */
-    protected JPQLTransaction(Session session, boolean isScrollEnabled) {
+    protected JPQLTransaction(Session session, boolean delegateToInMemoryStore, boolean isScrollEnabled) {
         this.sessionWrapper = session;
         this.isScrollEnabled = isScrollEnabled;
+
+        // We need to verify objects by reference equality (a == b) rather than equals equality in case the
+        // same object is loaded twice from two different collections.
+        this.singleElementLoads = Collections.newSetFromMap(new IdentityHashMap<>());
+        this.delegateToInMemoryStore = delegateToInMemoryStore;
     }
 
     /**
@@ -90,7 +102,7 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
         Query query =
                 new RootCollectionFetchQueryBuilder(projection, dictionary, sessionWrapper).build();
 
-        return query.uniqueResult();
+        return addSingleElement(query.uniqueResult());
     }
 
     @Override
@@ -121,7 +133,7 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
             }
         }
 
-        return results;
+        return addSingleElement(results);
     }
 
     @Override
@@ -145,7 +157,7 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
              */
             if (filterExpression == null && sorting == null
                     && (pagination == null || (pagination.isDefaultInstance()))) {
-                return (R) val;
+                return addSingleElement((R) val);
             }
 
             RelationshipImpl relationship = new RelationshipImpl(
@@ -164,10 +176,10 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
                             .build();
 
             if (query != null) {
-                return (R) query.list();
+                return addSingleElement((R) query.list());
             }
         }
-        return (R) val;
+        return addSingleElement((R) val);
     }
 
     protected abstract Predicate<Collection<?>> isPersistentCollection();
@@ -206,5 +218,42 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
                         .build();
 
         return query.uniqueResult();
+    }
+
+    private <R> R addSingleElement(R results) {
+        if (results instanceof Iterable) {
+            if (results instanceof ScrollableIteratorBase) {
+                ((ScrollableIteratorBase<R, ?>) results).singletonElement().ifPresent(singleElementLoads::add);
+            } else if (results instanceof Collection && ((Collection) results).size() == 1) {
+                ((Collection) results).forEach(singleElementLoads::add);
+            }
+        } else if (results != null) {
+            singleElementLoads.add(results);
+        }
+        return results;
+    }
+
+    protected <T> boolean doInDatabase(Optional<T> parent) {
+        // In-Memory delegation is disabled.
+        return !delegateToInMemoryStore
+                // This is a root level load (so always let the DB do as much as possible.
+                || !parent.isPresent()
+                // We are fetching .../book/1/authors so N = 1 in N+1. No harm in the DB running a query.
+                || parent.filter(singleElementLoads::contains).isPresent();
+    }
+
+    @Override
+    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
+        return doInDatabase(parent) ? FeatureSupport.FULL : FeatureSupport.NONE;
+    }
+
+    @Override
+    public <T> boolean supportsSorting(RequestScope scope, Optional<T> parent, EntityProjection projection) {
+        return doInDatabase(parent);
+    }
+
+    @Override
+    public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
+        return doInDatabase(parent);
     }
 }

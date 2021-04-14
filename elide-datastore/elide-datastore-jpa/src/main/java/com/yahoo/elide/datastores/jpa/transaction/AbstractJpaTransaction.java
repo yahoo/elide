@@ -6,11 +6,9 @@
 package com.yahoo.elide.datastores.jpa.transaction;
 
 import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.hibernate.JPQLTransaction;
 import com.yahoo.elide.core.request.EntityProjection;
-import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.datastores.jpa.porting.EntityManagerWrapper;
 import com.yahoo.elide.datastores.jpa.porting.QueryLogger;
 import com.yahoo.elide.datastores.jpa.transaction.checker.PersistentCollectionChecker;
@@ -22,11 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
-import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -47,29 +41,27 @@ public abstract class AbstractJpaTransaction extends JPQLTransaction implements 
     private final LinkedHashSet<Runnable> deferredTasks = new LinkedHashSet<>();
     private final Consumer<EntityManager> jpaTransactionCancel;
 
-    private final Set<Object> singleElementLoads;
-    private final boolean delegateToInMemoryStore;
-
     /**
      * Creates a new JPA transaction.
+     *
      * @param em The entity manager / session.
      * @param jpaTransactionCancel A function which can cancel a session.
      * @param logger Logs queries.
+     * @param isScrollEnabled Whether or not scrolling is enabled
      * @param delegateToInMemoryStore When fetching a subcollection from another multi-element collection,
      *                                whether or not to do sorting, filtering and pagination in memory - or
      *                                do N+1 queries.
      */
-    protected AbstractJpaTransaction(EntityManager em, Consumer<EntityManager> jpaTransactionCancel,
-                                     QueryLogger logger,
-                                     boolean delegateToInMemoryStore) {
-        super(new EntityManagerWrapper(em, logger), false);
+    protected AbstractJpaTransaction(EntityManager em, Consumer<EntityManager> jpaTransactionCancel, QueryLogger logger,
+            boolean delegateToInMemoryStore, boolean isScrollEnabled) {
+        super(new EntityManagerWrapper(em, logger), delegateToInMemoryStore, isScrollEnabled);
         this.em = em;
         this.jpaTransactionCancel = jpaTransactionCancel;
+    }
 
-        //We need to verify objects by reference equality (a == b) rather than equals equality in case the
-        //same object is loaded twice from two different collections.
-        this.singleElementLoads = Collections.newSetFromMap(new IdentityHashMap<>());
-        this.delegateToInMemoryStore = delegateToInMemoryStore;
+    protected AbstractJpaTransaction(EntityManager em, Consumer<EntityManager> jpaTransactionCancel, QueryLogger logger,
+            boolean delegateToInMemoryStore) {
+        this(em, jpaTransactionCancel, logger, delegateToInMemoryStore, true);
     }
 
     @Override
@@ -159,76 +151,15 @@ public abstract class AbstractJpaTransaction extends JPQLTransaction implements 
                              RequestScope scope) {
 
         try {
-            T result = super.loadObject(projection, id, scope);
-            if (result != null) {
-                singleElementLoads.add(result);
-            }
-            return result;
+            return super.loadObject(projection, id, scope);
         } catch (NoResultException e) {
             return null;
         }
     }
 
     @Override
-    public <T> Iterable<T> loadObjects(
-            EntityProjection projection,
-            RequestScope scope) {
-        Iterable<T> results = super.loadObjects(projection, scope);
-
-        if (results instanceof Collection && ((Collection) results).size() == 1) {
-            results.forEach(singleElementLoads::add);
-        }
-
-        return results;
-    }
-
-    @Override
-    public <T, R> R getRelation(
-            DataStoreTransaction relationTx,
-            T entity,
-            Relationship relation,
-            RequestScope scope) {
-
-        R val = super.getRelation(relationTx, entity, relation, scope);
-
-        if (val instanceof Collection) {
-            if (((Collection) val).size() == 1) {
-                ((Collection) val).forEach(singleElementLoads::add);
-            }
-            return val;
-        }
-
-        singleElementLoads.add(val);
-        return val;
-    }
-
-    @Override
     public void cancel(RequestScope scope) {
         jpaTransactionCancel.accept(em);
-    }
-
-    @Override
-    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return doInDatabase(parent) ? FeatureSupport.FULL : FeatureSupport.NONE;
-    }
-
-    @Override
-    public <T> boolean supportsSorting(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return doInDatabase(parent);
-    }
-
-    @Override
-    public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
-        return doInDatabase(parent);
-    }
-
-    private <T> boolean doInDatabase(Optional<T> parent) {
-        //In-Memory delegation is disabled.
-        return !delegateToInMemoryStore
-                //This is a root level load (so always let the DB do as much as possible.
-                || !parent.isPresent()
-                //We are fetching .../book/1/authors so N = 1 in N+1.  No harm in the DB running a query.
-                || parent.filter(singleElementLoads::contains).isPresent();
     }
 
     @Override

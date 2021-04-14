@@ -6,9 +6,12 @@
 package com.yahoo.elide.datastores.jpa.porting;
 
 import com.yahoo.elide.core.hibernate.Query;
+import com.yahoo.elide.datastores.jpa.ScrollableIterator;
+
 import lombok.Getter;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * Wraps a JPA Query allowing most data store logic
@@ -55,7 +58,8 @@ public class QueryWrapper implements Query {
     @Override
     @SuppressWarnings("unchecked")
     public <T> Iterable<T> scroll() {
-        return () -> query.getResultStream().iterator();
+        Iterator<T> itr = query.getResultStream().iterator();
+        return new ScrollableIterator<>(itr);
     }
 
     @Override

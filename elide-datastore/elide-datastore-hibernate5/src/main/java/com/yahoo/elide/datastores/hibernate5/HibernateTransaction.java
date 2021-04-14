@@ -43,14 +43,19 @@ public class HibernateTransaction extends JPQLTransaction {
      * @param isScrollEnabled Whether or not scrolling is enabled
      * @param scrollMode Scroll mode to use if scrolling enabled
      */
-    protected HibernateTransaction(Session session, boolean isScrollEnabled, ScrollMode scrollMode) {
-        super(new SessionWrapper(session), isScrollEnabled);
+    protected HibernateTransaction(Session session, boolean delegateToInMemoryStore, boolean isScrollEnabled,
+            ScrollMode scrollMode) {
+        super(new SessionWrapper(session), delegateToInMemoryStore, isScrollEnabled);
         this.session = session;
         // Elide must not flush until all beans are ready
         FlushMode flushMode = session.getHibernateFlushMode();
         if (flushMode != FlushMode.COMMIT && flushMode != FlushMode.MANUAL) {
             session.setHibernateFlushMode(FlushMode.COMMIT);
         }
+    }
+
+    protected HibernateTransaction(Session session, boolean isScrollEnabled, ScrollMode scrollMode) {
+        this(session, false, isScrollEnabled, scrollMode);
     }
 
     @Override

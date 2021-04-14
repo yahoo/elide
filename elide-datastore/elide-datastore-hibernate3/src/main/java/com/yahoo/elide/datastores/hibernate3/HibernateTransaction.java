@@ -45,9 +45,14 @@ public class HibernateTransaction extends JPQLTransaction {
      * @param isScrollEnabled Whether or not scrolling is enabled
      * @param scrollMode Scroll mode to use if scrolling enabled
      */
-    protected HibernateTransaction(Session session, boolean isScrollEnabled, ScrollMode scrollMode) {
-        super(new SessionWrapper(session), isScrollEnabled);
+    protected HibernateTransaction(Session session, boolean delegateToInMemoryStore, boolean isScrollEnabled,
+            ScrollMode scrollMode) {
+        super(new SessionWrapper(session), delegateToInMemoryStore, isScrollEnabled);
         this.session = session;
+    }
+
+    protected HibernateTransaction(Session session, boolean isScrollEnabled, ScrollMode scrollMode) {
+        this(session, true, isScrollEnabled, scrollMode);
     }
 
     @Override
