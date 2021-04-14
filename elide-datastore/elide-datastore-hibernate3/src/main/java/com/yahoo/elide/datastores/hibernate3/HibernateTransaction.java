@@ -52,7 +52,7 @@ public class HibernateTransaction extends JPQLTransaction {
     }
 
     protected HibernateTransaction(Session session, boolean isScrollEnabled, ScrollMode scrollMode) {
-        this(session, true, isScrollEnabled, scrollMode);
+        this(session, false, isScrollEnabled, scrollMode);
     }
 
     @Override
