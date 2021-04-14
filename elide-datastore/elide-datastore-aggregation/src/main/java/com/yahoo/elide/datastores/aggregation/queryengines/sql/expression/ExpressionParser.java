@@ -6,8 +6,8 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
