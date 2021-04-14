@@ -136,7 +136,7 @@ public class TypeHelper {
      * @param alias alias
      * @return True if is null or empty
      */
-    private static boolean nullOrEmpty(String alias) {
+    public static boolean nullOrEmpty(String alias) {
         return alias == null || alias.equals("");
     }
 

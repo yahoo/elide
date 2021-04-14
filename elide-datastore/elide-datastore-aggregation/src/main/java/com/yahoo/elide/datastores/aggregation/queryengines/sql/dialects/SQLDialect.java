@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects;
 
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SupportedAggregation;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SupportedOperation;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import org.apache.calcite.avatica.util.Casing;
 import org.apache.calcite.sql.SqlDialect;
@@ -88,4 +89,11 @@ public interface SQLDialect {
      * @return The supported aggregation or NULL if not supported.
      */
     SupportedAggregation getSupportedAggregation(String name);
+
+    /**
+     * Fetch the operation for the given SQL function name or NULL if not supported.
+     * @param name The name (case insensitive) of the operation or UDF.
+     * @return The supported operation or NULL if not supported.
+     */
+    SupportedOperation getSupportedOperation(String name);
 }

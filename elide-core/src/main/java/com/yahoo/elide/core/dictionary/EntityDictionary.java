@@ -991,7 +991,7 @@ public class EntityDictionary {
         entityBindings.put(declaredClass, binding);
 
         Include include = (Include) getFirstAnnotation(declaredClass, Arrays.asList(Include.class));
-        if (include.rootLevel()) {
+        if (include != null && include.rootLevel()) {
             bindEntityRoots.add(declaredClass);
         }
 
@@ -1022,7 +1022,7 @@ public class EntityDictionary {
         bindJsonApiToEntity.put(Pair.of(entityBinding.jsonApiType, version), declaredClass);
         entityBindings.put(declaredClass, entityBinding);
         apiVersions.add(version);
-        if (include.rootLevel()) {
+        if (include != null && include.rootLevel()) {
             bindEntityRoots.add(declaredClass);
         }
     }

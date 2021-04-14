@@ -26,7 +26,6 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -63,7 +62,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
 
             Set<ColumnProjection> allProjections = Streams.concat(
                     query.getColumnProjections().stream(),
-                    extractFilterProjections(query, query.getWhereFilter()).stream())
+                    extractFilterProjections(query, splitWhere.getOuter()).stream())
                     .collect(Collectors.toCollection(LinkedHashSet::new));
 
             Set<Pair<ColumnProjection, Set<ColumnProjection>>> allProjectionsNested = allProjections.stream()
@@ -126,7 +125,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
          */
         private Set<SQLColumnProjection> extractFilterProjections(Query query, FilterExpression expression) {
             if (expression == null) {
-                return new HashSet<>();
+                return new LinkedHashSet<>();
             }
 
             Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
@@ -134,13 +133,10 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
             Set<SQLColumnProjection> filterProjections = new LinkedHashSet<>();
             predicates.stream().forEach((predicate -> {
                 Map<String, Argument> arguments = new HashMap<>();
-                predicate.getParameters().forEach((param) -> {
-                    arguments.put(param.getName(), Argument.builder()
-                            .name(param.getName())
-                            .value(param.getValue())
-                            .build());
 
-                });
+                predicate.getPath().lastElement().get().getArguments().forEach((argument -> {
+                    arguments.put(argument.getName(), argument);
+                }));
 
                 ColumnProjection projection = query.getSource().getColumnProjection(predicate.getField(), arguments);
 

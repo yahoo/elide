@@ -10,8 +10,6 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
-import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
@@ -44,11 +42,6 @@ public class SQLDimensionProjection implements SQLColumnProjection {
         this.alias = alias;
         this.arguments = arguments;
         this.projected = projected;
-    }
-
-    @Override
-    public boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
-        return true;
     }
 
     @Override

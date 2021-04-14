@@ -1,5 +1,8 @@
 # Change Log
 
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/f2ed4903b05b83b0e82449a43eda49fefc48dc28) NPE when projection has no permission for relationshipName (#1989) 
+
 ## 5.0.0-pr32
 4th public release candidate for Elide 5.0
 

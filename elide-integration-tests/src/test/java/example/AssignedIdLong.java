@@ -45,12 +45,6 @@ public class AssignedIdLong {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof AssignedIdLong)) {
-            return false;
-        }
-
-        AssignedIdLong other = (AssignedIdLong) obj;
-
-        return id == other.id;
+        return obj instanceof AssignedIdLong && ((AssignedIdLong) obj).id == id;
     }
 }

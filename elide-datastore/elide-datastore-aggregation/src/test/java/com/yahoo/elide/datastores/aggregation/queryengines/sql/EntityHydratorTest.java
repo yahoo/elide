@@ -19,8 +19,6 @@ import com.yahoo.elide.datastores.aggregation.timegrains.Day;
 import com.yahoo.elide.datastores.aggregation.timegrains.Month;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import java.sql.Date;
 import java.sql.ResultSet;
@@ -28,20 +26,7 @@ import java.sql.ResultSetMetaData;
 import java.util.HashMap;
 import java.util.Map;
 
-public class EntityHyrdatorTest extends SQLUnitTest {
-
-    private static final Answer RESULTSET_NEXT = new Answer() {
-        private int count = 0;
-
-        @Override
-        public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
-            if (count == 0) {
-                count++;
-                return true;
-            }
-            return false;
-        }
-    };
+public class EntityHydratorTest extends SQLUnitTest {
 
     @BeforeAll
     public static void init() {
@@ -52,7 +37,7 @@ public class EntityHyrdatorTest extends SQLUnitTest {
     void testTimeDimensionHydration() throws Exception {
         ResultSet resultSet = mock(ResultSet.class);
         ResultSetMetaData resultSetMetaData = mock(ResultSetMetaData.class);
-        when(resultSet.next()).thenAnswer(RESULTSET_NEXT);
+        when(resultSet.next()).thenReturn(true, false);
         when(resultSet.getObject("highScore")).thenReturn(1234);
         when(resultSet.getObject(createSafeAlias("recordedDate", "byDay"))).thenReturn(new Date(1612390856));
         when(resultSet.getObject(createSafeAlias("recordedDate", "byMonth"))).thenReturn(new Date(1612390856));

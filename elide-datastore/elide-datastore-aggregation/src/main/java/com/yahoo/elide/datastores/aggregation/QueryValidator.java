@@ -19,6 +19,7 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 
 import java.util.List;
 import java.util.Map;
@@ -33,8 +34,8 @@ public class QueryValidator {
     private Set<String> allFields;
     private EntityDictionary dictionary;
     private Queryable queriedTable;
-    private Set<MetricProjection> metrics;
-    private Set<ColumnProjection> dimensionProjections;
+    private List<MetricProjection> metrics;
+    private List<ColumnProjection> dimensionProjections;
 
     public QueryValidator(Query query, Set<String> allFields, EntityDictionary dictionary) {
         this.query = query;
@@ -83,6 +84,22 @@ public class QueryValidator {
                                     "Dimension field %s must be grouped before filtering in having clause.",
                                     fieldName));
                 }
+            }
+
+            if (queriedTable.getTimeDimensionProjection(fieldName) != null) {
+                dimensionProjections
+                    .stream()
+                    .filter(dim -> dim.getAlias().equals(fieldName)
+                            && TimeDimensionProjection.class.isAssignableFrom(dim.getClass()))
+                    .forEach(dim -> {
+                        Object grain = dim.getArguments().get("grain").getValue();
+                        if (last.getArguments().stream().noneMatch(arg -> (arg.getValue()).equals(grain))) {
+                            throw new InvalidOperationException(
+                                    String.format(
+                                            "Time Dimension field %s must use the same grain argument in the projection"
+                                            + " and the having clause.", fieldName));
+                        }
+                    });
             }
         } else if (havingClause instanceof AndFilterExpression) {
             validateHavingClause(((AndFilterExpression) havingClause).getLeft());

@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.example;
 
+import static com.yahoo.elide.datastores.aggregation.example.TimeGrainDefinitions.DATE_FORMAT;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
@@ -42,7 +43,6 @@ import javax.persistence.Id;
 )
 public class PlayerStatsWithRequiredFilter {
     public static final String FILTER_TEMPLATE = "recordedDate>={{start}};recordedDate<{{end}}";
-    public static final String DATE_FORMAT = "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
 
     /**
      * PK.

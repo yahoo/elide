@@ -13,6 +13,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
@@ -34,7 +35,8 @@ public class SkipOptimizerTest extends SQLUnitTest {
     @BeforeAll
     public static void init() {
         MetaDataStore metaDataStore = new MetaDataStore(
-                getClassType(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example")),
+                getClassType(ClassScanner.getAnnotatedClasses("com.yahoo.elide.datastores.aggregation.example",
+                        Include.class)),
                 false);
 
         Set<Optimizer> optimizers = new HashSet<>(Arrays.asList(optimizer));

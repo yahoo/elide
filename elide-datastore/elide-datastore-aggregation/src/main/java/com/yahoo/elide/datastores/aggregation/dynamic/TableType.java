@@ -98,22 +98,7 @@ public class TableType implements Type<DynamicModelInstance> {
 
     @Override
     public Package getPackage() {
-        return new Package() {
-            @Override
-            public <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass) {
-                return null;
-            }
-
-            @Override
-            public String getName() {
-                return "config";
-            }
-
-            @Override
-            public Package getParentPackage() {
-                return null;
-            }
-        };
+        return new ConfigPackage();
     }
 
     @Override
@@ -262,7 +247,9 @@ public class TableType implements Type<DynamicModelInstance> {
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Table table) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
-        if (table.getHidden() == null || table.getHidden() == false) {
+        if (Boolean.TRUE.equals(table.getHidden())) {
+            annotations.put(Exclude.class, new ExcludeAnnotation());
+        } else {
             annotations.put(Include.class, new Include() {
 
                 @Override
@@ -278,14 +265,6 @@ public class TableType implements Type<DynamicModelInstance> {
                 @Override
                 public String type() {
                     return table.getName();
-                }
-            });
-        } else {
-            annotations.put(Exclude.class, new Exclude() {
-
-                @Override
-                public Class<? extends Annotation> annotationType() {
-                    return Exclude.class;
                 }
             });
         }
@@ -455,14 +434,8 @@ public class TableType implements Type<DynamicModelInstance> {
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Measure measure) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
-        if (measure.getHidden() != null && measure.getHidden() == true) {
-            annotations.put(Exclude.class, new Exclude() {
-
-                @Override
-                public Class<? extends Annotation> annotationType() {
-                    return Exclude.class;
-                }
-            });
+        if (Boolean.TRUE.equals(measure.getHidden())) {
+            annotations.put(Exclude.class, new ExcludeAnnotation());
         }
 
         annotations.put(ColumnMeta.class, new ColumnMeta() {
@@ -559,14 +532,8 @@ public class TableType implements Type<DynamicModelInstance> {
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Dimension dimension) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
-        if (dimension.getHidden() != null && dimension.getHidden() == true) {
-            annotations.put(Exclude.class, new Exclude() {
-
-                @Override
-                public Class<? extends Annotation> annotationType() {
-                    return Exclude.class;
-                }
-            });
+        if (Boolean.TRUE.equals(dimension.getHidden())) {
+            annotations.put(Exclude.class, new ExcludeAnnotation());
         }
 
         annotations.put(ColumnMeta.class, new ColumnMeta() {
@@ -767,5 +734,29 @@ public class TableType implements Type<DynamicModelInstance> {
 
     private static String replaceNewlineWithSpace(String str) {
         return (str == null) ? null : NEWLINE.matcher(str).replaceAll(SPACE);
+    }
+
+    private final class ConfigPackage implements Package {
+        @Override
+        public <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass) {
+            return null;
+        }
+
+        @Override
+        public String getName() {
+            return "config";
+        }
+
+        @Override
+        public Package getParentPackage() {
+            return null;
+        }
+    }
+
+    private static final class ExcludeAnnotation implements Exclude {
+        @Override
+        public Class<? extends Annotation> annotationType() {
+            return Exclude.class;
+        }
     }
 }

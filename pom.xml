@@ -79,14 +79,14 @@
         <!-- dependency versions -->
         <version.antlr4>4.9.1</version.antlr4>
         <version.logback>1.2.3</version.logback>
-        <version.jetty>9.4.38.v20210224</version.jetty>
+        <version.jetty>9.4.39.v20210325</version.jetty>
         <version.restassured>4.3.3</version.restassured>
         <version.jackson>2.12.2</version.jackson>
         <version.jersey>2.32</version.jersey>
         <version.junit>5.7.1</version.junit>
         <version.junit.platform>1.7.1</version.junit.platform>
         <hibernate3.version>3.6.10.Final</hibernate3.version>
-        <hibernate5.version>5.4.25.Final</hibernate5.version>
+        <hibernate5.version>5.4.30.Final</hibernate5.version>
         <slf4j-api.version>1.7.30</slf4j-api.version>
         <maven-site-plugin-version>3.7.1</maven-site-plugin-version>
         <mpir.skip>true</mpir.skip>
@@ -281,6 +281,13 @@
                         <groupId>com.google.code.findbugs</groupId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <!-- JPA -->
+            <dependency>
+                <groupId>javax.persistence</groupId>
+                <artifactId>javax.persistence-api</artifactId>
+                <version>2.2</version>
+                <scope>provided</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

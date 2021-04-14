@@ -8,9 +8,13 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SyntaxVerifier;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -21,6 +25,7 @@ import java.util.stream.Collectors;
  * Column projection that can expand the column into a SQL projection fragment.
  */
 public interface SQLColumnProjection extends ColumnProjection {
+    public static Logger LOGGER = LoggerFactory.getLogger(SQLColumnProjection.class);
 
     /**
      * Generate a SQL fragment for this combination column and client arguments.
@@ -34,7 +39,16 @@ public interface SQLColumnProjection extends ColumnProjection {
 
     @Override
     default boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
-        return false;
+        SQLDialect dialect = source.getConnectionDetails().getDialect();
+        String sql = toSQL(source.getSource(), lookupTable);
+
+        SyntaxVerifier verifier = new SyntaxVerifier(dialect);
+        boolean canNest = verifier.verify(sql);
+        if (! canNest) {
+            LOGGER.debug("Unable to nest {} because {}", this.getName(), verifier.getLastError());
+        }
+
+        return canNest;
     }
 
     @Override
@@ -47,7 +61,7 @@ public interface SQLColumnProjection extends ColumnProjection {
 
         boolean requiresJoin = joinProjections.size() > 0;
 
-        boolean inProjection = source.getColumnProjection(getName()) != null;
+        boolean inProjection = source.getColumnProjection(getName(), getArguments()) != null;
 
         ColumnProjection outerProjection;
         Set<ColumnProjection> innerProjections;
@@ -56,7 +70,7 @@ public interface SQLColumnProjection extends ColumnProjection {
             outerProjection = withExpression(getExpression(), inProjection);
             innerProjections = joinProjections.stream().collect(Collectors.toCollection(LinkedHashSet::new));
         } else {
-            outerProjection = withExpression("{{" + this.getSafeAlias() + "}}", isProjected());
+            outerProjection = withExpression("{{$" + this.getSafeAlias() + "}}", isProjected());
             innerProjections = new LinkedHashSet<>(Arrays.asList(this));
         }
 
