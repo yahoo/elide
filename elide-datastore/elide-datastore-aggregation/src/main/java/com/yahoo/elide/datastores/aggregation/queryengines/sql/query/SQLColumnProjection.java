@@ -6,10 +6,15 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SyntaxVerifier;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasJoinVisitor;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.PhysicalReferenceExtractor;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -18,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -56,19 +62,26 @@ public interface SQLColumnProjection extends ColumnProjection {
                                                               SQLReferenceTable lookupTable,
                                                               boolean joinInOuter) {
 
-        Set<SQLColumnProjection> joinProjections = lookupTable.getResolvedJoinProjections(source.getSource(),
-                getName());
+        MetaDataStore store = lookupTable.getMetaDataStore();
+        List<Reference> references = new ExpressionParser(store).parse(source, getExpression());
 
-        boolean requiresJoin = joinProjections.size() > 0;
+        boolean requiresJoin = references.stream().anyMatch(ref -> ref.accept(new HasJoinVisitor()));
 
         boolean inProjection = source.getColumnProjection(getName(), getArguments()) != null;
 
         ColumnProjection outerProjection;
-        Set<ColumnProjection> innerProjections;
+        Set<ColumnProjection> innerProjections = new LinkedHashSet<>();
 
         if (requiresJoin && joinInOuter) {
             outerProjection = withExpression(getExpression(), inProjection);
-            innerProjections = joinProjections.stream().collect(Collectors.toCollection(LinkedHashSet::new));
+
+            innerProjections = references.stream()
+                    .map(ref -> ref.accept(new PhysicalReferenceExtractor(store)))
+                    .flatMap(Set::stream)
+                    .map(ref -> SQLPhysicalColumnProjection.builder()
+                            .name(ref.getName())
+                            .build())
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
         } else {
             outerProjection = withExpression("{{$" + this.getSafeAlias() + "}}", isProjected());
             innerProjections = new LinkedHashSet<>(Arrays.asList(this));

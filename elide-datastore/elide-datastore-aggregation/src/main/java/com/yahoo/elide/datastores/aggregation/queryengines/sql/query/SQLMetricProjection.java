@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.core.request.Argument;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -19,6 +20,9 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteIn
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteOuterAggregationExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteUtils;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasJoinVisitor;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import org.apache.calcite.avatica.util.Casing;
 import org.apache.calcite.sql.SqlDialect;
@@ -94,8 +98,12 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
     @Override
     public boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
+        MetaDataStore store = lookupTable.getMetaDataStore();
+        List<Reference> references = new ExpressionParser(store).parse(source, getExpression());
 
-        if (lookupTable.getResolvedJoinProjections(source.getSource(), name).size() > 0) {
+        boolean requiresJoin = references.stream().anyMatch(ref -> ref.accept(new HasJoinVisitor()));
+
+        if (requiresJoin) {
             //We currently don't support nesting metrics with joins.
             //A join could be part of the aggregation (inner) or post aggregation (outer) expression.
             return false;

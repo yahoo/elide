@@ -13,19 +13,16 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
-import com.yahoo.elide.datastores.aggregation.metadata.ColumnVisitor;
 import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLPhysicalColumnProjection;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Subselect;
 import lombok.Getter;
@@ -54,8 +51,6 @@ public class SQLReferenceTable {
 
     //Stores  MAP<Queryable, MAP<fieldName, join expression>>
     protected final Map<Queryable, Map<String, Set<String>>> resolvedJoinExpressions = new HashMap<>();
-
-    protected final Map<Queryable, Map<String, Set<SQLColumnProjection>>> resolvedJoinProjections = new HashMap<>();
 
     public SQLReferenceTable(MetaDataStore metaDataStore) {
         this(metaDataStore,
@@ -107,17 +102,6 @@ public class SQLReferenceTable {
     }
 
     /**
-     * Get the resolved ON clause projections for a field from referred table.
-     *
-     * @param queryable table class
-     * @param fieldName field name
-     * @return resolved ON clause projections (physical or logical) referenced from the given table
-     */
-    public Set<SQLColumnProjection> getResolvedJoinProjections(Queryable queryable, String fieldName) {
-        return resolvedJoinProjections.get(queryable).getOrDefault(fieldName, new HashSet<>());
-    }
-
-    /**
      * Resolve all references and joins for a table and store them in this reference table.
      *
      * @param queryable meta data table
@@ -133,10 +117,6 @@ public class SQLReferenceTable {
 
         if (!resolvedJoinExpressions.containsKey(key)) {
             resolvedJoinExpressions.put(key, new HashMap<>());
-        }
-
-        if (!resolvedJoinProjections.containsKey(key)) {
-            resolvedJoinProjections.put(key, new HashMap<>());
         }
 
         FormulaValidator validator = new FormulaValidator(metaDataStore);
@@ -156,46 +136,9 @@ public class SQLReferenceTable {
             Set<JoinPath> joinPaths = joinVisitor.visitColumn(queryable, column);
             resolvedJoinExpressions.get(key).put(fieldName, getJoinClauses(queryable.getSource().getAlias(),
                     joinPaths, dialect));
-            resolvedJoinProjections.get(key).put(fieldName, getJoinProjections(joinPaths));
         });
     }
 
-    /**
-     * Create a set of join projections from join paths.
-     *
-     * @param joinPaths paths that require joins
-     * @return A set of join expressions
-     */
-    private Set<SQLColumnProjection> getJoinProjections(Set<JoinPath> joinPaths) {
-        Set<SQLColumnProjection> projections = new HashSet<>();
-        for (JoinPath joinPath : joinPaths) {
-            Path.PathElement first = joinPath.getPathElements().get(0);
-
-            String fieldName = first.getFieldName();
-            Type<?> parentClass = first.getType();
-
-            SQLTable table = metaDataStore.getTable(parentClass);
-            SQLJoin join = table.getJoin(fieldName);
-
-            String joinClause = join.getJoinExpression();
-
-            for (String reference : ColumnVisitor.resolveFormulaReferences(joinClause)) {
-                if (reference.contains(".")) {
-                    continue;
-                }
-
-                Column column = metaDataStore.getColumn(parentClass, reference);
-
-                if (column != null) {
-                    projections.add((SQLColumnProjection) column.toProjection());
-                } else {
-                    projections.add(new SQLPhysicalColumnProjection(reference));
-                }
-            }
-        }
-
-        return projections;
-    }
 
     /**
      * Create a set of join expressions from join paths.
