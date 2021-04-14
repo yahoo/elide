@@ -77,7 +77,7 @@ public class ScrollableIteratorBase<T, R> implements Iterable<T>, Iterator<T> {
     }
 
     /**
-     * Returns element if a singleton
+     * Returns element if a singleton.
      * @return singleton element
      */
     public Optional<T> singletonElement() {
