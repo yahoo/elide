@@ -34,8 +34,12 @@ jobs:
 
   release:
     secrets:
-        - BINTRAY_USER
-        - BINTRAY_API_KEY
+        - GPG_KEYNAME
+        - GPG_PASSPHRASE
+        - GPG_ENCPHRASE
+        - OSSRH_USER
+        - OSSRH_TOKEN
     requires: [~tag, ~release]
     steps:
-      - release: mvn -B -DskipTests deploy --settings ./settings.xml
+      - publish: "screwdriver/scripts/publish.sh"
+      - build: "screwdriver/scripts/build.sh"
