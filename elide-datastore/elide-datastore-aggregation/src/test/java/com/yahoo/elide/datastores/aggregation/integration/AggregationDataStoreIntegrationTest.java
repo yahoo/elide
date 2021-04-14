@@ -1176,6 +1176,33 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     }
 
     @Test
+    public void testTimeDimMismatchArgs() throws Exception {
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "orderDetails",
+                                arguments(
+                                        argument("sort", "\"customerRegion\""),
+                                        argument("filter", "\"orderTime[grain:DAY]=='2020-08',orderTotal>50\"")
+                                ),
+                                selections(
+                                        field("orderTotal"),
+                                        field("customerRegion"),
+                                        field("orderTime", arguments(
+                                                argument("grain", TimeGrain.MONTH) // Does not match grain argument in filter
+                                        ))
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "Exception while fetching data (/orderDetails) : Invalid operation: Time Dimension field orderTime must use the same grain argument in the projection and the having clause.";
+
+        runQueryWithExpectedError(graphQLRequest, expected);
+    }
+
+    @Test
     public void testAdminRole() throws Exception {
 
         String graphQLRequest = document(
