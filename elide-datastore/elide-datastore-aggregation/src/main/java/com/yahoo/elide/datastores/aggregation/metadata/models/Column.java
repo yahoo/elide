@@ -129,7 +129,7 @@ public abstract class Column implements Versioned {
                     .collect(Collectors.toCollection(LinkedHashSet::new));
         } else {
             columnType = FIELD;
-            expression = dictionary.getAnnotatedColumnName(tableClass, fieldName);
+            expression = "{{$" + dictionary.getAnnotatedColumnName(tableClass, fieldName) + "}}";
             this.arguments = new HashSet<>();
         }
 

@@ -11,7 +11,6 @@ import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.S
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 import static java.util.Collections.emptyMap;
 
-import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
@@ -81,13 +80,8 @@ public class TableContext extends HashMap<String, Object> {
                             .metaDataStore(metaDataStore)
                             .build();
 
-            boolean isNested = joinQueryable.isNested();
             joinQueryable.getColumnProjections().forEach(column -> {
-                if (!isNested && column.getColumnType() == ColumnType.FIELD) {
-                    newCtx.put(column.getName(), "{{$" + column.getExpression() + "}}");
-                } else {
-                    newCtx.put(column.getName(), column.getExpression());
-                }
+                newCtx.put(column.getName(), column.getExpression());
             });
 
             joinQueryable.getJoins().forEach((name, join) -> {

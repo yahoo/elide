@@ -113,7 +113,6 @@ public class SQLReferenceTable {
 
         // Contexts are stored by their source that produces them
         Queryable key = queryable.getSource();
-        boolean isNested = queryable.isNested();
 
         if (!globalTablesContext.containsKey(key)) {
 
@@ -124,11 +123,7 @@ public class SQLReferenceTable {
                             .build();
 
             queryable.getColumnProjections().forEach(column -> {
-                if (!isNested && column.getColumnType() == ColumnType.FIELD) {
-                    tableCtx.put(column.getName(), "{{$" + column.getExpression() + "}}");
-                } else {
-                    tableCtx.put(column.getName(), column.getExpression());
-                }
+                tableCtx.put(column.getName(), column.getExpression());
             });
 
             queryable.getJoins().forEach((name, join) -> {
