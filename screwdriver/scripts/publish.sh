@@ -5,8 +5,8 @@ set -e
 
 export GPG_TTY=$(tty)
 
-mkdir screwdriver/deploy
-chmod 0400 screwdriver/deploy
+mkdir -p screwdriver/deploy
+chmod 0700 screwdriver/deploy
 
 openssl aes-256-cbc -pass pass:$GPG_ENCPHRASE -in screwdriver/pubring.gpg.enc -out screwdriver/deploy/pubring.gpg -d
 openssl aes-256-cbc -pass pass:$GPG_ENCPHRASE -in screwdriver/secring.gpg.enc -out screwdriver/deploy/secring.gpg -d
