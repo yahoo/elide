@@ -67,7 +67,7 @@ public @interface MetricFormula {
      *
      * @return metric formula
      */
-    String value();
+    String value() default "";
 
     /**
      * Function which constructs a projection for this given metric.

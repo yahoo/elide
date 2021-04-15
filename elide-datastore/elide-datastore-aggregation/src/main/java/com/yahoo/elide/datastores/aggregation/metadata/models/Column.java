@@ -113,19 +113,17 @@ public abstract class Column implements Versioned {
 
         if (dictionary.attributeOrRelationAnnotationExists(tableClass, fieldName, MetricFormula.class)) {
             columnType = FORMULA;
-            expression = dictionary
-                    .getAttributeOrRelationAnnotation(tableClass, MetricFormula.class, fieldName).value();
             MetricFormula metricFormula = dictionary.getAttributeOrRelationAnnotation(tableClass, MetricFormula.class,
                     fieldName);
+            this.expression = metricFormula.value();
             this.arguments = Arrays.stream(metricFormula.arguments())
                     .map(argument -> new Argument(getId(), argument))
                     .collect(Collectors.toCollection(LinkedHashSet::new));
         } else if (dictionary.attributeOrRelationAnnotationExists(tableClass, fieldName, DimensionFormula.class)) {
             columnType = FORMULA;
-            expression = dictionary
-                    .getAttributeOrRelationAnnotation(tableClass, DimensionFormula.class, fieldName).value();
             DimensionFormula dimensionFormula = dictionary.getAttributeOrRelationAnnotation(tableClass,
                     DimensionFormula.class, fieldName);
+            this.expression = dimensionFormula.value();
             this.arguments = Arrays.stream(dimensionFormula.arguments())
                     .map(argument -> new Argument(getId(), argument))
                     .collect(Collectors.toCollection(LinkedHashSet::new));
