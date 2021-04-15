@@ -41,5 +41,6 @@ jobs:
         - OSSRH_TOKEN
     requires: [~tag, ~release]
     steps:
+      - build: "screwdriver/scripts/build.sh"
       - publish: "screwdriver/scripts/publish.sh"
 
