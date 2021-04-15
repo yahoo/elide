@@ -46,4 +46,9 @@ public abstract class BaseId {
     public boolean equals(Object obj) {
         return obj instanceof BaseId && naturalKey.equals(((BaseId) obj).naturalKey);
     }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + ": " + id;
+    }
 }
