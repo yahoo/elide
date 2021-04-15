@@ -158,7 +158,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
         String outerAggExpression = transformedParseTree.toSqlString(dialect.getCalciteDialect()).getSql();
 
-        //replace INNER_AGG_... with {{INNER_AGG...}}
+        //replace INNER_AGG_... with {{$INNER_AGG...}}
         outerAggExpression = outerAggExpression.replaceAll(
                 dialect.getBeginQuote()
                         + "?(" + getAggregationLabelPrefix(dialect.getCalciteDialect()) + "\\w+)"
