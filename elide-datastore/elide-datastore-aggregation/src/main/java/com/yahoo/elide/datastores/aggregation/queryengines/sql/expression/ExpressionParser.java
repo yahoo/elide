@@ -6,8 +6,8 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
-import static com.yahoo.elide.core.utils.TypeHelper.nullOrEmpty;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -55,7 +55,7 @@ public class ExpressionParser {
                             // Remove args from column
                             column = argsIndex == -1 ? column : column.substring(0, argsIndex);
                             // Prefix column with join table name
-                            column = nullOrEmpty(from) ? column : from + PERIOD + column;
+                            column = isEmpty(from) ? column : from + PERIOD + column;
 
                             return column;
                         }
