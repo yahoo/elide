@@ -39,4 +39,19 @@ public class TestQueryWrapper implements Query {
     public Query setParameterList(String name, Collection<?> values) {
         return this;
     }
+
+    @Override
+    public <T> T uniqueResult() {
+        return null;
+    }
+
+    @Override
+    public <T> Iterable<T> scroll() {
+        return null;
+    }
+
+    @Override
+    public <T> Iterable<T> list() {
+        return null;
+    }
 }
