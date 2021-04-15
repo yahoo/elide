@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.core.utils;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Dynamic;
@@ -91,9 +93,9 @@ public class TypeHelper {
      * @return alias for the field
      */
     public static String appendAlias(String parentAlias, String fieldName) {
-        return nullOrEmpty(parentAlias)
+        return isEmpty(parentAlias)
                 ? fieldName
-                : nullOrEmpty(fieldName)
+                : isEmpty(fieldName)
                         ? parentAlias
                         : parentAlias + UNDERSCORE + fieldName;
     }
@@ -127,17 +129,7 @@ public class TypeHelper {
      * @return combined alias
      */
     public static String getFieldAlias(String tableAlias, String fieldName) {
-        return nullOrEmpty(tableAlias) ? fieldName : tableAlias + PERIOD + fieldName;
-    }
-
-    /**
-     * Check whether an alias is null or empty string
-     *
-     * @param alias alias
-     * @return True if is null or empty
-     */
-    private static boolean nullOrEmpty(String alias) {
-        return alias == null || alias.equals("");
+        return isEmpty(tableAlias) ? fieldName : tableAlias + PERIOD + fieldName;
     }
 
     /**

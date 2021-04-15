@@ -94,8 +94,6 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
     @Override
     public boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
-        SQLDialect dialect = source.getConnectionDetails().getDialect();
-        String sql = toSQL(source.getSource(), lookupTable);
 
         if (lookupTable.getResolvedJoinProjections(source.getSource(), name).size() > 0) {
             //We currently don't support nesting metrics with joins.
@@ -103,18 +101,8 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
             return false;
         }
 
-        SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
-
-        try {
-            sqlParser.parseExpression();
-        } catch (SqlParseException e) {
-
-            //If calcite can't parse the expression, we can't nest it.
-            return false;
-        }
-
         //TODO - Phase 2: return true if Calcite can parse & determine joins independently for inner & outer query
-        return true;
+        return SQLColumnProjection.super.canNest(source, lookupTable);
     }
 
     @Override
@@ -172,7 +160,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                 dialect.getBeginQuote()
                         + "?(" + getAggregationLabelPrefix(dialect.getCalciteDialect()) + "\\w+)"
                         + dialect.getEndQuote()
-                        + "?", "{{$1}}");
+                        + "?", "{{\\$" + "$1" + "}}");
 
         boolean inProjection = source.getColumnProjection(name, arguments) != null;
 

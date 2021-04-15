@@ -6,6 +6,8 @@
 package com.yahoo.elide.datastores.hibernate3.porting;
 
 import com.yahoo.elide.core.hibernate.Query;
+import com.yahoo.elide.datastores.hibernate3.ScrollableIterator;
+
 import lombok.Getter;
 
 import java.util.Collection;
@@ -44,5 +46,20 @@ public class QueryWrapper implements Query {
     public Query setParameterList(String name, Collection<?> values) {
         this.query = query.setParameterList(name, values);
         return this;
+    }
+
+    @Override
+    public <T> T uniqueResult() {
+        return (T) query.uniqueResult();
+    }
+
+    @Override
+    public <T> Iterable<T> scroll() {
+        return new ScrollableIterator<>(query.scroll());
+    }
+
+    @Override
+    public <T> Iterable<T> list() {
+        return query.list();
     }
 }

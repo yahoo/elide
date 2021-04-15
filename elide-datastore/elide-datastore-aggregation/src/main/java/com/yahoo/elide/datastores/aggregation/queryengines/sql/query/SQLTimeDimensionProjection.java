@@ -89,11 +89,6 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     }
 
     @Override
-    public boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
-        return true;
-    }
-
-    @Override
     public Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source,
                                                               SQLReferenceTable lookupTable,
                                                               boolean joinInOuter) {
@@ -122,7 +117,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
                     .grain(new TimeDimensionGrain(
                             this.getName(),
                             grain.getGrain()))
-                    .expression("{{" + this.getSafeAlias() + "}}")
+                    .expression("{{$" + this.getSafeAlias() + "}}")
                     .projected(isProjected())
                     .arguments(arguments)
                     .timeZone(timeZone)

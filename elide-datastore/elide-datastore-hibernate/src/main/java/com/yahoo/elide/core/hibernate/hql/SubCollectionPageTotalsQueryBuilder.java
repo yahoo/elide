@@ -78,9 +78,6 @@ public class SubCollectionPageTotalsQueryBuilder extends AbstractHQLQueryBuilder
             // Copy and scope the filter expression for the join clause
             ExpressionScopingVisitor visitor = new ExpressionScopingVisitor(
                     new PathElement(parentType, relationship.getChildType(), relationship.getRelationshipName()));
-            if (filterExpression == null) {
-                throw new IllegalStateException("Filter expression cloned to null");
-            }
 
             FilterExpression scoped = filterExpression.accept(visitor);
 

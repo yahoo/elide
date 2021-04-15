@@ -39,6 +39,7 @@ public class ExpressionParserTest {
     private SQLTable playerStats;
     private SQLTable country;
     private MetaDataStore metaDataStore;
+    private JoinReference countryInUSAJoinReference;
 
     public ExpressionParserTest() {
         Set<Type<?>> models = new HashSet<>();
@@ -63,6 +64,29 @@ public class ExpressionParserTest {
         parser = new ExpressionParser(metaDataStore);
         playerStats = (SQLTable) metaDataStore.getTable(ClassType.of(PlayerStats.class));
         country = (SQLTable) metaDataStore.getTable(ClassType.of(Country.class));
+
+        countryInUSAJoinReference = JoinReference
+                .builder()
+                .source(playerStats)
+                .path(new JoinPath(ClassType.of(PlayerStats.class), metaDataStore, "country.inUsa"))
+                .reference(LogicalReference
+                        .builder()
+                        .source(country)
+                        .column(country.getColumnProjection("inUsa"))
+                        .reference(LogicalReference
+                                .builder()
+                                .source(country)
+                                .column(country.getColumnProjection("name"))
+                                .reference(PhysicalReference
+                                        .builder()
+                                        .source(country)
+                                        .name("name")
+                                        .build()
+                                )
+                                .build()
+                        )
+                        .build())
+                .build();
     }
 
     @Test
@@ -104,28 +128,7 @@ public class ExpressionParserTest {
         List<Reference> references = parser.parse(playerStats, countryInUsa.getExpression());
 
         assertTrue(references.size() == 1);
-        assertEquals(JoinReference
-                .builder()
-                .source(playerStats)
-                .path(new JoinPath(ClassType.of(PlayerStats.class), metaDataStore, "country.inUsa"))
-                .reference(LogicalReference
-                        .builder()
-                        .source(country)
-                        .column(country.getColumnProjection("inUsa"))
-                        .reference(LogicalReference
-                                .builder()
-                                .source(country)
-                                .column(country.getColumnProjection("name"))
-                                .reference(PhysicalReference
-                                        .builder()
-                                        .source(country)
-                                        .name("name")
-                                        .build()
-                                )
-                                .build()
-                        )
-                        .build())
-                .build(), references.get(0));
+        assertEquals(countryInUSAJoinReference, references.get(0));
     }
 
     @Test
@@ -149,5 +152,31 @@ public class ExpressionParserTest {
                         .name("id")
                         .build())
                 .build(), references.get(1));
+    }
+
+    @Test
+    public void testMultipleReferencesWithHelper() {
+        List<Reference> references = parser.parse(playerStats, "{{$country_id}} = {{country.$id}} AND {{sql from='country' column='inUsa'}} = true");
+
+        assertTrue(references.size() == 3);
+
+        assertEquals(PhysicalReference.builder()
+                .name("country_id")
+                .source(playerStats)
+                .build(), references.get(0));
+
+        assertEquals(JoinReference
+                .builder()
+                .source(playerStats)
+                .path(new JoinPath(ClassType.of(PlayerStats.class), metaDataStore, "country.$id"))
+                .reference(PhysicalReference
+                        .builder()
+                        .source(country)
+                        .name("id")
+                        .build())
+                .build(), references.get(1));
+
+        assertEquals(countryInUSAJoinReference, references.get(2));
+
     }
 }
