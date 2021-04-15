@@ -14,4 +14,3 @@ openssl aes-256-cbc -pass pass:$GPG_ENCPHRASE -in screwdriver/secring.gpg.enc -o
 mvn -B deploy -P ossrh -Dmaven.test.skip=true --settings screwdriver/settings/settings-publish.xml
 
 rm -rf screwdriver/deploy
-

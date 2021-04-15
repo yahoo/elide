@@ -42,4 +42,4 @@ jobs:
     requires: [~tag, ~release]
     steps:
       - publish: "screwdriver/scripts/publish.sh"
-      - build: "screwdriver/scripts/build.sh"
+
