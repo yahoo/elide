@@ -9,7 +9,7 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
+import org.apache.commons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -77,7 +77,7 @@ public class CaseAwareJPQLGenerator implements JPQLPredicateGenerator {
        String columnAlias = aliasGenerator.apply(predicate.getPath());
        List<FilterPredicate.FilterParameter> parameters = predicate.getParameters();
 
-        if (Strings.isNullOrEmpty(columnAlias)) {
+        if (StringUtils.isEmpty(columnAlias)) {
             log.error("columnAlias cannot be NULL or empty");
             throw new InvalidValueException(FILTER_PATH_NOT_NULL);
         }
@@ -87,7 +87,7 @@ public class CaseAwareJPQLGenerator implements JPQLPredicateGenerator {
         } else if (argumentCount == ArgumentCount.ONE) {
             Preconditions.checkArgument(parameters.size() == 1);
 
-            if (Strings.isNullOrEmpty(parameters.get(0).getPlaceholder())) {
+            if (StringUtils.isEmpty(parameters.get(0).getPlaceholder())) {
                 log.error("One non-null, non-empty argument was expected.");
                 throw new IllegalStateException(FILTER_ALIAS_NOT_NULL);
             }
