@@ -18,8 +18,6 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasJoinVisitor;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.PhysicalReferenceExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import org.apache.commons.lang3.tuple.Pair;
@@ -34,7 +32,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.stream.Collectors;
 
 /**
  * Column projection that can expand the column into a SQL projection fragment.
@@ -102,7 +99,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
         MetaDataStore store = lookupTable.getMetaDataStore();
         List<Reference> references = new ExpressionParser(store).parse(source, getExpression());
 
-        boolean requiresJoin = references.stream().anyMatch(ref -> ref.accept(new HasJoinVisitor()));
+        boolean requiresJoin = SQLColumnProjection.requiresJoin(references);
 
         boolean inProjection = source.getColumnProjection(getName(), getArguments()) != null;
 
@@ -112,13 +109,8 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
         if (requiresJoin && joinInOuter) {
             outerProjection = withExpression(getExpression(), inProjection);
 
-            innerProjections = references.stream()
-                    .map(ref -> ref.accept(new PhysicalReferenceExtractor(store)))
-                    .flatMap(Set::stream)
-                    .map(ref -> SQLPhysicalColumnProjection.builder()
-                            .name(ref.getName())
-                            .build())
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            //TODO - the expression needs to be rewritten to leverage the inner column physical projections.
+            innerProjections = SQLColumnProjection.extractPhysicalReferences(references, store);
         } else {
             outerProjection = SQLTimeDimensionProjection.builder()
                     .name(name)

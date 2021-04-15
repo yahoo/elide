@@ -18,9 +18,6 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasJoinVisitor;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
 import com.google.common.collect.Streams;
@@ -30,7 +27,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -197,8 +193,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
         //Next check the projection for required joins.
         for (ColumnProjection column: query.getColumnProjections()) {
             MetaDataStore store = lookupTable.getMetaDataStore();
-            List<Reference> references = new ExpressionParser(store).parse(query.getSource(), column.getExpression());
-            boolean requiresJoin = references.stream().anyMatch(ref -> ref.accept(new HasJoinVisitor()));
+            boolean requiresJoin = SQLColumnProjection.requiresJoin(query.getSource(), column, store);
 
             if (requiresJoin) {
                 return true;
