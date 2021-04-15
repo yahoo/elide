@@ -20,9 +20,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteIn
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteOuterAggregationExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteUtils;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasJoinVisitor;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import org.apache.calcite.avatica.util.Casing;
 import org.apache.calcite.sql.SqlDialect;
@@ -99,10 +96,8 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     @Override
     public boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
         MetaDataStore store = lookupTable.getMetaDataStore();
-        List<Reference> references = new ExpressionParser(store).parse(source, getExpression());
 
-        boolean requiresJoin = references.stream().anyMatch(ref -> ref.accept(new HasJoinVisitor()));
-
+        boolean requiresJoin = SQLColumnProjection.requiresJoin(source, this, store);
         if (requiresJoin) {
             //We currently don't support nesting metrics with joins.
             //A join could be part of the aggregation (inner) or post aggregation (outer) expression.
