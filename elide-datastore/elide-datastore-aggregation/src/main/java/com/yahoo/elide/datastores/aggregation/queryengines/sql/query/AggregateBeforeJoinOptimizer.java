@@ -192,7 +192,10 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
 
         //Next check the projection for required joins.
         for (ColumnProjection column: query.getColumnProjections()) {
-            if (lookupTable.getResolvedJoinProjections(query.getSource(), column.getName()).size() > 0) {
+            MetaDataStore store = lookupTable.getMetaDataStore();
+            boolean requiresJoin = SQLColumnProjection.requiresJoin(query.getSource(), column, store);
+
+            if (requiresJoin) {
                 return true;
             }
         }

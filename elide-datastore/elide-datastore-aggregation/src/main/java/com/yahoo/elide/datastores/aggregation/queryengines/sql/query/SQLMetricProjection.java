@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.core.request.Argument;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -94,8 +95,10 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
     @Override
     public boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
+        MetaDataStore store = lookupTable.getMetaDataStore();
 
-        if (lookupTable.getResolvedJoinProjections(source.getSource(), name).size() > 0) {
+        boolean requiresJoin = SQLColumnProjection.requiresJoin(source, this, store);
+        if (requiresJoin) {
             //We currently don't support nesting metrics with joins.
             //A join could be part of the aggregation (inner) or post aggregation (outer) expression.
             return false;
@@ -155,7 +158,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
         String outerAggExpression = transformedParseTree.toSqlString(dialect.getCalciteDialect()).getSql();
 
-        //replace INNER_AGG_... with {{INNER_AGG...}}
+        //replace INNER_AGG_... with {{$INNER_AGG...}}
         outerAggExpression = outerAggExpression.replaceAll(
                 dialect.getBeginQuote()
                         + "?(" + getAggregationLabelPrefix(dialect.getCalciteDialect()) + "\\w+)"

@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.google.common.collect.Sets;
 
 import lombok.Getter;
@@ -60,13 +59,5 @@ public class DynamicSQLReferenceTable extends SQLReferenceTable {
         }
 
         return resolvedJoinExpressions.get(queryable).get(fieldName);
-    }
-
-    @Override
-    public Set<SQLColumnProjection> getResolvedJoinProjections(Queryable queryable, String fieldName) {
-        if (staticReferenceTable.resolvedJoinProjections.containsKey(queryable)) {
-            return staticReferenceTable.getResolvedJoinProjections(queryable, fieldName);
-        }
-        return resolvedJoinProjections.get(queryable).get(fieldName);
     }
 }
