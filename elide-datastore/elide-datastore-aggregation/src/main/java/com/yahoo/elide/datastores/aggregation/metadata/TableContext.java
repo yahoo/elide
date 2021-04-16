@@ -140,6 +140,9 @@ public class TableContext extends HashMap<String, Object> {
                         ((Map<String, Object>) tableCtx.getOrDefault(REQ_PREFIX, emptyMap()))
                         .getOrDefault(TABLE_KEY, emptyMap());
 
+        // When request context is added to Table context first time, only current column must be sent under
+        // $$request.columns.columnName
+
         // If $$request.table.name matches current Queryable
         if (!requestTableMap.isEmpty() && requestTableMap.get(NAME_KEY).equals(tableCtx.getQueryable().getName())) {
             requestTableArgs = (Map<String, Object>) requestTableMap.get(ARGS_KEY);
@@ -172,8 +175,11 @@ public class TableContext extends HashMap<String, Object> {
                         .joins(tableCtx.getJoins())
                         .metaDataStore(tableCtx.getMetaDataStore())
                         .build();
+
+        // Add all the (columnName, columnExpr) along with $$request and $$user contexts.
         newCtx.putAll(tableCtx);
 
+        // Add $$table.args.argNames and $$column.args.argNames to be used for resolving current column.
         newCtx.putAll(prepareArgumentsMap(tableArgs, TBL_PREFIX));
         newCtx.putAll(prepareArgumentsMap(columnArgs, COL_PREFIX));
 
