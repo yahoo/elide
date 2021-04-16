@@ -127,7 +127,7 @@ class RevenueFact {
 
     @MetricFormula(value = "{{impressions}}) * {{$$table.args.testPercentage}}",
                     arguments = {@ArgumentDefinition(name = "aggregation", type = ValueType.TEXT,
-                                    defaultValue = "MAX")})
+                                    defaultValue = "MIN")})
     private Integer testImpressions;
 
     @MetricFormula(value = "TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, {{$$column.args.format}})",

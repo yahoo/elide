@@ -170,7 +170,7 @@ public class TableContext extends HashMap<String, Object> {
                         .queryable(queryable)
                         .alias(tableCtx.getAlias())
                         .joins(tableCtx.getJoins())
-                        .metaDataStore(metaDataStore)
+                        .metaDataStore(tableCtx.getMetaDataStore())
                         .build();
         newCtx.putAll(tableCtx);
 
