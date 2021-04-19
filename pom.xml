@@ -75,7 +75,7 @@
         <snapshotRepoUrl>https://oss.sonatype.org/content/repositories/snapshots/</snapshotRepoUrl>
         <autoVersionSubmodules>true</autoVersionSubmodules>
         <min.jdk.version>1.8</min.jdk.version>
-        <max.jdk.version>12</max.jdk.version>
+        <max.jdk.version>1.10</max.jdk.version>
         <source.jdk.version>${min.jdk.version}</source.jdk.version>
         <target.jdk.version>${min.jdk.version}</target.jdk.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
