@@ -1,7 +1,7 @@
 # Change Log
 
 ## 5.0.0-pr33
-5th public release candidate for Elide 5.0.  Major features will likely come in the next release as this release lays foundation for parameterized attributes and Handlebars templating support HJSON configuration files.  
+5th public release candidate for Elide 5.0.  Major features will likely come in the next release as this release lays foundation for parameterized attributes and Handlebars templating support in HJSON configuration files.  
 
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/4c33506fd7df9e0bbaf19f5d7cfb239c2a27b80e) Add 2 new filter operators - between and notbetween (#1962)
