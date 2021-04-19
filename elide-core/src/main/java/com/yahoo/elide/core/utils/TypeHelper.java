@@ -6,16 +6,24 @@
 
 package com.yahoo.elide.core.utils;
 
+import static com.yahoo.elide.core.filter.dialect.RSQLFilterDialect.FILTER_ARGUMENTS_PATTERN;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Dynamic;
 import com.yahoo.elide.core.type.Type;
+
 import com.google.common.collect.Sets;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 /**
@@ -147,5 +155,26 @@ public class TypeHelper {
         return cls.stream()
                         .map(ClassType::of)
                         .collect(Collectors.toSet());
+    }
+
+    /**
+     * Parses input string and return arguments as map.
+     *
+     * @param argsString String to parse for arguments.
+     * @return A Map of argument's name and value.
+     * @throws UnsupportedEncodingException
+     */
+    public static Map<String, String> parseArguments(String argsString) throws UnsupportedEncodingException {
+        Map<String, String> arguments = new HashMap<>();
+
+        if (!isEmpty(argsString)) {
+
+            Matcher matcher = FILTER_ARGUMENTS_PATTERN.matcher(argsString);
+            while (matcher.find()) {
+                arguments.put(matcher.group(1),
+                              URLDecoder.decode(matcher.group(2), StandardCharsets.UTF_8.name()));
+            }
+        }
+        return arguments;
     }
 }

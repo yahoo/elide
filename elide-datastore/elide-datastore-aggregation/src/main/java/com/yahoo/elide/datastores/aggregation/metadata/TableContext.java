@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata;
 
-import static com.yahoo.elide.core.filter.dialect.RSQLFilterDialect.FILTER_ARGUMENTS_PATTERN;
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.core.utils.TypeHelper.parseArguments;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 import static java.util.Collections.emptyMap;
@@ -14,6 +14,7 @@ import static java.util.Collections.emptyMap;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
 import com.github.jknack.handlebars.EscapingStrategy;
@@ -29,12 +30,9 @@ import lombok.ToString;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 /**
@@ -58,9 +56,6 @@ public class TableContext extends HashMap<String, Object> {
     private final Queryable queryable;
     private final String alias;
 
-    @Builder.Default
-    private final Map<String, Queryable> joins = new HashMap<>();
-
     private final Handlebars handlebars = new Handlebars()
                     .with(EscapingStrategy.NOOP)
                     .registerHelper("sql", new Helper<Object>() {
@@ -72,8 +67,9 @@ public class TableContext extends HashMap<String, Object> {
 
     public Object get(Object key) {
 
-        if (joins.containsKey(key)) {
-            Queryable joinQueryable = joins.get(key);
+        if (this.queryable.getJoins().containsKey(key)) {
+            SQLJoin sqlJoin = this.queryable.getJoins().get(key);
+            Queryable joinQueryable = metaDataStore.getTable(sqlJoin.getJoinTableType());
             TableContext newCtx = TableContext.builder()
                             .queryable(joinQueryable)
                             .alias(appendAlias(alias, key.toString()))
@@ -82,11 +78,6 @@ public class TableContext extends HashMap<String, Object> {
 
             joinQueryable.getColumnProjections().forEach(column -> {
                 newCtx.put(column.getName(), column.getExpression());
-            });
-
-            joinQueryable.getJoins().forEach((name, join) -> {
-                SQLTable joinTable = metaDataStore.getTable(join.getJoinTableType());
-                newCtx.addJoin(name, joinTable);
             });
 
             return newCtx;
@@ -172,7 +163,6 @@ public class TableContext extends HashMap<String, Object> {
         TableContext newCtx = TableContext.builder()
                         .queryable(queryable)
                         .alias(tableCtx.getAlias())
-                        .joins(tableCtx.getJoins())
                         .metaDataStore(tableCtx.getMetaDataStore())
                         .build();
 
@@ -211,7 +201,7 @@ public class TableContext extends HashMap<String, Object> {
 
         Map<String, Object> pinnedArgs = new HashMap<>();
         if (argsIndex >= 0) {
-            parseArguments(column.substring(argsIndex), pinnedArgs);
+            pinnedArgs.putAll(parseArguments(column.substring(argsIndex)));
             invokedColumnName = column.substring(0, argsIndex);
         }
 
@@ -232,26 +222,9 @@ public class TableContext extends HashMap<String, Object> {
         return resolveHandlebars(invokedTableCtx, invokedColumnName, invokedColumnExpr, pinnedArgs);
     }
 
-    public void addJoin(String joinName, Queryable joinQueryable) {
-        this.joins.put(joinName, joinQueryable);
-    }
-
     private void verifyKeyExists(Object key, Set<String> keySet) {
         if (!keySet.contains(key)) {
             throw new HandlebarsException(new Throwable("Couldn't find: " + key));
-        }
-    }
-
-    private static void parseArguments(String argsString, Map<String, Object> pinnedArgs)
-                    throws UnsupportedEncodingException {
-        if (argsString == null || argsString.isEmpty()) {
-            return;
-        }
-
-        Matcher matcher = FILTER_ARGUMENTS_PATTERN.matcher(argsString);
-        while (matcher.find()) {
-            pinnedArgs.put(matcher.group(1),
-                           URLDecoder.decode(matcher.group(2), StandardCharsets.UTF_8.name()));
         }
     }
 
