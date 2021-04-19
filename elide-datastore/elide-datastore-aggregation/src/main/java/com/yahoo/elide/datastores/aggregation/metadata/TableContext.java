@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata;
 
+import static com.yahoo.elide.core.request.Argument.getArgumentsFromString;
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
-import static com.yahoo.elide.core.utils.TypeHelper.parseArguments;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 import static java.util.Collections.emptyMap;
@@ -201,7 +201,9 @@ public class TableContext extends HashMap<String, Object> {
 
         Map<String, Object> pinnedArgs = new HashMap<>();
         if (argsIndex >= 0) {
-            pinnedArgs.putAll(parseArguments(column.substring(argsIndex)));
+            getArgumentsFromString(column.substring(argsIndex)).forEach(arg -> {
+                pinnedArgs.put(arg.getName(), arg.getValue());
+            });
             invokedColumnName = column.substring(0, argsIndex);
         }
 
