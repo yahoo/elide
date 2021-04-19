@@ -10,6 +10,7 @@ import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 import static com.yahoo.elide.core.type.ClassType.NUMBER_TYPE;
 import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import static com.yahoo.elide.core.utils.TypeHelper.isPrimitiveNumberType;
+import static com.yahoo.elide.core.utils.TypeHelper.parseArguments;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -36,7 +37,6 @@ import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.RSQLParserException;
@@ -49,8 +49,6 @@ import cz.jirutka.rsql.parser.ast.RSQLOperators;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -340,7 +338,9 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                 int argsIndex = associationName.indexOf('[');
                 if (argsIndex > 0) {
                     try {
-                        parseArguments(associationName.substring(argsIndex), arguments);
+                        parseArguments(associationName.substring(argsIndex)).forEach((key, value) -> {
+                            arguments.add(Argument.builder().name(key).value(value).build());
+                        });
                     } catch (UnsupportedEncodingException | IllegalArgumentException e) {
                         throw new RSQLParseException(
                                         String.format("Filter expression is not in expected format at: %s. %s",
@@ -362,20 +362,6 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                 entityType = fieldType;
             }
             return new Path(path);
-        }
-
-        private void parseArguments(String argsString, Set<Argument> arguments) throws UnsupportedEncodingException {
-            if (StringUtils.isEmpty(argsString)) {
-                return;
-            }
-
-            Matcher matcher = FILTER_ARGUMENTS_PATTERN.matcher(argsString);
-            while (matcher.find()) {
-                arguments.add(Argument.builder()
-                                .name(matcher.group(1))
-                                .value(URLDecoder.decode(matcher.group(2), StandardCharsets.UTF_8.name()))
-                                .build());
-            }
         }
 
         private void addDefaultArguments(Set<Argument> clientArguments, Set<ArgumentType> availableArgTypes) {

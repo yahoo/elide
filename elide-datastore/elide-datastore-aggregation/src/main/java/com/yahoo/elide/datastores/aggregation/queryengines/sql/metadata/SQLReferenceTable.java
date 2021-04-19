@@ -126,11 +126,6 @@ public class SQLReferenceTable {
                 tableCtx.put(column.getName(), column.getExpression());
             });
 
-            queryable.getJoins().forEach((name, join) -> {
-                SQLTable joinTable = metaDataStore.getTable(join.getJoinTableType());
-                tableCtx.addJoin(name, joinTable);
-            });
-
             globalTablesContext.put(key, tableCtx);
         }
     }
