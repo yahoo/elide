@@ -1,6 +1,6 @@
 # Change Log
 
-## 5.0.0-pr33
+## 5.0.0-pr34
 5th public release candidate for Elide 5.0.  Major features will likely come in the next release as this release lays foundation for parameterized attributes and Handlebars templating support in HJSON configuration files.  
 
 **Features**
