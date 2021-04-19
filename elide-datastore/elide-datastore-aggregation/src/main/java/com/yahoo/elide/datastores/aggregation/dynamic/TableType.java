@@ -647,7 +647,7 @@ public class TableType implements Type<DynamicModelInstance> {
                             public String expression() {
                                 String sql = grain.getSql();
                                 if (StringUtils.isEmpty(sql)) {
-                                    return "{{}}";
+                                    return "{{$$column.expr}}";
                                 }
                                 return grain.getSql();
                             }

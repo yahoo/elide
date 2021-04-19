@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import static com.yahoo.elide.datastores.aggregation.metadata.TableContext.copyFromRequestContext;
+
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
@@ -88,8 +90,9 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     }
 
     @Override
-    public String toSQL(Queryable source, SQLReferenceTable lookupTable) {
+    public String toSQL(Queryable source, SQLReferenceTable lookupTable, Map<String, Object> requestContext) {
         if (expression.matches(".*\\{\\{.*\\}\\}.*")) {
+
             TableContext tableCtx = lookupTable.getGlobalTableContext(source);
 
             // Prepare context for resolving this column.
@@ -99,8 +102,12 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                             .metaDataStore(tableCtx.getMetaDataStore())
                             .build();
 
+            // Add $$user, $$request.table and $$request.columns.column to current context
+            copyFromRequestContext(currentCtx, requestContext, getName());
+
             return currentCtx.resolveHandlebars(getName(), getExpression(), Collections.emptyMap());
         }
+
         return expression;
     }
 
@@ -124,7 +131,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                                                               SQLReferenceTable lookupTable,
                                                               boolean joinInOuter) {
         SQLDialect dialect = source.getConnectionDetails().getDialect();
-        String sql = toSQL(source.getSource(), lookupTable);
+        String sql = toSQL(source.getSource(), lookupTable, source.getContext());
         SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
 
         SqlNode node;

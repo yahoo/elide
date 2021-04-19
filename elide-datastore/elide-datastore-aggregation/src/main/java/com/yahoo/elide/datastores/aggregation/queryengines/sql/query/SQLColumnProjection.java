@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import static com.yahoo.elide.datastores.aggregation.metadata.TableContext.copyFromRequestContext;
+
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
@@ -26,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -39,9 +42,10 @@ public interface SQLColumnProjection extends ColumnProjection {
      * Generate a SQL fragment for this combination column and client arguments.
      * @param source the queryable that contains the column.
      * @param lookupTable symbol table to resolve column name references.
+     * @param requestContext Request Context
      * @return SQL query String for this column
      */
-    default String toSQL(Queryable source, SQLReferenceTable lookupTable) {
+    default String toSQL(Queryable source, SQLReferenceTable lookupTable, Map<String, Object> requestContext) {
 
         TableContext tableCtx = lookupTable.getGlobalTableContext(source);
 
@@ -52,13 +56,16 @@ public interface SQLColumnProjection extends ColumnProjection {
                         .metaDataStore(tableCtx.getMetaDataStore())
                         .build();
 
+        // Add $$user, $$request.table and $$request.columns.column to current context
+        copyFromRequestContext(currentCtx, requestContext, getName());
+
         return currentCtx.resolveHandlebars(getName(), getExpression(), Collections.emptyMap());
     }
 
     @Override
     default boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
         SQLDialect dialect = source.getConnectionDetails().getDialect();
-        String sql = toSQL(source.getSource(), lookupTable);
+        String sql = toSQL(source.getSource(), lookupTable, source.getContext());
 
         SyntaxVerifier verifier = new SyntaxVerifier(dialect);
         boolean canNest = verifier.verify(sql);

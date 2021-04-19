@@ -11,6 +11,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 import com.google.common.collect.Streams;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -211,8 +212,17 @@ public interface Queryable {
 
     /**
      * Returns the joins associated with root of this queryable.
+     * @return A map of join name and {@link SQLJoin}.
      */
     default Map<String, SQLJoin> getJoins() {
         return this.getRoot().getJoins();
+    }
+
+    /**
+     * Returns the context associated with this queryable.
+     * @return A map of String and Object.
+     */
+    default Map<String, Object> getContext() {
+        return Collections.emptyMap();
     }
 }

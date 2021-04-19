@@ -48,7 +48,9 @@ public class Query implements Queryable {
     private FilterExpression havingFilter;
     private Sorting sorting;
     private ImmutablePagination pagination;
+
     @Builder.Default
+    @EqualsAndHashCode.Exclude
     private Map<String, Object> context = new HashMap<>();
 
     @EqualsAndHashCode.Exclude

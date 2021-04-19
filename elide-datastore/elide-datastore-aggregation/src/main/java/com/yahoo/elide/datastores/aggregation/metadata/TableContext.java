@@ -13,6 +13,7 @@ import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.S
 import static java.util.Collections.emptyMap;
 
 import com.yahoo.elide.datastores.aggregation.metadata.models.Argument;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
@@ -134,7 +135,9 @@ public class TableContext extends HashMap<String, Object> {
         // Add the default argument values stored in metadata store.
         if (table != null) {
             defaultTableArgs = getDefaultArgumentsMap(table.getArguments());
-            defaultColumnArgs = getDefaultArgumentsMap(table.getColumnMap().get(columnName).getArguments());
+            Column column = table.getColumnMap().get(columnName);
+            defaultColumnArgs = (column != null) ? getDefaultArgumentsMap(column.getArguments())
+                                                 : new HashMap<>();
         } else {
             defaultTableArgs = new HashMap<>();
             defaultColumnArgs = new HashMap<>();
@@ -180,7 +183,6 @@ public class TableContext extends HashMap<String, Object> {
         // Add/Override $$table.args and $$column.args required for resolving current column.
         newCtx.putAll(prepareArgumentsMap(newCtxTableArgs, requestContext, TBL_PREFIX));
         newCtx.putAll(prepareArgumentsMap(newCtxColumnArgs, columnContext, COL_PREFIX));
-
 
         try {
             Template template = handlebars.compileInline(columnExpr);
@@ -244,5 +246,46 @@ public class TableContext extends HashMap<String, Object> {
         return availableArgs.stream()
                         .filter(arg -> arg.getDefaultValue() != null)
                         .collect(Collectors.toMap(Argument::getName, Argument::getDefaultValue));
+    }
+
+    /**
+     * Copy $$request.table, $$request.columns.column and $$user to current context.
+     *
+     * @param tableCtx current context.
+     * @param requestContext request context.
+     * @param columnName current column name.
+     */
+    public static void copyFromRequestContext(TableContext tableCtx, Map<String, Object> requestContext,
+                    String columnName) {
+        copyTableFromRequestContext(tableCtx, requestContext);
+        copyColumnFromRequestContext(tableCtx, requestContext, columnName);
+        copyUserFromRequestContext(tableCtx, requestContext);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void copyTableFromRequestContext(TableContext tableCtx, Map<String, Object> requestContext) {
+        if (requestContext.containsKey(REQ_PREFIX)) {
+            Map<String, Object> requestMap = (Map<String, Object>) requestContext.get(REQ_PREFIX);
+            tableCtx.put(TBL_PREFIX, requestMap.get(TABLE_KEY));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void copyColumnFromRequestContext(TableContext tableCtx, Map<String, Object> requestContext,
+                    String columnName) {
+        if (requestContext.containsKey(REQ_PREFIX)) {
+            Map<String, Object> requestMap = (Map<String, Object>) requestContext.get(REQ_PREFIX);
+
+            Map<String, Object> columnsMap = (Map<String, Object>) requestMap.get(COLUMNS_KEY);
+            if (columnsMap.containsKey(columnName)) {
+                tableCtx.put(COL_PREFIX, columnsMap.get(columnName));
+            }
+        }
+    }
+
+    public static void copyUserFromRequestContext(TableContext tableCtx, Map<String, Object> requestContext) {
+        if (requestContext.containsKey(USER_PREFIX)) {
+            tableCtx.put(TBL_PREFIX, requestContext.get(USER_PREFIX));
+        }
     }
 }

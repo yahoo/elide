@@ -6,6 +6,9 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import static com.yahoo.elide.datastores.aggregation.metadata.TableContext.COL_PREFIX;
+import static com.yahoo.elide.datastores.aggregation.metadata.TableContext.copyFromRequestContext;
+
 import com.yahoo.elide.core.exceptions.InvalidParameterizedAttributeException;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
@@ -21,6 +24,8 @@ import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,6 +33,7 @@ import lombok.Value;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -81,7 +87,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     }
 
     @Override
-    public String toSQL(Queryable source, SQLReferenceTable table) {
+    public String toSQL(Queryable source, SQLReferenceTable table, Map<String, Object> requestContext) {
 
         TableContext tableCtx = table.getGlobalTableContext(source);
 
@@ -92,9 +98,22 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
                         .metaDataStore(tableCtx.getMetaDataStore())
                         .build();
 
-        // TODO - We will likely migrate to a templating language when we support parameterized metrics.
-        return grain.getExpression().replaceAll(TIME_DIMENSION_REPLACEMENT_REGEX,
-                        currentCtx.resolveHandlebars(getName(), getExpression(), Collections.emptyMap()));
+        // Add $$user, $$request.table and $$request.columns.column to current context
+        copyFromRequestContext(currentCtx, requestContext, getName());
+
+        String resolvedExpr = currentCtx.resolveHandlebars(getName(), getExpression(), Collections.emptyMap());
+
+        // Add $$column.expr under $$column context.
+        Map<String, Object> columnContext;
+        if (currentCtx.containsKey(COL_PREFIX)) {
+            columnContext = (Map<String, Object>) currentCtx.get(COL_PREFIX);
+        } else {
+            columnContext = new HashMap<>();
+            currentCtx.put(COL_PREFIX, columnContext);
+        }
+        columnContext.put("expr", resolvedExpr);
+
+        return currentCtx.resolveHandlebars(StringUtils.EMPTY, grain.getExpression(), Collections.emptyMap());
     }
 
     @Override

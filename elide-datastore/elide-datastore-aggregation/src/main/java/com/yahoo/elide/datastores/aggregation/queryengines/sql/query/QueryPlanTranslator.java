@@ -86,7 +86,8 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .metricProjections(plan.getMetricProjections())
                 .dimensionProjections(plan.getDimensionProjections())
                 .timeDimensionProjections(plan.getTimeDimensionProjections())
-                .whereFilter(clientQuery.getWhereFilter());
+                .whereFilter(clientQuery.getWhereFilter())
+                .context(clientQuery.getContext());
     }
 
     private Query.QueryBuilder visitOuterQueryPlan(Queryable plan)  {
@@ -102,6 +103,7 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .havingFilter(clientQuery.getHavingFilter())
                 .sorting(clientQuery.getSorting())
                 .pagination(clientQuery.getPagination())
+                .context(clientQuery.getContext())
                 .scope(clientQuery.getScope());
     }
 
@@ -127,6 +129,7 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .whereFilter(clientQuery.getWhereFilter())
                 .sorting(clientQuery.getSorting())
                 .pagination(clientQuery.getPagination())
+                .context(clientQuery.getContext())
                 .scope(clientQuery.getScope());
     }
 }
