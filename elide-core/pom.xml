@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>5.0.0-pr33-SNAPSHOT</version>
+        <version>5.0.0-pr34-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -136,7 +136,7 @@
         <dependency>
             <groupId>io.github.classgraph</groupId>
             <artifactId>classgraph</artifactId>
-            <version>4.8.102</version>
+            <version>4.8.104</version>
         </dependency>
 
         <dependency>
