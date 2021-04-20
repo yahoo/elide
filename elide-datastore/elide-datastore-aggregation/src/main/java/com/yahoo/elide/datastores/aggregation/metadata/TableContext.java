@@ -107,21 +107,19 @@ public class TableContext extends HashMap<String, Object> {
             return value;
         }
 
-        return resolveHandlebars(this, key.toString(), value.toString(), emptyMap());
+        return resolveHandlebars(key.toString(), value.toString(), emptyMap());
     }
 
     /**
      * Resolves the handebars in column expression.
      *
-     * @param tableCtx current {@link TableContext}.
      * @param columnName column's name.
      * @param columnExpr column's definition.
      * @param fixedArgs If this is called from SQL helper then pinned arguments.
      * @return fully resolved column's expression.
      */
     @SuppressWarnings("unchecked")
-    public String resolveHandlebars(TableContext tableCtx, String columnName, String columnExpr,
-                    Map<String, Object> fixedArgs) {
+    public String resolveHandlebars(String columnName, String columnExpr, Map<String, Object> fixedArgs) {
 
         Map<String, Object> defaultTableArgs;
         Map<String, Object> defaultColumnArgs;
@@ -132,7 +130,7 @@ public class TableContext extends HashMap<String, Object> {
         Map<String, Object> newCtxTableArgs = new HashMap<>();
         Map<String, Object> newCtxColumnArgs = new HashMap<>();
 
-        Queryable queryable = tableCtx.getQueryable();
+        Queryable queryable = this.getQueryable();
         Table table = metaDataStore.getTable(queryable.getName(), queryable.getVersion());
 
         // Add the default argument values stored in metadata store.
@@ -148,17 +146,17 @@ public class TableContext extends HashMap<String, Object> {
         // a) $$request.table.{name, args} is added as $$table.{name, args}
         // b) $$request.columns.columnName.{name, args} is added as  $$column.{name, args}
 
-        requestContext = (Map<String, Object>) tableCtx.getOrDefault(TBL_PREFIX, emptyMap());
+        requestContext = (Map<String, Object>) this.getOrDefault(TBL_PREFIX, emptyMap());
         // If $$table.name matches current Queryable, use the argument map stored under $$table.args
         if (!requestContext.isEmpty() && requestContext.getOrDefault(NAME_KEY, StringUtils.EMPTY)
-                        .equals(tableCtx.getQueryable().getName())) {
+                        .equals(queryable.getName())) {
             requestArgsContext = (Map<String, Object>) requestContext.getOrDefault(ARGS_KEY, emptyMap());
         } else {
             requestArgsContext = new HashMap<>();
         }
 
         // Get the argument map stored under $$column.args
-        columnContext = (Map<String, Object>) tableCtx.getOrDefault(COL_PREFIX, emptyMap());
+        columnContext = (Map<String, Object>) this.getOrDefault(COL_PREFIX, emptyMap());
         columnArgsContext = (Map<String, Object>) columnContext.getOrDefault(ARGS_KEY, emptyMap());
 
         // Finalize table arguments, first add default table arguments and then add request table arguments.
@@ -174,12 +172,12 @@ public class TableContext extends HashMap<String, Object> {
         // Build a new Context for resolving this column
         TableContext newCtx = TableContext.builder()
                         .queryable(queryable)
-                        .alias(tableCtx.getAlias())
-                        .metaDataStore(tableCtx.getMetaDataStore())
+                        .alias(this.getAlias())
+                        .metaDataStore(this.getMetaDataStore())
                         .build();
 
         // Add all the (columnName, columnExpr) along with any $$ contexts.
-        newCtx.putAll(tableCtx);
+        newCtx.putAll(this);
 
         // Add/Override $$table.args and $$column.args required for resolving current column.
         newCtx.putAll(prepareArgumentsMap(newCtxTableArgs, requestContext, TBL_PREFIX));
@@ -225,7 +223,7 @@ public class TableContext extends HashMap<String, Object> {
         SQLTable table = (SQLTable) metaDataStore.getTable(invokedQueryable.getName(), invokedQueryable.getVersion());
         String invokedColumnExpr = table.getColumnMap().get(invokedColumnName).getExpression();
 
-        return resolveHandlebars(invokedTableCtx, invokedColumnName, invokedColumnExpr, pinnedArgs);
+        return invokedTableCtx.resolveHandlebars(invokedColumnName, invokedColumnExpr, pinnedArgs);
     }
 
     private void verifyKeyExists(Object key, Set<String> keySet) {
