@@ -3,6 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
+
 package com.yahoo.elide.datastores.aggregation.metadata;
 
 import static com.yahoo.elide.core.request.Argument.getArgumentsFromString;
@@ -30,6 +31,7 @@ import lombok.ToString;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -46,10 +48,12 @@ public class TableContext extends HashMap<String, Object> {
     public static final String COL_PREFIX = "$$column";
     public static final String REQ_PREFIX = "$$request";
     public static final String TBL_PREFIX = "$$table";
+    public static final String USER_PREFIX = "$$user";
     public static final String ARGS_KEY = "args";
     public static final String TABLE_KEY = "table";
     public static final String COLUMNS_KEY = "columns";
     public static final String NAME_KEY = "name";
+    public static final String DOUBLE_DOLLAR = "$$";
 
     private final MetaDataStore metaDataStore;
 
@@ -80,6 +84,13 @@ public class TableContext extends HashMap<String, Object> {
                 newCtx.put(column.getName(), column.getExpression());
             });
 
+            // Copy $$column, $$user etc to join context.
+            this.forEach((k, v) -> {
+                if (k.startsWith(DOUBLE_DOLLAR)) {
+                    newCtx.put(k, v);
+                }
+            });
+
             return newCtx;
         }
 
@@ -92,7 +103,7 @@ public class TableContext extends HashMap<String, Object> {
         verifyKeyExists(key, super.keySet());
 
         Object value = super.get(key);
-        if (key.toString().startsWith("$$")) {
+        if (value instanceof Map) {
             return value;
         }
 
@@ -105,59 +116,60 @@ public class TableContext extends HashMap<String, Object> {
      * @param tableCtx current {@link TableContext}.
      * @param columnName column's name.
      * @param columnExpr column's definition.
-     * @param callingColumnArgs If this is called from SQL helper then calling column's arguments.
+     * @param fixedArgs If this is called from SQL helper then pinned arguments.
      * @return fully resolved column's expression.
      */
     @SuppressWarnings("unchecked")
     public String resolveHandlebars(TableContext tableCtx, String columnName, String columnExpr,
-                    Map<String, Object> callingColumnArgs) {
+                    Map<String, Object> fixedArgs) {
 
-        Map<String, Object> tableArgs = new HashMap<>();
-        Map<String, Object> columnArgs = new HashMap<>();
-        Map<String, Object> requestTableArgs = new HashMap<>();
-        Map<String, Object> requestColumnArgs = new HashMap<>();
+        Map<String, Object> defaultTableArgs;
+        Map<String, Object> defaultColumnArgs;
+        Map<String, Object> requestContext;
+        Map<String, Object> requestArgsContext;
+        Map<String, Object> columnContext;
+        Map<String, Object> columnArgsContext;
+        Map<String, Object> newCtxTableArgs = new HashMap<>();
+        Map<String, Object> newCtxColumnArgs = new HashMap<>();
 
         Queryable queryable = tableCtx.getQueryable();
         Table table = metaDataStore.getTable(queryable.getName(), queryable.getVersion());
 
         // Add the default argument values stored in metadata store.
         if (table != null) {
-            tableArgs.putAll(getDefaultArgumentsMap(table.getArguments()));
-            columnArgs.putAll(getDefaultArgumentsMap(table.getColumnMap().get(columnName).getArguments()));
+            defaultTableArgs = getDefaultArgumentsMap(table.getArguments());
+            defaultColumnArgs = getDefaultArgumentsMap(table.getColumnMap().get(columnName).getArguments());
+        } else {
+            defaultTableArgs = new HashMap<>();
+            defaultColumnArgs = new HashMap<>();
         }
 
-        // Get the map stored under $$request.table.
-        Map<String, Object> requestTableMap = (Map<String, Object>)
-                        ((Map<String, Object>) tableCtx.getOrDefault(REQ_PREFIX, emptyMap()))
-                        .getOrDefault(TABLE_KEY, emptyMap());
+        // When request context is added to Table context in SQLColumnProjection#toSQL method:
+        // a) $$request.table.{name, args} is added as $$table.{name, args}
+        // b) $$request.columns.columnName.{name, args} is added as  $$column.{name, args}
 
-        // When request context is added to Table context first time, only current column must be sent under
-        // $$request.columns.columnName
-
-        // If $$request.table.name matches current Queryable
-        if (!requestTableMap.isEmpty() && requestTableMap.get(NAME_KEY).equals(tableCtx.getQueryable().getName())) {
-            requestTableArgs = (Map<String, Object>) requestTableMap.get(ARGS_KEY);
-
-            // Get the map stored under $$request.columns.
-            Map<String, Object> requestColumnsMap = (Map<String, Object>)
-                            ((Map<String, Object>) tableCtx.getOrDefault(REQ_PREFIX, emptyMap()))
-                            .getOrDefault(COLUMNS_KEY, emptyMap());
-
-            // If $$request.columns.columnName matches current column Name
-            if (requestColumnsMap.containsKey(columnName)) {
-                requestColumnArgs = (Map<String, Object>)
-                                ((Map<String, Object>) requestColumnsMap.get(columnName))
-                                .get(ARGS_KEY);
-            }
+        requestContext = (Map<String, Object>) tableCtx.getOrDefault(TBL_PREFIX, emptyMap());
+        // If $$table.name matches current Queryable, use the argument map stored under $$table.args
+        if (!requestContext.isEmpty() && requestContext.getOrDefault(NAME_KEY, StringUtils.EMPTY)
+                        .equals(tableCtx.getQueryable().getName())) {
+            requestArgsContext = (Map<String, Object>) requestContext.getOrDefault(ARGS_KEY, emptyMap());
+        } else {
+            requestArgsContext = new HashMap<>();
         }
 
-        // Override default table and column arguments with arguments provided in request.
-        tableArgs.putAll(requestTableArgs);
-        columnArgs.putAll(requestColumnArgs);
+        // Get the argument map stored under $$column.args
+        columnContext = (Map<String, Object>) tableCtx.getOrDefault(COL_PREFIX, emptyMap());
+        columnArgsContext = (Map<String, Object>) columnContext.getOrDefault(ARGS_KEY, emptyMap());
 
-        // If this is invoked using SQL helper, calling column's arguments must override current column's default and
-        // request arguments.
-        columnArgs.putAll(callingColumnArgs);
+        // Finalize table arguments, first add default table arguments and then add request table arguments.
+        newCtxTableArgs.putAll(defaultTableArgs);
+        newCtxTableArgs.putAll(requestArgsContext);
+
+        // Finalize column arguments, first add default column arguments and then add request column arguments and then
+        // add any fixed arguments provided in sql helper.
+        newCtxColumnArgs.putAll(defaultColumnArgs);
+        newCtxColumnArgs.putAll(columnArgsContext);
+        newCtxColumnArgs.putAll(fixedArgs);
 
         // Build a new Context for resolving this column
         TableContext newCtx = TableContext.builder()
@@ -166,12 +178,13 @@ public class TableContext extends HashMap<String, Object> {
                         .metaDataStore(tableCtx.getMetaDataStore())
                         .build();
 
-        // Add all the (columnName, columnExpr) along with $$request and $$user contexts.
+        // Add all the (columnName, columnExpr) along with any $$ contexts.
         newCtx.putAll(tableCtx);
 
-        // Add $$table.args.argNames and $$column.args.argNames to be used for resolving current column.
-        newCtx.putAll(prepareArgumentsMap(tableArgs, TBL_PREFIX));
-        newCtx.putAll(prepareArgumentsMap(columnArgs, COL_PREFIX));
+        // Add/Override $$table.args and $$column.args required for resolving current column.
+        newCtx.putAll(prepareArgumentsMap(newCtxTableArgs, requestContext, TBL_PREFIX));
+        newCtx.putAll(prepareArgumentsMap(newCtxColumnArgs, columnContext, COL_PREFIX));
+
 
         try {
             Template template = handlebars.compileInline(columnExpr);
@@ -181,7 +194,6 @@ public class TableContext extends HashMap<String, Object> {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private Object resolveSQLHandlebar(final Object context, final Options options)
                     throws UnsupportedEncodingException {
         String from = options.hash("from");
@@ -213,14 +225,6 @@ public class TableContext extends HashMap<String, Object> {
         SQLTable table = (SQLTable) metaDataStore.getTable(invokedQueryable.getName(), invokedQueryable.getVersion());
         String invokedColumnExpr = table.getColumnMap().get(invokedColumnName).getExpression();
 
-        Map<String, Object> currentColumnArgs = (Map<String, Object>)
-                        ((Map<String, Object>) currentTableCtx.get(COL_PREFIX))
-                        .get(ARGS_KEY);
-
-        // Ideally pinned arguments wont clash with column arguments
-        // But if it happens, column arguments gets preference so overriding pinned arguments.
-        pinnedArgs.putAll(currentColumnArgs);
-
         return resolveHandlebars(invokedTableCtx, invokedColumnName, invokedColumnExpr, pinnedArgs);
     }
 
@@ -230,14 +234,19 @@ public class TableContext extends HashMap<String, Object> {
         }
     }
 
-    private static Map<String, Object> prepareArgumentsMap(Map<String, Object> arguments, String outerMapKey) {
+    private static Map<String, Object> prepareArgumentsMap(Map<String, Object> arguments,
+                    Map<String, Object> currentContext, String outerMapKey) {
+        Map<String, Object> outerMap = new HashMap<>();
+        outerMap.put(ARGS_KEY, arguments);
 
-        Map<String, Object> outerArgsMap = new HashMap<>();
-        Map<String, Object> argsMap = new HashMap<>();
-        outerArgsMap.put(outerMapKey, argsMap);
-        argsMap.put(ARGS_KEY, arguments);
+        // Copy everything other than "args" as is.
+        currentContext.forEach((key, value) -> {
+            if (!key.equals(ARGS_KEY)) {
+                outerMap.put(key, value);
+            }
+        });
 
-        return outerArgsMap;
+        return Collections.singletonMap(outerMapKey, outerMap);
     }
 
     private static Map<String, Object> getDefaultArgumentsMap(Set<Argument> availableArgs) {

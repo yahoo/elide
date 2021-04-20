@@ -3,8 +3,12 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
+
 package com.yahoo.elide.datastores.aggregation.metadata;
 
+import static com.yahoo.elide.datastores.aggregation.metadata.TableContext.ARGS_KEY;
+import static com.yahoo.elide.datastores.aggregation.metadata.TableContext.NAME_KEY;
+import static com.yahoo.elide.datastores.aggregation.metadata.TableContext.TBL_PREFIX;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
@@ -33,6 +37,7 @@ import lombok.ToString;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.Id;
@@ -64,6 +69,13 @@ public class TableContextTest {
         SQLTable revenueFact = metaDataStore.getTable(ClassType.of(RevenueFact.class));
 
         revenueFactContext = lookupTable.getGlobalTableContext(revenueFact);
+
+        Map<String, Object> tableMap = new HashMap<>();
+        Map<String, Object> argsMap = new HashMap<>();
+        revenueFactContext.put(TBL_PREFIX, tableMap);
+        tableMap.put(NAME_KEY, revenueFact.getName());
+        tableMap.put(ARGS_KEY, argsMap);
+        argsMap.put("format", "999999D000000");
     }
 
     @Test
@@ -78,36 +90,45 @@ public class TableContextTest {
     @Test
     public void testLogicalReference() {
 
-        assertEquals("MAX(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`impressions`)) * 0.1",
+        // default value of 'aggregation' argument in "testImpressions" is used while resolving referenced column
+        // "impressions"
+        assertEquals("MIN(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`impressions`)) * 0.1",
                         revenueFactContext.get("testImpressions"));
-        assertEquals("TO_CHAR(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`conversion_rate`, 999D00)",
+
+        // default value of 'format' argument in "conversionRate" column of joined table is used while resolving
+        // referenced column "rate.conversionRate"
+        assertEquals("TO_CHAR(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`conversion_rate`, 9D0)",
                         revenueFactContext.get("conversionRate"));
     }
 
     @Test
     public void testSqlHelper() {
 
-        // default value of 'format' argument is used for 'conversion_rate' column
+        // default value of 'format' argument in "revenue" is used while resolving referenced column
+        // "rate.conversionRate"
         assertEquals("TO_CHAR(SUM(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`revenue`) * "
-                        + "TO_CHAR(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`conversion_rate`, 999D00), "
-                        + "999999D00)",
+                        + "TO_CHAR(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`conversion_rate`, 99D00), "
+                        + "99D00)",
                         revenueFactContext.get("revenue"));
 
-        // invoking column's value of 'format' argument is used for 'conversionRate' column
+        // pinned value (9999D0000) of 'format' argument in "revenueUsingSqlHelper" is used while resolving referenced
+        // column "rate.conversionRate"
+        // default value (999D000) of 'format' argument in "revenueUsingSqlHelper" is used while resolving column
+        // argument.
         assertEquals("TO_CHAR(SUM(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`revenue`) * "
-                        + "TO_CHAR(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`conversion_rate`, 999999D00), "
-                        + "999999D00)",
+                        + "TO_CHAR(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`conversion_rate`, 9999D0000), "
+                        + "999D000)",
                         revenueFactContext.get("revenueUsingSqlHelper"));
 
         // pinned value of 'aggregation' and 'format' arguments is used.
-        assertEquals("SUM(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`impressions`) / "
+        // {{$$table.args.format}} is resolved using request context argument.
+        assertEquals("TO_CHAR(SUM(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`impressions`) / "
                         + "TO_CHAR(SUM(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`revenue`) * "
-                        + "TO_CHAR(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`conversion_rate`, 999D00), "
-                        + "999999D0000)",
+                        + "TO_CHAR(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`conversion_rate`, 99999D00000), "
+                        + "99999D00000), 999999D000000)",
                         revenueFactContext.get("impressionsPerUSD"));
     }
 }
-
 
 @EqualsAndHashCode
 @ToString
@@ -132,15 +153,15 @@ class RevenueFact {
 
     @MetricFormula(value = "TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, {{$$column.args.format}})",
                     arguments = {@ArgumentDefinition(name = "format", type = ValueType.TEXT,
-                                    defaultValue = "999999D00")})
+                                    defaultValue = "99D00")})
     private BigDecimal revenue;
 
-    @MetricFormula(value = "TO_CHAR(SUM({{$revenue}}) * {{sql from='rate' column='conversionRate'}}, {{$$column.args.format}})",
+    @MetricFormula(value = "TO_CHAR(SUM({{$revenue}}) * {{sql from='rate' column='conversionRate[format:9999D0000]'}}, {{$$column.args.format}})",
                     arguments = {@ArgumentDefinition(name = "format", type = ValueType.TEXT,
-                                    defaultValue = "999999D00")})
+                                    defaultValue = "999D000")})
     private BigDecimal revenueUsingSqlHelper;
 
-    @MetricFormula(value = "{{sql column='impressions[aggregation:SUM]'}} / {{sql column='revenue[format:999999D0000]'}}")
+    @MetricFormula(value = "TO_CHAR({{sql column='impressions[aggregation:SUM]'}} / {{sql column='revenue[format:99999D00000]'}}, {{$$table.args.format}})")
     private Double impressionsPerUSD;
 
     @DimensionFormula("{{rate.conversionRate}}")
@@ -165,6 +186,6 @@ class CurrencyRate {
 
     @DimensionFormula(value = "TO_CHAR({{$conversion_rate}}, {{$$column.args.format}})",
                     arguments = {@ArgumentDefinition(name = "format", type = ValueType.INTEGER,
-                                    defaultValue = "999D00")})
+                                    defaultValue = "9D0")})
     private String conversionRate;
 }
