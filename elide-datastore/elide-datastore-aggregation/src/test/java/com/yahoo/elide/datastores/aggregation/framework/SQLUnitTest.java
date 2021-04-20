@@ -26,6 +26,7 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
@@ -90,6 +91,8 @@ import javax.sql.DataSource;
 public abstract class SQLUnitTest {
 
     protected static SQLTable playerStatsTable;
+    protected static SQLTable playerStatsViewTable;
+    protected static Map<String, Object> playerStatsViewRequestContext;
     protected static EntityDictionary dictionary;
     protected static RSQLFilterDialect filterParser;
     protected static MetaDataStore metaDataStore;
@@ -101,8 +104,8 @@ public abstract class SQLUnitTest {
     protected QueryEngine.Transaction transaction;
     private static SQLTable videoGameTable;
 
-    protected static Type<?> playerStatsType = getClassType(PlayerStats.class);
-    protected static Type<?> playerStatsViewType = getClassType(PlayerStatsView.class);
+    protected static Type<?> playerStatsType = ClassType.of(PlayerStats.class);
+    protected static Type<?> playerStatsViewType = ClassType.of(PlayerStatsView.class);
 
     // Standard set of test queries used in dialect tests
     protected enum TestQuery {
@@ -263,10 +266,10 @@ public abstract class SQLUnitTest {
                     .build();
         }),
         SUBQUERY (() -> {
-            SQLTable playerStatsViewTable = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
             return Query.builder()
                     .source(playerStatsViewTable)
                     .metricProjection(playerStatsViewTable.getMetricProjection("highScore"))
+                    .context(playerStatsViewRequestContext)
                     .build();
         }),
         ORDER_BY_DIMENSION_NOT_IN_SELECT (() -> {
@@ -517,7 +520,20 @@ public abstract class SQLUnitTest {
         engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect),
                 connectionDetailsMap, optimizers);
         playerStatsTable = (SQLTable) metaDataStore.getTable("playerStats", NO_VERSION);
+        playerStatsViewTable = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
         videoGameTable = (SQLTable) metaDataStore.getTable("videoGame", NO_VERSION);
+
+        playerStatsViewRequestContext = new HashMap<>();
+        Map<String, Object> requestMap = new HashMap<>();
+        Map<String, Object> tableMap = new HashMap<>();
+        Map<String, Object> columnsMap = new HashMap<>();
+        Map<String, Object> tableArgsMap = new HashMap<>();
+        playerStatsViewRequestContext.put("$$request", requestMap);
+        requestMap.put("table", tableMap);
+        requestMap.put("columns", columnsMap);
+        tableMap.put("name", "playerStatsView");
+        tableMap.put("args", tableArgsMap);
+        tableArgsMap.put("overallRating", "Great");
     }
 
     private static String getCompatabilityMode(String dialectType) {

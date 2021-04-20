@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.datastores.aggregation.query;
 
+import java.util.Map;
+
 /**
  * Visits a query object hierarchy to construct a type T.  Useful for building translators, validators, etc.
  * @param <T> The type the visitor returns after walking the AST.
@@ -25,4 +27,14 @@ public interface QueryVisitor<T> {
      * @return The type T.
      */
     public T visitQueryable(Queryable table);
+
+    /**
+     * Visit the table node using a context object.
+     * @param table Queryable
+     * @param context A Map object
+     * @return The type T.
+     */
+    default T visitQueryable(Queryable table, Map<String, Object> context) {
+        return visitQueryable(table);
+    }
 }

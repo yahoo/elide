@@ -5,6 +5,9 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import static com.yahoo.elide.datastores.aggregation.metadata.TableContext.copyTableFromRequestContext;
+import static com.yahoo.elide.datastores.aggregation.metadata.TableContext.copyUserFromRequestContext;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
@@ -16,6 +19,7 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -26,7 +30,10 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +61,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
 
     @Override
     public NativeQuery.NativeQueryBuilder visitQuery(Query query) {
-        NativeQuery.NativeQueryBuilder builder = query.getSource().accept(this);
+        NativeQuery.NativeQueryBuilder builder = query.getSource().accept(this, query.getContext());
 
         if (query.isNested()) {
             NativeQuery innerQuery = builder.build();
@@ -117,18 +124,39 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
 
     @Override
     public NativeQuery.NativeQueryBuilder visitQueryable(Queryable table) {
+        return visitQueryable(table, Collections.emptyMap());
+    }
+
+    @Override
+    public NativeQuery.NativeQueryBuilder visitQueryable(Queryable table, Map<String, Object> context) {
         NativeQuery.NativeQueryBuilder builder = NativeQuery.builder();
 
         Type<?> tableCls = dictionary.getEntityClass(table.getName(), table.getVersion());
-        String tableAlias = applyQuotes(table.getAlias());
-
         String tableStatement = tableCls.isAnnotationPresent(FromSubquery.class)
-                ? "(" + tableCls.getAnnotation(FromSubquery.class).sql() + ")"
+                ? "(" + getResolvedSQLExpr(tableCls, table, context) + ")"
                 : tableCls.isAnnotationPresent(FromTable.class)
                 ? applyQuotes(tableCls.getAnnotation(FromTable.class).name())
                 : applyQuotes(table.getName());
 
-        return builder.fromClause(String.format("%s AS %s", tableStatement, tableAlias));
+        return builder.fromClause(String.format("%s AS %s", tableStatement, applyQuotes(table.getAlias())));
+    }
+
+    private String getResolvedSQLExpr(Type<?> tableCls, Queryable table, Map<String, Object> requestContext) {
+         String sqlStmt = tableCls.getAnnotation(FromSubquery.class).sql();
+         TableContext tableCtx = referenceTable.getGlobalTableContext(table);
+
+         // Prepare context for resolving this column.
+         TableContext currentCtx = TableContext.builder()
+                         .queryable(tableCtx.getQueryable())
+                         .alias(tableCtx.getAlias())
+                         .metaDataStore(tableCtx.getMetaDataStore())
+                         .build();
+
+         // Add $$request.table to current context. FromSubquery can reference table args only.
+         copyTableFromRequestContext(currentCtx, requestContext);
+         copyUserFromRequestContext(currentCtx, requestContext);
+
+         return currentCtx.resolveHandlebars(StringUtils.EMPTY, sqlStmt, Collections.emptyMap());
     }
 
     /**

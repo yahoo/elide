@@ -67,6 +67,11 @@ public class Query implements Queryable {
         return visitor.visitQuery(this);
     }
 
+    @Override
+    public <T> T accept(QueryVisitor<T> visitor, Map<String, Object> context) {
+        return accept(visitor);
+    }
+
     /**
      * Returns all the dimensions regardless of type.
      * @return All the dimensions.

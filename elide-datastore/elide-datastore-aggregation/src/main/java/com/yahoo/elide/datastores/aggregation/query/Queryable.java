@@ -165,6 +165,17 @@ public interface Queryable {
     }
 
     /**
+     * Execute a visitor on this Queryable using context object.
+     * @param <T> The return type of the visitor.
+     * @param visitor The visitor to execute.
+     * @param context A Map object.
+     * @return Something that the visitor is constructing.
+     */
+    default <T> T accept(QueryVisitor<T> visitor, Map<String, Object> context) {
+        return visitor.visitQueryable(this, context);
+    }
+
+    /**
      * Determines if this queryable is nested from another queryable.
      * @return true if the source is another queryable.  False otherwise.
      */
