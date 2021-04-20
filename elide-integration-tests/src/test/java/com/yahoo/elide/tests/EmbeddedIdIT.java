@@ -204,6 +204,62 @@ public class EmbeddedIdIT extends GraphQLIntegrationTest {
     }
 
     @Test
+    public void testJsonApiFilterByName() {
+        String address1Id = serde.serialize(address1);
+        String address3Id = serde.serialize(address3);
+
+        given()
+                .when()
+                .get("/building?filter=name=='Fort Knox'")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(
+                        data(
+                                resource(
+                                        type("building"),
+                                        id(address1Id),
+                                        attributes(
+                                                attr("name", "Fort Knox")
+                                        ),
+                                        relationships(
+                                                relation("neighbors",
+                                                        linkage(type("building"), id(address3Id))
+                                                )
+                                        )
+                                )
+                        ).toJSON()
+                ));
+    }
+
+    @Test
+    public void testJsonApiFilterByEmbedded() {
+        String address1Id = serde.serialize(address1);
+        String address3Id = serde.serialize(address3);
+
+        given()
+                .when()
+                .get("/building?filter=address.street=='Bullion Blvd'")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body(equalTo(
+                        data(
+                                resource(
+                                        type("building"),
+                                        id(address1Id),
+                                        attributes(
+                                                attr("name", "Fort Knox")
+                                        ),
+                                        relationships(
+                                                relation("neighbors",
+                                                        linkage(type("building"), id(address3Id))
+                                                )
+                                        )
+                                )
+                        ).toJSON()
+                ));
+    }
+
+    @Test
     public void testJsonApiCreate() {
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)

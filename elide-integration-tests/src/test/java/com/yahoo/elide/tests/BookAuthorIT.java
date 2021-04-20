@@ -312,4 +312,41 @@ public class BookAuthorIT extends IntegrationTest {
             assertFalse(include.has(RELATIONSHIPS));
         }
     }
+
+
+    @Test
+    public void testRelationshipFilters() throws Exception {
+        JsonNode responseBody = mapper.readTree(
+                given()
+                        .contentType(JSONAPI_CONTENT_TYPE)
+                        .accept(JSONAPI_CONTENT_TYPE)
+                        .get("/book?filter=publisher.name=='1409'")
+                        .then()
+                        .statusCode(HttpStatus.SC_OK)
+                        .extract().body().asString());
+
+        assertTrue(responseBody.has("data"));
+
+        for (JsonNode bookNode : responseBody.get("data")) {
+            assertTrue(bookNode.has(ATTRIBUTES));
+            JsonNode attributes = bookNode.get(ATTRIBUTES);
+            assertEquals(2, attributes.size());
+            assertTrue(attributes.has("title"));
+            assertTrue(attributes.has("genre"));
+
+            assertTrue(bookNode.has(RELATIONSHIPS));
+            JsonNode relationships = bookNode.get(RELATIONSHIPS);
+            assertTrue(relationships.has("authors"));
+        }
+
+        assertTrue(responseBody.has(INCLUDED));
+
+        for (JsonNode include : responseBody.get(INCLUDED)) {
+            assertTrue(include.has(ATTRIBUTES));
+            JsonNode attributes = include.get(ATTRIBUTES);
+            assertTrue(attributes.has("name"));
+
+            assertFalse(include.has(RELATIONSHIPS));
+        }
+    }
 }

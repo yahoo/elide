@@ -29,8 +29,13 @@ public class InMemoryExecutionVerifier implements FilterExpressionVisitor<Boolea
             Type<?> entityClass = pathElement.getType();
             String fieldName = pathElement.getFieldName();
 
-            if (dictionary.isComputed(entityClass, fieldName)) {
-                return true;
+            try {
+
+                if (dictionary.isComputed(entityClass, fieldName)) {
+                    return true;
+                }
+            }catch(Exception e){
+
             }
         }
         return false;

@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.NonEntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
@@ -55,7 +56,7 @@ public class RSQLFilterDialectTest {
         dictionary.bindEntity(StringId.class);
         dictionary.bindEntity(Job.class);
         dictionary.bindEntity(PrimitiveId.class);
-        dialect = new RSQLFilterDialect(dictionary);
+        dialect = new RSQLFilterDialect(dictionary, new NonEntityDictionary());
     }
 
     @Test

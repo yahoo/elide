@@ -10,6 +10,7 @@ import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.NonEntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
@@ -39,6 +40,7 @@ public class StandardTestBinder extends AbstractBinder {
     @Override
     protected void configure() {
         EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS, injector::inject);
+        NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
 
         bind(dictionary).to(EntityDictionary.class);
 
@@ -46,8 +48,9 @@ public class StandardTestBinder extends AbstractBinder {
         bindFactory(new Factory<Elide>() {
             @Override
             public Elide provide() {
+
                 DefaultFilterDialect defaultFilterStrategy = new DefaultFilterDialect(dictionary);
-                RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
+                RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary, nonEntityDictionary);
 
                 MultipleFilterDialect multipleFilterStrategy = new MultipleFilterDialect(
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy),
@@ -59,6 +62,7 @@ public class StandardTestBinder extends AbstractBinder {
                         .withJoinFilterDialect(multipleFilterStrategy)
                         .withSubqueryFilterDialect(multipleFilterStrategy)
                         .withEntityDictionary(dictionary)
+                        .withNonEntityDictionary(nonEntityDictionary)
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
                         .build());
             }

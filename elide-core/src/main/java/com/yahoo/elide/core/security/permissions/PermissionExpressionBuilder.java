@@ -13,6 +13,7 @@ import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.NonEntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.visitors.FilterExpressionNormalizationVisitor;
@@ -30,6 +31,7 @@ import com.yahoo.elide.core.type.Type;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.lang.annotation.Annotation;
+import java.rmi.UnexpectedException;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -40,6 +42,7 @@ import java.util.stream.Collectors;
  */
 public class PermissionExpressionBuilder implements CheckInstantiator {
     private final EntityDictionary entityDictionary;
+    private final NonEntityDictionary nonEntityDictionary;
     private final ExpressionResultCache cache;
 
     private static final Expression SUCCESSFUL_EXPRESSION = OrExpression.SUCCESSFUL_EXPRESSION;
@@ -51,9 +54,10 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      * @param cache Cache
      * @param dictionary EntityDictionary
      */
-    public PermissionExpressionBuilder(ExpressionResultCache cache, EntityDictionary dictionary) {
+    public PermissionExpressionBuilder(ExpressionResultCache cache, EntityDictionary dictionary, NonEntityDictionary nonEntityDictionary) {
         this.cache = cache;
         this.entityDictionary = dictionary;
+        this.nonEntityDictionary = nonEntityDictionary;
     }
 
     /**
@@ -72,8 +76,14 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                                                                            final ChangeSpec changeSpec) {
 
         Type<?> resourceClass = resource.getResourceType();
-        if (!entityDictionary.entityHasChecksForPermission(resourceClass, annotationClass)) {
-            return SUCCESSFUL_EXPRESSION;
+        try {
+            if (!entityDictionary.entityHasChecksForPermission(resourceClass, annotationClass)) {
+                return SUCCESSFUL_EXPRESSION;
+            }
+        } catch(Exception e){
+            if (!nonEntityDictionary.entityHasChecksForPermission(resourceClass, annotationClass)) {
+                return SUCCESSFUL_EXPRESSION;
+            }
         }
 
         final Function<Check, Expression> leafBuilderFn = leafBuilder(resource, changeSpec);
@@ -102,8 +112,15 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
 
 
         Type<?> resourceClass = resource.getResourceType();
-        if (!entityDictionary.entityHasChecksForPermission(resourceClass, annotationClass)) {
-            return SUCCESSFUL_EXPRESSION;
+
+        try {
+            if (!entityDictionary.entityHasChecksForPermission(resourceClass, annotationClass)) {
+                return SUCCESSFUL_EXPRESSION;
+            }
+        } catch(Exception e){
+            if (!nonEntityDictionary.entityHasChecksForPermission(resourceClass, annotationClass)) {
+                return SUCCESSFUL_EXPRESSION;
+            }
         }
 
         final Function<Check, Expression> leafBuilderFn = leafBuilder(resource, changeSpec);
@@ -134,8 +151,14 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                                                                              final RequestScope scope,
                                                                              final Class<A> annotationClass,
                                                                              final String field) {
-        if (!entityDictionary.entityHasChecksForPermission(resourceClass, annotationClass)) {
-            return SUCCESSFUL_EXPRESSION;
+        try {
+            if (!entityDictionary.entityHasChecksForPermission(resourceClass, annotationClass)) {
+                return SUCCESSFUL_EXPRESSION;
+            }
+        } catch(Exception e){
+            if (!nonEntityDictionary.entityHasChecksForPermission(resourceClass, annotationClass)) {
+                return SUCCESSFUL_EXPRESSION;
+            }
         }
 
         final Function<Check, Expression> leafBuilderFn = (check) ->
