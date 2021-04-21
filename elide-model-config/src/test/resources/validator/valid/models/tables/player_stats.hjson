@@ -1,6 +1,7 @@
 {
   tables: [{
       name: PlayerStats
+      namespace: PlayerNamespace
       friendlyName: Player Statistics
       table: player_stats
       schema: gamedb

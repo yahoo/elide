@@ -35,6 +35,7 @@ public class DynamicConfigSchemaValidator {
     private JsonSchema securitySchema;
     private JsonSchema variableSchema;
     private JsonSchema dbConfigSchema;
+    private JsonSchema namespaceConfigSchema;
     private static String NEWLINE = System.lineSeparator();
 
     public DynamicConfigSchemaValidator() {
@@ -56,6 +57,7 @@ public class DynamicConfigSchemaValidator {
         securitySchema = loadSchema(factory, Config.SECURITY.getConfigSchema());
         variableSchema = loadSchema(factory, Config.MODELVARIABLE.getConfigSchema());
         dbConfigSchema = loadSchema(factory, Config.SQLDBConfig.getConfigSchema());
+        namespaceConfigSchema = loadSchema(factory, Config.NAMESPACEConfig.getConfigSchema());
     }
 
     /**
@@ -83,6 +85,9 @@ public class DynamicConfigSchemaValidator {
             break;
         case SQLDBConfig :
             results = this.dbConfigSchema.validate(new ObjectMapper().readTree(jsonConfig), true);
+            break;
+        case NAMESPACEConfig :
+            results = this.namespaceConfigSchema.validate(new ObjectMapper().readTree(jsonConfig), true);
             break;
         default :
             log.error("Not a valid config type :" + configType);

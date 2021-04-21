@@ -26,6 +26,7 @@ public class HandlebarsHydratorTest {
     private static final String VALID_TABLE_WITH_VARIABLES = "{\n"
             + "  tables: [{\n"
             + "      name: <% name %>\n"
+            + "      namespace: PlayerNamespace\n"
             + "      friendlyName: Player Statistics\n"
             + "      table: <% table %>\n"
             + "      schema: gamedb\n"
