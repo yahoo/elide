@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SyntaxVerifier;
@@ -22,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,8 +42,17 @@ public interface SQLColumnProjection extends ColumnProjection {
      * @return SQL query String for this column
      */
     default String toSQL(Queryable source, SQLReferenceTable lookupTable) {
-        //TODO: Add query context to Table Context before calling get
-        return lookupTable.getGlobalTableContext(source).get(getName()).toString();
+
+        TableContext tableCtx = lookupTable.getGlobalTableContext(source);
+
+        // Prepare context for resolving this column.
+        TableContext currentCtx = TableContext.builder()
+                        .queryable(tableCtx.getQueryable())
+                        .alias(tableCtx.getAlias())
+                        .metaDataStore(tableCtx.getMetaDataStore())
+                        .build();
+
+        return currentCtx.resolveHandlebars(getName(), getExpression(), Collections.emptyMap());
     }
 
     @Override
