@@ -16,6 +16,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -41,13 +42,14 @@ public class ElideNamespaceConfig {
      * @return true if a dynamic namespace exists with the given name.
      */
     public boolean hasNamespace(String name) {
-        if (name.equals("default")) {
+        String nameLower = name.toLowerCase(Locale.ENGLISH);
+        if (nameLower.equals("default")) {
             return true;
         }
 
         return namespaceconfigs
                    .stream()
                    .map(Named::getName)
-                   .anyMatch(name::equals);
+                   .anyMatch(nameLower::equals);
     }
 }
