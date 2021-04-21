@@ -17,6 +17,7 @@ import lombok.Singular;
 import lombok.Value;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -48,7 +49,8 @@ public class Query implements Queryable {
     private FilterExpression havingFilter;
     private Sorting sorting;
     private ImmutablePagination pagination;
-    private Map<String, Argument> arguments;
+    @Builder.Default
+    private Map<String, Argument> arguments = new HashMap<>();
 
     @EqualsAndHashCode.Exclude
     private RequestScope scope;

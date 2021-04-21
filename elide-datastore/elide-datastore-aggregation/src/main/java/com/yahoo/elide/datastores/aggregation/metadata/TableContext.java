@@ -32,7 +32,6 @@ import lombok.ToString;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -57,7 +56,6 @@ public class TableContext extends HashMap<String, Object> {
     public static final String DOUBLE_DOLLAR = "$$";
 
     private final MetaDataStore metaDataStore;
-
     private final Queryable queryable;
     private final String alias;
 
@@ -69,6 +67,32 @@ public class TableContext extends HashMap<String, Object> {
                             return resolveSQLHandlebar(context, options);
                         }
                     });
+
+    public TableContext(MetaDataStore metaDataStore, Queryable queryable, String alias) {
+        this.metaDataStore = metaDataStore;
+        this.queryable = queryable;
+        this.alias = alias;
+    }
+
+    public TableContext(TableContext tableCtx) {
+        this.metaDataStore = tableCtx.getMetaDataStore();
+        this.queryable = tableCtx.getQueryable();
+        this.alias = tableCtx.getAlias();
+    }
+
+    public TableContext withTableArgs(Map<String, ? extends Object> tableArgs) {
+        Map<String, Object> argsMap = new HashMap<>();
+        this.put("$$table", argsMap);
+        argsMap.put("args", tableArgs);
+        return this;
+    }
+
+    public TableContext withColumnArgs(Map<String, ? extends Object> columnArgs) {
+        Map<String, Object> argsMap = new HashMap<>();
+        this.put("$$column", argsMap);
+        argsMap.put("args", columnArgs);
+        return this;
+    }
 
     public Object get(Object key) {
 
@@ -121,10 +145,8 @@ public class TableContext extends HashMap<String, Object> {
 
         Map<String, Object> defaultTableArgs;
         Map<String, Object> defaultColumnArgs;
-        Map<String, Object> requestContext;
-        Map<String, Object> requestArgsContext;
-        Map<String, Object> columnContext;
-        Map<String, Object> columnArgsContext;
+        Map<String, ? extends Object> tableArgsMap;
+        Map<String, ? extends Object> columnArgsMap;
         Map<String, Object> newCtxTableArgs = new HashMap<>();
         Map<String, Object> newCtxColumnArgs = new HashMap<>();
 
@@ -140,47 +162,34 @@ public class TableContext extends HashMap<String, Object> {
             defaultColumnArgs = new HashMap<>();
         }
 
-        // When request context is added to Table context in SQLColumnProjection#toSQL method:
-        // a) $$request.table.{name, args} is added as $$table.{name, args}
-        // b) $$request.columns.columnName.{name, args} is added as  $$column.{name, args}
-
-        requestContext = (Map<String, Object>) this.getOrDefault(TBL_PREFIX, emptyMap());
-        // If $$table.name matches current Queryable, use the argument map stored under $$table.args
-        if (!requestContext.isEmpty() && requestContext.getOrDefault(NAME_KEY, StringUtils.EMPTY)
-                        .equals(queryable.getName())) {
-            requestArgsContext = (Map<String, Object>) requestContext.getOrDefault(ARGS_KEY, emptyMap());
+        // Get the args under $$table.args
+        if (this.containsKey(TBL_PREFIX)) {
+            Map<String, Object> requestContext = (Map<String, Object>) this.get(TBL_PREFIX);
+            tableArgsMap = (Map<String, ? extends Object>) requestContext.get(ARGS_KEY);
         } else {
-            requestArgsContext = new HashMap<>();
+            tableArgsMap = new HashMap<>();
         }
 
-        // Get the argument map stored under $$column.args
-        columnContext = (Map<String, Object>) this.getOrDefault(COL_PREFIX, emptyMap());
-        columnArgsContext = (Map<String, Object>) columnContext.getOrDefault(ARGS_KEY, emptyMap());
+        // Get the args under $$column.args
+        if (this.containsKey(COL_PREFIX)) {
+            Map<String, Object> columnContext = (Map<String, Object>) this.get(COL_PREFIX);
+            columnArgsMap = (Map<String, ? extends Object>) columnContext.get(ARGS_KEY);
+        } else {
+            columnArgsMap = new HashMap<>();
+        }
 
         // Finalize table arguments, first add default table arguments and then add request table arguments.
         newCtxTableArgs.putAll(defaultTableArgs);
-        newCtxTableArgs.putAll(requestArgsContext);
+        newCtxTableArgs.putAll(tableArgsMap);
 
         // Finalize column arguments, first add default column arguments and then add request column arguments and then
         // add any fixed arguments provided in sql helper.
         newCtxColumnArgs.putAll(defaultColumnArgs);
-        newCtxColumnArgs.putAll(columnArgsContext);
+        newCtxColumnArgs.putAll(columnArgsMap);
         newCtxColumnArgs.putAll(fixedArgs);
 
         // Build a new Context for resolving this column
-        TableContext newCtx = TableContext.builder()
-                        .queryable(queryable)
-                        .alias(this.getAlias())
-                        .metaDataStore(this.getMetaDataStore())
-                        .build();
-
-        // Add all the (columnName, columnExpr) along with any $$ contexts.
-        newCtx.putAll(this);
-
-        // Add/Override $$table.args and $$column.args required for resolving current column.
-        newCtx.putAll(prepareArgumentsMap(newCtxTableArgs, requestContext, TBL_PREFIX));
-        newCtx.putAll(prepareArgumentsMap(newCtxColumnArgs, columnContext, COL_PREFIX));
-
+        TableContext newCtx = new TableContext(this).withTableArgs(newCtxTableArgs).withColumnArgs(newCtxColumnArgs);
 
         try {
             Template template = handlebars.compileInline(columnExpr);
@@ -222,21 +231,6 @@ public class TableContext extends HashMap<String, Object> {
         String invokedColumnExpr = table.getColumnMap().get(invokedColumnName).getExpression();
 
         return invokedTableCtx.resolveHandlebars(invokedColumnName, invokedColumnExpr, pinnedArgs);
-    }
-
-    private static Map<String, Object> prepareArgumentsMap(Map<String, Object> arguments,
-                    Map<String, Object> currentContext, String outerMapKey) {
-        Map<String, Object> outerMap = new HashMap<>();
-        outerMap.put(ARGS_KEY, arguments);
-
-        // Copy everything other than "args" as is.
-        currentContext.forEach((key, value) -> {
-            if (!key.equals(ARGS_KEY)) {
-                outerMap.put(key, value);
-            }
-        });
-
-        return Collections.singletonMap(outerMapKey, outerMap);
     }
 
     private static Map<String, Object> getDefaultArgumentsMap(Set<Argument> availableArgs) {

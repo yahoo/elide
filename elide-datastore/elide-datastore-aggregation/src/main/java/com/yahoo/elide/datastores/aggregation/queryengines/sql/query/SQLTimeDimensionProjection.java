@@ -9,7 +9,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 import com.yahoo.elide.core.exceptions.InvalidParameterizedAttributeException;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
@@ -27,7 +26,6 @@ import lombok.Builder;
 import lombok.Value;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -81,20 +79,12 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     }
 
     @Override
-    public String toSQL(Queryable source, SQLReferenceTable table) {
+    public String toSQL(Queryable source, SQLReferenceTable table, Map<String, Argument> queryArgs) {
 
-        TableContext tableCtx = table.getGlobalTableContext(source);
-
-        // Prepare context for resolving this column.
-        TableContext currentCtx = TableContext.builder()
-                        .queryable(tableCtx.getQueryable())
-                        .alias(tableCtx.getAlias())
-                        .metaDataStore(tableCtx.getMetaDataStore())
-                        .build();
+        String resolvedExpr = SQLColumnProjection.super.toSQL(source, table, queryArgs);
 
         // TODO - We will likely migrate to a templating language when we support parameterized metrics.
-        return grain.getExpression().replaceAll(TIME_DIMENSION_REPLACEMENT_REGEX,
-                        currentCtx.resolveHandlebars(getName(), getExpression(), Collections.emptyMap()));
+        return grain.getExpression().replaceAll(TIME_DIMENSION_REPLACEMENT_REGEX, resolvedExpr);
     }
 
     @Override

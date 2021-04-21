@@ -7,14 +7,19 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
+
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.utils.TypeHelper;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
+
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
+
+import java.util.Map;
 
 /**
  * Represents a physical column to be projected as part of a subquery.
@@ -34,7 +39,7 @@ public class SQLPhysicalColumnProjection implements SQLColumnProjection {
     }
 
     @Override
-    public String toSQL(Queryable source, SQLReferenceTable table) {
+    public String toSQL(Queryable source, SQLReferenceTable table, Map<String, Argument> queryArgs) {
         SQLDialect dialect = source.getConnectionDetails().getDialect();
         return TypeHelper.getFieldAlias(applyQuotes(source.getAlias(), dialect), applyQuotes(name, dialect));
     }

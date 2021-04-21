@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -88,18 +87,9 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     }
 
     @Override
-    public String toSQL(Queryable source, SQLReferenceTable lookupTable) {
+    public String toSQL(Queryable source, SQLReferenceTable lookupTable, Map<String, Argument> queryArgs) {
         if (expression.matches(".*\\{\\{.*\\}\\}.*")) {
-            TableContext tableCtx = lookupTable.getGlobalTableContext(source);
-
-            // Prepare context for resolving this column.
-            TableContext currentCtx = TableContext.builder()
-                            .queryable(tableCtx.getQueryable())
-                            .alias(tableCtx.getAlias())
-                            .metaDataStore(tableCtx.getMetaDataStore())
-                            .build();
-
-            return currentCtx.resolveHandlebars(getName(), getExpression(), Collections.emptyMap());
+            return SQLColumnProjection.super.toSQL(source, lookupTable, queryArgs);
         }
         return expression;
     }
@@ -124,7 +114,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                                                               SQLReferenceTable lookupTable,
                                                               boolean joinInOuter) {
         SQLDialect dialect = source.getConnectionDetails().getDialect();
-        String sql = toSQL(source.getSource(), lookupTable);
+        String sql = toSQL(source.getSource(), lookupTable, Collections.emptyMap());
         SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
 
         SqlNode node;
