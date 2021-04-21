@@ -761,7 +761,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     private void validateNamespaceExists(String name) {
         if (!elideNamespaceConfig.hasNamespace(name)) {
             throw new IllegalStateException(
-                            "Namespace: " + name + " is not included in dynamic models");
+                            "Namespace: " + name + " is not included in dynamic configs");
         }
     }
 
