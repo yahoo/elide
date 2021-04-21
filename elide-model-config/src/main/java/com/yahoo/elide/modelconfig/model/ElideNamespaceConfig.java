@@ -50,6 +50,6 @@ public class ElideNamespaceConfig {
         return namespaceconfigs
                    .stream()
                    .map(Named::getName)
-                   .anyMatch(nameLower::equals);
+                   .anyMatch(name::equals);
     }
 }
