@@ -16,9 +16,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Represents an argument passed to an attribute.
@@ -66,5 +69,15 @@ public class Argument {
         }
 
         return arguments;
+    }
+
+    /**
+     * Converts Set of {@link Argument} into Map.
+     * @param arguments Set of {@link Argument}.
+     * @return a Map of {@link Argument}.
+     */
+    public static Map<String, Argument> getArgumentMapFromArgumentSet(Set<Argument> arguments) {
+        return arguments.stream()
+                        .collect(Collectors.toMap(Argument::getName, Function.identity()));
     }
 }
