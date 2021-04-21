@@ -576,8 +576,9 @@ public class DynamicConfigValidator implements DynamicConfiguration {
             });
 
             extractChecksFromExpr(table.getReadAccess(), extractedChecks, visitor);
-            validateChecks(extractedChecks);
         }
+
+        validateChecks(extractedChecks);
 
         return true;
     }
@@ -592,8 +593,9 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
         for (NamespaceConfig namespace : elideNamespaceConfig.getNamespaceconfigs()) {
             extractChecksFromExpr(namespace.getReadAccess(), extractedChecks, visitor);
-            validateChecks(extractedChecks);
         }
+
+        validateChecks(extractedChecks);
 
         return true;
     }

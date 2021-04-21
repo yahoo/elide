@@ -69,6 +69,7 @@
                         "title": "Join Namespace",
                         "description": "Namespace for the Join.",
                         "type": "string",
+                        "format": "elideName",
                         "default": "default"
                 },
                 "to": {
@@ -415,6 +416,7 @@
                         "title": "Table Namespace",
                         "description": "Namespace for the table.",
                         "type": "string",
+                        "format": "elideName",
                         "default": "default"
                     },
                     "joins": {
