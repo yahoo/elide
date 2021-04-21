@@ -7,13 +7,13 @@
 package com.yahoo.elide.datastores.aggregation.metadata;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.TableContext.ARGS_KEY;
-import static com.yahoo.elide.datastores.aggregation.metadata.TableContext.NAME_KEY;
 import static com.yahoo.elide.datastores.aggregation.metadata.TableContext.TBL_PREFIX;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.ArgumentDefinition;
@@ -71,11 +71,10 @@ public class TableContextTest {
         revenueFactContext = lookupTable.getGlobalTableContext(revenueFact);
 
         Map<String, Object> tableMap = new HashMap<>();
-        Map<String, Object> argsMap = new HashMap<>();
+        Map<String, Argument> argsMap = new HashMap<>();
         revenueFactContext.put(TBL_PREFIX, tableMap);
-        tableMap.put(NAME_KEY, revenueFact.getName());
         tableMap.put(ARGS_KEY, argsMap);
-        argsMap.put("format", "999999D000000");
+        argsMap.put("format", Argument.builder().name("format").value("999999D000000").build());
     }
 
     @Test

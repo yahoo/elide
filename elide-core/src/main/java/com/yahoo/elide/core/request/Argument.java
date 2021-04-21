@@ -80,4 +80,16 @@ public class Argument {
         return arguments.stream()
                         .collect(Collectors.toMap(Argument::getName, Function.identity()));
     }
+
+    /**
+     * Parses input string and returns a Map of {@link Argument}.
+     *
+     * @param argsString String to parse for arguments.
+     * @return a Map of {@link Argument}.
+     * @throws UnsupportedEncodingException
+     */
+    public static Map<String, Argument> getArgumentMapFromString(String argsString)
+                    throws UnsupportedEncodingException {
+        return getArgumentMapFromArgumentSet(getArgumentsFromString(argsString));
+    }
 }

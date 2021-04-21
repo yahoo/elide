@@ -50,7 +50,7 @@ public interface SQLColumnProjection extends ColumnProjection {
         // Prepare context for resolving this column.
         TableContext newCtx = new TableContext(tableCtx).withTableArgs(queryArgs).withColumnArgs(getArguments());
 
-        return newCtx.resolveHandlebars(getName(), getExpression(), Collections.emptyMap());
+        return newCtx.resolveHandlebars(getName(), getExpression());
     }
 
     @Override
