@@ -122,10 +122,6 @@ public class SQLReferenceTable {
                             .metaDataStore(metaDataStore)
                             .build();
 
-            queryable.getColumnProjections().forEach(column -> {
-                tableCtx.put(column.getName(), column.getExpression());
-            });
-
             globalTablesContext.put(key, tableCtx);
         }
     }

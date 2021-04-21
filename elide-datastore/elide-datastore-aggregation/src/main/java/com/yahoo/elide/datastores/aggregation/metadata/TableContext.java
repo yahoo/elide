@@ -14,6 +14,7 @@ import static java.util.Collections.emptyMap;
 
 import com.yahoo.elide.datastores.aggregation.metadata.models.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
@@ -71,43 +72,40 @@ public class TableContext extends HashMap<String, Object> {
 
     public Object get(Object key) {
 
+        String keyStr = key.toString();
+
+        // Physical References starts with $
+        if (keyStr.lastIndexOf('$') == 0) {
+            String resolvedExpr = alias + PERIOD + key.toString().substring(1);
+            return applyQuotes(resolvedExpr, queryable.getConnectionDetails().getDialect());
+        }
+
         if (this.queryable.getJoins().containsKey(key)) {
             SQLJoin sqlJoin = this.queryable.getJoins().get(key);
             Queryable joinQueryable = metaDataStore.getTable(sqlJoin.getJoinTableType());
             TableContext newCtx = TableContext.builder()
                             .queryable(joinQueryable)
-                            .alias(appendAlias(alias, key.toString()))
+                            .alias(appendAlias(alias, keyStr))
                             .metaDataStore(metaDataStore)
                             .build();
 
-            joinQueryable.getColumnProjections().forEach(column -> {
-                newCtx.put(column.getName(), column.getExpression());
-            });
-
-            // Copy $$column, $$user etc to join context.
-            this.forEach((k, v) -> {
-                if (k.startsWith(DOUBLE_DOLLAR)) {
-                    newCtx.put(k, v);
-                }
-            });
+            // Copy $$column, $$user, $$table etc to join context.
+            newCtx.putAll(this);
 
             return newCtx;
         }
 
-        // Physical References starts with $
-        if (key.toString().lastIndexOf('$') == 0) {
-            String resolvedExpr = alias + PERIOD + key.toString().substring(1);
-            return applyQuotes(resolvedExpr, queryable.getConnectionDetails().getDialect());
+        ColumnProjection columnProj = this.queryable.getColumnProjection(keyStr);
+        if (columnProj != null) {
+            return resolveHandlebars(keyStr, columnProj.getExpression(), emptyMap());
         }
 
-        verifyKeyExists(key, super.keySet());
-
         Object value = super.get(key);
-        if (value instanceof Map) {
+        if (value != null) {
             return value;
         }
 
-        return resolveHandlebars(key.toString(), value.toString(), emptyMap());
+        throw new HandlebarsException(new Throwable("Couldn't find: " + key));
     }
 
     /**
@@ -224,12 +222,6 @@ public class TableContext extends HashMap<String, Object> {
         String invokedColumnExpr = table.getColumnMap().get(invokedColumnName).getExpression();
 
         return invokedTableCtx.resolveHandlebars(invokedColumnName, invokedColumnExpr, pinnedArgs);
-    }
-
-    private void verifyKeyExists(Object key, Set<String> keySet) {
-        if (!keySet.contains(key)) {
-            throw new HandlebarsException(new Throwable("Couldn't find: " + key));
-        }
     }
 
     private static Map<String, Object> prepareArgumentsMap(Map<String, Object> arguments,
