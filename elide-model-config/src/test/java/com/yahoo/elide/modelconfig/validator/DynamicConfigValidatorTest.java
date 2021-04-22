@@ -49,6 +49,19 @@ public class DynamicConfigValidatorTest {
     }
 
     @Test
+    public void testValidNamespace() throws Exception {
+        DynamicConfigValidator testClass = new DynamicConfigValidator("src/test/resources/validator/valid");
+        testClass.readConfigs();
+        Table parent = testClass.getElideTableConfig().getTable("PlayerStats");
+        Table child = testClass.getElideTableConfig().getTable("PlayerStatsChild");
+        Table referred = testClass.getElideTableConfig().getTable("Country");
+
+        assertEquals("default", child.getNamespace()); //PlayerStatsChild -> no namespace was provided, so defaulted
+        assertEquals("PlayerNamespace", parent.getNamespace());
+        assertEquals("DEfault", referred.getNamespace()); // Namespace in HJson "DEfault". Matched case insensitively with "default" namespace
+    }
+
+    @Test
     public void testHelpArgumnents() throws Exception {
         tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() ->
@@ -243,6 +256,28 @@ public class DynamicConfigValidatorTest {
         });
 
         assertEquals("Found undefined security checks: [guest, member, user]\n", error);
+    }
+
+    @Test
+    public void testNamespaceBadSecurityChecks() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() ->
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/namespace_bad_security_check"}));
+            assertEquals(2, exitStatus);
+        });
+
+        assertEquals("Found undefined security checks: [namespaceRead]\n", error);
+    }
+
+    @Test
+    public void testMissingNamespace() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() ->
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/missing_namespace"}));
+            assertEquals(2, exitStatus);
+        });
+
+        assertEquals("Namespace: TestNamespace is not included in dynamic configs\n", error);
     }
 
     @Test

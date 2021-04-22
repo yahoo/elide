@@ -2,6 +2,7 @@
   tables: [
     {
       name: Country
+      namespace: DEfault
       table: country
       cardinality: small
       dimensions:
