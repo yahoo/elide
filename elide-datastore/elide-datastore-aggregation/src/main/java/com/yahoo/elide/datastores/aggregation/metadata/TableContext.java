@@ -80,18 +80,6 @@ public class TableContext extends HashMap<String, Object> {
                         }
                     });
 
-    public TableContext(MetaDataStore metaDataStore, Queryable queryable, String alias) {
-        this.metaDataStore = metaDataStore;
-        this.queryable = queryable;
-        this.alias = alias;
-    }
-
-    public TableContext(TableContext tableCtx) {
-        this.metaDataStore = tableCtx.getMetaDataStore();
-        this.queryable = tableCtx.getQueryable();
-        this.alias = tableCtx.getAlias();
-    }
-
     public TableContext withTableArgs(Map<String, ? extends Object> tableArgs) {
         Map<String, Object> argsMap = new HashMap<>();
         this.put(TBL_PREFIX, argsMap);
@@ -232,12 +220,15 @@ public class TableContext extends HashMap<String, Object> {
         newCtxColumnArgs.putAll(fixedArgs == null ? emptyMap() : fixedArgs);
 
         // Build a new Context for resolving this column
-        Context context = Context
-                        .newBuilder(new TableContext(this)
-                                        .withTableArgs(newCtxTableArgs)
-                                        .withColumnArgs(newCtxColumnArgs))
-                        .build();
+        TableContext newCtx = TableContext.builder()
+                        .queryable(queryable)
+                        .alias(this.getAlias())
+                        .metaDataStore(this.getMetaDataStore())
+                        .build()
+                        .withTableArgs(newCtxTableArgs)
+                        .withColumnArgs(newCtxColumnArgs);
 
+        Context context = Context.newBuilder(newCtx).build();
         try {
             Template template = handlebars.compileInline(columnExpr);
             return template.apply(context);

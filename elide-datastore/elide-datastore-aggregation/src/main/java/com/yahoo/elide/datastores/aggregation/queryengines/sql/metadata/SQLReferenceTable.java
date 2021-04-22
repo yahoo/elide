@@ -121,7 +121,7 @@ public class SQLReferenceTable {
 
         Queryable key = queryable.getSource();
 
-        // Contexts are not stored by their references.
+        // Contexts are NOT stored by their sources.
         if (!globalTablesContext.containsKey(queryable)) {
 
             TableContext tableCtx = TableContext.builder()
