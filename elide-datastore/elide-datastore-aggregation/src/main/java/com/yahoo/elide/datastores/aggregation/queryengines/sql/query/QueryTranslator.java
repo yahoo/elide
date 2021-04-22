@@ -16,6 +16,7 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -26,7 +27,10 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -54,13 +58,21 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
 
     @Override
     public NativeQuery.NativeQueryBuilder visitQuery(Query query) {
-        NativeQuery.NativeQueryBuilder builder = query.getSource().accept(this);
+        NativeQuery.NativeQueryBuilder builder = null;
 
         if (query.isNested()) {
-            NativeQuery innerQuery = builder.build();
+            NativeQuery innerQuery = query.getSource().accept(this).build();
 
             builder = NativeQuery.builder().fromClause("(" + innerQuery + ") AS "
                     + applyQuotes(query.getSource().getAlias()));
+        } else {
+            String fromClause = getFromClause(query.getSource());
+
+            TableContext tableCtx = referenceTable.getGlobalTableContext(query);
+
+            builder = NativeQuery.builder().fromClause(tableCtx.resolveHandlebars(StringUtils.EMPTY,
+                                                                                  fromClause,
+                                                                                  Collections.emptyMap()));
         }
 
         Set<String> joinExpressions = new LinkedHashSet<>();
@@ -117,7 +129,10 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
 
     @Override
     public NativeQuery.NativeQueryBuilder visitQueryable(Queryable table) {
-        NativeQuery.NativeQueryBuilder builder = NativeQuery.builder();
+        return null;
+    }
+
+    private String getFromClause(Queryable table) {
 
         Type<?> tableCls = dictionary.getEntityClass(table.getName(), table.getVersion());
         String tableAlias = applyQuotes(table.getAlias());
@@ -128,7 +143,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
                 ? applyQuotes(tableCls.getAnnotation(FromTable.class).name())
                 : applyQuotes(table.getName());
 
-        return builder.fromClause(String.format("%s AS %s", tableStatement, tableAlias));
+        return String.format("%s AS %s", tableStatement, tableAlias);
     }
 
     /**
