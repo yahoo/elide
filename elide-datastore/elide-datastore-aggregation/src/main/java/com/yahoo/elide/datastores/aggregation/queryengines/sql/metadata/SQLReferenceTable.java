@@ -6,15 +6,16 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable.isTableJoin;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
@@ -46,15 +47,14 @@ public class SQLReferenceTable {
     @Getter
     protected final EntityDictionary dictionary;
 
-    //Stores  MAP<Queryable, MAP<fieldName, reference>>
-    protected final Map<Queryable, Map<String, String>> resolvedReferences = new HashMap<>();
-
     //Stores  MAP<Queryable, MAP<fieldName, join expression>>
     protected final Map<Queryable, Map<String, Set<String>>> resolvedJoinExpressions = new HashMap<>();
 
+    protected final Map<Queryable, TableContext> globalTablesContext = new HashMap<>();
+
     public SQLReferenceTable(MetaDataStore metaDataStore) {
         this(metaDataStore,
-             metaDataStore.getMetaData(getClassType(Table.class))
+             metaDataStore.getMetaData(ClassType.of(Table.class))
                 .stream()
                 .map(SQLTable.class::cast)
                 .collect(Collectors.toSet()));
@@ -77,17 +77,15 @@ public class SQLReferenceTable {
                   next = next.getSource();
                } while (next.isNested());
            });
-    }
 
-    /**
-     * Get the resolved physical SQL reference for a field from storage.
-     *
-     * @param queryable table class
-     * @param fieldName field name
-     * @return resolved reference
-     */
-    public String getResolvedReference(Queryable queryable, String fieldName) {
-        return resolvedReferences.get(queryable).get(fieldName);
+        queryables
+           .forEach(queryable -> {
+               Queryable next = queryable;
+               do {
+                  initializeTableContext(next);
+                  next = next.getSource();
+               } while (!next.isRoot());
+           });
     }
 
     /**
@@ -101,6 +99,27 @@ public class SQLReferenceTable {
         return resolvedJoinExpressions.get(queryable).getOrDefault(fieldName, new HashSet<>());
     }
 
+    public TableContext getGlobalTableContext(Queryable queryable) {
+        return globalTablesContext.get(queryable);
+    }
+
+    private void initializeTableContext(Queryable queryable) {
+
+        Queryable key = queryable.getSource();
+
+        // Contexts are NOT stored by their sources.
+        if (!globalTablesContext.containsKey(queryable)) {
+
+            TableContext tableCtx = TableContext.builder()
+                            .queryable(queryable)
+                            .alias(key.getAlias())
+                            .metaDataStore(metaDataStore)
+                            .build();
+
+            globalTablesContext.put(queryable, tableCtx);
+        }
+    }
+
     /**
      * Resolve all references and joins for a table and store them in this reference table.
      *
@@ -111,9 +130,6 @@ public class SQLReferenceTable {
         //References and joins are stored by their source that produces them (rather than the query that asks for them).
         Queryable key = queryable.getSource();
         SQLDialect dialect = queryable.getSource().getConnectionDetails().getDialect();
-        if (!resolvedReferences.containsKey(key)) {
-            resolvedReferences.put(key, new HashMap<>());
-        }
 
         if (!resolvedJoinExpressions.containsKey(key)) {
             resolvedJoinExpressions.put(key, new HashMap<>());
@@ -127,11 +143,6 @@ public class SQLReferenceTable {
             validator.parse(queryable, column);
 
             String fieldName = column.getName();
-
-            resolvedReferences.get(key).put(
-                    fieldName,
-                    new SQLReferenceVisitor(metaDataStore, key.getAlias(), dialect)
-                            .visitColumn(queryable, column));
 
             Set<JoinPath> joinPaths = joinVisitor.visitColumn(queryable, column);
             resolvedJoinExpressions.get(key).put(fieldName, getJoinClauses(queryable.getSource().getAlias(),

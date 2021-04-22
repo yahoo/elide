@@ -6,13 +6,14 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
-import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
@@ -23,18 +24,21 @@ import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 
-import com.github.jknack.handlebars.Handlebars;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@ExtendWith(MockitoExtension.class)
 public class EntityProjectionTranslatorTest extends SQLUnitTest {
     private static EntityProjection basicProjection = EntityProjection.builder()
             .type(PlayerStats.class)
@@ -50,16 +54,16 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
             .argument(Argument.builder().name("foo").value("bar").build())
             .build();
 
-    private User user = new User(new Principal() {
-        @Override
-        public String getName() {
-            return "blah";
-        }
-    });
+    @Mock private RequestScope scope;
 
     @BeforeAll
     public static void init() {
         SQLUnitTest.init();
+    }
+
+    @BeforeEach
+    public void setUp() {
+        when(scope.getDictionary()).thenReturn(dictionary);
     }
 
     @Test
@@ -68,8 +72,7 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
                 engine,
                 playerStatsTable,
                 basicProjection,
-                dictionary,
-                user,
+                scope,
                 true
         );
 
@@ -102,8 +105,7 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
                 engine,
                 playerStatsTable,
                 projection,
-                dictionary,
-                user,
+                scope,
                 true
         );
 
@@ -130,8 +132,7 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
                 engine,
                 playerStatsTable,
                 projection,
-                dictionary,
-                user,
+                scope,
                 true
         );
 
@@ -165,8 +166,7 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
                 engine,
                 playerStatsTable,
                 projection,
-                dictionary,
-                user,
+                scope,
                 true
         );
 
@@ -180,24 +180,20 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
     }
 
     @Test
-    public void testQueryContext() throws IOException {
+    public void testQueryArguments() throws IOException {
         EntityProjectionTranslator translator = new EntityProjectionTranslator(
                 engine,
                 playerStatsTable,
                 basicProjection,
-                dictionary,
-                user,
+                scope,
                 true
         );
 
         Query query = translator.getQuery();
+        Argument queryArg = query.getArguments().get("foo");
+        assertEquals("bar", queryArg.getValue());
 
-        Handlebars handlebars = new Handlebars();
-        assertEquals("blah", handlebars.compileInline("{{$$user.identity}}").apply(query.getContext()));
-        assertEquals(playerStatsTable.getName(), handlebars.compileInline("{{$$request.table.name}}").apply(query.getContext()));
-        assertEquals("bar", handlebars.compileInline("{{$$request.table.args.foo}}").apply(query.getContext()));
-        assertEquals("bar", handlebars.compileInline("{{$$request.columns.lowScore.args.foo}}").apply(query.getContext()));
-        assertEquals("", handlebars.compileInline("{{$$request.columns.lowScore.args.undefined}}").apply(query.getContext()));
-        assertEquals("", handlebars.compileInline("{{$$request.columns.unknownColumn.args.foo}}").apply(query.getContext()));
+        Argument lowScoreArg = query.getColumnProjection("lowScore").getArguments().get("foo");
+        assertEquals("bar", lowScoreArg.getValue());
     }
 }

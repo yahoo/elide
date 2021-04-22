@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 import com.google.common.collect.Streams;
 
 import java.util.List;
@@ -206,5 +207,12 @@ public interface Queryable {
             current = current.getSource();
         }
         return depth;
+    }
+
+    /**
+     * Returns the joins associated with root of this queryable.
+     */
+    default Map<String, SQLJoin> getJoins() {
+        return this.getRoot().getJoins();
     }
 }

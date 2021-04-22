@@ -6,6 +6,8 @@
 package com.yahoo.elide.core.filter.dialect;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.REGULAR_ID_NAME;
+import static com.yahoo.elide.core.request.Argument.ARGUMENTS_PATTERN;
+import static com.yahoo.elide.core.request.Argument.getArgumentsFromString;
 import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 import static com.yahoo.elide.core.type.ClassType.NUMBER_TYPE;
 import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
@@ -36,7 +38,6 @@ import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.RSQLParserException;
@@ -49,8 +50,6 @@ import cz.jirutka.rsql.parser.ast.RSQLOperators;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -70,12 +69,9 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
     private static final String SINGLE_PARAMETER_ONLY = "There can only be a single filter query parameter";
     private static final String INVALID_QUERY_PARAMETER = "Invalid query parameter: ";
     private static final Pattern TYPED_FILTER_PATTERN = Pattern.compile("filter\\[([^\\]]+)\\]");
-    // square brackets having non-empty argument name and  encoded agument value separated by ':'
-    // eg: [grain:month] , [foo:bar][blah:Encoded+Value]
-    private static final Pattern FILTER_ARGUMENTS_PATTERN = Pattern.compile("\\[(\\w+):([^\\]]+)\\]");
     // field name followed by zero or more filter arguments
     // eg: name, orderDate[grain:month] , title[foo:bar][blah:Encoded+Value]
-    private static final String FILTER_SELECTOR_REGEX = "(\\w+)(" + FILTER_ARGUMENTS_PATTERN + ")*$";
+    private static final String FILTER_SELECTOR_REGEX = "(\\w+)(" + ARGUMENTS_PATTERN + ")*$";
     private static final ComparisonOperator INI = new ComparisonOperator("=ini=", true);
     private static final ComparisonOperator NOT_INI = new ComparisonOperator("=outi=", true);
     private static final ComparisonOperator ISNULL_OP = new ComparisonOperator("=isnull=", false);
@@ -336,18 +332,21 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                     associationName = dictionary.getIdFieldName(entityType);
                 }
 
-                Set<Argument> arguments = new HashSet<>();
+                Set<Argument> arguments;
                 int argsIndex = associationName.indexOf('[');
                 if (argsIndex > 0) {
                     try {
-                        parseArguments(associationName.substring(argsIndex), arguments);
+                        arguments = getArgumentsFromString(associationName.substring(argsIndex));
                     } catch (UnsupportedEncodingException | IllegalArgumentException e) {
                         throw new RSQLParseException(
                                         String.format("Filter expression is not in expected format at: %s. %s",
                                                         associationName, e.getMessage()));
                     }
                     associationName = associationName.substring(0, argsIndex);
+                } else {
+                    arguments = new HashSet<>();
                 }
+
                 addDefaultArguments(arguments, dictionary.getAttributeArguments(entityType, associationName));
                 String typeName = dictionary.getJsonAliasFor(entityType);
                 Type fieldType = dictionary.getParameterizedType(entityType, associationName);
@@ -362,20 +361,6 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
                 entityType = fieldType;
             }
             return new Path(path);
-        }
-
-        private void parseArguments(String argsString, Set<Argument> arguments) throws UnsupportedEncodingException {
-            if (StringUtils.isEmpty(argsString)) {
-                return;
-            }
-
-            Matcher matcher = FILTER_ARGUMENTS_PATTERN.matcher(argsString);
-            while (matcher.find()) {
-                arguments.add(Argument.builder()
-                                .name(matcher.group(1))
-                                .value(URLDecoder.decode(matcher.group(2), StandardCharsets.UTF_8.name()))
-                                .build());
-            }
         }
 
         private void addDefaultArguments(Set<Argument> clientArguments, Set<ArgumentType> availableArgTypes) {

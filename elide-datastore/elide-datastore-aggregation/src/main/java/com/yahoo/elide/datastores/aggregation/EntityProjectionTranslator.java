@@ -5,15 +5,16 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
+import static com.yahoo.elide.core.request.Argument.getArgumentMapFromArgumentSet;
+
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
-import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
-import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
@@ -26,16 +27,12 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.google.common.collect.Sets;
 
-import lombok.NonNull;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -52,19 +49,18 @@ public class EntityProjectionTranslator {
     private FilterExpression whereFilter;
     private FilterExpression havingFilter;
     private EntityDictionary dictionary;
-    private User user;
     private Boolean bypassCache;
-
+    private RequestScope scope;
 
     public EntityProjectionTranslator(QueryEngine engine, Table table,
-                                      EntityProjection entityProjection, EntityDictionary dictionary,
-                                      User user, Boolean bypassCache) {
+                                      EntityProjection entityProjection, RequestScope scope,
+                                      Boolean bypassCache) {
         this.engine = engine;
         this.queriedTable = table;
         this.entityProjection = entityProjection;
-        this.dictionary = dictionary;
-        this.user = user;
+        this.dictionary = scope.getDictionary();
         this.bypassCache  = bypassCache;
+        this.scope = scope;
         dimensionProjections = resolveNonTimeDimensions();
         timeDimensions = resolveTimeDimensions();
         metrics = resolveMetrics();
@@ -86,8 +82,9 @@ public class EntityProjectionTranslator {
                 .havingFilter(havingFilter)
                 .sorting(entityProjection.getSorting())
                 .pagination(ImmutablePagination.from(entityProjection.getPagination()))
-                .context(prepareQueryContext())
+                .arguments(getArgumentMapFromArgumentSet(entityProjection.getArguments()))
                 .bypassingCache(bypassCache)
+                .scope(scope)
                 .build();
 
         QueryValidator validator = new QueryValidator(query, getAllFields(), dictionary);
@@ -155,8 +152,7 @@ public class EntityProjectionTranslator {
                     return engine.constructTimeDimensionProjection(
                             timeDim,
                             timeDimAttr.getAlias(),
-                            timeDimAttr.getArguments().stream()
-                                    .collect(Collectors.toMap(Argument::getName, Function.identity())));
+                            getArgumentMapFromArgumentSet(timeDimAttr.getArguments()));
                 })
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -174,8 +170,7 @@ public class EntityProjectionTranslator {
                             : engine.constructDimensionProjection(
                                     dimension,
                                     dimAttr.getAlias(),
-                                    dimAttr.getArguments().stream()
-                                            .collect(Collectors.toMap(Argument::getName, Function.identity())));
+                                    getArgumentMapFromArgumentSet(dimAttr.getArguments()));
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
@@ -205,8 +200,7 @@ public class EntityProjectionTranslator {
                 .map(attribute -> engine.constructMetricProjection(
                         queriedTable.getMetric(attribute.getName()),
                         attribute.getAlias(),
-                        attribute.getArguments().stream()
-                                .collect(Collectors.toMap(Argument::getName, Function.identity()))))
+                        getArgumentMapFromArgumentSet(attribute.getArguments())))
                 .collect(Collectors.toList());
     }
 
@@ -236,46 +230,5 @@ public class EntityProjectionTranslator {
         Set<String> allFields = getAttributes();
         allFields.addAll(getRelationships());
         return allFields;
-    }
-
-    private Map<String, Object> prepareQueryContext() {
-        Map<String, Object> context = new HashMap<>();
-        populateUserContext(context);
-        populateRequestContext(context);
-        return context;
-    }
-
-    private void populateUserContext(Map<String, Object> context) {
-        Map<String, Object> userMap = new HashMap<>();
-        context.put("$$user", userMap);
-        userMap.put("identity", user.getName());
-    }
-
-    private void populateRequestContext(Map<String, Object> context) {
-
-        Map<String, Object> requestMap = new HashMap<>();
-        context.put("$$request", requestMap);
-        Map<String, Object> tableMap = new HashMap<>();
-        requestMap.put("table", tableMap);
-        Map<String, Object> columnsMap = new HashMap<>();
-        requestMap.put("columns", columnsMap);
-
-        // Populate $$request.table context
-        tableMap.put("name", queriedTable.getName());
-        tableMap.put("args", entityProjection.getArguments().stream()
-                        .collect(Collectors.toMap(Argument::getName, Argument::getValue)));
-
-        // Populate $$request.columns context
-        entityProjection.getAttributes().forEach(attr -> {
-            @NonNull
-            String columnName = attr.getName();
-            Map<String, Object> columnMap = new HashMap<>();
-            columnsMap.put(columnName, columnMap);
-
-            // Populate $$request.columns.column context
-            columnMap.put("name", attr.getName());
-            columnMap.put("args", attr.getArguments().stream()
-                            .collect(Collectors.toMap(Argument::getName, Argument::getValue)));
-        });
     }
 }
