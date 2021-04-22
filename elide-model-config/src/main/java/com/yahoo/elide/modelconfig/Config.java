@@ -28,7 +28,11 @@ public enum Config {
 
     SQLDBConfig("sqldbconfig",
                 "db/sql/",
-                "/elideDBConfigSchema.json");
+                "/elideDBConfigSchema.json"),
+
+    NAMESPACEConfig("namespaceconfig",
+            "models/namespaces/",
+            "/elideNamespaceConfigSchema.json");
 
     private final String configType;
     private final String configPath;

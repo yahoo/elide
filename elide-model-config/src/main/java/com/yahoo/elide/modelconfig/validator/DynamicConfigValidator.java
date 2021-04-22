@@ -24,12 +24,14 @@ import com.yahoo.elide.modelconfig.model.Argument;
 import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.modelconfig.model.Dimension;
 import com.yahoo.elide.modelconfig.model.ElideDBConfig;
+import com.yahoo.elide.modelconfig.model.ElideNamespaceConfig;
 import com.yahoo.elide.modelconfig.model.ElideSQLDBConfig;
 import com.yahoo.elide.modelconfig.model.ElideSecurityConfig;
 import com.yahoo.elide.modelconfig.model.ElideTableConfig;
 import com.yahoo.elide.modelconfig.model.Join;
 import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Named;
+import com.yahoo.elide.modelconfig.model.NamespaceConfig;
 import com.yahoo.elide.modelconfig.model.Table;
 
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -88,6 +90,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     @Getter private Map<String, Object> modelVariables;
     private Map<String, Object> dbVariables;
     @Getter private final ElideDBConfig elideSQLDBConfig = new ElideSQLDBConfig();
+    @Getter private final ElideNamespaceConfig elideNamespaceConfig = new ElideNamespaceConfig();
     private final String configDir;
     private final DynamicConfigSchemaValidator schemaValidator = new DynamicConfigSchemaValidator();
     private final Map<String, Resource> resourceMap = new HashMap<>();
@@ -178,6 +181,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         this.dbVariables = readVariableConfig(Config.DBVARIABLE);
         this.elideSQLDBConfig.setDbconfigs(readDbConfig());
         this.elideTableConfig.setTables(readTableConfig());
+        this.elideNamespaceConfig.setNamespaceconfigs(readNamespaceConfig());
         populateInheritance(this.elideTableConfig);
     }
 
@@ -187,6 +191,9 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs(), "Multiple DB configs found with the same name: ");
         validateNameUniqueness(this.elideTableConfig.getTables(), "Multiple Table configs found with the same name: ");
         validateTableConfig();
+        validateNameUniqueness(this.elideNamespaceConfig.getNamespaceconfigs(),
+                "Multiple Namespace configs found with the same name: ");
+        validateNamespaceConfig();
         validateJoinedTablesDBConnectionName(this.elideTableConfig);
     }
 
@@ -280,7 +287,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
         List<Argument> arguments = getInheritedArguments(parent, table.getArguments());
         table.setArguments(arguments);
-        // isFact, isHidden, ReadAccess have default Values in schema, so can not be inherited.
+        // isFact, isHidden, ReadAccess, namespace have default Values in schema, so can not be inherited.
         // Other properties (tags, cardinality, etc.) have been categorized as non-inheritable too.
     }
 
@@ -458,6 +465,31 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     }
 
     /**
+     * Read and validates namespace config files.
+     * @return Set<NamespaceConfig> Set of Namespace Configs
+     */
+    private Set<NamespaceConfig> readNamespaceConfig() {
+
+        return this.resourceMap
+                        .entrySet()
+                        .stream()
+                        .filter(entry -> entry.getKey().startsWith(Config.NAMESPACEConfig.getConfigPath()))
+                        .map(entry -> {
+                            try {
+                                String content = IOUtils.toString(entry.getValue().getInputStream(), UTF_8);
+                                validateConfigForMissingVariables(content, this.modelVariables);
+                                String fileName = entry.getValue().getFilename();
+                                return DynamicConfigHelpers.stringToElideNamespaceConfigPojo(fileName,
+                                                content, this.modelVariables, schemaValidator);
+                            } catch (IOException e) {
+                                throw new IllegalStateException(e);
+                            }
+                        })
+                        .flatMap(namespaceconfig -> namespaceconfig.getNamespaceconfigs().stream())
+                        .collect(Collectors.toSet());
+    }
+
+    /**
      * Read and validates table config files.
      */
     private Set<Table> readTableConfig() {
@@ -518,6 +550,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
             validateSql(table.getSql());
             validateArguments(table.getArguments());
+            validateNamespaceExists(table.getNamespace());
             Set<String> tableFields = new HashSet<>();
 
             table.getDimensions().forEach(dim -> {
@@ -539,11 +572,30 @@ public class DynamicConfigValidator implements DynamicConfiguration {
                 validateFieldNameUniqueness(tableFields, join.getName(), table.getName());
                 validateSql(join.getDefinition());
                 validateModelExists(join.getTo());
+                validateNamespaceExists(join.getNamespace());
             });
 
             extractChecksFromExpr(table.getReadAccess(), extractedChecks, visitor);
-            validateChecks(extractedChecks);
         }
+
+        validateChecks(extractedChecks);
+
+        return true;
+    }
+
+    /**
+     * Validate namespace configs.
+     * @return boolean true if all provided namespace properties passes validation
+     */
+    private boolean validateNamespaceConfig() {
+        Set<String> extractedChecks = new HashSet<>();
+        PermissionExpressionVisitor visitor = new PermissionExpressionVisitor();
+
+        for (NamespaceConfig namespace : elideNamespaceConfig.getNamespaceconfigs()) {
+            extractChecksFromExpr(namespace.getReadAccess(), extractedChecks, visitor);
+        }
+
+        validateChecks(extractedChecks);
 
         return true;
     }
@@ -705,6 +757,13 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         if (!(elideTableConfig.hasTable(name) || hasStaticModel(name, NO_VERSION))) {
             throw new IllegalStateException(
                             "Model: " + name + " is neither included in dynamic models nor in static models");
+        }
+    }
+
+    private void validateNamespaceExists(String name) {
+        if (!elideNamespaceConfig.hasNamespace(name)) {
+            throw new IllegalStateException(
+                            "Namespace: " + name + " is not included in dynamic configs");
         }
     }
 

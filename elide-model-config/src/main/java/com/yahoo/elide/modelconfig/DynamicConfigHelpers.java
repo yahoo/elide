@@ -6,6 +6,7 @@
 package com.yahoo.elide.modelconfig;
 
 import com.yahoo.elide.modelconfig.model.ElideDBConfig;
+import com.yahoo.elide.modelconfig.model.ElideNamespaceConfig;
 import com.yahoo.elide.modelconfig.model.ElideSecurityConfig;
 import com.yahoo.elide.modelconfig.model.ElideTableConfig;
 import com.yahoo.elide.modelconfig.parser.handlebars.HandlebarsHydrator;
@@ -118,6 +119,29 @@ public class DynamicConfigHelpers {
             throw new IOException(e);
         }
         return dbconfig;
+    }
+
+    /**
+     * Generates ElideNamespaceConfig Pojo from input String.
+     * @param content : input string
+     * @param variables : variables to resolve.
+     * @param schemaValidator JSON schema validator.
+     * @return ElideNamespaceConfig Pojo
+     * @throws IOException If an I/O error or a processing error occurs.
+     */
+    public static ElideNamespaceConfig stringToElideNamespaceConfigPojo(String fileName, String content,
+                    Map<String, Object> variables, DynamicConfigSchemaValidator schemaValidator) throws IOException {
+        ElideNamespaceConfig namespaceconfig = new ElideNamespaceConfig();
+        String jsonConfig = hjsonToJson(resolveVariables(content, variables));
+        try {
+            if (schemaValidator.verifySchema(Config.NAMESPACEConfig, jsonConfig, fileName)) {
+                namespaceconfig = getModelPojo(jsonConfig, ElideNamespaceConfig.class);
+            }
+        } catch (ProcessingException e) {
+            log.error("Error Validating DB config : " + e.getMessage());
+            throw new IOException(e);
+        }
+        return namespaceconfig;
     }
 
     /**
