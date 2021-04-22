@@ -134,8 +134,8 @@ public class TableContext extends HashMap<String, Object> {
             return resolveHandlebars(keyStr, columnProj.getExpression(), getArgsFromContext(COL_PREFIX), fixedArgs);
         } else {
             // Assumption: Non-Projected column must be projected in Query's source.
-            // TODO: Currently everything is not projected in Query, Remove this case once everything is projected in Query.
-            // https://github.com/yahoo/elide/issues/2018
+            // TODO: Currently everything is not projected in Query, Remove this case once everything is projected in
+            // Query (https://github.com/yahoo/elide/issues/2018).
             Queryable source = this.queryable.getSource();
 
             if (source.getColumnProjection(keyStr) == null) {
