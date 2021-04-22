@@ -47,9 +47,6 @@ public class SQLReferenceTable {
     @Getter
     protected final EntityDictionary dictionary;
 
-    //Stores  MAP<Queryable, MAP<fieldName, reference>>
-    protected final Map<Queryable, Map<String, String>> resolvedReferences = new HashMap<>();
-
     //Stores  MAP<Queryable, MAP<fieldName, join expression>>
     protected final Map<Queryable, Map<String, Set<String>>> resolvedJoinExpressions = new HashMap<>();
 
@@ -89,17 +86,6 @@ public class SQLReferenceTable {
                   next = next.getSource();
                } while (!next.isRoot());
            });
-    }
-
-    /**
-     * Get the resolved physical SQL reference for a field from storage.
-     *
-     * @param queryable table class
-     * @param fieldName field name
-     * @return resolved reference
-     */
-    public String getResolvedReference(Queryable queryable, String fieldName) {
-        return resolvedReferences.get(queryable).get(fieldName);
     }
 
     /**
@@ -144,9 +130,6 @@ public class SQLReferenceTable {
         //References and joins are stored by their source that produces them (rather than the query that asks for them).
         Queryable key = queryable.getSource();
         SQLDialect dialect = queryable.getSource().getConnectionDetails().getDialect();
-        if (!resolvedReferences.containsKey(key)) {
-            resolvedReferences.put(key, new HashMap<>());
-        }
 
         if (!resolvedJoinExpressions.containsKey(key)) {
             resolvedJoinExpressions.put(key, new HashMap<>());
@@ -160,11 +143,6 @@ public class SQLReferenceTable {
             validator.parse(queryable, column);
 
             String fieldName = column.getName();
-
-            resolvedReferences.get(key).put(
-                    fieldName,
-                    new SQLReferenceVisitor(metaDataStore, key.getAlias(), dialect)
-                            .visitColumn(queryable, column));
 
             Set<JoinPath> joinPaths = joinVisitor.visitColumn(queryable, column);
             resolvedJoinExpressions.get(key).put(fieldName, getJoinClauses(queryable.getSource().getAlias(),
