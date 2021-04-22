@@ -79,7 +79,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
             if (!query.getMetricProjections().isEmpty()) {
                 builder.groupByClause("GROUP BY " + groupByDimensions.stream()
                         .map(SQLColumnProjection.class::cast)
-                        .map((column) -> column.toSQL(query.getSource(), referenceTable, query.getArguments()))
+                        .map((column) -> column.toSQL(query, referenceTable))
                         .collect(Collectors.joining(", ")));
             }
         }
@@ -154,7 +154,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
                 .orElse(null);
 
         if (metric != null) {
-            return metric.toSQL(query.getSource(), referenceTable, query.getArguments());
+            return metric.toSQL(query, referenceTable);
         } else {
             return generatePredicatePathReference(path, query);
         }
@@ -172,14 +172,14 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
         List<String> metricProjections = query.getMetricProjections().stream()
                 .map(SQLMetricProjection.class::cast)
                 .filter(SQLColumnProjection::isProjected)
-                .map(invocation -> invocation.toSQL(query.getSource(), referenceTable, query.getArguments()) + " AS "
+                .map(invocation -> invocation.toSQL(query, referenceTable) + " AS "
                                 + applyQuotes(invocation.getSafeAlias()))
                 .collect(Collectors.toList());
 
         List<String> dimensionProjections = query.getAllDimensionProjections().stream()
                 .map(SQLColumnProjection.class::cast)
                 .filter(SQLColumnProjection::isProjected)
-                .map(dimension -> dimension.toSQL(query.getSource(), referenceTable, query.getArguments()) + " AS "
+                .map(dimension -> dimension.toSQL(query, referenceTable) + " AS "
                                 + applyQuotes(dimension.getSafeAlias()))
                 .collect(Collectors.toList());
 
@@ -196,7 +196,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
      * @param sortClauses The list of sort columns and their sort order (ascending or descending).
      * @return A SQL expression
      */
-    private String extractOrderBy(Map<Path, Sorting.SortOrder> sortClauses, Query plan) {
+    private String extractOrderBy(Map<Path, Sorting.SortOrder> sortClauses, Query query) {
         if (sortClauses.isEmpty()) {
             return "";
         }
@@ -210,11 +210,11 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
 
                     Path.PathElement last = path.lastElement().get();
 
-                    SQLColumnProjection projection = fieldToColumnProjection(plan, last.getAlias());
-                    String orderByClause = (plan.getColumnProjections().contains(projection)
+                    SQLColumnProjection projection = fieldToColumnProjection(query, last.getAlias());
+                    String orderByClause = (query.getColumnProjections().contains(projection)
                             && dialect.useAliasForOrderByClause())
                             ? applyQuotes(projection.getSafeAlias())
-                            : projection.toSQL(plan.getSource(), referenceTable, plan.getArguments());
+                            : projection.toSQL(query, referenceTable);
 
                     return orderByClause + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
                 })
@@ -305,7 +305,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
         Map<String, Argument> arguments = last.getArguments().stream()
                         .collect(Collectors.toMap(Argument::getName, Function.identity()));
         SQLColumnProjection projection = fieldToColumnProjection(query, last.getAlias(), arguments);
-        return projection.toSQL(query.getSource(), referenceTable, query.getArguments());
+        return projection.toSQL(query, referenceTable);
     }
 
     private SQLColumnProjection fieldToColumnProjection(Query query, String fieldName) {

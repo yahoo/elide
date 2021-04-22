@@ -30,7 +30,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -87,9 +86,9 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     }
 
     @Override
-    public String toSQL(Queryable source, SQLReferenceTable lookupTable, Map<String, Argument> queryArgs) {
+    public String toSQL(Queryable query, SQLReferenceTable lookupTable) {
         if (expression.matches(".*\\{\\{.*\\}\\}.*")) {
-            return SQLColumnProjection.super.toSQL(source, lookupTable, queryArgs);
+            return SQLColumnProjection.super.toSQL(query, lookupTable);
         }
         return expression;
     }
@@ -114,7 +113,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                                                               SQLReferenceTable lookupTable,
                                                               boolean joinInOuter) {
         SQLDialect dialect = source.getConnectionDetails().getDialect();
-        String sql = toSQL(source.getSource(), lookupTable, Collections.emptyMap());
+        String sql = toSQL(source, lookupTable);
         SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
 
         SqlNode node;

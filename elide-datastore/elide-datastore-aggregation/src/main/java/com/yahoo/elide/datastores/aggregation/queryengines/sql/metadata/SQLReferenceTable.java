@@ -76,10 +76,18 @@ public class SQLReferenceTable {
            .forEach(queryable -> {
                Queryable next = queryable;
                do {
-                  initializeTableContext(next);
                   resolveAndStoreAllReferencesAndJoins(next);
                   next = next.getSource();
                } while (next.isNested());
+           });
+
+        queryables
+           .forEach(queryable -> {
+               Queryable next = queryable;
+               do {
+                  initializeTableContext(next);
+                  next = next.getSource();
+               } while (!next.isRoot());
            });
     }
 
@@ -111,10 +119,10 @@ public class SQLReferenceTable {
 
     private void initializeTableContext(Queryable queryable) {
 
-        // Contexts are stored by their source that produces them
         Queryable key = queryable.getSource();
 
-        if (!globalTablesContext.containsKey(key)) {
+        // Contexts are not stored by their references.
+        if (!globalTablesContext.containsKey(queryable)) {
 
             TableContext tableCtx = TableContext.builder()
                             .queryable(queryable)
@@ -122,7 +130,7 @@ public class SQLReferenceTable {
                             .metaDataStore(metaDataStore)
                             .build();
 
-            globalTablesContext.put(key, tableCtx);
+            globalTablesContext.put(queryable, tableCtx);
         }
     }
 
