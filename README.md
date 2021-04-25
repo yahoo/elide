@@ -5,7 +5,7 @@
 ![Elide Logo](elide-logo.svg)
 
 [![Spectrum](https://withspectrum.github.io/badge/badge.svg)](https://spectrum.chat/elide)
-[![Build Status](https://cd.screwdriver.cd/pipelines/6103/badge)](https://cd.screwdriver.cd/pipelines/6103)
+[![Build Status](https://api.screwdriver.cd/pipelines/6103/badge)](https://cd.screwdriver.cd/pipelines/6103)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core)
 [![Coverage Status](https://coveralls.io/repos/github/yahoo/elide/badge.svg?branch=master)](https://coveralls.io/github/yahoo/elide?branch=master)
 [![Code Quality: Java](https://img.shields.io/lgtm/grade/java/g/yahoo/elide.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/yahoo/elide/context:java)
