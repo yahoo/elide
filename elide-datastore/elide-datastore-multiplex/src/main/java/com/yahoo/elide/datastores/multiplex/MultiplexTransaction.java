@@ -149,8 +149,6 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
                               RequestScope scope) {
 
         FilterExpression filter = relation.getProjection().getFilterExpression();
-        Sorting sorting = relation.getProjection().getSorting();
-        Pagination pagination = relation.getProjection().getPagination();
 
         DataStoreTransaction relationTx = getRelationTransaction(entity, relation.getName());
         Type<Object> entityType = EntityDictionary.getType(entity);

@@ -1063,14 +1063,14 @@ public class EntityDictionary {
         return getEntityBinding(recordClass).getMethodAnnotation(annotationClass, method);
     }
 
-    public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Type<?> cls,
+    public Collection<LifeCycleHook> getTriggers(Type<?> cls,
             Operation op,
             TransactionPhase phase,
             String fieldName) {
         return getEntityBinding(cls).getTriggers(op, phase, fieldName);
     }
 
-    public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Type<?> cls,
+    public Collection<LifeCycleHook> getTriggers(Type<?> cls,
             Operation op,
             TransactionPhase phase) {
         return getEntityBinding(cls).getTriggers(op, phase);

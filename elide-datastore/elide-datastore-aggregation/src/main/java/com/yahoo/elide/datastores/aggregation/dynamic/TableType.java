@@ -198,7 +198,7 @@ public class TableType implements Type<DynamicModelInstance> {
     }
 
     @Override
-    public Method getMethod(String name, Type[] parameterTypes) throws NoSuchMethodException {
+    public Method getMethod(String name, Type<?>... parameterTypes) throws NoSuchMethodException {
         throw new NoSuchMethodException();
     }
 
