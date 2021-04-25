@@ -31,9 +31,7 @@ public class AddressSerde implements Serde<String, Address> {
         String street = matcher.group(2);
         long zipCode = Long.valueOf(matcher.group(3));
 
-        Address address = new Address(number, street, zipCode);
-
-        return address;
+        return new Address(number, street, zipCode);
     }
 
     @Override

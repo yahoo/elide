@@ -400,9 +400,7 @@ public interface ElideStandaloneSettings {
                 () -> entityManagerFactory.createEntityManager(),
                 em -> new NonJtaTransaction(em, TXCANCEL, DEFAULT_LOGGER, true));
 
-        DataStore dataStore = new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
-
-        return dataStore;
+        return new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
     }
 
     /**

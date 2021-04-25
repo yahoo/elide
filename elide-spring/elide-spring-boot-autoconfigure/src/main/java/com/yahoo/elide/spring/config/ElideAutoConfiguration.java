@@ -370,9 +370,7 @@ public class ElideAutoConfiguration {
 
         SwaggerBuilder builder = new SwaggerBuilder(dictionary, info).withLegacyFilterDialect(false);
 
-        Swagger swagger = builder.build().basePath(settings.getJsonApi().getPath());
-
-        return swagger;
+        return builder.build().basePath(settings.getJsonApi().getPath());
     }
 
     private boolean isDynamicConfigEnabled(ElideConfigProperties settings) {
