@@ -71,7 +71,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
     private static final Pattern TYPED_FILTER_PATTERN = Pattern.compile("filter\\[([^\\]]+)\\]");
     // field name followed by zero or more filter arguments
     // eg: name, orderDate[grain:month] , title[foo:bar][blah:Encoded+Value]
-    private static final String FILTER_SELECTOR_REGEX = "(\\w+)(" + ARGUMENTS_PATTERN + ")*$";
+    private static final Pattern FILTER_SELECTOR_PATTERN = Pattern.compile("(\\w+)(" + ARGUMENTS_PATTERN + ")*$");
     private static final ComparisonOperator INI = new ComparisonOperator("=ini=", true);
     private static final ComparisonOperator NOT_INI = new ComparisonOperator("=outi=", true);
     private static final ComparisonOperator ISNULL_OP = new ComparisonOperator("=isnull=", false);
@@ -322,7 +322,7 @@ public class RSQLFilterDialect implements FilterDialect, SubqueryFilterDialect, 
 
             for (String associationName : associationNames) {
 
-                if (!associationName.matches(FILTER_SELECTOR_REGEX)) {
+                if (!FILTER_SELECTOR_PATTERN.matcher(associationName).matches()) {
                     throw new RSQLParseException("Filter expression is not in expected format at: " + associationName);
                 }
 

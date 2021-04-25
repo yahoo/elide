@@ -12,6 +12,8 @@ import com.github.fge.jsonschema.format.AbstractFormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
+import java.util.regex.Pattern;
+
 /**
  * Format specifier for {@code elideFieldType} format attribute.
  * <p>
@@ -19,7 +21,7 @@ import com.github.fge.msgsimple.bundle.MessageBundle;
  * </p>
  */
 public class ElideFieldTypeFormatAttr extends AbstractFormatAttribute {
-    private static final String FIELD_TYPE_REGEX = "^(?i)(Integer|Decimal|Money|Text|Coordinate|Boolean)$";
+    private static final Pattern FIELD_TYPE_PATTERN = Pattern.compile("^(?i)(Integer|Decimal|Money|Text|Coordinate|Boolean)$");
 
     public static final String FORMAT_NAME = "elideFieldType";
     public static final String TYPE_KEY = "elideFieldType.error.enum";
@@ -35,7 +37,7 @@ public class ElideFieldTypeFormatAttr extends AbstractFormatAttribute {
                     throws ProcessingException {
         final String input = data.getInstance().getNode().textValue();
 
-        if (!input.matches(FIELD_TYPE_REGEX)) {
+        if (!FIELD_TYPE_PATTERN.matcher(input).matches()) {
             report.error(newMsg(data, bundle, TYPE_KEY).putArgument("value", input));
         }
     }
