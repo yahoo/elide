@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.datastores.multiplex.bridgeable;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStore;
@@ -66,7 +65,7 @@ public class BridgeableRedisStore implements DataStore {
         public <T> T loadObject(EntityProjection projection,
                                  Serializable id,
                                  RequestScope scope) {
-            if (!projection.getType().equals(getClassType(RedisActions.class))) {
+            if (!projection.getType().equals(ClassType.of(RedisActions.class))) {
                 log.debug("Tried to load unexpected object from redis: {}", projection.getType());
                 throw new RuntimeException("Tried to load unexpected object from redis!");
             }
@@ -92,7 +91,7 @@ public class BridgeableRedisStore implements DataStore {
         @Override
         public <T> Iterable<T> loadObjects(EntityProjection projection,
                                             RequestScope scope) {
-            if (!projection.getType().equals(getClassType(RedisActions.class))) {
+            if (!projection.getType().equals(ClassType.of(RedisActions.class))) {
                 log.debug("Tried to load unexpected object from redis: {}", projection.getType());
                 throw new RuntimeException("Tried to load unexpected object from redis!");
             }

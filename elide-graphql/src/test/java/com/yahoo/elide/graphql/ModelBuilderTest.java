@@ -7,7 +7,6 @@
 package com.yahoo.elide.graphql;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static graphql.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -202,9 +201,9 @@ public class ModelBuilderTest {
     @Test
     public void checkAttributeArguments() {
         Set<ArgumentType> arguments = new HashSet<>();
-        arguments.add(new ArgumentType(SORT, getClassType(Sorting.SortOrder.class)));
+        arguments.add(new ArgumentType(SORT, ClassType.of(Sorting.SortOrder.class)));
         arguments.add(new ArgumentType(TYPE, ClassType.STRING_TYPE));
-        dictionary.addArgumentsToAttribute(getClassType(Book.class), FIELD_PUBLISH_DATE, arguments);
+        dictionary.addArgumentsToAttribute(ClassType.of(Book.class), FIELD_PUBLISH_DATE, arguments);
 
         DataFetcher fetcher = mock(DataFetcher.class);
         ModelBuilder builder = new ModelBuilder(dictionary, new NonEntityDictionary(), fetcher, NO_VERSION);
@@ -220,9 +219,9 @@ public class ModelBuilderTest {
     @Test
     public void checkModelArguments() {
         // Add test arguments to entities
-        dictionary.addArgumentToEntity(getClassType(Book.class), new ArgumentType("filterBook", ClassType.STRING_TYPE));
-        dictionary.addArgumentToEntity(getClassType(Publisher.class), new ArgumentType("filterPublisher", ClassType.STRING_TYPE));
-        dictionary.addArgumentToEntity(getClassType(Author.class), new ArgumentType("filterAuthor", ClassType.STRING_TYPE));
+        dictionary.addArgumentToEntity(ClassType.of(Book.class), new ArgumentType("filterBook", ClassType.STRING_TYPE));
+        dictionary.addArgumentToEntity(ClassType.of(Publisher.class), new ArgumentType("filterPublisher", ClassType.STRING_TYPE));
+        dictionary.addArgumentToEntity(ClassType.of(Author.class), new ArgumentType("filterAuthor", ClassType.STRING_TYPE));
 
         DataFetcher fetcher = mock(DataFetcher.class);
         ModelBuilder builder = new ModelBuilder(dictionary, new NonEntityDictionary(), fetcher, NO_VERSION);
