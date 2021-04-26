@@ -22,7 +22,7 @@ import java.util.List;
  * Custom deserializer for top-level data.
  */
 public class DataDeserializer extends JsonDeserializer<Data<Resource>> {
-    private final static ObjectMapper MAPPER = new MappingJsonFactory().getCodec();
+    private static final ObjectMapper MAPPER = new MappingJsonFactory().getCodec();
 
     @Override
     public Data<Resource> deserialize(JsonParser jsonParser, DeserializationContext deserializationContext)

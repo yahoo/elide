@@ -24,7 +24,6 @@ import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Formatter;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.HandlebarsException;
-import com.github.jknack.handlebars.Helper;
 import com.github.jknack.handlebars.Options;
 import com.github.jknack.handlebars.Template;
 
@@ -63,22 +62,14 @@ public class TableContext extends HashMap<String, Object> {
     private final String alias;
 
     private final Handlebars handlebars = new Handlebars()
-                    .with(EscapingStrategy.NOOP)
-                    .with(new Formatter() {
-                        @Override
-                        public Object format(Object value, Chain next) {
-                            if (value instanceof com.yahoo.elide.core.request.Argument) {
-                                return ((com.yahoo.elide.core.request.Argument) value).getValue();
-                            }
-                            return next.format(value);
-                        }
-                    })
-                    .registerHelper("sql", new Helper<Object>() {
-                        @Override
-                        public Object apply(final Object context, final Options options) throws IOException {
-                            return resolveSQLHandlebar(context, options);
-                        }
-                    });
+            .with(EscapingStrategy.NOOP)
+            .with((Formatter) (value, next) -> {
+                if (value instanceof com.yahoo.elide.core.request.Argument) {
+                    return ((com.yahoo.elide.core.request.Argument) value).getValue();
+                }
+                return next.format(value);
+            })
+            .registerHelper("sql", this::resolveSQLHandlebar);
 
     public TableContext withTableArgs(Map<String, ? extends Object> tableArgs) {
         Map<String, Object> argsMap = new HashMap<>();
@@ -132,27 +123,26 @@ public class TableContext extends HashMap<String, Object> {
         if (columnProj != null) {
             // Use the args under $$column.args
             return resolveHandlebars(keyStr, columnProj.getExpression(), getArgsFromContext(COL_PREFIX), fixedArgs);
-        } else {
-            // Assumption: Non-Projected column must be projected in Query's source.
-            // TODO: Currently everything is not projected in Query, Remove this case once everything is projected in
-            // Query (https://github.com/yahoo/elide/issues/2018).
-            Queryable source = this.queryable.getSource();
-
-            if (source.getColumnProjection(keyStr) == null) {
-                throw new HandlebarsException(new Throwable("Couldn't find: " + key));
-            }
-
-            TableContext newCtx = TableContext.builder()
-                            .queryable(source)
-                            .alias(source.getAlias())
-                            .metaDataStore(metaDataStore)
-                            .build();
-
-            // Copy $$table & $$column to context for source.
-            newCtx.put(COL_PREFIX, this.get(COL_PREFIX));
-            newCtx.put(TBL_PREFIX, this.get(TBL_PREFIX));
-            return newCtx.get(keyStr);
         }
+        // Assumption: Non-Projected column must be projected in Query's source.
+        // TODO: Currently everything is not projected in Query, Remove this case once everything is projected in
+        // Query (https://github.com/yahoo/elide/issues/2018).
+        Queryable source = this.queryable.getSource();
+
+        if (source.getColumnProjection(keyStr) == null) {
+            throw new HandlebarsException(new Throwable("Couldn't find: " + key));
+        }
+
+        TableContext newCtx = TableContext.builder()
+                        .queryable(source)
+                        .alias(source.getAlias())
+                        .metaDataStore(metaDataStore)
+                        .build();
+
+        // Copy $$table & $$column to context for source.
+        newCtx.put(COL_PREFIX, this.get(COL_PREFIX));
+        newCtx.put(TBL_PREFIX, this.get(TBL_PREFIX));
+        return newCtx.get(keyStr);
     }
 
     /**
@@ -260,16 +250,14 @@ public class TableContext extends HashMap<String, Object> {
             Map<String, ? extends Object> pinnedArgs = getArgumentMapFromString(column.substring(argsIndex));
             invokedColumnName = column.substring(0, argsIndex);
             return invokedTableCtx.get(invokedColumnName, pinnedArgs);
-        } else {
-            return invokedTableCtx.get(invokedColumnName);
         }
+        return invokedTableCtx.get(invokedColumnName);
     }
 
     @SuppressWarnings("unchecked")
     private Map<String, ? extends Object> getArgsFromContext(String outerKey) {
         Map<String, Object> map = (Map<String, Object>) this.getOrDefault(outerKey, emptyMap());
-        Map<String, ? extends Object> argsMap = (Map<String, ? extends Object>) map.getOrDefault(ARGS_KEY, emptyMap());
-        return argsMap;
+        return (Map<String, ? extends Object>) map.getOrDefault(ARGS_KEY, emptyMap());
     }
 
     private static Map<String, Object> getDefaultArgumentsMap(Set<Argument> availableArgs) {

@@ -49,9 +49,7 @@ public class CoerceUtilTest {
 
     @AfterAll
     public static void shutdown() {
-        oldSerdes.forEach((dateClass, serde) -> {
-            CoerceUtil.register(dateClass, serde);
-        });
+        oldSerdes.forEach(CoerceUtil::register);
     }
 
     @EqualsAndHashCode

@@ -55,7 +55,7 @@ public class Argument {
      * @throws UnsupportedEncodingException
      */
     public static Set<Argument> getArgumentsFromString(String argsString) throws UnsupportedEncodingException {
-        Set<Argument> arguments = new HashSet<Argument>();
+        Set<Argument> arguments = new HashSet<>();
 
         if (!isEmpty(argsString)) {
 

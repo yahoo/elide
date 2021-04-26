@@ -68,16 +68,13 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
             invoked = true;
             if (plan.isNested()) {
                 return visitOuterQueryPlan(plan);
-            } else {
-                return visitUnnestedQueryPlan(plan);
             }
-        } else {
-            if (plan.isNested()) {
-                return visitMiddleQueryPlan(plan);
-            } else {
-                return visitInnerQueryPlan(plan);
-            }
+            return visitUnnestedQueryPlan(plan);
         }
+        if (plan.isNested()) {
+            return visitMiddleQueryPlan(plan);
+        }
+        return visitInnerQueryPlan(plan);
     }
 
     private Query.QueryBuilder visitInnerQueryPlan(Queryable plan)  {

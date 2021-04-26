@@ -213,9 +213,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     }
 
     private static void validateInheritance(ElideTableConfig tables) {
-        tables.getTables().stream().forEach(table -> {
-            validateInheritance(tables, table, new HashSet<>());
-        });
+        tables.getTables().stream().forEach(table -> validateInheritance(tables, table, new HashSet<>()));
     }
 
     private static void validateInheritance(ElideTableConfig tables, Table table, Set<Table> visited) {
@@ -233,9 +231,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
             throw new IllegalStateException(
                     String.format("Inheriting from table '%s' creates an illegal cyclic dependency.",
                             parent.getName()));
-        } else {
-            validateInheritance(tables, parent, visited);
         }
+        validateInheritance(tables, parent, visited);
     }
 
     private void populateInheritance(ElideTableConfig elideTableConfig) {
@@ -243,9 +240,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         validateInheritance(this.elideTableConfig);
 
         Set<Table> processed = new HashSet<>();
-        elideTableConfig.getTables().stream().forEach(table -> {
-            populateInheritance(table, processed);
-        });
+        elideTableConfig.getTables().stream().forEach(table -> populateInheritance(table, processed));
     }
 
     private void populateInheritance(Table table, Set<Table> processed) {
@@ -602,9 +597,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
     private void validateArguments(List<Argument> arguments) {
         validateNameUniqueness(arguments, "Multiple Arguments found with the same name: ");
-        arguments.forEach(arg -> {
-            validateTableSource(arg.getTableSource());
-        });
+        arguments.forEach(arg -> validateTableSource(arg.getTableSource()));
     }
 
     private void validateChecks(Set<String> checks) {
@@ -745,9 +738,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
             if (alreadyDefinedRoles.contains(role)) {
                 throw new IllegalStateException(String.format(
                                 "Duplicate!! Role name: '%s' is already defined. Please use different role.", role));
-            } else {
-                alreadyDefinedRoles.add(role);
             }
+            alreadyDefinedRoles.add(role);
         });
 
         return true;

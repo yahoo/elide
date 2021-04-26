@@ -12,6 +12,8 @@ import com.github.fge.jsonschema.format.AbstractFormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
+import java.util.regex.Pattern;
+
 /**
  * Format specifier for {@code elideJoinType} format attribute.
  * <p>
@@ -19,7 +21,7 @@ import com.github.fge.msgsimple.bundle.MessageBundle;
  * </p>
  */
 public class ElideJoinTypeFormatAttr extends AbstractFormatAttribute {
-    private static final String JOIN_TYPE_REGEX = "^(?i)(left|inner|full|cross)$";
+    private static final Pattern JOIN_TYPE_PATTERN = Pattern.compile("^(?i)(left|inner|full|cross)$");
 
     public static final String FORMAT_NAME = "elideJoinType";
     public static final String TYPE_KEY = "elideJoinType.error.enum";
@@ -35,7 +37,7 @@ public class ElideJoinTypeFormatAttr extends AbstractFormatAttribute {
                     throws ProcessingException {
         final String input = data.getInstance().getNode().textValue();
 
-        if (!input.matches(JOIN_TYPE_REGEX)) {
+        if (!JOIN_TYPE_PATTERN.matcher(input).matches()) {
             report.error(newMsg(data, bundle, TYPE_KEY).putArgument("value", input));
         }
     }

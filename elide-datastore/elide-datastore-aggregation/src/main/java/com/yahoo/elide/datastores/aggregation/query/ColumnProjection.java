@@ -42,9 +42,8 @@ public interface ColumnProjection extends Serializable {
         String name = getName();
         if (name.equals(alias)) {
             return name;
-        } else {
-            return createSafeAlias(name, alias);
         }
+        return createSafeAlias(name, alias);
     }
 
     /**
@@ -81,7 +80,9 @@ public interface ColumnProjection extends Serializable {
     }
 
     // force implementations to define equals/hashCode
+    @Override
     boolean equals(Object other);
+    @Override
     int hashCode();
 
     /**
