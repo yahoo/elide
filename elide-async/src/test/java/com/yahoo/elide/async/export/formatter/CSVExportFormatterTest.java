@@ -27,7 +27,6 @@ import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.jsonapi.models.Resource;
 
 import org.apache.commons.lang3.time.FastDateFormat;
-import org.apache.commons.lang3.time.FastDateParser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;

@@ -17,9 +17,7 @@ import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
-import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Relationship;
-import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.Type;
 
 import java.io.IOException;
