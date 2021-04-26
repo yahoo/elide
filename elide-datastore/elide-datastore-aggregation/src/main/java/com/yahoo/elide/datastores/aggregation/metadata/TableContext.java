@@ -259,8 +259,7 @@ public class TableContext extends HashMap<String, Object> {
     @SuppressWarnings("unchecked")
     private Map<String, ? extends Object> getArgsFromContext(String outerKey) {
         Map<String, Object> map = (Map<String, Object>) this.getOrDefault(outerKey, emptyMap());
-        Map<String, ? extends Object> argsMap = (Map<String, ? extends Object>) map.getOrDefault(ARGS_KEY, emptyMap());
-        return argsMap;
+        return (Map<String, ? extends Object>) map.getOrDefault(ARGS_KEY, emptyMap());
     }
 
     private static Map<String, Object> getDefaultArgumentsMap(Set<Argument> availableArgs) {

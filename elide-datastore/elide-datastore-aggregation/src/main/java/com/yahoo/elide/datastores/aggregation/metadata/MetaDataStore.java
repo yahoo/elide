@@ -120,10 +120,8 @@ public class MetaDataStore implements DataStore {
      * @return Set of Class with specific annotations.
      */
     private static Set<Class<?>> getAllAnnotatedClasses() {
-        return ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS, (clazz) -> {
-            return clazz.getAnnotation(Entity.class) == null
-                    || clazz.getAnnotation(Include.class) != null;
-        });
+        return ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS,
+                clazz -> clazz.getAnnotation(Entity.class) == null || clazz.getAnnotation(Include.class) != null);
     }
 
     public Set<Type<?>> getDynamicTypes() {
