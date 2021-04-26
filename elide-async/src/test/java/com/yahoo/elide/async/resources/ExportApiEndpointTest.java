@@ -24,6 +24,7 @@ import io.reactivex.Observable;
 
 import java.io.IOException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.container.AsyncResponse;
@@ -53,7 +54,7 @@ public class ExportApiEndpointTest {
     public void testGet() throws InterruptedException, IOException {
         String queryId = "1";
         int maxDownloadTimeSeconds = 1;
-        int maxDownloadTimeMilliSeconds = maxDownloadTimeSeconds * 1000;
+        int maxDownloadTimeMilliSeconds = (int) TimeUnit.SECONDS.toMillis(maxDownloadTimeSeconds);
         when(engine.getResultsByID(queryId)).thenReturn(Observable.just("result"));
 
         exportApiProperties = new ExportApiProperties(Executors.newFixedThreadPool(1), maxDownloadTimeSeconds);

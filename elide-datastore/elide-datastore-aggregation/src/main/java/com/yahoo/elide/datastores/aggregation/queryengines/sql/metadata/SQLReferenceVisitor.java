@@ -7,7 +7,9 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static com.yahoo.elide.core.utils.TypeHelper.extendTypeAlias;
 import static com.yahoo.elide.core.utils.TypeHelper.getFieldAlias;
+
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnVisitor;
@@ -18,14 +20,17 @@ import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 
-import java.util.Stack;
+import com.google.common.base.Preconditions;
+
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
  * SQLReferenceVisitor convert each column to its full expanded aliased SQL physical expression.
  */
 public class SQLReferenceVisitor extends ColumnVisitor<String> {
     // this visitor is using DFS pattern when traversing columns, use Stack as state tracker
-    private final Stack<String> tableAliases = new Stack<>();
+    private final Deque<String> tableAliases = new ArrayDeque<>();
     private final SQLDialect dialect;
 
     public SQLReferenceVisitor(MetaDataStore metaDataStore, String tableAlias, SQLDialect dialect) {
@@ -35,13 +40,16 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
     }
 
     /**
-     * For physical reference, just append it to the table alias
+     * For physical reference, just append it to the table alias.
      *
      * @param reference physical column name
      * @return <code>table.reference</code>
      */
     @Override
     protected String visitPhysicalReference(String reference) {
+        if (reference.indexOf('$') == 0) {
+            reference = reference.substring(1);
+        }
         return getFieldAlias(applyQuotes(tableAliases.peek()), applyQuotes(reference));
     }
 
@@ -51,7 +59,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
     }
 
     /**
-     * For a FIELD dimension, append its physical columnName to the table alias
+     * For a FIELD dimension, append its physical columnName to the table alias.
      *
      * @param source The parent which owns the dimension.
      * @param dimension a FIELD dimension
@@ -62,6 +70,10 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
 
         //This is a table.  Check if there is a @Column annotation.
         if (source == source.getSource()) {
+            // Physical Column Reference starts with '$'
+            if (dimension.getName().indexOf('$') == 0) {
+                return visitPhysicalReference(dimension.getName());
+            }
             return getFieldAlias(
                     applyQuotes(tableAliases.peek()),
                     applyQuotes(dictionary.getAnnotatedColumnName(
@@ -84,7 +96,7 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
     }
 
     /**
-     * For a FORMULA column, resolve each reference individually and
+     * For a FORMULA column, resolve each reference individually and.
      *
      * @param source The parent which owns the column.
      * @param column
@@ -98,29 +110,21 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
         for (String reference : resolveFormulaReferences(column.getExpression())) {
             String resolvedReference;
 
-            //The column is sourced from a query rather than a table.
-            if (source != source.getSource()) {
-                resolvedReference = visitPhysicalReference(reference);
-
             //The reference is a join to another logical column.
-            } else if (reference.contains(".")) {
-                Type<?> tableClass = dictionary.getEntityClass(source.getName(), source.getVersion());
+            if (reference.contains(".")) {
+                Queryable root = source.getRoot();
+                Type<?> tableClass = dictionary.getEntityClass(root.getName(), root.getVersion());
                 resolvedReference = visitTableJoinToReference(tableClass, reference);
+            //The column is sourced from a query rather than a table OR
+            //Physical Column Reference starts with '$'
+            } else if (source != source.getSource() || reference.indexOf('$') == 0) {
+                resolvedReference = visitPhysicalReference(reference);
             } else {
                 ColumnProjection referenceColumn = source.getColumnProjection(reference);
-
-                //There is no logical column with this name, it must be a physical reference
                 if (referenceColumn == null) {
-                    resolvedReference = visitPhysicalReference(reference);
-
-                //If the reference matches the column name - it means the logical and physical
-                //columns have the same name.  Treat it like a physical column.
-                } else if (reference.equals(column.getName())) {
-                    resolvedReference = visitPhysicalReference(reference);
-                //A reference to another logical column.
-                } else {
-                    resolvedReference = visitColumn(source, referenceColumn);
+                    throw new InvalidValueException(source.getName() + " does not contain the field " + reference);
                 }
+                resolvedReference = visitColumn(source, referenceColumn);
             }
 
             expr = expr.replace(toFormulaReference(reference), resolvedReference);
@@ -138,14 +142,17 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
      * @return resolved reference
      */
     private String visitTableJoinToReference(Type<?> tableClass, String joinToPath) {
-        JoinPath joinPath = new JoinPath(tableClass, dictionary, joinToPath);
+        JoinPath joinPath = new JoinPath(tableClass, metaDataStore, joinToPath);
 
         tableAliases.push(extendTypeAlias(tableAliases.peek(), joinPath));
         String result;
-        Column joinToColumn = getColumn(joinPath);
-        if (joinToColumn == null) {
-            result = visitPhysicalReference(getFieldName(joinPath));
+
+        String lastFieldName = getLastFieldName(joinPath);
+        if (lastFieldName.indexOf('$') == 0) {
+            result = visitPhysicalReference(lastFieldName);
         } else {
+            Column joinToColumn = getColumn(joinPath);
+            Preconditions.checkState(joinToColumn != null);
             result = visitColumn(joinToColumn.getTable().toQueryable(), joinToColumn.toProjection());
         }
         tableAliases.pop();
@@ -154,12 +161,12 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
     }
 
     /**
-     * Get name for the last field in a {@link Path}
+     * Get name for the last field in a {@link Path}.
      *
      * @param path path to a field
      * @return field name
      */
-    private static String getFieldName(Path path) {
+    private static String getLastFieldName(Path path) {
         Path.PathElement last = path.lastElement().get();
         return last.getFieldName();
     }

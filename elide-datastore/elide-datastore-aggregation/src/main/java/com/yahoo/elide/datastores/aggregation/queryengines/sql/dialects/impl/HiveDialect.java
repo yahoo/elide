@@ -6,6 +6,8 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl;
 
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.AbstractSqlDialect;
+import org.apache.calcite.config.NullCollation;
+import org.apache.calcite.sql.SqlDialect;
 
 /**
  * Hive SQLDialect.
@@ -22,5 +24,13 @@ public class HiveDialect extends AbstractSqlDialect {
     @Override
     public String generateOffsetLimitClause(int offset, int limit) {
         return LIMIT + offset + COMMA + limit;
+    }
+
+    @Override
+    public SqlDialect getCalciteDialect() {
+        return new SqlDialect(SqlDialect.EMPTY_CONTEXT
+                .withIdentifierQuoteString(String.valueOf(getBeginQuote()))
+                .withDatabaseProduct(SqlDialect.DatabaseProduct.HIVE)
+                .withNullCollation(NullCollation.LOW));
     }
 }

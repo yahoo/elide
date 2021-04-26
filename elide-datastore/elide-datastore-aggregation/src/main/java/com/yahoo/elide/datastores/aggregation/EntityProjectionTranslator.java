@@ -5,11 +5,13 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
+import static com.yahoo.elide.core.request.Argument.getArgumentMapFromArgumentSet;
+
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
-import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
@@ -31,7 +33,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -49,16 +50,17 @@ public class EntityProjectionTranslator {
     private FilterExpression havingFilter;
     private EntityDictionary dictionary;
     private Boolean bypassCache;
-
+    private RequestScope scope;
 
     public EntityProjectionTranslator(QueryEngine engine, Table table,
-                                      EntityProjection entityProjection, EntityDictionary dictionary,
+                                      EntityProjection entityProjection, RequestScope scope,
                                       Boolean bypassCache) {
         this.engine = engine;
         this.queriedTable = table;
         this.entityProjection = entityProjection;
-        this.dictionary = dictionary;
+        this.dictionary = scope.getDictionary();
         this.bypassCache  = bypassCache;
+        this.scope = scope;
         dimensionProjections = resolveNonTimeDimensions();
         timeDimensions = resolveTimeDimensions();
         metrics = resolveMetrics();
@@ -80,7 +82,9 @@ public class EntityProjectionTranslator {
                 .havingFilter(havingFilter)
                 .sorting(entityProjection.getSorting())
                 .pagination(ImmutablePagination.from(entityProjection.getPagination()))
+                .arguments(getArgumentMapFromArgumentSet(entityProjection.getArguments()))
                 .bypassingCache(bypassCache)
+                .scope(scope)
                 .build();
 
         QueryValidator validator = new QueryValidator(query, getAllFields(), dictionary);
@@ -148,8 +152,7 @@ public class EntityProjectionTranslator {
                     return engine.constructTimeDimensionProjection(
                             timeDim,
                             timeDimAttr.getAlias(),
-                            timeDimAttr.getArguments().stream()
-                                    .collect(Collectors.toMap(Argument::getName, Function.identity())));
+                            getArgumentMapFromArgumentSet(timeDimAttr.getArguments()));
                 })
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -167,8 +170,7 @@ public class EntityProjectionTranslator {
                             : engine.constructDimensionProjection(
                                     dimension,
                                     dimAttr.getAlias(),
-                                    dimAttr.getArguments().stream()
-                                            .collect(Collectors.toMap(Argument::getName, Function.identity())));
+                                    getArgumentMapFromArgumentSet(dimAttr.getArguments()));
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
@@ -198,8 +200,7 @@ public class EntityProjectionTranslator {
                 .map(attribute -> engine.constructMetricProjection(
                         queriedTable.getMetric(attribute.getName()),
                         attribute.getAlias(),
-                        attribute.getArguments().stream()
-                                .collect(Collectors.toMap(Argument::getName, Function.identity()))))
+                        getArgumentMapFromArgumentSet(attribute.getArguments())))
                 .collect(Collectors.toList());
     }
 

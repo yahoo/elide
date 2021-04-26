@@ -50,10 +50,9 @@ public class RecordTerminalState extends BaseState {
 
     @Override
     public Supplier<Pair<Integer, JsonNode>> handlePost(StateContext state) {
-        if (collectionTerminalState.isPresent()) {
-            return collectionTerminalState.get().handlePost(state);
-        }
-        throw new InvalidOperationException("Cannot POST to a record.");
+        return collectionTerminalState
+                .orElseThrow(() -> new InvalidOperationException("Cannot POST to a record."))
+                .handlePost(state);
     }
 
     @Override

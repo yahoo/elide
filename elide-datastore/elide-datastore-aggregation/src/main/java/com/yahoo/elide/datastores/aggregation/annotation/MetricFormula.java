@@ -6,8 +6,8 @@
 package com.yahoo.elide.datastores.aggregation.annotation;
 
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
-import com.yahoo.elide.datastores.aggregation.query.DefaultQueryPlanResolver;
-import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
+import com.yahoo.elide.datastores.aggregation.query.DefaultMetricProjectionMaker;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjectionMaker;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -67,7 +67,17 @@ public @interface MetricFormula {
      *
      * @return metric formula
      */
-    String value();
+    String value() default "";
 
-    Class<? extends QueryPlanResolver> queryPlan() default DefaultQueryPlanResolver.class;
+    /**
+     * Function which constructs a projection for this given metric.
+     * @return metric maker class.
+     */
+    Class<? extends MetricProjectionMaker> maker() default DefaultMetricProjectionMaker.class;
+
+    /**
+     * The arguments accepted by this table.
+     * @return arguments for the metric
+     */
+    ArgumentDefinition[] arguments() default {};
 }

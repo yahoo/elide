@@ -21,6 +21,7 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "name",
+    "namespace",
     "to",
     "type",
     "kind",
@@ -35,6 +36,9 @@ public class Join implements Named {
 
     @JsonProperty("name")
     private String name;
+
+    @JsonProperty("namespace")
+    private String namespace = "default";
 
     @JsonProperty("to")
     private String to;

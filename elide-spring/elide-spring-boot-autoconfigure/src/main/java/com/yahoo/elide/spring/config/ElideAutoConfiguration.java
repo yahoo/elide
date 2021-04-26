@@ -29,6 +29,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.DataSourceConfiguration;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.AggregateBeforeJoinOptimizer;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import com.yahoo.elide.datastores.multiplex.MultiplexManager;
@@ -57,6 +58,7 @@ import io.swagger.models.Swagger;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -161,7 +163,7 @@ public class ElideAutoConfiguration {
                 && settings.getJsonApi().isEnableLinks()) {
             String baseUrl = settings.getBaseUrl();
 
-            if (baseUrl == null || baseUrl.isEmpty()) {
+            if (StringUtils.isEmpty(baseUrl)) {
                 builder.withJSONApiLinks(new DefaultJSONApiLinks());
             } else {
                 String jsonApiBaseUrl = baseUrl + settings.getJsonApi().getPath() + "/";
@@ -180,7 +182,7 @@ public class ElideAutoConfiguration {
     @Bean(name = "entitiesToExclude")
     @ConditionalOnMissingBean
     public Set<Type<?>> getEntitiesToExclude(ElideConfigProperties settings) {
-        Set<Type<?>> entitiesToExclude = new HashSet();
+        Set<Type<?>> entitiesToExclude = new HashSet<>();
 
         AsyncProperties asyncProperties = settings.getAsync();
 
@@ -272,7 +274,8 @@ public class ElideAutoConfiguration {
                                                 SQLDialectFactory.getDialect(dbConfig.getDialect())));
             });
 
-            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap);
+            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap,
+                    new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))));
         } else {
             MetaDataStore metaDataStore = new MetaDataStore(enableMetaDataStore);
             return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
@@ -396,8 +399,8 @@ public class ElideAutoConfiguration {
 
     public static boolean isExportEnabled(AsyncProperties asyncProperties) {
 
-        return (asyncProperties == null ||  asyncProperties.getExport() == null) ? false
-                : asyncProperties.getExport().isEnabled();
+        return asyncProperties != null && asyncProperties.getExport() != null
+                && asyncProperties.getExport().isEnabled();
 
     }
 }

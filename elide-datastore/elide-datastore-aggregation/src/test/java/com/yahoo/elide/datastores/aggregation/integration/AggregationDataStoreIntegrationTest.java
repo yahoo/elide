@@ -70,6 +70,7 @@ import javax.persistence.Persistence;
 import javax.sql.DataSource;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 
 /**
@@ -1175,6 +1176,106 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     }
 
     @Test
+    public void testTimeDimMismatchArgs() throws Exception {
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "orderDetails",
+                                arguments(
+                                        argument("sort", "\"customerRegion\""),
+                                        argument("filter", "\"orderTime[grain:DAY]=='2020-08',orderTotal>50\"")
+                                ),
+                                selections(
+                                        field("orderTotal"),
+                                        field("customerRegion"),
+                                        field("orderTime", arguments(
+                                                argument("grain", TimeGrain.MONTH) // Does not match grain argument in filter
+                                        ))
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "Exception while fetching data (/orderDetails) : Invalid operation: Time Dimension field orderTime must use the same grain argument in the projection and the having clause.";
+
+        runQueryWithExpectedError(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testTimeDimMismatchArgsWithDefaultSelect() throws Exception {
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "orderDetails",
+                                arguments(
+                                        argument("sort", "\"customerRegion\""),
+                                        argument("filter", "\"orderTime[grain:DAY]=='2020-08',orderTotal>50\"")
+                                ),
+                                selections(
+                                        field("orderTotal"),
+                                        field("customerRegion"),
+                                        field("orderTime") //Default Grain for OrderTime is Month.
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "Exception while fetching data (/orderDetails) : Invalid operation: Time Dimension field orderTime must use the same grain argument in the projection and the having clause.";
+
+        runQueryWithExpectedError(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testTimeDimMismatchArgsWithDefaultFilter() throws Exception {
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "orderDetails",
+                                arguments(
+                                        argument("sort", "\"orderTime\""),
+                                        argument("filter", "\"orderTime=='2020-08-01',orderTotal>50\"") //No Grain Arg passed, so works based on Alias's argument in Selection.
+                                ),
+                                selections(
+                                        field("orderTotal"),
+                                        field("customerRegion"),
+                                        field("orderTime", arguments(
+                                                argument("grain", TimeGrain.DAY)
+                                        ))
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "orderDetails",
+                                selections(
+                                        field("orderTotal", 103.72F),
+                                        field("customerRegion", "Virginia"),
+                                        field("orderTime", "2020-08-30")
+                                ),
+                                selections(
+                                        field("orderTotal", 181.47F),
+                                        field("customerRegion", "Virginia"),
+                                        field("orderTime", "2020-09-08")
+                                ),
+                                selections(
+                                        field("orderTotal", 78.87F),
+                                        field("customerRegion", "Virginia"),
+                                        field("orderTime", "2020-09-09")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
     public void testAdminRole() throws Exception {
 
         String graphQLRequest = document(
@@ -1306,6 +1407,9 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         )),
                                         field("recordedDate", "byMonth", arguments(
                                                 argument("grain", TimeGrain.MONTH)
+                                        )),
+                                        field("recordedDate", "byQuarter", arguments(
+                                                argument("grain", TimeGrain.QUARTER)
                                         ))
                                 )
                         )
@@ -1319,12 +1423,14 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 selections(
                                         field("highScore", 1234),
                                         field("byDay", "2019-07-12"),
-                                        field("byMonth", "2019-07")
+                                        field("byMonth", "2019-07"),
+                                        field("byQuarter", "2019-07")
                                 ),
                                 selections(
                                         field("highScore", 1000),
                                         field("byDay", "2019-07-13"),
-                                        field("byMonth", "2019-07")
+                                        field("byMonth", "2019-07"),
+                                        field("byQuarter", "2019-07")
                                 )
                         )
                 )
@@ -1369,5 +1475,60 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         ).toResponse();
 
         runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testSchemaIntrospection() throws Exception {
+        String graphQLRequest = "{"
+                + "__schema {"
+                + "   mutationType {"
+                + "     name "
+                + "     fields {"
+                + "       name "
+                + "       args {"
+                + "          name"
+                + "          defaultValue"
+                + "       }"
+                + "     }"
+                + "   }"
+                + "}"
+                + "}";
+
+        String query = toJsonQuery(graphQLRequest, new HashMap<>());
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(query)
+            .post("/graphQL")
+            .then()
+            .statusCode(HttpStatus.SC_OK)
+            // Verify that the orderDetails Model has an argument "denominator".
+            .body("data.__schema.mutationType.fields.find { it.name == 'orderDetails' }.args.name[7] ", equalTo("denominator"));
+
+        graphQLRequest = "{"
+                + "__type(name: \"OrderDetails\") {"
+                + "   name"
+                + "   fields {"
+                + "     name "
+                + "     args {"
+                + "        name"
+                + "        defaultValue"
+                + "     }"
+                + "   }"
+                + "}"
+                + "}";
+
+        query = toJsonQuery(graphQLRequest, new HashMap<>());
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(query)
+            .post("/graphQL")
+            .then()
+            .statusCode(HttpStatus.SC_OK)
+            // Verify that the orderTotal attribute has an argument "precision".
+            .body("data.__type.fields.find { it.name == 'orderTotal' }.args.name[0]", equalTo("precision"));
     }
 }

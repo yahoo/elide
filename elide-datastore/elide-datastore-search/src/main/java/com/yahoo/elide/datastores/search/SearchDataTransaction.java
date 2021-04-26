@@ -99,7 +99,7 @@ public class SearchDataTransaction extends TransactionWrapper {
      * @return True if the entity must be sorted. False otherwise.
      */
     private boolean mustSort(Optional<Sorting> sorting) {
-        return sorting.isPresent() && !sorting.get().getSortingPaths().isEmpty();
+        return sorting.filter(s -> !s.getSortingPaths().isEmpty()).isPresent();
     }
 
     /**
@@ -272,7 +272,7 @@ public class SearchDataTransaction extends TransactionWrapper {
                     .setProjection(ProjectionConstants.THIS)
                     .getResultList();
 
-            if (pagination.isPresent() && pagination.get().returnPageTotals()) {
+            if (pagination.filter(Pagination::returnPageTotals).isPresent()) {
                 pagination.get().setPageTotals((long) fullTextQuery.getResultSize());
             }
 

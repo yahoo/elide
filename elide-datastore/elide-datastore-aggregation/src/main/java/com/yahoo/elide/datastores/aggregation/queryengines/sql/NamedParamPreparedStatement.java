@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 public class NamedParamPreparedStatement {
 
     /**
-     * Parameter Pattern as defined in {@link FilterPredicate#getParameters()}
+     * Parameter Pattern as defined in {@link FilterPredicate#getParameters()}.
      * examples:
      * :overallRating_c82e10a5_0
      * :lowScore_7c4e440_0
@@ -32,7 +32,7 @@ public class NamedParamPreparedStatement {
 
     @Getter
     private PreparedStatement preparedStatement;
-    private List<String> fields = new ArrayList<String>();
+    private List<String> fields = new ArrayList<>();
 
     public NamedParamPreparedStatement(Connection conn, String namedParamQuery) throws SQLException {
 

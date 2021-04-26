@@ -16,6 +16,9 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+
+import org.apache.commons.collections4.CollectionUtils;
+
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -59,7 +62,7 @@ public class Path {
             this.fieldType = fieldType;
             this.fieldName = fieldName;
             this.alias = fieldName;
-            this.arguments = Collections.EMPTY_SET;
+            this.arguments = Collections.emptySet();
         }
     }
 
@@ -100,9 +103,9 @@ public class Path {
      * @param dotSeparatedPath path e.g. "bar.baz"
      * @return list of path elements e.g. ["foo.bar", "bar.baz"]
      */
-    private List<PathElement> resolvePathElements(Type<?> entityClass,
-                                                  EntityDictionary dictionary,
-                                                  String dotSeparatedPath) {
+    protected List<PathElement> resolvePathElements(Type<?> entityClass,
+                                                    EntityDictionary dictionary,
+                                                    String dotSeparatedPath) {
         List<PathElement> elements = new ArrayList<>();
         String[] fieldNames = dotSeparatedPath.split("\\.");
 
@@ -114,18 +117,18 @@ public class Path {
                 currentClass = joinClass;
             } else {
                 elements.add(resolvePathAttribute(currentClass, fieldName,
-                        fieldName, Collections.EMPTY_SET, dictionary));
+                        fieldName, Collections.emptySet(), dictionary));
             }
         }
 
         return ImmutableList.copyOf(elements);
     }
 
-    private PathElement resolvePathAttribute(Type<?> entityClass,
-                                             String fieldName,
-                                             String alias,
-                                             Set<Argument> arguments,
-                                             EntityDictionary dictionary) {
+    protected PathElement resolvePathAttribute(Type<?> entityClass,
+                                               String fieldName,
+                                               String alias,
+                                               Set<Argument> arguments,
+                                               EntityDictionary dictionary) {
         if (dictionary.isAttribute(entityClass, fieldName)
                 || fieldName.equals(dictionary.getIdFieldName(entityClass))) {
             Type<?> attributeClass = dictionary.getType(entityClass, fieldName);
@@ -177,7 +180,7 @@ public class Path {
 
     @Override
     public String toString() {
-        return pathElements.size() == 0 ? "EMPTY"
+        return CollectionUtils.isEmpty(pathElements) ? "EMPTY"
                 : pathElements.stream()
                         .map(e -> '[' + getSimpleName(e.getType()) + ']' + PERIOD + e.getFieldName())
                 .collect(Collectors.joining("/"));

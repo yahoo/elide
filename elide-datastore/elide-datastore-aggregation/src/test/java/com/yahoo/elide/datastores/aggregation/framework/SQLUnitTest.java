@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
@@ -33,6 +34,7 @@ import com.yahoo.elide.datastores.aggregation.example.Continent;
 import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.CountryView;
 import com.yahoo.elide.datastores.aggregation.example.CountryViewNested;
+import com.yahoo.elide.datastores.aggregation.example.GameRevenue;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
@@ -44,6 +46,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
+import com.yahoo.elide.datastores.aggregation.query.Optimizer;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
@@ -93,7 +96,7 @@ public abstract class SQLUnitTest {
 
     private static final DataSource DUMMY_DATASOURCE = new HikariDataSource();
     private static final String NEWLINE = System.lineSeparator();
-    protected static QueryEngine engine;
+    protected static SQLQueryEngine engine;
 
     protected QueryEngine.Transaction transaction;
     private static SQLTable videoGameTable;
@@ -110,13 +113,13 @@ public abstract class SQLUnitTest {
                     .whereFilter(new FilterPredicate(
                             new Path(PlayerStats.class, dictionary, "overallRating"),
                             Operator.NOTNULL,
-                            new ArrayList<Object>()))
+                            new ArrayList<>()))
                     .build()
         ),
         WHERE_AND (() -> {
             FilterPredicate ratingFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "overallRating"),
-                    Operator.NOTNULL, new ArrayList<Object>());
+                    Operator.NOTNULL, new ArrayList<>());
             FilterPredicate highScoreFilter = new FilterPredicate(
                 new Path(PlayerStats.class, dictionary, "countryIsoCode"),
                     Operator.IN,
@@ -131,7 +134,7 @@ public abstract class SQLUnitTest {
         WHERE_OR (() -> {
             FilterPredicate ratingFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "overallRating"),
-                    Operator.NOTNULL, new ArrayList<Object>());
+                    Operator.NOTNULL, new ArrayList<>());
             FilterPredicate highScoreFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "countryIsoCode"),
                     Operator.IN,
@@ -153,7 +156,7 @@ public abstract class SQLUnitTest {
             FilterPredicate dayFilter = new FilterPredicate(
                     new Path(playerStatsType, dictionary, "recordedDate", "recordedDate", dayArgument),
                     Operator.NOTNULL,
-                    new ArrayList<Object>());
+                    new ArrayList<>());
 
             return Query.builder()
                     .source(playerStatsTable)
@@ -179,13 +182,13 @@ public abstract class SQLUnitTest {
                     .havingFilter(new FilterPredicate(
                             new Path(PlayerStats.class, dictionary, "overallRating"),
                             Operator.NOTNULL,
-                            new ArrayList<Object>()))
+                            new ArrayList<>()))
                     .build()
         ),
         HAVING_METRICS_AND_DIMS (() -> {
             FilterPredicate ratingFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "overallRating"),
-                    Operator.NOTNULL, new ArrayList<Object>());
+                    Operator.NOTNULL, new ArrayList<>());
             FilterPredicate highScoreFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "highScore"),
                     Operator.GT,
@@ -200,7 +203,7 @@ public abstract class SQLUnitTest {
         HAVING_METRICS_OR_DIMS (() -> {
             FilterPredicate ratingFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "overallRating"),
-                    Operator.NOTNULL, new ArrayList<Object>());
+                    Operator.NOTNULL, new ArrayList<>());
             FilterPredicate highScoreFilter = new FilterPredicate(
                     new Path(PlayerStats.class, dictionary, "highScore"),
                     Operator.GT,
@@ -310,6 +313,8 @@ public abstract class SQLUnitTest {
             return Query.builder()
                     .source(playerStatsTable)
                     .metricProjection(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod"))
+                    .metricProjection(playerStatsTable.getMetricProjection("highScore"))
+                    .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
                     .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                     .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate", arguments))
                     .build();
@@ -391,7 +396,7 @@ public abstract class SQLUnitTest {
             FilterPredicate dayFilter = new FilterPredicate(
                             new Path(playerStatsType, dictionary, "recordedDate", "recordedDate", dayArgument),
                             Operator.NOTNULL,
-                            new ArrayList<Object>());
+                            new ArrayList<>());
             // forces a join to look up countryIsoCode
             FilterExpression countryIsoCodeFilter = parseFilterExpression("countryIsoCode==USA", playerStatsType, false);
             AndFilterExpression andFilterExpression = new AndFilterExpression(playerLevelFilter, countryIsoCodeFilter);
@@ -460,7 +465,7 @@ public abstract class SQLUnitTest {
 
     protected Pattern repeatedWhitespacePattern = Pattern.compile("\\s\\s*");
 
-    public static void init(SQLDialect sqlDialect) {
+    public static void init(SQLDialect sqlDialect, Set<Optimizer> optimizers, MetaDataStore metaDataStore) {
         Properties properties = new Properties();
         properties.put("driverClassName", "org.h2.Driver");
 
@@ -476,7 +481,7 @@ public abstract class SQLUnitTest {
             throw new IllegalStateException(e);
         }
 
-        metaDataStore = new MetaDataStore(getClassType(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example")), false);
+        SQLUnitTest.metaDataStore = metaDataStore;
 
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(PlayerStatsWithView.class);
@@ -488,6 +493,7 @@ public abstract class SQLUnitTest {
         dictionary.bindEntity(CountryView.class);
         dictionary.bindEntity(CountryViewNested.class);
         dictionary.bindEntity(Continent.class);
+        dictionary.bindEntity(GameRevenue.class);
         filterParser = new RSQLFilterDialect(dictionary);
 
         //Manually register the serdes because we are not running a complete Elide service.
@@ -508,8 +514,8 @@ public abstract class SQLUnitTest {
         connectionDetailsMap.put("mycon", new ConnectionDetails(dataSource, sqlDialect));
         connectionDetailsMap.put("SalesDBConnection", new ConnectionDetails(DUMMY_DATASOURCE, sqlDialect));
 
-        engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect), connectionDetailsMap);
-
+        engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect),
+                connectionDetailsMap, optimizers);
         playerStatsTable = (SQLTable) metaDataStore.getTable("playerStats", NO_VERSION);
         videoGameTable = (SQLTable) metaDataStore.getTable("videoGame", NO_VERSION);
     }
@@ -523,6 +529,14 @@ public abstract class SQLUnitTest {
         }
 
         return "";
+    }
+
+    public static void init(SQLDialect dialect) {
+        MetaDataStore metaDataStore = new MetaDataStore(
+                getClassType(ClassScanner.getAnnotatedClasses("com.yahoo.elide.datastores.aggregation.example",
+                        Include.class)),
+                false);
+        init(dialect, new HashSet<>(), metaDataStore);
     }
 
     public static void init() {
@@ -588,7 +602,7 @@ public abstract class SQLUnitTest {
      * Because this is for unit testing, the only time a ParseException should occur
      * is when a test is incorrectly configured.
      */
-    private static FilterExpression parseFilterExpression(String expressionText, Type<?> entityType,
+    protected static FilterExpression parseFilterExpression(String expressionText, Type<?> entityType,
                                                           boolean allowNestedToManyAssociations) {
         try {
             return filterParser.parseFilterExpression(expressionText, entityType, allowNestedToManyAssociations);
@@ -615,6 +629,93 @@ public abstract class SQLUnitTest {
         }
     }
 
+    protected String getExpectedNestedMetricWithSortingQuery(boolean useAliasForOrderByClause) {
+        String expected = "SELECT AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) "
+                + "AS `dailyAverageScorePerPeriod`,`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
+                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` AS `recordedDate` "
+                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
+                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
+                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
+                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
+                + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` GROUP BY "
+                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
+                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
+                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
+                + "AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX` GROUP BY "
+                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
+                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` ";
+
+        if (useAliasForOrderByClause) {
+            expected = expected + "ORDER BY `dailyAverageScorePerPeriod` DESC,`overallRating` DESC";
+
+        } else {
+            expected = expected
+                    + "ORDER BY AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) DESC,"
+                    + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` DESC";
+        }
+        return expected;
+    }
+
+    protected String getExpectedNestedMetricWithHavingQuery() {
+        return "SELECT AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) "
+                + "AS `dailyAverageScorePerPeriod`,`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
+                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` AS `recordedDate` "
+                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
+                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
+                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
+                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
+                + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` GROUP BY "
+                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
+                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
+                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
+                + "AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX` GROUP BY "
+                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
+                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` "
+                + "HAVING AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) "
+                + "> :XXX\n";
+    }
+
+    protected String getExpectedNestedMetricWithWhereQuery() {
+        return "SELECT AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) "
+                + "AS `dailyAverageScorePerPeriod`,`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
+                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` AS `recordedDate` "
+                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
+                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
+                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
+                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
+                + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` "
+                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country` ON `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`id` "
+                + "WHERE `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`iso_code` IN (:XXX) "
+                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
+                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
+                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
+                + "AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX` GROUP BY "
+                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
+                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`\n";
+    }
+
+    protected String getExpectedNestedMetricQuery() {
+        return "SELECT AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) AS `dailyAverageScorePerPeriod`,"
+                        + "MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) AS `highScore`,"
+                        + "MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) AS `lowScore`,"
+                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
+                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` AS `recordedDate` "
+                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
+                        + "MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `INNER_AGG_XXX`,"
+                        + "MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) AS `INNER_AGG_XXX`,"
+                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
+                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
+                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
+                        + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` GROUP BY "
+                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
+                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
+                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
+                        + "AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX` GROUP BY "
+                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
+                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`\n";
+
+    }
+
     protected String getExpectedNestedMetricWithAliasesSQL(boolean useAliasForOrderByClause) {
 
         String expectedSQL =
@@ -623,7 +724,7 @@ public abstract class SQLUnitTest {
                         + "    AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) AS `dailyAverageScorePerPeriod_165126481`,\n"
                         + "    `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating_207658499` AS `overallRating_207658499`,\n"
                         + "    `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`playerLevel_96024484` AS `playerLevel_96024484`,\n"
-                        + "    PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate_155839778`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate_155839778` \n"
+                        + "    `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate_155839778` AS `recordedDate_155839778` \n"
                         + "FROM \n"
                         + "    (\n"
                         + "        SELECT \n"
@@ -655,7 +756,7 @@ public abstract class SQLUnitTest {
                         + "GROUP BY \n"
                         + "    `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating_207658499`, \n"
                         + "    `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`playerLevel_96024484`, \n"
-                        + "    PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate_155839778`, 'yyyy-MM'), 'yyyy-MM') \n"
+                        + "    `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate_155839778` \n"
                         + "HAVING \n"
                         + "    AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) > :XXX \n"
                         + "ORDER BY \n"

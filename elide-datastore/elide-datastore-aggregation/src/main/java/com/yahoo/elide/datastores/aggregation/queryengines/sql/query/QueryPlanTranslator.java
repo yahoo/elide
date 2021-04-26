@@ -6,17 +6,11 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
-import static com.yahoo.elide.datastores.aggregation.query.QueryPlan.nestColumnProjection;
-import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
-import com.google.common.collect.Streams;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
 /**
  * Translates a merged query plan and a client query into query that can be executed.
@@ -31,8 +25,36 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
     //Whether or not this visitor has been invoked yet.
     private boolean invoked = false;
 
-    public QueryPlanTranslator(Query clientQuery) {
+    private SQLReferenceTable lookupTable;
+
+    public QueryPlanTranslator(Query clientQuery, SQLReferenceTable lookupTable) {
+        this.lookupTable = lookupTable;
         this.clientQuery = clientQuery;
+    }
+
+    /**
+     * Translate a query plan into a query.
+     * @param plan the plan to translate.
+     * @return A runnable query incorporating elements from the client's original query.
+     */
+    public Query translate(QueryPlan plan) {
+
+        //Convert the client query into a dimension-only plan that can be nested.
+        QueryPlan clientQueryPlan = QueryPlan.builder()
+                .source(clientQuery.getSource())
+                .timeDimensionProjections(clientQuery.getTimeDimensionProjections())
+                .dimensionProjections(clientQuery.getDimensionProjections())
+                .build();
+
+        //Merge it with the metric plan.
+        if (plan.isNested() && !clientQueryPlan.canNest(lookupTable)) {
+            throw new UnsupportedOperationException("Cannot nest one or more dimensions from the client query");
+        }
+
+        QueryPlan merged = clientQueryPlan.merge(plan, lookupTable);
+
+        //Decorate the result with filters, sorting, and pagination.
+        return merged.accept(this).build();
     }
 
     @Override
@@ -59,71 +81,55 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
     }
 
     private Query.QueryBuilder visitInnerQueryPlan(Queryable plan)  {
-
-        Set<ColumnProjection> dimensions = Streams.concat(plan.getDimensionProjections().stream(),
-                clientQuery.getDimensionProjections().stream())
-                .map(SQLDimensionProjection.class::cast)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-
-        Set<TimeDimensionProjection> timeDimensions = Streams.concat(plan.getTimeDimensionProjections().stream(),
-                clientQuery.getTimeDimensionProjections().stream())
-                .map(SQLTimeDimensionProjection.class::cast)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-
         return Query.builder()
                 .source(clientQuery.getSource())
                 .metricProjections(plan.getMetricProjections())
-                .dimensionProjections(dimensions)
-                .timeDimensionProjections(timeDimensions)
-                .whereFilter(clientQuery.getWhereFilter());
+                .dimensionProjections(plan.getDimensionProjections())
+                .timeDimensionProjections(plan.getTimeDimensionProjections())
+                .whereFilter(clientQuery.getWhereFilter())
+                .arguments(clientQuery.getArguments());
     }
 
     private Query.QueryBuilder visitOuterQueryPlan(Queryable plan)  {
         Query innerQuery = plan.getSource().accept(this).build();
 
+        //This assumes SORT & HAVING clauses must reference projection columns (verified in QueryValidator).
+        //Otherwise, the SORT & HAVING may reference joins that have not taken place in the inner query.
         return Query.builder()
                 .source(innerQuery)
                 .metricProjections(plan.getMetricProjections())
-                .dimensionProjections(nestColumnProjection(clientQuery.getDimensionProjections()))
-                .timeDimensionProjections(nestColumnProjection(clientQuery.getTimeDimensionProjections()))
+                .dimensionProjections(plan.getDimensionProjections())
+                .timeDimensionProjections(plan.getTimeDimensionProjections())
                 .havingFilter(clientQuery.getHavingFilter())
                 .sorting(clientQuery.getSorting())
                 .pagination(clientQuery.getPagination())
-                .scope(clientQuery.getScope());
+                .scope(clientQuery.getScope())
+                .arguments(clientQuery.getArguments());
     }
 
     private Query.QueryBuilder visitMiddleQueryPlan(Queryable plan)  {
         Query innerQuery = plan.getSource().accept(this).build();
 
-
+        //TODO - Add tests for middle.
         return Query.builder()
                 .source(innerQuery)
                 .metricProjections(plan.getMetricProjections())
-                .dimensionProjections(nestColumnProjection(clientQuery.getDimensionProjections()))
-                .timeDimensionProjections(nestColumnProjection(clientQuery.getTimeDimensionProjections()));
+                .dimensionProjections(plan.getDimensionProjections())
+                .timeDimensionProjections(plan.getTimeDimensionProjections());
     }
 
     private Query.QueryBuilder visitUnnestedQueryPlan(Queryable plan)  {
 
-        Set<ColumnProjection> dimensions = Streams.concat(plan.getDimensionProjections().stream(),
-            clientQuery.getDimensionProjections().stream())
-                .map(SQLDimensionProjection.class::cast)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-
-        Set<TimeDimensionProjection> timeDimensions = Streams.concat(plan.getTimeDimensionProjections().stream(),
-            clientQuery.getTimeDimensionProjections().stream())
-                .map(SQLTimeDimensionProjection.class::cast)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-
         return Query.builder()
                 .source(clientQuery.getSource())
                 .metricProjections(plan.getMetricProjections())
-                .dimensionProjections(dimensions)
-                .timeDimensionProjections(timeDimensions)
+                .dimensionProjections(plan.getDimensionProjections())
+                .timeDimensionProjections(plan.getTimeDimensionProjections())
                 .havingFilter(clientQuery.getHavingFilter())
                 .whereFilter(clientQuery.getWhereFilter())
                 .sorting(clientQuery.getSorting())
                 .pagination(clientQuery.getPagination())
-                .scope(clientQuery.getScope());
+                .scope(clientQuery.getScope())
+                .arguments(clientQuery.getArguments());
     }
 }

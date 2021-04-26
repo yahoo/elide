@@ -6,28 +6,25 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
-import static com.yahoo.elide.core.utils.TypeHelper.getTypeAlias;
-import static com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore.isTableJoin;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable.isTableJoin;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
-import com.yahoo.elide.datastores.aggregation.metadata.ColumnVisitor;
 import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLPhysicalColumnProjection;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Subselect;
 import lombok.Getter;
 
@@ -50,17 +47,14 @@ public class SQLReferenceTable {
     @Getter
     protected final EntityDictionary dictionary;
 
-    //Stores  MAP<Queryable, MAP<fieldName, reference>>
-    protected final Map<Queryable, Map<String, String>> resolvedReferences = new HashMap<>();
-
     //Stores  MAP<Queryable, MAP<fieldName, join expression>>
     protected final Map<Queryable, Map<String, Set<String>>> resolvedJoinExpressions = new HashMap<>();
 
-    protected final Map<Queryable, Map<String, Set<SQLColumnProjection>>> resolvedJoinProjections = new HashMap<>();
+    protected final Map<Queryable, TableContext> globalTablesContext = new HashMap<>();
 
     public SQLReferenceTable(MetaDataStore metaDataStore) {
         this(metaDataStore,
-             metaDataStore.getMetaData(getClassType(Table.class))
+             metaDataStore.getMetaData(ClassType.of(Table.class))
                 .stream()
                 .map(SQLTable.class::cast)
                 .collect(Collectors.toSet()));
@@ -70,24 +64,28 @@ public class SQLReferenceTable {
         this.metaDataStore = metaDataStore;
         this.dictionary = this.metaDataStore.getMetadataDictionary();
 
-        queryables.stream().forEach(queryable -> {
-            Queryable next = queryable;
-            do {
-                resolveAndStoreAllReferencesAndJoins(next);
-                next = next.getSource();
-            } while (next.isNested());
-        });
-    }
+        queryables
+           .stream()
+           // If Queryable is root, then its SQLTable.
+           // We need to store references only for SQLTable and Nested Queries (Queryable -> Queryable -> SQLTable).
+           // In case of Query -> SQLTable. Query doesn't know about all logical references.
+           .filter(queryable -> queryable.isNested() || queryable.isRoot())
+           .forEach(queryable -> {
+               Queryable next = queryable;
+               do {
+                  resolveAndStoreAllReferencesAndJoins(next);
+                  next = next.getSource();
+               } while (next.isNested());
+           });
 
-    /**
-     * Get the resolved physical SQL reference for a field from storage
-     *
-     * @param queryable table class
-     * @param fieldName field name
-     * @return resolved reference
-     */
-    public String getResolvedReference(Queryable queryable, String fieldName) {
-        return resolvedReferences.get(queryable).get(fieldName);
+        queryables
+           .forEach(queryable -> {
+               Queryable next = queryable;
+               do {
+                  initializeTableContext(next);
+                  next = next.getSource();
+               } while (!next.isRoot());
+           });
     }
 
     /**
@@ -98,18 +96,28 @@ public class SQLReferenceTable {
      * @return resolved ON clause expression
      */
     public Set<String> getResolvedJoinExpressions(Queryable queryable, String fieldName) {
-        return resolvedJoinExpressions.get(queryable).get(fieldName);
+        return resolvedJoinExpressions.get(queryable).getOrDefault(fieldName, new HashSet<>());
     }
 
-    /**
-     * Get the resolved ON clause projections for a field from referred table.
-     *
-     * @param queryable table class
-     * @param fieldName field name
-     * @return resolved ON clause projections (physical or logical) referenced from the given table
-     */
-    public Set<SQLColumnProjection> getResolvedJoinProjections(Queryable queryable, String fieldName) {
-        return resolvedJoinProjections.get(queryable).get(fieldName);
+    public TableContext getGlobalTableContext(Queryable queryable) {
+        return globalTablesContext.get(queryable);
+    }
+
+    private void initializeTableContext(Queryable queryable) {
+
+        Queryable key = queryable.getSource();
+
+        // Contexts are NOT stored by their sources.
+        if (!globalTablesContext.containsKey(queryable)) {
+
+            TableContext tableCtx = TableContext.builder()
+                            .queryable(queryable)
+                            .alias(key.getAlias())
+                            .metaDataStore(metaDataStore)
+                            .build();
+
+            globalTablesContext.put(queryable, tableCtx);
+        }
     }
 
     /**
@@ -122,16 +130,9 @@ public class SQLReferenceTable {
         //References and joins are stored by their source that produces them (rather than the query that asks for them).
         Queryable key = queryable.getSource();
         SQLDialect dialect = queryable.getSource().getConnectionDetails().getDialect();
-        if (!resolvedReferences.containsKey(key)) {
-            resolvedReferences.put(key, new HashMap<>());
-        }
 
         if (!resolvedJoinExpressions.containsKey(key)) {
             resolvedJoinExpressions.put(key, new HashMap<>());
-        }
-
-        if (!resolvedJoinProjections.containsKey(key)) {
-            resolvedJoinProjections.put(key, new HashMap<>());
         }
 
         FormulaValidator validator = new FormulaValidator(metaDataStore);
@@ -139,87 +140,45 @@ public class SQLReferenceTable {
 
         queryable.getColumnProjections().forEach(column -> {
             // validate that there is no reference loop
-            validator.visitColumn(queryable, column);
+            validator.parse(queryable, column);
 
             String fieldName = column.getName();
 
-            resolvedReferences.get(key).put(
-                    fieldName,
-                    new SQLReferenceVisitor(metaDataStore, key.getAlias(), dialect)
-                            .visitColumn(queryable, column));
-
             Set<JoinPath> joinPaths = joinVisitor.visitColumn(queryable, column);
-            resolvedJoinExpressions.get(key).put(fieldName, getJoinClauses(joinPaths, dialect));
-            resolvedJoinProjections.get(key).put(fieldName, getJoinProjections(joinPaths));
+            resolvedJoinExpressions.get(key).put(fieldName, getJoinClauses(queryable.getSource().getAlias(),
+                    joinPaths, dialect));
         });
     }
 
-    /**
-     * Create a set of join projections from join paths.
-     *
-     * @param joinPaths paths that require joins
-     * @return A set of join expressions
-     */
-    private Set<SQLColumnProjection> getJoinProjections(Set<JoinPath> joinPaths) {
-        Set<SQLColumnProjection> projections = new HashSet<>();
-        for (JoinPath joinPath : joinPaths) {
-            Path.PathElement first = joinPath.getPathElements().get(0);
-
-            String fieldName = first.getFieldName();
-            Type<?> parentClass = first.getType();
-
-            Join join = dictionary.getAttributeOrRelationAnnotation(
-                    parentClass,
-                    Join.class,
-                    fieldName);
-
-            String joinClause = join.value();
-
-            for (String reference : ColumnVisitor.resolveFormulaReferences(joinClause)) {
-                if (reference.contains(".")) {
-                    continue;
-                }
-
-                Column column = metaDataStore.getColumn(parentClass, reference);
-
-                if (column != null) {
-                    projections.add((SQLColumnProjection) column.toProjection());
-                } else {
-                    projections.add(new SQLPhysicalColumnProjection(reference));
-                }
-            }
-        }
-
-        return projections;
-    }
 
     /**
      * Create a set of join expressions from join paths.
      *
+     * @param parentAlias the parent alias
      * @param joinPaths paths that require joins
      * @return A set of join expressions
      */
-    private Set<String> getJoinClauses(Set<JoinPath> joinPaths, SQLDialect dialect) {
+    private Set<String> getJoinClauses(String parentAlias, Set<JoinPath> joinPaths, SQLDialect dialect) {
         Set<String> joinExpressions = new LinkedHashSet<>();
-        joinPaths.forEach(path -> addJoinClauses(path, joinExpressions, dialect));
+        joinPaths.forEach(path -> addJoinClauses(parentAlias, path, joinExpressions, dialect));
         return joinExpressions;
     }
 
     /**
      * Add a join clause to a set of join clauses.
      *
+     * @param parentAlias the parent alias
      * @param joinPath join path
      * @param alreadyJoined A set of joins that have already been computed.
      */
-    private void addJoinClauses(JoinPath joinPath, Set<String> alreadyJoined, SQLDialect dialect) {
-        String parentAlias = getTypeAlias(joinPath.getPathElements().get(0).getType());
+    private void addJoinClauses(String parentAlias, JoinPath joinPath, Set<String> alreadyJoined, SQLDialect dialect) {
 
         for (Path.PathElement pathElement : joinPath.getPathElements()) {
             String fieldName = pathElement.getFieldName();
             Type<?> parentClass = pathElement.getType();
 
             // Nothing left to join.
-            if (!dictionary.isRelation(parentClass, fieldName) && !isTableJoin(parentClass, fieldName, dictionary)) {
+            if (!dictionary.isRelation(parentClass, fieldName) && !isTableJoin(metaDataStore, parentClass, fieldName)) {
                 return;
             }
 
@@ -253,16 +212,14 @@ public class SQLReferenceTable {
         // resolve the right hand side of JOIN
         String joinSource = constructTableOrSubselect(joinClass, dialect);
 
-        Join join = dictionary.getAttributeOrRelationAnnotation(
-                fromClass,
-                Join.class,
-                joinField);
+        SQLTable table = metaDataStore.getTable(fromClass);
+        SQLJoin join = table.getJoin(joinField);
 
         String joinKeyword = join == null
                 ? dialect.getJoinKeyword(JoinType.LEFT)
-                : dialect.getJoinKeyword(join.type());
+                : dialect.getJoinKeyword(join.getJoinType());
 
-        if (join != null && join.type().equals(JoinType.CROSS)) {
+        if (join != null && join.getJoinType().equals(JoinType.CROSS)) {
             return String.format("%s %s AS %s",
                     joinKeyword,
                     joinSource,
@@ -278,7 +235,7 @@ public class SQLReferenceTable {
                         dictionary.getAnnotatedColumnName(
                                 joinClass,
                                 dictionary.getIdFieldName(joinClass)))
-                : getJoinClause(fromClass, fromAlias, join.value(), dialect);
+                : getJoinClause(fromClass, fromAlias, join.getJoinExpression(), dialect);
 
         return String.format("%s %s AS %s ON %s",
                 joinKeyword,
@@ -301,6 +258,11 @@ public class SQLReferenceTable {
                         new SQLReferenceVisitor(metaDataStore, fromAlias, dialect);
 
         return visitor.visitFormulaDimension(table, new SQLColumnProjection() {
+            @Override
+            public SQLColumnProjection withExpression(String expression, boolean project) {
+                return null;
+            }
+
             @Override
             public ValueType getValueType() {
                 return null;
@@ -399,7 +361,7 @@ public class SQLReferenceTable {
      * @return quoted string
      */
     private static String applyQuotes(String str, char beginQuote, char endQuote) {
-        if (str == null || str.trim().isEmpty()) {
+        if (StringUtils.isBlank(str)) {
             return str;
         }
         if (str.contains(PERIOD)) {

@@ -114,6 +114,7 @@ public class EntityBinding {
     public final ConcurrentHashMap<String, String> aliasesToFields = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<Method, Boolean> requestScopeableMethods = new ConcurrentHashMap<>();
     public final ConcurrentHashMap<AccessibleObject, Set<ArgumentType>> attributeArguments = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<String, ArgumentType> entityArguments = new ConcurrentHashMap<>();
 
     public final ConcurrentHashMap<Object, Annotation> annotations = new ConcurrentHashMap<>();
 
@@ -604,12 +605,7 @@ public class EntityBinding {
     /**
      * Cache placeholder for no annotation.
      */
-    private static final Annotation NO_ANNOTATION = new Annotation() {
-        @Override
-        public Class<? extends Annotation> annotationType() {
-            return null;
-        }
-    };
+    private static final Annotation NO_ANNOTATION = () -> null;
 
     /**
      * Return annotation from class, parents or package.
@@ -704,5 +700,24 @@ public class EntityBinding {
         return (fieldObject != null)
                 ? attributeArguments.getOrDefault(fieldObject, EMPTY_ATTRIBUTES_ARGS)
                 : EMPTY_ATTRIBUTES_ARGS;
+    }
+
+    /**
+     * Add argument to this Entity.
+     * @param argument Argument Type for the attribute
+     */
+    public void addArgumentToEntity(ArgumentType argument) {
+        if (argument != null) {
+            //Replace any argument names with new value
+            entityArguments.put(argument.getName(), argument);
+        }
+    }
+
+    /**
+     * Returns the Collection of all attributes of an Entity.
+     * @return A Set of ArgumentType for the given entity.
+     */
+    public Set<ArgumentType> getEntityArguments() {
+        return new HashSet<>(entityArguments.values());
     }
 }

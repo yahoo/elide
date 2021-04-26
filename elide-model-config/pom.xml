@@ -14,7 +14,7 @@
     <parent>
         <artifactId>elide-parent-pom</artifactId>
         <groupId>com.yahoo.elide</groupId>
-        <version>5.0.0-pr33-SNAPSHOT</version>
+        <version>5.0.0-pr35-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -52,7 +52,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>5.0.0-pr33-SNAPSHOT</version>
+            <version>5.0.0-pr35-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -117,7 +117,7 @@
         <dependency>
             <groupId>com.github.stefanbirkner</groupId>
             <artifactId>system-lambda</artifactId>
-            <version>1.1.1</version>
+            <version>1.2.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>

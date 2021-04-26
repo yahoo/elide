@@ -8,10 +8,11 @@ package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 import com.google.common.collect.Streams;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -29,7 +30,7 @@ public interface Queryable {
     Queryable getSource();
 
     /**
-     * Every queryable needs an alias which uniquely identifies the queryable in an individual query
+     * Every queryable needs an alias which uniquely identifies the queryable in an individual query.
      * @return The alias
      */
     default String getAlias() {
@@ -38,7 +39,7 @@ public interface Queryable {
     }
 
     /**
-     * The name of the queryable
+     * The name of the queryable.
      * @return The name
      */
     default String getName() {
@@ -46,7 +47,7 @@ public interface Queryable {
     }
 
     /**
-     * The version of the queryable
+     * The version of the queryable.
      * @return The version
      */
     default String getVersion() {
@@ -94,7 +95,7 @@ public interface Queryable {
      * Retrieves all the non-time dimensions.
      * @return The non-time dimensions.
      */
-    Set<ColumnProjection> getDimensionProjections();
+    List<ColumnProjection> getDimensionProjections();
 
     /**
      * Retrieves a metric by name.
@@ -112,7 +113,7 @@ public interface Queryable {
      * Retrieves all the metrics.
      * @return The metrics.
      */
-    Set<MetricProjection> getMetricProjections();
+    List<MetricProjection> getMetricProjections();
 
     /**
      * Retrieves a time dimension by name.
@@ -130,18 +131,18 @@ public interface Queryable {
      * Retrieves all the time dimensions.
      * @return The time dimensions.
      */
-    Set<TimeDimensionProjection> getTimeDimensionProjections();
+    List<TimeDimensionProjection> getTimeDimensionProjections();
 
     /**
      * Returns all the columns.
      * @return the columns.
      */
-    default Set<ColumnProjection> getColumnProjections() {
+    default List<ColumnProjection> getColumnProjections() {
         return Streams.concat(
                 getTimeDimensionProjections().stream(),
                 getDimensionProjections().stream(),
                 getMetricProjections().stream())
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 
     /**
@@ -149,7 +150,7 @@ public interface Queryable {
      * @return the connectinon details
      */
     default ConnectionDetails getConnectionDetails() {
-        return getSource().getConnectionDetails();
+        return getRoot().getConnectionDetails();
     }
 
     /**
@@ -174,6 +175,27 @@ public interface Queryable {
     }
 
     /**
+     * Gets the root table for the queryable.
+     * @return the root table.
+     */
+    default Queryable getRoot() {
+        Queryable current = this;
+        while (current.isNested()) {
+            current = current.getSource();
+        }
+
+        return current.getSource();
+    }
+
+    /**
+     * Determines if this queryable is root table.
+     * @return true if this queryable is root table.
+     */
+    default boolean isRoot() {
+        return this == this.getRoot();
+    }
+
+    /**
      * Returns the depth of the nesting of this Queryable.
      * @return 0 for unnested.  Positive integer for nested..
      */
@@ -185,5 +207,12 @@ public interface Queryable {
             current = current.getSource();
         }
         return depth;
+    }
+
+    /**
+     * Returns the joins associated with root of this queryable.
+     */
+    default Map<String, SQLJoin> getJoins() {
+        return this.getRoot().getJoins();
     }
 }

@@ -6,7 +6,11 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects;
 
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SupportedAggregation;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SupportedOperation;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
+import org.apache.calcite.avatica.util.Casing;
+import org.apache.calcite.sql.SqlDialect;
 
 /**
  * Interface for SQL Dialects used to customize SQL queries for specific persistent storage.
@@ -20,7 +24,7 @@ public interface SQLDialect {
     String getDialectType();
 
     /**
-     * Checks whether we need to use alias for orderby
+     * Checks whether we need to use alias for orderby.
      * @return boolean.
      */
     boolean useAliasForOrderByClause();
@@ -65,4 +69,31 @@ public interface SQLDialect {
         }
         return new java.sql.Date(time.getTime());
     }
+
+    /**
+     * Fetches the Calcite dialect associated with this Elide dialect.
+     * @return Calcite dialect
+     */
+    default SqlDialect getCalciteDialect() {
+        String quotes = String.valueOf(getBeginQuote());
+        return new SqlDialect(SqlDialect.EMPTY_CONTEXT
+                .withIdentifierQuoteString(quotes)
+                .withCaseSensitive(true)
+                .withQuotedCasing(Casing.UNCHANGED)
+                .withUnquotedCasing(Casing.UNCHANGED));
+    }
+
+    /**
+     * Fetch the aggregation for the given SQL function name or NULL if not supported.
+     * @param name The name (case insensitive) of the aggregation function or UDF.
+     * @return The supported aggregation or NULL if not supported.
+     */
+    SupportedAggregation getSupportedAggregation(String name);
+
+    /**
+     * Fetch the operation for the given SQL function name or NULL if not supported.
+     * @param name The name (case insensitive) of the operation or UDF.
+     * @return The supported operation or NULL if not supported.
+     */
+    SupportedOperation getSupportedOperation(String name);
 }

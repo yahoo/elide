@@ -95,9 +95,7 @@ public class Elide {
         this.mapper = elideSettings.getMapper();
         this.transactionRegistry = new TransactionRegistry();
 
-        elideSettings.getSerdes().forEach((targetType, serde) -> {
-            CoerceUtil.register(targetType, serde);
-        });
+        elideSettings.getSerdes().forEach(CoerceUtil::register);
 
         registerCustomSerde();
     }

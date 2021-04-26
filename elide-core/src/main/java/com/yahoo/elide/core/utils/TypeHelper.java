@@ -6,10 +6,13 @@
 
 package com.yahoo.elide.core.utils;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Dynamic;
 import com.yahoo.elide.core.type.Type;
+
 import com.google.common.collect.Sets;
 
 import java.util.List;
@@ -91,9 +94,9 @@ public class TypeHelper {
      * @return alias for the field
      */
     public static String appendAlias(String parentAlias, String fieldName) {
-        return nullOrEmpty(parentAlias)
+        return isEmpty(parentAlias)
                 ? fieldName
-                : nullOrEmpty(fieldName)
+                : isEmpty(fieldName)
                         ? parentAlias
                         : parentAlias + UNDERSCORE + fieldName;
     }
@@ -127,26 +130,23 @@ public class TypeHelper {
      * @return combined alias
      */
     public static String getFieldAlias(String tableAlias, String fieldName) {
-        return nullOrEmpty(tableAlias) ? fieldName : tableAlias + PERIOD + fieldName;
+        return isEmpty(tableAlias) ? fieldName : tableAlias + PERIOD + fieldName;
     }
 
     /**
-     * Check whether an alias is null or empty string
-     *
-     * @param alias alias
-     * @return True if is null or empty
+     * Construction helper.
+     * @param cls
+     * @return wrapped Type
+     * @deprecated Use {@link ClassType#of(Class)}
      */
-    private static boolean nullOrEmpty(String alias) {
-        return alias == null || alias.equals("");
-    }
-
+    @Deprecated
     public static Type<?> getClassType(Class<?> cls) {
-        return (cls == null) ? null : ClassType.of(cls);
+        return ClassType.of(cls);
     }
 
     public static Set<Type<?>> getClassType(Set<Class<?>> cls) {
         return cls.stream()
-                        .map(TypeHelper::getClassType)
+                        .map(ClassType::of)
                         .collect(Collectors.toSet());
     }
 }

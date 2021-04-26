@@ -45,7 +45,7 @@ import java.util.Objects;
  */
 public class MutableGraphQLInputObjectType extends GraphQLInputObjectType {
 
-    private final Map<String, GraphQLInputObjectField> fieldMap = new LinkedHashMap<String, GraphQLInputObjectField>();
+    private final Map<String, GraphQLInputObjectField> fieldMap = new LinkedHashMap<>();
     private final String name;
 
     public MutableGraphQLInputObjectType(String name, String description, List<GraphQLInputObjectField> fields) {
@@ -75,7 +75,7 @@ public class MutableGraphQLInputObjectType extends GraphQLInputObjectType {
 
     @Override
     public List<GraphQLInputObjectField> getFields() {
-        return new ArrayList<GraphQLInputObjectField>(fieldMap.values());
+        return new ArrayList<>(fieldMap.values());
     }
 
     public GraphQLInputObjectField getField(String name) {
@@ -87,12 +87,12 @@ public class MutableGraphQLInputObjectType extends GraphQLInputObjectType {
     }
 
     /**
-     * Builder for constructing MutableGraphQLInputObjectType
+     * Builder for constructing MutableGraphQLInputObjectType.
      */
     public static class Builder {
         private String name;
         private String description;
-        private List<GraphQLInputObjectField> fields = new ArrayList<GraphQLInputObjectField>();
+        private List<GraphQLInputObjectField> fields = new ArrayList<>();
 
         public Builder name(String name) {
             this.name = name;

@@ -47,7 +47,7 @@ public class RSQLFilterDialectTest {
 
     @BeforeAll
     public static void init() {
-        EntityDictionary dictionary = new EntityDictionary(Collections.EMPTY_MAP);
+        EntityDictionary dictionary = new EntityDictionary(Collections.emptyMap());
 
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Book.class);
@@ -221,6 +221,23 @@ public class RSQLFilterDialectTest {
                         + "OR book.publishDate LT [10]) OR book.publishDate LE [10]) AND "
                         + "(((book.publishDate GT [5] OR book.publishDate GE [5]) "
                         + "OR book.publishDate LT [10]) OR book.publishDate LE [10]))",
+                expression.toString()
+        );
+    }
+
+    @Test
+    public void testBetweenOperator() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter",
+                "(publishDate=notbetween=(5,10))"
+        );
+
+        FilterExpression expression = dialect.parseGlobalExpression("/book", queryParams, NO_VERSION);
+
+        assertEquals(
+                "book.publishDate NOTBETWEEN [5, 10]",
                 expression.toString()
         );
     }

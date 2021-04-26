@@ -8,20 +8,29 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.core.exceptions.InvalidParameterizedAttributeException;
 import com.yahoo.elide.core.request.Argument;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
+import org.apache.commons.lang3.tuple.Pair;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
 
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 
 /**
@@ -42,6 +51,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     private TimeDimensionGrain grain;
     private TimeZone timeZone;
     private Map<String, Argument> arguments;
+    private boolean projected;
 
     /**
      * All argument constructor.
@@ -49,11 +59,13 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
      * @param timeZone The selected time zone.
      * @param alias The client provided alias.
      * @param arguments List of client provided arguments.
+     * @param projected Whether or not this column is part of the projected output.
      */
     public SQLTimeDimensionProjection(TimeDimension column,
                                       TimeZone timeZone,
                                       String alias,
-                                      Map<String, Argument> arguments) {
+                                      Map<String, Argument> arguments,
+                                      boolean projected) {
         //TODO remove arguments
         this.columnType = column.getColumnType();
         this.valueType = column.getValueType();
@@ -63,13 +75,16 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
         this.arguments = arguments;
         this.alias = alias;
         this.timeZone = timeZone;
+        this.projected = projected;
     }
 
     @Override
-    public String toSQL(Queryable source, SQLReferenceTable table) {
-        //TODO - We will likely migrate to a templating language when we support parameterized metrics.
-        return grain.getExpression().replaceFirst(TIME_DIMENSION_REPLACEMENT_REGEX,
-                        table.getResolvedReference(source, name));
+    public String toSQL(Queryable query, SQLReferenceTable table) {
+
+        String resolvedExpr = SQLColumnProjection.super.toSQL(query, table);
+
+        // TODO - We will likely migrate to a templating language when we support parameterized metrics.
+        return grain.getExpression().replaceAll(TIME_DIMENSION_REPLACEMENT_REGEX, resolvedExpr);
     }
 
     @Override
@@ -78,7 +93,49 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     }
 
     @Override
-    public SQLTimeDimensionProjection withExpression(String expression) {
+    public Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source,
+                                                              SQLReferenceTable lookupTable,
+                                                              boolean joinInOuter) {
+
+        MetaDataStore store = lookupTable.getMetaDataStore();
+        List<Reference> references = new ExpressionParser(store).parse(source, getExpression());
+
+        boolean requiresJoin = SQLColumnProjection.requiresJoin(references);
+
+        boolean inProjection = source.getColumnProjection(getName(), getArguments()) != null;
+
+        ColumnProjection outerProjection;
+        Set<ColumnProjection> innerProjections;
+
+        if (requiresJoin && joinInOuter) {
+            outerProjection = withExpression(getExpression(), inProjection);
+
+            //TODO - the expression needs to be rewritten to leverage the inner column physical projections.
+            innerProjections = SQLColumnProjection.extractPhysicalReferences(references, store);
+        } else {
+            outerProjection = SQLTimeDimensionProjection.builder()
+                    .name(name)
+                    .alias(alias)
+                    .valueType(valueType)
+                    .columnType(columnType)
+
+                    //This grain removes the extra time grain formatting on the outer query.
+                    .grain(new TimeDimensionGrain(
+                            this.getName(),
+                            grain.getGrain()))
+                    .expression("{{$" + this.getSafeAlias() + "}}")
+                    .projected(isProjected())
+                    .arguments(arguments)
+                    .timeZone(timeZone)
+                    .build();
+            innerProjections = new LinkedHashSet<>(Arrays.asList(this));
+        }
+
+        return Pair.of(outerProjection, innerProjections);
+    }
+
+    @Override
+    public SQLColumnProjection withExpression(String expression, boolean project) {
         return SQLTimeDimensionProjection.builder()
                 .name(name)
                 .alias(alias)
@@ -86,6 +143,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
                 .columnType(columnType)
                 .expression(expression)
                 .arguments(arguments)
+                .projected(project)
                 .grain(grain)
                 .timeZone(timeZone)
                 .build();
@@ -104,5 +162,10 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
                 .filter(grain -> grain.getGrain().name().toLowerCase(Locale.ENGLISH).equals(grainName))
                 .findFirst()
                 .orElseThrow(() -> new InvalidParameterizedAttributeException(name, grainArgument));
+    }
+
+    @Override
+    public boolean isProjected() {
+        return projected;
     }
 }

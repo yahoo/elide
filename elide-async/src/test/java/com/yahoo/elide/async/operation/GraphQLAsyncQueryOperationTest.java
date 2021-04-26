@@ -33,7 +33,7 @@ public class GraphQLAsyncQueryOperationTest {
     private User user;
     private Elide elide;
     private RequestScope requestScope;
-    private Map<String, QueryRunner> runners = new HashMap();
+    private Map<String, QueryRunner> runners = new HashMap<>();
     private QueryRunner runner;
     private AsyncExecutorService asyncExecutorService;
 

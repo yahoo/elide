@@ -51,13 +51,14 @@ import lombok.extern.slf4j.Slf4j;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 /**
- * This class converts a GraphQL query string into an Elide {@link EntityProjection} using
+ * This class converts a GraphQL query string into an Elide {@link EntityProjection} using.
  * {@link #make(String)} method.
  */
 @Slf4j
@@ -160,7 +161,7 @@ public class GraphQLEntityProjectionMaker {
             Field rootSelectionField = (Field) rootSelection;
             String entityName = rootSelectionField.getName();
             String aliasName = rootSelectionField.getAlias();
-            if (SCHEMA.equals(entityName) || TYPE.equals(entityName)) {
+            if (SCHEMA.hasName(entityName) || TYPE.hasName(entityName)) {
                 // '__schema' and '__type' would not be handled by entity projection
                 return;
             }
@@ -195,6 +196,10 @@ public class GraphQLEntityProjectionMaker {
                 .type(entityType)
                 .pagination(PaginationImpl.getDefaultPagination(entityType, elideSettings));
 
+        // Add the Entity Arguments to the Projection
+        projectionBuilder.arguments(new HashSet<>(
+                getArguments(entityField, entityDictionary.getEntityArguments(entityType))
+                ));
         entityField.getSelectionSet().getSelections().forEach(selection -> addSelection(selection, projectionBuilder));
         entityField.getArguments().forEach(argument -> addArgument(argument, projectionBuilder));
 
@@ -202,7 +207,7 @@ public class GraphQLEntityProjectionMaker {
     }
 
     /**
-     * Add a graphQL {@link Selection} to an {@link EntityProjection}
+     * Add a graphQL {@link Selection} to an {@link EntityProjection}.
      *
      * @param fieldSelection field/fragment to add
      * @param projectionBuilder projection that is being built
@@ -211,8 +216,8 @@ public class GraphQLEntityProjectionMaker {
         if (fieldSelection instanceof FragmentSpread) {
             addFragment((FragmentSpread) fieldSelection, projectionBuilder);
         } else if (fieldSelection instanceof Field) {
-            if (EDGES.equals(((Field) fieldSelection).getName())
-                    || NODE.equals(((Field) fieldSelection).getName())) {
+            if (EDGES.hasName(((Field) fieldSelection).getName())
+                    || NODE.hasName(((Field) fieldSelection).getName())) {
                 // if this graphql field is 'edges' or 'node', go one level deeper in the graphql document
                 ((Field) fieldSelection).getSelectionSet().getSelections().forEach(
                         selection -> addSelection(selection, projectionBuilder));
@@ -226,7 +231,7 @@ public class GraphQLEntityProjectionMaker {
     }
 
     /**
-     * Resolve a graphQL {@link FragmentSpread} into {@link Selection}s and add them to an {@link EntityProjection}
+     * Resolve a graphQL {@link FragmentSpread} into {@link Selection}s and add them to an {@link EntityProjection}.
      *
      * @param fragment graphQL fragment
      * @param projectionBuilder projection that is being built
@@ -247,7 +252,7 @@ public class GraphQLEntityProjectionMaker {
     }
 
     /**
-     * Add a new graphQL {@link Field} into an {@link EntityProjection}
+     * Add a new graphQL {@link Field} into an {@link EntityProjection}.
      *
      * @param field graphQL field
      * @param projectionBuilder projection that is being built
@@ -260,13 +265,13 @@ public class GraphQLEntityProjectionMaker {
         if (entityDictionary.getRelationshipType(parentType, fieldName) != RelationshipType.NONE) {
             // handle the case of a relationship field
             addRelationship(field, projectionBuilder);
-        } else if (TYPENAME.equals(fieldName)) {
+        } else if (TYPENAME.hasName(fieldName)) {
             // '__typename' would not be handled by entityProjection
-        } else if (PAGE_INFO.equals(fieldName)) {
+        } else if (PAGE_INFO.hasName(fieldName)) {
             // only 'totalRecords' needs to be added into the projection's pagination
             if (field.getSelectionSet().getSelections().stream()
                     .anyMatch(selection -> selection instanceof Field
-                            && PAGE_INFO_TOTAL_RECORDS.equals(((Field) selection).getName()))) {
+                            && PAGE_INFO_TOTAL_RECORDS.hasName(((Field) selection).getName()))) {
                 addPageTotal(projectionBuilder);
             }
         } else {
@@ -351,9 +356,33 @@ public class GraphQLEntityProjectionMaker {
             addFilter(argument, projectionBuilder);
         } else if (!ModelBuilder.ARGUMENT_OPERATION.equals(argumentName)
                 && !(ModelBuilder.ARGUMENT_IDS.equals(argumentName))
-                && !(ModelBuilder.ARGUMENT_DATA.equals(argumentName))) {
-            addAttributeArgument(argument, projectionBuilder);
+                && !(ModelBuilder.ARGUMENT_DATA.equals(argumentName))
+                && !isEntityArgument(argumentName, entityDictionary, projectionBuilder.getType())) {
+            Type<?> entityType = projectionBuilder.getType();
+            Type<?> attributeType = entityDictionary.getType(entityType, argumentName);
+            if (attributeType == null) {
+                throw new InvalidEntityBodyException(
+                        String.format("Invalid attribute field/alias for argument: {%s}.{%s}",
+                                entityType,
+                                argumentName)
+                );
+            }
         }
+    }
+
+    /**
+     * Returns whether or not a GraphQL argument name corresponding to a Entity argument.
+     *
+     * @param argumentName Name key of the GraphQL argument
+     * @param dictionary Instance of EntityDictionary
+     * @param cls Entity Type Class
+     *
+     * @return {@code true} if the name equals to any Entity Argument
+     */
+    private static boolean isEntityArgument(String argumentName, EntityDictionary dictionary, Type<?> cls) {
+        return dictionary.getEntityArguments(cls)
+                .stream()
+                .anyMatch(a -> a.getName().equals(argumentName));
     }
 
     /**
@@ -472,7 +501,7 @@ public class GraphQLEntityProjectionMaker {
     }
 
     /**
-     * Add a new filter expression to the entityProjection
+     * Add a new filter expression to the entityProjection.
      *
      * @param argument filter argument
      * @param projectionBuilder projection that is being built
@@ -492,7 +521,7 @@ public class GraphQLEntityProjectionMaker {
     }
 
     /**
-     * Construct a filter expression from a string
+     * Construct a filter expression from a string.
      *
      * @param builder entity projection under construction that is being filtered.
      * @param typeName class type name to apply this filter
@@ -508,55 +537,6 @@ public class GraphQLEntityProjectionMaker {
             return filterDialect.parse(builder.getType(), builder.getAttributes(), (String) filterString, apiVersion);
         } catch (ParseException e) {
             throw new BadRequestException(e.getMessage() + "\n" + e.getMessage());
-        }
-    }
-
-    /**
-     * Add argument for a field/relationship of an entity
-     *
-     * @param argument an argument which name should match a field name/alias
-     * @param projectionBuilder projection that is being built
-     */
-    private void addAttributeArgument(Argument argument, EntityProjectionBuilder projectionBuilder) {
-        String argumentName = argument.getName();
-        Type<?> entityType = projectionBuilder.getType();
-
-        Attribute existingAttribute = projectionBuilder.getAttributeByAlias(argumentName);
-
-        com.yahoo.elide.core.request.Argument elideArgument = com.yahoo.elide.core.request.Argument.builder()
-                .name(argumentName)
-                .value(variableResolver.resolveValue(argument.getValue()))
-                .build();
-
-        if (existingAttribute != null) {
-            // add a new argument to the existing attribute
-            Attribute toAdd = Attribute.builder()
-                    .type(existingAttribute.getType())
-                    .name(existingAttribute.getName())
-                    .alias(existingAttribute.getAlias())
-                    .argument(elideArgument)
-                    .build();
-
-            projectionBuilder.attribute(toAdd);
-        } else {
-            Type<?> attributeType = entityDictionary.getType(entityType, argumentName);
-            if (attributeType == null) {
-                throw new InvalidEntityBodyException(
-                        String.format("Invalid attribute field/alias for argument: {%s}.{%s}",
-                                entityType,
-                                argumentName)
-                );
-            }
-
-            // create a new attribute if this attribute doesn't exist in the projection
-            Attribute toAdd = Attribute.builder()
-                    .type(attributeType)
-                    .name(argumentName)
-                    .alias(argumentName)
-                    .argument(elideArgument)
-                    .build();
-
-            projectionBuilder.attribute(toAdd);
         }
     }
 

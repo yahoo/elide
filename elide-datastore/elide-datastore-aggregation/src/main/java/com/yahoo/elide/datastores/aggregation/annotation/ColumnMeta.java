@@ -28,6 +28,7 @@ public @interface ColumnMeta {
 
     /**
      * Indicates the cardinality for the column.
+     * @return size
      */
     CardinalitySize size() default CardinalitySize.UNKNOWN;
 }

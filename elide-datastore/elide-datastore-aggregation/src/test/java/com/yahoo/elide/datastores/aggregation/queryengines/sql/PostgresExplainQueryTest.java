@@ -153,7 +153,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "PARSEDATETIME(FORMATDATETIME("
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), "
                         + "'yyyy-MM-dd') LIMIT 1 OFFSET 0";
-        List<String> expectedQueryList = new ArrayList<String>();
+        List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(expectedQueryStr1);
         expectedQueryList.add(expectedQueryStr2);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.PAGINATION_TOTAL.getQuery()));
@@ -277,7 +277,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "HAVING MIN(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"lowScore\") > :XXX "
                         + "ORDER BY MIN(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"lowScore\") DESC LIMIT 5 OFFSET 10";
 
-        List<String> expectedQueryList = new ArrayList<String>();
+        List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(expectedQueryStr1);
         expectedQueryList.add(expectedQueryStr2);
 
@@ -291,10 +291,14 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
         Query query = TestQuery.NESTED_METRIC_QUERY.getQuery();
 
         String exptectedQueryStr =
-                "SELECT AVG(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"highScore\") "
-                        + "AS \"dailyAverageScorePerPeriod\",\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\" AS \"overallRating\","
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
+                "SELECT AVG(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"highScore\") AS \"dailyAverageScorePerPeriod\","
+                        + "MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"inner_agg_XXX\") AS \"highScore\","
+                        + "MIN(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"inner_agg_XXX\") AS \"lowScore\","
+                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\" AS \"overallRating\","
+                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\" AS \"recordedDate\" "
                         + "FROM (SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
+                        + "MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"inner_agg_XXX\","
+                        + "MIN(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"lowScore\") AS \"inner_agg_XXX\","
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS \"overallRating\","
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate_XXX\","
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
@@ -304,9 +308,9 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') ) "
                         + "AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\" GROUP BY "
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\", "
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM')\n";
+                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\"\n";
 
-        List<String> expectedQueryList = new ArrayList<String>();
+        List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(exptectedQueryStr);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
@@ -321,7 +325,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
         String exptectedQueryStr =
                 "SELECT AVG(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"highScore\") "
                         + "AS \"dailyAverageScorePerPeriod\",\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\" AS \"overallRating\","
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
+                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\" AS \"recordedDate\" "
                         + "FROM (SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS \"overallRating\","
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate_XXX\","
@@ -332,10 +336,10 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') ) "
                         + "AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\" GROUP BY "
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\", "
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') "
+                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\" "
                         + "HAVING AVG(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"highScore\") > :XXX\n";
 
-        List<String> expectedQueryList = new ArrayList<String>();
+        List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(exptectedQueryStr);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
@@ -350,7 +354,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
         String exptectedQueryStr =
                 "SELECT AVG(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"highScore\") "
                         + "AS \"dailyAverageScorePerPeriod\",\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\" AS \"overallRating\","
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
+                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\" AS \"recordedDate\" "
                         + "FROM (SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS \"overallRating\","
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate_XXX\","
@@ -363,9 +367,9 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') ) "
                         + "AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\" GROUP BY "
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\", "
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM')\n";
+                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\"\n";
 
-        List<String> expectedQueryList = new ArrayList<String>();
+        List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(exptectedQueryStr);
 
         compareQueryLists(expectedQueryList, engine.explain(query));
@@ -379,7 +383,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
 
         String exptectedQueryStr1 = "SELECT COUNT(*) FROM "
                 + "(SELECT \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\", "
-                + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') "
+                + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\" "
                 + "FROM (SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
                 + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS \"overallRating\","
                 + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate_XXX\","
@@ -390,11 +394,11 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                 + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') ) "
                 + "AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\" "
                 + "GROUP BY \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\", "
-                + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') ) AS \"pagination_subquery\"\n";
+                + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\" ) AS \"pagination_subquery\"\n";
 
         String exptectedQueryStr2 = "SELECT AVG(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"highScore\") "
                 + "AS \"dailyAverageScorePerPeriod\",\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\" AS \"overallRating\","
-                + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
+                + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\" AS \"recordedDate\" "
                 + "FROM (SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
                 + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS \"overallRating\","
                 + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate_XXX\","
@@ -405,10 +409,10 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                 + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') ) "
                 + "AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\" GROUP BY "
                 + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\", "
-                + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') "
+                + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\" "
                 + "LIMIT 1 OFFSET 0\n";
 
-        List<String> expectedQueryList = new ArrayList<String>();
+        List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(exptectedQueryStr1);
         expectedQueryList.add(exptectedQueryStr2);
 
@@ -424,7 +428,7 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
         String exptectedQueryStr =
                 "SELECT AVG(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"highScore\") "
                         + "AS \"dailyAverageScorePerPeriod\",\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\" AS \"overallRating\","
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') AS \"recordedDate\" "
+                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\" AS \"recordedDate\" "
                         + "FROM (SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS \"overallRating\","
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') AS \"recordedDate_XXX\","
@@ -435,10 +439,10 @@ public class PostgresExplainQueryTest extends SQLUnitTest {
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') ) "
                         + "AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\" GROUP BY "
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"overallRating\", "
-                        + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\", 'yyyy-MM'), 'yyyy-MM') "
+                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX\".\"recordedDate\" "
                         + "ORDER BY \"dailyAverageScorePerPeriod\" DESC,\"overallRating\" DESC";
 
-        List<String> expectedQueryList = new ArrayList<String>();
+        List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(exptectedQueryStr);
 
         compareQueryLists(expectedQueryList, engine.explain(query));

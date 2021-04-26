@@ -10,7 +10,9 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
-import lombok.Data;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -20,11 +22,14 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Time date type for all analytic model time dimensions.
  */
-@Data
+@RequiredArgsConstructor
+@Getter
+@Setter
 public class Time extends Date {
 
     public static Type<Time> TIME_TYPE = ClassType.of(Time.class);
@@ -132,7 +137,7 @@ public class Time extends Date {
                 boolean supportsMinute,
                 boolean supportsSecond,
                 Serializer formatter) {
-        super(copy.atZone(ZoneOffset.systemDefault()).toEpochSecond() * 1000);
+        super(TimeUnit.SECONDS.toMillis(copy.atZone(ZoneOffset.systemDefault()).toEpochSecond()));
         this.supportsYear = supportsYear;
         this.supportsMonth = supportsMonth;
         this.supportsDay = supportsDay;

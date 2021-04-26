@@ -6,8 +6,9 @@
 package com.yahoo.elide.modelconfig.validator;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
-import static com.yahoo.elide.modelconfig.DynamicConfigHelpers.isNullOrEmpty;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SecurityCheck;
@@ -19,15 +20,18 @@ import com.yahoo.elide.modelconfig.Config;
 import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
 import com.yahoo.elide.modelconfig.DynamicConfigSchemaValidator;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
+import com.yahoo.elide.modelconfig.model.Argument;
 import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.modelconfig.model.Dimension;
 import com.yahoo.elide.modelconfig.model.ElideDBConfig;
+import com.yahoo.elide.modelconfig.model.ElideNamespaceConfig;
 import com.yahoo.elide.modelconfig.model.ElideSQLDBConfig;
 import com.yahoo.elide.modelconfig.model.ElideSecurityConfig;
 import com.yahoo.elide.modelconfig.model.ElideTableConfig;
 import com.yahoo.elide.modelconfig.model.Join;
 import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Named;
+import com.yahoo.elide.modelconfig.model.NamespaceConfig;
 import com.yahoo.elide.modelconfig.model.Table;
 
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -36,6 +40,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -47,6 +52,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -84,6 +90,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     @Getter private Map<String, Object> modelVariables;
     private Map<String, Object> dbVariables;
     @Getter private final ElideDBConfig elideSQLDBConfig = new ElideSQLDBConfig();
+    @Getter private final ElideNamespaceConfig elideNamespaceConfig = new ElideNamespaceConfig();
     private final String configDir;
     private final DynamicConfigSchemaValidator schemaValidator = new DynamicConfigSchemaValidator();
     private final Map<String, Resource> resourceMap = new HashMap<>();
@@ -152,7 +159,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
             System.exit(0);
 
         } catch (Exception e) {
-            String msg = isNullOrEmpty(e.getMessage()) ? "Process Failed!" : e.getMessage();
+            String msg = isBlank(e.getMessage()) ? "Process Failed!" : e.getMessage();
             System.err.println(msg);
             System.exit(2);
         }
@@ -163,18 +170,30 @@ public class DynamicConfigValidator implements DynamicConfiguration {
      * @throws IOException IOException
      */
     public void readAndValidateConfigs() throws IOException {
+        readConfigs();
+        validateConfigs();
+    }
+
+    public void readConfigs() throws IOException {
         this.loadConfigMap();
         this.modelVariables = readVariableConfig(Config.MODELVARIABLE);
         this.elideSecurityConfig = readSecurityConfig();
-        validateSecurityConfig();
         this.dbVariables = readVariableConfig(Config.DBVARIABLE);
         this.elideSQLDBConfig.setDbconfigs(readDbConfig());
         this.elideTableConfig.setTables(readTableConfig());
-        validateRequiredConfigsProvided();
-        validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs());
-        validateNameUniqueness(this.elideTableConfig.getTables());
+        this.elideNamespaceConfig.setNamespaceconfigs(readNamespaceConfig());
         populateInheritance(this.elideTableConfig);
+    }
+
+    public void validateConfigs() throws IOException {
+        validateSecurityConfig();
+        validateRequiredConfigsProvided();
+        validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs(), "Multiple DB configs found with the same name: ");
+        validateNameUniqueness(this.elideTableConfig.getTables(), "Multiple Table configs found with the same name: ");
         validateTableConfig();
+        validateNameUniqueness(this.elideNamespaceConfig.getNamespaceconfigs(),
+                "Multiple Namespace configs found with the same name: ");
+        validateNamespaceConfig();
         validateJoinedTablesDBConnectionName(this.elideTableConfig);
     }
 
@@ -223,7 +242,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         //ensures validation is run before populate always.
         validateInheritance(this.elideTableConfig);
 
-        Set<Table> processed = new HashSet<Table>();
+        Set<Table> processed = new HashSet<>();
         elideTableConfig.getTables().stream().forEach(table -> {
             populateInheritance(table, processed);
         });
@@ -246,13 +265,13 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         }
 
         Map<String, Measure> measures = getInheritedMeasures(parent, attributesListToMap(table.getMeasures()));
-        table.setMeasures(new ArrayList<Measure>(measures.values()));
+        table.setMeasures(new ArrayList<>(measures.values()));
 
         Map<String, Dimension> dimensions = getInheritedDimensions(parent, attributesListToMap(table.getDimensions()));
-        table.setDimensions(new ArrayList<Dimension>(dimensions.values()));
+        table.setDimensions(new ArrayList<>(dimensions.values()));
 
         Map<String, Join> joins = getInheritedJoins(parent, attributesListToMap(table.getJoins()));
-        table.setJoins(new ArrayList<Join>(joins.values()));
+        table.setJoins(new ArrayList<>(joins.values()));
 
         String schema = getInheritedSchema(parent, table.getSchema());
         table.setSchema(schema);
@@ -265,7 +284,10 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
         String tableName = getInheritedTable(parent, table.getTable());
         table.setTable(tableName);
-        // isFact, isHidden, ReadAccess have default Values in schema, so can not be inherited.
+
+        List<Argument> arguments = getInheritedArguments(parent, table.getArguments());
+        table.setArguments(arguments);
+        // isFact, isHidden, ReadAccess, namespace have default Values in schema, so can not be inherited.
         // Other properties (tags, cardinality, etc.) have been categorized as non-inheritable too.
     }
 
@@ -324,28 +346,38 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         return property == null ? (T) action.inherit() : property;
     }
 
+    private <T> Collection<T> getInheritedAttribute(Inheritance action, Collection<T> property) {
+        return CollectionUtils.isEmpty(property) ? (Collection<T>) action.inherit() : property;
+    }
+
     private String getInheritedSchema(Table table, String schema) {
-        Inheritance action = () -> table.getSchema();
+        Inheritance action = table::getSchema;
 
         return getInheritedAttribute(action, schema);
     }
 
     private String getInheritedConnection(Table table, String connection) {
-        Inheritance action = () -> table.getDbConnectionName();
+        Inheritance action = table::getDbConnectionName;
 
         return getInheritedAttribute(action, connection);
     }
 
     private String getInheritedSql(Table table, String sql) {
-        Inheritance action = () -> table.getSql();
+        Inheritance action = table::getSql;
 
         return getInheritedAttribute(action, sql);
     }
 
     private String getInheritedTable(Table table, String tableName) {
-        Inheritance action = () -> table.getTable();
+        Inheritance action = table::getTable;
 
         return getInheritedAttribute(action, tableName);
+    }
+
+    private List<Argument> getInheritedArguments(Table table, List<Argument> arguments) {
+        Inheritance action = table::getArguments;
+
+        return (List<Argument>) getInheritedAttribute(action, arguments);
     }
 
     /**
@@ -433,6 +465,31 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     }
 
     /**
+     * Read and validates namespace config files.
+     * @return Set<NamespaceConfig> Set of Namespace Configs
+     */
+    private Set<NamespaceConfig> readNamespaceConfig() {
+
+        return this.resourceMap
+                        .entrySet()
+                        .stream()
+                        .filter(entry -> entry.getKey().startsWith(Config.NAMESPACEConfig.getConfigPath()))
+                        .map(entry -> {
+                            try {
+                                String content = IOUtils.toString(entry.getValue().getInputStream(), UTF_8);
+                                validateConfigForMissingVariables(content, this.modelVariables);
+                                String fileName = entry.getValue().getFilename();
+                                return DynamicConfigHelpers.stringToElideNamespaceConfigPojo(fileName,
+                                                content, this.modelVariables, schemaValidator);
+                            } catch (IOException e) {
+                                throw new IllegalStateException(e);
+                            }
+                        })
+                        .flatMap(namespaceconfig -> namespaceconfig.getNamespaceconfigs().stream())
+                        .collect(Collectors.toSet());
+    }
+
+    /**
      * Read and validates table config files.
      */
     private Set<Table> readTableConfig() {
@@ -492,31 +549,62 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         for (Table table : elideTableConfig.getTables()) {
 
             validateSql(table.getSql());
+            validateArguments(table.getArguments());
+            validateNamespaceExists(table.getNamespace());
             Set<String> tableFields = new HashSet<>();
 
             table.getDimensions().forEach(dim -> {
                 validateFieldNameUniqueness(tableFields, dim.getName(), table.getName());
                 validateSql(dim.getDefinition());
                 validateTableSource(dim.getTableSource());
+                validateArguments(dim.getArguments());
                 extractChecksFromExpr(dim.getReadAccess(), extractedChecks, visitor);
             });
 
             table.getMeasures().forEach(measure -> {
                 validateFieldNameUniqueness(tableFields, measure.getName(), table.getName());
                 validateSql(measure.getDefinition());
+                validateArguments(measure.getArguments());
                 extractChecksFromExpr(measure.getReadAccess(), extractedChecks, visitor);
             });
 
             table.getJoins().forEach(join -> {
                 validateFieldNameUniqueness(tableFields, join.getName(), table.getName());
-                validateJoin(join);
+                validateSql(join.getDefinition());
+                validateModelExists(join.getTo());
+                validateNamespaceExists(join.getNamespace());
             });
 
             extractChecksFromExpr(table.getReadAccess(), extractedChecks, visitor);
-            validateChecks(extractedChecks);
         }
 
+        validateChecks(extractedChecks);
+
         return true;
+    }
+
+    /**
+     * Validate namespace configs.
+     * @return boolean true if all provided namespace properties passes validation
+     */
+    private boolean validateNamespaceConfig() {
+        Set<String> extractedChecks = new HashSet<>();
+        PermissionExpressionVisitor visitor = new PermissionExpressionVisitor();
+
+        for (NamespaceConfig namespace : elideNamespaceConfig.getNamespaceconfigs()) {
+            extractChecksFromExpr(namespace.getReadAccess(), extractedChecks, visitor);
+        }
+
+        validateChecks(extractedChecks);
+
+        return true;
+    }
+
+    private void validateArguments(List<Argument> arguments) {
+        validateNameUniqueness(arguments, "Multiple Arguments found with the same name: ");
+        arguments.forEach(arg -> {
+            validateTableSource(arg.getTableSource());
+        });
     }
 
     private void validateChecks(Set<String> checks) {
@@ -540,7 +628,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
     private static void extractChecksFromExpr(String readAccess, Set<String> extractedChecks,
                     PermissionExpressionVisitor visitor) {
-        if (!isNullOrEmpty(readAccess)) {
+        if (isNotBlank(readAccess)) {
             ParseTree root = EntityPermissions.parseExpression(readAccess);
             extractedChecks.addAll(visitor.visit(root));
         }
@@ -559,7 +647,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
      * column with in that model.
      */
     private void validateTableSource(String tableSource) {
-        if (isNullOrEmpty(tableSource)) {
+        if (isBlank(tableSource)) {
             return; // Nothing to validate
         }
 
@@ -573,7 +661,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
         if (elideTableConfig.hasTable(modelName)) {
             Table table = elideTableConfig.getTable(modelName);
-            if (!table.hasField(elideTableConfig, fieldName)) {
+            if (!table.hasField(fieldName)) {
                 throw new IllegalStateException("Invalid tableSource : " + tableSource + " . Field : " + fieldName
                                 + " is undefined for hjson model: " + modelName);
             }
@@ -602,13 +690,13 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
                 Set<String> joinedTables = table.getJoins()
                         .stream()
-                        .map(join -> join.getTo())
+                        .map(Join::getTo)
                         .collect(Collectors.toSet());
 
                 Set<String> connections = elideTableConfig.getTables()
                         .stream()
                         .filter(t -> joinedTables.contains(t.getName()))
-                        .map(t -> t.getDbConnectionName())
+                        .map(Table::getDbConnectionName)
                         .collect(Collectors.toSet());
 
                 if (connections.size() > 1 || (connections.size() == 1
@@ -623,12 +711,12 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     /**
      * Validates table (or db connection) name is unique across all the dynamic table (or db connection) configs.
      */
-    private static void validateNameUniqueness(Set<? extends Named> configs) {
+    private static void validateNameUniqueness(Collection<? extends Named> configs, String errorMsg) {
 
         Set<String> names = new HashSet<>();
         configs.forEach(obj -> {
             if (!names.add(obj.getName().toLowerCase(Locale.ENGLISH))) {
-                throw new IllegalStateException("Duplicate!! Either Table or DB configs found with the same name.");
+                throw new IllegalStateException(errorMsg + obj.getName());
             }
         });
     }
@@ -638,7 +726,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
      * keywords. Throw exception if check fails.
      */
     private static void validateSql(String sqlDefinition) {
-        if (!DynamicConfigHelpers.isNullOrEmpty(sqlDefinition) && (sqlDefinition.contains(SEMI_COLON)
+        if (isNotBlank(sqlDefinition) && (sqlDefinition.contains(SEMI_COLON)
                 || containsDisallowedWords(sqlDefinition, SQL_SPLIT_REGEX, SQL_DISALLOWED_WORDS))) {
             throw new IllegalStateException("sql/definition provided in table config contain either '" + SEMI_COLON
                     + "' or one of these words: " + Arrays.toString(SQL_DISALLOWED_WORDS.toArray()));
@@ -646,53 +734,11 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     }
 
     /**
-     * Check if input join definition is valid.
-     */
-    private void validateJoin(Join join) {
-        String joinModelName = join.getTo();
-
-        if (!(elideTableConfig.hasTable(joinModelName) || hasStaticModel(joinModelName, NO_VERSION))) {
-            throw new IllegalStateException(
-                            "Model: " + joinModelName + " is neither included in dynamic models nor in static models");
-        }
-
-        if (join.getType() == Join.Type.CROSS) {
-            return; // Join's definition validation not required.
-        }
-
-        if (isNullOrEmpty(join.getDefinition())) {
-            throw new IllegalStateException("Join definition must be provided.");
-        }
-
-        Matcher matcher = REFERENCE_PARENTHESES.matcher(join.getDefinition());
-        Set<String> references = new HashSet<>();
-        while (matcher.find()) {
-            references.add(matcher.group(1).trim());
-        }
-
-        if (references.size() < 2) {
-            throw new IllegalStateException("Atleast 2 unique references are expected in join definition");
-        }
-
-        references.forEach(reference -> {
-            if (reference.indexOf('.') != -1) {
-                String joinField = reference.substring(0, reference.indexOf('.'));
-                if (!joinField.equals(join.getName())) {
-                    throw new IllegalStateException("Join name must be used before '.' in join definition. Found '"
-                                    + joinField + "' instead of '" + join.getName() + "'");
-                }
-            }
-        });
-
-        validateSql(join.getDefinition());
-    }
-
-    /**
      * Validate role name provided in security config.
      * @return boolean true if all role name passes validation else throw exception
      */
     private boolean validateSecurityConfig() {
-        Set<String> alreadyDefinedRoles = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+        Set<String> alreadyDefinedRoles = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         alreadyDefinedRoles.addAll(dictionary.getCheckIdentifiers());
 
         elideSecurityConfig.getRoles().forEach(role -> {
@@ -707,6 +753,20 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         return true;
     }
 
+    private void validateModelExists(String name) {
+        if (!(elideTableConfig.hasTable(name) || hasStaticModel(name, NO_VERSION))) {
+            throw new IllegalStateException(
+                            "Model: " + name + " is neither included in dynamic models nor in static models");
+        }
+    }
+
+    private void validateNamespaceExists(String name) {
+        if (!elideNamespaceConfig.hasNamespace(name)) {
+            throw new IllegalStateException(
+                            "Namespace: " + name + " is not included in dynamic configs");
+        }
+    }
+
     /**
      * Checks if any word in the input string matches any of the disallowed words.
      * @param str input string to validate
@@ -716,8 +776,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
      *         disallowed words else false
      */
     private static boolean containsDisallowedWords(String str, String splitter, Set<String> keywords) {
-        return DynamicConfigHelpers.isNullOrEmpty(str) ? false
-                : Arrays.stream(str.trim().toUpperCase(Locale.ENGLISH).split(splitter)).anyMatch(keywords::contains);
+        return isNotBlank(str)
+                && Arrays.stream(str.trim().toUpperCase(Locale.ENGLISH).split(splitter)).anyMatch(keywords::contains);
     }
 
     /**
@@ -755,9 +815,9 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     }
 
     /**
-     * Remove src/.../resources/ from filepath.
-     * @param filePath
-     * @return Path to model dir
+     * Remove src/.../resources/ from class path for configs directory.
+     * @param filePath class path for configs directory.
+     * @return formatted class path for configs directory.
      */
     public static String formatClassPath(String filePath) {
         if (filePath.indexOf(RESOURCES + "/") > -1) {

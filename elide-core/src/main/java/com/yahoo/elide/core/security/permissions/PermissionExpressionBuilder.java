@@ -112,7 +112,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                 (checkFn) -> buildAnyFieldExpression(
                         PermissionCondition.create(annotationClass, resource, (String) null, changeSpec),
                         checkFn,
-                        (RequestScope) resource.getRequestScope()
+                        resource.getRequestScope()
                 );
 
         return expressionFunction.apply(leafBuilderFn);
@@ -178,7 +178,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
             final Function<Check, Expression> checkFn) {
         Type<?> resourceClass = condition.getEntityClass();
         Class<? extends Annotation> annotationClass = condition.getPermission();
-        String field = condition.getField().isPresent() ? condition.getField().get() : null;
+        String field = condition.getField().orElse(null);
 
         ParseTree classPermissions = entityDictionary.getPermissionsForClass(resourceClass, annotationClass);
         ParseTree fieldPermissions = entityDictionary.getPermissionsForField(resourceClass, field, annotationClass);

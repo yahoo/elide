@@ -1,6 +1,7 @@
 {
   tables: [{
       name: PlayerStats
+      namespace: PlayerNamespace
       friendlyName: Player Statistics
       table: player_stats
       schema: gamedb
@@ -20,6 +21,19 @@
       A tag
       with newline
       ''']
+      hints: ['NoAggregateBeforeJoin']
+      arguments: [
+          {
+             name: scoreFormat
+             type: TEXT
+             default: 999999D00
+          }
+          {
+             name: countryCode
+             type: TEXT
+             tableSource: Country.isoCode
+          }
+      ]
       joins: [
           {
              name: playerCountry

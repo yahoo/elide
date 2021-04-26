@@ -25,6 +25,7 @@ import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import org.apache.commons.collections.MapUtils;
 import io.reactivex.Observable;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.ReplaySubject;
@@ -138,11 +139,11 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
                 ? new ActivePermissionExecutor(this)
                 : permissionExecutorGenerator.apply(this);
 
-        this.queryParams = (queryParams == null || queryParams.size() == 0)
+        this.queryParams = MapUtils.isEmpty(queryParams)
                 ? Optional.empty()
                 : Optional.of(queryParams);
 
-        this.requestHeaders = (requestHeaders == null || requestHeaders.size() == 0)
+        this.requestHeaders = MapUtils.isEmpty(requestHeaders)
                 ? Collections.emptyMap()
                 : requestHeaders;
         registerPreSecurityObservers();

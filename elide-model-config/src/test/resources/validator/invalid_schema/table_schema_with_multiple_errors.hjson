@@ -10,6 +10,28 @@
       // unsupported: cardinality value
       cardinality: Extra Large
       filterTemplate: countryIsoCode={{code}};startTime=={{start}}
+      arguments:
+      [
+        {
+          name: PI
+          // unsupported: argument type
+          type: Number
+        }
+        {
+          // unsupported: grain is not allowed
+          name: Grain
+          type: Boolean
+        }
+        {
+          // both tableSource and values are not supported. Choose One or None
+          name: aggregation
+          description: Aggregation
+          type : TEXT
+          values: ['SUM', 'MIN', 'MAX']
+          tableSource: abc.def
+          default: SUM
+        }
+      ]
       measures:
       [
         {
@@ -18,7 +40,7 @@
           description : very awesome score
           definition: 'MAX({{score}})'
           // unsupported: class name (@ is not allowed)
-          queryPlanResolver: 'com.yahoo.elide.datastores.aggregation.query@DefaultQueryPlanResolver.class'
+          maker: 'com.yahoo.elide.datastores.aggregation.query@DefaultMetricProjectionMaker.class'
           tags: ['PUBLIC']
         }
       ]

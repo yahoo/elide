@@ -1,5 +1,70 @@
 # Change Log
 
+## 5.0.0-pr34
+5th public release candidate for Elide 5.0.  Major features will likely come in the next release as this release lays foundation for parameterized attributes and Handlebars templating support in HJSON configuration files.  
+
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/4c33506fd7df9e0bbaf19f5d7cfb239c2a27b80e) Add 2 new filter operators - between and notbetween (#1962)
+   * Hibernate 3 & 5 stores now benefit from same N+1 improvement as JPA store.
+
+**Configuration Changes**
+   * [view commit](https://github.com/yahoo/elide/commit/86b7b041643f45a7757d8e621ff213a424a9f4c3) Physical Column Reference within handlebars must start with '$' (#1953)
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/f2ed4903b05b83b0e82449a43eda49fefc48dc28) NPE when projection has no permission for relationshipName (#1989) 
+   * [view commit](https://github.com/yahoo/elide/commit/212dcab497c321f67b66d619748b023201f2c819) Remove source from ColumnProjection (#1918)
+   * [view commit](https://github.com/yahoo/elide/commit/a5a6a45b223a005a2c6fa14e58fb969bbaa21900) Added IT test for numeric value prefix, postfix, infix, and in operators (#1908)
+   * [view commit](https://github.com/yahoo/elide/commit/0669b000f4c00c539dccbcab3e15e8336653a383) Query Plan Optimizer (Part 2) (#1919)
+   * [view commit](https://github.com/yahoo/elide/commit/82abcb7f32c5a94d82820bab09609333769d7640) Part 3 of Query Plan Optimization: Extract physical columns from join clause. (#1920)
+   * [view commit](https://github.com/yahoo/elide/commit/7a11ee300605ed0130d89a036ed221d49f1b1d9c) Agg Store Model Changes for Parameterized Metric Support (#1921)
+   * [view commit](https://github.com/yahoo/elide/commit/e1e07dbeabb690560754c84200b67e7a8d4d9229) Part 4 of Query Plan Optimization : Fix Metric Nesting (#1924) 
+   * [view commit](https://github.com/yahoo/elide/commit/e891dec78d7a2e0639691c404b33e666b131b2b9) issue 1904 - fix lombok build warnings (#1944)
+   * [view commit](https://github.com/yahoo/elide/commit/80060c6b960497b346c7325408dcc2459bbdfd70) Fix Lombok EqualsAndHashCode warnings (#1948)
+   * [view commit](https://github.com/yahoo/elide/commit/ed74d2599328232dcf92da0b249f180ecc56f808) Sonar integration (#1484)
+   * [view commit](https://github.com/yahoo/elide/commit/c006d4fc8e9e03685c14e93c1499f8317c723d34) Replace all occurrence of '{{}}' within grain expression (#1954)
+   * [view commit](https://github.com/yahoo/elide/commit/5e18149831ff5101d7c9c07bda69f3bda2ce000e) Elide graphql javadoc warning fixes (#1951)
+   * [view commit](https://github.com/yahoo/elide/commit/7d1c3c9ef88828725f86e5d6885c649f5ca2619d) Support arguments at dimension, measure, and table level. (#1952)
+   * [view commit](https://github.com/yahoo/elide/commit/6b9fe00b85461bb3ad17310348cec20ad411512d) Parameterized Metrics: Aggregation Store Model Changes Set 2 (#1957)
+   * [view commit](https://github.com/yahoo/elide/commit/ed941827e1027083367b4df9794501909279c667) diamonds to reduce duplication (#1947)
+   * [view commit](https://github.com/yahoo/elide/commit/5aa899ebbc6af4bfb538a4c04deef2218348a178) Issue 1929 - define function as lambda (#1945)
+   * [view commit](https://github.com/yahoo/elide/commit/dc7a367e14c9f43b2d013f5037341055a29f0491) Issue 1929 - Address Sonar suggestions (#1925)
+   * [view commit](https://github.com/yahoo/elide/commit/cd008a45ad379004b92c5114150016027aa07b80) Query plan optimizer phase5 (#1961)
+   * [view commit](https://github.com/yahoo/elide/commit/c30dd7553780d9abcd7d91656a97967789719fed) updated README with elide intro video (#1967)
+   * [view commit](https://github.com/yahoo/elide/commit/6feae4c15089559bd39693bbdd38a26be1bdd50a) fix build warnings (#1970)
+   * [view commit](https://github.com/yahoo/elide/commit/2be6ef0a57182e17ed4658f9d4cd2289d8cf2256) Fix elide-model-config javadoc warnings (#1972)
+   * [view commit](https://github.com/yahoo/elide/commit/67ffeb7e9dc2ee1af46970d7263f11470c47f42b) Fix javadoc to remove warnings (#1966)
+   * [view commit](https://github.com/yahoo/elide/commit/0e85109b24e6637f46b73d9722fc08cc01cfa639) elide-datastore-aggregation - fix javadoc build warning (#1963)
+   * [view commit](https://github.com/yahoo/elide/commit/3abe188ed5f45bfc492dafe8637a6bd465a08c6e) Random Async/TableExport  IT failure fix (#1974)
+   * [view commit](https://github.com/yahoo/elide/commit/e51178e12f6ffc6934cf08012fa084ec94499dd0) Test case for ParameterizedMetrics Aggregation Store Model changes (#1968)
+   * [view commit](https://github.com/yahoo/elide/commit/e72169c59d0d6c679c018901c7009ecf6cc23362) Remove dead code from GraphQLEntityProjectionMaker.java (#1977)
+   * [view commit](https://github.com/yahoo/elide/commit/4c8d6a4f57bc34f08017de12b1276ebe331b9849) Populate $$user and $$request context (#1975)
+   * [view commit](https://github.com/yahoo/elide/commit/234905d972c491934ce3774771c9733193b45007) Phase 6: Query Optimization - Calcite parser (#1976)
+   * [view commit](https://github.com/yahoo/elide/commit/7a0b59711bb5e269afbc6b15426a8aff94a5e447) Removed QueryPlanResolver.  Replaced it with MetricProjectionMaker.  Small fix to Calcite parser builder to use the SQL conformance of the underlying dialect (#1980)
+   * [view commit](https://github.com/yahoo/elide/commit/43598e8411d544b31d9807ded4f248e25ef334a4) Add Table Level Query Hints (#1981)
+   * [view commit](https://github.com/yahoo/elide/commit/737b4ee7d0791a757a496b21f60dd7e8d944f9a0) Phase 8 of Aggregation Store Optimizer: Adding more tests (#1984)
+   * [view commit](https://github.com/yahoo/elide/commit/530fbe65d758da483c9d17bd82193ce7e94681e4) Add join metadata to SQLTable. (#1988)
+   * [view commit](https://github.com/yahoo/elide/commit/98f612f023448a93324aaed11e00d6d4fa730c74) Issue 1929 - Clean up code quality (#1964)
+   * [view commit](https://github.com/yahoo/elide/commit/601aeb158afd8e982f14f0bc2df9681435b6e2c9) Projection may not have permission for relationshipName (#1989)
+   * [view commit](https://github.com/yahoo/elide/commit/9e510ad89e97906c3f281d25388687bef59c3400) refactor Functional Interfaces (#1990)
+   * [view commit](https://github.com/yahoo/elide/commit/f4c71e62309d59c533414719294045cd9077684a) refactor test (#1992)
+   * [view commit](https://github.com/yahoo/elide/commit/4835eabc8bf423267450dc5ef508b1778625befc) Expression reference ast and parser (#1994)
+   * [view commit](https://github.com/yahoo/elide/commit/bfd3ca6c4bb9f25307c08f7f8e524dba098926dc) bump JPA (#1997)
+   * [view commit](https://github.com/yahoo/elide/commit/89619d233aa877230f49bf962f979a0af34f941f) Adding explicit support for dialect operators to help determine when column nesting is possible. (#1996)
+   * [view commit](https://github.com/yahoo/elide/commit/a62e387639d12f06296c9d17ee43d1a11f7841c0) Consolidate DataStoreIT (#1995)
+   * [view commit](https://github.com/yahoo/elide/commit/699e5df3ae0d3d3f486efde7a643ccb7afc40d7a) Formula Validation using ExpressionParser (#1998)
+   * [view commit](https://github.com/yahoo/elide/commit/8010ad922008139a80ec6195fabaf5d0f315fba6) TimeDimension Grain Arg match check between Having Filter and Projection (#1999)
+   * [view commit](https://github.com/yahoo/elide/commit/fc1c8ead8941d48451d7433d5c4fd42d847129ea) reuse isEmpty (#2000)
+   * [view commit](https://github.com/yahoo/elide/commit/145829ee58b7a168c59ca58d502c629670ab0664) Hibernate jpa (#1993)
+   * [view commit](https://github.com/yahoo/elide/commit/f4e3038ae54d10e080df1ad69e97efc4000e4d84) Bump metrics.version from 4.1.17 to 4.1.19 (#1987)
+   * [view commit](https://github.com/yahoo/elide/commit/4c8f99a99858c013981361ce1db21e464acca887) Migration to Maven Central (#2001)
+   * [view commit](https://github.com/yahoo/elide/commit/5f8082ff008e8725388aca5badcf0d4737e51e06) Bump mockito-junit-jupiter from 3.3.3 to 3.9.0 (#1986)
+   * [view commit](https://github.com/yahoo/elide/commit/2863cf6abff716e879832bef5cd2d2a2258b0c23) Bump lombok from 1.18.16 to 1.18.20 (#1982)
+   * [view commit](https://github.com/yahoo/elide/commit/7258368d3333ceb2b12687d6af0af5a5918986be) Optimizer phase11 (#2002)
+   * [view commit](https://github.com/yahoo/elide/commit/9bdaceffabc7901bdc4b6531dec9e07f850179e5) Bump system-lambda from 1.1.1 to 1.2.0 (#1914)
+   * [view commit](https://github.com/yahoo/elide/commit/65a2f04292dd42ab99cedcacf66677b8e5ad0c3e) Bump dependency-check-maven from 6.1.1 to 6.1.5 (#1978)
+   * [view commit](https://github.com/yahoo/elide/commit/0f49a1077dcd0e15ae76aed11345369cd5354f4b) Bump wagon-ssh-external from 3.4.2 to 3.4.3 (#1915)
+   * [view commit](https://github.com/yahoo/elide/commit/0fc466757ca3489b82a215e9b62c8b32f8263287) Bump classgraph from 4.8.102 to 4.8.104 (#2008)
+
 ## 5.0.0-pr32
 4th public release candidate for Elide 5.0
 

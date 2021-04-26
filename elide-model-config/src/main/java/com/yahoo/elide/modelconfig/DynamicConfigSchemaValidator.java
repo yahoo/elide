@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.modelconfig;
 
-import static com.yahoo.elide.modelconfig.DynamicConfigHelpers.isNullOrEmpty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -17,6 +16,7 @@ import com.github.fge.jsonschema.library.Library;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.fge.msgsimple.bundle.MessageBundle;
+import org.apache.commons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -35,6 +35,7 @@ public class DynamicConfigSchemaValidator {
     private JsonSchema securitySchema;
     private JsonSchema variableSchema;
     private JsonSchema dbConfigSchema;
+    private JsonSchema namespaceConfigSchema;
     private static String NEWLINE = System.lineSeparator();
 
     public DynamicConfigSchemaValidator() {
@@ -56,22 +57,21 @@ public class DynamicConfigSchemaValidator {
         securitySchema = loadSchema(factory, Config.SECURITY.getConfigSchema());
         variableSchema = loadSchema(factory, Config.MODELVARIABLE.getConfigSchema());
         dbConfigSchema = loadSchema(factory, Config.SQLDBConfig.getConfigSchema());
+        namespaceConfigSchema = loadSchema(factory, Config.NAMESPACEConfig.getConfigSchema());
     }
 
     /**
      * Verify config against schema.
-     * @param configType
-     * @param jsonConfig
-     * @param fileName
+     * @param configType {@link Config} type.
+     * @param jsonConfig HJSON file content as JSON string.
+     * @param fileName Name of HJSON file.
      * @return whether config is valid
-     * @throws IOException
-     * @throws ProcessingException
+     * @throws IOException If an I/O error occurs.
+     * @throws ProcessingException If a processing error occurred during validation.
      */
     public boolean verifySchema(Config configType, String jsonConfig, String fileName)
                     throws IOException, ProcessingException {
         ProcessingReport results = null;
-        boolean isSuccess = false;
-
         switch (configType) {
         case TABLE :
             results = this.tableSchema.validate(new ObjectMapper().readTree(jsonConfig), true);
@@ -86,20 +86,24 @@ public class DynamicConfigSchemaValidator {
         case SQLDBConfig :
             results = this.dbConfigSchema.validate(new ObjectMapper().readTree(jsonConfig), true);
             break;
+        case NAMESPACEConfig :
+            results = this.namespaceConfigSchema.validate(new ObjectMapper().readTree(jsonConfig), true);
+            break;
         default :
             log.error("Not a valid config type :" + configType);
             break;
         }
-        isSuccess = (results == null ? false : results.isSuccess());
-
-        if (!isSuccess) {
+        if (results == null || !results.isSuccess()) {
             throw new IllegalStateException("Schema validation failed for: " + fileName + getErrorMessages(results));
         }
-        return isSuccess;
+        return true;
     }
 
     private static String getErrorMessages(ProcessingReport report) {
-        List<String> list = new ArrayList<String>();
+        if (report == null) {
+            return null;
+        }
+        List<String> list = new ArrayList<>();
         report.forEach(msg -> addEmbeddedMessages(msg.asJson(), list, 0));
 
         return NEWLINE + String.join(NEWLINE, list);
@@ -115,7 +119,7 @@ public class DynamicConfigSchemaValidator {
                 String instancePointer = extractPointer(root, "instance");
                 String schemaPointer = extractPointer(root, "schema");
 
-                if (!(isNullOrEmpty(instancePointer) || isNullOrEmpty(schemaPointer))) {
+                if (StringUtils.isNoneBlank(instancePointer, schemaPointer)) {
                     msg = "Instance[" + instancePointer + "] failed to validate against schema[" + schemaPointer + "]. "
                                     + msg;
                 }

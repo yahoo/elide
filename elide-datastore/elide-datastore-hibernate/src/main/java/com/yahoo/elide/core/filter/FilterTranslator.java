@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.filter;
 
+import static com.yahoo.elide.core.filter.Operator.BETWEEN;
 import static com.yahoo.elide.core.filter.Operator.FALSE;
 import static com.yahoo.elide.core.filter.Operator.GE;
 import static com.yahoo.elide.core.filter.Operator.GT;
@@ -19,6 +20,7 @@ import static com.yahoo.elide.core.filter.Operator.ISNULL;
 import static com.yahoo.elide.core.filter.Operator.LE;
 import static com.yahoo.elide.core.filter.Operator.LT;
 import static com.yahoo.elide.core.filter.Operator.NOT;
+import static com.yahoo.elide.core.filter.Operator.NOTBETWEEN;
 import static com.yahoo.elide.core.filter.Operator.NOTEMPTY;
 import static com.yahoo.elide.core.filter.Operator.NOTNULL;
 import static com.yahoo.elide.core.filter.Operator.NOT_INSENSITIVE;
@@ -43,6 +45,7 @@ import com.yahoo.elide.core.type.Type;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.tuple.Triple;
 
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +72,7 @@ public class FilterTranslator implements FilterOperation<String> {
     static {
         predicateOverrides = new HashMap<>();
 
-        operatorGenerators = new HashMap<>();
+        operatorGenerators = new EnumMap<>(Operator.class);
 
         operatorGenerators.put(IN, new CaseAwareJPQLGenerator(
                 "%s IN (%s)",
@@ -186,6 +189,26 @@ public class FilterTranslator implements FilterOperation<String> {
 
         operatorGenerators.put(NOTEMPTY, (predicate, aliasGenerator) -> {
             return String.format("%s IS NOT EMPTY", aliasGenerator.apply(predicate.getPath()));
+        });
+
+        operatorGenerators.put(BETWEEN, (predicate, aliasGenerator) -> {
+            List<FilterPredicate.FilterParameter> parameters = predicate.getParameters();
+            Preconditions.checkState(!parameters.isEmpty());
+            Preconditions.checkArgument(parameters.size() == 2);
+            return String.format("%s BETWEEN %s AND %s",
+                    aliasGenerator.apply(predicate.getPath()),
+                    parameters.get(0).getPlaceholder(),
+                    parameters.get(1).getPlaceholder());
+        });
+
+        operatorGenerators.put(NOTBETWEEN, (predicate, aliasGenerator) -> {
+            List<FilterPredicate.FilterParameter> parameters = predicate.getParameters();
+            Preconditions.checkState(!parameters.isEmpty());
+            Preconditions.checkArgument(parameters.size() == 2);
+            return String.format("%s NOT BETWEEN %s AND %s",
+                    aliasGenerator.apply(predicate.getPath()),
+                    parameters.get(0).getPlaceholder(),
+                    parameters.get(1).getPlaceholder());
         });
     }
 

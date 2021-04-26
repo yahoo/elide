@@ -23,12 +23,16 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+
+import org.apache.commons.lang3.StringUtils;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -84,6 +88,10 @@ public abstract class Table implements Versioned {
     @ToString.Exclude
     private final Set<String> tags;
 
+    @ToString.Exclude
+    @Exclude
+    private final Set<String> hints;
+
     @Exclude
     @ToString.Exclude
     private final Map<String, Column> columnMap;
@@ -134,18 +142,25 @@ public abstract class Table implements Versioned {
             this.category = meta.category();
             this.requiredFilter = meta.filterTemplate();
             this.tags = new HashSet<>(Arrays.asList(meta.tags()));
+            this.hints = new LinkedHashSet<>(Arrays.asList(meta.hints()));
             this.cardinality = meta.size();
+            if (meta.arguments().length == 0) {
+                this.arguments = new HashSet<>();
+            } else {
+                this.arguments = Arrays.stream(meta.arguments())
+                        .map(argument -> new Argument(getId(), argument))
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
+            }
         } else {
             this.friendlyName = name;
             this.description = null;
             this.category = null;
             this.requiredFilter = null;
             this.tags = new HashSet<>();
+            this.hints = new LinkedHashSet<>();
             this.cardinality = CardinalitySize.UNKNOWN;
+            this.arguments = new HashSet<>();
         }
-
-        // TODO: Populate Once HJSON Changes are merged and TableMeta Annotation is updated.
-        this.arguments = new HashSet<>();
     }
 
     private boolean isFact(Type<?> cls, TableMeta meta) {
@@ -287,7 +302,7 @@ public abstract class Table implements Versioned {
         Type<?> cls = dictionary.getEntityClass(name, version);
         RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
 
-        if (requiredFilter != null && !requiredFilter.isEmpty()) {
+        if (StringUtils.isNotEmpty(requiredFilter)) {
             try {
                 return filterDialect.parseFilterExpression(requiredFilter, cls, false, true);
             } catch (ParseException e) {

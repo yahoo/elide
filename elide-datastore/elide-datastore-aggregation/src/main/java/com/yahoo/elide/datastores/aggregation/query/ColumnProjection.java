@@ -8,11 +8,15 @@ package com.yahoo.elide.datastores.aggregation.query;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
+
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.Serializable;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents a projected column as an alias in a query.
@@ -81,16 +85,7 @@ public interface ColumnProjection extends Serializable {
     int hashCode();
 
     /**
-     * Makes a copy of this column with a new source and expression.
-     * @param expression The new expression.
-     * @return copy of the column projection.
-     */
-    default ColumnProjection withExpression(String expression) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Creates an alias that is not vulnerable to injection
+     * Creates an alias that is not vulnerable to injection.
      * @param name projected column's name
      * @param alias projected column's alias
      * @return an alias for projected column that is not vulnerable to injection
@@ -98,4 +93,25 @@ public interface ColumnProjection extends Serializable {
     public static String createSafeAlias(String name, String alias) {
         return name + "_" + (Base64.getEncoder().encodeToString(alias.getBytes()).hashCode() & 0xfffffff);
     }
+
+    /**
+     * Whether or not a given projection can be nested into an inner query and outer query.
+     * @param source The source of this projection.
+     * @param lookupTable Used to answer questions about templated column definitions.
+     * @return true if the projection can be nested.
+     */
+    default boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
+        return true;
+    }
+
+    /**
+     * Translate a column into outer and inner query columns for a two-pass aggregation.
+     * @param source The source query of this projection.
+     * @param lookupTable Used to answer questions about templated column definitions.
+     * @param joinInOuter If possible, skip required joins in inner query and do the join in the outer query.
+     * @return A pair consisting of the outer column projection and a set of inner column projections.
+     */
+    Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source,
+                                                       SQLReferenceTable lookupTable,
+                                                       boolean joinInOuter);
 }

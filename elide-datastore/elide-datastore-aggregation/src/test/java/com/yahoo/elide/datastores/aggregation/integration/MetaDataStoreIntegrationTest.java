@@ -161,6 +161,13 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                         "playerStats.highScore", "playerStats.dailyAverageScorePerPeriod"))
                 .body("data.relationships.timeDimensions.data.id", containsInAnyOrder("playerStats.recordedDate",
                         "playerStats.updatedDate"));
+        // Verify Table Arguments
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/orderDetails?include=arguments")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.relationships.arguments.data.id", containsInAnyOrder("orderDetails.denominator"));
     }
 
     @Test
@@ -250,16 +257,17 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.friendlyName", equalTo("recordedDate"))
                 .body("data.attributes.valueType",  equalTo("TIME"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
-                .body("data.attributes.expression",  equalTo("{{recordedDate}}"))
+                .body("data.attributes.expression",  equalTo("{{$recordedDate}}"))
                 .body("data.attributes.arguments", nullValue()) // No Arguments were set.
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
-                .body("data.relationships.supportedGrains.data.id", containsInAnyOrder("playerStats.recordedDate.day", "playerStats.recordedDate.month"))
-                .body("included.id", containsInAnyOrder("playerStats.recordedDate.day", "playerStats.recordedDate.month"))
-                .body("included.attributes.grain", containsInAnyOrder("DAY", "MONTH"))
+                .body("data.relationships.supportedGrains.data.id", containsInAnyOrder("playerStats.recordedDate.day", "playerStats.recordedDate.month", "playerStats.recordedDate.quarter"))
+                .body("included.id", containsInAnyOrder("playerStats.recordedDate.day", "playerStats.recordedDate.month", "playerStats.recordedDate.quarter"))
+                .body("included.attributes.grain", containsInAnyOrder("DAY", "MONTH", "QUARTER"))
                 .body("included.attributes.expression",
                         containsInAnyOrder(
                                 "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')",
-                                        "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')"
+                                "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')",
+                                "PARSEDATETIME(CONCAT(FORMATDATETIME({{}}, 'yyyy-'), 3 * QUARTER({{}}) - 2), 'yyyy-MM')"
                         ));
     }
 
@@ -275,7 +283,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.friendlyName", equalTo("lowScore"))
                 .body("data.attributes.valueType",  equalTo("INTEGER"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
-                .body("data.attributes.expression",  equalTo("MIN({{lowScore}})"))
+                .body("data.attributes.expression",  equalTo("MIN({{$lowScore}})"))
                 .body("data.attributes.category",  equalTo("Score Category"))
                 .body("data.attributes.description",  equalTo("very low score"))
                 .body("data.attributes.tags",  containsInAnyOrder("PRIVATE"))
@@ -290,10 +298,19 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.name", equalTo("timeSpentPerSession"))
                 .body("data.attributes.valueType",  equalTo("DECIMAL"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
-                .body("data.attributes.expression",  equalTo("({{timeSpent}} / (CASE WHEN SUM({{game_rounds}}) = 0 THEN 1 ELSE {{sessions}} END))"))
+                .body("data.attributes.expression",  equalTo("({{timeSpent}} / (CASE WHEN SUM({{$game_rounds}}) = 0 THEN 1 ELSE {{sessions}} END))"))
                 .body("data.attributes.arguments", nullValue()) // No Arguments were set.
                 .body("data.relationships.table.data.id", equalTo("videoGame"));
 
+        // Verify Metric Arguments
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/orderDetails/metrics/orderDetails.orderTotal?include=arguments")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("orderTotal"))
+                .body("data.attributes.friendlyName", equalTo("orderTotal"))
+                .body("data.relationships.arguments.data.id", containsInAnyOrder("orderDetails.orderTotal.precision"));
     }
 
     @Test

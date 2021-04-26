@@ -37,15 +37,15 @@ public class SqlReferenceVisitorTest {
         @Id
         private long id;
 
-        @Join("{{dimension1}} = {{joinModel.dimension1}}")
+        @Join("{{dimension1}} = {{joinModel.$dimension1}}")
         private JoinModel joinModel;
 
         //Logical name matches physical name
-        @DimensionFormula("{{dimension1}}")
+        @DimensionFormula("{{$dimension1}}")
         private String dimension1;
 
         //Logical name does not match physical name
-        @DimensionFormula("{{someColumn}}")
+        @DimensionFormula("{{$someColumn}}")
         private String dimension2;
 
         //Test a join to another table with a matching column name.
@@ -60,7 +60,7 @@ public class SqlReferenceVisitorTest {
         private long id;
 
         //Logical name matches physical name
-        @DimensionFormula("{{dimension3}}")
+        @DimensionFormula("{{$dimension3}}")
         private String dimension3;
     }
 
@@ -77,7 +77,7 @@ public class SqlReferenceVisitorTest {
     public void testMatchingPhysicalReference() {
         SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "test_table", getDefaultDialect());
 
-        SQLTable table = (SQLTable) store.getTable(getClassType(TestModel.class));
+        SQLTable table = store.getTable(getClassType(TestModel.class));
         ColumnProjection column = table.getDimensionProjection("dimension1");
 
         String actual = visitor.visitColumn(table, column);
@@ -89,7 +89,7 @@ public class SqlReferenceVisitorTest {
     public void testMismatchingPhysicalReference() {
         SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "test_table", getDefaultDialect());
 
-        SQLTable table = (SQLTable) store.getTable(getClassType(TestModel.class));
+        SQLTable table = store.getTable(getClassType(TestModel.class));
         ColumnProjection column = table.getDimensionProjection("dimension2");
         String actual = visitor.visitColumn(table, column);
 
@@ -100,7 +100,7 @@ public class SqlReferenceVisitorTest {
     public void testJoinReference() {
         SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "join_table", getDefaultDialect());
 
-        SQLTable table = (SQLTable) store.getTable(getClassType(TestModel.class));
+        SQLTable table = store.getTable(getClassType(TestModel.class));
         ColumnProjection column = table.getDimensionProjection("dimension3");
 
         String actual = visitor.visitColumn(table, column);

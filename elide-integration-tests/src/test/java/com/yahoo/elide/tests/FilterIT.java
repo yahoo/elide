@@ -21,11 +21,13 @@ import com.yahoo.elide.core.utils.JsonParser;
 import com.yahoo.elide.initialization.IntegrationTest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
@@ -519,7 +521,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(authorIdsOfLiteraryFiction.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(authorIdsOfLiteraryFiction));
 
         /* Test Default */
         JsonNode result = getAsNode("/book?include=authors&filter[book.genre]=Literary Fiction");
@@ -553,7 +555,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(bookIdsWithNullGenre.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(bookIdsWithNullGenre));
 
         /* Test Default */
         JsonNode result = getAsNode("/book?filter[book.genre][isnull]");
@@ -618,7 +620,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(bookIdsWithNonNullGenre.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(bookIdsWithNonNullGenre));
 
         /* Test Default */
         JsonNode result = getAsNode("/book?filter[book.genre][notnull]");
@@ -932,7 +934,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(authorIdsOfScienceFiction.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(authorIdsOfScienceFiction));
 
         /* Test Default */
         JsonNode result = getAsNode(String.format("/author/%s/books?include=authors&filter[book.genre]=Science Fiction", asimovId));
@@ -959,7 +961,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(bookIdsWithNullGenre.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(bookIdsWithNullGenre));
 
         /* Test Default */
         JsonNode result = getAsNode(String.format("/author/%s/books?filter[book.genre][isnull]", nullNedId));
@@ -1003,7 +1005,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(bookIdsWithNonNullGenre.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(bookIdsWithNonNullGenre));
 
         /* Test Default */
         JsonNode result = getAsNode(String.format("/author/%s/books?filter[book.genre][notnull]", nullNedId));
@@ -1048,7 +1050,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(bookIdsWithNonNullGenre.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(bookIdsWithNonNullGenre));
 
         /* Test Default */
         JsonNode result = getAsNode("/book?filter[book.publishDate][gt]=1");
@@ -1571,6 +1573,40 @@ public class FilterIT extends IntegrationTest {
         assertEquals(data.size(), 2);
     }
 
+    @Test
+    void testBetweenOperatorOnRoot() throws JsonProcessingException {
+        JsonNode result = getAsNode("/book?filter[book.id][between]=2,4");
+        JsonNode data = result.get("data");
+        assertEquals(3, data.size());
+        for (JsonNode book : data) {
+            assertTrue(Arrays.asList(2, 3, 4).contains(book.get("id").asInt()));
+        }
+
+        result = getAsNode("/book?filter=id=notbetween=(2,4);id!=7");
+        data = result.get("data");
+        assertEquals(4, data.size());
+        for (JsonNode book : data) {
+            assertTrue(Arrays.asList(1, 5, 6, 8).contains(book.get("id").asInt()));
+        }
+    }
+
+    @Test
+    void testBetweenOperatorOnNonRoot() throws JsonProcessingException {
+        JsonNode result = getAsNode(String.format("/author/%s/books?filter[book.id][notbetween]=6,7", nullNedId));
+        JsonNode data = result.get("data");
+        assertEquals(1, data.size());
+        for (JsonNode book : data) {
+            assertEquals(8, book.get("id").asInt());
+        }
+
+        result = getAsNode(String.format("/author/%s/books?filter[book]=id=between=(6,7)", nullNedId));
+        data = result.get("data");
+        assertEquals(1, data.size());
+        for (JsonNode book : data) {
+            assertEquals(7, book.get("id").asInt());
+        }
+    }
+
 
     @Test
     void testIsEmptyRelationshipOnRoot() throws JsonProcessingException {
@@ -1584,7 +1620,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(bookIdsWithEmptyChapters.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(bookIdsWithEmptyChapters));
 
         /* Test Default */
         result = getAsNode("/book?filter[book.chapters][isempty]");
@@ -1632,7 +1668,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(bookIdsWithNonEmptyChapters.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(bookIdsWithNonEmptyChapters));
 
         /* Test Default */
         result = getAsNode(String.format("/author/%s/books?filter[book.chapters][notempty]", nullNedId));
@@ -1682,7 +1718,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(bookIdsWithNonEmptyAwards.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(bookIdsWithNonEmptyAwards));
 
         /* Test Default */
         result = getAsNode("/book?filter[book.awards][notempty]");
@@ -1733,7 +1769,7 @@ public class FilterIT extends IntegrationTest {
             }
         }
 
-        assertTrue(bookIdsWithEmptyAwards.size() > 0);
+        assertTrue(CollectionUtils.isNotEmpty(bookIdsWithEmptyAwards));
 
         /* Test Default */
         result = getAsNode(String.format("/author/%s/books?filter[book.awards][isempty]", nullNedId));

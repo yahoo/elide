@@ -10,7 +10,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
-import com.yahoo.elide.datastores.aggregation.query.QueryPlanResolver;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjectionMaker;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -26,24 +26,44 @@ import lombok.ToString;
 public class Metric extends Column {
     @Exclude
     @ToString.Exclude
-    private final QueryPlanResolver queryPlanResolver;
+    private final MetricProjectionMaker metricProjectionMaker;
 
     public Metric(Table table, String fieldName, EntityDictionary dictionary) {
         super(table, fieldName, dictionary);
         Type<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
 
-        MetricFormula formula = dictionary.getAttributeOrRelationAnnotation(
-                tableClass,
-                MetricFormula.class,
-                fieldName);
+        MetricFormula formula = dictionary.getAttributeOrRelationAnnotation(tableClass, MetricFormula.class, fieldName);
 
-        if (formula != null) {
-            this.queryPlanResolver = dictionary.getInjector().instantiate(formula.queryPlan());
-            dictionary.getInjector().inject(this.queryPlanResolver);
+        verfiyFormula(formula);
 
-        } else {
-            throw new IllegalStateException("Trying to construct metric field "
-                    + getId() + " without @MetricFormula.");
+        this.metricProjectionMaker = dictionary.getInjector().instantiate(formula.maker());
+        dictionary.getInjector().inject(this.metricProjectionMaker);
+    }
+
+    private void verfiyFormula(MetricFormula formula) {
+        if (formula == null) {
+            throw new IllegalStateException("Trying to construct metric field " + getId() + " without @MetricFormula.");
+        }
+
+        String defaultValue;
+        Class<?> defaultMaker;
+
+        try {
+            defaultValue = (String) MetricFormula.class.getDeclaredMethod("value").getDefaultValue();
+            defaultMaker = (Class<?>) MetricFormula.class.getDeclaredMethod("maker").getDefaultValue();
+        } catch (NoSuchMethodException | SecurityException e) {
+            throw new IllegalStateException("Error encountered while constructing metric field: " + getId()
+                            + ". " + e.getMessage());
+        }
+
+        if (formula.value().equals(defaultValue) && formula.maker().equals(defaultMaker)) {
+            throw new IllegalStateException("Trying to construct metric field " + getId()
+                            + " with default values. Provide either value or maker in @MetricFormula.");
+        }
+
+        if (!formula.value().equals(defaultValue) && !formula.maker().equals(defaultMaker)) {
+            throw new IllegalStateException("Trying to construct metric field " + getId()
+                            + " with value and maker. Provide either one in @MetricFormula, both are not allowed.");
         }
     }
 }

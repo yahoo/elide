@@ -29,20 +29,23 @@ public class SQLDimensionProjection implements SQLColumnProjection {
     private String expression;
     private String alias;
     private Map<String, Argument> arguments;
+    private boolean projected;
 
     public SQLDimensionProjection(Dimension dimension,
                                   String alias,
-                                  Map<String, Argument> arguments) {
+                                  Map<String, Argument> arguments,
+                                  boolean projected) {
         this.name = dimension.getName();
         this.expression = dimension.getExpression();
         this.valueType = dimension.getValueType();
         this.columnType = dimension.getColumnType();
         this.alias = alias;
         this.arguments = arguments;
+        this.projected = projected;
     }
 
     @Override
-    public SQLDimensionProjection withExpression(String expression) {
+    public SQLColumnProjection withExpression(String expression, boolean project) {
         return SQLDimensionProjection.builder()
                 .name(name)
                 .alias(alias)
@@ -50,6 +53,12 @@ public class SQLDimensionProjection implements SQLColumnProjection {
                 .columnType(columnType)
                 .expression(expression)
                 .arguments(arguments)
+                .projected(project)
                 .build();
+    }
+
+    @Override
+    public boolean isProjected() {
+        return projected;
     }
 }

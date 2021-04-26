@@ -2,14 +2,15 @@
   tables: [
     {
       name: Country
+      namespace: DEfault
       table: country
       cardinality: small
       dimensions:
       [
         {
-          name: region
+          name: isoCode
           type: TEXT
-          definition: '{{region}}'
+          definition: '{{isoCode}}'
         }
       ]
     }

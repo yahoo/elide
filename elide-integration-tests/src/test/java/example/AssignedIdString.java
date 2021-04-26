@@ -52,16 +52,6 @@ public class AssignedIdString {
             return super.equals(obj);
         }
 
-        if (obj == null || !(obj instanceof AssignedIdString)) {
-            return false;
-        }
-
-        AssignedIdString other = (AssignedIdString) obj;
-
-        if (other.id == null) {
-            return false;
-        }
-
-        return id.equals(other.id);
+        return obj instanceof AssignedIdString && id.equals(((AssignedIdString) obj).id);
     }
 }

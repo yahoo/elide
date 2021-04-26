@@ -13,6 +13,9 @@ import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidOperatorNegationException;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+
+import org.apache.commons.collections4.CollectionUtils;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -22,8 +25,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiPredicate;
-import java.util.function.Function;
+import java.util.function.IntPredicate;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -70,14 +74,14 @@ public enum Operator {
     PREFIX("prefix", true) {
         @Override
         public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
-            return prefix(fieldPath, values, requestScope, Function.identity());
+            return prefix(fieldPath, values, requestScope, UnaryOperator.identity());
         }
     },
 
     POSTFIX("postfix", true) {
         @Override
         public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
-            return postfix(fieldPath, values, requestScope, Function.identity());
+            return postfix(fieldPath, values, requestScope, UnaryOperator.identity());
         }
     },
 
@@ -91,7 +95,7 @@ public enum Operator {
     INFIX("infix", true) {
         @Override
         public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
-            return infix(fieldPath, values, requestScope, Function.identity());
+            return infix(fieldPath, values, requestScope, UnaryOperator.identity());
         }
     },
 
@@ -183,11 +187,23 @@ public enum Operator {
     HASNOMEMBER("hasnomember", true) {
         @Override
         public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
-            return entiry -> !hasMember(fieldPath, values, requestScope).test(entiry);
+            return entity -> !hasMember(fieldPath, values, requestScope).test(entity);
+        }
+    },
+    BETWEEN("between", true) {
+        @Override
+        public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
+            return entity -> between(fieldPath, values, requestScope).test(entity);
+        }
+    },
+    NOTBETWEEN("notbetween", true) {
+        @Override
+        public <T> Predicate<T> contextualize(Path fieldPath, List<Object> values, RequestScope requestScope) {
+            return entity -> !between(fieldPath, values, requestScope).test(entity);
         }
     };
 
-    public static final Function<String, String> FOLD_CASE = s -> s.toLowerCase(Locale.ENGLISH);
+    public static final UnaryOperator<String> FOLD_CASE = s -> s.toLowerCase(Locale.ENGLISH);
     @Getter private final String notation;
     @Getter private final boolean parameterized;
     private Operator negated;
@@ -210,6 +226,8 @@ public enum Operator {
         NOTEMPTY.negated = ISEMPTY;
         HASMEMBER.negated = HASNOMEMBER;
         HASNOMEMBER.negated = HASMEMBER;
+        BETWEEN.negated = NOTBETWEEN;
+        NOTBETWEEN.negated = BETWEEN;
     }
 
     /**
@@ -247,7 +265,7 @@ public enum Operator {
     //
     // String-like In with optional transformation
     private static <T> Predicate<T> in(Path fieldPath, List<Object> values,
-            RequestScope requestScope, Function<String, String> transform) {
+            RequestScope requestScope, UnaryOperator<String> transform) {
         return (T entity) -> {
 
             BiPredicate predicate = (a, b) -> {
@@ -268,7 +286,7 @@ public enum Operator {
     //
     // String-like prefix matching with optional transformation
     private static <T> Predicate<T> prefix(Path fieldPath, List<Object> values,
-            RequestScope requestScope, Function<String, String> transform) {
+            RequestScope requestScope, UnaryOperator<String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new BadRequestException("PREFIX can only take one argument");
@@ -288,7 +306,7 @@ public enum Operator {
     //
     // String-like postfix matching with optional transformation
     private static <T> Predicate<T> postfix(Path fieldPath, List<Object> values,
-            RequestScope requestScope, Function<String, String> transform) {
+            RequestScope requestScope, UnaryOperator<String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new BadRequestException("POSTFIX can only take one argument");
@@ -308,7 +326,7 @@ public enum Operator {
     //
     // String-like infix matching with optional transformation
     private static <T> Predicate<T> infix(Path fieldPath, List<Object> values,
-            RequestScope requestScope, Function<String, String> transform) {
+            RequestScope requestScope, UnaryOperator<String> transform) {
         return (T entity) -> {
             if (values.size() != 1) {
                 throw new BadRequestException("INFIX can only take one argument");
@@ -347,6 +365,23 @@ public enum Operator {
         return getComparator(fieldPath, values, requestScope, compareResult -> compareResult >= 0);
     }
 
+    private static <T> Predicate<T> between(Path fieldPath, List<Object> values, RequestScope requestScope) {
+        return (T entity) -> {
+            if (values.size() != 2) {
+                throw new BadRequestException("Between operator expects exactly 2 values");
+            }
+            Object fieldVal = getFieldValue(entity, fieldPath, requestScope);
+
+            if (fieldVal instanceof Collection) {
+                return false;
+            }
+
+            return fieldVal != null
+                    && compare(fieldVal, values.get(0)) >= 0
+                    && compare(fieldVal, values.get(1)) <= 0;
+        };
+    }
+
     private static <T> Predicate<T> isTrue() {
         return (T entity) -> true;
     }
@@ -359,9 +394,6 @@ public enum Operator {
         return (T entity) -> {
 
             Object val = getFieldValue(entity, fieldPath, requestScope);
-            if (val == null) {
-                return false;
-            }
             if (val instanceof Collection<?>) {
                 return ((Collection<?>) val).isEmpty();
             }
@@ -383,14 +415,11 @@ public enum Operator {
                     .map(last -> CoerceUtil.coerce(values.get(0), last.getFieldType()))
                     .orElseGet(() -> CoerceUtil.coerce(values.get(0), String.class));
 
-            if (val == null) {
-                return false;
-            }
             if (val instanceof Collection<?>) {
                 return ((Collection<?>) val).contains(filterStr);
             }
             if (val instanceof Map<?, ?>) {
-                return ((Map<?, ?>) val).keySet().contains(filterStr);
+                return ((Map<?, ?>) val).containsKey(filterStr);
             }
 
             return false;
@@ -435,9 +464,9 @@ public enum Operator {
     }
 
     private static <T> Predicate<T> getComparator(Path fieldPath, List<Object> values,
-            RequestScope requestScope, Predicate<Integer> condition) {
+            RequestScope requestScope, IntPredicate condition) {
         return (T entity) -> {
-            if (values.size() == 0) {
+            if (CollectionUtils.isEmpty(values)) {
                 throw new BadRequestException("No value to compare");
             }
             Object fieldVal = getFieldValue(entity, fieldPath, requestScope);

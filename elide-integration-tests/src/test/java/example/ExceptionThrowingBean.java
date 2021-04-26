@@ -45,12 +45,6 @@ public class ExceptionThrowingBean {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof ExceptionThrowingBean)) {
-            return false;
-        }
-
-        ExceptionThrowingBean other = (ExceptionThrowingBean) obj;
-
-        return id == other.id;
+        return obj instanceof ExceptionThrowingBean && id == ((ExceptionThrowingBean) obj).id;
     }
 }

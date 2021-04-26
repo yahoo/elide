@@ -44,10 +44,11 @@ public abstract class BaseId {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof BaseId)) {
-            return false;
-        }
+        return obj instanceof BaseId && naturalKey.equals(((BaseId) obj).naturalKey);
+    }
 
-        return ((BaseId) obj).naturalKey.equals(naturalKey);
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + ": " + id;
     }
 }

@@ -39,7 +39,7 @@ public class HeaderUtils {
      * @return requestHeaders
      */
      public static Map<String, List<String>> removeAuthHeaders(Map<String, List<String>> headers) {
-         Map<String, List<String>> requestHeaders = new HashMap<String, List<String>>(headers);
+         Map<String, List<String>> requestHeaders = new HashMap<>(headers);
          if (requestHeaders.get(HttpHeaders.AUTHORIZATION) != null) {
              requestHeaders.remove(HttpHeaders.AUTHORIZATION);
          }

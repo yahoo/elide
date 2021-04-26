@@ -30,7 +30,7 @@ public class DefaultFilterDialectTest {
 
     @BeforeAll
     public static void init() {
-        EntityDictionary dictionary = new EntityDictionary(Collections.EMPTY_MAP);
+        EntityDictionary dictionary = new EntityDictionary(Collections.emptyMap());
 
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Book.class);
@@ -130,6 +130,21 @@ public class DefaultFilterDialectTest {
 
         assertEquals(1, expressionMap.size());
         assertEquals("author.books.title IN [foo, bar, baz]", expressionMap.get("author").toString());
+    }
+
+    @Test
+    public void testBetweenOperator() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter[author.books.id][between]",
+                "10,20"
+        );
+
+        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams, NO_VERSION);
+
+        assertEquals(1, expressionMap.size());
+        assertEquals("author.books.id BETWEEN [10, 20]", expressionMap.get("author").toString());
     }
 
     @Test

@@ -26,6 +26,12 @@ public @interface TableMeta {
     String [] tags() default {};
 
     /**
+     * Optimizer and query planning hints
+     * @return The list of supported hints.
+     */
+    String [] hints() default {};
+
+    /**
      * Whether or not querying this table requires a client provided filter.
      * @return The required filter template.
      */
@@ -39,6 +45,13 @@ public @interface TableMeta {
 
     /**
      * Indicates the size of the table.
+     * @return size
      */
     CardinalitySize size() default CardinalitySize.UNKNOWN;
+
+    /**
+     * The arguments accepted by this table.
+     * @return arguments for the table
+     */
+    ArgumentDefinition[] arguments() default {};
 }

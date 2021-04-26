@@ -12,10 +12,9 @@ import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.keyword.validator.AbstractKeywordValidator;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -27,9 +26,10 @@ import java.util.Set;
  */
 public class ValidateDimPropertiesValidator extends AbstractKeywordValidator {
 
-    public static final Set<String> COMMON_DIM_PROPERTIES = new HashSet<>(Arrays.asList("name", "friendlyName",
-            "description", "category", "hidden", "readAccess", "definition", "cardinality", "tags", "type"));
-    private static final Set<String> ADDITIONAL_DIM_PROPERTIES = new HashSet<>(Arrays.asList("values", "tableSource"));
+    public static final Set<String> COMMON_DIM_PROPERTIES = ImmutableSet.of("name", "friendlyName",
+                    "description", "category", "hidden", "readAccess", "definition", "cardinality", "tags", "type",
+                    "arguments");
+    private static final Set<String> ADDITIONAL_DIM_PROPERTIES = ImmutableSet.of("values", "tableSource");
 
     public static final String KEYWORD = "validateDimensionProperties";
     public static final String ATMOST_ONE_KEY = "validateDimensionProperties.error.atmostOne";

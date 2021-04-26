@@ -50,17 +50,14 @@ public class Arguments implements Serializable {
     List<Argument> arguments;
 
     /**
-     * Returns a GraphQL query string that representing an set of arguments
+     * Returns a GraphQL query string that representing an set of arguments.
      *
      * @return a sub-string of a GraphQL query
      */
     public String toGraphQLSpec() {
-        return String.format(
-                "(%s)",
-                getArguments().stream()
-                        .map(Argument::toGraphQLSpec)
-                        .collect(Collectors.joining(" "))
-                );
+        return getArguments().stream()
+                .map(Argument::toGraphQLSpec)
+                .collect(Collectors.joining(" ", "(", ")"));
     }
 
     /**

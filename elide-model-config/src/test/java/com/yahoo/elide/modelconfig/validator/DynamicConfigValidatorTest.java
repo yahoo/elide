@@ -9,9 +9,12 @@ import static com.github.stefanbirkner.systemlambda.SystemLambda.catchSystemExit
 import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemErr;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.yahoo.elide.modelconfig.model.Argument;
 import com.yahoo.elide.modelconfig.model.Table;
+import com.yahoo.elide.modelconfig.model.Type;
 
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +23,7 @@ public class DynamicConfigValidatorTest {
     @Test
     public void testValidInheritanceConfig() throws Exception {
         DynamicConfigValidator testClass = new DynamicConfigValidator("src/test/resources/validator/valid");
-        testClass.readAndValidateConfigs();
+        testClass.readConfigs();
         Table parent = testClass.getElideTableConfig().getTable("PlayerStats");
         Table child = testClass.getElideTableConfig().getTable("PlayerStatsChild");
 
@@ -38,9 +41,24 @@ public class DynamicConfigValidatorTest {
         assertEquals("gamedb", child.getSchema());
         assertNull(child.getDbConnectionName());
         assertTrue(child.getIsFact());
+        assertEquals(2, child.getArguments().size());
+        assertEquals(parent.getArguments(), child.getArguments());
 
         // no new joins in child class, will inherit parent class joins
         assertEquals(parent.getJoins().size(), child.getJoins().size());
+    }
+
+    @Test
+    public void testValidNamespace() throws Exception {
+        DynamicConfigValidator testClass = new DynamicConfigValidator("src/test/resources/validator/valid");
+        testClass.readConfigs();
+        Table parent = testClass.getElideTableConfig().getTable("PlayerStats");
+        Table child = testClass.getElideTableConfig().getTable("PlayerStatsChild");
+        Table referred = testClass.getElideTableConfig().getTable("Country");
+
+        assertEquals("default", child.getNamespace()); //PlayerStatsChild -> no namespace was provided, so defaulted
+        assertEquals("PlayerNamespace", parent.getNamespace());
+        assertEquals("DEfault", referred.getNamespace()); // Namespace in HJson "DEfault". Matched case insensitively with "default" namespace
     }
 
     @Test
@@ -223,9 +241,9 @@ public class DynamicConfigValidatorTest {
 
         String expectedError = "Schema validation failed for: security.hjson\n"
                         + "[ERROR]\n"
-                        + "Instance[/roles/0] failed to validate against schema[/properties/roles/items]. Role [admin,] is not allowed. Role must start with an alphabet and can include alaphabets, numbers, spaces and '.' only.\n"
+                        + "Instance[/roles/0] failed to validate against schema[/properties/roles/items]. Role [admin,] is not allowed. Role must start with an alphabetic character and can include alaphabets, numbers, spaces and '.' only.\n"
                         + "[ERROR]\n"
-                        + "Instance[/roles/1] failed to validate against schema[/properties/roles/items]. Role [guest,] is not allowed. Role must start with an alphabet and can include alaphabets, numbers, spaces and '.' only.\n";
+                        + "Instance[/roles/1] failed to validate against schema[/properties/roles/items]. Role [guest,] is not allowed. Role must start with an alphabetic character and can include alaphabets, numbers, spaces and '.' only.\n";
         assertEquals(expectedError, error);
     }
 
@@ -238,6 +256,28 @@ public class DynamicConfigValidatorTest {
         });
 
         assertEquals("Found undefined security checks: [guest, member, user]\n", error);
+    }
+
+    @Test
+    public void testNamespaceBadSecurityChecks() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() ->
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/namespace_bad_security_check"}));
+            assertEquals(2, exitStatus);
+        });
+
+        assertEquals("Found undefined security checks: [namespaceRead]\n", error);
+    }
+
+    @Test
+    public void testMissingNamespace() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() ->
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/missing_namespace"}));
+            assertEquals(2, exitStatus);
+        });
+
+        assertEquals("Namespace: TestNamespace is not included in dynamic configs\n", error);
     }
 
     @Test
@@ -262,9 +302,9 @@ public class DynamicConfigValidatorTest {
                         + "[ERROR]\n"
                         + "Instance[/tables/0/dimensions/0] failed to validate against schema[/properties/tables/items/properties/dimensions/items]. instance failed to match exactly one schema (matched 0 out of 2)\n"
                         + "    Instance[/tables/0/dimensions/0] failed to validate against schema[/definitions/dimension]. instance failed to match all required schemas (matched only 1 out of 2)\n"
-                        + "        Instance[/tables/0/dimensions/0/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [id] is not allowed. Field name cannot be 'id'\n"
+                        + "        Instance[/tables/0/dimensions/0/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [id] is not allowed. Field name cannot be one of [id, sql]\n"
                         + "    Instance[/tables/0/dimensions/0] failed to validate against schema[/definitions/timeDimension]. instance failed to match all required schemas (matched only 0 out of 2)\n"
-                        + "        Instance[/tables/0/dimensions/0/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [id] is not allowed. Field name cannot be 'id'\n"
+                        + "        Instance[/tables/0/dimensions/0/name] failed to validate against schema[/definitions/dimensionRef/properties/name]. Field name [id] is not allowed. Field name cannot be one of [id, sql]\n"
                         + "        Instance[/tables/0/dimensions/0/type] failed to validate against schema[/definitions/timeDimension/allOf/1/properties/type]. Field type [Text] is not allowed. Field type must be [Time] for any time dimension.\n"
                         + "[ERROR]\n"
                         + "Instance[/tables/0/dimensions/1] failed to validate against schema[/properties/tables/items/properties/dimensions/items]. instance failed to match exactly one schema (matched 0 out of 2)\n"
@@ -305,18 +345,6 @@ public class DynamicConfigValidatorTest {
     }
 
     @Test
-    public void testBadJoinDefinition() throws Exception {
-        String error = tapSystemErr(() -> {
-            int exitStatus = catchSystemExit(() -> DynamicConfigValidator
-                    .main(new String[]{"--configDir", "src/test/resources/validator/bad_join_def"}));
-
-            assertEquals(2, exitStatus);
-        });
-
-        assertTrue(error.startsWith("Join name must be used before '.' in join definition."));
-    }
-
-    @Test
     public void testUndefinedVariable() throws Exception {
         String error = tapSystemErr(() -> {
             int exitStatus = catchSystemExit(() -> DynamicConfigValidator
@@ -349,7 +377,7 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        assertEquals("Duplicate!! Either Table or DB configs found with the same name.\n", error);
+        assertEquals("Multiple DB configs found with the same name: OracleConnection\n", error);
     }
 
     @Test
@@ -362,6 +390,19 @@ public class DynamicConfigValidatorTest {
         });
         assertTrue(error.contains("DBConnection name mismatch between table: "));
         assertTrue(error.contains(" and tables in its Join Clause."));
+    }
+
+    @Test
+    public void testDuplicateArgumentName() throws Exception {
+        DynamicConfigValidator testClass = new DynamicConfigValidator("src/test/resources/validator/valid");
+        testClass.readConfigs();
+        Table playerStatsTable = testClass.getElideTableConfig().getTable("PlayerStats");
+
+        // PlayerStats table already has argument 'countryCode' with type 'TEXT'.
+        // Adding another argument 'countryCode' with type 'INTEGER'.
+        playerStatsTable.getArguments().add(Argument.builder().name("countryCode").type(Type.INTEGER).build());
+        Exception e = assertThrows(IllegalStateException.class, () -> testClass.validateConfigs());
+        assertEquals("Multiple Arguments found with the same name: countryCode", e.getMessage());
     }
 
     @Test

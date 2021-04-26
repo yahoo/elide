@@ -50,17 +50,14 @@ public abstract class ParameterizedModel {
      * @return The attribute value.
      */
     public <T> T invoke(Attribute attribute) {
-        Optional<Attribute> match = parameterizedAttributes.keySet().stream()
+        return parameterizedAttributes.entrySet().stream()
 
                 //Only filter by alias required.  (Filtering by type may not work with inheritance).
-                .filter((modelAttribute) -> attribute.getAlias().equals(modelAttribute.getAlias()))
-                .findFirst();
-
-        if (! match.isPresent()) {
-            throw new InvalidParameterizedAttributeException(attribute);
-        }
-
-        return parameterizedAttributes.get(match.get()).invoke(attribute.getArguments());
+                .filter(entry -> attribute.getAlias().equals(entry.getKey().getAlias()))
+                .findFirst()
+                .map(Map.Entry::getValue)
+                .orElseThrow(() -> new InvalidParameterizedAttributeException(attribute))
+                .invoke(attribute.getArguments());
     }
 
     /**
@@ -71,16 +68,17 @@ public abstract class ParameterizedModel {
      * @return The attribute value or the provided default value.
      */
     public <T> T fetch(String alias, T defaultValue) {
-        Optional<Attribute> match = parameterizedAttributes.keySet().stream()
+        Optional<ParameterizedAttribute> match = parameterizedAttributes.entrySet().stream()
 
                 //Only filter by alias required.  (Filtering by type may not work with inheritance).
-                .filter((modelAttribute) -> alias.equals(modelAttribute.getAlias()))
-                .findFirst();
+                .filter(entry -> alias.equals(entry.getKey().getAlias()))
+                .findFirst()
+                .map(Map.Entry::getValue);
 
         if (! match.isPresent()) {
             return defaultValue;
         }
 
-        return parameterizedAttributes.get(match.get()).invoke(new HashSet<>());
+        return match.get().invoke(new HashSet<>());
     }
 }

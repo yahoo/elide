@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import lombok.Builder;
@@ -15,8 +16,10 @@ import lombok.NonNull;
 import lombok.Singular;
 import lombok.Value;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,20 +35,22 @@ public class Query implements Queryable {
 
     @Singular
     @NonNull
-    private Set<MetricProjection> metricProjections;
+    private List<MetricProjection> metricProjections;
 
     @Singular
     @NonNull
-    private Set<ColumnProjection> dimensionProjections;
+    private List<ColumnProjection> dimensionProjections;
 
     @Singular
     @NonNull
-    private Set<TimeDimensionProjection> timeDimensionProjections;
+    private List<TimeDimensionProjection> timeDimensionProjections;
 
     private FilterExpression whereFilter;
     private FilterExpression havingFilter;
     private Sorting sorting;
     private ImmutablePagination pagination;
+    @Builder.Default
+    private Map<String, Argument> arguments = new HashMap<>();
 
     @EqualsAndHashCode.Exclude
     private RequestScope scope;
@@ -65,8 +70,12 @@ public class Query implements Queryable {
      * Returns all the dimensions regardless of type.
      * @return All the dimensions.
      */
-    public Set<ColumnProjection> getAllDimensionProjections() {
+    public List<ColumnProjection> getAllDimensionProjections() {
         return Stream.concat(getDimensionProjections().stream(), getTimeDimensionProjections().stream())
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    //To avoid lombok javadoc errors.
+    public static class QueryBuilder {
     }
 }

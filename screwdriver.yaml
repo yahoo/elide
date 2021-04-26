@@ -6,6 +6,9 @@ shared:
        screwdriver.cd/cpu: TURBO
        screwdriver.cd/ram: TURBO
    image: maven:3.6.3-jdk-8
+   environment:
+       #Fetches history so Sonar can assign blame.
+       GIT_SHALLOW_CLONE: false
 
 jobs:
   master-commit:
@@ -31,8 +34,13 @@ jobs:
 
   release:
     secrets:
-        - BINTRAY_USER
-        - BINTRAY_API_KEY
+        - GPG_KEYNAME
+        - GPG_PASSPHRASE
+        - GPG_ENCPHRASE
+        - OSSRH_USER
+        - OSSRH_TOKEN
     requires: [~tag, ~release]
     steps:
-      - release: mvn -B -DskipTests deploy --settings ./settings.xml
+      - build: "screwdriver/scripts/build.sh"
+      - publish: "screwdriver/scripts/publish.sh"
+

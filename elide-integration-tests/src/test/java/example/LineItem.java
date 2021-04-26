@@ -43,12 +43,6 @@ public class LineItem {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof LineItem)) {
-            return false;
-        }
-
-        LineItem other = (LineItem) obj;
-
-        return id == other.id;
+        return obj instanceof LineItem && id == ((LineItem) obj).id;
     }
 }
