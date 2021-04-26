@@ -213,9 +213,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     }
 
     private static void validateInheritance(ElideTableConfig tables) {
-        tables.getTables().stream().forEach(table -> {
-            validateInheritance(tables, table, new HashSet<>());
-        });
+        tables.getTables().stream().forEach(table -> validateInheritance(tables, table, new HashSet<>()));
     }
 
     private static void validateInheritance(ElideTableConfig tables, Table table, Set<Table> visited) {
@@ -242,9 +240,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         validateInheritance(this.elideTableConfig);
 
         Set<Table> processed = new HashSet<>();
-        elideTableConfig.getTables().stream().forEach(table -> {
-            populateInheritance(table, processed);
-        });
+        elideTableConfig.getTables().stream().forEach(table -> populateInheritance(table, processed));
     }
 
     private void populateInheritance(Table table, Set<Table> processed) {
@@ -601,9 +597,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
     private void validateArguments(List<Argument> arguments) {
         validateNameUniqueness(arguments, "Multiple Arguments found with the same name: ");
-        arguments.forEach(arg -> {
-            validateTableSource(arg.getTableSource());
-        });
+        arguments.forEach(arg -> validateTableSource(arg.getTableSource()));
     }
 
     private void validateChecks(Set<String> checks) {

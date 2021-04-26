@@ -54,15 +54,15 @@ public class LifecycleHookInvoker implements Observer<CRUDEvent> {
 
         try {
             //Invoke all the hooks
-            hooks.forEach((hook) -> {
+            hooks.forEach(hook ->
                     hook.execute(
                             this.op,
                             this.phase,
                             event.getResource().getObject(),
                             event.getResource().getRequestScope(),
-                            event.getChanges());
+                            event.getChanges())
 
-            });
+            );
         } catch (RuntimeException e) {
             exception = Optional.of(e);
             if (throwsExceptions) {

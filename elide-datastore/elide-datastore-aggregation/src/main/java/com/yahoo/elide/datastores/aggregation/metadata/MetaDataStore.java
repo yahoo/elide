@@ -86,17 +86,17 @@ public class MetaDataStore implements DataStore {
             TableType tableType = new TableType(table);
             dynamicTypes.add(tableType);
             typeMap.put(table.getName(), tableType);
-            table.getJoins().stream().forEach(join -> {
-                joinNames.add(join.getTo());
-            });
+            table.getJoins().stream().forEach(join ->
+                joinNames.add(join.getTo())
+            );
         });
 
         //Built a list of static types referenced from joins in the dynamic types.
         metadataDictionary.getBindings().stream()
                 .filter(binding -> joinNames.contains(binding.getJsonApiType()))
-                .forEach(staticType -> {
-                    typeMap.put(staticType.getJsonApiType(), staticType.getEntityClass());
-                });
+                .forEach(staticType ->
+                    typeMap.put(staticType.getJsonApiType(), staticType.getEntityClass())
+                );
 
         //Resolve the join fields & bind the dynamic types.
         dynamicTypes.stream().forEach(table -> {

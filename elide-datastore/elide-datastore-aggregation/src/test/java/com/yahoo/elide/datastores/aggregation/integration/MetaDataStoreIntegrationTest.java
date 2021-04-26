@@ -55,11 +55,11 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
         // Add an entry for "mycon" connection which is not from hjson
         connectionDetailsMap.put("mycon", defaultConnectionDetails);
         // Add connection details fetched from hjson
-        VALIDATOR.getElideSQLDBConfig().getDbconfigs().forEach(dbConfig -> {
+        VALIDATOR.getElideSQLDBConfig().getDbconfigs().forEach(dbConfig ->
             connectionDetailsMap.put(dbConfig.getName(),
                             new ConnectionDetails(getDataSource(dbConfig, getDBPasswordExtractor()),
-                                            SQLDialectFactory.getDialect(dbConfig.getDialect())));
-        });
+                                            SQLDialectFactory.getDialect(dbConfig.getDialect())))
+        );
 
         return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, VALIDATOR);
     }

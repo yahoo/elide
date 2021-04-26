@@ -105,9 +105,9 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                     map.put(OperatorCheck.OPERTOR_CHECK, OperatorCheck.class);
                     EntityDictionary dictionary = new EntityDictionary(map);
 
-                    VALIDATOR.getElideSecurityConfig().getRoles().forEach(role -> {
-                        dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role));
-                    });
+                    VALIDATOR.getElideSecurityConfig().getRoles().forEach(role ->
+                        dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))
+                    );
 
                     Elide elide = new Elide(new ElideSettingsBuilder(getDataStore())
                                     .withEntityDictionary(dictionary)
@@ -155,11 +155,11 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         // Add an entry for "mycon" connection which is not from hjson
         connectionDetailsMap.put("mycon", defaultConnectionDetails);
         // Add connection details fetched from hjson
-        VALIDATOR.getElideSQLDBConfig().getDbconfigs().forEach(dbConfig -> {
+        VALIDATOR.getElideSQLDBConfig().getDbconfigs().forEach(dbConfig ->
             connectionDetailsMap.put(dbConfig.getName(),
                             new ConnectionDetails(getDataSource(dbConfig, getDBPasswordExtractor()),
-                                            SQLDialectFactory.getDialect(dbConfig.getDialect())));
-        });
+                                            SQLDialectFactory.getDialect(dbConfig.getDialect())))
+        );
 
         return new AggregationDataStoreTestHarness(emf, defaultConnectionDetails, connectionDetailsMap, VALIDATOR);
     }

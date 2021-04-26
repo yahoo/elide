@@ -670,15 +670,15 @@ public class TableType implements Type<DynamicModelInstance> {
         Map<String, Field> fields = new HashMap<>();
         fields.put("id", buildIdField());
 
-        table.getDimensions().forEach(dimension -> {
+        table.getDimensions().forEach(dimension ->
             fields.put(dimension.getName(),
-                    new FieldType(dimension.getName(), getFieldType(dimension.getType()), buildAnnotations(dimension)));
-        });
+                    new FieldType(dimension.getName(), getFieldType(dimension.getType()), buildAnnotations(dimension)))
+        );
 
-        table.getMeasures().forEach(measure -> {
+        table.getMeasures().forEach(measure ->
             fields.put(measure.getName(),
-                    new FieldType(measure.getName(), getFieldType(measure.getType()), buildAnnotations(measure)));
-        });
+                    new FieldType(measure.getName(), getFieldType(measure.getType()), buildAnnotations(measure)))
+        );
 
         return fields;
     }

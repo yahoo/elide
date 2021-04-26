@@ -64,9 +64,7 @@ public class Slf4jQueryLogger implements QueryLogger {
         rootNode.put("apiVersion", apiVer);
         rootNode.put("path", path);
         ObjectNode headerNode = rootNode.putObject("headers");
-        headers.forEach((key, value) -> {
-            headerNode.put(key, value);
-        });
+        headers.forEach(headerNode::put);
 
         logger.log("QUERY ACCEPTED: {}", rootNode);
     }
