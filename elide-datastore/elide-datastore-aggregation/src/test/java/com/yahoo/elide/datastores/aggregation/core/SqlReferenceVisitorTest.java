@@ -10,7 +10,9 @@ import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory.getDefaultDialect;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
@@ -19,7 +21,9 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceVisitor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+
 import com.google.common.collect.Sets;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -67,8 +71,8 @@ public class SqlReferenceVisitorTest {
     @BeforeAll
     public void init() {
         store = new MetaDataStore(getClassType(Sets.newHashSet(TestModel.class, JoinModel.class)), true);
-        Table table1 = new SQLTable(getClassType(TestModel.class), store.getMetadataDictionary());
-        Table table2 = new SQLTable(getClassType(JoinModel.class), store.getMetadataDictionary());
+        Table table1 = new SQLTable(ClassType.of(TestModel.class), store.getMetadataDictionary());
+        Table table2 = new SQLTable(ClassType.of(JoinModel.class), store.getMetadataDictionary());
         store.addTable(table1);
         store.addTable(table2);
     }
@@ -77,7 +81,7 @@ public class SqlReferenceVisitorTest {
     public void testMatchingPhysicalReference() {
         SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "test_table", getDefaultDialect());
 
-        SQLTable table = store.getTable(getClassType(TestModel.class));
+        SQLTable table = store.getTable(ClassType.of(TestModel.class));
         ColumnProjection column = table.getDimensionProjection("dimension1");
 
         String actual = visitor.visitColumn(table, column);
@@ -89,7 +93,7 @@ public class SqlReferenceVisitorTest {
     public void testMismatchingPhysicalReference() {
         SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "test_table", getDefaultDialect());
 
-        SQLTable table = store.getTable(getClassType(TestModel.class));
+        SQLTable table = store.getTable(ClassType.of(TestModel.class));
         ColumnProjection column = table.getDimensionProjection("dimension2");
         String actual = visitor.visitColumn(table, column);
 
@@ -100,7 +104,7 @@ public class SqlReferenceVisitorTest {
     public void testJoinReference() {
         SQLReferenceVisitor visitor = new SQLReferenceVisitor(store, "join_table", getDefaultDialect());
 
-        SQLTable table = store.getTable(getClassType(TestModel.class));
+        SQLTable table = store.getTable(ClassType.of(TestModel.class));
         ColumnProjection column = table.getDimensionProjection("dimension3");
 
         String actual = visitor.visitColumn(table, column);
