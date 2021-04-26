@@ -108,7 +108,7 @@ Add Elide annotations to both expose your models through the web service and def
 @Include(rootLevel = true)
 @ReadPermission("Everyone")
 @CreatePermission("Admin OR Publisher")
-@DeletePermission("None"
+@DeletePermission("None")
 @UpdatePermission("None")
 public class Book {
 
