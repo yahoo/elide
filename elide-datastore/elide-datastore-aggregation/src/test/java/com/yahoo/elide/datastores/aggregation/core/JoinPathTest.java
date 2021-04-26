@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.core;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -62,9 +61,9 @@ public class JoinPathTest {
 
     @Test
     public void testExtendPath() {
-        JoinPath joinPath = new JoinPath(getClassType(PlayerStatsWithView.class), store, "countryView");
+        JoinPath joinPath = new JoinPath(ClassType.of(PlayerStatsWithView.class), store, "countryView");
 
-        JoinPath extended = new JoinPath(getClassType(PlayerStatsWithView.class), store, "countryView.nestedView");
+        JoinPath extended = new JoinPath(ClassType.of(PlayerStatsWithView.class), store, "countryView.nestedView");
 
         assertEquals(extended, joinPath.extend("countryView.nestedView"));
     }

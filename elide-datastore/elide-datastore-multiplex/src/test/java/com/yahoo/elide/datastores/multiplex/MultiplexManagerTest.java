@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -17,6 +16,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.datastores.inmemory.InMemoryDataStore;
 import com.yahoo.elide.example.beans.FirstBean;
 import com.yahoo.elide.example.other.OtherBean;
@@ -52,8 +52,8 @@ public class MultiplexManagerTest {
     @Test
     public void checkLoading() {
         EntityDictionary entityDictionary = multiplexManager.getDictionary();
-        assertNotNull(entityDictionary.getJsonAliasFor(getClassType(FirstBean.class)));
-        assertNotNull(entityDictionary.getJsonAliasFor(getClassType(OtherBean.class)));
+        assertNotNull(entityDictionary.getJsonAliasFor(ClassType.of(FirstBean.class)));
+        assertNotNull(entityDictionary.getJsonAliasFor(ClassType.of(OtherBean.class)));
     }
 
     @Test
@@ -92,8 +92,8 @@ public class MultiplexManagerTest {
         final MultiplexManager multiplexManager = new MultiplexManager(ds1, ds2);
         multiplexManager.populateEntityDictionary(entityDictionary);
 
-        assertEquals(ds1, multiplexManager.getSubManager(getClassType(FirstBean.class)));
-        assertEquals(ds2, multiplexManager.getSubManager(getClassType(OtherBean.class)));
+        assertEquals(ds1, multiplexManager.getSubManager(ClassType.of(FirstBean.class)));
+        assertEquals(ds2, multiplexManager.getSubManager(ClassType.of(OtherBean.class)));
 
         try (DataStoreTransaction t = ds1.beginTransaction()) {
             assertFalse(t.loadObjects(EntityProjection.builder()

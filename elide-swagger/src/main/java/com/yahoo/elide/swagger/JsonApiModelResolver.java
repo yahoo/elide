@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.swagger;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -61,11 +60,11 @@ public class JsonApiModelResolver extends ModelResolver {
          */
         if (type instanceof SimpleType) {
             type = ((SimpleType) type).getRawClass();
-            clazzType = getClassType((Class<?>) type);
+            clazzType = ClassType.of((Class<?>) type);
         } else if (type instanceof Type) {
             clazzType = (Type<?>) type;
         } else if (type instanceof Class) {
-            clazzType = getClassType((Class<?>) type);
+            clazzType = ClassType.of((Class<?>) type);
         }
 
         /* Not an entity managed by Elide, let Swagger convert it */
