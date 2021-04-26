@@ -5,10 +5,10 @@
  */
 package com.yahoo.elide.datastores.jpa;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.JPQLDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.jpa.porting.QueryLogger;
 import com.yahoo.elide.datastores.jpa.transaction.JpaTransaction;
@@ -73,7 +73,7 @@ public class JpaDataStore implements JPQLDataStore {
         // Use the entities defined in the entity manager factory.
         for (EntityType type : entityManagerSupplier.get().getMetamodel().getEntities()) {
             try {
-                Type<?> mappedClass = getClassType(type.getJavaType());
+                Type<?> mappedClass = ClassType.of(type.getJavaType());
                 // Ignore this result. We are just checking to see if it throws an exception meaning that
                 // provided class was _not_ an entity.
                 dictionary.lookupEntityClass(mappedClass);

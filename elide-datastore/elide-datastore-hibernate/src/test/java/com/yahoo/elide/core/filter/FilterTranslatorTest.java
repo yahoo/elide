@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.core.filter;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.core.Path;
@@ -17,6 +16,8 @@ import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.filter.predicates.NotEmptyPredicate;
+import com.yahoo.elide.core.type.ClassType;
+
 import example.Author;
 import example.Book;
 import org.junit.jupiter.api.Test;
@@ -179,7 +180,7 @@ public class FilterTranslatorTest {
         };
 
         try {
-            FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, getClassType(Author.class), "name", generator);
+            FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, ClassType.of(Author.class), "name", generator);
 
             FilterPredicate pred = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"),
                     Operator.INFIX_CASE_INSENSITIVE, Arrays.asList("value"));
@@ -187,7 +188,7 @@ public class FilterTranslatorTest {
             String actual = new FilterTranslator(dictionary).apply(pred);
             assertEquals("FOO", actual);
         } finally {
-            FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, getClassType(Author.class), "name", null);
+            FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, ClassType.of(Author.class), "name", null);
         }
     }
 
