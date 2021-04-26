@@ -51,9 +51,13 @@
 
     <distributionManagement>
         <repository>
-            <id>bintray-elide-repo</id>
-            <url>https://api.bintray.com/maven/yahoo/maven/elide;publish=1</url>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
     </distributionManagement>
 
     <scm>
@@ -63,10 +67,12 @@
     </scm>
 
     <prerequisites>
-        <maven>3.0.0</maven>
+        <maven>3.6.3</maven>
     </prerequisites>
 
     <properties>
+        <releaseRepoUrl>https://oss.sonatype.org/service/local/staging/deploy/maven2/</releaseRepoUrl>
+        <snapshotRepoUrl>https://oss.sonatype.org/content/repositories/snapshots/</snapshotRepoUrl>
         <autoVersionSubmodules>true</autoVersionSubmodules>
         <min.jdk.version>1.8</min.jdk.version>
         <max.jdk.version>1.10</max.jdk.version>
@@ -77,17 +83,20 @@
         <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 
         <!-- dependency versions -->
-        <version.antlr4>4.9</version.antlr4>
+        <version.antlr4>4.9.1</version.antlr4>
         <version.logback>1.2.3</version.logback>
-        <version.jetty>9.4.38.v20210224</version.jetty>
+        <version.jetty>9.4.39.v20210325</version.jetty>
         <version.restassured>4.3.3</version.restassured>
-        <version.jackson>2.12.1</version.jackson>
+        <version.jackson>2.12.3</version.jackson>
         <version.jersey>2.32</version.jersey>
         <version.junit>5.7.1</version.junit>
+        <version.junit.platform>1.7.1</version.junit.platform>
         <hibernate3.version>3.6.10.Final</hibernate3.version>
         <version.mysql>8.0.22</version.mysql>
-        <hibernate5.version>5.4.25.Final</hibernate5.version>
+        <hibernate5.version>5.4.30.Final</hibernate5.version>
         <slf4j-api.version>1.7.30</slf4j-api.version>
+        <maven-site-plugin-version>3.7.1</maven-site-plugin-version>
+        <mpir.skip>true</mpir.skip>
 
         <!-- TODO: Need to update locations to be relative to the projects using them -->
         <parent.pom.dir>${project.basedir}/..</parent.pom.dir>
@@ -96,6 +105,7 @@
         </checkstyle.suppressions.location>
 
         <dependency.locations.enabled>false</dependency.locations.enabled>
+        <dependency.details.enabled>false</dependency.details.enabled>
     </properties>
 
     <!-- Dependency settings -->
@@ -114,7 +124,7 @@
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.16</version>
+                <version>1.18.20</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -287,6 +297,13 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <!-- JPA -->
+            <dependency>
+                <groupId>javax.persistence</groupId>
+                <artifactId>javax.persistence-api</artifactId>
+                <version>2.2</version>
+                <scope>provided</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
@@ -296,6 +313,62 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>ossrh</id>
+            <properties>
+                <gpg.executable>gpg</gpg.executable>
+                <gpg.keyname>${env.GPG_KEYNAME}</gpg.keyname>
+                <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
+                <gpg.defaultKeyring>false</gpg.defaultKeyring>
+                <gpg.homedir>${env.SD_SOURCE_DIR}/screwdriver/deploy</gpg.homedir>
+                <gpg.publickeyring>pubring.gpg</gpg.publickeyring>
+                <gpg.secretkeyring>secring.gpg</gpg.secretkeyring>
+            </properties>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                                <configuration>
+                                    <gpgArguments>
+                                        <arg>--pinentry-mode</arg>
+                                        <arg>loopback</arg>
+                                    </gpgArguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.7</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <build>
         <pluginManagement>
@@ -313,7 +386,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-checkstyle-plugin</artifactId>
-                    <version>3.1.1</version>
+                    <version>3.1.2</version>
                     <executions>
                         <execution>
                             <id>validate</id>
@@ -340,7 +413,7 @@
                         <dependency>
                             <groupId>com.puppycrawl.tools</groupId>
                             <artifactId>checkstyle</artifactId>
-                            <version>8.37</version>
+                            <version>8.41</version>
                             <scope>compile</scope>
                         </dependency>
                     </dependencies>
@@ -354,6 +427,14 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>3.2.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <version>${maven-site-plugin-version}</version>
+                    <configuration>
+                        <skipDeploy>true</skipDeploy>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.gmaven</groupId>
@@ -536,7 +617,7 @@
             <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>6.1.1</version>
+                <version>6.1.5</version>
                 <configuration>
                     <failBuildOnCVSS>7</failBuildOnCVSS>
                     <skipSystemScope>true</skipSystemScope>
@@ -557,7 +638,7 @@
             <extension>
                 <groupId>org.apache.maven.wagon</groupId>
                 <artifactId>wagon-ssh-external</artifactId>
-                <version>3.4.2</version>
+                <version>3.4.3</version>
             </extension>
         </extensions>
     </build>

@@ -1,7 +1,7 @@
-<!-- 
-  ~ Copyright 2019, Yahoo Inc. 
-  ~ Licensed under the Apache License, Version 2.0 
-  ~ See LICENSE file in project root for terms. 
+<!--
+  ~ Copyright 2019, Yahoo Inc.
+  ~ Licensed under the Apache License, Version 2.0
+  ~ See LICENSE file in project root for terms.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -51,7 +51,6 @@
         <dependency>
             <groupId>javax.persistence</groupId>
             <artifactId>javax.persistence-api</artifactId>
-            <version>2.2</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
