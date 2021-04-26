@@ -101,15 +101,15 @@ public class GraphQLConversionUtils {
             return Scalars.GraphQLString;
         } else if (clazz.equals(getClassType(BigDecimal.class))) {
             return Scalars.GraphQLBigDecimal;
-        } else {
-            return otherClassToScalarType(clazz);
         }
+        return otherClassToScalarType(clazz);
     }
 
     private GraphQLScalarType otherClassToScalarType(Type<?> clazz) {
         if (scalarMap.containsKey(clazz)) {
             return scalarMap.get(clazz);
-        } else if (ClassType.DATE_TYPE.isAssignableFrom(clazz)) {
+        }
+        if (ClassType.DATE_TYPE.isAssignableFrom(clazz)) {
             return GraphQLScalars.GRAPHQL_DATE_TYPE;
         }
         return null;

@@ -144,7 +144,8 @@ public class BridgeableRedisStore implements DataStore {
                             EntityProjection.builder().type(entityClass).build(),
                             String.valueOf(user.getSpecialActionId()),
                             scope);
-                } else if ("redisActions".equals(relationName)) {
+                }
+                if ("redisActions".equals(relationName)) {
                     FilterExpression updatedExpression = new InPredicate(
                             new Path.PathElement(entityClass, ClassType.STRING_TYPE, "user_id"),
                             String.valueOf(((HibernateUser) parent).getId())
