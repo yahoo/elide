@@ -22,12 +22,13 @@ import java.util.regex.Pattern;
  * </p>
  */
 public class ElideGrainTypeFormatAttr extends AbstractFormatAttribute {
-    private static final Pattern GRAIN_TYPE_PATTERN = Pattern.compile("^(?i)(Second|Minute|Hour|Day|IsoWeek|Week|Month|Quarter|Year)$");
+    private static final Pattern GRAIN_TYPE_PATTERN =
+            Pattern.compile("^(?i)(Second|Minute|Hour|Day|IsoWeek|Week|Month|Quarter|Year)$");
 
     public static final String FORMAT_NAME = "elideGrainType";
     public static final String TYPE_KEY = "elideGrainType.error.enum";
     public static final String TYPE_MSG = "Grain type [%s] is not allowed. Supported value is one of "
-                    + "[Second, Minute, Hour, Day, IsoWeek, Week, Month, Quarter, Year].";
+            + "[Second, Minute, Hour, Day, IsoWeek, Week, Month, Quarter, Year].";
 
     public ElideGrainTypeFormatAttr() {
         super(FORMAT_NAME, NodeType.STRING);
@@ -35,7 +36,7 @@ public class ElideGrainTypeFormatAttr extends AbstractFormatAttribute {
 
     @Override
     public void validate(final ProcessingReport report, final MessageBundle bundle, final FullData data)
-                    throws ProcessingException {
+            throws ProcessingException {
         final String input = data.getInstance().getNode().textValue();
 
         if (!GRAIN_TYPE_PATTERN.matcher(input).matches()) {
