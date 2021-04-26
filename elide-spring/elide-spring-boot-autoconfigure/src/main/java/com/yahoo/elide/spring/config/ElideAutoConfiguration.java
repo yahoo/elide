@@ -269,10 +269,9 @@ public class ElideAutoConfiguration {
 
             return new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap,
                     new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))));
-        } else {
-            MetaDataStore metaDataStore = new MetaDataStore(enableMetaDataStore);
-            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
         }
+        MetaDataStore metaDataStore = new MetaDataStore(enableMetaDataStore);
+        return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
     }
 
     /**

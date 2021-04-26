@@ -130,14 +130,13 @@ public class ExpressionParser {
                     .source(source)
                     .name(column.getName())
                     .build();
-        } else {
-            return LogicalReference
-                    .builder()
-                    .source(source)
-                    .column(column)
-                    .references(parse(source, column))
-                    .build();
         }
+        return LogicalReference
+                .builder()
+                .source(source)
+                .column(column)
+                .references(parse(source, column))
+                .build();
     }
 
     private JoinReference buildJoin(Queryable source, String referenceName) {

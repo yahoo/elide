@@ -315,20 +315,17 @@ public class SQLReferenceTable {
         if (isSubselect(cls)) {
             if (cls.isAnnotationPresent(FromSubquery.class)) {
                 return dictionary.getAnnotation(cls, FromSubquery.class).sql();
-            } else {
-                return dictionary.getAnnotation(cls, Subselect.class).value();
             }
-        } else {
-            javax.persistence.Table table = dictionary.getAnnotation(cls, javax.persistence.Table.class);
-
-            if (table != null) {
-                return resolveTableAnnotation(table);
-            } else {
-                FromTable fromTable = dictionary.getAnnotation(cls, FromTable.class);
-
-                return fromTable != null ? fromTable.name() : cls.getSimpleName();
-            }
+            return dictionary.getAnnotation(cls, Subselect.class).value();
         }
+        javax.persistence.Table table = dictionary.getAnnotation(cls, javax.persistence.Table.class);
+
+        if (table != null) {
+            return resolveTableAnnotation(table);
+        }
+        FromTable fromTable = dictionary.getAnnotation(cls, FromTable.class);
+
+        return fromTable != null ? fromTable.name() : cls.getSimpleName();
     }
 
     /**

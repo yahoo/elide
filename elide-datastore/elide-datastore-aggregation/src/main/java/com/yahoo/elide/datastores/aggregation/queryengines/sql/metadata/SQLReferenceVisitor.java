@@ -79,14 +79,12 @@ public class SQLReferenceVisitor extends ColumnVisitor<String> {
                     applyQuotes(dictionary.getAnnotatedColumnName(
                             dictionary.getEntityClass(source.getName(), source.getVersion()),
                             dimension.getName())));
-
-        //This is a nested query.  Don't do table lookups.
-        } else {
-            String expr = dimension.getExpression();
-            // Remove leading '{{' & trailing '}}'
-            expr = expr.substring(2, expr.length() - 2);
-            return visitPhysicalReference(expr);
         }
+        //This is a nested query.  Don't do table lookups.
+        String expr = dimension.getExpression();
+        // Remove leading '{{' & trailing '}}'
+        expr = expr.substring(2, expr.length() - 2);
+        return visitPhysicalReference(expr);
     }
 
     @Override

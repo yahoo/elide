@@ -155,9 +155,8 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
 
         if (metric != null) {
             return metric.toSQL(query, referenceTable);
-        } else {
-            return generatePredicatePathReference(path, query);
         }
+        return generatePredicatePathReference(path, query);
     }
 
     /**

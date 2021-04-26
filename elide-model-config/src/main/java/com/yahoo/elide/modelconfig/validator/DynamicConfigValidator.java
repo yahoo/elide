@@ -233,9 +233,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
             throw new IllegalStateException(
                     String.format("Inheriting from table '%s' creates an illegal cyclic dependency.",
                             parent.getName()));
-        } else {
-            validateInheritance(tables, parent, visited);
         }
+        validateInheritance(tables, parent, visited);
     }
 
     private void populateInheritance(ElideTableConfig elideTableConfig) {
@@ -745,9 +744,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
             if (alreadyDefinedRoles.contains(role)) {
                 throw new IllegalStateException(String.format(
                                 "Duplicate!! Role name: '%s' is already defined. Please use different role.", role));
-            } else {
-                alreadyDefinedRoles.add(role);
             }
+            alreadyDefinedRoles.add(role);
         });
 
         return true;
