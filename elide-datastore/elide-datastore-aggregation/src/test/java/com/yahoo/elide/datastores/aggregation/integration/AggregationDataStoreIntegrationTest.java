@@ -68,7 +68,6 @@ import javax.inject.Inject;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;
-import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
@@ -118,12 +117,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                     bind(elide).to(Elide.class).named("elide");
                 }
             });
-            register(new ContainerRequestFilter() {
-                @Override
-                public void filter(final ContainerRequestContext requestContext) throws IOException {
-                    requestContext.setSecurityContext(securityContextMock);
-                }
-            });
+            register((ContainerRequestFilter) requestContext -> requestContext.setSecurityContext(securityContextMock));
         }
     }
 

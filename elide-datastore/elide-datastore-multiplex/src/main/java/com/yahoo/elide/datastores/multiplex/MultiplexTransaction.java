@@ -18,6 +18,7 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 
 import java.io.IOException;
@@ -112,7 +113,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     protected DataStoreTransaction getTransaction(Object object) {
-        return getTransaction(object.getClass());
+        return getTransaction(ClassType.of(object.getClass()));
     }
 
     protected DataStoreTransaction getTransaction(Type<?> cls) {

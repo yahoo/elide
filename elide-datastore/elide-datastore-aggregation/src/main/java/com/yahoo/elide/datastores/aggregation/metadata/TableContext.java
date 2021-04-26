@@ -24,7 +24,6 @@ import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Formatter;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.HandlebarsException;
-import com.github.jknack.handlebars.Helper;
 import com.github.jknack.handlebars.Options;
 import com.github.jknack.handlebars.Template;
 
@@ -63,22 +62,14 @@ public class TableContext extends HashMap<String, Object> {
     private final String alias;
 
     private final Handlebars handlebars = new Handlebars()
-                    .with(EscapingStrategy.NOOP)
-                    .with(new Formatter() {
-                        @Override
-                        public Object format(Object value, Chain next) {
-                            if (value instanceof com.yahoo.elide.core.request.Argument) {
-                                return ((com.yahoo.elide.core.request.Argument) value).getValue();
-                            }
-                            return next.format(value);
-                        }
-                    })
-                    .registerHelper("sql", new Helper<Object>() {
-                        @Override
-                        public Object apply(final Object context, final Options options) throws IOException {
-                            return resolveSQLHandlebar(context, options);
-                        }
-                    });
+            .with(EscapingStrategy.NOOP)
+            .with((Formatter) (value, next) -> {
+                if (value instanceof com.yahoo.elide.core.request.Argument) {
+                    return ((com.yahoo.elide.core.request.Argument) value).getValue();
+                }
+                return next.format(value);
+            })
+            .registerHelper("sql", this::resolveSQLHandlebar);
 
     public TableContext withTableArgs(Map<String, ? extends Object> tableArgs) {
         Map<String, Object> argsMap = new HashMap<>();

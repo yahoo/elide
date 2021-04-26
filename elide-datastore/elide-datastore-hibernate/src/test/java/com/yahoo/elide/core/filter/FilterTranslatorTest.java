@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -171,12 +170,7 @@ public class FilterTranslatorTest {
     @Test
     public void testCustomPredicate() throws Exception {
 
-        JPQLPredicateGenerator generator = new JPQLPredicateGenerator() {
-            @Override
-            public String generate(FilterPredicate predicate, Function<Path, String> aliasGenerator) {
-                return "FOO";
-            }
-        };
+        JPQLPredicateGenerator generator = (predicate, aliasGenerator) -> "FOO";
 
         try {
             FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, getClassType(Author.class), "name", generator);
@@ -194,12 +188,7 @@ public class FilterTranslatorTest {
     @Test
     public void testCustomOperator() throws Exception {
 
-        JPQLPredicateGenerator generator = new JPQLPredicateGenerator() {
-            @Override
-            public String generate(FilterPredicate predicate, Function<Path, String> aliasGenerator) {
-                return "FOO";
-            }
-        };
+        JPQLPredicateGenerator generator = (predicate, aliasGenerator) -> "FOO";
 
         JPQLPredicateGenerator old = FilterTranslator.lookupJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE);
         try {
