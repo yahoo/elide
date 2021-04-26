@@ -123,27 +123,26 @@ public class TableContext extends HashMap<String, Object> {
         if (columnProj != null) {
             // Use the args under $$column.args
             return resolveHandlebars(keyStr, columnProj.getExpression(), getArgsFromContext(COL_PREFIX), fixedArgs);
-        } else {
-            // Assumption: Non-Projected column must be projected in Query's source.
-            // TODO: Currently everything is not projected in Query, Remove this case once everything is projected in
-            // Query (https://github.com/yahoo/elide/issues/2018).
-            Queryable source = this.queryable.getSource();
-
-            if (source.getColumnProjection(keyStr) == null) {
-                throw new HandlebarsException(new Throwable("Couldn't find: " + key));
-            }
-
-            TableContext newCtx = TableContext.builder()
-                            .queryable(source)
-                            .alias(source.getAlias())
-                            .metaDataStore(metaDataStore)
-                            .build();
-
-            // Copy $$table & $$column to context for source.
-            newCtx.put(COL_PREFIX, this.get(COL_PREFIX));
-            newCtx.put(TBL_PREFIX, this.get(TBL_PREFIX));
-            return newCtx.get(keyStr);
         }
+        // Assumption: Non-Projected column must be projected in Query's source.
+        // TODO: Currently everything is not projected in Query, Remove this case once everything is projected in
+        // Query (https://github.com/yahoo/elide/issues/2018).
+        Queryable source = this.queryable.getSource();
+
+        if (source.getColumnProjection(keyStr) == null) {
+            throw new HandlebarsException(new Throwable("Couldn't find: " + key));
+        }
+
+        TableContext newCtx = TableContext.builder()
+                        .queryable(source)
+                        .alias(source.getAlias())
+                        .metaDataStore(metaDataStore)
+                        .build();
+
+        // Copy $$table & $$column to context for source.
+        newCtx.put(COL_PREFIX, this.get(COL_PREFIX));
+        newCtx.put(TBL_PREFIX, this.get(TBL_PREFIX));
+        return newCtx.get(keyStr);
     }
 
     /**
@@ -251,9 +250,8 @@ public class TableContext extends HashMap<String, Object> {
             Map<String, ? extends Object> pinnedArgs = getArgumentMapFromString(column.substring(argsIndex));
             invokedColumnName = column.substring(0, argsIndex);
             return invokedTableCtx.get(invokedColumnName, pinnedArgs);
-        } else {
-            return invokedTableCtx.get(invokedColumnName);
         }
+        return invokedTableCtx.get(invokedColumnName);
     }
 
     @SuppressWarnings("unchecked")
