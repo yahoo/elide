@@ -6,12 +6,12 @@
 
 package com.yahoo.elide.datastores.aggregation.filter.visitor;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
@@ -23,7 +23,7 @@ import java.util.HashMap;
 
 public class MatchesTemplateVisitorTest {
     private RSQLFilterDialect dialect;
-    private Type<?> playerStatsType = getClassType(PlayerStats.class);
+    private Type<?> playerStatsType = ClassType.of(PlayerStats.class);
 
     @BeforeEach
     public void setup() {
