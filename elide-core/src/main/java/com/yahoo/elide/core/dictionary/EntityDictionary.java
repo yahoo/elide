@@ -124,8 +124,8 @@ public class EntityDictionary {
 
     private final Set<Type<?>> entitiesToExclude;
 
-    public final static String REGULAR_ID_NAME = "id";
-    private final static ConcurrentHashMap<Type, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
+    public static final String REGULAR_ID_NAME = "id";
+    private static final ConcurrentHashMap<Type, String> SIMPLE_NAMES = new ConcurrentHashMap<>();
     private static final String ALL_FIELDS = "*";
 
     /**

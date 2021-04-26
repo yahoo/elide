@@ -27,7 +27,7 @@ import java.util.Properties;
  */
 
 public class JsonType implements UserType, ParameterizedType {
-    private final static ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private Class<?> objectClass;
 

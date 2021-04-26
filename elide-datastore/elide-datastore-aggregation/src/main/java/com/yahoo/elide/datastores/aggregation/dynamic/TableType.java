@@ -736,7 +736,7 @@ public class TableType implements Type<DynamicModelInstance> {
         return (str == null) ? null : NEWLINE.matcher(str).replaceAll(SPACE);
     }
 
-    private final class ConfigPackage implements Package {
+    private static final class ConfigPackage implements Package {
         @Override
         public <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass) {
             return null;
