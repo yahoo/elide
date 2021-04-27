@@ -65,6 +65,13 @@
                     "type": "string",
                     "format": "elideFieldName"
                 },
+                "namespace": {
+                        "title": "Join Namespace",
+                        "description": "Namespace for the Join.",
+                        "type": "string",
+                        "format": "elideName",
+                        "default": "default"
+                },
                 "to": {
                     "title": "Join table name",
                     "description": "The name of the table that is being joined to",
@@ -404,6 +411,13 @@
                         "description": "Read permission for the table.",
                         "type": "string",
                         "default": "Prefab.Role.All"
+                    },
+                    "namespace": {
+                        "title": "Table Namespace",
+                        "description": "Namespace for the table.",
+                        "type": "string",
+                        "format": "elideName",
+                        "default": "default"
                     },
                     "joins": {
                         "title": "Table joins",

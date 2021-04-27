@@ -37,6 +37,7 @@ import java.util.Set;
     "description",
     "cardinality",
     "readAccess",
+    "namespace",
     "joins",
     "measures",
     "dimensions",
@@ -88,6 +89,9 @@ public class Table implements Named {
 
     @JsonProperty("readAccess")
     private String readAccess = "Prefab.Role.All";
+
+    @JsonProperty("namespace")
+    private String namespace = "default";
 
     @JsonProperty("joins")
     @Singular

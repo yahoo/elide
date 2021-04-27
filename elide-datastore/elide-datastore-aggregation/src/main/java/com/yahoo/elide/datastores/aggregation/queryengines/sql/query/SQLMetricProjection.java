@@ -35,6 +35,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -43,6 +44,7 @@ import java.util.stream.Collectors;
 @Data
 @Builder
 public class SQLMetricProjection implements MetricProjection, SQLColumnProjection {
+    private static final Pattern QUERY_PATTERN = Pattern.compile(".*\\{\\{.*\\}\\}.*");
     private String name;
     private ValueType valueType;
     private ColumnType columnType;
@@ -86,9 +88,9 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     }
 
     @Override
-    public String toSQL(Queryable source, SQLReferenceTable lookupTable) {
-        if (expression.matches(".*\\{\\{.*\\}\\}.*")) {
-            return lookupTable.getResolvedReference(source, getName());
+    public String toSQL(Queryable query, SQLReferenceTable lookupTable) {
+        if (QUERY_PATTERN.matcher(expression).matches()) {
+            return SQLColumnProjection.super.toSQL(query, lookupTable);
         }
         return expression;
     }
@@ -113,7 +115,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                                                               SQLReferenceTable lookupTable,
                                                               boolean joinInOuter) {
         SQLDialect dialect = source.getConnectionDetails().getDialect();
-        String sql = toSQL(source.getSource(), lookupTable);
+        String sql = toSQL(source, lookupTable);
         SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
 
         SqlNode node;

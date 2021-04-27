@@ -1,0 +1,28 @@
+{
+  tables: [{
+      name: NameSpaceTestModel
+      namespace: TestNamespace
+      table: test
+      category: Table Category
+      cardinality : lARge
+      hidden : false
+
+      measures : [
+          {
+          name : testMeasure
+          friendlyName : Test Measure
+          type : INteGER
+          description : Test Measure
+          definition: 'MAX({{measure}})'
+          tags: ['PUBLIC']
+          }
+      ]
+      dimensions : [
+         {
+           name : datetime
+           type : TIme
+           definition : '{{datetime}}'
+         }
+      ]
+  }]
+}

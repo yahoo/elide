@@ -22,7 +22,7 @@ import java.util.Optional;
 
 public class TransactionWrapperTest {
 
-    private class TestTransactionWrapper extends TransactionWrapper {
+    private static class TestTransactionWrapper extends TransactionWrapper {
         public TestTransactionWrapper(DataStoreTransaction wrapped) {
             super(wrapped);
         }

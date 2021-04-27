@@ -129,11 +129,11 @@ public class FragmentResolver {
                     || ((Field) selection).getSelectionSet().getSelections().isEmpty()
                     ? new ArrayList<>()
                     : getNestedFragments(((Field) selection).getSelectionSet());
-        } else if (selection instanceof FragmentSpread) {
-            return Collections.singletonList((FragmentSpread) selection);
-        } else {
-            // TODO: support inline fragment
-            throw new BadRequestException("Unsupported graphQL selection type: " + selection.getClass());
         }
+        if (selection instanceof FragmentSpread) {
+            return Collections.singletonList((FragmentSpread) selection);
+        }
+        // TODO: support inline fragment
+        throw new BadRequestException("Unsupported graphQL selection type: " + selection.getClass());
     }
 }

@@ -1,0 +1,73 @@
+{
+    "$schema": "https://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "title": "Elide Namespace Config Root Schema",
+    "description": "Elide Namespace config json/hjson schema",
+    "required": [
+        "namespaces"
+    ],
+    "additionalProperties": false,
+    "properties": {
+        "namespaces": {
+            "type": "array",
+            "title": "Elide Namespace Config Collection",
+            "description": "An array of Elide Namespace configs.",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "title": "Elide Namespace Config",
+                "description": "Elide Namespace config",
+                "required": [
+                    "name"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Namespace Name",
+                        "description": "Name of the Namespace. This can used for grouping the tables by subject area.",
+                        "format": "elideName",
+                        "examples": [
+                            "MyNamespace"
+                        ]
+                    },
+                    "friendlyName": {
+                        "title": "Namespace friendly name",
+                        "description": "The friendly name of the Namespace. This will be displayed in the UI.  If not provided, this defaults to the name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "title": "Namespace description",
+                        "description": "A long description of the Namespace.",
+                        "type": "string"
+                    },
+                    "readAccess": {
+                        "title": "Namespace read access",
+                        "description": "Read permission for the Namespace.",
+                        "type": "string",
+                        "default": "Prefab.Role.All"
+                    }
+                }
+            }
+        }
+    },
+    "examples": [
+        {
+            "namespaces": [
+                {
+                    "name": "MyNamespace",
+                    "friendlyName": "My Namespace",
+                    "readAccess": "User is Admin",
+                    "description": "A description of the MyNamespace namespace"
+                },
+                {
+                    "name": "AnotherNamespace",
+                    "friendlyName": "Another Namespace",
+                    "readAccess": "User is Editor",
+                    "description": "A description of the AnotherNamespace namespace"
+                }
+            ]
+        }
+    ]
+}

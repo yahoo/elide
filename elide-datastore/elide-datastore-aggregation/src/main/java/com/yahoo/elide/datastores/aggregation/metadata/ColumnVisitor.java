@@ -48,13 +48,11 @@ public abstract class ColumnVisitor<T> {
     public final T visitColumn(Queryable parent, ColumnProjection column)  {
         if (column instanceof MetricProjection) {
             return visitFormulaMetric(parent, (MetricProjection) column);
-        } else {
-            if (column.getColumnType() == ColumnType.FORMULA) {
-                return visitFormulaDimension(parent, column);
-            } else {
-                return visitFieldDimension(parent, column);
-            }
         }
+        if (column.getColumnType() == ColumnType.FORMULA) {
+            return visitFormulaDimension(parent, column);
+        }
+        return visitFieldDimension(parent, column);
     }
 
 
@@ -79,7 +77,10 @@ public abstract class ColumnVisitor<T> {
         List<String> references = new ArrayList<>();
 
         while (matcher.find()) {
-            references.add(matcher.group(1));
+            String value = matcher.group(1);
+            if (!value.startsWith("$$") && !value.startsWith("sql ")) {
+                references.add(value);
+            }
         }
 
         return references;

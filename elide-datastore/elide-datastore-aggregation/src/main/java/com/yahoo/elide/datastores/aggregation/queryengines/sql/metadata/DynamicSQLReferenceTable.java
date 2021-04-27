@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
+import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.google.common.collect.Sets;
 
@@ -30,22 +31,6 @@ public class DynamicSQLReferenceTable extends SQLReferenceTable {
     }
 
     /**
-     * Get the resolved physical SQL reference for a field from storage.
-     *
-     * @param queryable table class
-     * @param fieldName field name
-     * @return resolved reference
-     */
-    @Override
-    public String getResolvedReference(Queryable queryable, String fieldName) {
-        if (staticReferenceTable.resolvedReferences.containsKey(queryable)) {
-            return staticReferenceTable.getResolvedReference(queryable, fieldName);
-        }
-
-        return resolvedReferences.get(queryable).get(fieldName);
-    }
-
-    /**
      * Get the resolved ON clause expression for a field from storage.
      *
      * @param queryable table class
@@ -59,5 +44,13 @@ public class DynamicSQLReferenceTable extends SQLReferenceTable {
         }
 
         return resolvedJoinExpressions.get(queryable).get(fieldName);
+    }
+
+    @Override
+    public TableContext getGlobalTableContext(Queryable queryable) {
+        if (staticReferenceTable.globalTablesContext.containsKey(queryable)) {
+            return staticReferenceTable.getGlobalTableContext(queryable);
+        }
+        return globalTablesContext.get(queryable);
     }
 }

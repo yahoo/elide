@@ -571,17 +571,17 @@ public class EntityBinding {
         bindTrigger(binding.operation(), binding.phase(), hook);
     }
 
-    public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Operation op,
-                                                                        TransactionPhase phase,
-                                                                        String fieldName) {
+    public Collection<LifeCycleHook> getTriggers(Operation op,
+            TransactionPhase phase,
+            String fieldName) {
         Triple<String, Operation, TransactionPhase> key =
                 Triple.of(fieldName, op, phase);
         Collection<LifeCycleHook> bindings = fieldTriggers.get(key);
         return (bindings == null ? Collections.emptyList() : bindings);
     }
 
-    public <A extends Annotation> Collection<LifeCycleHook> getTriggers(Operation op,
-                                                                        TransactionPhase phase) {
+    public Collection<LifeCycleHook> getTriggers(Operation op,
+            TransactionPhase phase) {
 
         Pair<Operation, TransactionPhase> key =
                 Pair.of(op, phase);

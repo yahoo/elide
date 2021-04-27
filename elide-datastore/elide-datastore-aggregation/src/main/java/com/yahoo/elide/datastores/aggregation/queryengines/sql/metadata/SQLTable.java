@@ -39,9 +39,9 @@ import java.util.stream.Collectors;
  * SQL extension of {@link Table} which also contains sql column meta data.
  */
 @EqualsAndHashCode(callSuper = true)
+@Getter
 public class SQLTable extends Table implements Queryable {
 
-    @Getter
     private ConnectionDetails connectionDetails;
 
     private Map<String, SQLJoin> joins;

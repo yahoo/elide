@@ -68,16 +68,13 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
             invoked = true;
             if (plan.isNested()) {
                 return visitOuterQueryPlan(plan);
-            } else {
-                return visitUnnestedQueryPlan(plan);
             }
-        } else {
-            if (plan.isNested()) {
-                return visitMiddleQueryPlan(plan);
-            } else {
-                return visitInnerQueryPlan(plan);
-            }
+            return visitUnnestedQueryPlan(plan);
         }
+        if (plan.isNested()) {
+            return visitMiddleQueryPlan(plan);
+        }
+        return visitInnerQueryPlan(plan);
     }
 
     private Query.QueryBuilder visitInnerQueryPlan(Queryable plan)  {
@@ -86,7 +83,8 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .metricProjections(plan.getMetricProjections())
                 .dimensionProjections(plan.getDimensionProjections())
                 .timeDimensionProjections(plan.getTimeDimensionProjections())
-                .whereFilter(clientQuery.getWhereFilter());
+                .whereFilter(clientQuery.getWhereFilter())
+                .arguments(clientQuery.getArguments());
     }
 
     private Query.QueryBuilder visitOuterQueryPlan(Queryable plan)  {
@@ -102,7 +100,8 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .havingFilter(clientQuery.getHavingFilter())
                 .sorting(clientQuery.getSorting())
                 .pagination(clientQuery.getPagination())
-                .scope(clientQuery.getScope());
+                .scope(clientQuery.getScope())
+                .arguments(clientQuery.getArguments());
     }
 
     private Query.QueryBuilder visitMiddleQueryPlan(Queryable plan)  {
@@ -127,6 +126,7 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .whereFilter(clientQuery.getWhereFilter())
                 .sorting(clientQuery.getSorting())
                 .pagination(clientQuery.getPagination())
-                .scope(clientQuery.getScope());
+                .scope(clientQuery.getScope())
+                .arguments(clientQuery.getArguments());
     }
 }

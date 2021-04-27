@@ -12,6 +12,7 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Dynamic;
 import com.yahoo.elide.core.type.Type;
+
 import com.google.common.collect.Sets;
 
 import java.util.List;

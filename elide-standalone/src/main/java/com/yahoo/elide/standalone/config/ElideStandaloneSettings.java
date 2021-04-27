@@ -400,9 +400,7 @@ public interface ElideStandaloneSettings {
                 () -> entityManagerFactory.createEntityManager(),
                 em -> new NonJtaTransaction(em, TXCANCEL, DEFAULT_LOGGER, true));
 
-        DataStore dataStore = new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
-
-        return dataStore;
+        return new MultiplexManager(jpaDataStore, metaDataStore, aggregationDataStore);
     }
 
     /**
@@ -458,9 +456,9 @@ public interface ElideStandaloneSettings {
 
         dictionary.scanForSecurityChecks();
 
-        dynamicConfiguration.map(DynamicConfiguration::getRoles).orElseGet(Collections::emptySet).forEach(role -> {
-            dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role));
-        });
+        dynamicConfiguration.map(DynamicConfiguration::getRoles).orElseGet(Collections::emptySet).forEach(role ->
+            dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))
+        );
         return dictionary;
     }
 
@@ -492,12 +490,12 @@ public interface ElideStandaloneSettings {
         if (dynamicConfiguration.isPresent()) {
             Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
-            dynamicConfiguration.get().getDatabaseConfigurations().forEach(dbConfig -> {
+            dynamicConfiguration.get().getDatabaseConfigurations().forEach(dbConfig ->
                 connectionDetailsMap.put(dbConfig.getName(),
                                 new ConnectionDetails(
                                                 dataSourceConfiguration.getDataSource(dbConfig, dbPasswordExtractor),
-                                                SQLDialectFactory.getDialect(dbConfig.getDialect())));
-            });
+                                                SQLDialectFactory.getDialect(dbConfig.getDialect())))
+            );
             return new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap,
                     new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))));
         }

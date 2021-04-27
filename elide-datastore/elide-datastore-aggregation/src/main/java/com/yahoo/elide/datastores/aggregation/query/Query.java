@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import lombok.Builder;
@@ -49,7 +50,7 @@ public class Query implements Queryable {
     private Sorting sorting;
     private ImmutablePagination pagination;
     @Builder.Default
-    private Map<String, Object> context = new HashMap<>();
+    private Map<String, Argument> arguments = new HashMap<>();
 
     @EqualsAndHashCode.Exclude
     private RequestScope scope;

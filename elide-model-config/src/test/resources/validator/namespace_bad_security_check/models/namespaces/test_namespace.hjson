@@ -1,0 +1,11 @@
+{
+  namespaces:
+  [
+    {
+      name: TestNamespace
+      description: Namespace for Test
+      friendlyName: TestNamespace
+      readAccess: namespaceRead
+    }
+  ]
+}

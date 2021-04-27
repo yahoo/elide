@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
  */
 public class JsonApiParser {
 
-    private final static Pattern DUPLICATE_SEPARATOR_PATTERN = Pattern.compile("//+");
+    private static final Pattern DUPLICATE_SEPARATOR_PATTERN = Pattern.compile("//+");
 
     /**
      * Normalize request path

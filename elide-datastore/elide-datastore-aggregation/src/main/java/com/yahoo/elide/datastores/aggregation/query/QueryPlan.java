@@ -83,15 +83,14 @@ public class QueryPlan implements Queryable {
                     .dimensionProjections(dimensions)
                     .timeDimensionProjections(timeDimensions)
                     .build();
-        } else {
-            Queryable mergedSource = ((QueryPlan) self.getSource()).merge((QueryPlan) other.getSource(), lookupTable);
-            return QueryPlan.builder()
-                    .source(mergedSource)
-                    .metricProjections(metrics)
-                    .dimensionProjections(dimensions)
-                    .timeDimensionProjections(timeDimensions)
-                    .build();
         }
+        Queryable mergedSource = ((QueryPlan) self.getSource()).merge((QueryPlan) other.getSource(), lookupTable);
+        return QueryPlan.builder()
+                .source(mergedSource)
+                .metricProjections(metrics)
+                .dimensionProjections(dimensions)
+                .timeDimensionProjections(timeDimensions)
+                .build();
     }
 
     /**

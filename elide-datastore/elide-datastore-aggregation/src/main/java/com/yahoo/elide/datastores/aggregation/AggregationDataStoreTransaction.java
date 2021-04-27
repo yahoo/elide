@@ -131,8 +131,7 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
                 queryEngine,
                 table,
                 entityProjection,
-                scope.getDictionary(),
-                scope.getUser(),
+                scope,
                 bypassCache);
 
         Query query = translator.getQuery();
@@ -140,7 +139,7 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
         FilterExpression filterTemplate = table.getRequiredFilter(scope.getDictionary());
         if (filterTemplate != null && ! MatchesTemplateVisitor.isValid(filterTemplate, query.getWhereFilter())) {
             String message = String.format("Querying %s requires a mandatory filter: %s",
-                        table.getName(), table.getRequiredFilter().toString());
+                        table.getName(), table.getRequiredFilter());
 
             throw new BadRequestException(message);
         }

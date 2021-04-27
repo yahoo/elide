@@ -442,7 +442,7 @@ public class SQLQueryEngine extends QueryEngine {
                         .stream()
                         .map(SQLColumnProjection.class::cast)
                         .filter(SQLColumnProjection::isProjected)
-                        .map((column) -> column.toSQL(query.getSource(), queryReferenceTable))
+                        .map((column) -> column.toSQL(query, queryReferenceTable))
                         .collect(Collectors.joining(", "));
 
         if (groupByDimensions.isEmpty()) {
