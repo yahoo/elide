@@ -79,6 +79,48 @@ public class FilterPredicatePushdownExtractorTest {
     }
 
     @Test
+    public void testAndPartialPredicateExtraction() {
+        FilterExpression dataStoreExpression =
+                new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
+
+        FilterExpression anotherDataStoreExpression =
+                new InPredicate(new Path(Book.class, dictionary, "genre"), "Science Fiction");
+
+        FilterExpression expectedExpression =
+                new AndFilterExpression(dataStoreExpression, anotherDataStoreExpression);
+
+        FilterExpression inMemoryExpression =
+                new InPredicate(new Path(Book.class, dictionary, "editor.firstName"), "Jack");
+
+        FilterExpression finalExpression = new AndFilterExpression(new AndFilterExpression(dataStoreExpression, inMemoryExpression), anotherDataStoreExpression);
+
+        FilterExpression extracted = FilterPredicatePushdownExtractor.extractPushDownPredicate(dictionary, finalExpression);
+
+        assertEquals(expectedExpression, extracted);
+    }
+
+    @Test
+    public void testOrPartialPredicateExtraction() {
+        FilterExpression dataStoreExpression =
+                new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
+
+        FilterExpression anotherDataStoreExpression =
+                new InPredicate(new Path(Book.class, dictionary, "genre"), "Science Fiction");
+
+        FilterExpression expectedExpression =
+                new OrFilterExpression(dataStoreExpression, anotherDataStoreExpression);
+
+        FilterExpression inMemoryExpression =
+                new InPredicate(new Path(Book.class, dictionary, "editor.firstName"), "Jane");
+
+        FilterExpression finalExpression = new OrFilterExpression(new AndFilterExpression(dataStoreExpression, inMemoryExpression), anotherDataStoreExpression);
+
+        FilterExpression extracted = FilterPredicatePushdownExtractor.extractPushDownPredicate(dictionary, finalExpression);
+
+        assertEquals(expectedExpression, extracted);
+    }
+
+    @Test
     public void testInvalidField() {
         InvalidValueException e = assertThrows(
                 InvalidValueException.class,
