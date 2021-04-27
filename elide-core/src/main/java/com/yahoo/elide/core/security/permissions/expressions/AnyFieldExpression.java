@@ -43,6 +43,11 @@ public class AnyFieldExpression implements Expression {
     }
 
     @Override
+    public <T> T accept(ExpressionVisitor<T> visitor) {
+        return visitor.visitExpression(this);
+    }
+
+    @Override
     public String toString() {
         return String.format("%s FOR EXPRESSION [(FIELDS(%s)) OR (ENTITY(%s))]",
                 condition, fieldExpression, entityExpression);
