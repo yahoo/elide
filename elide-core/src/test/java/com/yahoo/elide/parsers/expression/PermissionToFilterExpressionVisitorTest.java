@@ -33,6 +33,11 @@ import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.core.security.permissions.ExpressionResultCache;
+import com.yahoo.elide.core.security.permissions.expressions.CheckExpression;
+import com.yahoo.elide.core.security.permissions.expressions.Expression;
+import com.yahoo.elide.core.security.visitors.PermissionExpressionNormalizationVisitor;
+import com.yahoo.elide.core.security.visitors.PermissionExpressionVisitor;
 import com.yahoo.elide.core.security.visitors.PermissionToFilterExpressionVisitor;
 import com.yahoo.elide.core.type.Type;
 import example.Author;
@@ -51,13 +56,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 @SuppressWarnings("StringEquality")
 public class PermissionToFilterExpressionVisitorTest {
     private static final Path.PathElement AUTHOR_PATH = new Path.PathElement(Author.class, Book.class, "books");
     private static final Path.PathElement BOOK_PATH = new Path.PathElement(Book.class, String.class, "title");
-    private static final FilterExpressionNormalizationVisitor NORMALIZATION_VISITOR = new FilterExpressionNormalizationVisitor();
+    private static final PermissionExpressionNormalizationVisitor NORMALIZATION_VISITOR = new PermissionExpressionNormalizationVisitor();
 
     private static final FilterExpression IN_PREDICATE = createDummyPredicate(Operator.IN);
     private static final FilterExpression NOT_IN_PREDICATE = createDummyPredicate(Operator.NOT);
@@ -84,6 +90,7 @@ public class PermissionToFilterExpressionVisitorTest {
     private EntityDictionary dictionary;
     private RequestScope requestScope;
     private ElideSettings elideSettings;
+    private ExpressionResultCache cache;
 
     @BeforeEach
     public void setupEntityDictionary() {
@@ -105,6 +112,7 @@ public class PermissionToFilterExpressionVisitorTest {
                 .build();
 
         requestScope = newRequestScope();
+        cache = new ExpressionResultCache();
     }
 
     ///
@@ -164,13 +172,11 @@ public class PermissionToFilterExpressionVisitorTest {
                                             String innerPerm =
                                                     String.format("%s %s %s", innerLeft, innerOp, innerRight);
 
-                                            FilterExpression innerExpr = buildFilter(innerLeft, innerOp, innerRight);
-
                                             return Arguments.of(
                                                     left,
                                                     outerOp,
                                                     innerPerm,
-                                                    buildFilter(left, outerOp, innerExpr));
+                                                    buildFilter(left, outerOp, innerLeft, innerOp, innerRight));
                                         })
                                 ).reduce(Stream.empty(), Stream::concat)
                         ).reduce(Stream.empty(), Stream::concat)
@@ -237,9 +243,14 @@ public class PermissionToFilterExpressionVisitorTest {
     }
 
     private FilterExpression filterExpressionForPermissions(String permission) {
+        Function<Check, Expression> checkFn = (check) ->
+                new CheckExpression(check, null, requestScope, null, cache);
         ParseTree expression = EntityPermissions.parseExpression(permission);
         PermissionToFilterExpressionVisitor fev = new PermissionToFilterExpressionVisitor(dictionary, requestScope, null);
-        return fev.visit(expression).accept(NORMALIZATION_VISITOR);
+        return expression
+                .accept(new PermissionExpressionVisitor(dictionary, checkFn))
+                .accept(NORMALIZATION_VISITOR)
+                .accept(fev);
     }
 
     private static boolean isSpecialCase(FilterExpression expr) {
@@ -337,17 +348,32 @@ public class PermissionToFilterExpressionVisitorTest {
         return null;
     }
 
-    private static FilterExpression buildFilter(String left, String op, FilterExpression rightExpr) {
+    private static FilterExpression buildFilter(String left, String op, String innerLeft, String innerOp, String innerRight) {
         FilterExpression leftExpr = filterFor(left);
         switch (op) {
             case AND:
-                return filterForAndOf(leftExpr, rightExpr);
+                return filterForAndOf(leftExpr, buildFilter(innerLeft, innerOp, innerRight));
             case OR:
-                return filterForOrOf(leftExpr, rightExpr);
+                return filterForOrOf(leftExpr, buildFilter(innerLeft, innerOp, innerRight));
             case AND_NOT:
-                return filterForAndOf(leftExpr, negate(rightExpr));
+                return filterForAndOf(leftExpr, buildNotFilter(innerLeft, innerOp, innerRight));
             case OR_NOT:
-                return filterForOrOf(leftExpr, negate(rightExpr));
+                return filterForOrOf(leftExpr, buildNotFilter(innerLeft, innerOp, innerRight));
+        }
+        return null;
+    }
+
+    private static FilterExpression buildNotFilter(String left, String op, String right) {
+        FilterExpression leftExpr = negate(filterFor(left));
+        switch (op) {
+            case AND:
+                return filterForOrOf(leftExpr, negate(filterFor(right)));
+            case OR:
+                return filterForAndOf(leftExpr, negate(filterFor(right)));
+            case AND_NOT:
+                return filterForOrOf(leftExpr, filterFor(right));
+            case OR_NOT:
+                return filterForAndOf(leftExpr, filterFor(right));
         }
         return null;
     }
