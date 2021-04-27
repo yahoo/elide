@@ -18,6 +18,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.EscapingStrategy;
@@ -100,8 +101,8 @@ public class TableContext extends HashMap<String, Object> {
             return applyQuotes(resolvedExpr, queryable.getConnectionDetails().getDialect());
         }
 
-        if (this.queryable.getJoins().containsKey(key)) {
-            SQLJoin sqlJoin = this.queryable.getJoins().get(key);
+        if (this.hasJoin(keyStr)) {
+            SQLJoin sqlJoin = this.getJoin(keyStr);
             Queryable joinQueryable = metaDataStore.getTable(sqlJoin.getJoinTableType());
             TableContext newCtx = TableContext.builder()
                             .queryable(joinQueryable)
@@ -110,7 +111,9 @@ public class TableContext extends HashMap<String, Object> {
                             .build();
 
             // Copy $$column to join context.
-            newCtx.put(COL_PREFIX, this.get(COL_PREFIX));
+            if (this.containsKey(COL_PREFIX)) {
+                newCtx.put(COL_PREFIX, this.get(COL_PREFIX));
+            }
             return newCtx;
         }
 
@@ -265,5 +268,17 @@ public class TableContext extends HashMap<String, Object> {
         return availableArgs.stream()
                         .filter(arg -> arg.getDefaultValue() != null)
                         .collect(Collectors.toMap(Argument::getName, Argument::getDefaultValue));
+    }
+
+    public SQLDialect getDialect() {
+        return this.queryable.getConnectionDetails().getDialect();
+    }
+
+    public SQLJoin getJoin(String joinName) {
+        return this.queryable.getJoins().get(joinName);
+    }
+
+    public boolean hasJoin(String joinName) {
+        return this.queryable.getJoins().containsKey(joinName);
     }
 }
