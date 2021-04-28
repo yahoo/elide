@@ -47,6 +47,12 @@
                         "description": "Read permission for the Namespace.",
                         "type": "string",
                         "default": "Prefab.Role.All"
+                    },
+                    "apiVersion": {
+                        "title": "Namespace apiVersion",
+                        "description": "Api Version for the Namespace.",
+                        "type": "string",
+                        "default": ""
                     }
                 }
             }
