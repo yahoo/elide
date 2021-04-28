@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.parsers.expression;
 
-import com.yahoo.elide.core.CheckInstantiator;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
@@ -15,8 +14,6 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.generated.parsers.ExpressionBaseVisitor;
-import com.yahoo.elide.generated.parsers.ExpressionParser;
 import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.Check;

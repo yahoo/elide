@@ -16,7 +16,6 @@ import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.parsers.expression.FilterExpressionNormalizationVisitor;
 import com.yahoo.elide.parsers.expression.PermissionExpressionNormalizationVisitor;
 import com.yahoo.elide.parsers.expression.PermissionExpressionVisitor;
 import com.yahoo.elide.parsers.expression.PermissionToFilterExpressionVisitor;
