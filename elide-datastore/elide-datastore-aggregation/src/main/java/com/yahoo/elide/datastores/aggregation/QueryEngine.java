@@ -92,9 +92,7 @@ public abstract class QueryEngine {
      * @param namespacePackage NamespacePackage Type
      * @return constructed Namespace
      */
-    protected Namespace constructNamespace(com.yahoo.elide.core.type.Package namespacePackage) {
-        return new Namespace(namespacePackage);
-    }
+    protected abstract Namespace constructNamespace(com.yahoo.elide.core.type.Package namespacePackage);
 
     /**
      * Construct Table metadata for an entity.

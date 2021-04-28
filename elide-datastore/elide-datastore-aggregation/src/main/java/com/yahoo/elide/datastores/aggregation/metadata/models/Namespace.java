@@ -5,7 +5,10 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
+import com.yahoo.elide.annotation.ApiVersion;
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.annotation.NamespaceMeta;
 
 import lombok.EqualsAndHashCode;
@@ -33,6 +36,9 @@ public class Namespace {
 
     private final String description;
 
+    @Exclude
+    private final String version;
+
     @OneToMany
     private Set<Table> tables;
 
@@ -48,6 +54,9 @@ public class Namespace {
             friendlyName = pkg.getName();
             description = null;
         }
+
+        ApiVersion apiVersion = pkg.getDeclaredAnnotation(ApiVersion.class);
+        version = (apiVersion == null) ? EntityDictionary.NO_VERSION : apiVersion.version();
     }
 
     public void addTable(Table table) {

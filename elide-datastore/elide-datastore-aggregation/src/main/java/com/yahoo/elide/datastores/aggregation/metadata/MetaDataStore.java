@@ -30,7 +30,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-import com.yahoo.elide.modelconfig.model.NamespaceConfig;
 
 import org.hibernate.annotations.Subselect;
 import lombok.Getter;
@@ -115,12 +114,8 @@ public class MetaDataStore implements DataStore {
         // Add default namespace if not present.
         if (namespaces.stream().noneMatch(namespace ->
                 namespace.getName().toLowerCase(Locale.ENGLISH).equals("default"))) {
-            // add "default"
-            NamespaceConfig namespaceConfig = new NamespaceConfig();
-            namespaceConfig.setName("default");
-            namespaceConfig.setDescription("Default Namespace");
-            namespaceConfig.setFriendlyName("default");
-            NamespacePackage namespacePackage = new NamespacePackage(namespaceConfig);
+            // add "default" namespace with default ApiVersion = ""
+            NamespacePackage namespacePackage = new NamespacePackage("default", "Default Namespace", "default");
             this.namespacesToBind.add(namespacePackage);
         }
 
@@ -239,8 +234,8 @@ public class MetaDataStore implements DataStore {
      * @param namespace Namespace metadata
      */
     public void addNamespace(Namespace namespace) {
-        // Add/Replicate Namespace for each version
-        hashMapDataStores.keySet().forEach(version -> addMetaData(namespace, version));
+        String version = namespace.getVersion();
+        addMetaData(namespace, version);
     }
 
     /**

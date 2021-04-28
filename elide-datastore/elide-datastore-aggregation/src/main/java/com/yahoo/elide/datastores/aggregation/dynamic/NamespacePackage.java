@@ -5,7 +5,9 @@
  */
 package com.yahoo.elide.datastores.aggregation.dynamic;
 
+import com.yahoo.elide.annotation.ApiVersion;
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Package;
 import com.yahoo.elide.datastores.aggregation.annotation.NamespaceMeta;
 import com.yahoo.elide.modelconfig.model.NamespaceConfig;
@@ -24,6 +26,10 @@ public class NamespacePackage implements Package {
     public NamespacePackage(NamespaceConfig namespace) {
         this.namespace = namespace;
         this.annotations = buildAnnotations(namespace);
+    }
+
+    public NamespacePackage(String name, String description, String friendlyName) {
+        this(new NamespaceConfig(name, friendlyName, description, EntityDictionary.NO_VERSION));
     }
 
     @Override
@@ -78,6 +84,19 @@ public class NamespacePackage implements Package {
                 return namespace.getDescription();
             }
         });
+
+        annotations.put(ApiVersion.class, new ApiVersion() {
+            @Override
+            public String version() {
+                return namespace.getApiVersion();
+            }
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return ApiVersion.class;
+            }
+        });
+
         return annotations;
     }
 }

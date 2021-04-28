@@ -18,6 +18,7 @@ import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
@@ -111,6 +112,11 @@ public class SQLQueryEngine extends QueryEngine {
             throw new IllegalStateException(e);
         }
     };
+
+    @Override
+    protected Namespace constructNamespace(com.yahoo.elide.core.type.Package namespacePackage) {
+        return new Namespace(namespacePackage);
+    }
 
     @Override
     protected Table constructTable(Type<?> entityClass, EntityDictionary metaDataDictionary) {
