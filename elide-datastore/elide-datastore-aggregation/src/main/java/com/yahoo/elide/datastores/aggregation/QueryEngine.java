@@ -144,8 +144,8 @@ public abstract class QueryEngine {
      */
     protected void populateMetaData(MetaDataStore metaDataStore) {
         metaDataStore.getNamespacesToBind().stream()
-        .map(namespace -> constructNamespace(namespace))
-        .forEach(metaDataStore::addNamespace);
+                .map(namespace -> constructNamespace(namespace))
+                .forEach(metaDataStore::addNamespace);
 
         metaDataStore.getModelsToBind()
                 .forEach(model -> {
