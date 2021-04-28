@@ -13,6 +13,9 @@ import com.yahoo.elide.core.security.permissions.expressions.ExpressionVisitor;
 import com.yahoo.elide.core.security.permissions.expressions.NotExpression;
 import com.yahoo.elide.core.security.permissions.expressions.OrExpression;
 
+/**
+ * Expression Visitor to normalize Permission expression.
+ */
 public class PermissionExpressionNormalizationVisitor implements ExpressionVisitor<Expression> {
     @Override
     public Expression visitExpression(Expression expression) {

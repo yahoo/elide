@@ -6,6 +6,10 @@
 
 package com.yahoo.elide.core.security.permissions.expressions;
 
+/**
+ * Visitor which walks the permission expression abstract syntax tree.
+ * @param <T> The return type of the visitor
+ */
 public interface ExpressionVisitor<T> {
     T visitExpression(Expression expression);
     T visitCheckExpression(CheckExpression checkExpression);
