@@ -25,7 +25,6 @@ import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
-import com.yahoo.elide.core.filter.visitors.FilterExpressionNormalizationVisitor;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;

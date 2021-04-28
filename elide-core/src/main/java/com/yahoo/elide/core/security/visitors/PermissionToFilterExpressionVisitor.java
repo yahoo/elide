@@ -14,7 +14,6 @@ import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
-import com.yahoo.elide.core.security.CheckInstantiator;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
@@ -26,8 +25,6 @@ import com.yahoo.elide.core.security.permissions.expressions.ExpressionVisitor;
 import com.yahoo.elide.core.security.permissions.expressions.NotExpression;
 import com.yahoo.elide.core.security.permissions.expressions.OrExpression;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.generated.parsers.ExpressionBaseVisitor;
-import com.yahoo.elide.generated.parsers.ExpressionParser;
 
 import java.util.Objects;
 
