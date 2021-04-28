@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.parsers.expression;
 
-import com.yahoo.elide.core.CheckInstantiator;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterPredicate;
 import com.yahoo.elide.core.filter.Operator;
@@ -15,12 +14,16 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpressionVisitor;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.generated.parsers.ExpressionBaseVisitor;
-import com.yahoo.elide.generated.parsers.ExpressionParser;
 import com.yahoo.elide.security.FilterExpressionCheck;
 import com.yahoo.elide.security.RequestScope;
 import com.yahoo.elide.security.checks.Check;
 import com.yahoo.elide.security.checks.UserCheck;
+import com.yahoo.elide.security.permissions.expressions.AndExpression;
+import com.yahoo.elide.security.permissions.expressions.CheckExpression;
+import com.yahoo.elide.security.permissions.expressions.Expression;
+import com.yahoo.elide.security.permissions.expressions.ExpressionVisitor;
+import com.yahoo.elide.security.permissions.expressions.NotExpression;
+import com.yahoo.elide.security.permissions.expressions.OrExpression;
 
 import java.util.Objects;
 
@@ -33,8 +36,7 @@ import java.util.Objects;
  *      1. User define FilterExpressionCheck which returns null in getFilterExpression function.
  *      2. User put a FilterExpressionCheck with a non-userCheck type check in OR relation.
  */
-public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<FilterExpression>
-        implements CheckInstantiator {
+public class PermissionToFilterExpressionVisitor implements ExpressionVisitor<FilterExpression> {
     private final EntityDictionary dictionary;
     private final Class entityClass;
     private final RequestScope requestScope;
@@ -90,8 +92,8 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
     }
 
     @Override
-    public FilterExpression visitNOT(ExpressionParser.NOTContext ctx) {
-        FilterExpression expression = visit(ctx.expression());
+    public FilterExpression visitNotExpression(NotExpression notExpression) {
+        FilterExpression expression = notExpression.getLogical().accept(this);
         if (Objects.equals(expression, TRUE_USER_CHECK_EXPRESSION)) {
             return FALSE_USER_CHECK_EXPRESSION;
         } else if (Objects.equals(expression, FALSE_USER_CHECK_EXPRESSION)) {
@@ -99,13 +101,16 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
         } else if (Objects.equals(expression, NO_EVALUATION_EXPRESSION)) {
             return NO_EVALUATION_EXPRESSION;
         }
+        if (expression instanceof FilterPredicate) {
+            return ((FilterPredicate) expression).negate();
+        }
         return new NotFilterExpression(expression);
     }
 
     @Override
-    public FilterExpression visitOR(ExpressionParser.ORContext ctx) {
-        FilterExpression left = visit(ctx.left);
-        FilterExpression right = visit(ctx.right);
+    public FilterExpression visitOrExpression(OrExpression orExpression) {
+        FilterExpression left = orExpression.getLeft().accept(this);
+        FilterExpression right = orExpression.getRight().accept(this);
 
         if (expressionWillNotFilter(left)) {
             return left;
@@ -131,9 +136,9 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
     }
 
     @Override
-    public FilterExpression visitAND(ExpressionParser.ANDContext ctx) {
-        FilterExpression left = visit(ctx.left);
-        FilterExpression right = visit(ctx.right);
+    public FilterExpression visitAndExpression(AndExpression andExpression) {
+        FilterExpression left = andExpression.getLeft().accept(this);
+        FilterExpression right = andExpression.getRight().accept(this);
 
         // (FALSE_USER_CHECK_EXPRESSION AND FilterExpression) => FALSE_USER_CHECK_EXPRESSION
         // (FALSE_USER_CHECK_EXPRESSION AND NO_EVALUATION_EXPRESSION) => FALSE_USER_CHECK_EXPRESSION
@@ -163,8 +168,8 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
     }
 
     @Override
-    public FilterExpression visitPermissionClass(ExpressionParser.PermissionClassContext ctx) {
-        Check check = getCheck(dictionary, ctx.getText());
+    public FilterExpression visitCheckExpression(CheckExpression checkExpression) {
+        Check check = checkExpression.getCheck();
         if (check instanceof FilterExpressionCheck) {
             FilterExpressionCheck filterCheck = (FilterExpressionCheck) check;
             FilterExpression filterExpression = filterCheck.getFilterExpression(entityClass, requestScope);
@@ -191,7 +196,7 @@ public class PermissionToFilterExpressionVisitor extends ExpressionBaseVisitor<F
     }
 
     @Override
-    public FilterExpression visitPAREN(ExpressionParser.PARENContext ctx) {
-        return visit(ctx.expression());
+    public FilterExpression visitExpression(Expression expression) {
+        return NO_EVALUATION_EXPRESSION;
     }
 }

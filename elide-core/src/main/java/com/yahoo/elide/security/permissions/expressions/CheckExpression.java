@@ -20,6 +20,7 @@ import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.ExpressionResultCache;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
@@ -30,6 +31,7 @@ import java.util.Optional;
 @Slf4j
 public class CheckExpression implements Expression {
 
+    @Getter
     protected final Check check;
     protected final PersistentResource resource;
     protected final RequestScope requestScope;
@@ -103,6 +105,11 @@ public class CheckExpression implements Expression {
 
         log.trace("-- Check returned with result: {}", result);
         return result;
+    }
+
+    @Override
+    public <T> T accept(ExpressionVisitor<T> visitor) {
+        return visitor.visitCheckExpression(this);
     }
 
     /**

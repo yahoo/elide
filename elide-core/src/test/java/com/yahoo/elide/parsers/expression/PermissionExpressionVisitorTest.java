@@ -21,6 +21,7 @@ import com.yahoo.elide.security.checks.UserCheck;
 import com.yahoo.elide.security.checks.prefab.Role;
 import com.yahoo.elide.security.permissions.ExpressionResult;
 import com.yahoo.elide.security.permissions.expressions.Expression;
+import com.yahoo.elide.security.permissions.expressions.ExpressionVisitor;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.junit.jupiter.api.BeforeEach;
@@ -151,6 +152,11 @@ public class PermissionExpressionVisitorTest {
                 return ExpressionResult.PASS;
             }
             return ExpressionResult.FAIL;
+        }
+
+        @Override
+        public <T> T accept(ExpressionVisitor<T> visitor) {
+            return visitor.visitExpression(this);
         }
     }
 }

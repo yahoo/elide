@@ -11,11 +11,15 @@ import static com.yahoo.elide.security.permissions.ExpressionResult.PASS;
 
 import com.yahoo.elide.security.permissions.ExpressionResult;
 
+import lombok.Getter;
+
 /**
  * Representation for an "And" expression.
  */
 public class AndExpression implements Expression {
+    @Getter
     private final Expression left;
+    @Getter
     private final Expression right;
 
     /**
@@ -49,6 +53,11 @@ public class AndExpression implements Expression {
         }
 
         return DEFERRED;
+    }
+
+    @Override
+    public <T> T accept(ExpressionVisitor<T> visitor) {
+        return visitor.visitAndExpression(this);
     }
 
     @Override

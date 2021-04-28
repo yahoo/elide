@@ -33,6 +33,8 @@ public interface Expression {
      */
     ExpressionResult evaluate(EvaluationMode mode);
 
+    public <T> T accept(ExpressionVisitor<T> visitor);
+
     /**
      * Static Expressions that return PASS or FAIL.
      */
@@ -44,6 +46,11 @@ public interface Expression {
             }
 
             @Override
+            public <T> T accept(ExpressionVisitor<T> visitor) {
+                return visitor.visitExpression(this);
+            }
+
+            @Override
             public String toString() {
                 return ansi().fg(Ansi.Color.GREEN).a("SUCCESS").reset().toString();
             }
@@ -52,6 +59,11 @@ public interface Expression {
             @Override
             public ExpressionResult evaluate(EvaluationMode ignored) {
                 return ExpressionResult.FAIL;
+            }
+
+            @Override
+            public <T> T accept(ExpressionVisitor<T> visitor) {
+                return visitor.visitExpression(this);
             }
 
             @Override
