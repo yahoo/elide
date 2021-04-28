@@ -5,9 +5,12 @@
  */
 package com.yahoo.elide.modelconfig.model;
 
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,7 +24,8 @@ import lombok.NoArgsConstructor;
     "name",
     "friendlyName",
     "readAccess",
-    "description"
+    "description",
+    "apiVersion"
 })
 @Data
 @EqualsAndHashCode()
@@ -40,4 +44,14 @@ public class NamespaceConfig implements Named {
 
     @JsonProperty("description")
     private String description;
+
+    @JsonProperty("apiVersion")
+    private String apiVersion = EntityDictionary.NO_VERSION;
+
+    public NamespaceConfig(String name, String description, String friendlyName, String apiVersion) {
+        this.name = name;
+        this.friendlyName = friendlyName;
+        this.description = description;
+        this.apiVersion = apiVersion;
+    }
 }
