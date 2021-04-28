@@ -34,11 +34,9 @@ public class SpecificFieldExpression implements Expression {
     @Override
     public ExpressionResult evaluate(EvaluationMode mode) {
         if (!fieldExpression.isPresent()) {
-            ExpressionResult entityResult = (entityExpression == null) ? PASS : entityExpression.evaluate(mode);
-            return entityResult;
+            return (entityExpression == null) ? PASS : entityExpression.evaluate(mode);
         }
-        ExpressionResult fieldResult = fieldExpression.get().evaluate(mode);
-        return fieldResult;
+        return fieldExpression.get().evaluate(mode);
     }
 
     @Override

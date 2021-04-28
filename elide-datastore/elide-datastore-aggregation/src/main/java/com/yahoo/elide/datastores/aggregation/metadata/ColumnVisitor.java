@@ -48,13 +48,11 @@ public abstract class ColumnVisitor<T> {
     public final T visitColumn(Queryable parent, ColumnProjection column)  {
         if (column instanceof MetricProjection) {
             return visitFormulaMetric(parent, (MetricProjection) column);
-        } else {
-            if (column.getColumnType() == ColumnType.FORMULA) {
-                return visitFormulaDimension(parent, column);
-            } else {
-                return visitFieldDimension(parent, column);
-            }
         }
+        if (column.getColumnType() == ColumnType.FORMULA) {
+            return visitFormulaDimension(parent, column);
+        }
+        return visitFieldDimension(parent, column);
     }
 
 

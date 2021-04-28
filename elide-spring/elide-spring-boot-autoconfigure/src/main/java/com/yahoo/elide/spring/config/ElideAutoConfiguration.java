@@ -36,7 +36,6 @@ import com.yahoo.elide.datastores.multiplex.MultiplexManager;
 import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
 import com.yahoo.elide.modelconfig.DynamicConfiguration;
-import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 
@@ -107,13 +106,7 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(name = "elide.aggregation-store.enabled", havingValue = "true")
     public DBPasswordExtractor getDBPasswordExtractor() {
-
-        return new DBPasswordExtractor() {
-            @Override
-            public String getDBPassword(DBConfig config) {
-                return StringUtils.EMPTY;
-            }
-        };
+        return config -> StringUtils.EMPTY;
     }
 
     /**
@@ -276,10 +269,9 @@ public class ElideAutoConfiguration {
 
             return new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap,
                     new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))));
-        } else {
-            MetaDataStore metaDataStore = new MetaDataStore(enableMetaDataStore);
-            return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
         }
+        MetaDataStore metaDataStore = new MetaDataStore(enableMetaDataStore);
+        return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
     }
 
     /**
@@ -370,9 +362,7 @@ public class ElideAutoConfiguration {
 
         SwaggerBuilder builder = new SwaggerBuilder(dictionary, info).withLegacyFilterDialect(false);
 
-        Swagger swagger = builder.build().basePath(settings.getJsonApi().getPath());
-
-        return swagger;
+        return builder.build().basePath(settings.getJsonApi().getPath());
     }
 
     private boolean isDynamicConfigEnabled(ElideConfigProperties settings) {

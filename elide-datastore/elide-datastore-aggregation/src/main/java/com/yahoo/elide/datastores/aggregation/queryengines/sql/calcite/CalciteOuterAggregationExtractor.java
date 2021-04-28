@@ -55,11 +55,10 @@ public class CalciteOuterAggregationExtractor extends SqlBasicVisitor<SqlNode> {
             } catch (SqlParseException e) {
                 throw new IllegalStateException(e);
             }
-        } else {
-            for (int idx = 0; idx < call.getOperandList().size(); idx++) {
-                SqlNode operand = call.getOperandList().get(idx);
-                call.setOperand(idx, operand.accept(this));
-            }
+        }
+        for (int idx = 0; idx < call.getOperandList().size(); idx++) {
+            SqlNode operand = call.getOperandList().get(idx);
+            call.setOperand(idx, operand.accept(this));
         }
 
         return call;

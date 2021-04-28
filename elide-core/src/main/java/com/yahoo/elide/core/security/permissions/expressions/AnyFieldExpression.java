@@ -38,8 +38,7 @@ public class AnyFieldExpression implements Expression {
             return fieldResult;
         }
 
-        ExpressionResult entityResult = (entityExpression == null) ? PASS : entityExpression.evaluate(mode);
-        return entityResult;
+        return (entityExpression == null) ? PASS : entityExpression.evaluate(mode);
     }
 
     @Override

@@ -8,7 +8,6 @@ package com.yahoo.elide.standalone.config;
 import com.yahoo.elide.datastores.aggregation.cache.CaffeineCache;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.modelconfig.DBPasswordExtractor;
-import com.yahoo.elide.modelconfig.model.DBConfig;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -70,12 +69,7 @@ public interface ElideStandaloneAnalyticSettings {
      * @return An instance of DBPasswordExtractor.
      */
     default DBPasswordExtractor getDBPasswordExtractor() {
-        return new DBPasswordExtractor() {
-            @Override
-            public String getDBPassword(DBConfig config) {
-                return StringUtils.EMPTY;
-            }
-        };
+        return config -> StringUtils.EMPTY;
     }
 
     /**

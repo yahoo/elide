@@ -189,8 +189,7 @@ public class DefaultAsyncAPIDAO implements AsyncAPIDAO {
                         .type(type)
                         .filterExpression(filterExpression)
                         .build();
-                Iterable<Object> loaded = tx.loadObjects(asyncAPIIterable, scope);
-                return loaded;
+                return tx.loadObjects(asyncAPIIterable, scope);
             });
         } catch (Exception e) {
             log.error("Exception: {}", e.toString());

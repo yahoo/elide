@@ -36,7 +36,7 @@ public class NamespaceConfig implements Named {
     private String friendlyName;
 
     @JsonProperty("readAccess")
-    private String readAccess = "Prefab.Role.All";;
+    private String readAccess = "Prefab.Role.All";
 
     @JsonProperty("description")
     private String description;

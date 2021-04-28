@@ -134,9 +134,9 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
             predicates.stream().forEach((predicate -> {
                 Map<String, Argument> arguments = new HashMap<>();
 
-                predicate.getPath().lastElement().get().getArguments().forEach((argument -> {
-                    arguments.put(argument.getName(), argument);
-                }));
+                predicate.getPath().lastElement().get().getArguments().forEach(argument ->
+                    arguments.put(argument.getName(), argument)
+                );
 
                 ColumnProjection projection = query.getSource().getColumnProjection(predicate.getField(), arguments);
 
