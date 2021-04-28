@@ -39,14 +39,6 @@ public class NamespacePackage implements Package {
         return namespace.getName();
     }
 
-    public String getDescription() {
-        return namespace.getDescription();
-    }
-
-    public String getFriendlyName() {
-        return namespace.getFriendlyName();
-    }
-
     @Override
     public Package getParentPackage() {
         return null;
