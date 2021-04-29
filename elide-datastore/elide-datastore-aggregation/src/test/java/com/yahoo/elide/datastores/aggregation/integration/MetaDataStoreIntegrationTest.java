@@ -96,8 +96,29 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
-    public void tableMetaDataTest() {
-
+    public void metaDataTest() {
+        given()
+                .accept("application/vnd.api+json")
+                .get("/namespace/SalesNamespace")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("SalesNamespace"))
+                .body("data.attributes.friendlyName", equalTo("Sales"));
+        given()
+                .accept("application/vnd.api+json")
+                .get("/namespace/DEFault") //"DEFault" namespace overrides "default" namespace
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("DEFault"))
+                .body("data.attributes.friendlyName", equalTo("DEFAULT"));
+        given()
+                .accept("application/vnd.api+json")
+                .get("/namespace/NoDescriptionNamespace") //"default" namespace added by Agg Store
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("NoDescriptionNamespace"))
+                .body("data.attributes.friendlyName", equalTo("NoDescriptionNamespace")) //No FriendlyName provided, defaulted to name
+                .body("data.attributes.description", equalTo(null)); // No description provided.
         given()
                .accept("application/vnd.api+json")
                .get("/table/planet")

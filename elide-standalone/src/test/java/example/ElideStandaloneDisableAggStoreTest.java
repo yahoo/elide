@@ -89,4 +89,14 @@ public class ElideStandaloneDisableAggStoreTest extends ElideStandaloneTest {
         .then()
         .statusCode(HttpStatus.SC_CREATED);
     }
+
+    @Override
+    @Test
+    public void metaDataTest() {
+        given()
+                .accept("application/vnd.api+json")
+                .get("/api/v1/namespace/default") //"default" namespace added by Agg Store.
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND); // Metadatastore is disabled, so not found.
+    }
 }

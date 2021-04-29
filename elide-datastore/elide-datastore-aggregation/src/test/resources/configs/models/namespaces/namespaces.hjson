@@ -1,0 +1,18 @@
+{
+  namespaces:
+  [
+    {
+      name: SalesNamespace
+      description: Namespace for Sales Schema Tables
+      friendlyName: Sales
+    }
+    {
+      name: NoDescriptionNamespace
+    }
+    {
+      name: DEFault
+      description: Default Namespace
+      friendlyName: DEFAULT
+    }
+  ]
+}

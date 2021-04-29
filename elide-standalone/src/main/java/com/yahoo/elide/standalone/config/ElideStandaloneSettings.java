@@ -471,7 +471,7 @@ public interface ElideStandaloneSettings {
         boolean enableMetaDataStore = getAnalyticProperties().enableMetaDataStore();
 
         return dynamicConfiguration
-                .map(dc -> new MetaDataStore(dc.getTables(), enableMetaDataStore))
+                .map(dc -> new MetaDataStore(dc.getTables(), dc.getNamespaceConfigurations(), enableMetaDataStore))
                 .orElseGet(() -> new MetaDataStore(enableMetaDataStore));
     }
 
