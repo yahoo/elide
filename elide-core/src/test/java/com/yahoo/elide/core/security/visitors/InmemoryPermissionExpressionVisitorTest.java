@@ -1,3 +1,9 @@
+/*
+ * Copyright 2021, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+
 package com.yahoo.elide.core.security.visitors;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
@@ -42,6 +48,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 
 import javax.persistence.Entity;
 
@@ -52,6 +59,7 @@ public class InmemoryPermissionExpressionVisitorTest {
     private PermissionExpressionNormalizationVisitor normalizationVisitor;
     private Stringify stringify;
     private RequestScope requestScope;
+    private ExpressionResultCache cache;
 
     @Entity
     @Include
@@ -94,6 +102,7 @@ public class InmemoryPermissionExpressionVisitorTest {
         requestScope = new RequestScope(null, null, NO_VERSION, null, null, null, null, null, UUID.randomUUID(), elideSettings);
         stringify = new Stringify();
         normalizationVisitor = new PermissionExpressionNormalizationVisitor();
+        cache = new ExpressionResultCache();
 
 
     }
@@ -114,10 +123,10 @@ public class InmemoryPermissionExpressionVisitorTest {
 
         //Only filter check is present. Should have run in memory
         permissionString = "filter check";
-        expectedExpressionToString = "DatastoreEvalFilterExpressionCheck{" +
-                        "executedInMemory=false, " +
-                        "negated=false, " +
-                        "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck}";
+        expectedExpressionToString = "DatastoreEvalFilterExpressionCheck{"
+                + "executedInMemory=false, "
+                + "negated=false, "
+                + "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck}";
         exececuteAndCheckPermission(permissionString, inmemoryPermissionVisitor, expectedExpressionToString, ExpressionResult.PASS, false);
 
         permissionString = "user all or filter check";
@@ -125,17 +134,17 @@ public class InmemoryPermissionExpressionVisitorTest {
         exececuteAndCheckPermission(permissionString, inmemoryPermissionVisitor, expectedExpressionToString, ExpressionResult.PASS, false);
 
         permissionString = "user none or filter check";
-        expectedExpressionToString = "DatastoreEvalFilterExpressionCheck{" +
-                        "executedInMemory=false, " +
-                        "negated=false, " +
-                        "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck}";
+        expectedExpressionToString = "DatastoreEvalFilterExpressionCheck{"
+                + "executedInMemory=false, "
+                + "negated=false, "
+                + "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck}";
         exececuteAndCheckPermission(permissionString, inmemoryPermissionVisitor, expectedExpressionToString, ExpressionResult.PASS, false);
 
         permissionString = "user all and filter check";
-        expectedExpressionToString = "DatastoreEvalFilterExpressionCheck{" +
-                        "executedInMemory=false, " +
-                        "negated=false, " +
-                        "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck}";
+        expectedExpressionToString = "DatastoreEvalFilterExpressionCheck{"
+                + "executedInMemory=false, "
+                + "negated=false, "
+                + "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck}";
         exececuteAndCheckPermission(permissionString, inmemoryPermissionVisitor, expectedExpressionToString, ExpressionResult.PASS, false);
 
         permissionString = "filter check and user none";
@@ -160,24 +169,24 @@ public class InmemoryPermissionExpressionVisitorTest {
         // Filter check is assumed to have evaluated in datastore (though filter dim will evaluate to false in memory - caused by group by operation).
         // Inmemory filter should evaluate only operation check hence overall result = true
         permissionString = "operation check and filter check";
-        expectedExpressionToString = "((operation check \u001B[34mWAS UNEVALUATED\u001B[m))" +
-                " AND " +
-                "(DatastoreEvalFilterExpressionCheck{" +
-                "executedInMemory=false, " +
-                "negated=false, " +
-                "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck})";
+        expectedExpressionToString = "((operation check \u001B[34mWAS UNEVALUATED\u001B[m))"
+                + " AND "
+                + "(DatastoreEvalFilterExpressionCheck{"
+                + "executedInMemory=false, "
+                + "negated=false, "
+                + "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck})";
         exececuteAndCheckPermission(permissionString, inmemoryPermissionVisitor, expectedExpressionToString, ExpressionResult.PASS, true);
 
 
         // Not expression present on filter check should not affect the result as datastore handles it.
         // Therefore after normalization we should see any change in toString method except negated value in DatastoreEvalFilterExpressionCheck
         permissionString = "operation check and not filter check";
-        expectedExpressionToString = "((operation check \u001B[34mWAS UNEVALUATED\u001B[m))" +
-                " AND " +
-                "(DatastoreEvalFilterExpressionCheck{" +
-                "executedInMemory=false, " +
-                "negated=true, " +
-                "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck})";
+        expectedExpressionToString = "((operation check \u001B[34mWAS UNEVALUATED\u001B[m))"
+                + " AND "
+                + "(DatastoreEvalFilterExpressionCheck{"
+                + "executedInMemory=false, "
+                + "negated=true, "
+                + "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck})";
         exececuteAndCheckPermission(permissionString, inmemoryPermissionVisitor, expectedExpressionToString, ExpressionResult.PASS, true);
 
         // Evaluates to (NOT (operationcheck = true)) AND (NOT (filter check))
@@ -185,22 +194,22 @@ public class InmemoryPermissionExpressionVisitorTest {
         // => (NOT (operationcheck = true)) AND (true)
         // => false
         permissionString = "not operation check and not filter check";
-        expectedExpressionToString = "(NOT ((operation check \u001B[34mWAS UNEVALUATED\u001B[m)))" +
-                " AND " +
-                "(DatastoreEvalFilterExpressionCheck{" +
-                "executedInMemory=false, " +
-                "negated=true, " +
-                "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck})";
+        expectedExpressionToString = "(NOT ((operation check \u001B[34mWAS UNEVALUATED\u001B[m)))"
+                + " AND "
+                + "(DatastoreEvalFilterExpressionCheck{"
+                + "executedInMemory=false, "
+                + "negated=true, "
+                + "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck})";
         exececuteAndCheckPermission(permissionString, inmemoryPermissionVisitor, expectedExpressionToString, ExpressionResult.FAIL, true);
 
 
         permissionString = "not (operation check or filter check)";
-        expectedExpressionToString = "(NOT ((operation check \u001B[34mWAS UNEVALUATED\u001B[m))) " +
-                "AND " +
-                "(DatastoreEvalFilterExpressionCheck{" +
-                "executedInMemory=true, " +
-                "negated=true, " +
-                "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck})";
+        expectedExpressionToString = "(NOT ((operation check \u001B[34mWAS UNEVALUATED\u001B[m))) "
+                + "AND "
+                + "(DatastoreEvalFilterExpressionCheck{"
+                + "executedInMemory=false, "
+                + "negated=true, "
+                + "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck})";
         exececuteAndCheckPermission(permissionString, inmemoryPermissionVisitor, expectedExpressionToString, ExpressionResult.FAIL, true);
 
 
@@ -209,12 +218,12 @@ public class InmemoryPermissionExpressionVisitorTest {
         // => (operation check = true) OR (filter check = false in memory).
         // => true
         permissionString = "operation check or filter check";
-        expectedExpressionToString = "((operation check \u001B[34mWAS UNEVALUATED\u001B[m))" +
-                " OR " +
-                "(DatastoreEvalFilterExpressionCheck{" +
-                "executedInMemory=true, " +
-                "negated=false, " +
-                "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck})";
+        expectedExpressionToString = "((operation check \u001B[34mWAS UNEVALUATED\u001B[m))"
+                + " OR "
+                + "(DatastoreEvalFilterExpressionCheck{"
+                + "executedInMemory=true, "
+                + "negated=false, "
+                + "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck})";
         exececuteAndCheckPermission(permissionString, inmemoryPermissionVisitor, expectedExpressionToString, ExpressionResult.PASS, true);
 
         // Not expression for operation check changes the result because now we evaluate -
@@ -222,12 +231,12 @@ public class InmemoryPermissionExpressionVisitorTest {
         // => (NOT (true)) OR false
         // => false
         permissionString = "not operation check or filter check";
-        expectedExpressionToString = "(NOT ((operation check \u001B[34mWAS UNEVALUATED\u001B[m)))" +
-                " OR " +
-                "(DatastoreEvalFilterExpressionCheck{" +
-                "executedInMemory=true, " +
-                "negated=false, " +
-                "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck})";
+        expectedExpressionToString = "(NOT ((operation check \u001B[34mWAS UNEVALUATED\u001B[m)))"
+                + " OR "
+                + "(DatastoreEvalFilterExpressionCheck{"
+                + "executedInMemory=true, "
+                + "negated=false, "
+                + "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck})";
         exececuteAndCheckPermission(permissionString, inmemoryPermissionVisitor, expectedExpressionToString, ExpressionResult.FAIL, true);
 
 
@@ -236,22 +245,22 @@ public class InmemoryPermissionExpressionVisitorTest {
         // => (NOT (true)) OR (NOT (false))
         // => true
         permissionString = "not operation check or not filter check";
-        expectedExpressionToString = "(NOT ((operation check \u001B[34mWAS UNEVALUATED\u001B[m)))" +
-                " OR " +
-                "(DatastoreEvalFilterExpressionCheck{" +
-                "executedInMemory=true, " +
-                "negated=true, " +
-                "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck})";
+        expectedExpressionToString = "(NOT ((operation check \u001B[34mWAS UNEVALUATED\u001B[m)))"
+                + " OR "
+                + "(DatastoreEvalFilterExpressionCheck{"
+                + "executedInMemory=true, "
+                + "negated=true, "
+                + "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck})";
         exececuteAndCheckPermission(permissionString, inmemoryPermissionVisitor, expectedExpressionToString, ExpressionResult.PASS, true);
 
 
         permissionString = "not (operation check and filter check)";
-        expectedExpressionToString = "(NOT ((operation check \u001B[34mWAS UNEVALUATED\u001B[m)))" +
-                " OR " +
-                "(DatastoreEvalFilterExpressionCheck{" +
-                "executedInMemory=false, " +
-                "negated=true, " +
-                "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck})";
+        expectedExpressionToString = "(NOT ((operation check \u001B[34mWAS UNEVALUATED\u001B[m)))"
+                + " OR "
+                + "(DatastoreEvalFilterExpressionCheck{"
+                + "executedInMemory=true, "
+                + "negated=true, "
+                + "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck})";
         exececuteAndCheckPermission(permissionString, inmemoryPermissionVisitor, expectedExpressionToString, ExpressionResult.PASS, true);
     }
 
@@ -280,14 +289,14 @@ public class InmemoryPermissionExpressionVisitorTest {
 
         // Presence of OR condition changes the filter check to be executed in memory
         permissionString = "operation check or (operation check and filter check)";
-        expectedExpressionToString = "((operation check \u001B[34mWAS UNEVALUATED\u001B[m)) " +
-                "OR " +
-                "(((operation check \u001B[34mWAS UNEVALUATED\u001B[m)) " +
-                "AND " +
-                "(DatastoreEvalFilterExpressionCheck{" +
-                "executedInMemory=true, " +
-                "negated=false, " +
-                "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck}))";
+        expectedExpressionToString = "((operation check \u001B[34mWAS UNEVALUATED\u001B[m)) "
+                + "OR "
+                + "(((operation check \u001B[34mWAS UNEVALUATED\u001B[m)) "
+                + "AND "
+                + "(DatastoreEvalFilterExpressionCheck{"
+                + "executedInMemory=true, "
+                + "negated=false, "
+                + "wrappedFilterExpressionCheck=class com.yahoo.elide.core.security.visitors.InmemoryPermissionExpressionVisitorTest$FilterCheck}))";
         exececuteAndCheckPermission(permissionString, inmemoryPermissionVisitor, expectedExpressionToString, ExpressionResult.FAIL, true);
 
 
@@ -299,11 +308,17 @@ public class InmemoryPermissionExpressionVisitorTest {
                                 ExpressionResult expectedResult,
                                 boolean containsInmemoryComponent) {
 
+        Function<Check, Expression> checkFn = (check) ->
+                new CheckExpression(check, null, requestScope, null, cache);
+
         ParseTree permissions = EntityPermissions.parseExpression(permissionStr);
-        Pair<Expression, Boolean> expressionPair = inmemoryPermissionVisitor.visit(permissions);
-        Expression normalizedExpression = expressionPair.getKey().accept(normalizationVisitor);
-        Assertions.assertEquals(expectedExpressionToString, normalizedExpression.accept(stringify));
-        Assertions.assertEquals(expectedResult, normalizedExpression.evaluate(Expression.EvaluationMode.ALL_CHECKS));
+        Pair<Expression, Boolean> expressionPair = permissions
+                .accept(new PermissionExpressionVisitor(dictionary, checkFn))
+                .accept(normalizationVisitor)
+                .accept(inmemoryPermissionVisitor);
+
+        Assertions.assertEquals(expectedExpressionToString, expressionPair.getKey().accept(stringify));
+        Assertions.assertEquals(expectedResult, expressionPair.getKey().evaluate(Expression.EvaluationMode.ALL_CHECKS));
         Assertions.assertEquals(containsInmemoryComponent, expressionPair.getValue());
 
     }
@@ -342,5 +357,4 @@ public class InmemoryPermissionExpressionVisitorTest {
             return String.format("NOT (%s)", notExpression.getLogical().accept(this));
         }
     }
-
 }

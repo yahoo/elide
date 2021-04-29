@@ -40,10 +40,10 @@ public class DatastoreEvalFilterExpressionCheck<T> extends OperationCheck<T> {
 
     @Override
     public String toString() {
-        return "DatastoreEvalFilterExpressionCheck{" +
-                "executedInMemory=" + executedInMemory +
-                ", negated=" + negated +
-                ", wrappedFilterExpressionCheck=" + wrappedFilterExpressionCheck.getClass() +
-                '}';
+        return "DatastoreEvalFilterExpressionCheck{"
+                + "executedInMemory=" + executedInMemory
+                + ", negated=" + negated
+                + ", wrappedFilterExpressionCheck=" + wrappedFilterExpressionCheck.getClass()
+                + '}';
     }
 }
