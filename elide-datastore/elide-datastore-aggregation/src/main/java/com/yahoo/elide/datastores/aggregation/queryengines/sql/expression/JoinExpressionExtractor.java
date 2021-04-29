@@ -111,7 +111,7 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
             Type<?> joinClass = pathElement.getFieldType();
             String joinFieldName = pathElement.getFieldName();
 
-            SQLJoin sqlJoin = currentCtx.getJoin(joinFieldName);
+            SQLJoin sqlJoin = currentCtx.getQueryable().getJoin(joinFieldName);
 
             TableContext joinCtx;
             String onClause;
@@ -148,8 +148,8 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
                                 dictionary.getAnnotatedColumnName(joinClass, dictionary.getIdFieldName(joinClass)));
             }
 
-            String joinAlias = applyQuotes(joinCtx.getAlias(), currentCtx.getDialect());
-            String joinKeyword = currentCtx.getDialect().getJoinKeyword(joinType);
+            String joinAlias = applyQuotes(joinCtx.getAlias(), currentCtx.getQueryable().getDialect());
+            String joinKeyword = currentCtx.getQueryable().getDialect().getJoinKeyword(joinType);
             String joinSource = constructTableOrSubselect(joinCtx, joinClass);
 
             String fullExpression = String.format("%s %s AS %s %s", joinKeyword, joinSource, joinAlias, onClause);
@@ -184,6 +184,6 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
             return OPEN_BRACKET + selectSql + CLOSE_BRACKET;
         }
 
-        return applyQuotes(resolveTableOrSubselect(dictionary, cls), tableCtx.getDialect());
+        return applyQuotes(resolveTableOrSubselect(dictionary, cls), tableCtx.getQueryable().getDialect());
     }
 }

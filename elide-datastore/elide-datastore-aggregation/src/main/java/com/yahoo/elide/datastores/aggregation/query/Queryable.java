@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 import com.google.common.collect.Streams;
 
@@ -210,9 +211,36 @@ public interface Queryable {
     }
 
     /**
-     * Returns the joins associated with root of this queryable.
+     * Get the joins associated with table source of this queryable.
+     * @return A map of join name and {@link SQLJoin}.
      */
     default Map<String, SQLJoin> getJoins() {
         return this.getRoot().getJoins();
+    }
+
+    /**
+     * Get the join info for the given join column.
+     * @param joinName Join Name.
+     * @return {@link SQLJoin} for the given join column.
+     */
+    default SQLJoin getJoin(String joinName) {
+        return getJoins().get(joinName);
+    }
+
+    /**
+     * Check if table source of this queryable has the given join column.
+     * @param joinName Join Name.
+     * @return true if table source of this queryable has the given join column.
+     */
+    default boolean hasJoin(String joinName) {
+        return getJoins().containsKey(joinName);
+    }
+
+    /**
+     * Get the dialect info for the table source of this queryable.
+     * @return {@link SQLDialect} for the table source.
+     */
+    default SQLDialect getDialect() {
+        return getConnectionDetails().getDialect();
     }
 }
