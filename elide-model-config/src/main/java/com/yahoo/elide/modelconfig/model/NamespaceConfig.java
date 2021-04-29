@@ -51,4 +51,13 @@ public class NamespaceConfig implements Named {
     @Builder.Default
     @JsonProperty("apiVersion")
     private String apiVersion = EntityDictionary.NO_VERSION;
+
+    /**
+     * Returns description of the namespace object.
+     * If null, returns the name.
+     * @return description
+     */
+    public String getDescription() {
+        return (this.description == null ? getName() : this.description);
+    }
 }
