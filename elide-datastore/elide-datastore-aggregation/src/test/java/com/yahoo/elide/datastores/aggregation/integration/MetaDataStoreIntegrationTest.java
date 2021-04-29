@@ -106,16 +106,12 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.friendlyName", equalTo("Sales"));
         given()
                 .accept("application/vnd.api+json")
-                .get("/namespace/DEFault") //"DEFault" namespace overrides "default" namespace
+                .get("/namespace/default")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body("data.attributes.name", equalTo("DEFault"))
-                .body("data.attributes.friendlyName", equalTo("DEFAULT"));
-        given()
-                .accept("application/vnd.api+json")
-                .get("/namespace/default") //"DEFault" namespace overrides "default" namespace, so "default" not found
-                .then()
-                .statusCode(HttpStatus.SC_NOT_FOUND);
+                .body("data.attributes.name", equalTo("default"))
+                .body("data.attributes.friendlyName", equalTo("DEFAULT")) // Overridden value
+                .body("data.attributes.description", equalTo("Default Namespace")); // Overridden value
         given()
                 .accept("application/vnd.api+json")
                 .get("/namespace/NoDescriptionNamespace") //"default" namespace added by Agg Store

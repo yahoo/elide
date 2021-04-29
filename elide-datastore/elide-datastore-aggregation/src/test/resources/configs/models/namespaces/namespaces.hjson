@@ -10,7 +10,7 @@
       name: NoDescriptionNamespace
     }
     {
-      name: DEFault
+      name: default
       description: Default Namespace
       friendlyName: DEFAULT
     }

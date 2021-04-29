@@ -14,6 +14,7 @@ import com.yahoo.elide.modelconfig.jsonformats.ElideJDBCUrlFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideJoinKindFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideJoinTypeFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideNameFormatAttr;
+import com.yahoo.elide.modelconfig.jsonformats.ElideNamespaceNameFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideRSQLFilterFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideRoleFormatAttr;
 import com.yahoo.elide.modelconfig.jsonformats.ElideTimeFieldTypeFormatAttr;
@@ -53,6 +54,8 @@ public class MessageBundleWithElideMessages {
                                         .put(ElideTimeFieldTypeFormatAttr.TYPE_KEY,
                                                         ElideTimeFieldTypeFormatAttr.TYPE_MSG)
                                         .put(ElideNameFormatAttr.FORMAT_KEY, ElideNameFormatAttr.FORMAT_MSG)
+                                        .put(ElideNamespaceNameFormatAttr.FORMAT_KEY,
+                                                        ElideNamespaceNameFormatAttr.FORMAT_MSG)
                                         .put(ElideRSQLFilterFormatAttr.FORMAT_KEY, ElideRSQLFilterFormatAttr.FORMAT_MSG)
                                         .put(JavaClassNameWithExtFormatAttr.FORMAT_KEY,
                                                         JavaClassNameWithExtFormatAttr.FORMAT_MSG)
