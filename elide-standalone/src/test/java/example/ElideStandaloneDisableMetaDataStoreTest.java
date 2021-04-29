@@ -61,10 +61,10 @@ public class ElideStandaloneDisableMetaDataStoreTest extends ElideStandaloneTest
     @Test
     public void swaggerDocumentTest() {
         when()
-        .get("/swagger/doc/test")
-         .then()
-         .statusCode(200)
-         .body("tags.name", containsInAnyOrder("post", "asyncQuery", "postView"));
+                .get("/swagger/doc/test")
+                .then()
+                .statusCode(200)
+                .body("tags.name", containsInAnyOrder("post", "asyncQuery", "postView"));
     }
 
     @Override
