@@ -58,7 +58,7 @@ public class DynamicConfigValidatorTest {
 
         assertEquals("default", child.getNamespace()); //PlayerStatsChild -> no namespace was provided, so defaulted
         assertEquals("PlayerNamespace", parent.getNamespace());
-        assertEquals("default", referred.getNamespace()); // Namespace in HJson "DEfault". Matched case insensitively with "default" namespace
+        assertEquals("default", referred.getNamespace()); // Namespace in HJson "default". Matched case insensitively with "default" namespace
     }
 
     @Test
