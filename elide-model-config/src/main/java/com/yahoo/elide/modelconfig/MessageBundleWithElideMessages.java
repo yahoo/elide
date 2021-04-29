@@ -55,7 +55,9 @@ public class MessageBundleWithElideMessages {
                                                         ElideTimeFieldTypeFormatAttr.TYPE_MSG)
                                         .put(ElideNameFormatAttr.FORMAT_KEY, ElideNameFormatAttr.FORMAT_MSG)
                                         .put(ElideNamespaceNameFormatAttr.FORMAT_KEY,
-                                                        ElideNamespaceNameFormatAttr.FORMAT_MSG)
+                                                        ElideNamespaceNameFormatAttr.FORMAT_KEY_MSG)
+                                        .put(ElideNamespaceNameFormatAttr.FORMAT_ADDITIONAL_KEY,
+                                                ElideNamespaceNameFormatAttr.FORMAT_ADDITIONAL_KEY_MSG)
                                         .put(ElideRSQLFilterFormatAttr.FORMAT_KEY, ElideRSQLFilterFormatAttr.FORMAT_MSG)
                                         .put(JavaClassNameWithExtFormatAttr.FORMAT_KEY,
                                                         JavaClassNameWithExtFormatAttr.FORMAT_MSG)

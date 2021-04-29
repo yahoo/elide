@@ -26,9 +26,13 @@ public class ElideNamespaceNameFormatAttr extends AbstractFormatAttribute {
 
     public static final String FORMAT_NAME = "elideNamespaceName";
     public static final String FORMAT_KEY = "elideNamespaceName.error.format";
-    public static final String FORMAT_MSG =
+    public static final String FORMAT_ADDITIONAL_KEY = "elideNamespaceName.error.additional";
+    public static final String FORMAT_KEY_MSG =
                     "Name [%s] is not allowed. Name must start with an alphabetic character and can include "
                     + "alaphabets, numbers and '_' only. Name must not be a variant of 'default' with different cases.";
+    public static final String FORMAT_ADDITIONAL_KEY_MSG =
+            "Name [%s] clashes with the 'default' namespace. Either change the case or pick a different namespace "
+            + "name.";
     public static final String DEFAULT_NAME = "default";
 
     public ElideNamespaceNameFormatAttr() {
@@ -45,7 +49,7 @@ public class ElideNamespaceNameFormatAttr extends AbstractFormatAttribute {
         }
 
         if (!input.equals(DEFAULT_NAME) && input.toLowerCase(Locale.ENGLISH).equals(DEFAULT_NAME)) {
-            report.error(newMsg(data, bundle, FORMAT_KEY).putArgument("value", input));
+            report.error(newMsg(data, bundle, FORMAT_ADDITIONAL_KEY).putArgument("value", input));
         }
     }
 }

@@ -268,7 +268,7 @@ public class DynamicConfigValidatorTest {
 
         String expected = "Schema validation failed for: test_namespace.hjson\n"
                 + "[ERROR]\n"
-                + "Instance[/namespaces/0/name] failed to validate against schema[/properties/namespaces/items/properties/name]. Name [Default] is not allowed. Name must start with an alphabetic character and can include alaphabets, numbers and '_' only. Name must not be a variant of 'default' with different cases.\n";
+                + "Instance[/namespaces/0/name] failed to validate against schema[/properties/namespaces/items/properties/name]. Name [Default] clashes with the 'default' namespace. Either change the case or pick a different namespace name.\n";
         assertEquals(expected, error);
     }
 
