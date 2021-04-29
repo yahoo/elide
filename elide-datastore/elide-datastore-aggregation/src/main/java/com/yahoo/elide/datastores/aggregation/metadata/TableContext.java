@@ -179,7 +179,7 @@ public class TableContext extends HashMap<String, Object> {
         Map<String, Object> newCtxColumnArgs = new HashMap<>();
 
         Queryable queryable = this.getQueryable();
-        Table table = metaDataStore.getTable(queryable.getName(), queryable.getVersion());
+        Table table = metaDataStore.getTable(queryable.getSource().getName(), queryable.getSource().getVersion());
 
         // Add the default argument values stored in metadata store.
         if (table != null) {
@@ -263,7 +263,7 @@ public class TableContext extends HashMap<String, Object> {
         return (Map<String, ? extends Object>) map.getOrDefault(ARGS_KEY, emptyMap());
     }
 
-    private static Map<String, Object> getDefaultArgumentsMap(Set<Argument> availableArgs) {
+    public static Map<String, Object> getDefaultArgumentsMap(Set<Argument> availableArgs) {
 
         return availableArgs.stream()
                         .filter(arg -> arg.getDefaultValue() != null)

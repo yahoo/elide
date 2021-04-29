@@ -25,7 +25,7 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.JoinReferenceExtractor;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.JoinExpressionExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
@@ -285,11 +285,9 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
         Set<String> joinExpressions = new LinkedHashSet<>();
 
         TableContext tableCtx = referenceTable.getGlobalTableContext(query);
-        JoinReferenceExtractor joinExpressionExtractor =
-                        new JoinReferenceExtractor(tableCtx, column.getArguments(), joinExpressions);
-
+        JoinExpressionExtractor visitor = new JoinExpressionExtractor(tableCtx, column.getArguments());
         List<Reference> references = referenceTable.getReferenceTree(query.getSource(), column.getName());
-        references.forEach(ref -> ref.accept(joinExpressionExtractor));
+        references.forEach(ref -> joinExpressions.addAll(ref.accept(visitor)));
         return joinExpressions;
     }
 
