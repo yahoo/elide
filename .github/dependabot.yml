@@ -1,0 +1,65 @@
+version: 2
+updates:
+- package-ecosystem: maven
+  directory: "/"
+  schedule:
+    interval: weekly
+    time: "13:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: com.jayway.jsonpath:json-path
+    versions:
+    - "> 2.4.0, < 3"
+  - dependency-name: com.jayway.jsonpath:json-path
+    versions:
+    - ">= 2.5.a, < 2.6"
+  - dependency-name: redis.clients:jedis
+    versions:
+    - 3.5.2
+  - dependency-name: org.mockito:mockito-junit-jupiter
+    versions:
+    - 3.8.0
+  - dependency-name: org.projectlombok:lombok
+    versions:
+    - 1.18.18
+  - dependency-name: io.dropwizard.metrics:metrics-servlet
+    versions:
+    - 4.1.18
+  - dependency-name: io.dropwizard.metrics:metrics-servlets
+    versions:
+    - 4.1.18
+  - dependency-name: io.dropwizard.metrics:metrics-core
+    versions:
+    - 4.1.18
+  - dependency-name: org.owasp:dependency-check-maven
+    versions:
+    - 6.0.1
+    - 6.1.2
+    - 6.1.3
+  - dependency-name: org.springframework.boot:spring-boot-starter-actuator
+    versions:
+    - 2.4.3
+  - dependency-name: org.springframework.boot:spring-boot-starter-security
+    versions:
+    - 2.4.3
+  - dependency-name: org.springframework.boot:spring-boot-dependencies
+    versions:
+    - 2.4.3
+  - dependency-name: com.puppycrawl.tools:checkstyle
+    versions:
+    - "8.40"
+  - dependency-name: org.junit.platform:junit-platform-launcher
+    versions:
+    - 1.7.0
+  - dependency-name: org.hibernate.validator:hibernate-validator
+    versions:
+    - 7.0.0.Final
+  - dependency-name: com.graphql-java:graphql-java
+    versions:
+    - "16.1"
+  - dependency-name: org.glassfish.jersey.inject:jersey-hk2
+    versions:
+    - 3.0.0
+  - dependency-name: org.glassfish.jersey.containers:jersey-container-servlet
+    versions:
+    - 3.0.0
