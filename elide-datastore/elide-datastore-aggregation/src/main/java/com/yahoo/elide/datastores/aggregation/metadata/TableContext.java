@@ -100,8 +100,8 @@ public class TableContext extends HashMap<String, Object> {
             return applyQuotes(resolvedExpr, queryable.getConnectionDetails().getDialect());
         }
 
-        if (this.queryable.getJoins().containsKey(key)) {
-            SQLJoin sqlJoin = this.queryable.getJoins().get(key);
+        if (this.queryable.hasJoin(keyStr)) {
+            SQLJoin sqlJoin = this.queryable.getJoin(keyStr);
             Queryable joinQueryable = metaDataStore.getTable(sqlJoin.getJoinTableType());
             TableContext newCtx = TableContext.builder()
                             .queryable(joinQueryable)
@@ -110,7 +110,9 @@ public class TableContext extends HashMap<String, Object> {
                             .build();
 
             // Copy $$column to join context.
-            newCtx.put(COL_PREFIX, this.get(COL_PREFIX));
+            if (this.containsKey(COL_PREFIX)) {
+                newCtx.put(COL_PREFIX, this.get(COL_PREFIX));
+            }
             return newCtx;
         }
 
@@ -176,7 +178,7 @@ public class TableContext extends HashMap<String, Object> {
         Map<String, Object> newCtxColumnArgs = new HashMap<>();
 
         Queryable queryable = this.getQueryable();
-        Table table = metaDataStore.getTable(queryable.getName(), queryable.getVersion());
+        Table table = metaDataStore.getTable(queryable.getSource().getName(), queryable.getSource().getVersion());
 
         // Add the default argument values stored in metadata store.
         if (table != null) {
@@ -260,7 +262,7 @@ public class TableContext extends HashMap<String, Object> {
         return (Map<String, ? extends Object>) map.getOrDefault(ARGS_KEY, emptyMap());
     }
 
-    private static Map<String, Object> getDefaultArgumentsMap(Set<Argument> availableArgs) {
+    public static Map<String, Object> getDefaultArgumentsMap(Set<Argument> availableArgs) {
 
         return availableArgs.stream()
                         .filter(arg -> arg.getDefaultValue() != null)

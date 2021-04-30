@@ -150,6 +150,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                     .expression(innerAggExpression)
                     .columnType(columnType)
                     .valueType(valueType)
+                    .arguments(arguments)
                     .build());
         }
 
