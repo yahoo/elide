@@ -21,7 +21,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
-import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Optimizer;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -143,9 +143,9 @@ public class SQLQueryEngine extends QueryEngine {
     }
 
     @Override
-    public ColumnProjection constructDimensionProjection(Dimension dimension,
-                                                         String alias,
-                                                         Map<String, Argument> arguments) {
+    public DimensionProjection constructDimensionProjection(Dimension dimension,
+                                                            String alias,
+                                                            Map<String, Argument> arguments) {
         return new SQLDimensionProjection(dimension, alias, arguments, true);
     }
 

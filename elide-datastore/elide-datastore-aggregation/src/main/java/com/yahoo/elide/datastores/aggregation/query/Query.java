@@ -39,7 +39,7 @@ public class Query implements Queryable {
 
     @Singular
     @NonNull
-    private List<ColumnProjection> dimensionProjections;
+    private List<DimensionProjection> dimensionProjections;
 
     @Singular
     @NonNull

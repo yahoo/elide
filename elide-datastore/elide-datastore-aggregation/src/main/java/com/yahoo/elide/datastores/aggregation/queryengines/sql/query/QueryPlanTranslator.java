@@ -10,7 +10,10 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
+
+import java.util.List;
 
 /**
  * Translates a merged query plan and a client query into query that can be executed.
@@ -128,5 +131,20 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .pagination(clientQuery.getPagination())
                 .scope(clientQuery.getScope())
                 .arguments(clientQuery.getArguments());
+    }
+
+    private Query.QueryBuilder addHiddenProjections(Query.QueryBuilder builder, Query query) {
+        List<TimeDimensionProjection> timeProjections = query.getFilterProjections(query.getWhereFilter(),
+                TimeDimensionProjection.class);
+
+        timeProjections.addAll(query.getSource().getTimeDimensionProjections());
+
+        timeProjections.forEach(timeProjection -> {
+            if (query.getColumnProjection(timeProjection.getName(), timeProjection.getArguments()) == null) {
+                builder.timeDimensionProjection(timeProjection);
+            }
+        });
+
+        return builder;
     }
 }

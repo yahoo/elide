@@ -12,6 +12,7 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Optimizer;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -87,6 +88,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                     .dimensionProjections(allInnerProjections.stream()
                             .filter((predicate) -> predicate instanceof SQLDimensionProjection
                                     || predicate instanceof SQLPhysicalColumnProjection)
+                            .map(DimensionProjection.class::cast)
                             .collect(Collectors.toCollection(LinkedHashSet::new)))
                     .timeDimensionProjections(allInnerProjections.stream()
                             .filter((predicate) -> predicate instanceof SQLTimeDimensionProjection)
@@ -101,8 +103,9 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                             .map(MetricProjection.class::cast)
                             .collect(Collectors.toCollection(LinkedHashSet::new)))
                     .dimensionProjections(allOuterProjections.stream()
-                                    .filter((predicate) -> predicate instanceof SQLDimensionProjection)
-                                    .collect(Collectors.toCollection(LinkedHashSet::new)))
+                            .filter((predicate) -> predicate instanceof SQLDimensionProjection)
+                            .map(DimensionProjection.class::cast)
+                            .collect(Collectors.toCollection(LinkedHashSet::new)))
                     .timeDimensionProjections(allOuterProjections.stream()
                             .filter((predicate) -> predicate instanceof SQLTimeDimensionProjection)
                             .map(TimeDimensionProjection.class::cast)
