@@ -5,10 +5,15 @@
  */
 package example;
 
+import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
+
+import org.apache.http.HttpStatus;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -56,9 +61,19 @@ public class ElideStandaloneDisableMetaDataStoreTest extends ElideStandaloneTest
     @Test
     public void swaggerDocumentTest() {
         when()
-        .get("/swagger/doc/test")
-         .then()
-         .statusCode(200)
-         .body("tags.name", containsInAnyOrder("post", "asyncQuery", "postView"));
+                .get("/swagger/doc/test")
+                .then()
+                .statusCode(200)
+                .body("tags.name", containsInAnyOrder("post", "asyncQuery", "postView"));
+    }
+
+    @Override
+    @Test
+    public void metaDataTest() {
+        given()
+                .accept("application/vnd.api+json")
+                .get("/api/v1/namespace/default") //"default" namespace added by Agg Store.
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND); // Metadatastore is disabled, so not found.
     }
 }

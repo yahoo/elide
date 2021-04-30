@@ -212,6 +212,11 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         return elideSQLDBConfig.getDbconfigs();
     }
 
+    @Override
+    public Set<NamespaceConfig> getNamespaceConfigurations() {
+        return elideNamespaceConfig.getNamespaceconfigs();
+    }
+
     private static void validateInheritance(ElideTableConfig tables) {
         tables.getTables().stream().forEach(table -> validateInheritance(tables, table, new HashSet<>()));
     }

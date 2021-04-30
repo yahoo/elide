@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -31,6 +32,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode()
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class NamespaceConfig implements Named {
 
     @JsonProperty("name")
@@ -39,19 +41,23 @@ public class NamespaceConfig implements Named {
     @JsonProperty("friendlyName")
     private String friendlyName;
 
+    @Builder.Default
     @JsonProperty("readAccess")
     private String readAccess = "Prefab.Role.All";
 
     @JsonProperty("description")
     private String description;
 
+    @Builder.Default
     @JsonProperty("apiVersion")
     private String apiVersion = EntityDictionary.NO_VERSION;
 
-    public NamespaceConfig(String name, String description, String friendlyName, String apiVersion) {
-        this.name = name;
-        this.friendlyName = friendlyName;
-        this.description = description;
-        this.apiVersion = apiVersion;
+    /**
+     * Returns description of the namespace object.
+     * If null, returns the name.
+     * @return description
+     */
+    public String getDescription() {
+        return (this.description == null ? getName() : this.description);
     }
 }
