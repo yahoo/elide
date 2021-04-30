@@ -48,10 +48,11 @@ public class Namespace {
 
         NamespaceMeta meta = pkg.getDeclaredAnnotation(NamespaceMeta.class);
         if (meta != null) {
-            friendlyName = meta.friendlyName();
+            friendlyName = (meta.friendlyName() == null || meta.friendlyName().isEmpty()) ? name
+                    : meta.friendlyName();
             description = meta.description();
         } else {
-            friendlyName = pkg.getName();
+            friendlyName = name;
             description = null;
         }
 

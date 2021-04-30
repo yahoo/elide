@@ -69,9 +69,11 @@ public class Table implements Named {
     @JsonProperty("dbConnectionName")
     private String dbConnectionName;
 
+    @Builder.Default
     @JsonProperty("isFact")
     private Boolean isFact = true;
 
+    @Builder.Default
     @JsonProperty("hidden")
     private Boolean hidden = false;
 
@@ -87,9 +89,11 @@ public class Table implements Named {
     @JsonProperty("cardinality")
     private String cardinality;
 
+    @Builder.Default
     @JsonProperty("readAccess")
     private String readAccess = "Prefab.Role.All";
 
+    @Builder.Default
     @JsonProperty("namespace")
     private String namespace = "default";
 
@@ -105,10 +109,12 @@ public class Table implements Named {
     @Singular
     private List<Dimension> dimensions = new ArrayList<>();
 
+    @Builder.Default
     @JsonProperty("tags")
     @JsonDeserialize(as = LinkedHashSet.class)
     private Set<String> tags = new LinkedHashSet<>();
 
+    @Builder.Default
     @JsonProperty("hints")
     @JsonDeserialize(as = LinkedHashSet.class)
     private Set<String> hints = new LinkedHashSet<>();

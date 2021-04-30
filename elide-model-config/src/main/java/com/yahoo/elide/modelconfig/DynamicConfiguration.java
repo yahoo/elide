@@ -7,6 +7,7 @@
 package com.yahoo.elide.modelconfig;
 
 import com.yahoo.elide.modelconfig.model.DBConfig;
+import com.yahoo.elide.modelconfig.model.NamespaceConfig;
 import com.yahoo.elide.modelconfig.model.Table;
 
 import java.util.HashSet;
@@ -39,6 +40,14 @@ public interface DynamicConfiguration {
      * @return a set of database configurations.
      */
     default Set<DBConfig> getDatabaseConfigurations() {
+        return new HashSet<>();
+    }
+
+    /**
+     * Returns a set of Namespace configurations.
+     * @return a set of Namespace configurations.
+     */
+    default Set<NamespaceConfig> getNamespaceConfigurations() {
         return new HashSet<>();
     }
 }

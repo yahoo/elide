@@ -29,7 +29,12 @@ public class NamespacePackage implements Package {
     }
 
     public NamespacePackage(String name, String description, String friendlyName) {
-        this(new NamespaceConfig(name, friendlyName, description, EntityDictionary.NO_VERSION));
+        this(NamespaceConfig.builder()
+                .name(name)
+                .friendlyName(friendlyName)
+                .description(description)
+                .apiVersion(EntityDictionary.NO_VERSION)
+                .build());
     }
 
     @Override
