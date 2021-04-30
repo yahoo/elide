@@ -257,7 +257,7 @@ public class ElideAutoConfiguration {
                         SQLDialectFactory.getDialect(settings.getAggregationStore().getDefaultDialect()));
         if (isDynamicConfigEnabled(settings)) {
             MetaDataStore metaDataStore = new MetaDataStore(dynamicConfig.getTables(),
-                    enableMetaDataStore);
+                    dynamicConfig.getNamespaceConfigurations(), enableMetaDataStore);
             Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
             dynamicConfig.getDatabaseConfigurations().forEach(dbConfig -> {

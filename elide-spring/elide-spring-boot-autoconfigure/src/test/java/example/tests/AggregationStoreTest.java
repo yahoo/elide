@@ -15,7 +15,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.CoreMatchers.equalTo;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -123,5 +123,16 @@ public class AggregationStoreTest extends IntegrationTest {
                 .get("cache.gets")
                 .tags("cache", "elideQueryCache", "result", "hit")
                 .functionCounter().count() > 0);
+    }
+
+    @Test
+    public void metaDataTest() {
+        given()
+                .accept("application/vnd.api+json")
+                .get("/json/namespace/default") //"default" namespace added by Agg Store
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("default"))
+                .body("data.attributes.friendlyName", equalTo("default"));
     }
 }
