@@ -135,7 +135,12 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     }
 
     @Override
-    public SQLColumnProjection withExpression(String expression, boolean project) {
+    public SQLTimeDimensionProjection withProjected(boolean projected) {
+        return withExpression(expression, projected);
+    }
+
+    @Override
+    public SQLTimeDimensionProjection withExpression(String expression, boolean projected) {
         return SQLTimeDimensionProjection.builder()
                 .name(name)
                 .alias(alias)
@@ -143,7 +148,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
                 .columnType(columnType)
                 .expression(expression)
                 .arguments(arguments)
-                .projected(project)
+                .projected(projected)
                 .grain(grain)
                 .timeZone(timeZone)
                 .build();

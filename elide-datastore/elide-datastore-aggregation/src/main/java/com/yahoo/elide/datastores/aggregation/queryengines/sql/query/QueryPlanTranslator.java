@@ -6,14 +6,24 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.LogicalReference;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.LogicalReferenceExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
+import com.google.common.collect.Streams;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Translates a merged query plan and a client query into query that can be executed.
@@ -81,13 +91,15 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
     }
 
     private Query.QueryBuilder visitInnerQueryPlan(Queryable plan)  {
-        return Query.builder()
+        Query.QueryBuilder builder = Query.builder()
                 .source(clientQuery.getSource())
                 .metricProjections(plan.getMetricProjections())
                 .dimensionProjections(plan.getDimensionProjections())
                 .timeDimensionProjections(plan.getTimeDimensionProjections())
                 .whereFilter(clientQuery.getWhereFilter())
                 .arguments(clientQuery.getArguments());
+
+        return addHiddenProjections(builder, clientQuery);
     }
 
     private Query.QueryBuilder visitOuterQueryPlan(Queryable plan)  {
@@ -120,7 +132,7 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
 
     private Query.QueryBuilder visitUnnestedQueryPlan(Queryable plan)  {
 
-        return Query.builder()
+        Query.QueryBuilder builder = Query.builder()
                 .source(clientQuery.getSource())
                 .metricProjections(plan.getMetricProjections())
                 .dimensionProjections(plan.getDimensionProjections())
@@ -131,17 +143,31 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .pagination(clientQuery.getPagination())
                 .scope(clientQuery.getScope())
                 .arguments(clientQuery.getArguments());
+
+        return addHiddenProjections(builder, clientQuery);
     }
 
     private Query.QueryBuilder addHiddenProjections(Query.QueryBuilder builder, Query query) {
-        List<TimeDimensionProjection> timeProjections = query.getFilterProjections(query.getWhereFilter(),
-                TimeDimensionProjection.class);
 
-        timeProjections.addAll(query.getSource().getTimeDimensionProjections());
+        Set<ColumnProjection> directReferencedColumns = Streams.concat(
+                query.getColumnProjections().stream(),
+                query.getFilterProjections(query.getWhereFilter(), ColumnProjection.class).stream()
+        ).collect(Collectors.toSet());
 
-        timeProjections.forEach(timeProjection -> {
-            if (query.getColumnProjection(timeProjection.getName(), timeProjection.getArguments()) == null) {
-                builder.timeDimensionProjection(timeProjection);
+        Set<ColumnProjection> indirectReferenceColumns = new HashSet<>();
+        directReferencedColumns.forEach(column -> {
+            lookupTable.getReferenceTree(query.getSource(), column.getName()).stream()
+                    .map(reference -> reference.accept(new LogicalReferenceExtractor(lookupTable.getMetaDataStore())))
+                    .flatMap(Set::stream)
+                    .map(LogicalReference::getColumn);
+        });
+
+        Streams.concat(
+                directReferencedColumns.stream(),
+                indirectReferenceColumns.stream()
+        ).forEach(column -> {
+            if (query.getColumnProjection(column.getName(), column.getArguments()) == null) {
+                builder.column(column.withProjected(false));
             }
         });
 

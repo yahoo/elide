@@ -184,15 +184,20 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     }
 
     @Override
+    public SQLMetricProjection withProjected(boolean projected) {
+        return withExpression(expression, projected);
+    }
+
+    @Override
     public boolean isProjected() {
         return projected;
     }
 
     @Override
-    public SQLColumnProjection withExpression(String expression, boolean project) {
+    public SQLMetricProjection withExpression(String expression, boolean projected) {
         return SQLMetricProjection.builder()
                 .expression(expression)
-                .projected(project)
+                .projected(projected)
                 .name(name)
                 .alias(alias)
                 .valueType(valueType)

@@ -90,7 +90,7 @@ public interface SQLColumnProjection extends ColumnProjection {
         return Pair.of(outerProjection, innerProjections);
     }
 
-    SQLColumnProjection withExpression(String expression, boolean project);
+    <T extends ColumnProjection> T withExpression(String expression, boolean project);
 
     /**
      * Returns whether or not this column is projected in the output (included in SELECT) or

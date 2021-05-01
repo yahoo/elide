@@ -385,7 +385,7 @@ public class SQLQueryEngine extends QueryEngine {
                 continue;
             }
 
-            if (optimizer.canOptimize(query, queryReferenceTable)) {
+            if (optimizer.canOptimize(merged, queryReferenceTable)) {
                 merged = optimizer.optimize(merged, queryReferenceTable);
             }
         }

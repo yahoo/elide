@@ -115,4 +115,12 @@ public interface ColumnProjection extends Serializable {
     Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source,
                                                        SQLReferenceTable lookupTable,
                                                        boolean joinInOuter);
+
+    /**
+     * Clones the projection and marks it as either projected or not projected.
+     * @param projected Whether or not this projection should be returned in the result.
+     * @param <T> The subclass of ColumnProjection.
+     * @return The cloned column.
+     */
+    <T extends ColumnProjection> T withProjected(boolean projected);
 }
