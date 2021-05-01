@@ -123,4 +123,13 @@ public interface ColumnProjection extends Serializable {
      * @return The cloned column.
      */
     <T extends ColumnProjection> T withProjected(boolean projected);
+
+    /**
+     * Returns whether or not this column is projected in the output (included in SELECT) or
+     * only referenced in a filter expression.
+     * @return True if part of the output projection.  False otherwise.
+     */
+    default boolean isProjected() {
+        return true;
+    }
 }

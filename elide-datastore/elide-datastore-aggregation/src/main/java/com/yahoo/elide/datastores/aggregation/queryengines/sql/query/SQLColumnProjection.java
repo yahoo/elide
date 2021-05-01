@@ -71,7 +71,7 @@ public interface SQLColumnProjection extends ColumnProjection {
 
         boolean requiresJoin = requiresJoin(references);
 
-        boolean inProjection = source.getColumnProjection(getName(), getArguments()) != null;
+        boolean inProjection = source.getColumnProjection(getName(), getArguments(), true) != null;
 
         ColumnProjection outerProjection;
         Set<ColumnProjection> innerProjections;
@@ -92,14 +92,7 @@ public interface SQLColumnProjection extends ColumnProjection {
 
     <T extends ColumnProjection> T withExpression(String expression, boolean project);
 
-    /**
-     * Returns whether or not this column is projected in the output (included in SELECT) or
-     * only referenced in a filter expression.
-     * @return True if part of the output projection.  False otherwise.
-     */
-    default boolean isProjected() {
-        return true;
-    }
+
 
     /**
      * Determines if a particular column projection requires a join to another table.

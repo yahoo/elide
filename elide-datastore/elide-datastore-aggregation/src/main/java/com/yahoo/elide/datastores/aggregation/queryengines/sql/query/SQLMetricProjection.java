@@ -168,7 +168,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                         + dialect.getEndQuote()
                         + "?", "{{\\$" + "$1" + "}}");
 
-        boolean inProjection = source.getColumnProjection(name, arguments) != null;
+        boolean inProjection = source.getColumnProjection(name, arguments, true) != null;
 
         ColumnProjection outerProjection = SQLMetricProjection.builder()
                 .projected(inProjection)

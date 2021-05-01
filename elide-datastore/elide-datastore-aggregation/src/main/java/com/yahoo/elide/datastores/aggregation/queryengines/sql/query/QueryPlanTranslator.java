@@ -99,7 +99,7 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .whereFilter(clientQuery.getWhereFilter())
                 .arguments(clientQuery.getArguments());
 
-        return addHiddenProjections(builder, clientQuery);
+        return addHiddenProjections(lookupTable, builder, clientQuery);
     }
 
     private Query.QueryBuilder visitOuterQueryPlan(Queryable plan)  {
@@ -144,10 +144,14 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .scope(clientQuery.getScope())
                 .arguments(clientQuery.getArguments());
 
-        return addHiddenProjections(builder, clientQuery);
+        return addHiddenProjections(lookupTable, builder, clientQuery);
     }
 
-    private Query.QueryBuilder addHiddenProjections(Query.QueryBuilder builder, Query query) {
+    public static Query.QueryBuilder addHiddenProjections(
+            SQLReferenceTable lookupTable,
+            Query.QueryBuilder builder,
+            Query query
+    ) {
 
         Set<ColumnProjection> directReferencedColumns = Streams.concat(
                 query.getColumnProjections().stream(),
@@ -159,7 +163,8 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
             lookupTable.getReferenceTree(query.getSource(), column.getName()).stream()
                     .map(reference -> reference.accept(new LogicalReferenceExtractor(lookupTable.getMetaDataStore())))
                     .flatMap(Set::stream)
-                    .map(LogicalReference::getColumn);
+                    .map(LogicalReference::getColumn)
+                    .forEach(indirectReferenceColumns::add);
         });
 
         Streams.concat(

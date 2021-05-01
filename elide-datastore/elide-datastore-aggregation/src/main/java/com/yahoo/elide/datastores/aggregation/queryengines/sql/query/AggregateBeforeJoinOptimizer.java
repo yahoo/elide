@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryPlanTranslator.addHiddenProjections;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
@@ -79,7 +80,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                     .flatMap(Set::stream)
                     .collect(Collectors.toCollection(LinkedHashSet::new));
 
-            Query inner = Query.builder()
+            Query.QueryBuilder inner = Query.builder()
                     .source(query.getSource().accept(this))
                     .metricProjections(allInnerProjections.stream()
                                     .filter((predicate) -> predicate instanceof MetricProjection)
@@ -93,10 +94,11 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                             .filter((predicate) -> predicate instanceof TimeDimensionProjection)
                             .map(SQLTimeDimensionProjection.class::cast)
                             .collect(Collectors.toCollection(LinkedHashSet::new)))
-                    .whereFilter(splitWhere.getInner())
-                    .build();
+                    .whereFilter(splitWhere.getInner());
 
-            return Query.builder()
+            addHiddenProjections(lookupTable, inner, query);
+
+            Query outer = Query.builder()
                     .metricProjections(allOuterProjections.stream()
                             .filter((predicate) -> predicate instanceof MetricProjection)
                             .map(MetricProjection.class::cast)
@@ -115,8 +117,10 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                     .pagination(query.getPagination())
                     .scope(query.getScope())
                     .bypassingCache(query.isBypassingCache())
-                    .source(inner)
+                    .source(inner.build())
                     .build();
+
+            return outer;
         }
 
         /**

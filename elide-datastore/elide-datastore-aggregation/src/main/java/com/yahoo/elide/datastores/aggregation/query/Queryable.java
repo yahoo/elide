@@ -80,6 +80,20 @@ public interface Queryable {
      * @param arguments Arguments provided for the column.
      * @return The column.
      */
+    default ColumnProjection getColumnProjection(String name, Map<String, Argument> arguments, boolean isProjected) {
+        return getColumnProjections().stream()
+                .filter(dim -> dim.isProjected() == isProjected)
+                .filter(dim -> dim.getAlias().equals(name) && dim.getArguments().equals(arguments))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Retrieves a column by name and arguments.
+     * @param name The alias of the column.
+     * @param arguments Arguments provided for the column.
+     * @return The column.
+     */
     default ColumnProjection getColumnProjection(String name, Map<String, Argument> arguments) {
         return getColumnProjections().stream()
                 .filter(dim -> dim.getAlias().equals(name) && dim.getArguments().equals(arguments))
