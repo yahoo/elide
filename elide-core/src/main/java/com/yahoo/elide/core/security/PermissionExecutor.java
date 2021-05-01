@@ -15,7 +15,9 @@ import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import com.yahoo.elide.core.type.Type;
 
 import java.lang.annotation.Annotation;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Interface describing classes responsible for managing the life-cycle and execution of checks.
@@ -35,7 +37,12 @@ public interface PermissionExecutor {
      * @see com.yahoo.elide.annotation.DeletePermission
      * @return the results of evaluating the permission
      */
-    <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass, PersistentResource resource);
+    default <A extends Annotation> ExpressionResult checkPermission(
+            Class<A> annotationClass,
+            PersistentResource resource
+    ) {
+        return checkPermission(annotationClass, resource, new HashSet<>());
+    }
 
     /**
      * Check permission on class.
@@ -43,16 +50,18 @@ public interface PermissionExecutor {
      * @param <A> type parameter
      * @param annotationClass annotation class
      * @param resource resource
-     * @param changeSpec ChangeSpec
+     * @param requestedFields the list of requested fields
      * @see com.yahoo.elide.annotation.CreatePermission
      * @see com.yahoo.elide.annotation.ReadPermission
      * @see com.yahoo.elide.annotation.UpdatePermission
      * @see com.yahoo.elide.annotation.DeletePermission
      * @return the results of evaluating the permission
      */
-    <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
+    <A extends Annotation> ExpressionResult checkPermission(
+            Class<A> annotationClass,
             PersistentResource resource,
-            ChangeSpec changeSpec);
+            Set<String> requestedFields
+    );
 
     /**
      * Check for permissions on a specific field.
@@ -90,9 +99,14 @@ public interface PermissionExecutor {
      * @param <A> type parameter
      * @param resourceClass Resource class
      * @param annotationClass Annotation class
+     * @param requestedFields The list of client requested fields
      * @return the results of evaluating the permission
      */
-    <A extends Annotation> ExpressionResult checkUserPermissions(Type<?> resourceClass, Class<A> annotationClass);
+    <A extends Annotation> ExpressionResult checkUserPermissions(
+            Type<?> resourceClass,
+            Class<A> annotationClass,
+            Set<String> requestedFields
+    );
 
     /**
      * Check strictly user permissions on an entity field.
@@ -110,9 +124,10 @@ public interface PermissionExecutor {
      * Get the read filter, if defined.
      *
      * @param resourceClass the class to check for a filter
+     * @param requestedFields the set of requested fields
      * @return the an optional containg the filter
      */
-    Optional<FilterExpression> getReadPermissionFilter(Type<?> resourceClass);
+    Optional<FilterExpression> getReadPermissionFilter(Type<?> resourceClass, Set<String> requestedFields);
 
     /**
      * Execute commit checks.
