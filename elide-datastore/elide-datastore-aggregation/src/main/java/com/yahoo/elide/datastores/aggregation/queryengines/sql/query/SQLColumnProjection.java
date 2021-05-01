@@ -65,7 +65,6 @@ public interface SQLColumnProjection extends ColumnProjection {
     default Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source,
                                                               SQLReferenceTable lookupTable,
                                                               boolean joinInOuter) {
-
         MetaDataStore store = lookupTable.getMetaDataStore();
         List<Reference> references = new ExpressionParser(store).parse(source, getExpression());
 
@@ -91,8 +90,6 @@ public interface SQLColumnProjection extends ColumnProjection {
     }
 
     <T extends ColumnProjection> T withExpression(String expression, boolean project);
-
-
 
     /**
      * Determines if a particular column projection requires a join to another table.
