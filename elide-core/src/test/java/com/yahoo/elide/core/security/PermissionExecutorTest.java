@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.core.security;
 
+import static com.yahoo.elide.core.PersistentResource.ALL_FIELDS;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -42,9 +43,8 @@ public class PermissionExecutorTest {
 
         PersistentResource resource = newResource(new Model(), Model.class, false);
         RequestScope requestScope = resource.getRequestScope();
-        ChangeSpec cspec = new ChangeSpec(null, null, null, null);
         assertEquals(ExpressionResult.PASS,
-                requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, cspec));
+                requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, ALL_FIELDS));
 
         requestScope.getPermissionExecutor().executeCommitChecks();
     }
@@ -89,11 +89,10 @@ public class PermissionExecutorTest {
 
         PersistentResource resource = newResource(new Model(), Model.class, true);
         RequestScope requestScope = resource.getRequestScope();
-        ChangeSpec cspec = new ChangeSpec(null, null, null, null);
 
         // Because the object is newly created, the check is DEFERRED.
         assertEquals(ExpressionResult.DEFERRED,
-                requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, cspec));
+                requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, ALL_FIELDS));
 
         requestScope.getPermissionExecutor().executeCommitChecks();
     }
@@ -107,11 +106,10 @@ public class PermissionExecutorTest {
 
         PersistentResource resource = newResource(new Model(), Model.class, false);
         RequestScope requestScope = resource.getRequestScope();
-        ChangeSpec cspec = new ChangeSpec(null, null, null, null);
 
         // Because the check is runAtCommit, the check is DEFERRED.
         assertEquals(ExpressionResult.DEFERRED,
-                requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, cspec));
+                requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, ALL_FIELDS));
 
         requestScope.getPermissionExecutor().executeCommitChecks();
     }
@@ -138,7 +136,7 @@ public class PermissionExecutorTest {
         PersistentResource resource = newResource(SampleBean.class, false);
         RequestScope requestScope = resource.getRequestScope();
         assertEquals(ExpressionResult.PASS,
-                requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource, new ChangeSpec(null, null, null, null)));
+                requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource, ALL_FIELDS));
         requestScope.getPermissionExecutor().executeCommitChecks();
     }
 
@@ -425,25 +423,23 @@ public class PermissionExecutorTest {
     public void testNoCache() {
         PersistentResource resource = newResource(AnnotationOnlyRecord.class, false);
         RequestScope requestScope = resource.getRequestScope();
-        ChangeSpec cspec = new ChangeSpec(null, null, null, null);
         assertThrows(
                 ForbiddenAccessException.class,
-                () -> requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, cspec));
+                () -> requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, ALL_FIELDS));
         assertThrows(
                 ForbiddenAccessException.class,
-                () -> requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, cspec));
+                () -> requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, ALL_FIELDS));
     }
 
     @Test
     public void testUserCheckCache() {
         PersistentResource resource = newResource(UserCheckCacheRecord.class, false);
         RequestScope requestScope = resource.getRequestScope();
-        ChangeSpec cspec = new ChangeSpec(null, null, null, null);
         // This should cache for updates, reads, etc.
-        assertEquals(ExpressionResult.PASS, requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, cspec));
-        assertEquals(ExpressionResult.PASS, requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, cspec));
-        assertEquals(ExpressionResult.PASS, requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource, cspec));
-        assertEquals(ExpressionResult.PASS, requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource, cspec));
+        assertEquals(ExpressionResult.PASS, requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, ALL_FIELDS));
+        assertEquals(ExpressionResult.PASS, requestScope.getPermissionExecutor().checkPermission(UpdatePermission.class, resource, ALL_FIELDS));
+        assertEquals(ExpressionResult.PASS, requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource, ALL_FIELDS));
+        assertEquals(ExpressionResult.PASS, requestScope.getPermissionExecutor().checkPermission(ReadPermission.class, resource, ALL_FIELDS));
     }
 
     @Test

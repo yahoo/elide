@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -41,6 +42,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 
 public class VerifyFieldAccessFilterExpressionVisitorTest {
 
@@ -118,7 +120,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         PermissionExecutor permissionExecutor = scope.getPermissionExecutor();
         verify(permissionExecutor, times(17)).evaluateFilterJoinUserChecks(any(), any());
         verify(permissionExecutor, times(5)).checkSpecificFieldPermissions(resource, null, ReadPermission.class, NAME);
-        verify(permissionExecutor, times(21)).checkUserPermissions(any(), any(), any());
+        verify(permissionExecutor, times(21)).checkUserPermissions(any(), any(), isA(Set.class));
         verify(permissionExecutor, never()).handleFilterJoinReject(any(), any(), any());
     }
 
@@ -176,7 +178,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
 
         verify(permissionExecutor, times(8)).evaluateFilterJoinUserChecks(any(), any());
         verify(permissionExecutor, times(5)).checkSpecificFieldPermissions(resource, null, ReadPermission.class, HOME);
-        verify(permissionExecutor, times(9)).checkUserPermissions(any(), any(), any());
+        verify(permissionExecutor, times(9)).checkUserPermissions(any(), any(), isA(Set.class));
         verify(permissionExecutor, times(5)).handleFilterJoinReject(any(), any(), any());
     }
 
@@ -201,7 +203,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         verify(permissionExecutor, times(1)).evaluateFilterJoinUserChecks(any(), any());
         verify(permissionExecutor, times(1)).checkUserPermissions(ClassType.of(Book.class), ReadPermission.class, GENRE);
         verify(permissionExecutor, never()).checkSpecificFieldPermissions(resource, null, ReadPermission.class, GENRE);
-        verify(permissionExecutor, times(1)).checkUserPermissions(any(), any(), any());
+        verify(permissionExecutor, times(1)).checkUserPermissions(any(), any(), isA(Set.class));
         verify(permissionExecutor, times(1)).handleFilterJoinReject(any(), any(), any());
     }
 
@@ -232,11 +234,11 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
 
         verify(permissionExecutor, times(1)).evaluateFilterJoinUserChecks(any(), any());
         verify(permissionExecutor, times(1)).checkUserPermissions(ClassType.of(Book.class), ReadPermission.class, AUTHORS);
-        verify(permissionExecutor, never()).getReadPermissionFilter(ClassType.of(Author.class));
+        verify(permissionExecutor, never()).getReadPermissionFilter(ClassType.of(Author.class), any());
         verify(permissionExecutor, times(1)).checkUserPermissions(ClassType.of(Author.class), ReadPermission.class, HOME);
         verify(permissionExecutor, never()).checkSpecificFieldPermissions(any(), any(), any(), any());
         verify(permissionExecutor, never()).checkSpecificFieldPermissionsDeferred(any(), any(), any(), any());
-        verify(permissionExecutor, times(2)).checkUserPermissions(any(), any(), any());
+        verify(permissionExecutor, times(2)).checkUserPermissions(any(), any(), isA(Set.class));
         verify(permissionExecutor, times(1)).handleFilterJoinReject(any(), any(), any());
         verify(tx, never()).getRelation(any(), any(), any(), any());
     }
@@ -264,7 +266,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         verify(permissionExecutor, times(1)).evaluateFilterJoinUserChecks(any(), any());
         verify(permissionExecutor, times(1)).checkUserPermissions(ClassType.of(Book.class), ReadPermission.class, GENRE);
         verify(permissionExecutor, times(1)).checkSpecificFieldPermissions(resource, null, ReadPermission.class, GENRE);
-        verify(permissionExecutor, times(1)).checkUserPermissions(any(), any(), any());
+        verify(permissionExecutor, times(1)).checkUserPermissions(any(), any(), isA(Set.class));
         verify(permissionExecutor, times(1)).handleFilterJoinReject(any(), any(), any());
     }
 
@@ -293,7 +295,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         verify(permissionExecutor, times(1)).checkUserPermissions(ClassType.of(Book.class), ReadPermission.class, AUTHORS);
         verify(permissionExecutor, times(1)).checkUserPermissions(ClassType.of(Author.class), ReadPermission.class, NAME);
         verify(permissionExecutor, never()).checkSpecificFieldPermissions(resource, null, ReadPermission.class, GENRE);
-        verify(permissionExecutor, times(2)).checkUserPermissions(any(), any(), any());
+        verify(permissionExecutor, times(2)).checkUserPermissions(any(), any(), isA(Set.class));
         verify(permissionExecutor, never()).handleFilterJoinReject(any(), any(), any());
         verify(tx, never()).getRelation(any(), any(), any(), any());
     }
@@ -319,7 +321,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
                 .thenReturn(ExpressionResult.PASS);
         when(permissionExecutor.checkSpecificFieldPermissionsDeferred(resource, null, ReadPermission.class, AUTHORS))
                 .thenReturn(ExpressionResult.PASS);
-        when(permissionExecutor.getReadPermissionFilter(ClassType.of(Author.class))).thenReturn(Optional.empty());
+        when(permissionExecutor.getReadPermissionFilter(ClassType.of(Author.class), any())).thenReturn(Optional.empty());
 
         when(permissionExecutor.checkUserPermissions(ClassType.of(Author.class), ReadPermission.class, HOME))
                 .thenReturn(ExpressionResult.DEFERRED);
@@ -334,10 +336,10 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
 
         verify(permissionExecutor, times(1)).evaluateFilterJoinUserChecks(any(), any());
         verify(permissionExecutor, times(1)).checkUserPermissions(ClassType.of(Book.class), ReadPermission.class, AUTHORS);
-        verify(permissionExecutor, times(1)).getReadPermissionFilter(ClassType.of(Author.class));
+        verify(permissionExecutor, times(1)).getReadPermissionFilter(ClassType.of(Author.class), any());
         verify(permissionExecutor, times(1)).checkUserPermissions(ClassType.of(Author.class), ReadPermission.class, HOME);
         verify(permissionExecutor, times(1)).checkSpecificFieldPermissions(resourceAuthor, null, ReadPermission.class, HOME);
-        verify(permissionExecutor, times(2)).checkUserPermissions(any(), any(), any());
+        verify(permissionExecutor, times(2)).checkUserPermissions(any(), any(), isA(Set.class));
         verify(permissionExecutor, times(1)).handleFilterJoinReject(any(), any(), any());
         verify(tx, times(1)).getRelation(eq(tx), eq(book), any(), eq(scope));
     }
@@ -362,7 +364,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
 
         verify(permissionExecutor, times(1)).evaluateFilterJoinUserChecks(any(), any());
         verify(permissionExecutor, never()).checkSpecificFieldPermissions(any(), any(), any(), any());
-        verify(permissionExecutor, never()).checkUserPermissions(any(), any(), any());
+        verify(permissionExecutor, never()).checkUserPermissions(any(), any(), isA(Set.class));
         verify(permissionExecutor, never()).handleFilterJoinReject(any(), any(), any());
         verify(tx, never()).getRelation(any(), any(), any(), any());
     }
@@ -408,7 +410,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
 
         verify(permissionExecutor, times(1)).evaluateFilterJoinUserChecks(any(), any());
         verify(permissionExecutor, times(1)).checkSpecificFieldPermissions(resource, null, ReadPermission.class, GENRE);
-        verify(permissionExecutor, never()).checkUserPermissions(any(), any(), any());
+        verify(permissionExecutor, never()).checkUserPermissions(any(), any(), isA(Set.class));
         verify(permissionExecutor, times(1)).handleFilterJoinReject(any(), any(), any());
         verify(tx, never()).getRelation(any(), any(), any(), any());
     }

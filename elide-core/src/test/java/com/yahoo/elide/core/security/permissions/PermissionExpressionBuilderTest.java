@@ -64,7 +64,7 @@ public class PermissionExpressionBuilderTest {
         Expression expression = builder.buildAnyFieldExpressions(
                 resource,
                 ReadPermission.class,
-                null);
+                null, null);
 
         assertEquals("READ PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null}  "
                         + "FOR EXPRESSION [((user has all access \u001B[34mWAS UNEVALUATED\u001B[m)) "

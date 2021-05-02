@@ -15,7 +15,6 @@ import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import com.yahoo.elide.core.type.Type;
 
 import java.lang.annotation.Annotation;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -41,7 +40,7 @@ public interface PermissionExecutor {
             Class<A> annotationClass,
             PersistentResource resource
     ) {
-        return checkPermission(annotationClass, resource, new HashSet<>());
+        return checkPermission(annotationClass, resource, null);
     }
 
     /**
