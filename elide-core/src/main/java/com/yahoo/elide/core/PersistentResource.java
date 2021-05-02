@@ -1790,6 +1790,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         Set<String> filteredSet = new LinkedHashSet<>();
         for (String field : fields) {
             try {
+
                 if (checkIncludeSparseField(requestScope.getSparseFields(), typeName, field)) {
                     checkFieldAwareReadPermissions(field);
                     filteredSet.add(field);
