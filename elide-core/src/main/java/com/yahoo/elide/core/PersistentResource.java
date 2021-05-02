@@ -339,8 +339,10 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             throw new InvalidObjectIdentifierException(ids.toString(), dictionary.getJsonAliasFor(loadClass));
         }
 
+        Set<String> requestedFields = projection.getRequestedFields();
+
         if (pagination != null && !pagination.isDefaultInstance()
-                && !CanPaginateVisitor.canPaginate(loadClass, dictionary, requestScope)) {
+                && !CanPaginateVisitor.canPaginate(loadClass, dictionary, requestScope, requestedFields)) {
             throw new BadRequestException(String.format("Cannot paginate %s",
                     dictionary.getJsonAliasFor(loadClass)));
         }
@@ -362,7 +364,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         }
 
         Optional<FilterExpression> permissionFilter = getPermissionFilterExpression(loadClass, requestScope,
-                projection.getRequestedFields());
+                requestedFields);
         if (permissionFilter.isPresent()) {
             if (filterExpression != null) {
                 filterExpression = new AndFilterExpression(filterExpression, permissionFilter.get());
@@ -1073,7 +1075,12 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         Optional<Pagination> pagination = Optional.ofNullable(relationship.getProjection().getPagination());
 
         if (pagination.filter(Predicates.not(Pagination::isDefaultInstance)).isPresent()
-                && !CanPaginateVisitor.canPaginate(relationClass, dictionary, requestScope)) {
+                && !CanPaginateVisitor.canPaginate(
+                        relationClass,
+                        dictionary,
+                        requestScope,
+                        relationship.getProjection().getRequestedFields())) {
+
             throw new BadRequestException(String.format("Cannot paginate %s",
                     dictionary.getJsonAliasFor(relationClass)));
         }

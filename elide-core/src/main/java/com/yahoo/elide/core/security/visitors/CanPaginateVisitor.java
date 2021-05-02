@@ -144,11 +144,13 @@ public class CanPaginateVisitor
 
     private final EntityDictionary dictionary;
     private final RequestScope scope;
+    private Set<String> requestedFields;
 
 
-    public CanPaginateVisitor(EntityDictionary dictionary, RequestScope scope) {
+    public CanPaginateVisitor(EntityDictionary dictionary, RequestScope scope, Set<String> requestedFields) {
         this.dictionary = dictionary;
         this.scope = scope;
+        this.requestedFields = requestedFields;
     }
 
     @Override
@@ -229,12 +231,17 @@ public class CanPaginateVisitor
      * class for a requested set of fields.
      * @param resourceClass The class of resources that will be paginated
      * @param dictionary Used to look up permissions
-     * @param scope Contains the request info including any sparse fields that were requested
+     * @param scope Contains the user object.
+     * @param requestedFields Contains the request info including any sparse fields that were requested
      * @return true if the data store can paginate.  false otherwise.
      */
-    public static boolean canPaginate(Type<?> resourceClass, EntityDictionary dictionary, RequestScope scope) {
-
-        CanPaginateVisitor visitor = new CanPaginateVisitor(dictionary, scope);
+    public static boolean canPaginate(
+            Type<?> resourceClass,
+            EntityDictionary dictionary,
+            RequestScope scope,
+            Set<String> requestedFields
+    ) {
+        CanPaginateVisitor visitor = new CanPaginateVisitor(dictionary, scope, requestedFields);
 
         Class<? extends Annotation> annotationClass = ReadPermission.class;
         ParseTree classPermissions = dictionary.getPermissionsForClass(resourceClass, annotationClass);
@@ -245,8 +252,6 @@ public class CanPaginateVisitor
         }
 
         List<String> fields = dictionary.getAllFields(resourceClass);
-        String resourceName = dictionary.getJsonAliasFor(resourceClass);
-        Set<String> requestedFields = scope.getSparseFields().getOrDefault(resourceName, Collections.emptySet());
 
         boolean canPaginate = true;
         for (String field : fields) {
