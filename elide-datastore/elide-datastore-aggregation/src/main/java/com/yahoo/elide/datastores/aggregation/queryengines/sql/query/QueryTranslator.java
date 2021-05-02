@@ -16,7 +16,8 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
+import com.yahoo.elide.datastores.aggregation.metadata.Context;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -44,12 +45,14 @@ import java.util.stream.Stream;
 public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuilder> {
 
     private final SQLReferenceTable referenceTable;
+    private final MetaDataStore metaDataStore;
     private final EntityDictionary dictionary;
     private final SQLDialect dialect;
     private FilterTranslator filterTranslator;
 
     public QueryTranslator(SQLReferenceTable referenceTable, SQLDialect sqlDialect) {
         this.referenceTable = referenceTable;
+        this.metaDataStore = referenceTable.getMetaDataStore();
         this.dictionary = referenceTable.getDictionary();
         this.dialect = sqlDialect;
         this.filterTranslator = new FilterTranslator(dictionary);
@@ -82,7 +85,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
             if (!query.getMetricProjections().isEmpty()) {
                 builder.groupByClause("GROUP BY " + groupByDimensions.stream()
                         .map(SQLColumnProjection.class::cast)
-                        .map((column) -> column.toSQL(query, referenceTable))
+                        .map((column) -> column.toSQL(query, metaDataStore))
                         .collect(Collectors.joining(", ")));
             }
         }
@@ -157,7 +160,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
                 .orElse(null);
 
         if (metric != null) {
-            return metric.toSQL(query, referenceTable);
+            return metric.toSQL(query, metaDataStore);
         }
         return generatePredicatePathReference(path, query);
     }
@@ -174,14 +177,14 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
         List<String> metricProjections = query.getMetricProjections().stream()
                 .map(SQLMetricProjection.class::cast)
                 .filter(SQLColumnProjection::isProjected)
-                .map(invocation -> invocation.toSQL(query, referenceTable) + " AS "
+                .map(invocation -> invocation.toSQL(query, metaDataStore) + " AS "
                                 + applyQuotes(invocation.getSafeAlias()))
                 .collect(Collectors.toList());
 
         List<String> dimensionProjections = query.getAllDimensionProjections().stream()
                 .map(SQLColumnProjection.class::cast)
                 .filter(SQLColumnProjection::isProjected)
-                .map(dimension -> dimension.toSQL(query, referenceTable) + " AS "
+                .map(dimension -> dimension.toSQL(query, metaDataStore) + " AS "
                                 + applyQuotes(dimension.getSafeAlias()))
                 .collect(Collectors.toList());
 
@@ -216,7 +219,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
                     String orderByClause = (query.getColumnProjections().contains(projection)
                             && dialect.useAliasForOrderByClause())
                             ? applyQuotes(projection.getSafeAlias())
-                            : projection.toSQL(query, referenceTable);
+                            : projection.toSQL(query, metaDataStore);
 
                     return orderByClause + (order.equals(Sorting.SortOrder.desc) ? " DESC" : " ASC");
                 })
@@ -284,8 +287,14 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
     private Set<String> extractJoinExpressions(ColumnProjection column, Query query) {
         Set<String> joinExpressions = new LinkedHashSet<>();
 
-        TableContext tableCtx = referenceTable.getGlobalTableContext(query);
-        JoinExpressionExtractor visitor = new JoinExpressionExtractor(tableCtx, column.getArguments());
+        Context context = Context.builder()
+                        .queryable(query)
+                        .alias(query.getSource().getAlias())
+                        .metaDataStore(referenceTable.getMetaDataStore())
+                        .queriedColArgs(column.getArguments())
+                        .build();
+
+        JoinExpressionExtractor visitor = new JoinExpressionExtractor(context, column);
         List<Reference> references = referenceTable.getReferenceTree(query.getSource(), column.getName());
         references.forEach(ref -> joinExpressions.addAll(ref.accept(visitor)));
         return joinExpressions;
@@ -312,7 +321,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
      */
     private String generatePredicatePathReference(Path path, Query query) {
         SQLColumnProjection projection = pathToColumnProjection(path, query);
-        return projection.toSQL(query, referenceTable);
+        return projection.toSQL(query, metaDataStore);
     }
 
     private SQLColumnProjection pathToColumnProjection(Path path, Query query) {

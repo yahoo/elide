@@ -7,11 +7,9 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
-import static com.yahoo.elide.datastores.aggregation.metadata.TableContext.getDefaultArgumentsMap;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.hasSql;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.resolveTableOrSubselect;
-import static java.util.Collections.emptyMap;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import com.yahoo.elide.core.Path.PathElement;
@@ -19,18 +17,13 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
+import com.yahoo.elide.datastores.aggregation.metadata.Context;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
-import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -44,21 +37,17 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
 
     private final Set<String> joinExpressions = new LinkedHashSet<>();
 
-    private final TableContext tableCtx;
-
-    /**
-     * Stores all the available column arguments for any column in the reference tree.
-     */
-    private final Map<String, Object> availableColArgs = new HashMap<>();
+    private final Context context;
+    private final ColumnProjection column;
 
     private final MetaDataStore metaDataStore;
     private final EntityDictionary dictionary;
 
-    public JoinExpressionExtractor(TableContext tableCtx, Map<String, ? extends Object> currentColArgs) {
-        this.tableCtx = tableCtx;
-        this.availableColArgs.putAll(currentColArgs);
-        this.metaDataStore = tableCtx.getMetaDataStore();
-        this.dictionary = tableCtx.getMetaDataStore().getMetadataDictionary();
+    public JoinExpressionExtractor(Context context, ColumnProjection column) {
+        this.context = context;
+        this.column = column;
+        this.metaDataStore = context.getMetaDataStore();
+        this.dictionary = context.getMetaDataStore().getMetadataDictionary();
     }
 
     @Override
@@ -71,26 +60,9 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
 
         /**
          * For the scenario: col1:{{col2}}, col2:{{col3}}, col3:{{join.col1}}
-         * Current visitor will have column arguments for `col1`.
-         * Creating new visitor after adding default arguments for `col2`
+         * Creating new visitor with correct ColumnProjection, so that default arguments can be extracted correctly.
          */
-        Map<String, Object> defaultColumnArgs = null;
-        Map<String, Object> availableColArgs = new HashMap<>();
-
-        Queryable queryable = this.tableCtx.getQueryable();
-        Table table = metaDataStore.getTable(queryable.getSource().getName(), queryable.getSource().getVersion());
-
-        if (table != null) {
-            Column column = table.getColumnMap().get(reference.getColumn().getName());
-            if (column != null) {
-                defaultColumnArgs = getDefaultArgumentsMap(column.getArguments());
-            }
-        }
-
-        availableColArgs.putAll(defaultColumnArgs == null ? emptyMap() : defaultColumnArgs);
-        availableColArgs.putAll(this.availableColArgs);
-
-        JoinExpressionExtractor visitor = new JoinExpressionExtractor(this.tableCtx, availableColArgs);
+        JoinExpressionExtractor visitor = new JoinExpressionExtractor(this.context, reference.getColumn());
         reference.getReferences().forEach(ref -> {
             joinExpressions.addAll(ref.accept(visitor));
         });
@@ -103,7 +75,8 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
         JoinPath joinPath = reference.getPath();
         List<PathElement> pathElements = joinPath.getPathElements();
 
-        TableContext currentCtx = this.tableCtx;
+        Context currentCtx = this.context;
+        String columnName = this.column.getName();
 
         for (int i = 0; i < pathElements.size() - 1; i++) {
 
@@ -113,32 +86,26 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
 
             SQLJoin sqlJoin = currentCtx.getQueryable().getJoin(joinFieldName);
 
-            TableContext joinCtx;
+            Context joinCtx;
             String onClause;
             JoinType joinType;
 
             if (sqlJoin != null) {
                 joinType = sqlJoin.getJoinType();
-                joinCtx = (TableContext) currentCtx.get(joinFieldName);
+                joinCtx = (Context) currentCtx.get(joinFieldName);
 
                 if (joinType.equals(JoinType.CROSS)) {
                     onClause = EMPTY;
                 } else {
-                    /**
-                     * Resolve handlebars with in Join expression with available column arguments.
-                     * Column name can be blank here, as column name is required only for extracting default arguments,
-                     *  which are already added to availableColArgs.
-                     */
-                    onClause = ON + currentCtx.resolveHandlebars(EMPTY,
-                                                                 sqlJoin.getJoinExpression(),
-                                                                 this.availableColArgs);
+                    onClause = ON + currentCtx.resolveHandlebars(columnName, sqlJoin.getJoinExpression());
                 }
             } else {
                 joinType = JoinType.LEFT;
-                joinCtx = TableContext.builder()
+                joinCtx = Context.builder()
                                 .queryable(metaDataStore.getTable(joinClass))
                                 .alias(appendAlias(currentCtx.getAlias(), joinFieldName))
                                 .metaDataStore(currentCtx.getMetaDataStore())
+                                .queriedColArgs(currentCtx.getQueriedColArgs())
                                 .build();
 
                 onClause = ON + String.format("%s.%s = %s.%s",
@@ -157,33 +124,35 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
 
             /**
              * If this `for` loop runs more than once, context should be switched to join context.
-             * Column arguments will remain same in this scenario, as there will not be any logical column in between,
-             *  so there are no new default arguments.
+             * Column name can be blank here, as column name is required only for extracting default arguments, As there
+             * will not be any logical column in between, so no new default arguments.
              */
             currentCtx = joinCtx;
+            columnName = EMPTY;
         }
 
-        JoinExpressionExtractor visitor = new JoinExpressionExtractor(currentCtx, this.availableColArgs);
+        // If reference within current join reference is of type PhysicalReference, then below visitor doesn't matter.
+        // If it is of type LogicalReference, then visitLogicalReference method will recreate visitor with correct
+        // value of ColumnProjection.
+        JoinExpressionExtractor visitor = new JoinExpressionExtractor(currentCtx, null);
         joinExpressions.addAll(reference.getReference().accept(visitor));
         return joinExpressions;
     }
 
     /**
      * Get the SELECT SQL or tableName for given entity.
-     * @param tableCtx {@link TableContext} for resolving table args in query.
+     * @param context {@link Context} for resolving table args in query.
      * @param cls Entity class.
      * @return resolved tableName or sql in Subselect/FromSubquery.
      */
-    private String constructTableOrSubselect(TableContext tableCtx, Type<?> cls) {
+    private String constructTableOrSubselect(Context context, Type<?> cls) {
 
         if (hasSql(cls)) {
             // Resolve any table arguments with in FromSubquery or Subselect
-            String selectSql = tableCtx.resolveHandlebars(EMPTY,
-                                                          resolveTableOrSubselect(dictionary, cls),
-                                                          Collections.emptyMap());
+            String selectSql = context.resolveHandlebars(EMPTY, resolveTableOrSubselect(dictionary, cls));
             return OPEN_BRACKET + selectSql + CLOSE_BRACKET;
         }
 
-        return applyQuotes(resolveTableOrSubselect(dictionary, cls), tableCtx.getQueryable().getDialect());
+        return applyQuotes(resolveTableOrSubselect(dictionary, cls), context.getQueryable().getDialect());
     }
 }

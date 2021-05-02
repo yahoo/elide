@@ -102,6 +102,10 @@ public class SQLTable extends Table implements Queryable {
     }
 
     public MetricProjection getMetricProjection(String fieldName, String alias) {
+        return getMetricProjection(fieldName, alias, new HashMap<>());
+    }
+
+    public MetricProjection getMetricProjection(String fieldName, String alias, Map<String, Argument> arguments) {
         Metric metric = super.getMetric(fieldName);
         if (metric == null) {
             return null;
@@ -109,7 +113,7 @@ public class SQLTable extends Table implements Queryable {
 
         return metric.getMetricProjectionMaker().make(metric,
                 isBlank(alias) ? metric.getName() : alias,
-                new HashMap<>());
+                arguments);
     }
 
     @Override
@@ -128,13 +132,17 @@ public class SQLTable extends Table implements Queryable {
     }
 
     public ColumnProjection getDimensionProjection(String fieldName, String alias) {
+        return getDimensionProjection(fieldName, alias, new HashMap<>());
+    }
+
+    public ColumnProjection getDimensionProjection(String fieldName, String alias, Map<String, Argument> arguments) {
         Dimension dimension = super.getDimension(fieldName);
         if (dimension == null) {
             return null;
         }
         return new SQLDimensionProjection(dimension,
                 isBlank(alias) ? dimension.getName() : alias,
-                new HashMap<>(), true);
+                arguments, true);
     }
 
     @Override

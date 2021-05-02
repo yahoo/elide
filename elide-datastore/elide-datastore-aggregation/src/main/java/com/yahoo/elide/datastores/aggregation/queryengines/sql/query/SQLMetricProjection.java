@@ -88,9 +88,9 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     }
 
     @Override
-    public String toSQL(Queryable query, SQLReferenceTable lookupTable) {
+    public String toSQL(Queryable query, MetaDataStore metaDataStore) {
         if (QUERY_PATTERN.matcher(expression).matches()) {
-            return SQLColumnProjection.super.toSQL(query, lookupTable);
+            return SQLColumnProjection.super.toSQL(query, metaDataStore);
         }
         return expression;
     }
@@ -115,7 +115,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                                                               SQLReferenceTable lookupTable,
                                                               boolean joinInOuter) {
         SQLDialect dialect = source.getConnectionDetails().getDialect();
-        String sql = toSQL(source, lookupTable);
+        String sql = toSQL(source, lookupTable.getMetaDataStore());
         SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
 
         SqlNode node;

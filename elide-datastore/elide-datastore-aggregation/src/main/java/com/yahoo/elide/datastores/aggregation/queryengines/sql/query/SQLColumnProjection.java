@@ -6,8 +6,8 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import com.yahoo.elide.datastores.aggregation.metadata.Context;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SyntaxVerifier;
@@ -37,20 +37,25 @@ public interface SQLColumnProjection extends ColumnProjection {
     /**
      * Generate a SQL fragment for this combination column and client arguments.
      * @param query current Queryable.
-     * @param lookupTable symbol table to resolve column name references.
+     * @param metaDataStore MetaDataStore.
      * @return SQL query String for this column
      */
-    default String toSQL(Queryable query, SQLReferenceTable lookupTable) {
+    default String toSQL(Queryable query, MetaDataStore metaDataStore) {
 
-        TableContext tableCtx = lookupTable.getGlobalTableContext(query);
+        Context context = Context.builder()
+                        .queryable(query)
+                        .alias(query.getSource().getAlias())
+                        .metaDataStore(metaDataStore)
+                        .queriedColArgs(getArguments())
+                        .build();
 
-        return tableCtx.resolveHandlebars(getName(), getExpression(), getArguments());
+        return context.resolveHandlebars(getName(), getExpression());
     }
 
     @Override
     default boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
         SQLDialect dialect = source.getConnectionDetails().getDialect();
-        String sql = toSQL(source, lookupTable);
+        String sql = toSQL(source, lookupTable.getMetaDataStore());
 
         SyntaxVerifier verifier = new SyntaxVerifier(dialect);
         boolean canNest = verifier.verify(sql);
