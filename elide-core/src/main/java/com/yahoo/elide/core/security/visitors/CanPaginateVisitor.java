@@ -19,7 +19,6 @@ import com.yahoo.elide.generated.parsers.ExpressionParser;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.lang.annotation.Annotation;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
