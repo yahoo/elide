@@ -91,7 +91,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnExpression("${elide.aggregation-store.enabled} and ${elide.dynamic-config.enabled}")
+    @ConditionalOnExpression("${elide.aggregation-store.enabled:false} and ${elide.dynamic-config.enabled:false}")
     public DynamicConfiguration buildDynamicConfiguration(ElideConfigProperties settings) throws IOException {
         DynamicConfigValidator validator = new DynamicConfigValidator(settings.getDynamicConfig().getPath());
         validator.readAndValidateConfigs();
