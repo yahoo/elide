@@ -23,7 +23,6 @@ import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Formatter;
 import com.github.jknack.handlebars.Handlebars;
-import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.Options;
 import com.github.jknack.handlebars.Template;
 
@@ -100,8 +99,8 @@ public class TableContext extends HashMap<String, Object> {
             return applyQuotes(resolvedExpr, queryable.getConnectionDetails().getDialect());
         }
 
-        if (this.queryable.getJoins().containsKey(key)) {
-            SQLJoin sqlJoin = this.queryable.getJoins().get(key);
+        if (this.queryable.hasJoin(keyStr)) {
+            SQLJoin sqlJoin = this.queryable.getJoin(keyStr);
             Queryable joinQueryable = metaDataStore.getTable(sqlJoin.getJoinTableType());
             TableContext newCtx = TableContext.builder()
                             .queryable(joinQueryable)
@@ -110,7 +109,9 @@ public class TableContext extends HashMap<String, Object> {
                             .build();
 
             // Copy $$column to join context.
-            newCtx.put(COL_PREFIX, this.get(COL_PREFIX));
+            if (this.containsKey(COL_PREFIX)) {
+                newCtx.put(COL_PREFIX, this.get(COL_PREFIX));
+            }
             return newCtx;
         }
 
@@ -120,29 +121,9 @@ public class TableContext extends HashMap<String, Object> {
         }
 
         ColumnProjection columnProj = this.queryable.getColumnProjection(keyStr);
-        if (columnProj != null) {
-            // Use the args under $$column.args
-            return resolveHandlebars(keyStr, columnProj.getExpression(), getArgsFromContext(COL_PREFIX), fixedArgs);
-        }
-        // Assumption: Non-Projected column must be projected in Query's source.
-        // TODO: Currently everything is not projected in Query, Remove this case once everything is projected in
-        // Query (https://github.com/yahoo/elide/issues/2018).
-        Queryable source = this.queryable.getSource();
+        // Use the args under $$column.args
+        return resolveHandlebars(keyStr, columnProj.getExpression(), getArgsFromContext(COL_PREFIX), fixedArgs);
 
-        if (source.getColumnProjection(keyStr) == null) {
-            throw new HandlebarsException(new Throwable("Couldn't find: " + key));
-        }
-
-        TableContext newCtx = TableContext.builder()
-                        .queryable(source)
-                        .alias(source.getAlias())
-                        .metaDataStore(metaDataStore)
-                        .build();
-
-        // Copy $$table & $$column to context for source.
-        newCtx.put(COL_PREFIX, this.get(COL_PREFIX));
-        newCtx.put(TBL_PREFIX, this.get(TBL_PREFIX));
-        return newCtx.get(keyStr);
     }
 
     /**
@@ -176,7 +157,7 @@ public class TableContext extends HashMap<String, Object> {
         Map<String, Object> newCtxColumnArgs = new HashMap<>();
 
         Queryable queryable = this.getQueryable();
-        Table table = metaDataStore.getTable(queryable.getName(), queryable.getVersion());
+        Table table = metaDataStore.getTable(queryable.getSource().getName(), queryable.getSource().getVersion());
 
         // Add the default argument values stored in metadata store.
         if (table != null) {
@@ -260,7 +241,7 @@ public class TableContext extends HashMap<String, Object> {
         return (Map<String, ? extends Object>) map.getOrDefault(ARGS_KEY, emptyMap());
     }
 
-    private static Map<String, Object> getDefaultArgumentsMap(Set<Argument> availableArgs) {
+    public static Map<String, Object> getDefaultArgumentsMap(Set<Argument> availableArgs) {
 
         return availableArgs.stream()
                         .filter(arg -> arg.getDefaultValue() != null)
