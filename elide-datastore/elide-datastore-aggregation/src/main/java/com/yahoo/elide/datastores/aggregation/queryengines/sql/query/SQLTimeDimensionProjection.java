@@ -79,9 +79,9 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     }
 
     @Override
-    public String toSQL(Queryable query, SQLReferenceTable table) {
+    public String toSQL(Queryable query, MetaDataStore metaDataStore) {
 
-        String resolvedExpr = SQLColumnProjection.super.toSQL(query, table);
+        String resolvedExpr = SQLColumnProjection.super.toSQL(query, metaDataStore);
 
         // TODO - We will likely migrate to a templating language when we support parameterized metrics.
         return grain.getExpression().replaceAll(TIME_DIMENSION_REPLACEMENT_REGEX, resolvedExpr);
