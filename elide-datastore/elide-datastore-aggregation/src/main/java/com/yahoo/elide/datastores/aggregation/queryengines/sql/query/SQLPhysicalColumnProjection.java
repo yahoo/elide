@@ -11,6 +11,7 @@ import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.S
 import com.yahoo.elide.core.utils.TypeHelper;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
@@ -23,7 +24,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode
 @Builder
-public class SQLPhysicalColumnProjection implements SQLColumnProjection {
+public class SQLPhysicalColumnProjection implements SQLColumnProjection, DimensionProjection {
 
     private String name;
 
@@ -62,7 +63,12 @@ public class SQLPhysicalColumnProjection implements SQLColumnProjection {
     }
 
     @Override
-    public SQLColumnProjection withExpression(String expression, boolean project) {
+    public SQLPhysicalColumnProjection withProjected(boolean projected) {
+        return withExpression(getExpression(), projected);
+    }
+
+    @Override
+    public SQLPhysicalColumnProjection withExpression(String expression, boolean projected) {
         return SQLPhysicalColumnProjection.builder().name(name).build();
     }
 }
