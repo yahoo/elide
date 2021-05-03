@@ -72,8 +72,8 @@ public class ISO8601DateSerdeTest {
     public void testDateToSQLTimestampDeserialization() throws Exception {
         ISO8601DateSerde serde =
                 new ISO8601DateSerde("yyyy-MM-dd", TimeZone.getTimeZone("UTC"), java.sql.Timestamp.class);
-        java.sql.Timestamp expected = new Timestamp(0);
-        java.sql.Timestamp actual = (java.sql.Timestamp) serde.deserialize(new Date(0));
+        Timestamp expected = new Timestamp(0);
+        Timestamp actual = (Timestamp) serde.deserialize(new Date(0));
         assertEquals(expected, actual);
     }
 

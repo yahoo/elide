@@ -62,7 +62,7 @@ public class ISO8601DateSerde implements Serde<Object, Date> {
         if (ClassUtils.isAssignable(targetType, java.sql.Timestamp.class)) {
             return new java.sql.Timestamp(date.getTime());
         }
-         if (ClassUtils.isAssignable(targetType, java.sql.Time.class)) {
+        if (ClassUtils.isAssignable(targetType, java.sql.Time.class)) {
             return new java.sql.Time(date.getTime());
         }
         return date;
