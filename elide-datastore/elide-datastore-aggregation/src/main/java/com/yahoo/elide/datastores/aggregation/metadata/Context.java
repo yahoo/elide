@@ -232,12 +232,6 @@ public class Context extends HashMap<String, Object> {
         return invokedCtx.get(invokedColumnName);
     }
 
-    @SuppressWarnings("unchecked")
-    private Map<String, ? extends Object> getArgsFromContext(String outerKey) {
-        Map<String, Object> map = (Map<String, Object>) this.getOrDefault(outerKey, emptyMap());
-        return (Map<String, ? extends Object>) map.getOrDefault(ARGS_KEY, emptyMap());
-    }
-
     public static Map<String, Object> getDefaultArgumentsMap(Set<Argument> availableArgs) {
 
         return availableArgs.stream()

@@ -181,7 +181,7 @@ public class ContextTest {
         Query.QueryBuilder builder = Query.builder()
                         .source(query.getSource())
                         .metricProjections(query.getMetricProjections())
-                        .arguments(queryArgs);
+                        .arguments(query.getArguments());
 
         Query expandedQuery = addHiddenProjections(refTable, builder, query).build();
 
