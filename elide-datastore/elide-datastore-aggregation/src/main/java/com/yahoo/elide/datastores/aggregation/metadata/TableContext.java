@@ -23,7 +23,6 @@ import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Formatter;
 import com.github.jknack.handlebars.Handlebars;
-import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.Options;
 import com.github.jknack.handlebars.Template;
 
@@ -122,29 +121,9 @@ public class TableContext extends HashMap<String, Object> {
         }
 
         ColumnProjection columnProj = this.queryable.getColumnProjection(keyStr);
-        if (columnProj != null) {
-            // Use the args under $$column.args
-            return resolveHandlebars(keyStr, columnProj.getExpression(), getArgsFromContext(COL_PREFIX), fixedArgs);
-        }
-        // Assumption: Non-Projected column must be projected in Query's source.
-        // TODO: Currently everything is not projected in Query, Remove this case once everything is projected in
-        // Query (https://github.com/yahoo/elide/issues/2018).
-        Queryable source = this.queryable.getSource();
+        // Use the args under $$column.args
+        return resolveHandlebars(keyStr, columnProj.getExpression(), getArgsFromContext(COL_PREFIX), fixedArgs);
 
-        if (source.getColumnProjection(keyStr) == null) {
-            throw new HandlebarsException(new Throwable("Couldn't find: " + key));
-        }
-
-        TableContext newCtx = TableContext.builder()
-                        .queryable(source)
-                        .alias(source.getAlias())
-                        .metaDataStore(metaDataStore)
-                        .build();
-
-        // Copy $$table & $$column to context for source.
-        newCtx.put(COL_PREFIX, this.get(COL_PREFIX));
-        newCtx.put(TBL_PREFIX, this.get(TBL_PREFIX));
-        return newCtx.get(keyStr);
     }
 
     /**

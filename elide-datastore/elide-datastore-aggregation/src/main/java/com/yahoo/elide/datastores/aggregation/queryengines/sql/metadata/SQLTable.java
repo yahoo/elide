@@ -18,6 +18,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
@@ -123,11 +124,11 @@ public class SQLTable extends Table implements Queryable {
     }
 
     @Override
-    public ColumnProjection getDimensionProjection(String fieldName) {
+    public DimensionProjection getDimensionProjection(String fieldName) {
         return getDimensionProjection(fieldName, null);
     }
 
-    public ColumnProjection getDimensionProjection(String fieldName, String alias) {
+    public DimensionProjection getDimensionProjection(String fieldName, String alias) {
         Dimension dimension = super.getDimension(fieldName);
         if (dimension == null) {
             return null;
@@ -138,7 +139,7 @@ public class SQLTable extends Table implements Queryable {
     }
 
     @Override
-    public List<ColumnProjection> getDimensionProjections() {
+    public List<DimensionProjection> getDimensionProjections() {
         return super.getDimensions()
                 .stream()
                 .map((dimension) -> new SQLDimensionProjection(dimension,

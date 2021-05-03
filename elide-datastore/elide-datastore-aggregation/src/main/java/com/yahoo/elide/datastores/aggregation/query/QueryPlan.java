@@ -34,7 +34,7 @@ public class QueryPlan implements Queryable {
 
     @Singular
     @NonNull
-    private List<ColumnProjection> dimensionProjections;
+    private List<DimensionProjection> dimensionProjections;
 
     @Singular
     @NonNull
@@ -73,7 +73,7 @@ public class QueryPlan implements Queryable {
         Set<TimeDimensionProjection> timeDimensions = Streams.concat(other.timeDimensionProjections.stream(),
                 self.timeDimensionProjections.stream()).collect(Collectors.toCollection(LinkedHashSet::new));
 
-        Set<ColumnProjection> dimensions = Streams.concat(other.dimensionProjections.stream(),
+        Set<DimensionProjection> dimensions = Streams.concat(other.dimensionProjections.stream(),
                 self.dimensionProjections.stream()).collect(Collectors.toCollection(LinkedHashSet::new));
 
         if (!self.isNested()) {
@@ -139,6 +139,7 @@ public class QueryPlan implements Queryable {
                 .dimensionProjections(nestedDimensions.stream()
                         .map(Pair::getRight)
                         .flatMap(Set::stream)
+                        .map(DimensionProjection.class::cast)
                         .collect(Collectors.toCollection(LinkedHashSet::new)))
                 .timeDimensionProjections(nestedTimeDimensions.stream()
                         .map(Pair::getRight)
@@ -155,6 +156,7 @@ public class QueryPlan implements Queryable {
                         .collect(Collectors.toCollection(LinkedHashSet::new)))
                 .dimensionProjections(nestedDimensions.stream()
                         .map(Pair::getLeft)
+                        .map(DimensionProjection.class::cast)
                         .collect(Collectors.toCollection(LinkedHashSet::new)))
                 .timeDimensionProjections(nestedTimeDimensions.stream()
                         .map(Pair::getLeft)
