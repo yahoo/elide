@@ -61,6 +61,9 @@ public class Context extends HashMap<String, Object> {
     // Arguments provided for queried column.
     private final Map<String, ? extends Object> queriedColArgs;
 
+    private final Map<String, Object> columnArgsMap;
+    private final Map<String, Object> tableArgsMap;
+
     private final Handlebars handlebars = new Handlebars()
             .with(EscapingStrategy.NOOP)
             .with((Formatter) (value, next) -> {
@@ -84,6 +87,14 @@ public class Context extends HashMap<String, Object> {
         if (keyStr.lastIndexOf('$') == 0) {
             String resolvedExpr = alias + PERIOD + key.toString().substring(1);
             return applyQuotes(resolvedExpr, queryable.getConnectionDetails().getDialect());
+        }
+
+        if (keyStr.equals(TBL_PREFIX)) {
+            return this.tableArgsMap;
+        }
+
+        if (keyStr.equals(COL_PREFIX)) {
+            return this.columnArgsMap;
         }
 
         if (this.queryable.hasJoin(keyStr)) {
@@ -151,11 +162,12 @@ public class Context extends HashMap<String, Object> {
 
         // Build a new Context for resolving this column
         Context newCtx = Context.builder()
-                        .queryable(queryable)
+                        .queryable(queryable, this.getMetaDataStore())
                         .alias(this.getAlias())
                         .metaDataStore(this.getMetaDataStore())
                         .queriedColArgs(this.getQueriedColArgs())
-                        .build(newCtxColumnArgs);
+                        .availableColArgs(newCtxColumnArgs)
+                        .build();
 
         try {
             Template template = handlebars.compileInline(column.getExpression());
@@ -236,17 +248,29 @@ public class Context extends HashMap<String, Object> {
     }
 
     public static class ContextBuilder {
-        public Context build() {
-            return new Context(this.metaDataStore, this.queryable, this.alias, this.queriedColArgs);
+
+        public ContextBuilder availableColArgs(final Map<String, Object> availableColArgs) {
+            Map<String, Object> colArgsMap = new HashMap<>();
+            colArgsMap.put(ARGS_KEY, availableColArgs);
+            this.columnArgsMap = colArgsMap;
+            return this;
         }
 
-        public Context build(Map<String, Object> availableColArgs) {
-            Context context = build();
+        public ContextBuilder queryable(final Queryable queryable) {
+            this.queryable = queryable;
+            return this;
+        }
+
+        public ContextBuilder queryable(final Queryable queryable, final MetaDataStore metaDataStore) {
+            this.queryable = queryable;
+            Map<String, Object> tblArgsMap = new HashMap<>();
+            this.tableArgsMap = tblArgsMap;
 
             Map<String, Object> tableArgs = new HashMap<>();
+            tblArgsMap.put(ARGS_KEY, tableArgs);
 
-            Table table = this.metaDataStore.getTable(this.queryable.getSource().getName(),
-                                                      this.queryable.getSource().getVersion());
+            Table table = metaDataStore.getTable(queryable.getSource().getName(),
+                                                 queryable.getSource().getVersion());
 
             // Add the default table argument values from metadata store.
             if (table != null) {
@@ -254,20 +278,12 @@ public class Context extends HashMap<String, Object> {
             }
 
             // Override default arguments with Query Args if available.
-            if (this.queryable instanceof Query) {
-                Query query = (Query) this.queryable;
+            if (queryable instanceof Query) {
+                Query query = (Query) queryable;
                 tableArgs.putAll(query.getArguments());
             }
 
-            Map<String, Object> tblArgsMap = new HashMap<>();
-            context.put(TBL_PREFIX, tblArgsMap);
-            tblArgsMap.put(ARGS_KEY, tableArgs);
-
-            Map<String, Object> colArgsMap = new HashMap<>();
-            context.put(COL_PREFIX, colArgsMap);
-            colArgsMap.put(ARGS_KEY, availableColArgs);
-
-            return context;
+            return this;
         }
     }
 }
