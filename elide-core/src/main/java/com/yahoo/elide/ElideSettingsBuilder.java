@@ -168,10 +168,10 @@ public class ElideSettingsBuilder {
         return this;
     }
 
-//    public ElideSettingsBuilder withVerboseErrors() {
-//        // Set Verbose Permission Executor in datastore
-//        return this;
-//    }
+    public ElideSettingsBuilder withVerboseErrors() {
+        // Set Verbose Permission Executor in datastore
+        return this;
+    }
 
     public ElideSettingsBuilder withISO8601Dates(String dateFormat, TimeZone tz) {
         serdes.put(Date.class, new ISO8601DateSerde(dateFormat, tz));
