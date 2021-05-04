@@ -49,7 +49,7 @@ public interface SQLColumnProjection extends ColumnProjection {
                         .queriedColArgs(getArguments())
                         .build();
 
-        return context.resolveHandlebars(getName(), getExpression());
+        return context.resolveHandlebars(this);
     }
 
     @Override

@@ -12,6 +12,8 @@ import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.S
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 import static java.util.Collections.emptyMap;
 
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
@@ -19,6 +21,7 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Formatter;
 import com.github.jknack.handlebars.Handlebars;
@@ -27,6 +30,8 @@ import com.github.jknack.handlebars.Options;
 import com.github.jknack.handlebars.Template;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -120,32 +125,30 @@ public class Context extends HashMap<String, Object> {
 
         ColumnProjection columnProj = this.queryable.getColumnProjection(keyStr);
         if (columnProj != null) {
-            return resolveHandlebars(keyStr, columnProj.getExpression(), fixedArgs);
+            return resolveHandlebars(columnProj, fixedArgs);
         }
 
         throw new HandlebarsException(new Throwable("Couldn't find: " + key));
     }
 
     /**
-     * Resolves the handebars in column expression.
+     * Resolves the handebars in column's expression.
      *
-     * @param columnName column's name.
-     * @param columnExpr expression to resolve.
+     * @param column {@link ColumnProjection}
      * @return fully resolved column's expression.
      */
-    public String resolveHandlebars(String columnName, String columnExpr) {
-        return resolveHandlebars(columnName, columnExpr, emptyMap());
+    public String resolveHandlebars(ColumnProjection column) {
+        return resolveHandlebars(column, emptyMap());
     }
 
     /**
-     * Resolves the handebars in column expression.
+     * Resolves the handebars in column's expression.
      *
-     * @param columnName column's name.
-     * @param columnExpr column's definition.
+     * @param column {@link ColumnProjection}
      * @param fixedArgs If this is called from SQL helper then pinned arguments.
      * @return fully resolved column's expression.
      */
-    private String resolveHandlebars(String columnName, String columnExpr, Map<String, ? extends Object> fixedArgs) {
+    private String resolveHandlebars(ColumnProjection column, Map<String, ? extends Object> fixedArgs) {
 
         Map<String, Object> defaultTableArgs = null;
         Map<String, Object> defaultColumnArgs = null;
@@ -159,9 +162,9 @@ public class Context extends HashMap<String, Object> {
         // Add the default argument values stored in metadata store.
         if (table != null) {
             defaultTableArgs = getDefaultArgumentsMap(table.getArguments());
-            Column column = table.getColumnMap().get(columnName);
-            if (column != null) {
-                defaultColumnArgs = getDefaultArgumentsMap(column.getArguments());
+            Column col = table.getColumnMap().get(column.getName());
+            if (col != null) {
+                defaultColumnArgs = getDefaultArgumentsMap(col.getArguments());
             }
         }
 
@@ -200,7 +203,7 @@ public class Context extends HashMap<String, Object> {
                         .withColumnArgs(newCtxColumnArgs);
 
         try {
-            Template template = handlebars.compileInline(columnExpr);
+            Template template = handlebars.compileInline(column.getExpression());
             return template.apply(newCtx);
         } catch (IOException e) {
             throw new IllegalStateException(e.getMessage());
@@ -230,6 +233,44 @@ public class Context extends HashMap<String, Object> {
             return invokedCtx.get(invokedColumnName, pinnedArgs);
         }
         return invokedCtx.get(invokedColumnName);
+    }
+
+    /**
+     * Resolves the handlebars with in expression.
+     * @param columnName Name of the column whose default arguments to be used for resolving this expression.
+     * @param expression Expression to resolve.
+     * @return fully resolved expression.
+     */
+    public String resolveHandlebars(String columnName, String expression) {
+        ColumnProjection column = new ColumnProjection() {
+            @Override
+            public <T extends ColumnProjection> T withProjected(boolean projected) {
+                return null;
+            }
+            @Override
+            public Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source, SQLReferenceTable lookupTable,
+                            boolean joinInOuter) {
+                return null;
+            }
+            @Override
+            public ValueType getValueType() {
+                return null;
+            }
+            @Override
+            public String getName() {
+                return columnName;
+            }
+            @Override
+            public String getExpression() {
+                return expression;
+            }
+            @Override
+            public ColumnType getColumnType() {
+                return null;
+            }
+        };
+
+        return resolveHandlebars(column);
     }
 
     public static Map<String, Object> getDefaultArgumentsMap(Set<Argument> availableArgs) {
