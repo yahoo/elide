@@ -5,7 +5,12 @@
  */
 package com.yahoo.elide.core.datastore;
 
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.security.PermissionExecutor;
+import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
+
+import java.util.function.Function;
 
 /**
  * Database interface library.
@@ -33,5 +38,9 @@ public interface DataStore {
      */
     default DataStoreTransaction beginReadTransaction() {
         return beginTransaction();
+    }
+
+    default Function<RequestScope, PermissionExecutor> getPermissionExecutorFunction() {
+        return ActivePermissionExecutor::new;
     }
 }

@@ -765,10 +765,7 @@ public class EntityProjectionMakerTest {
         queryParams.add("fields[book]", "publisher,bookTitle,bookName"); // Invalid Fields: bookTitle & bookName
         String path = "/book";
 
-        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
-        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
-
-        Exception e = assertThrows(InvalidValueException.class, () -> maker.parsePath(path));
+        Exception e = assertThrows(InvalidValueException.class, () -> new TestRequestScope(dictionary, path, queryParams));
         assertEquals("Invalid value: book does not contain the fields: [bookTitle, bookName]", e.getMessage());
     }
 
@@ -780,10 +777,7 @@ public class EntityProjectionMakerTest {
         queryParams.add("include", "publisher");
         String path = "/book";
 
-        RequestScope scope = new TestRequestScope(dictionary, path, queryParams);
-        EntityProjectionMaker maker = new EntityProjectionMaker(dictionary, scope);
-
-        Exception e = assertThrows(InvalidValueException.class, () -> maker.parsePath(path));
+        Exception e = assertThrows(InvalidValueException.class, () -> new TestRequestScope(dictionary, path, queryParams));
         assertEquals("Invalid value: publisher does not contain the fields: [cost]", e.getMessage());
     }
 

@@ -5,10 +5,13 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.security.PermissionExecutor;
+import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
 import com.yahoo.elide.core.type.Type;
 
 import lombok.AccessLevel;
@@ -17,6 +20,7 @@ import lombok.Setter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
  * Allows multiple database handlers to each process their own beans while keeping the main
@@ -94,5 +98,13 @@ public final class MultiplexManager implements DataStore {
         // Follow for this class or super-class for Entity annotation
         Type<T> type = (Type<T>) dictionary.lookupBoundClass(cls);
         return dataStoreMap.get(type);
+    }
+
+    @Override
+    public Function<RequestScope, PermissionExecutor> getPermissionExecutorFunction() {
+        return (scope) -> (scope.getEntityProjection() == null
+                || getSubManager(scope.getEntityProjection().getType()) == null)
+                ? new ActivePermissionExecutor(scope)
+                : getSubManager(scope.getEntityProjection().getType()).getPermissionExecutorFunction().apply(scope);
     }
 }

@@ -164,7 +164,7 @@ public class DefaultAsyncAPIDAO implements AsyncAPIDAO {
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {
             JsonApiDocument jsonApiDoc = new JsonApiDocument();
             MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-            RequestScope scope = new RequestScope("", "query", NO_VERSION, jsonApiDoc,
+            RequestScope scope = new RequestScope("", "asyncQuery", NO_VERSION, jsonApiDoc,
                     tx, null, queryParams, Collections.emptyMap(), UUID.randomUUID(), elideSettings);
             result = action.execute(tx, scope);
             tx.flush(scope);

@@ -103,7 +103,7 @@ public class AsyncAPICancelRunnable implements Runnable {
                    if (runningTransaction != null) {
                        JsonApiDocument jsonApiDoc = new JsonApiDocument();
                        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
-                       RequestScope scope = new RequestScope("", "query", NO_VERSION, jsonApiDoc,
+                       RequestScope scope = new RequestScope("", "asyncQuery", NO_VERSION, jsonApiDoc,
                                runningTransaction, null, queryParams, Collections.emptyMap(),
                                uuid, elide.getElideSettings());
                        runningTransaction.cancel(scope);

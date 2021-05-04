@@ -14,6 +14,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.pagination.PaginationImpl;
+import com.yahoo.elide.core.security.executors.VerbosePermissionExecutor;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -50,7 +51,8 @@ public class DependencyBinder extends ResourceConfig {
                 EntityManagerFactory emf = Persistence.createEntityManagerFactory("searchDataStoreTest");
                 DataStore jpaStore = new JpaDataStore(
                         emf::createEntityManager,
-                        em -> new NonJtaTransaction(em, txCancel));
+                        em -> new NonJtaTransaction(em, txCancel),
+                        VerbosePermissionExecutor::new);
 
                 EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
 
@@ -61,7 +63,6 @@ public class DependencyBinder extends ResourceConfig {
                 Elide elide = new Elide(new ElideSettingsBuilder(searchStore)
                         .withAuditLogger(new Slf4jLogger())
                         .withEntityDictionary(dictionary)
-                        .withVerboseErrors()
                         .withDefaultMaxPageSize(PaginationImpl.MAX_PAGE_LIMIT)
                         .withDefaultPageSize(PaginationImpl.DEFAULT_PAGE_LIMIT)
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone("UTC"))

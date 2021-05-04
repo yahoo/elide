@@ -23,6 +23,7 @@ import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.jsonapi.EntityProjectionMaker;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import org.apache.commons.collections.MapUtils;
@@ -41,7 +42,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -134,11 +134,6 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.requestId = requestId;
         this.headers = new HashMap<>();
 
-        Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
-        this.permissionExecutor = (permissionExecutorGenerator == null)
-                ? new ActivePermissionExecutor(this)
-                : permissionExecutorGenerator.apply(this);
-
         this.queryParams = MapUtils.isEmpty(queryParams)
                 ? Optional.empty()
                 : Optional.of(queryParams);
@@ -188,6 +183,17 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         } else {
             this.sparseFields = Collections.emptyMap();
         }
+
+
+        entityProjection = (path == null || path.isEmpty() || path.equals("/"))
+                ? null
+                : new EntityProjectionMaker(elideSettings.getDictionary(),
+                this).parsePath(path);
+
+        this.permissionExecutor = (elideSettings.getDataStore() == null
+                || elideSettings.getDataStore().getPermissionExecutorFunction() == null)
+                ? new ActivePermissionExecutor(this)
+                : elideSettings.getDataStore().getPermissionExecutorFunction().apply(this);
     }
 
     /**

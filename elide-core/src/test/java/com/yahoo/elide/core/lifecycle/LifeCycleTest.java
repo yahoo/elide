@@ -48,6 +48,7 @@ import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.TestUser;
 import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.core.security.executors.VerbosePermissionExecutor;
 import com.yahoo.elide.core.type.ClassType;
 import com.google.common.collect.ImmutableSet;
 import org.junit.jupiter.api.Test;
@@ -920,7 +921,7 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createNewObject(ClassType.of(FieldTestModel.class))).thenReturn(mockModel);
-        RequestScope scope = buildRequestScope(dictionary, tx);
+        RequestScope scope = buildRequestScope(dictionary, tx, mock(DataStore.class));
         PersistentResource resource = PersistentResource.createObject(ClassType.of(FieldTestModel.class), scope, Optional.of("1"));
         resource.updateAttribute("field", "should not affect calls since this is create!");
 
@@ -969,7 +970,7 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createNewObject(ClassType.of(FieldTestModel.class))).thenReturn(mockModel);
-        RequestScope scope = buildRequestScope(dictionary, tx);
+        RequestScope scope = buildRequestScope(dictionary, tx, mock(DataStore.class));
         PersistentResource resource = new PersistentResource(mockModel, "1", scope);
 
         resource.getAttribute(Attribute.builder().type(String.class).name("field").build());
@@ -1015,7 +1016,7 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createNewObject(ClassType.of(FieldTestModel.class))).thenReturn(mockModel);
-        RequestScope scope = buildRequestScope(dictionary, tx);
+        RequestScope scope = buildRequestScope(dictionary, tx, mock(DataStore.class));
         PersistentResource resource = new PersistentResource(mockModel, "1", scope);
 
         resource.deleteResource();
@@ -1059,7 +1060,7 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createNewObject(ClassType.of(FieldTestModel.class))).thenReturn(mockModel);
-        RequestScope scope = buildRequestScope(dictionary, tx);
+        RequestScope scope = buildRequestScope(dictionary, tx, mock(DataStore.class));
 
         PersistentResource resource = new PersistentResource(mockModel, scope.getUUIDFor(mockModel), scope);
         resource.updateAttribute("field", "new value");
@@ -1108,7 +1109,7 @@ public class LifeCycleTest {
         FieldTestModel mockModel = mock(FieldTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createNewObject(ClassType.of(FieldTestModel.class))).thenReturn(mockModel);
-        RequestScope scope = buildRequestScope(dictionary, tx);
+        RequestScope scope = buildRequestScope(dictionary, tx, mock(DataStore.class));
 
         FieldTestModel modelToAdd = mock(FieldTestModel.class);
 
@@ -1165,7 +1166,7 @@ public class LifeCycleTest {
         PropertyTestModel mockModel = mock(PropertyTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createNewObject(ClassType.of(PropertyTestModel.class))).thenReturn(mockModel);
-        RequestScope scope = buildRequestScope(dictionary, tx);
+        RequestScope scope = buildRequestScope(dictionary, tx, mock(DataStore.class));
 
         PropertyTestModel modelToAdd = mock(PropertyTestModel.class);
 
@@ -1183,7 +1184,7 @@ public class LifeCycleTest {
         verify(mockModel, times(1)).relationCallback(eq(CREATE), eq(POSTCOMMIT), notNull());
 
         //Build another resource, scope & reset the mock to do a pure update (no create):
-        scope = buildRequestScope(dictionary, tx);
+        scope = buildRequestScope(dictionary, tx, mock(DataStore.class));
         resource = new PersistentResource(mockModel, scope.getUUIDFor(mockModel), scope);
         reset(mockModel);
 
@@ -1202,7 +1203,7 @@ public class LifeCycleTest {
         PropertyTestModel mockModel = mock(PropertyTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.createNewObject(ClassType.of(PropertyTestModel.class))).thenReturn(mockModel);
-        RequestScope scope = buildRequestScope(dictionary, tx);
+        RequestScope scope = buildRequestScope(dictionary, tx, mock(DataStore.class));
 
         PropertyTestModel childModel1 = mock(PropertyTestModel.class);
         PropertyTestModel childModel2 = mock(PropertyTestModel.class);
@@ -1224,7 +1225,7 @@ public class LifeCycleTest {
         verify(mockModel, times(2)).relationCallback(eq(CREATE), eq(POSTCOMMIT), notNull());
 
         //Build another resource, scope & reset the mock to do a pure update (no create):
-        scope = buildRequestScope(dictionary, tx);
+        scope = buildRequestScope(dictionary, tx, mock(DataStore.class));
         resource = new PersistentResource(mockModel, scope.getUUIDFor(mockModel), scope);
         reset(mockModel);
         Relationship relationship = Relationship.builder()
@@ -1255,7 +1256,7 @@ public class LifeCycleTest {
                 .when(testModel)
                 .attributeCallback(eq(UPDATE), eq(PRECOMMIT), any(ChangeSpec.class));
 
-        RequestScope scope = buildRequestScope(dictionary, tx);
+        RequestScope scope = buildRequestScope(dictionary, tx, mock(DataStore.class));
         PersistentResource resource = new PersistentResource(testModel, "1", scope);
         resource.updateAttribute("field", "New value");
         scope.runQueuedPreSecurityTriggers();
@@ -1271,7 +1272,7 @@ public class LifeCycleTest {
                 .when(testModel)
                 .attributeCallback(eq(UPDATE), eq(POSTCOMMIT), any(ChangeSpec.class));
 
-        RequestScope scope = buildRequestScope(dictionary, tx);
+        RequestScope scope = buildRequestScope(dictionary, tx, mock(DataStore.class));
         PersistentResource resource = new PersistentResource(testModel, "1", scope);
         resource.updateAttribute("field", "New value");
         scope.runQueuedPreSecurityTriggers();
@@ -1282,13 +1283,17 @@ public class LifeCycleTest {
     @Test
     public void testPreSecurityLifecycleHookException() {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
+        DataStore datastore = mock(DataStore.class);
         FieldTestModel testModel = mock(FieldTestModel.class);
 
+        when(datastore.getPermissionExecutorFunction()).thenReturn(
+                VerbosePermissionExecutor::new
+        );
         doThrow(IllegalStateException.class)
                 .when(testModel)
                 .attributeCallback(eq(UPDATE), eq(PRESECURITY), any(ChangeSpec.class));
 
-        RequestScope scope = buildRequestScope(dictionary, tx);
+        RequestScope scope = buildRequestScope(dictionary, tx, datastore);
         PersistentResource resource = new PersistentResource(testModel, "1", scope);
 
         assertThrows(IllegalStateException.class, () -> resource.updateAttribute("field", "New value"));
@@ -1302,14 +1307,14 @@ public class LifeCycleTest {
         return new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
                 .withAuditLogger(auditLogger)
-                .withVerboseErrors()
                 .build();
     }
 
-    private RequestScope buildRequestScope(EntityDictionary dict, DataStoreTransaction tx) {
+    private RequestScope buildRequestScope(EntityDictionary dict, DataStoreTransaction tx, DataStore dataStore) {
         User user = new TestUser("1");
 
+
         return new RequestScope(null, null, NO_VERSION, null, tx, user, null, null, UUID.randomUUID(),
-                getElideSettings(null, dict, MOCK_AUDIT_LOGGER));
+                getElideSettings(dataStore, dict, MOCK_AUDIT_LOGGER));
     }
 }

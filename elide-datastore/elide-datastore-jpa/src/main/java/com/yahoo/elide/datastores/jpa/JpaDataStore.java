@@ -5,9 +5,12 @@
  */
 package com.yahoo.elide.datastores.jpa;
 
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.JPQLDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.security.PermissionExecutor;
+import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.jpa.porting.QueryLogger;
@@ -17,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Function;
+
 import javax.persistence.EntityManager;
 import javax.persistence.metamodel.EntityType;
 
@@ -30,17 +35,20 @@ public class JpaDataStore implements JPQLDataStore {
     protected final EntityManagerSupplier entityManagerSupplier;
     protected final JpaTransactionSupplier readTransactionSupplier;
     protected final JpaTransactionSupplier writeTransactionSupplier;
+    protected final Function<RequestScope, PermissionExecutor> permissionExecutorFunction;
     protected final Set<Type<?>> modelsToBind;
     protected final QueryLogger logger;
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier readTransactionSupplier,
                         JpaTransactionSupplier writeTransactionSupplier,
+                        Function<RequestScope, PermissionExecutor> permissionExecutorFunction,
                         QueryLogger logger,
                         Type<?> ... models) {
         this.entityManagerSupplier = entityManagerSupplier;
         this.readTransactionSupplier = readTransactionSupplier;
         this.writeTransactionSupplier = writeTransactionSupplier;
+        this.permissionExecutorFunction = permissionExecutorFunction;
         this.logger = logger;
         this.modelsToBind = new HashSet<>();
         for (Type<?> model : models) {
@@ -51,15 +59,23 @@ public class JpaDataStore implements JPQLDataStore {
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier readTransactionSupplier,
                         JpaTransactionSupplier writeTransactionSupplier,
+                        Function<RequestScope, PermissionExecutor> permissionExecutorFunction,
                         Type<?> ... models) {
-        this(entityManagerSupplier, readTransactionSupplier, writeTransactionSupplier, DEFAULT_LOGGER, models);
+        this(entityManagerSupplier, readTransactionSupplier, writeTransactionSupplier, permissionExecutorFunction,
+                DEFAULT_LOGGER, models);
     }
 
+    public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
+                        JpaTransactionSupplier transactionSupplier,
+                        Function<RequestScope, PermissionExecutor> permissionExecutorFunction,
+                        Type<?> ... models) {
+        this(entityManagerSupplier, transactionSupplier, transactionSupplier, permissionExecutorFunction, models);
+    }
 
     public JpaDataStore(EntityManagerSupplier entityManagerSupplier,
                         JpaTransactionSupplier transactionSupplier,
                         Type<?> ... models) {
-        this(entityManagerSupplier, transactionSupplier, transactionSupplier, models);
+        this(entityManagerSupplier, transactionSupplier, transactionSupplier, ActivePermissionExecutor::new, models);
     }
 
     @Override

@@ -8,11 +8,17 @@ package com.yahoo.elide.initialization;
 import static com.yahoo.elide.initialization.IntegrationTest.getDataStore;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.audit.AuditLogger;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
+import com.yahoo.elide.core.security.PermissionExecutor;
+import com.yahoo.elide.core.security.executors.VerbosePermissionExecutor;
+
 import example.TestCheckMappings;
 import example.models.triggers.Invoice;
 import example.models.triggers.services.BillingService;
@@ -22,6 +28,7 @@ import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
+import java.util.function.Function;
 
 /**
  * Binder for integration tests related to verbose error responses.
@@ -54,12 +61,34 @@ public class VerboseErrorResponsesTestBinder extends AbstractBinder {
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
                 );
 
-                return new Elide(new ElideSettingsBuilder(getDataStore())
+                DataStore ds = getDataStore();
+                DataStore newDS = new DataStore() {
+
+                    @Override
+                    public void populateEntityDictionary(EntityDictionary dictionary) {
+                        ds.populateEntityDictionary(dictionary);
+                    }
+
+                    @Override
+                    public DataStoreTransaction beginTransaction() {
+                        return ds.beginTransaction();
+                    }
+
+                    @Override
+                    public DataStoreTransaction beginReadTransaction() {
+                        return ds.beginReadTransaction();
+                    }
+
+                    @Override
+                    public Function<RequestScope, PermissionExecutor> getPermissionExecutorFunction() {
+                        return VerbosePermissionExecutor::new;
+                    }
+                };
+                return new Elide(new ElideSettingsBuilder(newDS)
                         .withAuditLogger(auditLogger)
                         .withJoinFilterDialect(multipleFilterStrategy)
                         .withSubqueryFilterDialect(multipleFilterStrategy)
                         .withEntityDictionary(dictionary)
-                        .withVerboseErrors()
                         .build());
             }
 

@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide;
 
-import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
@@ -17,9 +16,6 @@ import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.JoinFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.SubqueryFilterDialect;
 import com.yahoo.elide.core.pagination.PaginationImpl;
-import com.yahoo.elide.core.security.PermissionExecutor;
-import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
-import com.yahoo.elide.core.security.executors.VerbosePermissionExecutor;
 import com.yahoo.elide.core.utils.coerce.converters.EpochToDateConverter;
 import com.yahoo.elide.core.utils.coerce.converters.ISO8601DateSerde;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
@@ -32,7 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.function.Function;
 
 /**
  * Builder for ElideSettings.
@@ -42,7 +37,6 @@ public class ElideSettingsBuilder {
     private AuditLogger auditLogger;
     private JsonApiMapper jsonApiMapper;
     private EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
-    private Function<RequestScope, PermissionExecutor> permissionExecutorFunction = ActivePermissionExecutor::new;
     private List<JoinFilterDialect> joinFilterDialects;
     private List<SubqueryFilterDialect> subqueryFilterDialects;
     private FilterDialect graphqlFilterDialect;
@@ -98,7 +92,6 @@ public class ElideSettingsBuilder {
                 dataStore,
                 entityDictionary,
                 jsonApiMapper,
-                permissionExecutorFunction,
                 joinFilterDialects,
                 subqueryFilterDialects,
                 graphqlFilterDialect,
@@ -175,10 +168,10 @@ public class ElideSettingsBuilder {
         return this;
     }
 
-    public ElideSettingsBuilder withVerboseErrors() {
-        permissionExecutorFunction = VerbosePermissionExecutor::new;
-        return this;
-    }
+//    public ElideSettingsBuilder withVerboseErrors() {
+//        // Set Verbose Permission Executor in datastore
+//        return this;
+//    }
 
     public ElideSettingsBuilder withISO8601Dates(String dateFormat, TimeZone tz) {
         serdes.put(Date.class, new ISO8601DateSerde(dateFormat, tz));
