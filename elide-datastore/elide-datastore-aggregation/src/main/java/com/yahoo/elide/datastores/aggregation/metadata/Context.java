@@ -11,6 +11,7 @@ import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 import static java.util.Collections.emptyMap;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
@@ -29,7 +30,6 @@ import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.Options;
 import com.github.jknack.handlebars.Template;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import lombok.Builder;
@@ -75,13 +75,6 @@ public class Context extends HashMap<String, Object> {
                 return next.format(value);
             })
             .registerHelper("sql", this::resolveSQLHandlebar);
-
-    public Context withTableArgs(Map<String, ? extends Object> tableArgs) {
-        Map<String, Object> argsMap = new HashMap<>();
-        this.put(TBL_PREFIX, argsMap);
-        argsMap.put(ARGS_KEY, tableArgs);
-        return this;
-    }
 
     public Context withColumnArgs(Map<String, ? extends Object> columnArgs) {
         Map<String, Object> argsMap = new HashMap<>();
@@ -150,46 +143,22 @@ public class Context extends HashMap<String, Object> {
      */
     private String resolveHandlebars(ColumnProjection column, Map<String, ? extends Object> fixedArgs) {
 
-        Map<String, Object> defaultTableArgs = null;
-        Map<String, Object> defaultColumnArgs = null;
-        Map<String, ? extends Object> tableArgsMap = null;
-        Map<String, Object> newCtxTableArgs = new HashMap<>();
         Map<String, Object> newCtxColumnArgs = new HashMap<>();
 
         Queryable queryable = this.getQueryable();
         Table table = metaDataStore.getTable(queryable.getSource().getName(), queryable.getSource().getVersion());
 
-        // Add the default argument values stored in metadata store.
+        // Add the default column argument values from metadata store.
         if (table != null) {
-            defaultTableArgs = getDefaultArgumentsMap(table.getArguments());
             Column col = table.getColumnMap().get(column.getName());
             if (col != null) {
-                defaultColumnArgs = getDefaultArgumentsMap(col.getArguments());
+                newCtxColumnArgs.putAll(getDefaultArgumentsMap(col.getArguments()));
             }
         }
 
-        if (queryable instanceof Query) {
-            Query query = (Query) queryable;
-            tableArgsMap = query.getArguments();
-        }
-
-        /**
-         * Finalize table arguments:
-         * i) Add default arguments for this Queryable.
-         * ii) Override default arguments with Query Args if available.
-         */
-        newCtxTableArgs.putAll(defaultTableArgs == null ? emptyMap() : defaultTableArgs);
-        newCtxTableArgs.putAll(tableArgsMap == null ? emptyMap() : tableArgsMap);
-
-        /**
-         * Finalize column arguments:
-         * i) Add default arguments for this column.
-         * ii) Override default arguments with calling column's args. When this method is called from
-         *  SQLColumnProjection#toSql, then column's arguments with in query are used instead.
-         * iii) Any fixed arguments provided in sql helper get preference.
-         */
-        newCtxColumnArgs.putAll(defaultColumnArgs == null ? emptyMap() : defaultColumnArgs);
+        // Override default arguments with queried column's args.
         newCtxColumnArgs.putAll(this.getQueriedColArgs());
+        // Any fixed arguments provided in sql helper get preference.
         newCtxColumnArgs.putAll(fixedArgs == null ? emptyMap() : fixedArgs);
 
         // Build a new Context for resolving this column
@@ -199,7 +168,6 @@ public class Context extends HashMap<String, Object> {
                         .metaDataStore(this.getMetaDataStore())
                         .queriedColArgs(this.getQueriedColArgs())
                         .build()
-                        .withTableArgs(newCtxTableArgs)
                         .withColumnArgs(newCtxColumnArgs);
 
         try {
@@ -219,8 +187,8 @@ public class Context extends HashMap<String, Object> {
 
         Context currentCtx = (Context) context;
         // 'from' is optional, so if not provided use the same table context.
-        Context invokedCtx = StringUtils.isEmpty(from) ? currentCtx
-                                                       : (Context) currentCtx.get(from);
+        Context invokedCtx = isBlank(from) ? currentCtx
+                                           : (Context) currentCtx.get(from);
 
         // Physical References starts with $
         if (invokedColumnName.lastIndexOf('$') == 0) {
@@ -278,5 +246,33 @@ public class Context extends HashMap<String, Object> {
         return availableArgs.stream()
                         .filter(arg -> arg.getDefaultValue() != null)
                         .collect(Collectors.toMap(Argument::getName, Argument::getDefaultValue));
+    }
+
+    public static class ContextBuilder {
+        public Context build() {
+            Context context = new Context(this.metaDataStore, this.queryable, this.alias, this.queriedColArgs);
+
+            Map<String, Object> tableArgs = new HashMap<>();
+
+            Table table = this.metaDataStore.getTable(this.queryable.getSource().getName(),
+                                                      this.queryable.getSource().getVersion());
+
+            // Add the default table argument values from metadata store.
+            if (table != null) {
+                tableArgs.putAll(getDefaultArgumentsMap(table.getArguments()));
+            }
+
+            // Override default arguments with Query Args if available.
+            if (this.queryable instanceof Query) {
+                Query query = (Query) this.queryable;
+                tableArgs.putAll(query.getArguments());
+            }
+
+            Map<String, Object> argsMap = new HashMap<>();
+            context.put(TBL_PREFIX, argsMap);
+            argsMap.put(ARGS_KEY, tableArgs);
+
+            return context;
+        }
     }
 }
