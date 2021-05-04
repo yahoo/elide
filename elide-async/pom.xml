@@ -43,10 +43,6 @@
         <tag>HEAD</tag>
     </scm>
 
-    <properties>
-        <junit.version>5.7.1</junit.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
@@ -113,7 +109,6 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
 
