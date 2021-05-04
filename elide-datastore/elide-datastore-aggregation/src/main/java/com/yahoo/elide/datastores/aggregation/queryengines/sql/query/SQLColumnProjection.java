@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.datastores.aggregation.metadata.Context;
+import com.yahoo.elide.datastores.aggregation.metadata.LogicalRefContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
@@ -48,6 +49,24 @@ public interface SQLColumnProjection extends ColumnProjection {
                         .build();
 
         return context.resolveHandlebars(this);
+    }
+
+    /**
+     * Generate a partially resolved string for current column's expression. Fully resolves arguments and logical
+     * references but keeps physical and join references as is.
+     * @param query current Queryable.
+     * @param metaDataStore MetaDataStore.
+     * @return A String with all arguments and logical references resolved.
+     */
+    default String resolveLogicalReferences(Queryable query, MetaDataStore metaDataStore) {
+
+        LogicalRefContext context = LogicalRefContext.builder()
+                        .queryable(query)
+                        .metaDataStore(metaDataStore)
+                        .queriedColArgs(getArguments())
+                        .build();
+
+        return context.resolveLogicalReferences(this);
     }
 
     @Override
