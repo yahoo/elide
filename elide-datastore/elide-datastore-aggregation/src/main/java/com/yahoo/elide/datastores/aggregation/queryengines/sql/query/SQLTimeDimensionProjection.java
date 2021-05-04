@@ -19,7 +19,6 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -94,10 +93,9 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
 
     @Override
     public Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source,
-                                                              SQLReferenceTable lookupTable,
+                                                              MetaDataStore store,
                                                               boolean joinInOuter) {
 
-        MetaDataStore store = lookupTable.getMetaDataStore();
         List<Reference> references = new ExpressionParser(store).parse(source, getExpression());
 
         boolean requiresJoin = SQLColumnProjection.requiresJoin(references);

@@ -22,7 +22,6 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Formatter;
 import com.github.jknack.handlebars.Handlebars;
@@ -204,7 +203,7 @@ public class Context extends HashMap<String, Object> {
                 return null;
             }
             @Override
-            public Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source, SQLReferenceTable lookupTable,
+            public Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source, MetaDataStore store,
                             boolean joinInOuter) {
                 return null;
             }

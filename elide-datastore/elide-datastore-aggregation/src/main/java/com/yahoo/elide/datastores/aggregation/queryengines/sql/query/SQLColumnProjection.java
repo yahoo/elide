@@ -16,7 +16,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Expres
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasJoinVisitor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.PhysicalReferenceExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -53,9 +52,9 @@ public interface SQLColumnProjection extends ColumnProjection {
     }
 
     @Override
-    default boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
+    default boolean canNest(Queryable source, MetaDataStore metaDataStore) {
         SQLDialect dialect = source.getConnectionDetails().getDialect();
-        String sql = toSQL(source, lookupTable.getMetaDataStore());
+        String sql = toSQL(source, metaDataStore);
 
         SyntaxVerifier verifier = new SyntaxVerifier(dialect);
         boolean canNest = verifier.verify(sql);
@@ -68,9 +67,8 @@ public interface SQLColumnProjection extends ColumnProjection {
 
     @Override
     default Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source,
-                                                              SQLReferenceTable lookupTable,
+                                                              MetaDataStore store,
                                                               boolean joinInOuter) {
-        MetaDataStore store = lookupTable.getMetaDataStore();
         List<Reference> references = new ExpressionParser(store).parse(source, getExpression());
 
         boolean requiresJoin = requiresJoin(references);

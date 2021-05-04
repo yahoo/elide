@@ -356,12 +356,12 @@ public class SQLQueryEngine extends QueryEngine {
         for (MetricProjection metricProjection : query.getMetricProjections()) {
             QueryPlan queryPlan = metricProjection.resolve(query);
             if (queryPlan != null) {
-                if (mergedPlan != null && mergedPlan.isNested() && !queryPlan.canNest(referenceTable)) {
+                if (mergedPlan != null && mergedPlan.isNested() && !queryPlan.canNest(metaDataStore)) {
                     //TODO - Run multiple queries.
                     throw new UnsupportedOperationException("Cannot merge a nested query with a metric that "
                             + "doesn't support nesting");
                 }
-                mergedPlan = queryPlan.merge(mergedPlan, referenceTable);
+                mergedPlan = queryPlan.merge(mergedPlan, metaDataStore);
             }
         }
 

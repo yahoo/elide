@@ -56,11 +56,11 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .build();
 
         //Merge it with the metric plan.
-        if (plan.isNested() && !clientQueryPlan.canNest(lookupTable)) {
+        if (plan.isNested() && !clientQueryPlan.canNest(lookupTable.getMetaDataStore())) {
             throw new UnsupportedOperationException("Cannot nest one or more dimensions from the client query");
         }
 
-        QueryPlan merged = clientQueryPlan.merge(plan, lookupTable);
+        QueryPlan merged = clientQueryPlan.merge(plan, lookupTable.getMetaDataStore());
 
         //Decorate the result with filters, sorting, and pagination.
         return merged.accept(this).build();
