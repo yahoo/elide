@@ -62,9 +62,6 @@ public class Context extends HashMap<String, Object> {
     // Arguments provided for queried column.
     private final Map<String, ? extends Object> queriedColArgs;
 
-    // Default arguments for current column + Arguments provided for queried column.
-    private final Map<String, Object> availableColArgs;
-
     private final Handlebars handlebars = new Handlebars()
             .with(EscapingStrategy.NOOP)
             .with((Formatter) (value, next) -> {
@@ -159,8 +156,7 @@ public class Context extends HashMap<String, Object> {
                         .alias(this.getAlias())
                         .metaDataStore(this.getMetaDataStore())
                         .queriedColArgs(this.getQueriedColArgs())
-                        .availableColArgs(newCtxColumnArgs)
-                        .build();
+                        .build(newCtxColumnArgs);
 
         try {
             Template template = handlebars.compileInline(column.getExpression());
@@ -242,8 +238,11 @@ public class Context extends HashMap<String, Object> {
 
     public static class ContextBuilder {
         public Context build() {
-            Context context = new Context(this.metaDataStore, this.queryable, this.alias, this.queriedColArgs,
-                            this.availableColArgs);
+            return new Context(this.metaDataStore, this.queryable, this.alias, this.queriedColArgs);
+        }
+
+        public Context build(Map<String, Object> availableColArgs) {
+            Context context = build();
 
             Map<String, Object> tableArgs = new HashMap<>();
 
@@ -265,11 +264,9 @@ public class Context extends HashMap<String, Object> {
             context.put(TBL_PREFIX, tblArgsMap);
             tblArgsMap.put(ARGS_KEY, tableArgs);
 
-            if (this.availableColArgs != null) {
-                Map<String, Object> colArgsMap = new HashMap<>();
-                context.put(COL_PREFIX, colArgsMap);
-                colArgsMap.put(ARGS_KEY, this.availableColArgs);
-            }
+            Map<String, Object> colArgsMap = new HashMap<>();
+            context.put(COL_PREFIX, colArgsMap);
+            colArgsMap.put(ARGS_KEY, availableColArgs);
 
             return context;
         }
