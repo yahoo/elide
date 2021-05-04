@@ -6,12 +6,19 @@
 
 package com.yahoo.elide.datastores.aggregation.query;
 
+import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
 import com.google.common.collect.Streams;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -73,6 +80,20 @@ public interface Queryable {
      * @param arguments Arguments provided for the column.
      * @return The column.
      */
+    default ColumnProjection getColumnProjection(String name, Map<String, Argument> arguments, boolean isProjected) {
+        return getColumnProjections().stream()
+                .filter(dim -> dim.isProjected() == isProjected)
+                .filter(dim -> dim.getAlias().equals(name) && dim.getArguments().equals(arguments))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Retrieves a column by name and arguments.
+     * @param name The alias of the column.
+     * @param arguments Arguments provided for the column.
+     * @return The column.
+     */
     default ColumnProjection getColumnProjection(String name, Map<String, Argument> arguments) {
         return getColumnProjections().stream()
                 .filter(dim -> dim.getAlias().equals(name) && dim.getArguments().equals(arguments))
@@ -85,7 +106,7 @@ public interface Queryable {
      * @param name The name of the dimension.
      * @return The dimension.
      */
-    default ColumnProjection getDimensionProjection(String name) {
+    default DimensionProjection getDimensionProjection(String name) {
         return getDimensionProjections().stream()
                 .filter(dim -> dim.getAlias().equals(name))
                 .findFirst()
@@ -96,7 +117,7 @@ public interface Queryable {
      * Retrieves all the non-time dimensions.
      * @return The non-time dimensions.
      */
-    List<ColumnProjection> getDimensionProjections();
+    List<DimensionProjection> getDimensionProjections();
 
     /**
      * Retrieves a metric by name.
@@ -144,6 +165,40 @@ public interface Queryable {
                 getDimensionProjections().stream(),
                 getMetricProjections().stream())
                 .collect(Collectors.toList());
+    }
+
+
+    default <T extends ColumnProjection> List<T> getFilterProjections(
+            FilterExpression expression,
+            Class<T> columnType
+    ) {
+        return getFilterProjections(expression).stream()
+                .filter(columnType::isInstance)
+                .map(columnType::cast)
+                .collect(Collectors.toList());
+    }
+
+    default List<ColumnProjection> getFilterProjections(FilterExpression expression) {
+        List<ColumnProjection> results = new ArrayList<>();
+        if (expression == null) {
+            return results;
+        }
+
+        Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
+
+        predicates.stream().forEach((predicate -> {
+            Map<String, Argument> arguments = new HashMap<>();
+
+            predicate.getPath().lastElement().get().getArguments().forEach(argument ->
+                    arguments.put(argument.getName(), argument)
+            );
+
+            ColumnProjection projection = getSource().getColumnProjection(predicate.getField(), arguments);
+
+            results.add((SQLColumnProjection) projection);
+        }));
+
+        return results;
     }
 
     /**
