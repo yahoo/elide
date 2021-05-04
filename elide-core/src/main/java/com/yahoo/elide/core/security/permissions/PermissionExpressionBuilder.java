@@ -211,8 +211,10 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         List<String> fields = entityDictionary.getAllFields(resourceClass);
         Set<String> sparseFields = scope.getSparseFields().get(entityDictionary.getJsonAliasFor(resourceClass));
 
-        for (String field : fields) {
+        boolean entityExpressionUsed = false;
+        boolean fieldExpressionUsed = false;
 
+        for (String field : fields) {
             if (sparseFields != null && !sparseFields.contains(field)) {
                 continue;
             }
@@ -220,10 +222,36 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
             ParseTree fieldPermissions = entityDictionary.getPermissionsForField(resourceClass, field, annotationClass);
             Expression fieldExpression = normalizedExpressionFromParseTree(fieldPermissions, checkFn);
 
+            if (fieldExpression == null) {
+
+                if (entityExpressionUsed) {
+                    continue;
+                }
+
+                if (entityExpression == null) {
+                    //One field had no permissions set - so we allow the action.
+                    return SUCCESSFUL_EXPRESSION;
+                }
+
+                fieldExpression = entityExpression;
+                entityExpressionUsed = true;
+            } else {
+                fieldExpressionUsed = true;
+            }
+
             allFieldsExpression = new OrExpression(allFieldsExpression, fieldExpression);
         }
 
-        return new AnyFieldExpression(condition, entityExpression, allFieldsExpression);
+        if (! fieldExpressionUsed) {
+            //If there are no permissions, allow access...
+            if (entityExpression == null) {
+                return SUCCESSFUL_EXPRESSION;
+            } else {
+                return new AnyFieldExpression(condition, entityExpression);
+            }
+        }
+
+        return new AnyFieldExpression(condition, allFieldsExpression);
     }
 
     /**

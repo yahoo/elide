@@ -83,7 +83,7 @@
         <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 
         <!-- dependency versions -->
-        <version.antlr4>4.9.1</version.antlr4>
+        <version.antlr4>4.9.2</version.antlr4>
         <version.logback>1.2.3</version.logback>
         <version.jetty>9.4.39.v20210325</version.jetty>
         <version.restassured>4.3.3</version.restassured>
