@@ -119,6 +119,11 @@ public class JpaDataStore implements JPQLDataStore {
         return transaction;
     }
 
+    @Override
+    public Function<RequestScope, PermissionExecutor> getPermissionExecutorFunction() {
+        return permissionExecutorFunction;
+    }
+
     /**
      * Functional interface for describing a method to supply EntityManager.
      */
