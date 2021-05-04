@@ -150,8 +150,8 @@ public class Context extends HashMap<String, Object> {
 
         // Override default arguments with queried column's args.
         newCtxColumnArgs.putAll(this.getQueriedColArgs());
-        // Any fixed arguments provided in sql helper get preference.
-        newCtxColumnArgs.putAll(fixedArgs == null ? emptyMap() : fixedArgs);
+        // Any fixed arguments provided in sql helper gets preference.
+        newCtxColumnArgs.putAll(fixedArgs);
 
         // Build a new Context for resolving this column
         Context newCtx = Context.builder()
