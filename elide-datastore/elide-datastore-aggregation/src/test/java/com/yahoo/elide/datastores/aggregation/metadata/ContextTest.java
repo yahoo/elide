@@ -73,6 +73,7 @@ public class ContextTest {
         revenueFactTable = metaDataStore.getTable(ClassType.of(RevenueFact.class));
 
         queryArgs.put("format", Argument.builder().name("format").value("999999D000000").build());
+        queryArgs.put("testPercentage", Argument.builder().name("testPercentage").value("0.1").build());
     }
 
     @Test

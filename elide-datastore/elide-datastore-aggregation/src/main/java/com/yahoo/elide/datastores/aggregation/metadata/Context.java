@@ -22,6 +22,7 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Formatter;
 import com.github.jknack.handlebars.Handlebars;
@@ -60,9 +61,7 @@ public class Context extends HashMap<String, Object> {
 
     // Arguments provided for queried column.
     private final Map<String, ? extends Object> queriedColArgs;
-
     private final Map<String, Object> columnArgsMap;
-    private final Map<String, Object> tableArgsMap;
 
     private final Handlebars handlebars = new Handlebars()
             .with(EscapingStrategy.NOOP)
@@ -90,7 +89,18 @@ public class Context extends HashMap<String, Object> {
         }
 
         if (keyStr.equals(TBL_PREFIX)) {
-            return this.tableArgsMap;
+
+            Map<String, Object> tblArgsMap = new HashMap<>();
+
+            if (this.queryable instanceof SQLTable) {
+                SQLTable table = (SQLTable) this.queryable;
+                tblArgsMap.put(ARGS_KEY, getDefaultArgumentsMap(table.getArguments()));
+                return tblArgsMap;
+            }
+
+            Query query = (Query) this.queryable;
+            tblArgsMap.put(ARGS_KEY, query.getArguments());
+            return tblArgsMap;
         }
 
         if (keyStr.equals(COL_PREFIX)) {
@@ -162,7 +172,7 @@ public class Context extends HashMap<String, Object> {
 
         // Build a new Context for resolving this column
         Context newCtx = Context.builder()
-                        .queryable(queryable, this.getMetaDataStore())
+                        .queryable(queryable)
                         .alias(this.getAlias())
                         .metaDataStore(this.getMetaDataStore())
                         .queriedColArgs(this.getQueriedColArgs())
@@ -253,36 +263,6 @@ public class Context extends HashMap<String, Object> {
             Map<String, Object> colArgsMap = new HashMap<>();
             colArgsMap.put(ARGS_KEY, availableColArgs);
             this.columnArgsMap = colArgsMap;
-            return this;
-        }
-
-        public ContextBuilder queryable(final Queryable queryable) {
-            this.queryable = queryable;
-            return this;
-        }
-
-        public ContextBuilder queryable(final Queryable queryable, final MetaDataStore metaDataStore) {
-            this.queryable = queryable;
-            Map<String, Object> tblArgsMap = new HashMap<>();
-            this.tableArgsMap = tblArgsMap;
-
-            Map<String, Object> tableArgs = new HashMap<>();
-            tblArgsMap.put(ARGS_KEY, tableArgs);
-
-            Table table = metaDataStore.getTable(queryable.getSource().getName(),
-                                                 queryable.getSource().getVersion());
-
-            // Add the default table argument values from metadata store.
-            if (table != null) {
-                tableArgs.putAll(getDefaultArgumentsMap(table.getArguments()));
-            }
-
-            // Override default arguments with Query Args if available.
-            if (queryable instanceof Query) {
-                Query query = (Query) queryable;
-                tableArgs.putAll(query.getArguments());
-            }
-
             return this;
         }
     }
