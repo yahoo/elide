@@ -6,9 +6,9 @@
 package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.core.request.Argument;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -98,22 +98,22 @@ public interface ColumnProjection extends Serializable {
     /**
      * Whether or not a given projection can be nested into an inner query and outer query.
      * @param source The source of this projection.
-     * @param lookupTable Used to answer questions about templated column definitions.
+     * @param metaDataStore MetaDataStore.
      * @return true if the projection can be nested.
      */
-    default boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
+    default boolean canNest(Queryable source, MetaDataStore metaDataStore) {
         return true;
     }
 
     /**
      * Translate a column into outer and inner query columns for a two-pass aggregation.
      * @param source The source query of this projection.
-     * @param lookupTable Used to answer questions about templated column definitions.
+     * @param metaDataStore MetaDataStore.
      * @param joinInOuter If possible, skip required joins in inner query and do the join in the outer query.
      * @return A pair consisting of the outer column projection and a set of inner column projections.
      */
     Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source,
-                                                       SQLReferenceTable lookupTable,
+                                                       MetaDataStore metaDataStore,
                                                        boolean joinInOuter);
 
     /**

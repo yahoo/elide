@@ -6,8 +6,8 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import com.yahoo.elide.datastores.aggregation.metadata.Context;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SyntaxVerifier;
@@ -16,7 +16,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Expres
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasJoinVisitor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.PhysicalReferenceExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -37,20 +36,25 @@ public interface SQLColumnProjection extends ColumnProjection {
     /**
      * Generate a SQL fragment for this combination column and client arguments.
      * @param query current Queryable.
-     * @param lookupTable symbol table to resolve column name references.
+     * @param metaDataStore MetaDataStore.
      * @return SQL query String for this column
      */
-    default String toSQL(Queryable query, SQLReferenceTable lookupTable) {
+    default String toSQL(Queryable query, MetaDataStore metaDataStore) {
 
-        TableContext tableCtx = lookupTable.getGlobalTableContext(query);
+        Context context = Context.builder()
+                        .queryable(query)
+                        .alias(query.getSource().getAlias())
+                        .metaDataStore(metaDataStore)
+                        .queriedColArgs(getArguments())
+                        .build();
 
-        return tableCtx.resolveHandlebars(getName(), getExpression(), getArguments());
+        return context.resolveHandlebars(this);
     }
 
     @Override
-    default boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
+    default boolean canNest(Queryable source, MetaDataStore metaDataStore) {
         SQLDialect dialect = source.getConnectionDetails().getDialect();
-        String sql = toSQL(source, lookupTable);
+        String sql = toSQL(source, metaDataStore);
 
         SyntaxVerifier verifier = new SyntaxVerifier(dialect);
         boolean canNest = verifier.verify(sql);
@@ -63,9 +67,8 @@ public interface SQLColumnProjection extends ColumnProjection {
 
     @Override
     default Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source,
-                                                              SQLReferenceTable lookupTable,
+                                                              MetaDataStore store,
                                                               boolean joinInOuter) {
-        MetaDataStore store = lookupTable.getMetaDataStore();
         List<Reference> references = new ExpressionParser(store).parse(source, getExpression());
 
         boolean requiresJoin = requiresJoin(references);

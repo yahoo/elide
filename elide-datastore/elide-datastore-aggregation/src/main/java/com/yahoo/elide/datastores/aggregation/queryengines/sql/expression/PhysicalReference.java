@@ -12,7 +12,7 @@ import lombok.NonNull;
 import lombok.Value;
 
 /**
- * A reference to a column in the database: "$revenue"
+ * A reference to a column in the database: "$revenue".
  */
 @Value
 @Builder
