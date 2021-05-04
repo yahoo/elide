@@ -66,20 +66,17 @@ public class PermissionExpressionBuilderTest {
                 ReadPermission.class,
                 null);
 
-        assertEquals(
-                "READ PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null}  "
-                        + "FOR EXPRESSION [(FIELDS(\u001B[31mFAILURE\u001B[m)) OR (ENTITY(((user has all access "
-                        + "\u001B[34mWAS UNEVALUATED\u001B[m)) AND ((user has no access "
-                        + "\u001B[34mWAS UNEVALUATED\u001B[m))))]",
+        assertEquals("READ PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null}  "
+                        + "FOR EXPRESSION [((user has all access \u001B[34mWAS UNEVALUATED\u001B[m)) "
+                        + "AND ((user has no access \u001B[34mWAS UNEVALUATED\u001B[m))]",
                 expression.toString());
 
         expression.evaluate(Expression.EvaluationMode.ALL_CHECKS);
 
         assertEquals(
                 "READ PERMISSION WAS INVOKED ON PersistentResource{type=model, id=null}  "
-                        + "FOR EXPRESSION [(FIELDS(\u001B[31mFAILURE\u001B[m)) OR (ENTITY(((user has all access "
-                        + "\u001B[32mPASSED\u001B[m)) AND ((user has no access "
-                        + "\u001B[31mFAILED\u001B[m))))]",
+                        + "FOR EXPRESSION [((user has all access [32mPASSED[m)) "
+                        + "AND ((user has no access [31mFAILED[m))]",
                 expression.toString());
 
     }
