@@ -5,8 +5,8 @@
  */
 package com.yahoo.elide.core.security;
 
-import java.util.Optional;
-import javax.ws.rs.core.MultivaluedMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The request scope interface passed to checks.
@@ -16,5 +16,5 @@ public interface RequestScope {
     String getApiVersion();
     String getRequestHeaderByName(String headerName);
     String getBaseUrlEndPoint();
-    Optional<MultivaluedMap<String, String>> getQueryParams();
+    Map<String, List<String>> getQueryParams();
 }

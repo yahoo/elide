@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.ws.rs.core.MultivaluedMap;
@@ -162,14 +161,14 @@ public class SortingImpl implements Sorting {
      * @param queryParams The query params on the request.
      * @return The Sorting instance (default or specific).
      */
-    public static Sorting parseQueryParams(final Optional<MultivaluedMap<String, String>> queryParams,
+    public static Sorting parseQueryParams(final MultivaluedMap<String, String> queryParams,
                                            Type<?> type, EntityDictionary dictionary) {
 
-        if (! queryParams.isPresent()) {
+        if (queryParams.isEmpty()) {
             return DEFAULT_EMPTY_INSTANCE;
         }
 
-        List<String> sortRules = queryParams.get().entrySet().stream()
+        List<String> sortRules = queryParams.entrySet().stream()
                 .filter(entry -> entry.getKey().equals("sort"))
                 .map(entry -> entry.getValue().get(0))
                 .collect(Collectors.toList());

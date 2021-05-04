@@ -37,7 +37,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
@@ -65,7 +64,7 @@ public class EntityProjectionMaker
 
     public EntityProjectionMaker(EntityDictionary dictionary, RequestScope scope) {
         this.dictionary = dictionary;
-        this.queryParams = scope.getQueryParams().orElseGet(MultivaluedHashMap::new);
+        this.queryParams = scope.getQueryParams();
         sparseFields = RequestScope.parseSparseFields(queryParams);
         this.scope = scope;
     }
