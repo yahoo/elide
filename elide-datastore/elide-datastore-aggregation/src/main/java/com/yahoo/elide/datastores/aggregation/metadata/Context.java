@@ -52,19 +52,18 @@ import java.util.stream.Collectors;
 public class Context extends HashMap<String, Object> {
 
     public static final String COL_PREFIX = "$$column";
-    public static final String REQ_PREFIX = "$$request";
     public static final String TBL_PREFIX = "$$table";
-    public static final String USER_PREFIX = "$$user";
     public static final String ARGS_KEY = "args";
-    public static final String TABLE_KEY = "table";
-    public static final String COLUMNS_KEY = "columns";
-    public static final String NAME_KEY = "name";
-    public static final String DOUBLE_DOLLAR = "$$";
 
     private final MetaDataStore metaDataStore;
     private final Queryable queryable;
     private final String alias;
+
+    // Arguments provided for queried column.
     private final Map<String, ? extends Object> queriedColArgs;
+
+    // Default arguments for current column + Arguments provided for queried column.
+    private final Map<String, Object> availableColArgs;
 
     private final Handlebars handlebars = new Handlebars()
             .with(EscapingStrategy.NOOP)
@@ -75,13 +74,6 @@ public class Context extends HashMap<String, Object> {
                 return next.format(value);
             })
             .registerHelper("sql", this::resolveSQLHandlebar);
-
-    public Context withColumnArgs(Map<String, ? extends Object> columnArgs) {
-        Map<String, Object> argsMap = new HashMap<>();
-        this.put(COL_PREFIX, argsMap);
-        argsMap.put(ARGS_KEY, columnArgs);
-        return this;
-    }
 
     @Override
     public Object get(Object key) {
@@ -167,8 +159,8 @@ public class Context extends HashMap<String, Object> {
                         .alias(this.getAlias())
                         .metaDataStore(this.getMetaDataStore())
                         .queriedColArgs(this.getQueriedColArgs())
-                        .build()
-                        .withColumnArgs(newCtxColumnArgs);
+                        .availableColArgs(newCtxColumnArgs)
+                        .build();
 
         try {
             Template template = handlebars.compileInline(column.getExpression());
@@ -250,7 +242,8 @@ public class Context extends HashMap<String, Object> {
 
     public static class ContextBuilder {
         public Context build() {
-            Context context = new Context(this.metaDataStore, this.queryable, this.alias, this.queriedColArgs);
+            Context context = new Context(this.metaDataStore, this.queryable, this.alias, this.queriedColArgs,
+                            this.availableColArgs);
 
             Map<String, Object> tableArgs = new HashMap<>();
 
@@ -268,9 +261,15 @@ public class Context extends HashMap<String, Object> {
                 tableArgs.putAll(query.getArguments());
             }
 
-            Map<String, Object> argsMap = new HashMap<>();
-            context.put(TBL_PREFIX, argsMap);
-            argsMap.put(ARGS_KEY, tableArgs);
+            Map<String, Object> tblArgsMap = new HashMap<>();
+            context.put(TBL_PREFIX, tblArgsMap);
+            tblArgsMap.put(ARGS_KEY, tableArgs);
+
+            if (this.availableColArgs != null) {
+                Map<String, Object> colArgsMap = new HashMap<>();
+                context.put(COL_PREFIX, colArgsMap);
+                colArgsMap.put(ARGS_KEY, this.availableColArgs);
+            }
 
             return context;
         }
