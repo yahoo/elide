@@ -94,7 +94,7 @@
         <hibernate3.version>3.6.10.Final</hibernate3.version>
         <hibernate5.version>5.4.30.Final</hibernate5.version>
         <slf4j-api.version>1.7.30</slf4j-api.version>
-        <maven-site-plugin-version>3.7.1</maven-site-plugin-version>
+        <maven-site-plugin-version>3.9.1</maven-site-plugin-version>
         <mpir.skip>true</mpir.skip>
 
         <!-- TODO: Need to update locations to be relative to the projects using them -->
