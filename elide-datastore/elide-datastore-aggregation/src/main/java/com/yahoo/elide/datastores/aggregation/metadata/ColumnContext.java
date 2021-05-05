@@ -112,12 +112,6 @@ public class ColumnContext extends Context {
     @Override
     public String resolve(String expression) {
 
-        ColumnContextBuilder ctxBuilder = ColumnContext.builder()
-                        .queryable(this.getQueryable())
-                        .alias(this.getAlias())
-                        .metaDataStore(this.getMetaDataStore())
-                        .queriedColArgs(this.getQueriedColArgs());
-
         TemplateProjectionBuilder columnBuilder = TemplateProjection.builder().expression(expression);
 
         ColumnProjection column = this.getColumn();
@@ -137,7 +131,11 @@ public class ColumnContext extends Context {
                             .build();
         }
 
-        return ctxBuilder
+        return ColumnContext.builder()
+                        .queryable(this.getQueryable())
+                        .alias(this.getAlias())
+                        .metaDataStore(this.getMetaDataStore())
+                        .queriedColArgs(this.getQueriedColArgs())
                         .column(newColumn)
                         .build()
                         .resolve();

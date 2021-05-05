@@ -98,11 +98,6 @@ public class LogicalRefContext extends Context {
     @Override
     public String resolve(String expression) {
 
-        LogicalRefContextBuilder ctxBuilder = LogicalRefContext.builder()
-                        .queryable(this.getQueryable())
-                        .metaDataStore(this.getMetaDataStore())
-                        .queriedColArgs(this.getQueriedColArgs());
-
         TemplateProjectionBuilder columnBuilder = TemplateProjection.builder().expression(expression);
 
         ColumnProjection column = this.getColumn();
@@ -122,10 +117,14 @@ public class LogicalRefContext extends Context {
                             .build();
         }
 
-        return ctxBuilder
+        return LogicalRefContext.builder()
+                        .queryable(this.getQueryable())
+                        .metaDataStore(this.getMetaDataStore())
+                        .queriedColArgs(this.getQueriedColArgs())
                         .column(newColumn)
                         .build()
                         .resolve();
+
     }
 
     @Override

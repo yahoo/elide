@@ -191,8 +191,8 @@ public abstract class Context {
     }
 
     /**
-     * If get method encounters either join key, it returns a {@link StringValue} object.
-     * This class tell how to resolve a field against {@link StringValue} object.
+     * If get method returns a {@link StringValue} object. This class tell how to resolve a field
+     * against {@link StringValue} object.
      * eg: To resolve {{join.col1}}, get method is called with key 'join' first,
      *     This will return a {@link StringValue} object which wraps the value 'join'.
      *     Now 'col1' is resolved against this {@link StringValue} object.

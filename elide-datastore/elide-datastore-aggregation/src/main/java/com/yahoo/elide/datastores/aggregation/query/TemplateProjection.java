@@ -1,8 +1,9 @@
 /*
- * Copyright 2019, Yahoo Inc.
+ * Copyright 2021, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
+
 package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.core.request.Argument;
@@ -20,7 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Represents a projected dimension column as an alias in a query.
+ * Helper class for template substitution.
  */
 @AllArgsConstructor
 @Data
