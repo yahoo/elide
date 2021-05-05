@@ -21,10 +21,9 @@ import java.util.Map;
  */
 public class NamespacePackage implements Package {
 
-    public static String EMPTY = "";
     public static String DEFAULT = "default";
     public static NamespacePackage DEFAULT_NAMESPACE =
-            new NamespacePackage(EMPTY, "Default Namespace", DEFAULT, NO_VERSION);
+            new NamespacePackage(DEFAULT, "Default Namespace", DEFAULT);
 
     protected NamespaceConfig namespace;
     private Map<Class<? extends Annotation>, Annotation> annotations;

@@ -9,8 +9,7 @@ import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT;
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT_NAMESPACE;
-import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.EMPTY;
-import com.yahoo.elide.annotation.ApiVersion;
+
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.datastore.DataStore;
@@ -75,7 +74,7 @@ public class MetaDataStore implements DataStore {
     private boolean enableMetaDataStore = false;
 
     private Map<Type<?>, Table> tables = new HashMap<>();
-    private Set<Namespace> namespaces = new HashSet<>();
+    private Map<com.yahoo.elide.core.type.Package, Namespace> namespaces = new HashMap<>();
 
     @Getter
     private EntityDictionary metadataDictionary = new EntityDictionary(new HashMap<>());
@@ -101,31 +100,26 @@ public class MetaDataStore implements DataStore {
         Map<String, NamespacePackage> namespaceMap = new HashMap<>();
         //Convert namespaces into packages.
 
+        namespacesToBind.clear();
         namespaceConfigs.stream().forEach(namespace -> {
             NamespacePackage namespacePackage = new NamespacePackage(namespace);
-            ApiVersion apiVersion = namespacePackage.getDeclaredAnnotation(ApiVersion.class);
-            String apiVersionName = apiVersion != null ? apiVersion.version() : NO_VERSION;
-
-            Pair<String, String> registration = Pair.of(namespacePackage.getName(), apiVersionName);
-            namespacesToBind.put(registration, namespacePackage);
+            this.namespacesToBind.add(namespacePackage);
+            namespaceMap.put(namespace.getName(), namespacePackage);
         });
+
+        if (! namespaceMap.containsKey(DEFAULT)) {
+            namespacesToBind.add(DEFAULT_NAMESPACE);
+            namespaceMap.put(DEFAULT, DEFAULT_NAMESPACE);
+        }
+
+        NamespacePackage defaultNamespace = namespaceMap.get(DEFAULT);
 
         //Convert tables into types.
         tables.stream().forEach(table -> {
-
-            //TODO - when table versions are added, use the table version.
-            Pair<String, String> registration = Pair.of(table.getNamespace(), NO_VERSION);
-
-            if (! namespacesToBind.containsKey(registration)) {
-                if (table.getNamespace() != DEFAULT) {
-                    throw new IllegalStateException("No matching namespace found: " + table.getNamespace());
-                }
-
-                registration = Pair.of(EMPTY, NO_VERSION);
-                namespacesToBind.put(registration, DEFAULT_NAMESPACE);
-            }
-
-            TableType tableType = new TableType(table, namespacesToBind.get(registration));
+            TableType tableType = new TableType(
+                    table,
+                    namespaceMap.getOrDefault(table.getNamespace(), defaultNamespace)
+            );
             dynamicTypes.add(tableType);
             typeMap.put(table.getGlobalName(), tableType);
             table.getJoins().stream().forEach(join ->
@@ -170,6 +164,16 @@ public class MetaDataStore implements DataStore {
         return modelsToBind.stream()
                 .filter(type -> type instanceof TableType)
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * Construct MetaDataStore with data models.
+     *
+     * @param modelsToBind models to bind
+     * @param enableMetaDataStore If Enable MetaDataStore
+     */
+    public MetaDataStore(Set<Type<?>> modelsToBind, boolean enableMetaDataStore) {
+        this(modelsToBind, new HashSet<>(Arrays.asList(DEFAULT_NAMESPACE)), enableMetaDataStore);
     }
 
     /**
@@ -253,7 +257,7 @@ public class MetaDataStore implements DataStore {
      */
     public void addNamespace(Namespace namespace) {
         String version = namespace.getVersion();
-        namespaces.add(namespace);
+        namespaces.put(namespace.getPkg(), namespace);
         addMetaData(namespace, version);
     }
 
@@ -270,26 +274,22 @@ public class MetaDataStore implements DataStore {
     /**
      * Get a namespace object.
      *
-     * @param modelType the model type
+     * @param pkg namespace package
      * @return the namespace
      */
-    public Namespace getNamespace(Type<?> modelType) {
-        String apiVersionName = EntityDictionary.getModelVersion(modelType);
-        Include include = (Include) EntityDictionary.getFirstPackageAnnotation(modelType, Arrays.asList(Include.class));
+    public Namespace getNamespace(com.yahoo.elide.core.type.Package pkg) {
+        Namespace result = namespaces.get(pkg);
 
-        String namespaceName;
-        if (include != null && ! include.name().isEmpty()) {
-            namespaceName = include.name();
-        } else {
-            namespaceName = DEFAULT;
+        if (result == null) {
+            return namespaces
+                    .values()
+                    .stream()
+                    .filter(namespace -> namespace.getName().equals(DEFAULT))
+                    .findFirst()
+                    .get();
         }
 
-        return namespaces
-                 .stream()
-                 .filter(namespace -> namespace.getName().equals(namespaceName))
-                 .filter(namespace -> namespace.getVersion().equals(apiVersionName))
-                 .findFirst()
-                 .orElse(null);
+        return result;
     }
 
     /**

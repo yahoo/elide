@@ -119,6 +119,7 @@ public abstract class Table implements Versioned {
 
         this.alias = TypeHelper.getTypeAlias(cls);
 
+        //Namespace is not required in ID for now because table names must be globally unique.
         this.id = this.name;
 
         TableMeta meta = cls.getAnnotation(TableMeta.class);

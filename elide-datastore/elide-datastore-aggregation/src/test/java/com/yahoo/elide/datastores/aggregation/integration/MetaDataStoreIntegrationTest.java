@@ -18,6 +18,7 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.core.IsIterableContaining.hasItem;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
@@ -104,26 +105,29 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/namespace/SalesNamespace")
                 .then()
+                .log().all()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("SalesNamespace"))
                 .body("data.attributes.friendlyName", equalTo("Sales"))
                 .body("data.relationships.tables.data.id", contains(
-                        "SalesNamespace_orderDetails",
-                        "SalesNamespace_customerDetails",
-                        "SalesNamespace_deliveryDetails"));
+                        "orderDetails",
+                        "customerDetails",
+                        "deliveryDetails"));
         given()
                 .accept("application/vnd.api+json")
                 .get("/namespace/default")
                 .then()
+                .log().all()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("default"))
                 .body("data.attributes.friendlyName", equalTo("DEFAULT")) // Overridden value
                 .body("data.attributes.description", equalTo("Default Namespace")) // Overridden value
-                .body("data.relationships.tables.data.id", hasItems("playerStats", "country", "planet"));
+                .body("data.relationships.tables.data.id", hasItem("playerStats"));
         given()
                 .accept("application/vnd.api+json")
                 .get("/namespace/NoDescriptionNamespace") //"default" namespace added by Agg Store
                 .then()
+                .log().all()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("NoDescriptionNamespace"))
                 .body("data.attributes.friendlyName", equalTo("NoDescriptionNamespace")) // No FriendlyName provided, defaulted to name
