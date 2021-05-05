@@ -36,7 +36,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Context for resolving all handlebars in provided expression.
+ * Context for resolving handlebars.
  */
 @Getter
 @ToString
@@ -80,18 +80,6 @@ public abstract class Context {
      * @return fully resolved column's expression.
      */
     protected abstract String resolve(ColumnProjection column, Map<String, ? extends Object> fixedArgs);
-
-    protected abstract Object resolveSQLHandlebar(final Object context, final Options options)
-                    throws UnsupportedEncodingException;
-
-    protected String resolveHandlebars(com.github.jknack.handlebars.Context context, String expression) {
-        try {
-            Template template = handlebars.compileInline(expression);
-            return template.apply(context);
-        } catch (IOException e) {
-            throw new IllegalStateException(e.getMessage());
-        }
-    }
 
     /**
      * Resolves the handlebars with in expression.
@@ -142,6 +130,18 @@ public abstract class Context {
                         .resolver(new ContextResolver())
                         .build();
         return resolveHandlebars(context, expression);
+    }
+
+    protected abstract Object resolveSQLHandlebar(final Object context, final Options options)
+                    throws UnsupportedEncodingException;
+
+    protected String resolveHandlebars(com.github.jknack.handlebars.Context context, String expression) {
+        try {
+            Template template = handlebars.compileInline(expression);
+            return template.apply(context);
+        } catch (IOException e) {
+            throw new IllegalStateException(e.getMessage());
+        }
     }
 
     public static Map<String, Object> getDefaultArgumentsMap(Set<Argument> availableArgs) {
