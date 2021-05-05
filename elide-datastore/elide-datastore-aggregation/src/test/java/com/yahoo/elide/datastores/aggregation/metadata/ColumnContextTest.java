@@ -85,7 +85,7 @@ public class ColumnContextTest {
         SQLMetricProjection testImpressions = (SQLMetricProjection) revenueFactTable
                         .getMetricProjection("testImpressions", "testImpressions", testImpressionsArg);
 
-        SQLMetricProjection revenueWithoutArg = (SQLMetricProjection) revenueFactTable.getMetricProjection("revenue");
+        SQLMetricProjection revenueWithoutArg = (SQLMetricProjection) revenueFactTable.getMetricProjection("testRevenue");
         Map<String, Argument> revenueArg = new HashMap<>();
         revenueArg.put("format", Argument.builder().name("format").value("11D00").build());
         SQLMetricProjection revenueWithArg = (SQLMetricProjection) revenueFactTable.getMetricProjection("revenue",
@@ -107,18 +107,26 @@ public class ColumnContextTest {
                         .arguments(queryArgs)
                         .build();
 
+        Query.QueryBuilder builder = Query.builder()
+                        .source(query.getSource())
+                        .metricProjections(query.getMetricProjections())
+                        .dimensionProjections(query.getDimensionProjections())
+                        .arguments(query.getArguments());
+
+        Query expandedQuery = addHiddenProjections(refTable, builder, query).build();
+
         // definition: {{$$column.args.aggregation}}({{$impressions}})
         // -> value of 'aggregation' argument is passed in the query for "impressions" column and same is used while
         // resolving this column.
         assertEquals("SUM(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`impressions`)",
-                        impressions.toSQL(query, metaDataStore));
+                        impressions.toSQL(expandedQuery, metaDataStore));
 
         // definition: {{impressions}}) * {{$$table.args.testPercentage}}
         // -> default value of table argument 'testPercentage' is used.
         // -> value of 'aggregation' argument is passed in the query for "testImpressions" column and same is used while
         // resolving referenced column "impressions".
         assertEquals("MIN(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`impressions`)) * 0.1",
-                        testImpressions.toSQL(query, metaDataStore));
+                        testImpressions.toSQL(expandedQuery, metaDataStore));
 
         // definition: TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, {{$$column.args.format}})
         // -> default value of 'format' argument in "conversionRate" column of joined table is used while
@@ -126,24 +134,24 @@ public class ColumnContextTest {
         // -> default value of 'format' argument in "revenue" column is used while resolving this column.
         assertEquals("TO_CHAR(SUM(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`revenue`)"
                         + " * TO_CHAR(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`conversion_rate`, 9D0), 99D00)",
-                        revenueWithoutArg.toSQL(query, metaDataStore));
+                        revenueWithoutArg.toSQL(expandedQuery, metaDataStore));
 
         // definition: TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, {{$$column.args.format}})
         // -> value of 'format' argument is passed in the query for "revenue" column and same is used for resolving
         // referenced column "rate.conversionRate" and this column.
         assertEquals("TO_CHAR(SUM(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`revenue`)"
                         + " * TO_CHAR(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`conversion_rate`, 11D00), 11D00)",
-                        revenueWithArg.toSQL(query, metaDataStore));
+                        revenueWithArg.toSQL(expandedQuery, metaDataStore));
 
         // definition: {{rate.conversionRate}}
         // -> logical column 'conversionRate' doesn't support arguments.
         // -> default value of 'format' argument in "conversionRate" column of joined table is used while resolving this.
         assertEquals("TO_CHAR(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`conversion_rate`, 9D0)",
-                        conversionRate.toSQL(query, metaDataStore));
+                        conversionRate.toSQL(expandedQuery, metaDataStore));
 
         // definition: {{rate.$provider}}
         assertEquals("`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`provider`",
-                        rateProvider.toSQL(query, metaDataStore));
+                        rateProvider.toSQL(expandedQuery, metaDataStore));
     }
 
     @Test
@@ -242,6 +250,9 @@ class RevenueFact {
                     arguments = {@ArgumentDefinition(name = "aggregation", type = ValueType.TEXT,
                                     defaultValue = "MIN")})
     private Integer testImpressions;
+
+    @MetricFormula("{{revenue}}")
+    private BigDecimal testRevenue;
 
     @MetricFormula(value = "TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, {{$$column.args.format}})",
                     arguments = {@ArgumentDefinition(name = "format", type = ValueType.TEXT,

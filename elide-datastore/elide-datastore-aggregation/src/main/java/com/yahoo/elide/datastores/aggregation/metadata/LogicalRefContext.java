@@ -7,25 +7,23 @@
 package com.yahoo.elide.datastores.aggregation.metadata;
 
 import static com.yahoo.elide.core.request.Argument.getArgumentMapFromString;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
+import static java.util.Collections.emptyMap;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.query.TemplateProjection;
+import com.yahoo.elide.datastores.aggregation.query.TemplateProjection.TemplateProjectionBuilder;
 import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.Options;
-import com.github.jknack.handlebars.ValueResolver;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
 import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * Context for resolving arguments and logical references in column's expression. Keeps physical and join references as
@@ -36,18 +34,15 @@ import java.util.Set;
 @Builder
 public class LogicalRefContext extends Context {
 
-    private static final String HANDLEBAR_PREFIX = "{{";
-    private static final String HANDLEBAR_SUFFIX = "}}";
-
     private final MetaDataStore metaDataStore;
     private final Queryable queryable;
 
     // Arguments provided for queried column.
-    private final Map<String, ? extends Object> queriedColArgs;
-    private final Map<String, Object> columnArgsMap;
+    private final Map<String, Argument> queriedColArgs;
+    private final ColumnProjection column;
 
     @Override
-    protected Object get(Object key, Map<String, ? extends Object> fixedArgs) {
+    protected Object get(Object key, Map<String, Argument> fixedArgs) {
 
         String keyStr = key.toString();
 
@@ -61,7 +56,7 @@ public class LogicalRefContext extends Context {
         }
 
         if (keyStr.equals(COL_PREFIX)) {
-            return this.columnArgsMap;
+            return getColArgMap(this.column);
         }
 
         // Keep Join References as is
@@ -71,32 +66,66 @@ public class LogicalRefContext extends Context {
 
         ColumnProjection columnProj = this.queryable.getColumnProjection(keyStr);
         if (columnProj != null) {
-            return resolve(columnProj, fixedArgs);
+
+            ColumnProjection newColumn = TemplateProjection.builder()
+                            .name(columnProj.getName())
+                            .expression(columnProj.getExpression())
+                            .arguments(getColumnArgMap(this.getMetaDataStore(),
+                                                       this.getQueryable(),
+                                                       this.getQueriedColArgs(),
+                                                       columnProj.getName(),
+                                                       fixedArgs))
+                            .build();
+
+            LogicalRefContext newCtx = LogicalRefContext.builder()
+                            .queryable(this.getQueryable())
+                            .metaDataStore(this.getMetaDataStore())
+                            .queriedColArgs(this.getQueriedColArgs())
+                            .column(newColumn)
+                            .build();
+
+            return newCtx.resolve();
         }
 
         throw new HandlebarsException(new Throwable("Couldn't find: " + key));
     }
 
     @Override
-    protected String resolve(ColumnProjection column, Map<String, ? extends Object> fixedArgs) {
+    public String resolve() {
+        return resolveHandlebars(this, this.getColumn().getExpression());
+    }
 
-        // Build a new Context for resolving this column
-        LogicalRefContext newCtx = LogicalRefContext.builder()
-                        .queryable(queryable)
+    @Override
+    public String resolve(String expression) {
+
+        LogicalRefContextBuilder ctxBuilder = LogicalRefContext.builder()
+                        .queryable(this.getQueryable())
                         .metaDataStore(this.getMetaDataStore())
-                        .queriedColArgs(this.getQueriedColArgs())
-                        .availableColArgs(getColumnArgMap(this.getMetaDataStore(),
-                                                          this.getQueryable(),
-                                                          this.getQueriedColArgs(),
-                                                          column.getName(),
-                                                          fixedArgs))
-                        .build();
+                        .queriedColArgs(this.getQueriedColArgs());
 
-        com.github.jknack.handlebars.Context context = com.github.jknack.handlebars.Context.newBuilder(newCtx)
-                        .resolver(new ContextResolver(), new StringValueResolver())
-                        .build();
+        TemplateProjectionBuilder columnBuilder = TemplateProjection.builder().expression(expression);
 
-        return resolveHandlebars(context, column.getExpression());
+        ColumnProjection column = this.getColumn();
+        ColumnProjection newColumn;
+        if (column == null) {
+            newColumn = columnBuilder
+                            .arguments(this.getQueriedColArgs())
+                            .build();
+        } else {
+            newColumn = columnBuilder
+                            .name(column.getName())
+                            .arguments(getColumnArgMap(this.getMetaDataStore(),
+                                                       this.getQueryable(),
+                                                       this.getQueriedColArgs(),
+                                                       this.getColumn().getName(),
+                                                       emptyMap()))
+                            .build();
+        }
+
+        return ctxBuilder
+                        .column(newColumn)
+                        .build()
+                        .resolve();
     }
 
     @Override
@@ -115,69 +144,11 @@ public class LogicalRefContext extends Context {
         LogicalRefContext invokedCtx = (LogicalRefContext) context;
 
         if (argsIndex >= 0) {
-            Map<String, ? extends Object> pinnedArgs = getArgumentMapFromString(column.substring(argsIndex));
+            Map<String, Argument> pinnedArgs = getArgumentMapFromString(column.substring(argsIndex));
             invokedColumnName = column.substring(0, argsIndex);
             return invokedCtx.get(invokedColumnName, pinnedArgs);
         }
 
         return invokedCtx.get(invokedColumnName);
-    }
-
-    public static class LogicalRefContextBuilder {
-
-        public LogicalRefContextBuilder availableColArgs(final Map<String, Object> availableColArgs) {
-            Map<String, Object> colArgsMap = new HashMap<>();
-            colArgsMap.put(ARGS_KEY, availableColArgs);
-            this.columnArgsMap = colArgsMap;
-            return this;
-        }
-    }
-
-    /**
-     * This tells compiler how to write a {@link StringValue} object as String.
-     */
-    @AllArgsConstructor
-    @Getter
-    private class StringValue {
-        private final String value;
-
-        @Override
-        public String toString() {
-            // Sql helper returns the value already enclosed inside '{{' and '}}'
-            if (value.startsWith(HANDLEBAR_PREFIX)) {
-                return value;
-            }
-            return HANDLEBAR_PREFIX + value + HANDLEBAR_SUFFIX;
-        }
-    }
-
-    /**
-     * If get method encounters either join key, it returns a {@link StringValue} object.
-     * This class tell how to resolve a field against {@link StringValue} object.
-     * eg: To resolve {{join.col1}}, get method is called with key 'join' first,
-     *     This will return a {@link StringValue} object which wraps the value 'join'.
-     *     Now 'col1' is resolved against this {@link StringValue} object.
-     */
-    private class StringValueResolver implements ValueResolver {
-
-        @Override
-        public Object resolve(Object context, String name) {
-            if (context instanceof StringValue) {
-                String value = ((StringValue) context).getValue() + PERIOD + name;
-
-                return new StringValue(value);
-            }
-            return UNRESOLVED;
-        }
-
-        @Override
-        public Object resolve(Object context) {
-            return null;
-        }
-
-        @Override
-        public Set<Entry<String, Object>> propertySet(Object context) {
-            return null;
-        }
     }
 }
