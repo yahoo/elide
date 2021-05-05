@@ -9,11 +9,12 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 
 import com.yahoo.elide.core.utils.TypeHelper;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -23,7 +24,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode
 @Builder
-public class SQLPhysicalColumnProjection implements SQLColumnProjection {
+public class SQLPhysicalColumnProjection implements SQLColumnProjection, DimensionProjection {
 
     private String name;
 
@@ -36,7 +37,7 @@ public class SQLPhysicalColumnProjection implements SQLColumnProjection {
     }
 
     @Override
-    public String toSQL(Queryable query, SQLReferenceTable table) {
+    public String toSQL(Queryable query, MetaDataStore metaDataStore) {
         SQLDialect dialect = query.getConnectionDetails().getDialect();
         return TypeHelper.getFieldAlias(applyQuotes(query.getSource().getAlias(), dialect), applyQuotes(name, dialect));
     }
@@ -62,7 +63,12 @@ public class SQLPhysicalColumnProjection implements SQLColumnProjection {
     }
 
     @Override
-    public SQLColumnProjection withExpression(String expression, boolean project) {
+    public SQLPhysicalColumnProjection withProjected(boolean projected) {
+        return withExpression(getExpression(), projected);
+    }
+
+    @Override
+    public SQLPhysicalColumnProjection withExpression(String expression, boolean projected) {
         return SQLPhysicalColumnProjection.builder().name(name).build();
     }
 }

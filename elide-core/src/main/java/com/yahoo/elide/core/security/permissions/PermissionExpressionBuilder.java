@@ -15,7 +15,6 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
-import com.yahoo.elide.core.filter.visitors.FilterExpressionNormalizationVisitor;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.CheckInstantiator;
 import com.yahoo.elide.core.security.checks.Check;
@@ -24,6 +23,7 @@ import com.yahoo.elide.core.security.permissions.expressions.CheckExpression;
 import com.yahoo.elide.core.security.permissions.expressions.Expression;
 import com.yahoo.elide.core.security.permissions.expressions.OrExpression;
 import com.yahoo.elide.core.security.permissions.expressions.SpecificFieldExpression;
+import com.yahoo.elide.core.security.visitors.PermissionExpressionNormalizationVisitor;
 import com.yahoo.elide.core.security.visitors.PermissionExpressionVisitor;
 import com.yahoo.elide.core.security.visitors.PermissionToFilterExpressionVisitor;
 import com.yahoo.elide.core.type.Type;
@@ -184,8 +184,8 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         ParseTree fieldPermissions = entityDictionary.getPermissionsForField(resourceClass, field, annotationClass);
 
         return new SpecificFieldExpression(condition,
-                expressionFromParseTree(classPermissions, checkFn),
-                expressionFromParseTree(fieldPermissions, checkFn)
+                normalizedExpressionFromParseTree(classPermissions, checkFn),
+                normalizedExpressionFromParseTree(fieldPermissions, checkFn)
         );
     }
 
@@ -205,25 +205,53 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         Class<? extends Annotation> annotationClass = condition.getPermission();
 
         ParseTree classPermissions = entityDictionary.getPermissionsForClass(resourceClass, annotationClass);
-        Expression entityExpression = expressionFromParseTree(classPermissions, checkFn);
+        Expression entityExpression = normalizedExpressionFromParseTree(classPermissions, checkFn);
 
         OrExpression allFieldsExpression = new OrExpression(FAILURE, null);
         List<String> fields = entityDictionary.getAllFields(resourceClass);
         Set<String> sparseFields = scope.getSparseFields().get(entityDictionary.getJsonAliasFor(resourceClass));
 
-        for (String field : fields) {
+        boolean entityExpressionUsed = false;
+        boolean fieldExpressionUsed = false;
 
+        for (String field : fields) {
             if (sparseFields != null && !sparseFields.contains(field)) {
                 continue;
             }
 
             ParseTree fieldPermissions = entityDictionary.getPermissionsForField(resourceClass, field, annotationClass);
-            Expression fieldExpression = expressionFromParseTree(fieldPermissions, checkFn);
+            Expression fieldExpression = normalizedExpressionFromParseTree(fieldPermissions, checkFn);
+
+            if (fieldExpression == null) {
+
+                if (entityExpressionUsed) {
+                    continue;
+                }
+
+                if (entityExpression == null) {
+                    //One field had no permissions set - so we allow the action.
+                    return SUCCESSFUL_EXPRESSION;
+                }
+
+                fieldExpression = entityExpression;
+                entityExpressionUsed = true;
+            } else {
+                fieldExpressionUsed = true;
+            }
 
             allFieldsExpression = new OrExpression(allFieldsExpression, fieldExpression);
         }
 
-        return new AnyFieldExpression(condition, entityExpression, allFieldsExpression);
+        if (! fieldExpressionUsed) {
+            //If there are no permissions, allow access...
+            if (entityExpression == null) {
+                return SUCCESSFUL_EXPRESSION;
+            } else {
+                return new AnyFieldExpression(condition, entityExpression);
+            }
+        }
+
+        return new AnyFieldExpression(condition, allFieldsExpression);
     }
 
     /**
@@ -285,22 +313,25 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         return allFieldsFilterExpression;
     }
 
-    private Expression expressionFromParseTree(ParseTree permissions, Function<Check, Expression> checkFn) {
+    private Expression normalizedExpressionFromParseTree(ParseTree permissions, Function<Check, Expression> checkFn) {
         if (permissions == null) {
             return null;
         }
 
-        return new PermissionExpressionVisitor(entityDictionary, checkFn).visit(permissions);
+        return permissions
+                .accept(new PermissionExpressionVisitor(entityDictionary, checkFn))
+                .accept(new PermissionExpressionNormalizationVisitor());
     }
 
     private FilterExpression filterExpressionFromParseTree(ParseTree permissions, Type type, RequestScope scope) {
         if (permissions == null) {
             return null;
         }
+        final Function<Check, Expression> checkFn = (check) ->
+                new CheckExpression(check, null, scope, null, cache);
 
-        FilterExpression expression = new PermissionToFilterExpressionVisitor(entityDictionary, scope, type)
-                .visit(permissions);
-        return expression.accept(new FilterExpressionNormalizationVisitor());
+        return normalizedExpressionFromParseTree(permissions, checkFn)
+                .accept(new PermissionToFilterExpressionVisitor(entityDictionary, scope, type));
     }
 
     private Function<Check, Expression> leafBuilder(PersistentResource resource, ChangeSpec changeSpec) {

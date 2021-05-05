@@ -75,12 +75,10 @@ public class ExportApiEndpoint {
         exportApiProperties.getExecutor().submit(() -> {
             Observable<String> observableResults = resultStorageEngine.getResultsByID(asyncQueryId);
 
-            StreamingOutput streamingOutput = outputStream -> {
+            StreamingOutput streamingOutput = outputStream ->
                 observableResults
                 .subscribe(
-                        resultString -> {
-                            outputStream.write(resultString.concat(System.lineSeparator()).getBytes());
-                        },
+                        resultString -> outputStream.write(resultString.concat(System.lineSeparator()).getBytes()),
                         error -> {
                             String message = error.getMessage();
                             try {
@@ -112,7 +110,6 @@ public class ExportApiEndpoint {
                             outputStream.close();
                         }
                 );
-            };
 
             asyncResponse.resume(Response.ok(streamingOutput, MediaType.APPLICATION_OCTET_STREAM)
                     .header("Content-Disposition", "attachment; filename=" + asyncQueryId).build());

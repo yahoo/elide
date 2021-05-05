@@ -15,15 +15,15 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.visitors.FilterExpressionNormalizationVisitor;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasJoinVisitor;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
-
-import org.apache.commons.collections4.CollectionUtils;
 
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * Splits a filter expression into two parts:
@@ -70,13 +70,12 @@ public class SubqueryFilterSplitter
 
         SQLTable table = metaDataStore.getTable(tableType);
 
-        Set<String> joins = lookupTable.getResolvedJoinExpressions(table, fieldName);
-
-        if (CollectionUtils.isNotEmpty(joins)) {
+        List<Reference> references = lookupTable.getReferenceTree(table, fieldName);
+        boolean hasJoin = references.stream().anyMatch(ref -> ref.accept(new HasJoinVisitor()));
+        if (hasJoin) {
             return SplitFilter.builder().outer(filterPredicate).build();
-        } else {
-            return SplitFilter.builder().inner(filterPredicate).build();
         }
+        return SplitFilter.builder().inner(filterPredicate).build();
     }
 
     @Override
@@ -108,17 +107,15 @@ public class SubqueryFilterSplitter
             return SplitFilter.builder()
                     .outer(combined)
                     .build();
-
-        //Both left and right are inner queries.
-        } else {
-            FilterExpression combined = OrFilterExpression.fromPair(
-                    lhs.getInner(),
-                    rhs.getInner());
-
-            return SplitFilter.builder()
-                    .inner(combined)
-                    .build();
         }
+        //Both left and right are inner queries.
+        FilterExpression combined = OrFilterExpression.fromPair(
+                lhs.getInner(),
+                rhs.getInner());
+
+        return SplitFilter.builder()
+                .inner(combined)
+                .build();
     }
 
     @Override

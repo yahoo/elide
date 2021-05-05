@@ -10,10 +10,13 @@ import static com.yahoo.elide.core.security.permissions.ExpressionResult.FAIL;
 import static com.yahoo.elide.core.security.permissions.ExpressionResult.PASS;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
 
+import lombok.Getter;
+
 /**
  * Representation of a "not" expression.
  */
 public class NotExpression implements Expression {
+    @Getter
     private final Expression logical;
 
     /**
@@ -39,6 +42,11 @@ public class NotExpression implements Expression {
         }
 
         return DEFERRED;
+    }
+
+    @Override
+    public <T> T accept(ExpressionVisitor<T> visitor) {
+        return visitor.visitNotExpression(this);
     }
 
     @Override

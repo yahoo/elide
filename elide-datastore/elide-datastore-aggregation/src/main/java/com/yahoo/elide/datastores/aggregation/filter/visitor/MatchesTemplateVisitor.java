@@ -15,6 +15,8 @@ import com.yahoo.elide.core.filter.visitors.FilterExpressionNormalizationVisitor
 import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 
+import java.util.regex.Pattern;
+
 /**
  * Validates whether a client provided filter either:
  * 1. Directly matches a template filter.
@@ -23,7 +25,7 @@ import lombok.AllArgsConstructor;
  */
 @AllArgsConstructor
 public class MatchesTemplateVisitor implements FilterExpressionVisitor<Boolean> {
-    private static final String TEMPLATE_REGEX = "\\{\\{\\w*\\}\\}";
+    private static final Pattern TEMPLATE_PATTERN = Pattern.compile("\\{\\{\\w*\\}\\}");
 
     private FilterExpression expressionToMatch;
 
@@ -77,7 +79,7 @@ public class MatchesTemplateVisitor implements FilterExpressionVisitor<Boolean> 
 
         boolean valueMatches = predicateA.getValues().equals(predicateB.getValues());
         boolean usingTemplate = predicateA.getValues().stream()
-                .anyMatch((value -> value.toString().matches(TEMPLATE_REGEX)));
+                .anyMatch(value -> TEMPLATE_PATTERN.matcher(value.toString()).matches());
 
         return predicateA.getPath().equals(predicateB.getPath())
                 && predicateA.getOperator().equals(predicateB.getOperator())

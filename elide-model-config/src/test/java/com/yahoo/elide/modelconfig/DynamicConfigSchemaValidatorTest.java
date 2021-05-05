@@ -182,6 +182,6 @@ public class DynamicConfigSchemaValidatorTest {
 
     private String getFileName(String resource) throws Exception {
         String file = DynamicConfigSchemaValidatorTest.class.getResource(resource).getFile();
-        return file.substring(file.lastIndexOf("/") + 1);
+        return file.substring(file.lastIndexOf('/') + 1);
     }
 }

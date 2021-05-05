@@ -309,8 +309,7 @@ public class JsonApiPatch {
     }
 
     private ArrayNode getErrorContainer() {
-        ArrayNode container = JsonNodeFactory.instance.arrayNode();
-        return container;
+        return JsonNodeFactory.instance.arrayNode();
     }
 
     private boolean processAction(ArrayNode errorList, boolean failed, PatchAction action) {

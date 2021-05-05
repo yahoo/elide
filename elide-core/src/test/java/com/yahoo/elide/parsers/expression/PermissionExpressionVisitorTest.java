@@ -21,6 +21,7 @@ import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import com.yahoo.elide.core.security.permissions.expressions.Expression;
+import com.yahoo.elide.core.security.permissions.expressions.ExpressionVisitor;
 import com.yahoo.elide.core.security.visitors.PermissionExpressionVisitor;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
@@ -153,6 +154,11 @@ public class PermissionExpressionVisitorTest {
                 return ExpressionResult.PASS;
             }
             return ExpressionResult.FAIL;
+        }
+
+        @Override
+        public <T> T accept(ExpressionVisitor<T> visitor) {
+            return visitor.visitExpression(this);
         }
     }
 }

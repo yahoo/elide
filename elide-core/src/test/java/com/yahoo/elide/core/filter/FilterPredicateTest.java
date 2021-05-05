@@ -6,7 +6,6 @@
 package com.yahoo.elide.core.filter;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -49,8 +48,8 @@ public class FilterPredicateTest {
     @BeforeAll
     static void setup() {
         EntityDictionary entityDictionary = mock(EntityDictionary.class);
-        Type<?> bookClassType = getClassType(Book.class);
-        Type<?> authorClassType = getClassType(Author.class);
+        Type<?> bookClassType = ClassType.of(Book.class);
+        Type<?> authorClassType = ClassType.of(Author.class);
         when(entityDictionary.getJsonAliasFor(ClassType.STRING_TYPE)).thenReturn("string");
         when(entityDictionary.getJsonAliasFor(bookClassType)).thenReturn("book");
         when(entityDictionary.getJsonAliasFor(authorClassType)).thenReturn("author");

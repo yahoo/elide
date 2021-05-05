@@ -37,13 +37,13 @@ public class SupportedAggregation {
         List<String> innerAggregations = new ArrayList<>();
 
         for (String innerTemplate : innerTemplates) {
-            innerAggregations.add(String.format(innerTemplate, operands));
+            innerAggregations.add(String.format(innerTemplate, (Object[]) operands));
         }
 
         return innerAggregations;
     }
 
     public String getOuterAggregation(String ... operands) {
-        return String.format(outerTemplate, operands);
+        return String.format(outerTemplate, (Object[]) operands);
     }
 }

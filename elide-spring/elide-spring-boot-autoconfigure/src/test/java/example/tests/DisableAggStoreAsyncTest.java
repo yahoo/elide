@@ -113,4 +113,13 @@ public class DisableAggStoreAsyncTest extends IntegrationTest {
             assertEquals("PROCESSING", outputResponse, "Async Query has failed.");
         }
     }
+
+    @Test
+    public void metaDataTest() {
+        given()
+                .accept("application/vnd.api+json")
+                .get("/json/namespace/default") //"default" namespace added by Agg Store.
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND); // Metadatastore is disabled, so not found.
+    }
 }

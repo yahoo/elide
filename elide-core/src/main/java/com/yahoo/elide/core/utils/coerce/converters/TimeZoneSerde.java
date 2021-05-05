@@ -15,8 +15,7 @@ public class TimeZoneSerde implements Serde<String, TimeZone> {
 
     @Override
     public TimeZone deserialize(String val) {
-        TimeZone timezone = TimeZone.getTimeZone(val);
-        return timezone;
+        return TimeZone.getTimeZone(val);
     }
 
     @Override

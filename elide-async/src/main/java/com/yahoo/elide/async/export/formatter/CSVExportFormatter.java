@@ -65,10 +65,8 @@ public class CSVExportFormatter implements TableExportFormatter {
                 }
 
                 String objString = Arrays.toString(obj);
-                if (objString != null) {
-                    //The arrays.toString returns o/p with [ and ] at the beginning and end. So need to exclude them.
-                    objString = objString.substring(1, objString.length() - 1);
-                }
+                //The arrays.toString returns o/p with [ and ] at the beginning and end. So need to exclude them.
+                objString = objString.substring(1, objString.length() - 1);
                 str.append(objString);
             }
         } catch (Exception e) {

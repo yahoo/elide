@@ -138,7 +138,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                         + "HAVING MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) > :XXX "
                         + "ORDER BY MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) "
                         + "DESC LIMIT 5 OFFSET 10\n";
-        List<String> expectedQueryList = new ArrayList<String>();
+        List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(expectedQueryStr1);
         expectedQueryList.add(expectedQueryStr2);
 

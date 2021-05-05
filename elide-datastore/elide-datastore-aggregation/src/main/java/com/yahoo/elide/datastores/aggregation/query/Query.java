@@ -39,7 +39,7 @@ public class Query implements Queryable {
 
     @Singular
     @NonNull
-    private List<ColumnProjection> dimensionProjections;
+    private List<DimensionProjection> dimensionProjections;
 
     @Singular
     @NonNull
@@ -75,7 +75,18 @@ public class Query implements Queryable {
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
-    //To avoid lombok javadoc errors.
     public static class QueryBuilder {
+
+        public QueryBuilder column(ColumnProjection column) {
+            if (column instanceof MetricProjection) {
+                metricProjection((MetricProjection) column);
+            } else if (column instanceof DimensionProjection) {
+                dimensionProjection((DimensionProjection) column);
+            } else {
+                timeDimensionProjection((TimeDimensionProjection) column);
+            }
+
+            return this;
+        }
     }
 }

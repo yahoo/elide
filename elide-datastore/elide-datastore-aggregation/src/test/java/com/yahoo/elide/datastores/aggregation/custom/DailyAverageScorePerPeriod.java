@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.custom;
 
 import com.yahoo.elide.core.request.Argument;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
@@ -13,7 +14,6 @@ import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
@@ -69,7 +69,7 @@ public class DailyAverageScorePerPeriod extends SQLMetricProjection {
     // Resolved Reference would be empty if value is not provided in @MetricFormula as value is optional.
     // Once we change this to use TableContext, then it should be able to resolve expression directly.
     @Override
-    public boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
+    public boolean canNest(Queryable source, MetaDataStore metaDataStore) {
         return true;
     }
 }

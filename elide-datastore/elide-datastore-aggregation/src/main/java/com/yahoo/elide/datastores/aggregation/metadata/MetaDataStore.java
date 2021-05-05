@@ -20,14 +20,17 @@ import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
+import com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage;
 import com.yahoo.elide.datastores.aggregation.dynamic.TableType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+
 import org.hibernate.annotations.Subselect;
 import lombok.Getter;
 
@@ -38,6 +41,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -62,6 +66,9 @@ public class MetaDataStore implements DataStore {
     private final Set<Type<?>> modelsToBind;
 
     @Getter
+    private final Set<com.yahoo.elide.core.type.Package> namespacesToBind;
+
+    @Getter
     private boolean enableMetaDataStore = false;
 
     private Map<Type<?>, Table> tables = new HashMap<>();
@@ -75,6 +82,12 @@ public class MetaDataStore implements DataStore {
     private final Set<Class<?>> metadataModelClasses;
 
     public MetaDataStore(Collection<com.yahoo.elide.modelconfig.model.Table> tables, boolean enableMetaDataStore) {
+        this(tables, new HashSet<>(), enableMetaDataStore);
+    }
+
+    public MetaDataStore(Collection<com.yahoo.elide.modelconfig.model.Table> tables,
+            Collection<com.yahoo.elide.modelconfig.model.NamespaceConfig> namespaces,
+            boolean enableMetaDataStore) {
         this(getClassType(getAllAnnotatedClasses()), enableMetaDataStore);
 
         Map<String, Type<?>> typeMap = new HashMap<>();
@@ -86,17 +99,32 @@ public class MetaDataStore implements DataStore {
             TableType tableType = new TableType(table);
             dynamicTypes.add(tableType);
             typeMap.put(table.getName(), tableType);
-            table.getJoins().stream().forEach(join -> {
-                joinNames.add(join.getTo());
-            });
+            table.getJoins().stream().forEach(join ->
+                joinNames.add(join.getTo())
+            );
         });
+
+        //Convert namespaces into packages.
+        namespaces.stream().forEach(namespace -> {
+            NamespacePackage namespacePackage = new NamespacePackage(namespace);
+            this.namespacesToBind.add(namespacePackage);
+
+        });
+
+        // Add default namespace if not present.
+        if (namespaces.stream().noneMatch(namespace ->
+                namespace.getName().toLowerCase(Locale.ENGLISH).equals("default"))) {
+            // add "default" namespace with default ApiVersion = ""
+            NamespacePackage namespacePackage = new NamespacePackage("default", "Default Namespace", "default");
+            this.namespacesToBind.add(namespacePackage);
+        }
 
         //Built a list of static types referenced from joins in the dynamic types.
         metadataDictionary.getBindings().stream()
                 .filter(binding -> joinNames.contains(binding.getJsonApiType()))
-                .forEach(staticType -> {
-                    typeMap.put(staticType.getJsonApiType(), staticType.getEntityClass());
-                });
+                .forEach(staticType ->
+                    typeMap.put(staticType.getJsonApiType(), staticType.getEntityClass())
+                );
 
         //Resolve the join fields & bind the dynamic types.
         dynamicTypes.stream().forEach(table -> {
@@ -120,10 +148,8 @@ public class MetaDataStore implements DataStore {
      * @return Set of Class with specific annotations.
      */
     private static Set<Class<?>> getAllAnnotatedClasses() {
-        return ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS, (clazz) -> {
-            return clazz.getAnnotation(Entity.class) == null
-                    || clazz.getAnnotation(Include.class) != null;
-        });
+        return ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS,
+                clazz -> clazz.getAnnotation(Entity.class) == null || clazz.getAnnotation(Include.class) != null);
     }
 
     public Set<Type<?>> getDynamicTypes() {
@@ -136,8 +162,21 @@ public class MetaDataStore implements DataStore {
      * Construct MetaDataStore with data models.
      *
      * @param modelsToBind models to bind
+     * @param enableMetaDataStore If Enable MetaDataStore
      */
     public MetaDataStore(Set<Type<?>> modelsToBind, boolean enableMetaDataStore) {
+        this(modelsToBind, new HashSet<>(), enableMetaDataStore);
+    }
+
+    /**
+     * Construct MetaDataStore with data models, namespaces.
+     *
+     * @param modelsToBind models to bind
+     * @param namespacesToBind namespaces to bind
+     * @param enableMetaDataStore If Enable MetaDataStore
+     */
+    public MetaDataStore(Set<Type<?>> modelsToBind, Set<com.yahoo.elide.core.type.Package> namespacesToBind,
+            boolean enableMetaDataStore) {
         this.metadataModelClasses = ClassScanner.getAllClasses(META_DATA_PACKAGE.getName());
         this.enableMetaDataStore = enableMetaDataStore;
 
@@ -152,6 +191,7 @@ public class MetaDataStore implements DataStore {
 
         // bind external data models in the package.
         this.modelsToBind = modelsToBind;
+        this.namespacesToBind = namespacesToBind;
     }
 
     @Override
@@ -186,6 +226,16 @@ public class MetaDataStore implements DataStore {
         table.getColumns().forEach(this::addColumn);
 
         table.getArguments().forEach(arg -> addArgument(arg, version));
+    }
+
+    /**
+     * Add a namespace metadata object.
+     *
+     * @param namespace Namespace metadata
+     */
+    public void addNamespace(Namespace namespace) {
+        String version = namespace.getVersion();
+        addMetaData(namespace, version);
     }
 
     /**
