@@ -55,7 +55,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     @Getter protected final EntityDictionary dictionary;
     @Getter private final JsonApiMapper mapper;
     @Getter private final AuditLogger auditLogger;
-    @Getter private final Optional<MultivaluedMap<String, String>> queryParams;
+    @Getter private final MultivaluedMap<String, String> queryParams;
     @Getter private final Map<String, List<String>> requestHeaders;
     @Getter private final Map<String, Set<String>> sparseFields;
     @Getter private final PermissionExecutor permissionExecutor;
@@ -139,19 +139,17 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
                 ? new ActivePermissionExecutor(this)
                 : permissionExecutorGenerator.apply(this);
 
-        this.queryParams = MapUtils.isEmpty(queryParams)
-                ? Optional.empty()
-                : Optional.of(queryParams);
+        this.queryParams = queryParams == null ? new MultivaluedHashMap<>() : queryParams;
 
         this.requestHeaders = MapUtils.isEmpty(requestHeaders)
                 ? Collections.emptyMap()
                 : requestHeaders;
         registerPreSecurityObservers();
 
-        if (this.queryParams.isPresent()) {
+        if (!this.queryParams.isEmpty()) {
 
             /* Extract any query param that starts with 'filter' */
-            MultivaluedMap<String, String> filterParams = getFilterParams(queryParams);
+            MultivaluedMap<String, String> filterParams = getFilterParams(this.queryParams);
 
             String errorMessage = "";
             if (! filterParams.isEmpty()) {
@@ -184,7 +182,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
                 }
             }
 
-            this.sparseFields = parseSparseFields(queryParams);
+            this.sparseFields = parseSparseFields(this.queryParams);
         } else {
             this.sparseFields = Collections.emptyMap();
         }
@@ -209,7 +207,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.dictionary = outerRequestScope.dictionary;
         this.mapper = outerRequestScope.mapper;
         this.auditLogger = outerRequestScope.auditLogger;
-        this.queryParams = Optional.empty();
+        this.queryParams = new MultivaluedHashMap<>();
         this.requestHeaders = Collections.emptyMap();
         this.sparseFields = Collections.emptyMap();
         this.objectEntityCache = outerRequestScope.objectEntityCache;
