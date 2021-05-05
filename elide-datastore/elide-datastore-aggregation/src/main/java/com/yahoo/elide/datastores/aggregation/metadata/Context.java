@@ -6,30 +6,24 @@
 
 package com.yahoo.elide.datastores.aggregation.metadata;
 
-import static com.yahoo.elide.core.request.Argument.getArgumentMapFromString;
-import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 import static java.util.Collections.emptyMap;
-import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Argument;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Formatter;
 import com.github.jknack.handlebars.Handlebars;
-import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.Options;
 import com.github.jknack.handlebars.Template;
 import org.apache.commons.lang3.tuple.Pair;
-import lombok.Builder;
+import com.github.jknack.handlebars.ValueResolver;
+
 import lombok.Getter;
 import lombok.ToString;
 
@@ -37,6 +31,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,22 +40,13 @@ import java.util.stream.Collectors;
  */
 @Getter
 @ToString
-@Builder
-public class Context extends HashMap<String, Object> {
+public abstract class Context {
 
     public static final String COL_PREFIX = "$$column";
     public static final String TBL_PREFIX = "$$table";
     public static final String ARGS_KEY = "args";
 
-    private final MetaDataStore metaDataStore;
-    private final Queryable queryable;
-    private final String alias;
-
-    // Arguments provided for queried column.
-    private final Map<String, ? extends Object> queriedColArgs;
-    private final Map<String, Object> columnArgsMap;
-
-    private final Handlebars handlebars = new Handlebars()
+    protected final Handlebars handlebars = new Handlebars()
             .with(EscapingStrategy.NOOP)
             .with((Formatter) (value, next) -> {
                 if (value instanceof com.yahoo.elide.core.request.Argument) {
@@ -70,49 +56,11 @@ public class Context extends HashMap<String, Object> {
             })
             .registerHelper("sql", this::resolveSQLHandlebar);
 
-    @Override
     public Object get(Object key) {
         return get(key, emptyMap());
     }
 
-    private Object get(Object key, Map<String, ? extends Object> fixedArgs) {
-
-        String keyStr = key.toString();
-
-        // Physical References starts with $
-        if (keyStr.lastIndexOf('$') == 0) {
-            String resolvedExpr = alias + PERIOD + key.toString().substring(1);
-            return applyQuotes(resolvedExpr, queryable.getConnectionDetails().getDialect());
-        }
-
-        if (keyStr.equals(TBL_PREFIX)) {
-            return getTableArgMap(this.queryable);
-        }
-
-        if (keyStr.equals(COL_PREFIX)) {
-            return this.columnArgsMap;
-        }
-
-        if (this.queryable.hasJoin(keyStr)) {
-            SQLJoin sqlJoin = this.queryable.getJoin(keyStr);
-            Queryable joinQueryable = metaDataStore.getTable(sqlJoin.getJoinTableType());
-            Context joinCtx = Context.builder()
-                            .queryable(joinQueryable)
-                            .alias(appendAlias(this.alias, keyStr))
-                            .metaDataStore(this.metaDataStore)
-                            .queriedColArgs(this.queriedColArgs)
-                            .build();
-
-            return joinCtx;
-        }
-
-        ColumnProjection columnProj = this.queryable.getColumnProjection(keyStr);
-        if (columnProj != null) {
-            return resolveHandlebars(columnProj, fixedArgs);
-        }
-
-        throw new HandlebarsException(new Throwable("Couldn't find: " + key));
-    }
+    protected abstract Object get(Object key, Map<String, ? extends Object> fixedArgs);
 
     /**
      * Resolves the handebars in column's expression.
@@ -120,8 +68,8 @@ public class Context extends HashMap<String, Object> {
      * @param column {@link ColumnProjection}
      * @return fully resolved column's expression.
      */
-    public String resolveHandlebars(ColumnProjection column) {
-        return resolveHandlebars(column, emptyMap());
+    public String resolve(ColumnProjection column) {
+        return resolve(column, emptyMap());
     }
 
     /**
@@ -131,61 +79,18 @@ public class Context extends HashMap<String, Object> {
      * @param fixedArgs If this is called from SQL helper then pinned arguments.
      * @return fully resolved column's expression.
      */
-    private String resolveHandlebars(ColumnProjection column, Map<String, ? extends Object> fixedArgs) {
+    protected abstract String resolve(ColumnProjection column, Map<String, ? extends Object> fixedArgs);
 
-        Map<String, Object> newCtxColumnArgs = new HashMap<>();
+    protected abstract Object resolveSQLHandlebar(final Object context, final Options options)
+                    throws UnsupportedEncodingException;
 
-        Queryable queryable = this.getQueryable();
-        Table table = metaDataStore.getTable(queryable.getSource().getName(), queryable.getSource().getVersion());
-
-        // Add the default column argument values from metadata store.
-        if (table != null) {
-            Column col = table.getColumnMap().get(column.getName());
-            if (col != null) {
-                newCtxColumnArgs.putAll(getDefaultArgumentsMap(col.getArguments()));
-            }
-        }
-
-        // Override default arguments with queried column's args.
-        newCtxColumnArgs.putAll(this.getQueriedColArgs());
-        // Any fixed arguments provided in sql helper gets preference.
-        newCtxColumnArgs.putAll(fixedArgs);
-
-        // Build a new Context for resolving this column
-        Context newCtx = Context.builder()
-                        .queryable(queryable)
-                        .alias(this.getAlias())
-                        .metaDataStore(this.getMetaDataStore())
-                        .queriedColArgs(this.getQueriedColArgs())
-                        .availableColArgs(newCtxColumnArgs)
-                        .build();
-
+    protected String resolveHandlebars(com.github.jknack.handlebars.Context context, String expression) {
         try {
-            Template template = handlebars.compileInline(column.getExpression());
-            return template.apply(newCtx);
+            Template template = handlebars.compileInline(expression);
+            return template.apply(context);
         } catch (IOException e) {
             throw new IllegalStateException(e.getMessage());
         }
-    }
-
-    private Object resolveSQLHandlebar(final Object context, final Options options)
-                    throws UnsupportedEncodingException {
-        String from = options.hash("from");
-        String column = options.hash("column");
-        int argsIndex = column.indexOf('[');
-        String invokedColumnName = column;
-
-        Context currentCtx = (Context) context;
-        // 'from' is optional, so if not provided use the same table context.
-        Context invokedCtx = isBlank(from) ? currentCtx
-                                           : (Context) currentCtx.get(from);
-
-        if (argsIndex >= 0) {
-            Map<String, ? extends Object> pinnedArgs = getArgumentMapFromString(column.substring(argsIndex));
-            invokedColumnName = column.substring(0, argsIndex);
-            return invokedCtx.get(invokedColumnName, pinnedArgs);
-        }
-        return invokedCtx.get(invokedColumnName);
     }
 
     /**
@@ -194,7 +99,7 @@ public class Context extends HashMap<String, Object> {
      * @param expression Expression to resolve.
      * @return fully resolved expression.
      */
-    public String resolveHandlebars(String columnName, String expression) {
+    public String resolve(String columnName, String expression) {
         ColumnProjection column = new ColumnProjection() {
             @Override
             public <T extends ColumnProjection> T withProjected(boolean projected) {
@@ -223,7 +128,20 @@ public class Context extends HashMap<String, Object> {
             }
         };
 
-        return resolveHandlebars(column);
+        return resolve(column);
+    }
+
+    /**
+     * Resolves the handlebars with in expression.
+     * @param expression Expression to resolve.
+     * @return fully resolved expression.
+     */
+    public String resolve(String expression) {
+
+        com.github.jknack.handlebars.Context context = com.github.jknack.handlebars.Context.newBuilder(this)
+                        .resolver(new ContextResolver())
+                        .build();
+        return resolveHandlebars(context, expression);
     }
 
     public static Map<String, Object> getDefaultArgumentsMap(Set<Argument> availableArgs) {
@@ -233,7 +151,7 @@ public class Context extends HashMap<String, Object> {
                         .collect(Collectors.toMap(Argument::getName, Argument::getDefaultValue));
     }
 
-    public static Map<String, Object> getTableArgMap(Queryable queryable) {
+    protected static Map<String, Object> getTableArgMap(Queryable queryable) {
         Map<String, Object> tblArgsMap = new HashMap<>();
 
         if (queryable instanceof SQLTable) {
@@ -247,13 +165,49 @@ public class Context extends HashMap<String, Object> {
         return tblArgsMap;
     }
 
-    public static class ContextBuilder {
+    protected static Map<String, Object> getColumnArgMap(MetaDataStore metaDataStore,
+                                                         Queryable queryable,
+                                                         Map<String, ? extends Object> queriedColArgs,
+                                                         String columnName,
+                                                         Map<String, ? extends Object> fixedArgs) {
 
-        public ContextBuilder availableColArgs(final Map<String, Object> availableColArgs) {
-            Map<String, Object> colArgsMap = new HashMap<>();
-            colArgsMap.put(ARGS_KEY, availableColArgs);
-            this.columnArgsMap = colArgsMap;
-            return this;
+        Map<String, Object> columnArgMap = new HashMap<>();
+
+        Table table = metaDataStore.getTable(queryable.getSource().getName(),
+                                             queryable.getSource().getVersion());
+
+        // Add the default column argument values from metadata store.
+        if (table != null && table.getColumnMap().containsKey(columnName)) {
+            Set<Argument> columnArgs = table.getColumnMap().get(columnName).getArguments();
+            columnArgMap.putAll(getDefaultArgumentsMap(columnArgs));
+        }
+
+        // Override default arguments with queried column's args.
+        columnArgMap.putAll(queriedColArgs);
+        // Any fixed arguments provided in sql helper gets preference.
+        columnArgMap.putAll(fixedArgs);
+
+        return columnArgMap;
+    }
+
+    protected class ContextResolver implements ValueResolver {
+
+        @Override
+        public Object resolve(Object context, String name) {
+            if (context instanceof Context) {
+                return ((Context) context).get(name);
+            }
+            return UNRESOLVED;
+        }
+
+        @Override
+        public Object resolve(Object context) {
+            return null;
+        }
+
+        @Override
+        public Set<Entry<String, Object>> propertySet(Object context) {
+            return null;
         }
     }
 }
