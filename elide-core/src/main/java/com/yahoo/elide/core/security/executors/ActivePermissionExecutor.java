@@ -461,12 +461,11 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     }
 
     /**
-     * Print the permission check statistics.
+     * Logs the permission check statistics.
      *
-     * @return the permission check statistics
      */
     @Override
-    public String printCheckStats() {
+    public void logCheckStats() {
         if (log.isTraceEnabled()) {
             StringBuilder sb = new StringBuilder("Permission Check Statistics:\n");
             checkStats.entrySet().stream()
@@ -474,9 +473,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                     .forEachOrdered(e -> sb.append(e.getKey() + ": " + e.getValue() + "\n"));
             String stats = sb.toString();
             log.trace(stats);
-            return stats;
         }
-        return null;
     }
 
     @Override
