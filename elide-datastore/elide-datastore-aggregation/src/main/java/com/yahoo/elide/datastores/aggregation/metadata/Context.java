@@ -133,7 +133,7 @@ public abstract class Context {
     }
 
     /**
-     * Resolves the handlebars with in expression.
+     * Resolves the handlebars with in expression. When using this method, column arguments are not supported.
      * @param expression Expression to resolve.
      * @return fully resolved expression.
      */

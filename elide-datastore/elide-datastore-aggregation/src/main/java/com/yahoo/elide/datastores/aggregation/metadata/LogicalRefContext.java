@@ -61,11 +61,6 @@ public class LogicalRefContext extends Context {
         }
 
         if (keyStr.equals(COL_PREFIX)) {
-            if (this.columnArgsMap == null) {
-                Map<String, Object> colArgsMap = new HashMap<>();
-                colArgsMap.put(ARGS_KEY, this.queriedColArgs);
-                return colArgsMap;
-            }
             return this.columnArgsMap;
         }
 
