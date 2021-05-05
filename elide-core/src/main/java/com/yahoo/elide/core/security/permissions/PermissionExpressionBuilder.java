@@ -246,9 +246,8 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
             //If there are no permissions, allow access...
             if (entityExpression == null) {
                 return SUCCESSFUL_EXPRESSION;
-            } else {
-                return new AnyFieldExpression(condition, entityExpression);
             }
+            return new AnyFieldExpression(condition, entityExpression);
         }
 
         return new AnyFieldExpression(condition, allFieldsExpression);
