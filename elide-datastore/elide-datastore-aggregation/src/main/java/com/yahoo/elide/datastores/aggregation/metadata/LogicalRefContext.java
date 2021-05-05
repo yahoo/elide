@@ -7,14 +7,12 @@
 package com.yahoo.elide.datastores.aggregation.metadata;
 
 import static com.yahoo.elide.core.request.Argument.getArgumentMapFromString;
-import static java.util.Collections.emptyMap;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TemplateProjection;
-import com.yahoo.elide.datastores.aggregation.query.TemplateProjection.TemplateProjectionBuilder;
 import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.Options;
 
@@ -56,7 +54,7 @@ public class LogicalRefContext extends Context {
         }
 
         if (keyStr.equals(COL_PREFIX)) {
-            return getColArgMap(this.column);
+            return getColArgMap(this.column, this.queriedColArgs);
         }
 
         // Keep Join References as is
@@ -68,7 +66,6 @@ public class LogicalRefContext extends Context {
         if (columnProj != null) {
 
             ColumnProjection newColumn = TemplateProjection.builder()
-                            .name(columnProj.getName())
                             .expression(columnProj.getExpression())
                             .arguments(getColumnArgMap(this.getMetaDataStore(),
                                                        this.getQueryable(),
@@ -77,14 +74,10 @@ public class LogicalRefContext extends Context {
                                                        fixedArgs))
                             .build();
 
-            LogicalRefContext newCtx = LogicalRefContext.builder()
-                            .queryable(this.getQueryable())
-                            .metaDataStore(this.getMetaDataStore())
-                            .queriedColArgs(this.getQueriedColArgs())
-                            .column(newColumn)
-                            .build();
-
-            return newCtx.resolve();
+            return LogicalRefContext.builder()
+                            .withColumn(this, newColumn)
+                            .build()
+                            .resolve();
         }
 
         throw new HandlebarsException(new Throwable("Couldn't find: " + key));
@@ -93,38 +86,6 @@ public class LogicalRefContext extends Context {
     @Override
     public String resolve() {
         return resolveHandlebars(this, this.getColumn().getExpression());
-    }
-
-    @Override
-    public String resolve(String expression) {
-
-        TemplateProjectionBuilder columnBuilder = TemplateProjection.builder().expression(expression);
-
-        ColumnProjection column = this.getColumn();
-        ColumnProjection newColumn;
-        if (column == null) {
-            newColumn = columnBuilder
-                            .arguments(this.getQueriedColArgs())
-                            .build();
-        } else {
-            newColumn = columnBuilder
-                            .name(column.getName())
-                            .arguments(getColumnArgMap(this.getMetaDataStore(),
-                                                       this.getQueryable(),
-                                                       this.getQueriedColArgs(),
-                                                       this.getColumn().getName(),
-                                                       emptyMap()))
-                            .build();
-        }
-
-        return LogicalRefContext.builder()
-                        .queryable(this.getQueryable())
-                        .metaDataStore(this.getMetaDataStore())
-                        .queriedColArgs(this.getQueriedColArgs())
-                        .column(newColumn)
-                        .build()
-                        .resolve();
-
     }
 
     @Override
@@ -140,7 +101,7 @@ public class LogicalRefContext extends Context {
             return new StringValue(options.fn.text());
         }
 
-        LogicalRefContext invokedCtx = (LogicalRefContext) context;
+        Context invokedCtx = (Context) context;
 
         if (argsIndex >= 0) {
             Map<String, Argument> pinnedArgs = getArgumentMapFromString(column.substring(argsIndex));
@@ -149,5 +110,18 @@ public class LogicalRefContext extends Context {
         }
 
         return invokedCtx.get(invokedColumnName);
+    }
+
+    public static class LogicalRefContextBuilder {
+
+        public LogicalRefContextBuilder withColumn(LogicalRefContext context, ColumnProjection column) {
+
+            queryable(context.getQueryable());
+            metaDataStore(context.getMetaDataStore());
+            queriedColArgs(context.getQueriedColArgs());
+            column(column);
+
+            return this;
+        }
     }
 }

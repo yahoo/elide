@@ -13,9 +13,9 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.ToString;
 
 import java.util.Map;
 import java.util.Set;
@@ -23,8 +23,8 @@ import java.util.Set;
 /**
  * Helper class for template substitution.
  */
-@AllArgsConstructor
-@Data
+@Getter
+@ToString
 @Builder
 public class TemplateProjection implements ColumnProjection {
 

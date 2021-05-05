@@ -75,7 +75,9 @@ public abstract class Context {
      * @param expression Expression to resolve.
      * @return fully resolved expression.
      */
-    public abstract String resolve(String expression);
+    public String resolve(String expression) {
+        return resolveHandlebars(this, expression);
+    }
 
     protected abstract Object resolveSQLHandlebar(final Object context, final Options options)
                     throws UnsupportedEncodingException;
@@ -121,9 +123,14 @@ public abstract class Context {
         return tblArgsMap;
     }
 
-    protected static Map<String, Object> getColArgMap(ColumnProjection column) {
+    protected static Map<String, Object> getColArgMap(ColumnProjection column, Map<String, Argument> queriedColArgs) {
         Map<String, Object> colArgsMap = new HashMap<>();
-        colArgsMap.put(ARGS_KEY, column.getArguments());
+        if (column == null) {
+            colArgsMap.put(ARGS_KEY, queriedColArgs);
+        } else {
+            colArgsMap.put(ARGS_KEY, column.getArguments());
+        }
+
         return colArgsMap;
     }
 
@@ -194,7 +201,7 @@ public abstract class Context {
      * If get method returns a {@link StringValue} object. This class tell how to resolve a field
      * against {@link StringValue} object.
      * eg: To resolve {{join.col1}}, get method is called with key 'join' first,
-     *     This will return a {@link StringValue} object which wraps the value 'join'.
+     *     This can return a {@link StringValue} object which wraps the value 'join'.
      *     Now 'col1' is resolved against this {@link StringValue} object.
      */
     protected class StringValueResolver implements ValueResolver {

@@ -64,7 +64,6 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
          */
         ColumnProjection column = reference.getColumn();
         ColumnProjection newColumn = TemplateProjection.builder()
-                        .name(column.getName())
                         .arguments(getColumnArgMap(this.context.getMetaDataStore(),
                                                    this.context.getQueryable(),
                                                    this.context.getQueriedColArgs(),
@@ -73,11 +72,7 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
                         .build();
 
         ColumnContext newCtx = ColumnContext.builder()
-                        .queryable(context.getQueryable())
-                        .alias(context.getAlias())
-                        .metaDataStore(context.getMetaDataStore())
-                        .queriedColArgs(context.getQueriedColArgs())
-                        .column(newColumn)
+                        .withColumn(context, newColumn)
                         .build();
 
         JoinExpressionExtractor visitor = new JoinExpressionExtractor(newCtx);
