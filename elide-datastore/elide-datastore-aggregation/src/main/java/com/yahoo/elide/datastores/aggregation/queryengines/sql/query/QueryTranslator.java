@@ -292,9 +292,10 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
                         .alias(query.getSource().getAlias())
                         .metaDataStore(referenceTable.getMetaDataStore())
                         .queriedColArgs(column.getArguments())
+                        .column(column)
                         .build();
 
-        JoinExpressionExtractor visitor = new JoinExpressionExtractor(context, column);
+        JoinExpressionExtractor visitor = new JoinExpressionExtractor(context);
         List<Reference> references = referenceTable.getReferenceTree(query.getSource(), column.getName());
         references.forEach(ref -> joinExpressions.addAll(ref.accept(visitor)));
         return joinExpressions;

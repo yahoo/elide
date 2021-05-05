@@ -10,10 +10,14 @@ import static com.yahoo.elide.core.request.Argument.getArgumentMapFromString;
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
+import static java.util.Collections.emptyMap;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.query.TemplateProjection;
+import com.yahoo.elide.datastores.aggregation.query.TemplateProjection.TemplateProjectionBuilder;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.Options;
@@ -23,7 +27,6 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -39,11 +42,11 @@ public class ColumnContext extends Context {
     private final String alias;
 
     // Arguments provided for queried column.
-    private final Map<String, ? extends Object> queriedColArgs;
-    private final Map<String, Object> columnArgsMap;
+    private final Map<String, Argument> queriedColArgs;
+    private final ColumnProjection column;
 
     @Override
-    protected Object get(Object key, Map<String, ? extends Object> fixedArgs) {
+    protected Object get(Object key, Map<String, Argument> fixedArgs) {
 
         String keyStr = key.toString();
 
@@ -58,7 +61,7 @@ public class ColumnContext extends Context {
         }
 
         if (keyStr.equals(COL_PREFIX)) {
-            return this.columnArgsMap;
+            return getColArgMap(this.column);
         }
 
         if (this.queryable.hasJoin(keyStr)) {
@@ -76,32 +79,68 @@ public class ColumnContext extends Context {
 
         ColumnProjection columnProj = this.queryable.getColumnProjection(keyStr);
         if (columnProj != null) {
-            return resolve(columnProj, fixedArgs);
+
+            ColumnProjection newColumn = TemplateProjection.builder()
+                            .name(columnProj.getName())
+                            .expression(columnProj.getExpression())
+                            .arguments(getColumnArgMap(this.getMetaDataStore(),
+                                                       this.getQueryable(),
+                                                       this.getQueriedColArgs(),
+                                                       columnProj.getName(),
+                                                       fixedArgs))
+                            .build();
+
+            ColumnContext newCtx = ColumnContext.builder()
+                            .queryable(this.getQueryable())
+                            .alias(this.getAlias())
+                            .metaDataStore(this.getMetaDataStore())
+                            .queriedColArgs(this.getQueriedColArgs())
+                            .column(newColumn)
+                            .build();
+
+            return newCtx.resolve();
         }
 
         throw new HandlebarsException(new Throwable("Couldn't find: " + key));
     }
 
     @Override
-    protected String resolve(ColumnProjection column, Map<String, ? extends Object> fixedArgs) {
+    public String resolve() {
+        return resolveHandlebars(this, this.getColumn().getExpression());
+    }
 
-        // Build a new Context for resolving this column
-        ColumnContext newCtx = ColumnContext.builder()
+    @Override
+    public String resolve(String expression) {
+
+        ColumnContextBuilder ctxBuilder = ColumnContext.builder()
                         .queryable(this.getQueryable())
                         .alias(this.getAlias())
                         .metaDataStore(this.getMetaDataStore())
-                        .queriedColArgs(this.getQueriedColArgs())
-                        .availableColArgs(getColumnArgMap(this.getMetaDataStore(),
-                                                          this.getQueryable(),
-                                                          this.getQueriedColArgs(),
-                                                          column.getName(),
-                                                          fixedArgs))
-                        .build();
+                        .queriedColArgs(this.getQueriedColArgs());
 
-        com.github.jknack.handlebars.Context context = com.github.jknack.handlebars.Context.newBuilder(newCtx)
-                        .resolver(new ContextResolver())
-                        .build();
-        return resolveHandlebars(context, column.getExpression());
+        TemplateProjectionBuilder columnBuilder = TemplateProjection.builder().expression(expression);
+
+        ColumnProjection column = this.getColumn();
+        ColumnProjection newColumn;
+        if (column == null) {
+            newColumn = columnBuilder
+                            .arguments(this.getQueriedColArgs())
+                            .build();
+        } else {
+            newColumn = columnBuilder
+                            .name(column.getName())
+                            .arguments(getColumnArgMap(this.getMetaDataStore(),
+                                                       this.getQueryable(),
+                                                       this.getQueriedColArgs(),
+                                                       this.getColumn().getName(),
+                                                       emptyMap()))
+                            .build();
+        }
+
+        return ctxBuilder
+                        .column(newColumn)
+                        .build()
+                        .resolve();
     }
 
     @Override
@@ -118,20 +157,10 @@ public class ColumnContext extends Context {
                                            : (Context) currentCtx.get(from);
 
         if (argsIndex >= 0) {
-            Map<String, ? extends Object> pinnedArgs = getArgumentMapFromString(column.substring(argsIndex));
+            Map<String, Argument> pinnedArgs = getArgumentMapFromString(column.substring(argsIndex));
             invokedColumnName = column.substring(0, argsIndex);
             return invokedCtx.get(invokedColumnName, pinnedArgs);
         }
         return invokedCtx.get(invokedColumnName);
-    }
-
-    public static class ColumnContextBuilder {
-
-        public ColumnContextBuilder availableColArgs(final Map<String, Object> availableColArgs) {
-            Map<String, Object> colArgsMap = new HashMap<>();
-            colArgsMap.put(ARGS_KEY, availableColArgs);
-            this.columnArgsMap = colArgsMap;
-            return this;
-        }
     }
 }

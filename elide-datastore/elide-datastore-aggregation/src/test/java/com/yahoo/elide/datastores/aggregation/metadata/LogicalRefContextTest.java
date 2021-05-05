@@ -75,7 +75,7 @@ public class LogicalRefContextTest {
         SQLMetricProjection testImpressions = (SQLMetricProjection) revenueFactTable
                         .getMetricProjection("testImpressions", "testImpressions", testImpressionsArg);
 
-        SQLMetricProjection revenueWithoutArg = (SQLMetricProjection) revenueFactTable.getMetricProjection("revenue");
+        SQLMetricProjection revenueWithoutArg = (SQLMetricProjection) revenueFactTable.getMetricProjection("testRevenue");
         Map<String, Argument> revenueArg = new HashMap<>();
         revenueArg.put("format", Argument.builder().name("format").value("11D00").build());
         SQLMetricProjection revenueWithArg = (SQLMetricProjection) revenueFactTable.getMetricProjection("revenue",
@@ -97,33 +97,41 @@ public class LogicalRefContextTest {
                         .arguments(queryArgs)
                         .build();
 
+        Query.QueryBuilder builder = Query.builder()
+                        .source(query.getSource())
+                        .metricProjections(query.getMetricProjections())
+                        .dimensionProjections(query.getDimensionProjections())
+                        .arguments(query.getArguments());
+
+        Query expandedQuery = addHiddenProjections(refTable, builder, query).build();
+
         // definition: {{$$column.args.aggregation}}({{$impressions}})
         // -> value of 'aggregation' argument is passed in the query for "impressions" column and same is used while
         // resolving this column.
-        assertEquals("SUM({{$impressions}})", impressions.resolveLogicalReferences(query, metaDataStore));
+        assertEquals("SUM({{$impressions}})", impressions.resolveLogicalReferences(expandedQuery, metaDataStore));
 
         // definition: {{impressions}}) * {{$$table.args.testPercentage}}
         // -> default value of table argument 'testPercentage' is used.
         // -> value of 'aggregation' argument is passed in the query for "testImpressions" column and same is used while
         // resolving referenced column "impressions".
-        assertEquals("MIN({{$impressions}})) * 0.1", testImpressions.resolveLogicalReferences(query, metaDataStore));
+        assertEquals("MIN({{$impressions}})) * 0.1", testImpressions.resolveLogicalReferences(expandedQuery, metaDataStore));
 
         // definition: TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, {{$$column.args.format}})
         // -> default value of 'format' argument in "revenue" column is used while resolving this column.
         assertEquals("TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, 99D00)",
-                        revenueWithoutArg.resolveLogicalReferences(query, metaDataStore));
+                        revenueWithoutArg.resolveLogicalReferences(expandedQuery, metaDataStore));
 
         // definition: TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, {{$$column.args.format}})
         // -> value of 'format' argument is passed in the query for "revenue" column and same is used for resolving
         // this column.
         assertEquals("TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, 11D00)",
-                        revenueWithArg.resolveLogicalReferences(query, metaDataStore));
+                        revenueWithArg.resolveLogicalReferences(expandedQuery, metaDataStore));
 
         // definition: {{rate.conversionRate}}
-        assertEquals("{{rate.conversionRate}}", conversionRate.resolveLogicalReferences(query, metaDataStore));
+        assertEquals("{{rate.conversionRate}}", conversionRate.resolveLogicalReferences(expandedQuery, metaDataStore));
 
         // definition: {{rate.$provider}}
-        assertEquals("{{rate.$provider}}", rateProvider.resolveLogicalReferences(query, metaDataStore));
+        assertEquals("{{rate.$provider}}", rateProvider.resolveLogicalReferences(expandedQuery, metaDataStore));
     }
 
     @Test
