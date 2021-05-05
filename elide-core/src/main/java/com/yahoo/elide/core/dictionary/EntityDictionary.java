@@ -36,6 +36,7 @@ import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.lifecycle.LifeCycleHook;
+import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.UserCheck;
@@ -108,6 +109,8 @@ public class EntityDictionary {
 
     protected final ConcurrentHashMap<Pair<String, String>, Type<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Type<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
+    protected final ConcurrentHashMap<Type<?>, Function<RequestScope, PermissionExecutor>> entityPermissionExecutor =
+            new ConcurrentHashMap<>();
     protected final CopyOnWriteArrayList<Type<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
     protected final ConcurrentHashMap<Type<?>, List<Type<?>>> subclassingEntities = new ConcurrentHashMap<>();
     protected final BiMap<String, Class<? extends Check>> checkNames;
@@ -1025,6 +1028,39 @@ public class EntityDictionary {
         if (include != null && include.rootLevel()) {
             bindEntityRoots.add(declaredClass);
         }
+    }
+
+    /**
+     * Add a permissionExecutorGenerator to the provided class
+     * @param clz Entity model class
+     * @param permissionExecutorFunction Function that given a request scope returns permissionExecutor
+     */
+    public void bindPermissionExecutor(Class<?> clz,
+                                       Function<RequestScope, PermissionExecutor> permissionExecutorFunction) {
+        bindPermissionExecutor(ClassType.of(clz), permissionExecutorFunction);
+    }
+
+    /**
+     * Add a permissionExecutorGenerator to the provided class
+     * @param clz Entity model type
+     * @param permissionExecutorFunction Function that given a request scope returns permissionExecutor
+     */
+    public void bindPermissionExecutor(Type<?> clz,
+                                       Function<RequestScope, PermissionExecutor> permissionExecutorFunction) {
+        entityPermissionExecutor.put(lookupBoundClass(clz), permissionExecutorFunction);
+    }
+
+    /**
+     * Create a PermissionExecutor from list of bound permissionExecutorGenerator.
+     * @param scope - request scope to generate permission executor.
+     * @return Map of bound model type to its permission executor object.
+     */
+    public Map<Type<?>, PermissionExecutor> getBoundPermissionExecutor(RequestScope scope) {
+        return entityPermissionExecutor.entrySet().stream()
+                .collect(Collectors.toMap(
+                        e -> e.getKey(),
+                        e -> e.getValue().apply(scope)
+                ));
     }
 
     /**

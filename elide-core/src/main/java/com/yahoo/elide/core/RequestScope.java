@@ -22,6 +22,7 @@ import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
+import com.yahoo.elide.core.security.executors.MultiplexPermissionExecutor;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
@@ -42,6 +43,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
+
+import javax.ws.rs.HEAD;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -133,12 +136,6 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.deletedResources = new LinkedHashSet<>();
         this.requestId = requestId;
         this.headers = new HashMap<>();
-
-        Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
-        this.permissionExecutor = (permissionExecutorGenerator == null)
-                ? new ActivePermissionExecutor(this)
-                : permissionExecutorGenerator.apply(this);
-
         this.queryParams = queryParams == null ? new MultivaluedHashMap<>() : queryParams;
 
         this.requestHeaders = MapUtils.isEmpty(requestHeaders)
@@ -186,6 +183,15 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         } else {
             this.sparseFields = Collections.emptyMap();
         }
+
+        Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
+        this.permissionExecutor = new MultiplexPermissionExecutor(
+                dictionary.getBoundPermissionExecutor(this),
+                (permissionExecutorGenerator == null)
+                        ? new ActivePermissionExecutor(this)
+                        : permissionExecutorGenerator.apply(this),
+                dictionary
+        );
     }
 
     /**
