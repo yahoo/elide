@@ -16,7 +16,7 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.datastores.aggregation.metadata.Context;
+import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
@@ -287,7 +287,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
     private Set<String> extractJoinExpressions(ColumnProjection column, Query query) {
         Set<String> joinExpressions = new LinkedHashSet<>();
 
-        Context context = Context.builder()
+        ColumnContext context = ColumnContext.builder()
                         .queryable(query)
                         .alias(query.getSource().getAlias())
                         .metaDataStore(referenceTable.getMetaDataStore())

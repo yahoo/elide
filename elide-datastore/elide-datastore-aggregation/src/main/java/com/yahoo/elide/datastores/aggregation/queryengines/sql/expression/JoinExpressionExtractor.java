@@ -17,7 +17,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
-import com.yahoo.elide.datastores.aggregation.metadata.Context;
+import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
@@ -37,13 +37,13 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
 
     private final Set<String> joinExpressions = new LinkedHashSet<>();
 
-    private final Context context;
+    private final ColumnContext context;
     private final ColumnProjection column;
 
     private final MetaDataStore metaDataStore;
     private final EntityDictionary dictionary;
 
-    public JoinExpressionExtractor(Context context, ColumnProjection column) {
+    public JoinExpressionExtractor(ColumnContext context, ColumnProjection column) {
         this.context = context;
         this.column = column;
         this.metaDataStore = context.getMetaDataStore();
@@ -75,7 +75,7 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
         JoinPath joinPath = reference.getPath();
         List<PathElement> pathElements = joinPath.getPathElements();
 
-        Context currentCtx = this.context;
+        ColumnContext currentCtx = this.context;
         String columnName = this.column.getName();
 
         for (int i = 0; i < pathElements.size() - 1; i++) {
@@ -86,22 +86,22 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
 
             SQLJoin sqlJoin = currentCtx.getQueryable().getJoin(joinFieldName);
 
-            Context joinCtx;
+            ColumnContext joinCtx;
             String onClause;
             JoinType joinType;
 
             if (sqlJoin != null) {
                 joinType = sqlJoin.getJoinType();
-                joinCtx = (Context) currentCtx.get(joinFieldName);
+                joinCtx = (ColumnContext) currentCtx.get(joinFieldName);
 
                 if (joinType.equals(JoinType.CROSS)) {
                     onClause = EMPTY;
                 } else {
-                    onClause = ON + currentCtx.resolveHandlebars(columnName, sqlJoin.getJoinExpression());
+                    onClause = ON + currentCtx.resolve(columnName, sqlJoin.getJoinExpression());
                 }
             } else {
                 joinType = JoinType.LEFT;
-                joinCtx = Context.builder()
+                joinCtx = ColumnContext.builder()
                                 .queryable(metaDataStore.getTable(joinClass))
                                 .alias(appendAlias(currentCtx.getAlias(), joinFieldName))
                                 .metaDataStore(currentCtx.getMetaDataStore())
@@ -141,15 +141,15 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
 
     /**
      * Get the SELECT SQL or tableName for given entity.
-     * @param context {@link Context} for resolving table args in query.
+     * @param context {@link ColumnContext} for resolving table args in query.
      * @param cls Entity class.
      * @return resolved tableName or sql in Subselect/FromSubquery.
      */
-    private String constructTableOrSubselect(Context context, Type<?> cls) {
+    private String constructTableOrSubselect(ColumnContext context, Type<?> cls) {
 
         if (hasSql(cls)) {
             // Resolve any table arguments with in FromSubquery or Subselect
-            String selectSql = context.resolveHandlebars(EMPTY, resolveTableOrSubselect(dictionary, cls));
+            String selectSql = context.resolve(resolveTableOrSubselect(dictionary, cls));
             return OPEN_BRACKET + selectSql + CLOSE_BRACKET;
         }
 
