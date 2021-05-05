@@ -8,7 +8,6 @@ package com.yahoo.elide.jsonapi.document.processors;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
-import java.util.Optional;
 import java.util.Set;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -27,7 +26,7 @@ public interface DocumentProcessor {
      * @param queryParams the query params
      */
     void execute(JsonApiDocument jsonApiDocument, PersistentResource resource,
-                 Optional<MultivaluedMap<String, String>> queryParams);
+                 MultivaluedMap<String, String> queryParams);
 
     /**
      * A method for making transformations to the JsonApiDocument.
@@ -37,7 +36,7 @@ public interface DocumentProcessor {
      * @param queryParams the query params
      */
     void execute(JsonApiDocument jsonApiDocument, Set<PersistentResource> resources,
-                 Optional<MultivaluedMap<String, String>> queryParams);
+                 MultivaluedMap<String, String> queryParams);
 
     //TODO Possibly add a something like a 'afterExecute' method to process after the first round of execution
 }
