@@ -1055,7 +1055,7 @@ public class EntityDictionary {
      * @param scope - request scope to generate permission executor.
      * @return Map of bound model type to its permission executor object.
      */
-    public Map<Type<?>, PermissionExecutor> getBoundPermissionExecutor(RequestScope scope) {
+    public Map<Type<?>, PermissionExecutor> getPermissionExecutors(RequestScope scope) {
         return entityPermissionExecutor.entrySet().stream()
                 .collect(Collectors.toMap(
                         e -> e.getKey(),

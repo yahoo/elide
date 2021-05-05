@@ -185,7 +185,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
 
         Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
         this.permissionExecutor = new MultiplexPermissionExecutor(
-                dictionary.getBoundPermissionExecutor(this),
+                dictionary.getPermissionExecutors(this),
                 (permissionExecutorGenerator == null)
                         ? new ActivePermissionExecutor(this)
                         : permissionExecutorGenerator.apply(this),

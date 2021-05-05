@@ -123,7 +123,7 @@ public interface PermissionExecutor {
      * Logs useful information about the check evaluation.
      *
      */
-    default void printCheckStats() {
+    default void logCheckStats() {
     }
 
     /**

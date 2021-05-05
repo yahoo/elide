@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Yahoo Inc.
+ * Copyright 2021, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -23,6 +23,11 @@ import java.lang.annotation.Annotation;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * MultiplexPermissionExecutor manages Model to permssion executor mapping.
+ * All method call to multiple permission executor will be delegated
+ *  to the underlying permission executor based on resource type.
+ */
 @AllArgsConstructor
 public class MultiplexPermissionExecutor implements PermissionExecutor {
 
@@ -94,9 +99,9 @@ public class MultiplexPermissionExecutor implements PermissionExecutor {
     }
 
     @Override
-    public void printCheckStats() {
-        defaultPermissionExecutor.printCheckStats();
-        permissionExecutorMap.values().forEach(executor -> executor.printCheckStats());
+    public void logCheckStats() {
+        defaultPermissionExecutor.logCheckStats();
+        permissionExecutorMap.values().forEach(executor -> executor.logCheckStats());
     }
 
     @Override

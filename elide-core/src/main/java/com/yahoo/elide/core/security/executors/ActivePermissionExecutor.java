@@ -465,7 +465,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      *
      */
     @Override
-    public void printCheckStats() {
+    public void logCheckStats() {
         if (log.isTraceEnabled()) {
             StringBuilder sb = new StringBuilder("Permission Check Statistics:\n");
             checkStats.entrySet().stream()
