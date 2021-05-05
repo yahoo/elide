@@ -134,12 +134,10 @@ public interface PermissionExecutor {
     void executeCommitChecks();
 
     /**
-     * Return useful information about the check evaluation.
+     * Logs useful information about the check evaluation.
      *
-     * @return a description describing check execution
      */
-    default String printCheckStats() {
-        return null;
+    default void logCheckStats() {
     }
 
     /**
