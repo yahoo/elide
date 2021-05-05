@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
 /**
@@ -68,6 +69,9 @@ public abstract class Table implements Versioned {
     private final String requiredFilter;
 
     private final boolean isFact;
+
+    @ManyToOne
+    private final Namespace namespace;
 
     @OneToMany
     @ToString.Exclude
@@ -103,16 +107,21 @@ public abstract class Table implements Versioned {
     @ToString.Exclude
     private final Set<Argument> arguments;
 
-    public Table(Type<?> cls, EntityDictionary dictionary) {
+    public Table(Namespace namespace, Type<?> cls, EntityDictionary dictionary) {
         if (!dictionary.getBoundClasses().contains(cls)) {
             throw new IllegalArgumentException(
                     String.format("Table class {%s} is not defined in dictionary.", cls));
         }
 
+        this.namespace = namespace;
+        namespace.addTable(this);
+
         this.name = dictionary.getJsonAliasFor(cls);
         this.version = EntityDictionary.getModelVersion(cls);
 
         this.alias = TypeHelper.getTypeAlias(cls);
+
+        //Namespace is not required in ID for now because table names must be globally unique.
         this.id = this.name;
 
         TableMeta meta = cls.getAnnotation(TableMeta.class);

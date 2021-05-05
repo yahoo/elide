@@ -97,11 +97,16 @@ public abstract class QueryEngine {
     /**
      * Construct Table metadata for an entity.
      *
+     * @param namespace The table namespace
      * @param entityClass entity class
      * @param metaDataDictionary metadata dictionary
      * @return constructed Table
      */
-    protected abstract Table constructTable(Type<?> entityClass, EntityDictionary metaDataDictionary);
+    protected abstract Table constructTable (
+            Namespace namespace,
+            Type<?> entityClass,
+            EntityDictionary metaDataDictionary
+    );
 
     /**
      * Construct a parameterized instance of a Column.
@@ -154,9 +159,8 @@ public abstract class QueryEngine {
                     }
                 });
 
-
         metaDataStore.getModelsToBind().stream()
-                .map(model -> constructTable(model, metadataDictionary))
+                .map(model -> constructTable(metaDataStore.getNamespace(model.getPackage()), model, metadataDictionary))
                 .forEach(metaDataStore::addTable);
     }
 

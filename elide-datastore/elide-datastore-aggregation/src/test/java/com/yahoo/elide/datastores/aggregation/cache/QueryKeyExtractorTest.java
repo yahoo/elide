@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.cache;
 
+import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT_NAMESPACE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
@@ -16,6 +17,7 @@ import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
@@ -37,7 +39,9 @@ public class QueryKeyExtractorTest {
         SQLUnitTest.init();
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(PlayerStats.class);
-        playerStatsTable = new SQLTable(ClassType.of(PlayerStats.class), dictionary);
+
+        Namespace namespace = new Namespace(DEFAULT_NAMESPACE);
+        playerStatsTable = new SQLTable(namespace, ClassType.of(PlayerStats.class), dictionary);
     }
 
     @Test

@@ -20,6 +20,11 @@ import java.util.Map;
  * A dynamic Elide model that wraps a deserialized HJSON Namespace.
  */
 public class NamespacePackage implements Package {
+
+    public static String DEFAULT = "default";
+    public static NamespacePackage DEFAULT_NAMESPACE =
+            new NamespacePackage(DEFAULT, "Default Namespace", DEFAULT);
+
     protected NamespaceConfig namespace;
     private Map<Class<? extends Annotation>, Annotation> annotations;
 

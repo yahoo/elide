@@ -12,9 +12,12 @@ import static com.yahoo.elide.datastores.aggregation.integration.AggregationData
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.core.IsIterableContaining.hasItem;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
@@ -96,30 +99,43 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
-    public void metaDataTest() {
+    public void namespaceTest() {
         given()
                 .accept("application/vnd.api+json")
                 .get("/namespace/SalesNamespace")
                 .then()
+                .log().all()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("SalesNamespace"))
-                .body("data.attributes.friendlyName", equalTo("Sales"));
+                .body("data.attributes.friendlyName", equalTo("Sales"))
+                .body("data.relationships.tables.data.id", contains(
+                        "orderDetails",
+                        "customerDetails",
+                        "deliveryDetails"));
         given()
                 .accept("application/vnd.api+json")
                 .get("/namespace/default")
                 .then()
+                .log().all()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("default"))
                 .body("data.attributes.friendlyName", equalTo("DEFAULT")) // Overridden value
-                .body("data.attributes.description", equalTo("Default Namespace")); // Overridden value
+                .body("data.attributes.description", equalTo("Default Namespace")) // Overridden value
+                .body("data.relationships.tables.data.id", hasItem("playerStats"));
         given()
                 .accept("application/vnd.api+json")
                 .get("/namespace/NoDescriptionNamespace") //"default" namespace added by Agg Store
                 .then()
+                .log().all()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("NoDescriptionNamespace"))
                 .body("data.attributes.friendlyName", equalTo("NoDescriptionNamespace")) // No FriendlyName provided, defaulted to name
-                .body("data.attributes.description", equalTo("NoDescriptionNamespace")); // No description provided, defaulted to name
+                .body("data.attributes.description", equalTo("NoDescriptionNamespace")) // No description provided, defaulted to name
+                .body("data.relationships.tables.data.id", empty());
+    }
+
+    @Test
+    public void tableTest() {
         given()
                .accept("application/vnd.api+json")
                .get("/table/planet")

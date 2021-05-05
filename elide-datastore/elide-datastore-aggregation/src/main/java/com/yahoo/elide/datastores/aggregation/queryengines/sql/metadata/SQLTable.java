@@ -15,6 +15,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
@@ -47,10 +48,11 @@ public class SQLTable extends Table implements Queryable {
 
     private Map<String, SQLJoin> joins;
 
-    public SQLTable(Type<?> cls,
+    public SQLTable(Namespace namespace,
+                    Type<?> cls,
                     EntityDictionary dictionary,
                     ConnectionDetails connectionDetails) {
-        super(cls, dictionary);
+        super(namespace, cls, dictionary);
         this.connectionDetails = connectionDetails;
         this.joins = new HashMap<>();
 
@@ -69,8 +71,8 @@ public class SQLTable extends Table implements Queryable {
         });
     }
 
-    public SQLTable(Type<?> cls, EntityDictionary dictionary) {
-        this(cls, dictionary, null);
+    public SQLTable(Namespace namespace, Type<?> cls, EntityDictionary dictionary) {
+        this(namespace, cls, dictionary, null);
     }
 
     @Override

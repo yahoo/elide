@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.filter.visitor;
 
+import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT_NAMESPACE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -23,6 +24,7 @@ import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.SubCountry;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
@@ -54,7 +56,8 @@ public class SplitFilterExpressionVisitorTest {
         entityDictionary.bindEntity(SubCountry.class);
         entityDictionary.bindEntity(Player.class);
 
-        Table table = new SQLTable(ClassType.of(PlayerStats.class), entityDictionary);
+        Namespace namespace = new Namespace(DEFAULT_NAMESPACE);
+        Table table = new SQLTable(namespace, ClassType.of(PlayerStats.class), entityDictionary);
         splitFilterExpressionVisitor = new SplitFilterExpressionVisitor(table);
     }
 

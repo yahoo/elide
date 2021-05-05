@@ -6,6 +6,8 @@
 package com.yahoo.elide.datastores.aggregation.metadata;
 
 import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
+import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT;
+import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT_NAMESPACE;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.Path;
@@ -41,7 +43,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -52,6 +53,7 @@ import javax.persistence.Entity;
  * MetaDataStore is a in-memory data store that manage data models for an {@link AggregationDataStore}.
  */
 public class MetaDataStore implements DataStore {
+
     private static final Package META_DATA_PACKAGE = Table.class.getPackage();
 
     private static final List<Class<? extends Annotation>> METADATA_STORE_ANNOTATIONS =
@@ -72,6 +74,7 @@ public class MetaDataStore implements DataStore {
     private boolean enableMetaDataStore = false;
 
     private Map<Type<?>, Table> tables = new HashMap<>();
+    private Map<com.yahoo.elide.core.type.Package, Namespace> namespaces = new HashMap<>();
 
     @Getter
     private EntityDictionary metadataDictionary = new EntityDictionary(new HashMap<>());
@@ -86,7 +89,7 @@ public class MetaDataStore implements DataStore {
     }
 
     public MetaDataStore(Collection<com.yahoo.elide.modelconfig.model.Table> tables,
-            Collection<com.yahoo.elide.modelconfig.model.NamespaceConfig> namespaces,
+            Collection<com.yahoo.elide.modelconfig.model.NamespaceConfig> namespaceConfigs,
             boolean enableMetaDataStore) {
         this(getClassType(getAllAnnotatedClasses()), enableMetaDataStore);
 
@@ -94,30 +97,35 @@ public class MetaDataStore implements DataStore {
         Set<String> joinNames = new HashSet<>();
         Set<Type<?>> dynamicTypes = new HashSet<>();
 
+        Map<String, NamespacePackage> namespaceMap = new HashMap<>();
+        //Convert namespaces into packages.
+
+        namespacesToBind.clear();
+        namespaceConfigs.stream().forEach(namespace -> {
+            NamespacePackage namespacePackage = new NamespacePackage(namespace);
+            this.namespacesToBind.add(namespacePackage);
+            namespaceMap.put(namespace.getName(), namespacePackage);
+        });
+
+        if (! namespaceMap.containsKey(DEFAULT)) {
+            namespacesToBind.add(DEFAULT_NAMESPACE);
+            namespaceMap.put(DEFAULT, DEFAULT_NAMESPACE);
+        }
+
+        NamespacePackage defaultNamespace = namespaceMap.get(DEFAULT);
+
         //Convert tables into types.
         tables.stream().forEach(table -> {
-            TableType tableType = new TableType(table);
+            TableType tableType = new TableType(
+                    table,
+                    namespaceMap.getOrDefault(table.getNamespace(), defaultNamespace)
+            );
             dynamicTypes.add(tableType);
             typeMap.put(table.getName(), tableType);
             table.getJoins().stream().forEach(join ->
                 joinNames.add(join.getTo())
             );
         });
-
-        //Convert namespaces into packages.
-        namespaces.stream().forEach(namespace -> {
-            NamespacePackage namespacePackage = new NamespacePackage(namespace);
-            this.namespacesToBind.add(namespacePackage);
-
-        });
-
-        // Add default namespace if not present.
-        if (namespaces.stream().noneMatch(namespace ->
-                namespace.getName().toLowerCase(Locale.ENGLISH).equals("default"))) {
-            // add "default" namespace with default ApiVersion = ""
-            NamespacePackage namespacePackage = new NamespacePackage("default", "Default Namespace", "default");
-            this.namespacesToBind.add(namespacePackage);
-        }
 
         //Built a list of static types referenced from joins in the dynamic types.
         metadataDictionary.getBindings().stream()
@@ -165,7 +173,7 @@ public class MetaDataStore implements DataStore {
      * @param enableMetaDataStore If Enable MetaDataStore
      */
     public MetaDataStore(Set<Type<?>> modelsToBind, boolean enableMetaDataStore) {
-        this(modelsToBind, new HashSet<>(), enableMetaDataStore);
+        this(modelsToBind, new HashSet<>(Arrays.asList(DEFAULT_NAMESPACE)), enableMetaDataStore);
     }
 
     /**
@@ -235,6 +243,7 @@ public class MetaDataStore implements DataStore {
      */
     public void addNamespace(Namespace namespace) {
         String version = namespace.getVersion();
+        namespaces.put(namespace.getPkg(), namespace);
         addMetaData(namespace, version);
     }
 
@@ -246,6 +255,27 @@ public class MetaDataStore implements DataStore {
      */
     public <T extends Table> T getTable(Type<?> tableClass) {
         return (T) tables.get(tableClass);
+    }
+
+    /**
+     * Get a namespace object.
+     *
+     * @param pkg namespace package
+     * @return the namespace
+     */
+    public Namespace getNamespace(com.yahoo.elide.core.type.Package pkg) {
+        Namespace result = namespaces.get(pkg);
+
+        if (result == null) {
+            return namespaces
+                    .values()
+                    .stream()
+                    .filter(namespace -> namespace.getName().equals(DEFAULT))
+                    .findFirst()
+                    .get();
+        }
+
+        return result;
     }
 
     /**

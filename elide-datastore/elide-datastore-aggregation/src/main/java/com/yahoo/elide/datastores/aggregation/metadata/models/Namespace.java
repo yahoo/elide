@@ -9,12 +9,14 @@ import com.yahoo.elide.annotation.ApiVersion;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.type.Package;
 import com.yahoo.elide.datastores.aggregation.annotation.NamespaceMeta;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
@@ -39,12 +41,19 @@ public class Namespace {
     @Exclude
     private final String version;
 
+    @Exclude
+    private final Package pkg;
+
     @OneToMany
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<Table> tables;
 
-    public Namespace(com.yahoo.elide.core.type.Package pkg) {
+    public Namespace(Package pkg) {
+        this.pkg = pkg;
         id = pkg.getName();
         name = pkg.getName();
+        tables = new HashSet<>();
 
         NamespaceMeta meta = pkg.getDeclaredAnnotation(NamespaceMeta.class);
         if (meta != null) {
