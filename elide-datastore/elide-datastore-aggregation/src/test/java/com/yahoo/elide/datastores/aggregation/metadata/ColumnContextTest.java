@@ -42,14 +42,14 @@ import java.util.Set;
 import javax.persistence.Id;
 import javax.sql.DataSource;
 
-public class ContextTest {
+public class ColumnContextTest {
 
     private SQLTable revenueFactTable;
     private MetaDataStore metaDataStore;
     private Map<String, Argument> queryArgs = new HashMap<>();
     private SQLReferenceTable refTable;
 
-    public ContextTest() {
+    public ColumnContextTest() {
         Set<Type<?>> models = new HashSet<>();
         models.add(ClassType.of(RevenueFact.class));
         models.add(ClassType.of(CurrencyRate.class));
