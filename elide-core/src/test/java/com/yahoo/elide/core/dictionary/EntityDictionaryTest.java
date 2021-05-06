@@ -1082,7 +1082,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testEntityPrefix() {
-        assertEquals("example_includedPackageLevel",
+        assertEquals("example_includedPakcageLevel",
                 getJsonAliasFor(ClassType.of(IncludedPackageLevel.class)));
     }
 }
