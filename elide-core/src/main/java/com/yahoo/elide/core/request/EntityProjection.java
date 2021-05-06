@@ -55,7 +55,7 @@ public class EntityProjection {
     }
 
     /**
-     * Creates a builder initialized as a copy of this collection
+     * Creates a builder initialized as a copy of this collection.
      * @return The new builder
      */
     public EntityProjectionBuilder copyOf() {

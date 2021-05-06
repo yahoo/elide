@@ -90,13 +90,13 @@ public class MultiplexPermissionExecutor implements PermissionExecutor {
     @Override
     public void executeCommitChecks() {
         defaultPermissionExecutor.executeCommitChecks();
-        permissionExecutorMap.values().forEach(executor -> executor.executeCommitChecks());
+        permissionExecutorMap.values().forEach(PermissionExecutor::executeCommitChecks);
     }
 
     @Override
     public void logCheckStats() {
         defaultPermissionExecutor.logCheckStats();
-        permissionExecutorMap.values().forEach(executor -> executor.logCheckStats());
+        permissionExecutorMap.values().forEach(PermissionExecutor::logCheckStats);
     }
 
     @Override

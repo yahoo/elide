@@ -1031,7 +1031,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Add a permissionExecutorGenerator to the provided class
+     * Add a permissionExecutorGenerator to the provided class.
      * @param clz Entity model class
      * @param permissionExecutorFunction Function that given a request scope returns permissionExecutor
      */
@@ -1041,7 +1041,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Add a permissionExecutorGenerator to the provided class
+     * Add a permissionExecutorGenerator to the provided class.
      * @param clz Entity model type
      * @param permissionExecutorFunction Function that given a request scope returns permissionExecutor
      */
@@ -1058,7 +1058,7 @@ public class EntityDictionary {
     public Map<Type<?>, PermissionExecutor> getPermissionExecutors(RequestScope scope) {
         return entityPermissionExecutor.entrySet().stream()
                 .collect(Collectors.toMap(
-                        e -> e.getKey(),
+                        Map.Entry::getKey,
                         e -> e.getValue().apply(scope)
                 ));
     }
@@ -1847,7 +1847,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Add a collection of argument to the attributes
+     * Add a collection of argument to the attributes.
      * @param cls The entity
      * @param attributeName attribute name to which argument has to be added
      * @param arguments Set of Argument type containing name and type of each argument.
@@ -1857,7 +1857,7 @@ public class EntityDictionary {
     }
 
     /**
-     * Add a single argument to the attribute
+     * Add a single argument to the attribute.
      * @param cls The entity
      * @param attributeName attribute name to which argument has to be added
      * @param argument A single argument

@@ -477,7 +477,7 @@ public class GraphQLConversionUtils {
     }
 
     /**
-     * Build an Argument list object for the given entity
+     * Build an Argument list object for the given entity.
      * @param entityClass The Entity class to which this attribute belongs to.
      * @param dictionary The dictionary that contains the runtime type information for the parent class.
      * @return Newly created GraphQLArgument Collection for the given entity

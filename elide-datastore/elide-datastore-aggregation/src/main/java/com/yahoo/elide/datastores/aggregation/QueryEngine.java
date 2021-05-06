@@ -142,7 +142,7 @@ public abstract class QueryEngine {
      */
     protected void populateMetaData(MetaDataStore metaDataStore) {
         metaDataStore.getNamespacesToBind().stream()
-                .map(namespace -> constructNamespace(namespace))
+                .map(this::constructNamespace)
                 .forEach(metaDataStore::addNamespace);
 
         metaDataStore.getModelsToBind()

@@ -11,14 +11,14 @@ import java.util.Map;
 
 public interface JSONApiLinks {
     /**
-     * Links to be used in the Respose Entity
+     * Links to be used in the Respose Entity.
      * @param resource
      * @return
      */
     Map<String, String> getResourceLevelLinks(PersistentResource resource);
 
     /**
-     * Links to be used in Relationships of the Response Entity
+     * Links to be used in Relationships of the Response Entity.
      * @param resource
      * @return
      */

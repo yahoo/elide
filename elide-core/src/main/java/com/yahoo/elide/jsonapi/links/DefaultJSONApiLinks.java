@@ -46,7 +46,7 @@ public class DefaultJSONApiLinks implements JSONApiLinks {
     }
 
     /**
-     * Creates the link from resources path
+     * Creates the link from resources path.
      * @param resource
      * @return
      */
