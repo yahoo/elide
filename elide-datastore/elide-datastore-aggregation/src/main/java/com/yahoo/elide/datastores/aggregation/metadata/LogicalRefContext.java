@@ -83,9 +83,8 @@ public class LogicalRefContext extends Context {
         throw new HandlebarsException(new Throwable("Couldn't find: " + key));
     }
 
-    @Override
     public String resolve() {
-        return resolveHandlebars(this, this.getColumn().getExpression());
+        return resolve(this.getColumn().getExpression());
     }
 
     @Override

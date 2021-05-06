@@ -65,12 +65,6 @@ public abstract class Context {
     protected abstract Object get(Object key, Map<String, Argument> fixedArgs);
 
     /**
-     * Resolves the handebars in column's expression.
-     * @return fully resolved column's expression.
-     */
-    public abstract String resolve();
-
-    /**
      * Resolves the handlebars with in expression.
      * @param expression Expression to resolve.
      * @return fully resolved expression.
