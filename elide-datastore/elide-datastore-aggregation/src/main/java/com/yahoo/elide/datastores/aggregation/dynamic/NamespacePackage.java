@@ -23,7 +23,7 @@ public class NamespacePackage implements Package {
 
     public static String DEFAULT = "default";
     public static NamespacePackage DEFAULT_NAMESPACE =
-            new NamespacePackage(DEFAULT, "Default Namespace", DEFAULT);
+            new NamespacePackage(DEFAULT, "Default Namespace", DEFAULT, NO_VERSION);
 
     protected NamespaceConfig namespace;
     private Map<Class<? extends Annotation>, Annotation> annotations;
