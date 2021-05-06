@@ -11,6 +11,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -45,6 +46,13 @@ public class EntityProjection {
     //TODO: Remove this exclude
     @ToString.Exclude
     private Set<Argument> arguments;
+
+    public Set<String> getRequestedFields() {
+        return Streams.concat(
+                attributes.stream().map(Attribute::getName),
+                relationships.stream().map(Relationship::getName)
+        ).collect(Collectors.toCollection(LinkedHashSet::new));
+    }
 
     /**
      * Creates a builder initialized as a copy of this collection
