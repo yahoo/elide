@@ -4,7 +4,7 @@
  * See LICENSE file in project root for terms.
  */
 
-@Include(friendlyName = "Dimensions", description = "Dimensions")
+@NamespaceMeta(friendlyName = "Dimensions", description = "Dimensions")
 package com.yahoo.elide.datastores.aggregation.example.dimensions;
 
-import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.datastores.aggregation.annotation.NamespaceMeta;
