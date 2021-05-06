@@ -728,7 +728,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     }
 
     /**
-     * Checks whether the new entity is already a part of the relationship
+     * Checks whether the new entity is already a part of the relationship.
      * @param fieldName which relation link
      * @param toAdd the new relation
      * @return boolean representing the result of the check

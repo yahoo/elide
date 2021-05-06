@@ -45,7 +45,7 @@ public interface Pagination {
     boolean returnPageTotals();
 
     /**
-     * Get the total size of the collection
+     * Get the total size of the collection.
      * @return total record count.
      */
     Long getPageTotals();
