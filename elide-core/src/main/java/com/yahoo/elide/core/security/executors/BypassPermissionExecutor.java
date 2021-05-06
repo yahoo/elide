@@ -14,6 +14,7 @@ import com.yahoo.elide.core.type.Type;
 
 import java.lang.annotation.Annotation;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Permission executor intended to bypass all security checks. I.e. this is effectively a no-op.
@@ -21,14 +22,8 @@ import java.util.Optional;
 public class BypassPermissionExecutor implements PermissionExecutor {
     @Override
     public <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
-                                                                   PersistentResource resource) {
-        return ExpressionResult.PASS;
-    }
-
-    @Override
-    public <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
                                                                    PersistentResource resource,
-                                                                   ChangeSpec changeSpec) {
+                                                                   Set<String> requestedFields) {
         return ExpressionResult.PASS;
     }
 
@@ -46,12 +41,13 @@ public class BypassPermissionExecutor implements PermissionExecutor {
 
     @Override
     public <A extends Annotation> ExpressionResult checkUserPermissions(Type<?> resourceClass,
-                                                                        Class<A> annotationClass) {
+                                                                        Class<A> annotationClass,
+                                                                        Set<String> requestedFields) {
         return ExpressionResult.PASS;
     }
 
     @Override
-    public Optional<FilterExpression> getReadPermissionFilter(Type<?> resourceClass) {
+    public Optional<FilterExpression> getReadPermissionFilter(Type<?> resourceClass, Set<String> requestedFields) {
         return Optional.empty();
     }
 

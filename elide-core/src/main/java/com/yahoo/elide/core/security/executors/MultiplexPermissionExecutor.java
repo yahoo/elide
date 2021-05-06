@@ -22,6 +22,7 @@ import lombok.AllArgsConstructor;
 import java.lang.annotation.Annotation;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * MultiplexPermissionExecutor manages Model to permssion executor mapping.
@@ -41,17 +42,10 @@ public class MultiplexPermissionExecutor implements PermissionExecutor {
 
     @Override
     public <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
-                                                                   PersistentResource resource) {
-        return getPermissionExecutor(resource.getResourceType())
-                .checkPermission(annotationClass, resource);
-    }
-
-    @Override
-    public <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
                                                                    PersistentResource resource,
-                                                                   ChangeSpec changeSpec) {
+                                                                   Set<String> requestedFields) {
         return getPermissionExecutor(resource.getResourceType())
-                .checkPermission(annotationClass, resource, changeSpec);
+                .checkPermission(annotationClass, resource, requestedFields);
     }
 
     @Override
@@ -74,9 +68,10 @@ public class MultiplexPermissionExecutor implements PermissionExecutor {
 
     @Override
     public <A extends Annotation> ExpressionResult checkUserPermissions(Type<?> resourceClass,
-                                                                        Class<A> annotationClass) {
+                                                                        Class<A> annotationClass,
+                                                                        Set<String> requestedFields) {
         return getPermissionExecutor(resourceClass)
-                .checkUserPermissions(resourceClass, annotationClass);
+                .checkUserPermissions(resourceClass, annotationClass, requestedFields);
     }
 
     @Override
@@ -88,8 +83,8 @@ public class MultiplexPermissionExecutor implements PermissionExecutor {
     }
 
     @Override
-    public Optional<FilterExpression> getReadPermissionFilter(Type<?> resourceClass) {
-        return getPermissionExecutor(resourceClass).getReadPermissionFilter(resourceClass);
+    public Optional<FilterExpression> getReadPermissionFilter(Type<?> resourceClass, Set<String> requestedFields) {
+        return getPermissionExecutor(resourceClass).getReadPermissionFilter(resourceClass, requestedFields);
     }
 
     @Override

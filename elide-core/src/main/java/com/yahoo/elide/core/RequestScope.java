@@ -58,8 +58,8 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     @Getter private final JsonApiMapper mapper;
     @Getter private final AuditLogger auditLogger;
     @Getter private final MultivaluedMap<String, String> queryParams;
-    @Getter private final Map<String, List<String>> requestHeaders;
     @Getter private final Map<String, Set<String>> sparseFields;
+    @Getter private final Map<String, List<String>> requestHeaders;
     @Getter private final PermissionExecutor permissionExecutor;
     @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final Set<PersistentResource> newPersistentResources;
@@ -142,6 +142,8 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
                 : requestHeaders;
         registerPreSecurityObservers();
 
+        this.sparseFields = parseSparseFields(getQueryParams());
+
         if (!this.queryParams.isEmpty()) {
 
             /* Extract any query param that starts with 'filter' */
@@ -177,10 +179,6 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
                     }
                 }
             }
-
-            this.sparseFields = parseSparseFields(this.queryParams);
-        } else {
-            this.sparseFields = Collections.emptyMap();
         }
 
         Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
@@ -214,7 +212,6 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.auditLogger = outerRequestScope.auditLogger;
         this.queryParams = new MultivaluedHashMap<>();
         this.requestHeaders = Collections.emptyMap();
-        this.sparseFields = Collections.emptyMap();
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.newPersistentResources = outerRequestScope.newPersistentResources;
         this.permissionExecutor = outerRequestScope.getPermissionExecutor();
@@ -229,6 +226,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.queuedLifecycleEvents = outerRequestScope.queuedLifecycleEvents;
         this.requestId = outerRequestScope.requestId;
         this.headers = outerRequestScope.headers;
+        this.sparseFields = outerRequestScope.sparseFields;
     }
 
     public Set<com.yahoo.elide.core.security.PersistentResource> getNewResources() {
