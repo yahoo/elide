@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -67,6 +68,14 @@ public class ISO8601DateSerdeTest {
         assertEquals(expected, actual);
     }
 
+    @Test
+    public void testDateToSQLTimestampDeserialization() throws Exception {
+        ISO8601DateSerde serde =
+                new ISO8601DateSerde("yyyy-MM-dd", TimeZone.getTimeZone("UTC"), java.sql.Timestamp.class);
+        Timestamp expected = new Timestamp(0);
+        Timestamp actual = (Timestamp) serde.deserialize(new Date(0));
+        assertEquals(expected, actual);
+    }
 
     @Test
     public void testInvalidDateDeserialization() {
@@ -81,6 +90,6 @@ public class ISO8601DateSerdeTest {
         IllegalArgumentException e = assertThrows(
                 IllegalArgumentException.class,
                 () -> serde.deserialize("2019-01-01T00:00Z"));
-        assertEquals("Date strings must be formated as yyyy-MM-dd'T'HH:mm:ss'Z'", e.getMessage());
+        assertEquals("Date strings must be formatted as yyyy-MM-dd'T'HH:mm:ss'Z'", e.getMessage());
     }
 }

@@ -15,7 +15,7 @@ import java.util.TimeZone;
 /**
  * Serializes ISO8601 Dates to Strings and vice versa.
  */
-public class ISO8601DateSerde implements Serde<String, Date> {
+public class ISO8601DateSerde implements Serde<Object, Date> {
 
     protected FastDateFormat df;
     protected Class<? extends Date> targetType;
@@ -42,24 +42,30 @@ public class ISO8601DateSerde implements Serde<String, Date> {
     }
 
     @Override
-    public Date deserialize(String val) {
+    public Date deserialize(Object val) {
         Date date;
 
         try {
-            date = df.parse(val);
+            if (val instanceof Date) {
+                date = (Date) val;
+            }
+            else {
+                date = df.parse(val.toString());
+            }
         } catch (java.text.ParseException e) {
-            throw new IllegalArgumentException("Date strings must be formated as " + df.getPattern());
+            throw new IllegalArgumentException("Date strings must be formatted as " + df.getPattern());
         }
 
         if (ClassUtils.isAssignable(targetType, java.sql.Date.class)) {
             return new java.sql.Date(date.getTime());
-        } else if (ClassUtils.isAssignable(targetType, java.sql.Timestamp.class)) {
-            return new java.sql.Timestamp(date.getTime());
-        } else if (ClassUtils.isAssignable(targetType, java.sql.Time.class)) {
-            return new java.sql.Time(date.getTime());
-        } else {
-            return date;
         }
+        if (ClassUtils.isAssignable(targetType, java.sql.Timestamp.class)) {
+            return new java.sql.Timestamp(date.getTime());
+        }
+        if (ClassUtils.isAssignable(targetType, java.sql.Time.class)) {
+            return new java.sql.Time(date.getTime());
+        }
+        return date;
     }
 
     @Override
