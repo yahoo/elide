@@ -256,23 +256,7 @@ public class TableType implements Type<DynamicModelInstance> {
         if (Boolean.TRUE.equals(table.getHidden())) {
             annotations.put(Exclude.class, new ExcludeAnnotation());
         } else {
-            annotations.put(Include.class, new Include() {
-
-                @Override
-                public Class<? extends Annotation> annotationType() {
-                    return Include.class;
-                }
-
-                @Override
-                public boolean rootLevel() {
-                    return true;
-                }
-
-                @Override
-                public String name() {
-                    return table.getName();
-                }
-            });
+            annotations.put(Include.class, getIncludeAnnotation(table));
         }
 
         if (table.getSql() != null && !table.getSql().isEmpty()) {
@@ -747,5 +731,35 @@ public class TableType implements Type<DynamicModelInstance> {
         public Class<? extends Annotation> annotationType() {
             return Exclude.class;
         }
+    }
+
+    private static Include getIncludeAnnotation(Table table) {
+        return new Include() {
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return Include.class;
+            }
+
+            @Override
+            public boolean rootLevel() {
+                return true;
+            }
+
+            @Override
+            public String description() {
+                return table.getDescription();
+            }
+
+            @Override
+            public String friendlyName() {
+                return table.getFriendlyName();
+            }
+
+            @Override
+            public String name() {
+                return table.getName();
+            }
+        };
     }
 }
