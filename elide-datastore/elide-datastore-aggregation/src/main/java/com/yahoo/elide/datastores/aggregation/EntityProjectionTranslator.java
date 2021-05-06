@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import static com.yahoo.elide.core.request.Argument.getArgumentMapFromArgumentSet;
-
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;

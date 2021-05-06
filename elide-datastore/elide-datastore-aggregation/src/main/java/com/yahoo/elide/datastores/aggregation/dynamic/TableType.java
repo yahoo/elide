@@ -40,7 +40,6 @@ import com.yahoo.elide.modelconfig.model.Grain;
 import com.yahoo.elide.modelconfig.model.Join;
 import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Table;
-
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.annotation.Annotation;

@@ -12,8 +12,8 @@ import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import static com.yahoo.elide.datastores.aggregation.timegrains.Time.TIME_TYPE;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-
 import com.google.common.collect.ImmutableMap;
+
 import java.math.BigDecimal;
 import java.util.Map;
 

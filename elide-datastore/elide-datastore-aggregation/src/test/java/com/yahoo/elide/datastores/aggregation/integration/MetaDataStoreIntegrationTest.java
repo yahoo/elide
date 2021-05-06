@@ -132,6 +132,17 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.friendlyName", equalTo("NoDescriptionNamespace")) // No FriendlyName provided, defaulted to name
                 .body("data.attributes.description", equalTo("NoDescriptionNamespace")) // No description provided, defaulted to name
                 .body("data.relationships.tables.data.id", empty());
+        given()
+                .accept("application/vnd.api+json")
+                .get("/namespace/com.yahoo.elide.datastores.aggregation.example.dimensions") //"default" namespace added by Agg Store
+                .then()
+                .log().all()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("com.yahoo.elide.datastores.aggregation.example.dimensions"))
+                .body("data.attributes.friendlyName", equalTo("Dimensions"))
+                .body("data.attributes.description", equalTo("Dimensions"))
+                .body("data.relationships.tables.data.id", contains(
+                        "planet", "country", "continent", "subCountry", "countryView", "regionDetails", "countryViewNested"));
     }
 
     @Test
