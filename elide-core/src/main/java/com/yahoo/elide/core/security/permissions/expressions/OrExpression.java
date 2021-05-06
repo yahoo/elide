@@ -10,11 +10,15 @@ import static com.yahoo.elide.core.security.permissions.ExpressionResult.FAIL;
 import static com.yahoo.elide.core.security.permissions.ExpressionResult.PASS;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
 
+import lombok.Getter;
+
 /**
  * Representation of an "or" expression.
  */
 public class OrExpression implements Expression {
+    @Getter
     private final Expression left;
+    @Getter
     private final Expression right;
 
     public static final OrExpression SUCCESSFUL_EXPRESSION = new OrExpression(Results.SUCCESS, null);
@@ -51,6 +55,11 @@ public class OrExpression implements Expression {
         }
 
         return DEFERRED;
+    }
+
+    @Override
+    public <T> T accept(ExpressionVisitor<T> visitor) {
+        return visitor.visitOrExpression(this);
     }
 
     @Override

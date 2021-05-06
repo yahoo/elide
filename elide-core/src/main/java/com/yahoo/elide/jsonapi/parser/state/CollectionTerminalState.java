@@ -70,7 +70,7 @@ public class CollectionTerminalState extends BaseState {
     public Supplier<Pair<Integer, JsonNode>> handleGet(StateContext state) {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         RequestScope requestScope = state.getRequestScope();
-        Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
+        MultivaluedMap<String, String> queryParams = requestScope.getQueryParams();
 
         Set<PersistentResource> collection =
                 getResourceCollection(requestScope).toList(LinkedHashSet::new).blockingGet();

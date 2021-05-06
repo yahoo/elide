@@ -56,9 +56,8 @@ public class AsyncAPIInlineChecks {
             Principal principal = requestScope.getUser().getPrincipal();
             if (principal == null || principal.getName() == null) {
                  return getPredicateOfPrincipalNameNull(entityClass);
-            } else {
-                return getPredicateOfPrincipalName(principal.getName(), entityClass);
             }
+            return getPredicateOfPrincipalName(principal.getName(), entityClass);
         }
     }
 

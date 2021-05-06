@@ -26,6 +26,7 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
@@ -43,7 +44,7 @@ import com.yahoo.elide.datastores.aggregation.example.SubCountry;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
-import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Optimizer;
@@ -63,8 +64,10 @@ import com.yahoo.elide.datastores.aggregation.timegrains.Quarter;
 import com.yahoo.elide.datastores.aggregation.timegrains.Second;
 import com.yahoo.elide.datastores.aggregation.timegrains.Week;
 import com.yahoo.elide.datastores.aggregation.timegrains.Year;
+
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -84,6 +87,7 @@ import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+
 import javax.inject.Provider;
 import javax.sql.DataSource;
 
@@ -101,8 +105,8 @@ public abstract class SQLUnitTest {
     protected QueryEngine.Transaction transaction;
     private static SQLTable videoGameTable;
 
-    protected static Type<?> playerStatsType = getClassType(PlayerStats.class);
-    protected static Type<?> playerStatsViewType = getClassType(PlayerStatsView.class);
+    protected static Type<?> playerStatsType = ClassType.of(PlayerStats.class);
+    protected static Type<?> playerStatsViewType = ClassType.of(PlayerStatsView.class);
 
     // Standard set of test queries used in dialect tests
     protected enum TestQuery {
@@ -379,7 +383,7 @@ public abstract class SQLUnitTest {
             metricProjections.add(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod", "average1"));
             metricProjections.add(playerStatsTable.getMetricProjection("dailyAverageScorePerPeriod", "average2"));
 
-            Set<ColumnProjection> dimnesionProjections = new LinkedHashSet<>();
+            Set<DimensionProjection> dimnesionProjections = new LinkedHashSet<>();
             dimnesionProjections.add(playerStatsTable.getDimensionProjection("overallRating", "rating"));
             dimnesionProjections.add(playerStatsTable.getDimensionProjection("playerLevel", "level"));
 

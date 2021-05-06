@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.datastores.search;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -26,6 +25,7 @@ import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.core.utils.coerce.converters.ISO8601DateSerde;
 import com.yahoo.elide.datastores.search.models.Item;
@@ -97,7 +97,7 @@ public class DataStoreLoadTest {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
         //Case sensitive query against case insensitive index must lowercase
-        FilterExpression filter = filterParser.parseFilterExpression("name==drum", getClassType(Item.class), false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==drum", ClassType.of(Item.class), false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(
                 EntityProjection.builder()
@@ -117,7 +117,7 @@ public class DataStoreLoadTest {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
         /* Verify that '-' is escaped before we run the query */
-        FilterExpression filter = filterParser.parseFilterExpression("name==-lucen*", getClassType(Item.class), false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==-lucen*", ClassType.of(Item.class), false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
@@ -132,7 +132,7 @@ public class DataStoreLoadTest {
     public void testEmptyResult() throws Exception {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        FilterExpression filter = filterParser.parseFilterExpression("name==+lucen*", getClassType(Item.class), false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==+lucen*", ClassType.of(Item.class), false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
@@ -150,7 +150,7 @@ public class DataStoreLoadTest {
         testTransaction = new InMemoryStoreTransaction(testTransaction);
 
         //Case sensitive query against case insensitive index must lowercase
-        FilterExpression filter = filterParser.parseFilterExpression("name==dru*", getClassType(Item.class), false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==dru*", ClassType.of(Item.class), false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
@@ -167,7 +167,7 @@ public class DataStoreLoadTest {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
         //Case sensitive query against case insensitive index must lowercase
-        FilterExpression filter = filterParser.parseFilterExpression("name=='snare\\ dru*'", getClassType(Item.class), false);
+        FilterExpression filter = filterParser.parseFilterExpression("name=='snare\\ dru*'", ClassType.of(Item.class), false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
@@ -184,7 +184,7 @@ public class DataStoreLoadTest {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
         //Case sensitive query against case insensitive index must lowercase
-        FilterExpression filter = filterParser.parseFilterExpression("name=ini='*est\tTa*'", getClassType(Item.class), false);
+        FilterExpression filter = filterParser.parseFilterExpression("name=ini='*est\tTa*'", ClassType.of(Item.class), false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
@@ -201,7 +201,7 @@ public class DataStoreLoadTest {
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
         //Case insensitive query against case insensitive index
-        FilterExpression filter = filterParser.parseFilterExpression("name=ini=*DrU*", getClassType(Item.class), false);
+        FilterExpression filter = filterParser.parseFilterExpression("name=ini=*DrU*", ClassType.of(Item.class), false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
@@ -217,7 +217,7 @@ public class DataStoreLoadTest {
 
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        FilterExpression filter = filterParser.parseFilterExpression("name==drum*;description==brass*", getClassType(Item.class), false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==drum*;description==brass*", ClassType.of(Item.class), false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
@@ -233,7 +233,7 @@ public class DataStoreLoadTest {
 
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        FilterExpression filter = filterParser.parseFilterExpression("price==123;description==brass*", getClassType(Item.class), false);
+        FilterExpression filter = filterParser.parseFilterExpression("price==123;description==brass*", ClassType.of(Item.class), false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
@@ -251,7 +251,7 @@ public class DataStoreLoadTest {
 
         DataStoreTransaction testTransaction = searchStore.beginReadTransaction();
 
-        FilterExpression filter = filterParser.parseFilterExpression("name==drum*,description==ride*", getClassType(Item.class), false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==drum*,description==ride*", ClassType.of(Item.class), false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
@@ -272,7 +272,7 @@ public class DataStoreLoadTest {
         sortRules.put("modifiedDate", Sorting.SortOrder.desc);
         Sorting sorting = new SortingImpl(sortRules, Item.class, dictionary);
 
-        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", getClassType(Item.class), false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", ClassType.of(Item.class), false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
@@ -294,7 +294,7 @@ public class DataStoreLoadTest {
         sortRules.put("modifiedDate", Sorting.SortOrder.asc);
         Sorting sorting = new SortingImpl(sortRules, Item.class, dictionary);
 
-        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", getClassType(Item.class), false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", ClassType.of(Item.class), false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
@@ -322,7 +322,7 @@ public class DataStoreLoadTest {
                 true,
                 false);
 
-        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", getClassType(Item.class), false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", ClassType.of(Item.class), false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)
@@ -352,7 +352,7 @@ public class DataStoreLoadTest {
                 true,
                 false);
 
-        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", getClassType(Item.class), false);
+        FilterExpression filter = filterParser.parseFilterExpression("name==cymbal*", ClassType.of(Item.class), false);
 
         Iterable<Object> loaded = testTransaction.loadObjects(EntityProjection.builder()
                 .type(Item.class)

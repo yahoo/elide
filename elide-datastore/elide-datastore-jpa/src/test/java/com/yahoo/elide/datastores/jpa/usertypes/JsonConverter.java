@@ -19,7 +19,7 @@ import javax.persistence.Converter;
  */
 @Converter
 public class JsonConverter<T> implements AttributeConverter<T, String> {
-    private final static ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final Class<T> objectClass;
 

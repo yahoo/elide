@@ -25,12 +25,12 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.jsonapi.models.Resource;
 
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
-import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -39,22 +39,21 @@ import java.util.Set;
 import java.util.TimeZone;
 
 public class JSONExportFormatterTest {
-   public static final String FORMAT = "yyyy-MM-dd'T'HH:mm'Z'";
-    private static final SimpleDateFormat FORMATTER = new SimpleDateFormat(FORMAT);
+    public static final String FORMAT = "yyyy-MM-dd'T'HH:mm'Z'";
+    private static final FastDateFormat FORMATTER = FastDateFormat.getInstance(FORMAT, TimeZone.getTimeZone("GMT"));
     private HashMapDataStore dataStore;
     private Elide elide;
     private RequestScope scope;
 
-   @BeforeEach
+    @BeforeEach
     public void setupMocks(@TempDir Path tempDir) {
         dataStore = new HashMapDataStore(TableExport.class.getPackage());
         Map<String, Class<? extends Check>> map = new HashMap<>();
         elide = new Elide(
-                    new ElideSettingsBuilder(dataStore)
+                new ElideSettingsBuilder(dataStore)
                         .withEntityDictionary(new EntityDictionary(map))
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                         .build());
-        FORMATTER.setTimeZone(TimeZone.getTimeZone("GMT"));
         scope = mock(RequestScope.class);
     }
 

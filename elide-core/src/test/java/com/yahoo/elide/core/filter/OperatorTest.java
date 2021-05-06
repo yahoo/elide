@@ -37,7 +37,7 @@ public class OperatorTest {
     private Author author;
     private Predicate fn;
 
-    public class TestEntityDictionary extends EntityDictionary {
+    public static class TestEntityDictionary extends EntityDictionary {
         public TestEntityDictionary(Map<String, Class<? extends Check>> checks) {
             super(checks);
         }

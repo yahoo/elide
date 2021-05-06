@@ -5,13 +5,13 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
-import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.google.common.collect.Sets;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
 
+import com.google.common.collect.Sets;
 import lombok.Getter;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * Table stores all resolved physical reference and join paths of all columns for both static tables
@@ -23,34 +23,17 @@ public class DynamicSQLReferenceTable extends SQLReferenceTable {
     @Getter
     private final SQLReferenceTable staticReferenceTable;
 
-
     public DynamicSQLReferenceTable(SQLReferenceTable staticReferenceTable, Queryable query) {
         super(staticReferenceTable.getMetaDataStore(), Sets.newHashSet(query));
 
         this.staticReferenceTable = staticReferenceTable;
     }
 
-    /**
-     * Get the resolved ON clause expression for a field from storage.
-     *
-     * @param queryable table class
-     * @param fieldName field name
-     * @return resolved ON clause expression
-     */
     @Override
-    public Set<String> getResolvedJoinExpressions(Queryable queryable, String fieldName) {
-        if (staticReferenceTable.resolvedJoinExpressions.containsKey(queryable)) {
-            return staticReferenceTable.getResolvedJoinExpressions(queryable, fieldName);
+    public List<Reference> getReferenceTree(Queryable queryable, String fieldName) {
+        if (staticReferenceTable.referenceTree.containsKey(queryable)) {
+            return staticReferenceTable.getReferenceTree(queryable, fieldName);
         }
-
-        return resolvedJoinExpressions.get(queryable).get(fieldName);
-    }
-
-    @Override
-    public TableContext getGlobalTableContext(Queryable queryable) {
-        if (staticReferenceTable.globalTablesContext.containsKey(queryable)) {
-            return staticReferenceTable.getGlobalTableContext(queryable);
-        }
-        return globalTablesContext.get(queryable);
+        return referenceTree.get(queryable).get(fieldName);
     }
 }

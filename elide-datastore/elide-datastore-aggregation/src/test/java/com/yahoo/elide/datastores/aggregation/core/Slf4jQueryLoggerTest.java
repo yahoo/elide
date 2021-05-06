@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
+import javax.ws.rs.core.MultivaluedHashMap;
 
 public class Slf4jQueryLoggerTest {
 
@@ -36,7 +36,7 @@ public class Slf4jQueryLoggerTest {
                 new User(null),
                 headers,
                 "1.0",
-                Optional.empty(),
+                new MultivaluedHashMap<>(),
                 "/sales");
     }
 

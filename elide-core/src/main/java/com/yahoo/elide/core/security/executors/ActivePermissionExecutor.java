@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -77,47 +78,22 @@ public class ActivePermissionExecutor implements PermissionExecutor {
         this.verbose = verbose;
     }
 
-    /**
-     * Check permission on class.
-     *
-     * @param <A> type parameter
-     * @param annotationClass annotation class
-     * @param resource resource
-     * @see com.yahoo.elide.annotation.CreatePermission
-     * @see com.yahoo.elide.annotation.ReadPermission
-     * @see com.yahoo.elide.annotation.UpdatePermission
-     * @see com.yahoo.elide.annotation.DeletePermission
-     */
     @Override
     public <A extends Annotation> ExpressionResult checkPermission(
-            Class<A> annotationClass, PersistentResource resource) {
-        return checkPermission(annotationClass, resource, null);
-    }
+            Class<A> annotationClass,
+            PersistentResource resource,
+            Set<String> requestedFields
 
-    /**
-     * Check permission on class. Checking on Transferable falls to check ReadPermission.
-     *
-     * @param annotationClass annotation class
-     * @param resource resource
-     * @param changeSpec ChangeSpec
-     * @param <A> type parameter
-     * @see com.yahoo.elide.annotation.CreatePermission
-     * @see com.yahoo.elide.annotation.ReadPermission
-     * @see com.yahoo.elide.annotation.UpdatePermission
-     * @see com.yahoo.elide.annotation.DeletePermission
-     */
-    @Override
-    public <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
-                                                                   PersistentResource resource,
-                                                                   ChangeSpec changeSpec) {
+    ) {
         Supplier<Expression> expressionSupplier = () -> {
             if (NonTransferable.class == annotationClass) {
                 if (requestScope.getDictionary().isTransferable(resource.getResourceType())) {
-                    return expressionBuilder.buildAnyFieldExpressions(resource, ReadPermission.class, changeSpec);
+                    return expressionBuilder.buildAnyFieldExpressions(resource, ReadPermission.class,
+                            requestedFields, null);
                 }
                 return PermissionExpressionBuilder.FAIL_EXPRESSION;
             }
-            return expressionBuilder.buildAnyFieldExpressions(resource, annotationClass, changeSpec);
+            return expressionBuilder.buildAnyFieldExpressions(resource, annotationClass, requestedFields, null);
         };
 
         Function<Expression, ExpressionResult> expressionExecutor = (expression) -> {
@@ -231,11 +207,13 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      */
     @Override
     public <A extends Annotation> ExpressionResult checkUserPermissions(Type<?> resourceClass,
-                                                                        Class<A> annotationClass) {
+                                                                        Class<A> annotationClass,
+                                                                        Set<String> requestedFields) {
         Supplier<Expression> expressionSupplier = () ->
             expressionBuilder.buildUserCheckAnyExpression(
                     resourceClass,
                     annotationClass,
+                    requestedFields,
                     requestScope);
 
         return checkOnlyUserPermissions(
@@ -349,12 +327,13 @@ public class ActivePermissionExecutor implements PermissionExecutor {
      * Get permission filter on an entity.
      *
      * @param resourceClass Resource class
+     * @param requestedFields The set of requested fields
      * @return the filter expression for the class, if any
      */
     @Override
-    public Optional<FilterExpression> getReadPermissionFilter(Type<?> resourceClass) {
+    public Optional<FilterExpression> getReadPermissionFilter(Type<?> resourceClass, Set<String> requestedFields) {
         FilterExpression filterExpression =
-                expressionBuilder.buildAnyFieldFilterExpression(resourceClass, requestScope);
+                expressionBuilder.buildAnyFieldFilterExpression(resourceClass, requestScope, requestedFields);
 
         return Optional.ofNullable(filterExpression);
     }
@@ -461,12 +440,11 @@ public class ActivePermissionExecutor implements PermissionExecutor {
     }
 
     /**
-     * Print the permission check statistics.
+     * Logs the permission check statistics.
      *
-     * @return the permission check statistics
      */
     @Override
-    public String printCheckStats() {
+    public void logCheckStats() {
         if (log.isTraceEnabled()) {
             StringBuilder sb = new StringBuilder("Permission Check Statistics:\n");
             checkStats.entrySet().stream()
@@ -474,9 +452,7 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                     .forEachOrdered(e -> sb.append(e.getKey() + ": " + e.getValue() + "\n"));
             String stats = sb.toString();
             log.trace(stats);
-            return stats;
         }
-        return null;
     }
 
     @Override

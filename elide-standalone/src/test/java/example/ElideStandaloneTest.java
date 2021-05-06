@@ -181,7 +181,7 @@ public class ElideStandaloneTest {
                 .statusCode(200)
                 .body("tags.name", containsInAnyOrder("post", "argument", "metric",
                         "dimension", "column", "table", "asyncQuery",
-                        "timeDimensionGrain", "timeDimension", "postView"));
+                        "timeDimensionGrain", "timeDimension", "postView", "namespace"));
     }
 
     @Test
@@ -279,5 +279,16 @@ public class ElideStandaloneTest {
                 .statusCode(HttpStatus.SC_NOT_FOUND)
                 .body(containsString(" Not Found"))
                 .body(not(containsString(queryId + " Not Found")));
+    }
+
+    @Test
+    public void metaDataTest() {
+        given()
+                .accept("application/vnd.api+json")
+                .get("/api/v1/namespace/default") //"default" namespace added by Agg Store
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("default"))
+                .body("data.attributes.friendlyName", equalTo("default"));
     }
 }

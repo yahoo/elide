@@ -22,6 +22,7 @@ import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
+import com.yahoo.elide.core.security.executors.MultiplexPermissionExecutor;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.jsonapi.JsonApiMapper;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
@@ -42,6 +43,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
+
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -55,9 +57,9 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     @Getter protected final EntityDictionary dictionary;
     @Getter private final JsonApiMapper mapper;
     @Getter private final AuditLogger auditLogger;
-    @Getter private final Optional<MultivaluedMap<String, String>> queryParams;
-    @Getter private final Map<String, List<String>> requestHeaders;
+    @Getter private final MultivaluedMap<String, String> queryParams;
     @Getter private final Map<String, Set<String>> sparseFields;
+    @Getter private final Map<String, List<String>> requestHeaders;
     @Getter private final PermissionExecutor permissionExecutor;
     @Getter private final ObjectEntityCache objectEntityCache;
     @Getter private final Set<PersistentResource> newPersistentResources;
@@ -133,25 +135,19 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.deletedResources = new LinkedHashSet<>();
         this.requestId = requestId;
         this.headers = new HashMap<>();
-
-        Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
-        this.permissionExecutor = (permissionExecutorGenerator == null)
-                ? new ActivePermissionExecutor(this)
-                : permissionExecutorGenerator.apply(this);
-
-        this.queryParams = MapUtils.isEmpty(queryParams)
-                ? Optional.empty()
-                : Optional.of(queryParams);
+        this.queryParams = queryParams == null ? new MultivaluedHashMap<>() : queryParams;
 
         this.requestHeaders = MapUtils.isEmpty(requestHeaders)
                 ? Collections.emptyMap()
                 : requestHeaders;
         registerPreSecurityObservers();
 
-        if (this.queryParams.isPresent()) {
+        this.sparseFields = parseSparseFields(getQueryParams());
+
+        if (!this.queryParams.isEmpty()) {
 
             /* Extract any query param that starts with 'filter' */
-            MultivaluedMap<String, String> filterParams = getFilterParams(queryParams);
+            MultivaluedMap<String, String> filterParams = getFilterParams(this.queryParams);
 
             String errorMessage = "";
             if (! filterParams.isEmpty()) {
@@ -183,11 +179,16 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
                     }
                 }
             }
-
-            this.sparseFields = parseSparseFields(queryParams);
-        } else {
-            this.sparseFields = Collections.emptyMap();
         }
+
+        Function<RequestScope, PermissionExecutor> permissionExecutorGenerator = elideSettings.getPermissionExecutor();
+        this.permissionExecutor = new MultiplexPermissionExecutor(
+                dictionary.getPermissionExecutors(this),
+                (permissionExecutorGenerator == null)
+                        ? new ActivePermissionExecutor(this)
+                        : permissionExecutorGenerator.apply(this),
+                dictionary
+        );
     }
 
     /**
@@ -209,9 +210,8 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.dictionary = outerRequestScope.dictionary;
         this.mapper = outerRequestScope.mapper;
         this.auditLogger = outerRequestScope.auditLogger;
-        this.queryParams = Optional.empty();
+        this.queryParams = new MultivaluedHashMap<>();
         this.requestHeaders = Collections.emptyMap();
-        this.sparseFields = Collections.emptyMap();
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.newPersistentResources = outerRequestScope.newPersistentResources;
         this.permissionExecutor = outerRequestScope.getPermissionExecutor();
@@ -226,6 +226,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.queuedLifecycleEvents = outerRequestScope.queuedLifecycleEvents;
         this.requestId = outerRequestScope.requestId;
         this.headers = outerRequestScope.headers;
+        this.sparseFields = outerRequestScope.sparseFields;
     }
 
     public Set<com.yahoo.elide.core.security.PersistentResource> getNewResources() {

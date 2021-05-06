@@ -17,9 +17,8 @@ import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
-import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Relationship;
-import com.yahoo.elide.core.request.Sorting;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 
 import java.io.IOException;
@@ -114,7 +113,7 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     }
 
     protected DataStoreTransaction getTransaction(Object object) {
-        return getTransaction(object.getClass());
+        return getTransaction(ClassType.of(object.getClass()));
     }
 
     protected DataStoreTransaction getTransaction(Type<?> cls) {
@@ -149,8 +148,6 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
                               RequestScope scope) {
 
         FilterExpression filter = relation.getProjection().getFilterExpression();
-        Sorting sorting = relation.getProjection().getSorting();
-        Pagination pagination = relation.getProjection().getPagination();
 
         DataStoreTransaction relationTx = getRelationTransaction(entity, relation.getName());
         Type<Object> entityType = EntityDictionary.getType(entity);

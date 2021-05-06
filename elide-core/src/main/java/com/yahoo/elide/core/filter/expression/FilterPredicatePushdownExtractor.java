@@ -52,7 +52,7 @@ public class FilterPredicatePushdownExtractor implements FilterExpressionVisitor
             return left;
         }
 
-        return expression;
+        return new AndFilterExpression(left, right);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class FilterPredicatePushdownExtractor implements FilterExpressionVisitor
         if (left == null || right == null) {
             return null;
         }
-        return expression;
+        return new OrFilterExpression(left, right);
     }
 
     @Override

@@ -92,9 +92,9 @@ public abstract class AbstractHQLQueryBuilder {
         for (FilterPredicate filterPredicate : predicates) {
             if (filterPredicate.getOperator().isParameterized()) {
                 boolean shouldEscape = filterPredicate.isMatchingOperator();
-                filterPredicate.getParameters().forEach(param -> {
-                    query.setParameter(param.getName(), shouldEscape ? param.escapeMatching() : param.getValue());
-                });
+                filterPredicate.getParameters().forEach(param ->
+                    query.setParameter(param.getName(), shouldEscape ? param.escapeMatching() : param.getValue())
+                );
             }
         }
     }
