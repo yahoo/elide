@@ -76,7 +76,7 @@ public final class QueryKeyExtractor implements FilterExpressionVisitor<Object> 
 
     // Query Components
     private void visit(Queryable source) {
-        visit(source.getAlias().toString());
+        visit(source.getAlias());
     }
 
     private void visit(ColumnProjection columnProjection) {

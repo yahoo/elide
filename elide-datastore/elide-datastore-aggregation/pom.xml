@@ -39,7 +39,6 @@
     </scm>
 
     <properties>
-        <junit.version>5.4.1</junit.version>
         <hikari.version>4.0.2</hikari.version>
     </properties>
 
@@ -136,7 +135,6 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
 

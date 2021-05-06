@@ -65,7 +65,7 @@ public class InMemoryFilterExecutorTest {
     private List<Object> listTen = Collections.singletonList("10");
     private List<Object> listEleven = Collections.singletonList("11");
 
-    public class TestEntityDictionary extends EntityDictionary {
+    public static class TestEntityDictionary extends EntityDictionary {
 
         public TestEntityDictionary(Map checks) {
             super(checks);

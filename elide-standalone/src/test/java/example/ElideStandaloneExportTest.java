@@ -230,6 +230,6 @@ public class ElideStandaloneExportTest {
                 .statusCode(200)
                 .body("tags.name", containsInAnyOrder("post", "argument", "metric",
                         "dimension", "column", "table", "asyncQuery",
-                        "timeDimensionGrain", "timeDimension", "postView", "tableExport"));
+                        "timeDimensionGrain", "timeDimension", "postView", "tableExport", "namespace"));
     }
 }

@@ -6,12 +6,14 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryPlanTranslator.addHiddenProjections;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Optimizer;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -66,7 +68,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                     .collect(Collectors.toCollection(LinkedHashSet::new));
 
             Set<Pair<ColumnProjection, Set<ColumnProjection>>> allProjectionsNested = allProjections.stream()
-                    .map((projection) -> projection.nest(query, lookupTable, true))
+                    .map((projection) -> projection.nest(query, lookupTable.getMetaDataStore(), true))
                     .collect(Collectors.toCollection(LinkedHashSet::new));
 
             Set<ColumnProjection> allOuterProjections = allProjectionsNested.stream()
@@ -78,33 +80,35 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                     .flatMap(Set::stream)
                     .collect(Collectors.toCollection(LinkedHashSet::new));
 
-            Query inner = Query.builder()
+            Query.QueryBuilder inner = Query.builder()
                     .source(query.getSource().accept(this))
                     .metricProjections(allInnerProjections.stream()
-                                    .filter((predicate) -> predicate instanceof SQLMetricProjection)
+                                    .filter((predicate) -> predicate instanceof MetricProjection)
                                     .map(MetricProjection.class::cast)
                                     .collect(Collectors.toCollection(LinkedHashSet::new)))
                     .dimensionProjections(allInnerProjections.stream()
-                            .filter((predicate) -> predicate instanceof SQLDimensionProjection
-                                    || predicate instanceof SQLPhysicalColumnProjection)
+                            .filter((predicate) -> predicate instanceof DimensionProjection)
+                            .map(DimensionProjection.class::cast)
                             .collect(Collectors.toCollection(LinkedHashSet::new)))
                     .timeDimensionProjections(allInnerProjections.stream()
-                            .filter((predicate) -> predicate instanceof SQLTimeDimensionProjection)
+                            .filter((predicate) -> predicate instanceof TimeDimensionProjection)
                             .map(SQLTimeDimensionProjection.class::cast)
                             .collect(Collectors.toCollection(LinkedHashSet::new)))
-                    .whereFilter(splitWhere.getInner())
-                    .build();
+                    .whereFilter(splitWhere.getInner());
 
-            return Query.builder()
+            addHiddenProjections(lookupTable, inner, query);
+
+            Query outer = Query.builder()
                     .metricProjections(allOuterProjections.stream()
-                            .filter((predicate) -> predicate instanceof SQLMetricProjection)
+                            .filter((predicate) -> predicate instanceof MetricProjection)
                             .map(MetricProjection.class::cast)
                             .collect(Collectors.toCollection(LinkedHashSet::new)))
                     .dimensionProjections(allOuterProjections.stream()
-                                    .filter((predicate) -> predicate instanceof SQLDimensionProjection)
-                                    .collect(Collectors.toCollection(LinkedHashSet::new)))
+                            .filter((predicate) -> predicate instanceof DimensionProjection)
+                            .map(DimensionProjection.class::cast)
+                            .collect(Collectors.toCollection(LinkedHashSet::new)))
                     .timeDimensionProjections(allOuterProjections.stream()
-                            .filter((predicate) -> predicate instanceof SQLTimeDimensionProjection)
+                            .filter((predicate) -> predicate instanceof TimeDimensionProjection)
                             .map(TimeDimensionProjection.class::cast)
                             .collect(Collectors.toCollection(LinkedHashSet::new)))
                     .whereFilter(splitWhere.getOuter())
@@ -113,8 +117,10 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                     .pagination(query.getPagination())
                     .scope(query.getScope())
                     .bypassingCache(query.isBypassingCache())
-                    .source(inner)
+                    .source(inner.build())
                     .build();
+
+            return outer;
         }
 
         /**
@@ -134,9 +140,9 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
             predicates.stream().forEach((predicate -> {
                 Map<String, Argument> arguments = new HashMap<>();
 
-                predicate.getPath().lastElement().get().getArguments().forEach((argument -> {
-                    arguments.put(argument.getName(), argument);
-                }));
+                predicate.getPath().lastElement().get().getArguments().forEach(argument ->
+                    arguments.put(argument.getName(), argument)
+                );
 
                 ColumnProjection projection = query.getSource().getColumnProjection(predicate.getField(), arguments);
 
@@ -159,6 +165,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
 
     @Override
     public boolean canOptimize(Query query, SQLReferenceTable lookupTable) {
+        MetaDataStore store = lookupTable.getMetaDataStore();
         //For simplicity, we will not optimize an already nested query.
         if (query.isNested()) {
             return false;
@@ -166,7 +173,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
 
         //Every column must be nestable.
         if (! query.getColumnProjections().stream()
-                .allMatch((projection) -> projection.canNest(query, lookupTable))) {
+                .allMatch((projection) -> projection.canNest(query, store))) {
             return false;
         }
 
@@ -192,7 +199,6 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
 
         //Next check the projection for required joins.
         for (ColumnProjection column: query.getColumnProjections()) {
-            MetaDataStore store = lookupTable.getMetaDataStore();
             boolean requiresJoin = SQLColumnProjection.requiresJoin(query.getSource(), column, store);
 
             if (requiresJoin) {

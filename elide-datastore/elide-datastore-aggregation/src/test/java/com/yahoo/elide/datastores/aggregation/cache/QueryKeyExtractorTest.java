@@ -6,18 +6,20 @@
 
 package com.yahoo.elide.datastores.aggregation.cache;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -35,7 +37,7 @@ public class QueryKeyExtractorTest {
         SQLUnitTest.init();
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(PlayerStats.class);
-        playerStatsTable = new SQLTable(getClassType(PlayerStats.class), dictionary);
+        playerStatsTable = new SQLTable(ClassType.of(PlayerStats.class), dictionary);
     }
 
     @Test
@@ -61,9 +63,9 @@ public class QueryKeyExtractorTest {
                 .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                 .timeDimensionProjection(playerStatsTable.getTimeDimensionProjection("recordedDate"))
                 .whereFilter(filterParser.parseFilterExpression("countryNickName=='Uncle Sam'",
-                        getClassType(PlayerStats.class), false))
+                        ClassType.of(PlayerStats.class), false))
                 .havingFilter(filterParser.parseFilterExpression("highScore > 300",
-                        getClassType(PlayerStats.class), false))
+                        ClassType.of(PlayerStats.class), false))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .pagination(new ImmutablePagination(0, 2, false, true))
                 .build();

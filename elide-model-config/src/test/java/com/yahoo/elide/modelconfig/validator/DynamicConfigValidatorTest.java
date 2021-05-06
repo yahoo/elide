@@ -58,7 +58,7 @@ public class DynamicConfigValidatorTest {
 
         assertEquals("default", child.getNamespace()); //PlayerStatsChild -> no namespace was provided, so defaulted
         assertEquals("PlayerNamespace", parent.getNamespace());
-        assertEquals("DEfault", referred.getNamespace()); // Namespace in HJson "DEfault". Matched case insensitively with "default" namespace
+        assertEquals("default", referred.getNamespace()); // Namespace in HJson "default".
     }
 
     @Test
@@ -256,6 +256,20 @@ public class DynamicConfigValidatorTest {
         });
 
         assertEquals("Found undefined security checks: [guest, member, user]\n", error);
+    }
+
+    @Test
+    public void testNamespaceBadDefaultName() throws Exception {
+        String error = tapSystemErr(() -> {
+            int exitStatus = catchSystemExit(() ->
+                    DynamicConfigValidator.main(new String[] { "--configDir", "src/test/resources/validator/bad_default_namespace"}));
+            assertEquals(2, exitStatus);
+        });
+
+        String expected = "Schema validation failed for: test_namespace.hjson\n"
+                + "[ERROR]\n"
+                + "Instance[/namespaces/0/name] failed to validate against schema[/properties/namespaces/items/properties/name]. Name [Default] clashes with the 'default' namespace. Either change the case or pick a different namespace name.\n";
+        assertEquals(expected, error);
     }
 
     @Test

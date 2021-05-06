@@ -25,7 +25,6 @@ import com.yahoo.elide.jsonapi.models.Resource;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.Optional;
 import java.util.function.Supplier;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -179,7 +178,7 @@ public abstract class BaseState {
     }
 
     protected static JsonNode getResponseBody(PersistentResource resource, RequestScope requestScope) {
-        Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
+        MultivaluedMap<String, String> queryParams = requestScope.getQueryParams();
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
 
         //TODO Make this a document processor

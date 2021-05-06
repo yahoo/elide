@@ -10,7 +10,6 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -29,7 +28,7 @@ public interface QueryLogger {
      * @param path The apiQuery endpoint path for the incoming query
      */
     void acceptQuery(UUID queryId, User user, Map<String, String> headers, String apiVer,
-                     Optional<MultivaluedMap<String, String>> queryParams, String path);
+                     MultivaluedMap<String, String> queryParams, String path);
 
     /**
      * Processes and logs all the queries from QueryDetail.

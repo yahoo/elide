@@ -121,7 +121,6 @@ public class Data<T> {
         throw new IllegalAccessError("Data is not toOne");
     }
 
-    @SuppressWarnings("unchecked")
     public Collection<ResourceIdentifier> toResourceIdentifiers() {
         return values
                 .map(object -> object != null ? ((Resource) object).toResourceIdentifier() : null)

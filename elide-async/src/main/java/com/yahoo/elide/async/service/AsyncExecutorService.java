@@ -51,7 +51,7 @@ public class AsyncExecutorService {
      * A Future with Synchronous Execution Complete Flag.
      */
     @Data
-    private class AsyncAPIResultFuture {
+    private static class AsyncAPIResultFuture {
         private Future<AsyncAPIResult> asyncFuture;
         private boolean synchronousTimeout = false;
     }

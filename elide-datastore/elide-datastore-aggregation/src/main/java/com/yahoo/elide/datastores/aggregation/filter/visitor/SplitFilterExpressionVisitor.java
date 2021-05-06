@@ -119,7 +119,8 @@ public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<Fil
                             right.getWhereExpression()
                     )
             );
-        } else if (left.isPureHaving() && right.isPureHaving()) {
+        }
+        if (left.isPureHaving() && right.isPureHaving()) {
             // pure-H1 AND pure-H2 = HAVING (C1 AND C2) = pure-H
             return FilterConstraints.pureHaving(
                     new AndFilterExpression(
@@ -127,19 +128,18 @@ public class SplitFilterExpressionVisitor implements FilterExpressionVisitor<Fil
                             right.getHavingExpression()
                     )
             );
-        } else {
-            // all of the rests are mix-HW
-            return FilterConstraints.withWhereAndHaving(
-                    AndFilterExpression.fromPair(
-                            left.getWhereExpression(),
-                            right.getWhereExpression()
-                    ),
-                    AndFilterExpression.fromPair(
-                            left.getHavingExpression(),
-                            right.getHavingExpression()
-                    )
-            );
         }
+        // all of the rests are mix-HW
+        return FilterConstraints.withWhereAndHaving(
+                AndFilterExpression.fromPair(
+                        left.getWhereExpression(),
+                        right.getWhereExpression()
+                ),
+                AndFilterExpression.fromPair(
+                        left.getHavingExpression(),
+                        right.getHavingExpression()
+                )
+        );
     }
 
     @Override

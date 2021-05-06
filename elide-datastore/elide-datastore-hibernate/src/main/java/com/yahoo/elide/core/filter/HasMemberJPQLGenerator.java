@@ -113,7 +113,8 @@ public class HasMemberJPQLGenerator implements JPQLPredicateGenerator {
         String entityName = firstElement.getType().getCanonicalName();
         String currentAlias = INNER + getTypeAlias(firstElement.getType());
 
-        String fromClause = String.format("%s %s", entityName, currentAlias);
+        StringBuilder fromClause = new StringBuilder();
+        fromClause.append(entityName).append(" ").append(currentAlias);
 
         for (Path.PathElement element : path.getPathElements()) {
 
@@ -123,11 +124,13 @@ public class HasMemberJPQLGenerator implements JPQLPredicateGenerator {
             }
             String nextAlias = appendAlias(currentAlias, element.getFieldName());
 
-            fromClause += " LEFT JOIN " + currentAlias + "." + element.getFieldName() + " " + nextAlias;
+            fromClause.append(" LEFT JOIN ")
+                    .append(currentAlias).append(".").append(element.getFieldName())
+                    .append(" ").append(nextAlias);
 
             currentAlias = nextAlias;
         }
 
-        return fromClause;
+        return fromClause.toString();
     }
 }

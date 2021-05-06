@@ -12,6 +12,8 @@ import com.github.fge.jsonschema.format.AbstractFormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 
+import java.util.regex.Pattern;
+
 /**
  * Format specifier for {@code elideCardiality} format attribute.
  * <p>
@@ -19,7 +21,7 @@ import com.github.fge.msgsimple.bundle.MessageBundle;
  * </p>
  */
 public class ElideCardinalityFormatAttr extends AbstractFormatAttribute {
-    private static final String CARDINALITY_REGEX = "^(?i)(Tiny|Small|Medium|Large|Huge)$";
+    private static final Pattern CARDINALITY_PATTERN = Pattern.compile("^(?i)(Tiny|Small|Medium|Large|Huge)$");
 
     public static final String FORMAT_NAME = "elideCardiality";
     public static final String TYPE_KEY = "elideCardiality.error.enum";
@@ -35,7 +37,7 @@ public class ElideCardinalityFormatAttr extends AbstractFormatAttribute {
                     throws ProcessingException {
         final String input = data.getInstance().getNode().textValue();
 
-        if (!input.matches(CARDINALITY_REGEX)) {
+        if (!CARDINALITY_PATTERN.matcher(input).matches()) {
             report.error(newMsg(data, bundle, TYPE_KEY).putArgument("value", input));
         }
     }

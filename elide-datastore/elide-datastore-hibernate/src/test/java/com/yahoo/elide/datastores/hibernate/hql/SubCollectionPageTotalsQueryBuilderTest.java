@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.datastores.hibernate.hql;
 
-import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
@@ -18,10 +18,13 @@ import com.yahoo.elide.core.pagination.PaginationImpl;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
+import com.yahoo.elide.core.type.ClassType;
+
 import example.Author;
 import example.Book;
 import example.Chapter;
 import example.Publisher;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -58,7 +61,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         EntityProjection entityProjection = EntityProjection.builder().type(Book.class).build();
         Relationship relationshipProjection = Relationship.builder().projection(entityProjection).name(BOOKS).build();
         RelationshipImpl relationship = new RelationshipImpl(
-                getClassType(Author.class),
+                ClassType.of(Author.class),
                 author,
                 relationshipProjection
         );
@@ -100,7 +103,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
 
         Relationship relationshipProjection = Relationship.builder().name(BOOKS).projection(entityProjection).build();
         RelationshipImpl relationship = new RelationshipImpl(
-                getClassType(Author.class),
+                ClassType.of(Author.class),
                 author,
                 relationshipProjection
         );
@@ -138,7 +141,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
                 .build();
         Relationship relationshipProjection = Relationship.builder().name(BOOKS).projection(entityProjection).build();
         RelationshipImpl relationship = new RelationshipImpl(
-                getClassType(Author.class),
+                ClassType.of(Author.class),
                 author,
                 relationshipProjection
         );
@@ -186,7 +189,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
         Relationship relationshipProjection = Relationship.builder().name(BOOKS).projection(entityProjection).build();
 
         RelationshipImpl relationship = new RelationshipImpl(
-                getClassType(Author.class),
+                ClassType.of(Author.class),
                 author,
                 relationshipProjection
         );

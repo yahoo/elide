@@ -17,10 +17,9 @@ import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+
 import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Handlebars;
-import com.github.jknack.handlebars.Helper;
-import com.github.jknack.handlebars.Options;
 import com.github.jknack.handlebars.Template;
 import com.google.common.base.Preconditions;
 
@@ -43,23 +42,19 @@ public class ExpressionParser {
     private MetaDataStore metaDataStore;
     private EntityDictionary dictionary;
     private final Handlebars handlebars = new Handlebars()
-                    .with(EscapingStrategy.NOOP)
-                    .registerHelper("sql", new Helper<Object>() {
+            .with(EscapingStrategy.NOOP)
+            .registerHelper("sql", (context, options) -> {
+                String from = options.hash("from");
+                String column = options.hash("column");
+                int argsIndex = column.indexOf('[');
 
-                        @Override
-                        public Object apply(final Object context, final Options options) throws IOException {
-                            String from = options.hash("from");
-                            String column = options.hash("column");
-                            int argsIndex = column.indexOf('[');
+                // Remove args from column
+                column = argsIndex == -1 ? column : column.substring(0, argsIndex);
+                // Prefix column with join table name
+                column = isEmpty(from) ? column : from + PERIOD + column;
 
-                            // Remove args from column
-                            column = argsIndex == -1 ? column : column.substring(0, argsIndex);
-                            // Prefix column with join table name
-                            column = isEmpty(from) ? column : from + PERIOD + column;
-
-                            return column;
-                        }
-                    });
+                return column;
+            });
 
     public ExpressionParser(MetaDataStore store) {
         this.dictionary = store.getMetadataDictionary();
@@ -135,14 +130,13 @@ public class ExpressionParser {
                     .source(source)
                     .name(column.getName())
                     .build();
-        } else {
-            return LogicalReference
-                    .builder()
-                    .source(source)
-                    .column(column)
-                    .references(parse(source, column))
-                    .build();
         }
+        return LogicalReference
+                .builder()
+                .source(source)
+                .column(column)
+                .references(parse(source, column))
+                .build();
     }
 
     private JoinReference buildJoin(Queryable source, String referenceName) {
@@ -181,11 +175,12 @@ public class ExpressionParser {
      * @return references appear in the expression.
      */
     private static List<String> resolveFormulaReferences(String expression) {
-        Matcher matcher = REFERENCE_PARENTHESES.matcher(expression);
         List<String> references = new ArrayList<>();
-
-        while (matcher.find()) {
-            references.add(matcher.group(1));
+        if (! isEmpty(expression)) {
+            Matcher matcher = REFERENCE_PARENTHESES.matcher(expression);
+            while (matcher.find()) {
+                references.add(matcher.group(1));
+            }
         }
 
         return references;
