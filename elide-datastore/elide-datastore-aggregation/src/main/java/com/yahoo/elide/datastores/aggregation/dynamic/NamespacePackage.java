@@ -5,9 +5,9 @@
  */
 package com.yahoo.elide.datastores.aggregation.dynamic;
 
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.annotation.ApiVersion;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Package;
 import com.yahoo.elide.datastores.aggregation.annotation.NamespaceMeta;
 import com.yahoo.elide.modelconfig.model.NamespaceConfig;
@@ -23,7 +23,7 @@ public class NamespacePackage implements Package {
 
     public static String DEFAULT = "default";
     public static NamespacePackage DEFAULT_NAMESPACE =
-            new NamespacePackage(DEFAULT, "Default Namespace", DEFAULT);
+            new NamespacePackage(DEFAULT, "Default Namespace", DEFAULT, NO_VERSION);
 
     protected NamespaceConfig namespace;
     private Map<Class<? extends Annotation>, Annotation> annotations;
@@ -33,12 +33,12 @@ public class NamespacePackage implements Package {
         this.annotations = buildAnnotations(namespace);
     }
 
-    public NamespacePackage(String name, String description, String friendlyName) {
+    public NamespacePackage(String name, String description, String friendlyName, String version) {
         this(NamespaceConfig.builder()
                 .name(name)
                 .friendlyName(friendlyName)
                 .description(description)
-                .apiVersion(EntityDictionary.NO_VERSION)
+                .apiVersion(version)
                 .build());
     }
 

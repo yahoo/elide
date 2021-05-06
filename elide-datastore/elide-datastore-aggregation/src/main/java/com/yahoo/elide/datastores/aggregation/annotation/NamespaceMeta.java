@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
  * Indicates that the specified namespace has a configured long name and field description for human to read on UI.
  */
 @Documented
-@Target({ElementType.TYPE})
+@Target({ElementType.PACKAGE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface NamespaceMeta {
 

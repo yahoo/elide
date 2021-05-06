@@ -160,7 +160,7 @@ public abstract class QueryEngine {
                 });
 
         metaDataStore.getModelsToBind().stream()
-                .map(model -> constructTable(metaDataStore.getNamespace(model.getPackage()), model, metadataDictionary))
+                .map(model -> constructTable(metaDataStore.getNamespace(model), model, metadataDictionary))
                 .forEach(metaDataStore::addTable);
     }
 
