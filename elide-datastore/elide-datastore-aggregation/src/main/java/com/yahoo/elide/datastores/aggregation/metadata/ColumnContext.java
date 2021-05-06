@@ -6,11 +6,9 @@
 
 package com.yahoo.elide.datastores.aggregation.metadata;
 
-import static com.yahoo.elide.core.request.Argument.getArgumentMapFromString;
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
@@ -18,13 +16,11 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TemplateProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 import com.github.jknack.handlebars.HandlebarsException;
-import com.github.jknack.handlebars.Options;
 
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 /**
@@ -98,27 +94,6 @@ public class ColumnContext extends Context {
 
     public String resolve() {
         return resolve(this.getColumn().getExpression());
-    }
-
-    @Override
-    protected Object resolveSQLHandlebar(final Object context, final Options options)
-                    throws UnsupportedEncodingException {
-        String from = options.hash("from");
-        String column = options.hash("column");
-        int argsIndex = column.indexOf('[');
-        String invokedColumnName = column;
-
-        Context currentCtx = (Context) context;
-        // 'from' is optional, so if not provided use the same table context.
-        Context invokedCtx = isBlank(from) ? currentCtx
-                                           : (Context) currentCtx.get(from);
-
-        if (argsIndex >= 0) {
-            Map<String, Argument> pinnedArgs = getArgumentMapFromString(column.substring(argsIndex));
-            invokedColumnName = column.substring(0, argsIndex);
-            return invokedCtx.get(invokedColumnName, pinnedArgs);
-        }
-        return invokedCtx.get(invokedColumnName);
     }
 
     public static class ColumnContextBuilder {

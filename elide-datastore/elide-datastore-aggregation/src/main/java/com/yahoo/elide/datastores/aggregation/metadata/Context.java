@@ -7,8 +7,10 @@
 package com.yahoo.elide.datastores.aggregation.metadata;
 
 import static com.yahoo.elide.core.request.Argument.getArgumentMapFromArgumentSet;
+import static com.yahoo.elide.core.request.Argument.getArgumentMapFromString;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
 import static java.util.Collections.emptyMap;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
@@ -73,8 +75,25 @@ public abstract class Context {
         return resolveHandlebars(this, expression);
     }
 
-    protected abstract Object resolveSQLHandlebar(final Object context, final Options options)
-                    throws UnsupportedEncodingException;
+    protected Object resolveSQLHandlebar(final Object context, final Options options)
+                    throws UnsupportedEncodingException {
+        String from = options.hash("from");
+        String column = options.hash("column");
+        int argsIndex = column.indexOf('[');
+        String invokedColumnName = column;
+
+        Context currentCtx = (Context) context;
+        // 'from' is optional, so if not provided use the same table context.
+        Context invokedCtx = isBlank(from) ? currentCtx
+                                           : (Context) currentCtx.get(from);
+
+        if (argsIndex >= 0) {
+            Map<String, Argument> pinnedArgs = getArgumentMapFromString(column.substring(argsIndex));
+            invokedColumnName = column.substring(0, argsIndex);
+            return invokedCtx.get(invokedColumnName, pinnedArgs);
+        }
+        return invokedCtx.get(invokedColumnName);
+    }
 
     protected String resolveHandlebars(Context context, String expression) {
 

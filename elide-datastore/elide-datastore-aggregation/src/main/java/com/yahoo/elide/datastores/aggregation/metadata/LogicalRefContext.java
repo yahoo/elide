@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.datastores.aggregation.metadata;
 
-import static com.yahoo.elide.core.request.Argument.getArgumentMapFromString;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import com.yahoo.elide.core.request.Argument;
@@ -90,25 +89,12 @@ public class LogicalRefContext extends Context {
     @Override
     protected Object resolveSQLHandlebar(final Object context, final Options options)
                     throws UnsupportedEncodingException {
-        String from = options.hash("from");
-        String column = options.hash("column");
-        int argsIndex = column.indexOf('[');
-        String invokedColumnName = column;
-
         // Keep Join References as is
-        if (!isBlank(from)) {
+        if (!isBlank(options.hash("from"))) {
             return new StringValue(options.fn.text());
         }
 
-        Context invokedCtx = (Context) context;
-
-        if (argsIndex >= 0) {
-            Map<String, Argument> pinnedArgs = getArgumentMapFromString(column.substring(argsIndex));
-            invokedColumnName = column.substring(0, argsIndex);
-            return invokedCtx.get(invokedColumnName, pinnedArgs);
-        }
-
-        return invokedCtx.get(invokedColumnName);
+        return super.resolveSQLHandlebar(context, options);
     }
 
     public static class LogicalRefContextBuilder {
