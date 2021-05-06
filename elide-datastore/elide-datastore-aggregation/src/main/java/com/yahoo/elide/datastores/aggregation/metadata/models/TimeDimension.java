@@ -24,7 +24,7 @@ import javax.persistence.ManyToMany;
  * This type of column can be used to support time period (DAILY, MONTHLY, etc) aggregation.
  */
 @EqualsAndHashCode(callSuper = true)
-@Include(rootLevel = false, type = "timeDimension")
+@Include(rootLevel = false, name = "timeDimension")
 @Value
 public class TimeDimension extends Column {
     @ManyToMany

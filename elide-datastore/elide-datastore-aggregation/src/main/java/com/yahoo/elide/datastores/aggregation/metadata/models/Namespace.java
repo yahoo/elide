@@ -23,7 +23,7 @@ import javax.persistence.OneToMany;
 /**
  * Namespace for organizing related tables together.
  */
-@Include(type = "namespace")
+@Include(name = "namespace")
 @Getter
 @EqualsAndHashCode
 @ToString

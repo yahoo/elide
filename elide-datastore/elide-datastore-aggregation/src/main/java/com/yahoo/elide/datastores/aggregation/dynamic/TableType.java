@@ -269,7 +269,7 @@ public class TableType implements Type<DynamicModelInstance> {
                 }
 
                 @Override
-                public String type() {
+                public String name() {
                     return table.getName();
                 }
             });

@@ -227,7 +227,7 @@ public class ContextTest {
 @TableMeta(arguments = {
                 @ArgumentDefinition(name = "testPercentage", type = ValueType.TEXT, defaultValue = "0.1"),
                 @ArgumentDefinition(name = "format", type = ValueType.TEXT)})
-@Include(type = "revenueFact")
+@Include(name = "revenueFact")
 class RevenueFact {
 
     @Id
@@ -273,7 +273,7 @@ class RevenueFact {
 @ToString
 @Data
 @FromTable(name = "currency_rate")
-@Include(type = "currencyRate")
+@Include(name = "currencyRate")
 class CurrencyRate {
 
     @Id

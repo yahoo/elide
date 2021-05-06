@@ -12,7 +12,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
-@Include(type = "version", rootLevel = false)
+@Include(name = "version", rootLevel = false)
 @Entity
 public class ArtifactVersion {
     @Id

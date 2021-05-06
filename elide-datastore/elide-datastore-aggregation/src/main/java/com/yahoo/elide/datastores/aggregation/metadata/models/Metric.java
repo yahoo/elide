@@ -18,7 +18,7 @@ import lombok.ToString;
 /**
  * Column which supports aggregation.
  */
-@Include(rootLevel = false, type = "metric")
+@Include(rootLevel = false, name = "metric")
 @Getter
 @EqualsAndHashCode(callSuper = true)
 @ToString

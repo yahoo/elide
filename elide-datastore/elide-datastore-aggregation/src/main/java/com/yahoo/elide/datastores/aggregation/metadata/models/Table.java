@@ -42,7 +42,7 @@ import javax.persistence.OneToMany;
 /**
  * Super class of all logical or physical tables.
  */
-@Include(type = "table")
+@Include(name = "table")
 @Getter
 @EqualsAndHashCode
 @ToString

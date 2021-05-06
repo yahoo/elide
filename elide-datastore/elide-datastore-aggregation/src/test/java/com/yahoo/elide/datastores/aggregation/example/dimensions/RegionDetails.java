@@ -27,7 +27,7 @@ import javax.persistence.Id;
 @FromTable(name = "region_details", dbConnectionName = "SalesDBConnection")
 @ReadPermission(expression = "Principal is guest user")
 @TableMeta(description = "RegionDetails", category = "", tags = {}, filterTemplate = "", size = CardinalitySize.SMALL)
-@Include(type = "regionDetails")
+@Include(name = "regionDetails")
 public class RegionDetails {
 
     private String id;

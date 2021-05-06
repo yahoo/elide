@@ -32,7 +32,7 @@ import javax.persistence.Id;
 /**
  * A root level entity for testing AggregationDataStore.
  */
-@Include(type = "playerStatsFiltered")
+@Include(name = "playerStatsFiltered")
 @VersionQuery(sql = "SELECT COUNT(*) from playerStats")
 @EqualsAndHashCode
 @ToString
