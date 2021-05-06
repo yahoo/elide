@@ -474,7 +474,7 @@ public class Elide {
             requestScope.runQueuedPostCommitTriggers();
 
             if (log.isTraceEnabled()) {
-                requestScope.getPermissionExecutor().printCheckStats();
+                requestScope.getPermissionExecutor().logCheckStats();
             }
 
             return response;

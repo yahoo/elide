@@ -5,32 +5,25 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
-import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable.isTableJoin;
-import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
-import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Subselect;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,10 +40,10 @@ public class SQLReferenceTable {
     @Getter
     protected final EntityDictionary dictionary;
 
-    //Stores  MAP<Queryable, MAP<fieldName, join expression>>
-    protected final Map<Queryable, Map<String, Set<String>>> resolvedJoinExpressions = new HashMap<>();
+    private final ExpressionParser parser;
 
-    protected final Map<Queryable, TableContext> globalTablesContext = new HashMap<>();
+    //Stores  MAP<Queryable, MAP<fieldName, Reference Tree>>
+    protected final Map<Queryable, Map<String, List<Reference>>> referenceTree = new HashMap<>();
 
     public SQLReferenceTable(MetaDataStore metaDataStore) {
         this(metaDataStore,
@@ -63,6 +56,7 @@ public class SQLReferenceTable {
     protected SQLReferenceTable(MetaDataStore metaDataStore, Set<Queryable> queryables) {
         this.metaDataStore = metaDataStore;
         this.dictionary = this.metaDataStore.getMetadataDictionary();
+        this.parser = new ExpressionParser(metaDataStore);
 
         queryables
            .stream()
@@ -77,47 +71,16 @@ public class SQLReferenceTable {
                   next = next.getSource();
                } while (next.isNested());
            });
-
-        queryables
-           .forEach(queryable -> {
-               Queryable next = queryable;
-               do {
-                  initializeTableContext(next);
-                  next = next.getSource();
-               } while (!next.isRoot());
-           });
     }
 
     /**
-     * Get the resolved ON clause expression for a field from referred table.
-     *
-     * @param queryable table class
-     * @param fieldName field name
-     * @return resolved ON clause expression
+     * Get the Reference tree for provided field.
+     * @param queryable Query / SQLTable
+     * @param fieldName field name.
+     * @return {@link Reference} Tree.
      */
-    public Set<String> getResolvedJoinExpressions(Queryable queryable, String fieldName) {
-        return resolvedJoinExpressions.get(queryable).getOrDefault(fieldName, new HashSet<>());
-    }
-
-    public TableContext getGlobalTableContext(Queryable queryable) {
-        return globalTablesContext.get(queryable);
-    }
-
-    private void initializeTableContext(Queryable queryable) {
-
-        Queryable key = queryable.getSource();
-
-        // Contexts are NOT stored by their sources.
-        if (!globalTablesContext.containsKey(queryable)) {
-
-            TableContext tableCtx = TableContext.builder()
-                            .queryable(queryable)
-                            .alias(key.getAlias())
-                            .metaDataStore(metaDataStore)
-                            .build();
-
-            globalTablesContext.put(queryable, tableCtx);
-        }
+    public List<Reference> getReferenceTree(Queryable queryable, String fieldName) {
+        return referenceTree.get(queryable).getOrDefault(fieldName, new ArrayList<>());
     }
 
     /**
@@ -129,169 +92,21 @@ public class SQLReferenceTable {
 
         //References and joins are stored by their source that produces them (rather than the query that asks for them).
         Queryable key = queryable.getSource();
-        SQLDialect dialect = queryable.getSource().getConnectionDetails().getDialect();
 
-        if (!resolvedJoinExpressions.containsKey(key)) {
-            resolvedJoinExpressions.put(key, new HashMap<>());
+        if (!referenceTree.containsKey(key)) {
+            referenceTree.put(key, new HashMap<>());
         }
 
         FormulaValidator validator = new FormulaValidator(metaDataStore);
-        SQLJoinVisitor joinVisitor = new SQLJoinVisitor(metaDataStore);
 
         queryable.getColumnProjections().forEach(column -> {
             // validate that there is no reference loop
             validator.parse(queryable, column);
 
             String fieldName = column.getName();
+            referenceTree.get(key).put(fieldName, parser.parse(queryable, column));
 
-            Set<JoinPath> joinPaths = joinVisitor.visitColumn(queryable, column);
-            resolvedJoinExpressions.get(key).put(fieldName, getJoinClauses(queryable.getSource().getAlias(),
-                    joinPaths, dialect));
         });
-    }
-
-
-    /**
-     * Create a set of join expressions from join paths.
-     *
-     * @param parentAlias the parent alias
-     * @param joinPaths paths that require joins
-     * @return A set of join expressions
-     */
-    private Set<String> getJoinClauses(String parentAlias, Set<JoinPath> joinPaths, SQLDialect dialect) {
-        Set<String> joinExpressions = new LinkedHashSet<>();
-        joinPaths.forEach(path -> addJoinClauses(parentAlias, path, joinExpressions, dialect));
-        return joinExpressions;
-    }
-
-    /**
-     * Add a join clause to a set of join clauses.
-     *
-     * @param parentAlias the parent alias
-     * @param joinPath join path
-     * @param alreadyJoined A set of joins that have already been computed.
-     */
-    private void addJoinClauses(String parentAlias, JoinPath joinPath, Set<String> alreadyJoined, SQLDialect dialect) {
-
-        for (Path.PathElement pathElement : joinPath.getPathElements()) {
-            String fieldName = pathElement.getFieldName();
-            Type<?> parentClass = pathElement.getType();
-
-            // Nothing left to join.
-            if (!dictionary.isRelation(parentClass, fieldName) && !isTableJoin(metaDataStore, parentClass, fieldName)) {
-                return;
-            }
-
-            String joinFragment =
-                            extractJoinClause(parentClass, parentAlias, pathElement.getFieldType(), fieldName, dialect);
-
-            alreadyJoined.add(joinFragment);
-
-            parentAlias = appendAlias(parentAlias, fieldName);
-        }
-    }
-
-    /**
-     * Build a single dimension join clause for joining a relationship/join table to the parent table.
-     *
-     * @param fromClass parent class
-     * @param fromAlias parent table alias
-     * @param joinClass relationship/join class
-     * @param joinField relationship/join field name
-     * @return built join clause i.e. <code>LEFT JOIN table1 AS dimension1 ON table0.dim_id = dimension1.id</code>
-     */
-    private String extractJoinClause(Type<?> fromClass,
-                                     String fromAlias,
-                                     Type<?> joinClass,
-                                     String joinField,
-                                     SQLDialect dialect) {
-
-        String joinAlias = appendAlias(fromAlias, joinField);
-        String joinColumnName = dictionary.getAnnotatedColumnName(fromClass, joinField);
-
-        // resolve the right hand side of JOIN
-        String joinSource = constructTableOrSubselect(joinClass, dialect);
-
-        SQLTable table = metaDataStore.getTable(fromClass);
-        SQLJoin join = table.getJoin(joinField);
-
-        String joinKeyword = join == null
-                ? dialect.getJoinKeyword(JoinType.LEFT)
-                : dialect.getJoinKeyword(join.getJoinType());
-
-        if (join != null && join.getJoinType().equals(JoinType.CROSS)) {
-            return String.format("%s %s AS %s",
-                    joinKeyword,
-                    joinSource,
-                    applyQuotes(joinAlias, dialect));
-        }
-
-        String joinClause = join == null
-                ? String.format(
-                        "%s.%s = %s.%s",
-                        fromAlias,
-                        joinColumnName,
-                        joinAlias,
-                        dictionary.getAnnotatedColumnName(
-                                joinClass,
-                                dictionary.getIdFieldName(joinClass)))
-                : getJoinClause(fromClass, fromAlias, join.getJoinExpression(), dialect);
-
-        return String.format("%s %s AS %s ON %s",
-                joinKeyword,
-                joinSource,
-                applyQuotes(joinAlias, dialect),
-                joinClause);
-    }
-
-    /**
-     * Resolve references to construct a join ON clause.
-     *
-     * @param fromClass parent class
-     * @param fromAlias parent alias
-     * @param expr unresolved ON clause
-     * @return string resolved ON clause
-     */
-    private String getJoinClause(Type<?> fromClass, String fromAlias, String expr, SQLDialect dialect) {
-        SQLTable table = new SQLTable(fromClass, dictionary);
-        SQLReferenceVisitor visitor =
-                        new SQLReferenceVisitor(metaDataStore, fromAlias, dialect);
-
-        return visitor.visitFormulaDimension(table, new SQLColumnProjection() {
-            @Override
-            public SQLColumnProjection withExpression(String expression, boolean project) {
-                return null;
-            }
-
-            @Override
-            public ValueType getValueType() {
-                return null;
-            }
-            @Override
-            public String getName() {
-                return null;
-            }
-            @Override
-            public String getExpression() {
-                return expr;
-            }
-            @Override
-            public ColumnType getColumnType() {
-                return null;
-            }
-        });
-    }
-
-    /**
-     * Make a select statement for a table a sub select query.
-     *
-     * @param cls entity class
-     * @return <code>tableName</code> or <code>(subselect query)</code>
-     */
-    private String constructTableOrSubselect(Type<?> cls, SQLDialect dialect) {
-        return isSubselect(cls)
-                ? "(" + resolveTableOrSubselect(dictionary, cls) + ")"
-                : applyQuotes(resolveTableOrSubselect(dictionary, cls), dialect);
     }
 
     /**
@@ -300,7 +115,7 @@ public class SQLReferenceTable {
      * @param cls The entity class
      * @return True if the class has {@link Subselect} annotation
      */
-    private static boolean isSubselect(Type<?> cls) {
+    public static boolean hasSql(Type<?> cls) {
         return cls.isAnnotationPresent(Subselect.class) || cls.isAnnotationPresent(FromSubquery.class);
     }
 
@@ -311,8 +126,8 @@ public class SQLReferenceTable {
      * @param cls The entity class.
      * @return The physical SQL table or subselect query.
      */
-    private static String resolveTableOrSubselect(EntityDictionary dictionary, Type<?> cls) {
-        if (isSubselect(cls)) {
+    public static String resolveTableOrSubselect(EntityDictionary dictionary, Type<?> cls) {
+        if (hasSql(cls)) {
             if (cls.isAnnotationPresent(FromSubquery.class)) {
                 return dictionary.getAnnotation(cls, FromSubquery.class).sql();
             }

@@ -39,6 +39,11 @@ public class SpecificFieldExpression implements Expression {
         return fieldExpression.get().evaluate(mode);
     }
 
+    @Override
+    public <T> T accept(ExpressionVisitor<T> visitor) {
+        return visitor.visitExpression(this);
+    }
+
 
     @Override
     public String toString() {

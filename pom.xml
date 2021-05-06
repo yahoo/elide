@@ -83,7 +83,7 @@
         <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 
         <!-- dependency versions -->
-        <version.antlr4>4.9.1</version.antlr4>
+        <version.antlr4>4.9.2</version.antlr4>
         <version.logback>1.2.3</version.logback>
         <version.jetty>9.4.39.v20210325</version.jetty>
         <version.restassured>4.3.3</version.restassured>
@@ -94,7 +94,7 @@
         <hibernate3.version>3.6.10.Final</hibernate3.version>
         <hibernate5.version>5.4.30.Final</hibernate5.version>
         <slf4j-api.version>1.7.30</slf4j-api.version>
-        <maven-site-plugin-version>3.7.1</maven-site-plugin-version>
+        <maven-site-plugin-version>3.9.1</maven-site-plugin-version>
         <mpir.skip>true</mpir.skip>
 
         <!-- TODO: Need to update locations to be relative to the projects using them -->
@@ -129,7 +129,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>30.1-jre</version>
+                <version>30.1.1-jre</version>
             </dependency>
             <dependency>
                 <groupId>javax.inject</groupId>
@@ -193,13 +193,20 @@
                 <version>${version.jetty}</version>
                 <scope>test</scope>
             </dependency>
+
+            <!-- JUnit -->
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-api</artifactId>
                 <version>${version.junit}</version>
                 <scope>test</scope>
             </dependency>
-
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-params</artifactId>
+                <version>${version.junit}</version>
+                <scope>test</scope>
+            </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-engine</artifactId>

@@ -27,7 +27,7 @@
                         "type": "string",
                         "title": "Namespace Name",
                         "description": "Name of the Namespace. This can used for grouping the tables by subject area.",
-                        "format": "elideName",
+                        "format": "elideNamespaceName",
                         "examples": [
                             "MyNamespace"
                         ]
@@ -47,6 +47,12 @@
                         "description": "Read permission for the Namespace.",
                         "type": "string",
                         "default": "Prefab.Role.All"
+                    },
+                    "apiVersion": {
+                        "title": "Namespace apiVersion",
+                        "description": "Api Version for the Namespace.",
+                        "type": "string",
+                        "default": ""
                     }
                 }
             }

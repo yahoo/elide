@@ -415,7 +415,7 @@ public class ControllerTest extends IntegrationTest {
                 .body("tags.name", containsInAnyOrder("group", "argument", "metric",
                         "dimension", "column", "table", "asyncQuery",
                         "timeDimensionGrain", "timeDimension", "product", "playerCountry", "version", "playerStats",
-                        "stats"));
+                        "stats", "namespace"));
     }
 
     @Test

@@ -175,11 +175,12 @@ public class ExpressionParser {
      * @return references appear in the expression.
      */
     private static List<String> resolveFormulaReferences(String expression) {
-        Matcher matcher = REFERENCE_PARENTHESES.matcher(expression);
         List<String> references = new ArrayList<>();
-
-        while (matcher.find()) {
-            references.add(matcher.group(1));
+        if (! isEmpty(expression)) {
+            Matcher matcher = REFERENCE_PARENTHESES.matcher(expression);
+            while (matcher.find()) {
+                references.add(matcher.group(1));
+            }
         }
 
         return references;

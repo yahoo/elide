@@ -6,9 +6,9 @@
 package com.yahoo.elide.datastores.aggregation.query;
 
 import com.yahoo.elide.core.request.Argument;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -98,21 +98,38 @@ public interface ColumnProjection extends Serializable {
     /**
      * Whether or not a given projection can be nested into an inner query and outer query.
      * @param source The source of this projection.
-     * @param lookupTable Used to answer questions about templated column definitions.
+     * @param metaDataStore MetaDataStore.
      * @return true if the projection can be nested.
      */
-    default boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
+    default boolean canNest(Queryable source, MetaDataStore metaDataStore) {
         return true;
     }
 
     /**
      * Translate a column into outer and inner query columns for a two-pass aggregation.
      * @param source The source query of this projection.
-     * @param lookupTable Used to answer questions about templated column definitions.
+     * @param metaDataStore MetaDataStore.
      * @param joinInOuter If possible, skip required joins in inner query and do the join in the outer query.
      * @return A pair consisting of the outer column projection and a set of inner column projections.
      */
     Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source,
-                                                       SQLReferenceTable lookupTable,
+                                                       MetaDataStore metaDataStore,
                                                        boolean joinInOuter);
+
+    /**
+     * Clones the projection and marks it as either projected or not projected.
+     * @param projected Whether or not this projection should be returned in the result.
+     * @param <T> The subclass of ColumnProjection.
+     * @return The cloned column.
+     */
+    <T extends ColumnProjection> T withProjected(boolean projected);
+
+    /**
+     * Returns whether or not this column is projected in the output (included in SELECT) or
+     * only referenced in a filter expression.
+     * @return True if part of the output projection.  False otherwise.
+     */
+    default boolean isProjected() {
+        return true;
+    }
 }

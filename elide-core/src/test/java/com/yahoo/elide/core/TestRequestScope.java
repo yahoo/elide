@@ -14,7 +14,6 @@ import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 
-import java.util.Optional;
 import java.util.UUID;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -60,9 +59,9 @@ public class TestRequestScope extends RequestScope {
     }
 
     @Override
-    public Optional<MultivaluedMap<String, String>> getQueryParams() {
+    public MultivaluedMap<String, String> getQueryParams() {
         if (queryParamOverrides != null) {
-            return Optional.of(queryParamOverrides);
+            return queryParamOverrides;
         }
         return super.getQueryParams();
     }

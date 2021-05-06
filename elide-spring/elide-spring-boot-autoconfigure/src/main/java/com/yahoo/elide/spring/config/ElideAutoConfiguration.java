@@ -91,7 +91,7 @@ public class ElideAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnExpression("${elide.aggregation-store.enabled} and ${elide.dynamic-config.enabled}")
+    @ConditionalOnExpression("${elide.aggregation-store.enabled:false} and ${elide.dynamic-config.enabled:false}")
     public DynamicConfiguration buildDynamicConfiguration(ElideConfigProperties settings) throws IOException {
         DynamicConfigValidator validator = new DynamicConfigValidator(settings.getDynamicConfig().getPath());
         validator.readAndValidateConfigs();
@@ -257,7 +257,7 @@ public class ElideAutoConfiguration {
                         SQLDialectFactory.getDialect(settings.getAggregationStore().getDefaultDialect()));
         if (isDynamicConfigEnabled(settings)) {
             MetaDataStore metaDataStore = new MetaDataStore(dynamicConfig.getTables(),
-                    enableMetaDataStore);
+                    dynamicConfig.getNamespaceConfigurations(), enableMetaDataStore);
             Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
             dynamicConfig.getDatabaseConfigurations().forEach(dbConfig -> {

@@ -382,7 +382,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
             Set<PersistentResource> results =
                     PersistentResource.filter(
                             ReadPermission.class,
-                            Optional.empty(), resources).toList(LinkedHashSet::new).blockingGet();
+                            Optional.empty(), ALL_FIELDS, resources).toList(LinkedHashSet::new).blockingGet();
 
             assertEquals(2, results.size(), "Only a subset of the children are readable");
             assertTrue(results.contains(child1Resource), "Readable children includes children with positive IDs");
@@ -400,7 +400,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
                     Observable.fromArray(child1Resource, child2Resource, child3Resource, child4Resource);
 
             Set<PersistentResource> results = PersistentResource.filter(ReadPermission.class,
-                    Optional.empty(), resources).toList(LinkedHashSet::new).blockingGet();
+                    Optional.empty(), ALL_FIELDS, resources).toList(LinkedHashSet::new).blockingGet();
 
             assertEquals(0, results.size(), "No children are readable by an invalid user");
         }

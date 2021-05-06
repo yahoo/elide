@@ -5,8 +5,6 @@
  */
 package com.yahoo.elide.core.security.permissions.expressions;
 
-import static com.yahoo.elide.core.security.permissions.ExpressionResult.FAIL;
-import static com.yahoo.elide.core.security.permissions.ExpressionResult.PASS;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import com.yahoo.elide.core.security.permissions.PermissionCondition;
 
@@ -18,32 +16,28 @@ import com.yahoo.elide.core.security.permissions.PermissionCondition;
  * is accessible, regardless of what any class or package level permissions would permit.
  */
 public class AnyFieldExpression implements Expression {
-    private final Expression entityExpression;
-    private final Expression fieldExpression;
+    private final Expression expression;
     private final PermissionCondition condition;
 
     public AnyFieldExpression(final PermissionCondition condition,
-                              final Expression entityExpression,
-                              final OrExpression fieldExpression) {
+                              final Expression expression) {
         this.condition = condition;
-        this.entityExpression = entityExpression;
-        this.fieldExpression = fieldExpression;
+        this.expression = expression;
     }
 
     @Override
     public ExpressionResult evaluate(EvaluationMode mode) {
-        ExpressionResult fieldResult = fieldExpression.evaluate(mode);
+        return expression.evaluate(mode);
+    }
 
-        if (fieldResult != FAIL) {
-            return fieldResult;
-        }
-
-        return (entityExpression == null) ? PASS : entityExpression.evaluate(mode);
+    @Override
+    public <T> T accept(ExpressionVisitor<T> visitor) {
+        return visitor.visitExpression(this);
     }
 
     @Override
     public String toString() {
-        return String.format("%s FOR EXPRESSION [(FIELDS(%s)) OR (ENTITY(%s))]",
-                condition, fieldExpression, entityExpression);
+        return String.format("%s FOR EXPRESSION [%s]",
+                condition, expression);
     }
 }

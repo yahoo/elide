@@ -20,7 +20,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteIn
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteOuterAggregationExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.CalciteUtils;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import org.apache.calcite.avatica.util.Casing;
 import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.SqlNode;
@@ -88,17 +87,15 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     }
 
     @Override
-    public String toSQL(Queryable query, SQLReferenceTable lookupTable) {
+    public String toSQL(Queryable query, MetaDataStore metaDataStore) {
         if (QUERY_PATTERN.matcher(expression).matches()) {
-            return SQLColumnProjection.super.toSQL(query, lookupTable);
+            return SQLColumnProjection.super.toSQL(query, metaDataStore);
         }
         return expression;
     }
 
     @Override
-    public boolean canNest(Queryable source, SQLReferenceTable lookupTable) {
-        MetaDataStore store = lookupTable.getMetaDataStore();
-
+    public boolean canNest(Queryable source, MetaDataStore store) {
         boolean requiresJoin = SQLColumnProjection.requiresJoin(source, this, store);
         if (requiresJoin) {
             //We currently don't support nesting metrics with joins.
@@ -107,15 +104,15 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
         }
 
         //TODO - Phase 2: return true if Calcite can parse & determine joins independently for inner & outer query
-        return SQLColumnProjection.super.canNest(source, lookupTable);
+        return SQLColumnProjection.super.canNest(source, store);
     }
 
     @Override
     public Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source,
-                                                              SQLReferenceTable lookupTable,
+                                                              MetaDataStore metaDataStore,
                                                               boolean joinInOuter) {
         SQLDialect dialect = source.getConnectionDetails().getDialect();
-        String sql = toSQL(source, lookupTable);
+        String sql = toSQL(source, metaDataStore);
         SqlParser sqlParser = SqlParser.create(sql, CalciteUtils.constructParserConfig(dialect));
 
         SqlNode node;
@@ -150,6 +147,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                     .expression(innerAggExpression)
                     .columnType(columnType)
                     .valueType(valueType)
+                    .arguments(arguments)
                     .build());
         }
 
@@ -167,7 +165,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
                         + dialect.getEndQuote()
                         + "?", "{{\\$" + "$1" + "}}");
 
-        boolean inProjection = source.getColumnProjection(name, arguments) != null;
+        boolean inProjection = source.getColumnProjection(name, arguments, true) != null;
 
         ColumnProjection outerProjection = SQLMetricProjection.builder()
                 .projected(inProjection)
@@ -183,15 +181,20 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
     }
 
     @Override
+    public SQLMetricProjection withProjected(boolean projected) {
+        return withExpression(expression, projected);
+    }
+
+    @Override
     public boolean isProjected() {
         return projected;
     }
 
     @Override
-    public SQLColumnProjection withExpression(String expression, boolean project) {
+    public SQLMetricProjection withExpression(String expression, boolean projected) {
         return SQLMetricProjection.builder()
                 .expression(expression)
-                .projected(project)
+                .projected(projected)
                 .name(name)
                 .alias(alias)
                 .valueType(valueType)
