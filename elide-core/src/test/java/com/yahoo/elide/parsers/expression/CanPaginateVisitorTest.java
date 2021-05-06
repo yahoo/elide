@@ -9,7 +9,6 @@ package com.yahoo.elide.parsers.expression;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.RequestScope;
@@ -25,12 +24,12 @@ import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.visitors.CanPaginateVisitor;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-import com.google.common.collect.Sets;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -97,7 +96,7 @@ public class CanPaginateVisitorTest {
 
         RequestScope scope = mock(RequestScope.class);
 
-        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
@@ -115,7 +114,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
@@ -133,7 +132,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
@@ -152,7 +151,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
@@ -172,7 +171,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
@@ -191,7 +190,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
@@ -210,7 +209,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
@@ -229,7 +228,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
@@ -248,7 +247,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
@@ -267,7 +266,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
@@ -289,7 +288,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
@@ -312,7 +311,7 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope));
+        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, new HashSet<>()));
     }
 
     @Test
@@ -337,17 +336,16 @@ public class CanPaginateVisitorTest {
         dictionary.bindEntity(Book.class);
         RequestScope scope = mock(RequestScope.class);
 
-        Map<String, Set<String>> sparseFields = new HashMap<>();
-        when(scope.getSparseFields()).thenReturn(sparseFields);
+        Set<String> sparseFields = new HashSet<>();
 
-        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, sparseFields));
+        sparseFields.add("title");
+        sparseFields.add("publicationDate");
 
-        sparseFields.put("book", Sets.newHashSet("title", "publicationDate"));
+        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, sparseFields));
 
-        assertTrue(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope));
+        sparseFields.add("outOfPrint");
 
-        sparseFields.put("book", Sets.newHashSet("outOfPrint"));
-
-        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope));
+        assertFalse(CanPaginateVisitor.canPaginate(ClassType.of(Book.class), dictionary, scope, sparseFields));
     }
 }

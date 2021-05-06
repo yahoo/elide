@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -48,15 +47,15 @@ public class Slf4jQueryLogger implements QueryLogger {
 
     @Override
     public void acceptQuery(UUID queryId, User user, Map<String, String> headers, String apiVer,
-                            Optional<MultivaluedMap<String, String>> queryParams, String path) {
+                            MultivaluedMap<String, String> queryParams, String path) {
         ObjectNode rootNode = mapper.createObjectNode();
 
         rootNode.put(ID, queryId.toString());
         rootNode.put("user", (user != null && user.getName() != null) ? user.getName() : "Unknown");
-        if (queryParams.isPresent()) {
+        if (!queryParams.isEmpty()) {
             ObjectNode queryParamNode = rootNode.putObject("queryParams");
-            queryParams.get().forEach((key, values) -> {
-                ArrayNode listNode = queryParamNode.putArray(key.toString());
+            queryParams.forEach((key, values) -> {
+                ArrayNode listNode = queryParamNode.putArray(key);
                 values.stream().forEach(listNode::add);
             });
         }
@@ -64,9 +63,7 @@ public class Slf4jQueryLogger implements QueryLogger {
         rootNode.put("apiVersion", apiVer);
         rootNode.put("path", path);
         ObjectNode headerNode = rootNode.putObject("headers");
-        headers.forEach((key, value) -> {
-            headerNode.put(key, value);
-        });
+        headers.forEach(headerNode::put);
 
         logger.log("QUERY ACCEPTED: {}", rootNode);
     }

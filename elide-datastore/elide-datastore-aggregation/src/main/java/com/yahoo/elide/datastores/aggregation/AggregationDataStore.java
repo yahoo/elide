@@ -9,6 +9,7 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
@@ -57,12 +58,16 @@ public class AggregationDataStore implements DataStore {
     public void populateEntityDictionary(EntityDictionary dictionary) {
 
         if (dynamicCompiledClasses != null && dynamicCompiledClasses.size() != 0) {
-            dynamicCompiledClasses.forEach(dynamicLoadedClass -> dictionary.bindEntity(dynamicLoadedClass,
-                    Collections.singleton(Join.class)));
+            dynamicCompiledClasses.forEach(dynamicLoadedClass -> {
+                dictionary.bindEntity(dynamicLoadedClass, Collections.singleton(Join.class));
+                dictionary.bindPermissionExecutor(dynamicLoadedClass, ActivePermissionExecutor::new);
+            });
         }
 
-        ClassScanner.getAnnotatedClasses(AGGREGATION_STORE_CLASSES).forEach(
-                cls -> dictionary.bindEntity(cls, Collections.singleton(Join.class))
+        ClassScanner.getAnnotatedClasses(AGGREGATION_STORE_CLASSES).forEach(cls -> {
+                    dictionary.bindEntity(cls, Collections.singleton(Join.class));
+                    dictionary.bindPermissionExecutor(cls, ActivePermissionExecutor::new);
+                }
         );
 
         for (Table table : queryEngine.getMetaDataStore().getMetaData(ClassType.of(Table.class))) {

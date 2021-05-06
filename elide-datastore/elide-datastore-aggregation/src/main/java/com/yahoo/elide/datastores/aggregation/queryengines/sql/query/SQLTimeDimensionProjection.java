@@ -19,7 +19,6 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -79,9 +78,9 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     }
 
     @Override
-    public String toSQL(Queryable query, SQLReferenceTable table) {
+    public String toSQL(Queryable query, MetaDataStore metaDataStore) {
 
-        String resolvedExpr = SQLColumnProjection.super.toSQL(query, table);
+        String resolvedExpr = SQLColumnProjection.super.toSQL(query, metaDataStore);
 
         // TODO - We will likely migrate to a templating language when we support parameterized metrics.
         return grain.getExpression().replaceAll(TIME_DIMENSION_REPLACEMENT_REGEX, resolvedExpr);
@@ -94,15 +93,14 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
 
     @Override
     public Pair<ColumnProjection, Set<ColumnProjection>> nest(Queryable source,
-                                                              SQLReferenceTable lookupTable,
+                                                              MetaDataStore store,
                                                               boolean joinInOuter) {
 
-        MetaDataStore store = lookupTable.getMetaDataStore();
         List<Reference> references = new ExpressionParser(store).parse(source, getExpression());
 
         boolean requiresJoin = SQLColumnProjection.requiresJoin(references);
 
-        boolean inProjection = source.getColumnProjection(getName(), getArguments()) != null;
+        boolean inProjection = source.getColumnProjection(getName(), getArguments(), true) != null;
 
         ColumnProjection outerProjection;
         Set<ColumnProjection> innerProjections;
@@ -135,7 +133,12 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     }
 
     @Override
-    public SQLColumnProjection withExpression(String expression, boolean project) {
+    public SQLTimeDimensionProjection withProjected(boolean projected) {
+        return withExpression(expression, projected);
+    }
+
+    @Override
+    public SQLTimeDimensionProjection withExpression(String expression, boolean projected) {
         return SQLTimeDimensionProjection.builder()
                 .name(name)
                 .alias(alias)
@@ -143,7 +146,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
                 .columnType(columnType)
                 .expression(expression)
                 .arguments(arguments)
-                .projected(project)
+                .projected(projected)
                 .grain(grain)
                 .timeZone(timeZone)
                 .build();

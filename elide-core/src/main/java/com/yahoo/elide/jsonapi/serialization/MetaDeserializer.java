@@ -20,7 +20,7 @@ import java.util.Map;
  * Custom deserializer for top-level meta object.
  */
 public class MetaDeserializer extends JsonDeserializer<Meta> {
-    private final static ObjectMapper MAPPER = new MappingJsonFactory().getCodec();
+    private static final ObjectMapper MAPPER = new MappingJsonFactory().getCodec();
 
     @Override
     public Meta deserialize(JsonParser jsonParser, DeserializationContext deserializationContext)

@@ -14,9 +14,10 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
-import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
@@ -86,6 +87,14 @@ public abstract class QueryEngine {
     }
 
     /**
+     * Construct namespace metadata.
+     *
+     * @param namespacePackage NamespacePackage Type
+     * @return constructed Namespace
+     */
+    protected abstract Namespace constructNamespace(com.yahoo.elide.core.type.Package namespacePackage);
+
+    /**
      * Construct Table metadata for an entity.
      *
      * @param entityClass entity class
@@ -101,9 +110,9 @@ public abstract class QueryEngine {
      * @param arguments The client provided parameterized arguments.
      * @return DimensionProjection
      */
-    public abstract ColumnProjection constructDimensionProjection(Dimension dimension,
-                                                                  String alias,
-                                                                  Map<String, Argument> arguments);
+    public abstract DimensionProjection constructDimensionProjection(Dimension dimension,
+                                                                     String alias,
+                                                                     Map<String, Argument> arguments);
 
     /**
      * Construct a parameterized instance of a Column.
@@ -132,6 +141,10 @@ public abstract class QueryEngine {
      * @param metaDataStore metadata store to populate
      */
     protected void populateMetaData(MetaDataStore metaDataStore) {
+        metaDataStore.getNamespacesToBind().stream()
+                .map(this::constructNamespace)
+                .forEach(metaDataStore::addNamespace);
+
         metaDataStore.getModelsToBind()
                 .forEach(model -> {
                     if (!metadataDictionary.isJPAEntity(model)

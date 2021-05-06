@@ -26,7 +26,7 @@ public @interface TableMeta {
     String [] tags() default {};
 
     /**
-     * Optimizer and query planning hints
+     * Optimizer and query planning hints.
      * @return The list of supported hints.
      */
     String [] hints() default {};

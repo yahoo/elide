@@ -51,7 +51,8 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
 
         MetaDataStore metaDataStore;
         if (validator != null) {
-           metaDataStore = new MetaDataStore(validator.getElideTableConfig().getTables(), true);
+           metaDataStore = new MetaDataStore(validator.getElideTableConfig().getTables(),
+                   validator.getElideNamespaceConfig().getNamespaceconfigs(), true);
 
            aggregationDataStoreBuilder.dynamicCompiledClasses(metaDataStore.getDynamicTypes());
         } else {

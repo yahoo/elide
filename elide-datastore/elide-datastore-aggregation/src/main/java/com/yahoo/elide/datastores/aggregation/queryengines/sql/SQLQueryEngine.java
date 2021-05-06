@@ -18,9 +18,10 @@ import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
-import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Optimizer;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -113,6 +114,11 @@ public class SQLQueryEngine extends QueryEngine {
     };
 
     @Override
+    protected Namespace constructNamespace(com.yahoo.elide.core.type.Package namespacePackage) {
+        return new Namespace(namespacePackage);
+    }
+
+    @Override
     protected Table constructTable(Type<?> entityClass, EntityDictionary metaDataDictionary) {
 
         String dbConnectionName = null;
@@ -137,9 +143,9 @@ public class SQLQueryEngine extends QueryEngine {
     }
 
     @Override
-    public ColumnProjection constructDimensionProjection(Dimension dimension,
-                                                         String alias,
-                                                         Map<String, Argument> arguments) {
+    public DimensionProjection constructDimensionProjection(Dimension dimension,
+                                                            String alias,
+                                                            Map<String, Argument> arguments) {
         return new SQLDimensionProjection(dimension, alias, arguments, true);
     }
 
@@ -190,13 +196,13 @@ public class SQLQueryEngine extends QueryEngine {
 
         @Override
         public void close() {
-            stmts.forEach(stmt -> cancelAndCloseSoftly(stmt));
+            stmts.forEach(SQLQueryEngine::cancelAndCloseSoftly);
             closeSoftly(conn);
         }
 
         @Override
         public void cancel() {
-            stmts.forEach(stmt -> cancelSoftly(stmt));
+            stmts.forEach(SQLQueryEngine::cancelSoftly);
         }
     }
 
@@ -350,12 +356,12 @@ public class SQLQueryEngine extends QueryEngine {
         for (MetricProjection metricProjection : query.getMetricProjections()) {
             QueryPlan queryPlan = metricProjection.resolve(query);
             if (queryPlan != null) {
-                if (mergedPlan != null && mergedPlan.isNested() && !queryPlan.canNest(referenceTable)) {
+                if (mergedPlan != null && mergedPlan.isNested() && !queryPlan.canNest(metaDataStore)) {
                     //TODO - Run multiple queries.
                     throw new UnsupportedOperationException("Cannot merge a nested query with a metric that "
                             + "doesn't support nesting");
                 }
-                mergedPlan = queryPlan.merge(mergedPlan, referenceTable);
+                mergedPlan = queryPlan.merge(mergedPlan, metaDataStore);
             }
         }
 
@@ -379,7 +385,7 @@ public class SQLQueryEngine extends QueryEngine {
                 continue;
             }
 
-            if (optimizer.canOptimize(query, queryReferenceTable)) {
+            if (optimizer.canOptimize(merged, queryReferenceTable)) {
                 merged = optimizer.optimize(merged, queryReferenceTable);
             }
         }
@@ -442,7 +448,7 @@ public class SQLQueryEngine extends QueryEngine {
                         .stream()
                         .map(SQLColumnProjection.class::cast)
                         .filter(SQLColumnProjection::isProjected)
-                        .map((column) -> column.toSQL(query, queryReferenceTable))
+                        .map((column) -> column.toSQL(query, metaDataStore))
                         .collect(Collectors.joining(", "));
 
         if (groupByDimensions.isEmpty()) {

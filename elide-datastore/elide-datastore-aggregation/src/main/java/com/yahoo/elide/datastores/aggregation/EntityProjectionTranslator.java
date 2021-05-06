@@ -20,7 +20,7 @@ import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressi
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
-import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -43,7 +43,7 @@ public class EntityProjectionTranslator {
     private QueryEngine engine;
 
     private EntityProjection entityProjection;
-    private Set<ColumnProjection> dimensionProjections;
+    private Set<DimensionProjection> dimensionProjections;
     private Set<TimeDimensionProjection> timeDimensions;
     private List<MetricProjection> metrics;
     private FilterExpression whereFilter;
@@ -160,8 +160,8 @@ public class EntityProjectionTranslator {
     /**
      * Gets dimensions except time dimensions based on relationships and attributes from {@link EntityProjection}.
      */
-    private Set<ColumnProjection> resolveNonTimeDimensions() {
-        Set<ColumnProjection> attributes = entityProjection.getAttributes().stream()
+    private Set<DimensionProjection> resolveNonTimeDimensions() {
+        Set<DimensionProjection> attributes = entityProjection.getAttributes().stream()
                 .filter(attribute -> queriedTable.getTimeDimension(attribute.getName()) == null)
                 .map(dimAttr -> {
                     Dimension dimension = queriedTable.getDimension(dimAttr.getName());
@@ -175,7 +175,7 @@ public class EntityProjectionTranslator {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        Set<ColumnProjection> relationships = entityProjection.getRelationships().stream()
+        Set<DimensionProjection> relationships = entityProjection.getRelationships().stream()
                 .map(dimAttr -> {
                     Dimension dimension = queriedTable.getDimension(dimAttr.getName());
                     return dimension == null

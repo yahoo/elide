@@ -100,15 +100,15 @@ public class GraphQLConversionUtils {
             return Scalars.GraphQLString;
         } else if (clazz.equals(ClassType.of(BigDecimal.class))) {
             return Scalars.GraphQLBigDecimal;
-        } else {
-            return otherClassToScalarType(clazz);
         }
+        return otherClassToScalarType(clazz);
     }
 
     private GraphQLScalarType otherClassToScalarType(Type<?> clazz) {
         if (scalarMap.containsKey(clazz)) {
             return scalarMap.get(clazz);
-        } else if (ClassType.DATE_TYPE.isAssignableFrom(clazz)) {
+        }
+        if (ClassType.DATE_TYPE.isAssignableFrom(clazz)) {
             return GraphQLScalars.GRAPHQL_DATE_TYPE;
         }
         return null;
@@ -477,7 +477,7 @@ public class GraphQLConversionUtils {
     }
 
     /**
-     * Build an Argument list object for the given entity
+     * Build an Argument list object for the given entity.
      * @param entityClass The Entity class to which this attribute belongs to.
      * @param dictionary The dictionary that contains the runtime type information for the parent class.
      * @return Newly created GraphQLArgument Collection for the given entity

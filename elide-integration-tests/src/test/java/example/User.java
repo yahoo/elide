@@ -55,7 +55,7 @@ public class User extends BaseId {
     }
 
     /**
-     * Sets the password.  This is intended for Hibernate
+     * Sets the password.  This is intended for Hibernate.
      * @param reversedPassword reversed password
      */
     public void setReversedPassword(String reversedPassword) {

@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -153,9 +154,8 @@ public class DynamicConfigSchemaValidator {
 
     private static JsonSchema loadSchema(JsonSchemaFactory factory, String resource) {
 
-        try {
-            return factory.getJsonSchema(
-                            new ObjectMapper().readTree(DynamicConfigHelpers.class.getResourceAsStream(resource)));
+        try (InputStream is = DynamicConfigHelpers.class.getResourceAsStream(resource)) {
+            return factory.getJsonSchema(new ObjectMapper().readTree(is));
         } catch (IOException | ProcessingException e) {
             log.error("Error loading schema file " + resource + " to verify");
             throw new IllegalStateException(e.getMessage());

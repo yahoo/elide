@@ -574,7 +574,7 @@ public final class GraphQLDSL {
     private static SelectionSet relayWrap(List<SelectionSet> selectionSet) {
         Edges edges = new Edges(
                 selectionSet.stream()
-                        .map(set -> new Node(set))
+                        .map(Node::new)
                         .collect(Collectors.toList())
         );
 
