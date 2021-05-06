@@ -27,7 +27,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 import javax.ws.rs.core.MultivaluedMap;
@@ -57,7 +56,7 @@ public class RelationshipTerminalState extends BaseState {
         JsonApiDocument doc = new JsonApiDocument();
         RequestScope requestScope = state.getRequestScope();
         JsonApiMapper mapper = requestScope.getMapper();
-        Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
+        MultivaluedMap<String, String> queryParams = requestScope.getQueryParams();
 
         Map<String, Relationship> relationships = record.toResource(parentProjection).getRelationships();
         if (relationships != null && relationships.containsKey(relationshipName)) {

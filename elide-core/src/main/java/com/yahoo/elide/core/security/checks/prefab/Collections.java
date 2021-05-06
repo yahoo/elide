@@ -12,14 +12,19 @@ import com.yahoo.elide.core.security.checks.OperationCheck;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * Checks to ensure that collections are only modified in a prescribed manner.
  */
 public class Collections {
 
+    private static Predicate<? super ChangeSpec> changeSpecIsCollection = c -> c.getModified() instanceof Collection;
+
     // Suppresses default constructor, ensuring non-instantiability.
     private Collections() {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -31,14 +36,10 @@ public class Collections {
 
         @Override
         public boolean ok(T record, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            if (!changeSpecIsCollection(changeSpec)) {
-                return false;
-            }
-
-            Collection<?> originalCollection = (Collection<?>) changeSpec.get().getOriginal();
-            Collection<?> modifiedCollection = (Collection<?>) changeSpec.get().getModified();
-
-            return collectionIsSuperset(originalCollection, modifiedCollection);
+            return changeSpec
+                    .filter(changeSpecIsCollection)
+                    .filter(c -> collectionIsSuperset(c::getOriginal, c::getModified))
+                    .isPresent();
         }
     }
 
@@ -51,24 +52,18 @@ public class Collections {
 
         @Override
         public boolean ok(T record, RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            if (!changeSpecIsCollection(changeSpec)) {
-                return false;
-            }
-
-            Collection<?> originalCollection = (Collection<?>) changeSpec.get().getOriginal();
-            Collection<?> modifiedCollection = (Collection<?>) changeSpec.get().getModified();
-
-            return collectionIsSuperset(modifiedCollection, originalCollection);
+            return changeSpec
+                    .filter(changeSpecIsCollection)
+                    .filter(c -> collectionIsSuperset(c::getModified, c::getOriginal))
+                    .isPresent();
         }
 
     }
 
-    private static boolean collectionIsSuperset(Collection<?> baseCollection, Collection<?> potentialSuperset) {
-        return (potentialSuperset.size() >= baseCollection.size())
-                && (potentialSuperset.containsAll(baseCollection));
-    }
-
-    private static boolean changeSpecIsCollection(Optional<ChangeSpec> changeSpec) {
-        return changeSpec.filter(c -> c.getModified() instanceof Collection).isPresent();
+    private static boolean collectionIsSuperset(Supplier<?> base, Supplier<?> potential) {
+        Collection<?> baseCollection = (Collection<?>) base.get();
+        Collection<?> potentialSuperset = (Collection<?>) potential.get();
+        return potentialSuperset.size() >= baseCollection.size()
+                && potentialSuperset.containsAll(baseCollection);
     }
 }

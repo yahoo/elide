@@ -286,7 +286,7 @@ public class QueryRunner {
             requestScope.runQueuedPostCommitTriggers();
 
             if (log.isTraceEnabled()) {
-                requestScope.getPermissionExecutor().printCheckStats();
+                requestScope.getPermissionExecutor().logCheckStats();
             }
 
             return ElideResponse.builder().responseCode(HttpStatus.SC_OK).body(mapper.writeValueAsString(result))

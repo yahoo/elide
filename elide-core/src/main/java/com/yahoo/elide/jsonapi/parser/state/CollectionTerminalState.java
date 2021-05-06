@@ -70,7 +70,7 @@ public class CollectionTerminalState extends BaseState {
     public Supplier<Pair<Integer, JsonNode>> handleGet(StateContext state) {
         JsonApiDocument jsonApiDocument = new JsonApiDocument();
         RequestScope requestScope = state.getRequestScope();
-        Optional<MultivaluedMap<String, String>> queryParams = requestScope.getQueryParams();
+        MultivaluedMap<String, String> queryParams = requestScope.getQueryParams();
 
         Set<PersistentResource> collection =
                 getResourceCollection(requestScope).toList(LinkedHashSet::new).blockingGet();
@@ -84,7 +84,8 @@ public class CollectionTerminalState extends BaseState {
 
         Pagination pagination = parentProjection.getPagination();
         if (parent.isPresent()) {
-            pagination = parentProjection.getRelationship(relationName.get()).get().getProjection().getPagination();
+            pagination = parentProjection.getRelationship(relationName.orElseThrow(IllegalStateException::new))
+                    .get().getProjection().getPagination();
         }
 
         // Add pagination meta data
@@ -136,7 +137,8 @@ public class CollectionTerminalState extends BaseState {
 
         if (parent.isPresent()) {
             collection = parent.get().getRelationCheckedFiltered(
-                    parentProjection.getRelationship(relationName.get()).orElseThrow(IllegalStateException::new));
+                    parentProjection.getRelationship(relationName.orElseThrow(IllegalStateException::new))
+                            .orElseThrow(IllegalStateException::new));
         } else {
             collection = PersistentResource.loadRecords(
                 parentProjection,
@@ -153,7 +155,7 @@ public class CollectionTerminalState extends BaseState {
 
         if (parent.isPresent()) {
             Type<?> parentClass = parent.get().getResourceType();
-            String relationshipName = relationName.get();
+            String relationshipName = relationName.orElseThrow(IllegalStateException::new);
             RelationshipType type = dictionary.getRelationshipType(parentClass, relationshipName);
 
             return new Data<>(resources, type);

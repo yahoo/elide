@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -35,9 +34,9 @@ public class IncludedProcessor implements DocumentProcessor {
      */
     @Override
     public void execute(JsonApiDocument jsonApiDocument, PersistentResource resource,
-                        Optional<MultivaluedMap<String, String>> queryParams) {
+                        MultivaluedMap<String, String> queryParams) {
         if (isPresent(queryParams, INCLUDE)) {
-            addIncludedResources(jsonApiDocument, resource, queryParams.get().get(INCLUDE));
+            addIncludedResources(jsonApiDocument, resource, queryParams.get(INCLUDE));
         }
     }
 
@@ -47,12 +46,12 @@ public class IncludedProcessor implements DocumentProcessor {
      */
     @Override
     public void execute(JsonApiDocument jsonApiDocument, Set<PersistentResource> resources,
-                        Optional<MultivaluedMap<String, String>> queryParams) {
+                        MultivaluedMap<String, String> queryParams) {
         if (isPresent(queryParams, INCLUDE)) {
 
             // Process include for each resource
             resources.forEach(resource ->
-                    addIncludedResources(jsonApiDocument, resource, queryParams.get().get(INCLUDE)));
+                    addIncludedResources(jsonApiDocument, resource, queryParams.get(INCLUDE)));
         }
     }
 
@@ -107,7 +106,7 @@ public class IncludedProcessor implements DocumentProcessor {
         });
     }
 
-    private static boolean isPresent(Optional<MultivaluedMap<String, String>> queryParams, String key) {
-        return queryParams.isPresent() && queryParams.get().get(key) != null;
+    private static boolean isPresent(MultivaluedMap<String, String> queryParams, String key) {
+        return queryParams != null && queryParams.get(key) != null;
     }
 }

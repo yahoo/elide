@@ -98,6 +98,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      */
     public <A extends Annotation> Expression buildAnyFieldExpressions(final PersistentResource resource,
                                                                        final Class<A> annotationClass,
+                                                                       Set<String> requestedFields,
                                                                        final ChangeSpec changeSpec) {
 
 
@@ -112,6 +113,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                 (checkFn) -> buildAnyFieldExpression(
                         PermissionCondition.create(annotationClass, resource, (String) null, changeSpec),
                         checkFn,
+                        requestedFields,
                         resource.getRequestScope()
                 );
 
@@ -158,13 +160,15 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      */
     public <A extends Annotation> Expression buildUserCheckAnyExpression(final Type<?> resourceClass,
                                                                          final Class<A> annotationClass,
+                                                                         Set<String> requestedFields,
                                                                          final RequestScope requestScope) {
 
         final Function<Check, Expression> leafBuilderFn = (check) ->
                 new CheckExpression(check, null, requestScope, null, cache);
 
         return buildAnyFieldExpression(
-                        new PermissionCondition(annotationClass, resourceClass), leafBuilderFn, requestScope);
+                        new PermissionCondition(annotationClass, resourceClass), leafBuilderFn,
+                requestedFields, requestScope);
     }
 
     /**
@@ -195,10 +199,12 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      * @param condition       The condition which triggered this permission expression check
      * @param checkFn         check function
      * @param scope           RequestScope
+     * @param requestedFields The list of requested fields
      * @return Expressions
      */
     private Expression buildAnyFieldExpression(final PermissionCondition condition,
             final Function<Check, Expression> checkFn,
+            final Set<String> requestedFields,
             final RequestScope scope) {
 
         Type<?> resourceClass = condition.getEntityClass();
@@ -209,21 +215,47 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
 
         OrExpression allFieldsExpression = new OrExpression(FAILURE, null);
         List<String> fields = entityDictionary.getAllFields(resourceClass);
-        Set<String> sparseFields = scope.getSparseFields().get(entityDictionary.getJsonAliasFor(resourceClass));
+
+        boolean entityExpressionUsed = false;
+        boolean fieldExpressionUsed = false;
 
         for (String field : fields) {
-
-            if (sparseFields != null && !sparseFields.contains(field)) {
+            if (requestedFields != null && !requestedFields.contains(field)) {
                 continue;
             }
 
             ParseTree fieldPermissions = entityDictionary.getPermissionsForField(resourceClass, field, annotationClass);
             Expression fieldExpression = normalizedExpressionFromParseTree(fieldPermissions, checkFn);
 
+            if (fieldExpression == null) {
+
+                if (entityExpressionUsed) {
+                    continue;
+                }
+
+                if (entityExpression == null) {
+                    //One field had no permissions set - so we allow the action.
+                    return SUCCESSFUL_EXPRESSION;
+                }
+
+                fieldExpression = entityExpression;
+                entityExpressionUsed = true;
+            } else {
+                fieldExpressionUsed = true;
+            }
+
             allFieldsExpression = new OrExpression(allFieldsExpression, fieldExpression);
         }
 
-        return new AnyFieldExpression(condition, entityExpression, allFieldsExpression);
+        if (! fieldExpressionUsed) {
+            //If there are no permissions, allow access...
+            if (entityExpression == null) {
+                return SUCCESSFUL_EXPRESSION;
+            }
+            return new AnyFieldExpression(condition, entityExpression);
+        }
+
+        return new AnyFieldExpression(condition, allFieldsExpression);
     }
 
     /**
@@ -233,7 +265,11 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      * @param requestScope requestScope
      * @return Expressions
      */
-    public FilterExpression buildAnyFieldFilterExpression(Type<?> forType, RequestScope requestScope) {
+    public FilterExpression buildAnyFieldFilterExpression(
+            Type<?> forType,
+            RequestScope requestScope,
+            Set<String> requestedFields
+    ) {
 
         Class<? extends Annotation> annotationClass = ReadPermission.class;
         ParseTree classPermissions = entityDictionary.getPermissionsForClass(forType, annotationClass);
@@ -246,10 +282,9 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
             entityFilter = null;
         }
 
-        Set<String> sparseFields = requestScope.getSparseFields().get(entityDictionary.getJsonAliasFor(forType));
         FilterExpression allFieldsFilterExpression = entityFilter;
         List<String> fields = entityDictionary.getAllFields(forType).stream()
-                .filter(field -> sparseFields == null || sparseFields.contains(field))
+                .filter(field -> requestedFields == null || requestedFields.contains(field))
                 .collect(Collectors.toList());
 
         for (String field : fields) {

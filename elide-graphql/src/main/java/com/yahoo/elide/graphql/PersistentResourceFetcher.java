@@ -287,7 +287,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
             parentEntity = Optional.empty();
         }
         LinkedHashSet<Entity> entitySet = new LinkedHashSet<>();
-        for (Map<String, Object> input : context.data.get()) {
+        for (Map<String, Object> input : context.data.orElseThrow(IllegalStateException::new)) {
             entitySet.add(new Entity(parentEntity, input, entityClass, context.requestScope));
         }
 
@@ -454,8 +454,8 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
      * @return Persistence Resource object
      */
     private PersistentResource<?> updateAttributes(PersistentResource<?> toUpdate,
-                                                Entity entity,
-                                                Set<Entity.Attribute> attributes) {
+            Entity entity,
+            Set<Entity.Attribute> attributes) {
         EntityDictionary dictionary = entity.getRequestScope().getDictionary();
         Type<?> entityClass = entity.getEntityClass();
         String idFieldName = dictionary.getIdFieldName(entityClass);

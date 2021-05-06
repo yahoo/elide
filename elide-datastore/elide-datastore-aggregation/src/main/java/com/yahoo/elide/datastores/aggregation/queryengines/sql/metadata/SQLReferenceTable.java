@@ -10,7 +10,6 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
@@ -46,8 +45,6 @@ public class SQLReferenceTable {
     //Stores  MAP<Queryable, MAP<fieldName, Reference Tree>>
     protected final Map<Queryable, Map<String, List<Reference>>> referenceTree = new HashMap<>();
 
-    protected final Map<Queryable, TableContext> globalTablesContext = new HashMap<>();
-
     public SQLReferenceTable(MetaDataStore metaDataStore) {
         this(metaDataStore,
              metaDataStore.getMetaData(ClassType.of(Table.class))
@@ -74,15 +71,6 @@ public class SQLReferenceTable {
                   next = next.getSource();
                } while (next.isNested());
            });
-
-        queryables
-           .forEach(queryable -> {
-               Queryable next = queryable;
-               do {
-                  initializeTableContext(next);
-                  next = next.getSource();
-               } while (!next.isRoot());
-           });
     }
 
     /**
@@ -93,27 +81,6 @@ public class SQLReferenceTable {
      */
     public List<Reference> getReferenceTree(Queryable queryable, String fieldName) {
         return referenceTree.get(queryable).getOrDefault(fieldName, new ArrayList<>());
-    }
-
-    public TableContext getGlobalTableContext(Queryable queryable) {
-        return globalTablesContext.get(queryable);
-    }
-
-    private void initializeTableContext(Queryable queryable) {
-
-        Queryable key = queryable.getSource();
-
-        // Contexts are NOT stored by their sources.
-        if (!globalTablesContext.containsKey(queryable)) {
-
-            TableContext tableCtx = TableContext.builder()
-                            .queryable(queryable)
-                            .alias(key.getAlias())
-                            .metaDataStore(metaDataStore)
-                            .build();
-
-            globalTablesContext.put(queryable, tableCtx);
-        }
     }
 
     /**

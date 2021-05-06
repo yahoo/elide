@@ -9,12 +9,12 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 
 import com.yahoo.elide.core.utils.TypeHelper;
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -37,7 +37,7 @@ public class SQLPhysicalColumnProjection implements SQLColumnProjection, Dimensi
     }
 
     @Override
-    public String toSQL(Queryable query, SQLReferenceTable table) {
+    public String toSQL(Queryable query, MetaDataStore metaDataStore) {
         SQLDialect dialect = query.getConnectionDetails().getDialect();
         return TypeHelper.getFieldAlias(applyQuotes(query.getSource().getAlias(), dialect), applyQuotes(name, dialect));
     }

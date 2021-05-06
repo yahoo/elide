@@ -68,7 +68,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                     .collect(Collectors.toCollection(LinkedHashSet::new));
 
             Set<Pair<ColumnProjection, Set<ColumnProjection>>> allProjectionsNested = allProjections.stream()
-                    .map((projection) -> projection.nest(query, lookupTable, true))
+                    .map((projection) -> projection.nest(query, lookupTable.getMetaDataStore(), true))
                     .collect(Collectors.toCollection(LinkedHashSet::new));
 
             Set<ColumnProjection> allOuterProjections = allProjectionsNested.stream()
@@ -165,6 +165,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
 
     @Override
     public boolean canOptimize(Query query, SQLReferenceTable lookupTable) {
+        MetaDataStore store = lookupTable.getMetaDataStore();
         //For simplicity, we will not optimize an already nested query.
         if (query.isNested()) {
             return false;
@@ -172,7 +173,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
 
         //Every column must be nestable.
         if (! query.getColumnProjections().stream()
-                .allMatch((projection) -> projection.canNest(query, lookupTable))) {
+                .allMatch((projection) -> projection.canNest(query, store))) {
             return false;
         }
 
@@ -198,7 +199,6 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
 
         //Next check the projection for required joins.
         for (ColumnProjection column: query.getColumnProjections()) {
-            MetaDataStore store = lookupTable.getMetaDataStore();
             boolean requiresJoin = SQLColumnProjection.requiresJoin(query.getSource(), column, store);
 
             if (requiresJoin) {

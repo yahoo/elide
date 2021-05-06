@@ -196,13 +196,13 @@ public class SQLQueryEngine extends QueryEngine {
 
         @Override
         public void close() {
-            stmts.forEach(stmt -> cancelAndCloseSoftly(stmt));
+            stmts.forEach(SQLQueryEngine::cancelAndCloseSoftly);
             closeSoftly(conn);
         }
 
         @Override
         public void cancel() {
-            stmts.forEach(stmt -> cancelSoftly(stmt));
+            stmts.forEach(SQLQueryEngine::cancelSoftly);
         }
     }
 
@@ -356,12 +356,12 @@ public class SQLQueryEngine extends QueryEngine {
         for (MetricProjection metricProjection : query.getMetricProjections()) {
             QueryPlan queryPlan = metricProjection.resolve(query);
             if (queryPlan != null) {
-                if (mergedPlan != null && mergedPlan.isNested() && !queryPlan.canNest(referenceTable)) {
+                if (mergedPlan != null && mergedPlan.isNested() && !queryPlan.canNest(metaDataStore)) {
                     //TODO - Run multiple queries.
                     throw new UnsupportedOperationException("Cannot merge a nested query with a metric that "
                             + "doesn't support nesting");
                 }
-                mergedPlan = queryPlan.merge(mergedPlan, referenceTable);
+                mergedPlan = queryPlan.merge(mergedPlan, metaDataStore);
             }
         }
 
@@ -448,7 +448,7 @@ public class SQLQueryEngine extends QueryEngine {
                         .stream()
                         .map(SQLColumnProjection.class::cast)
                         .filter(SQLColumnProjection::isProjected)
-                        .map((column) -> column.toSQL(query, queryReferenceTable))
+                        .map((column) -> column.toSQL(query, metaDataStore))
                         .collect(Collectors.joining(", "));
 
         if (groupByDimensions.isEmpty()) {
