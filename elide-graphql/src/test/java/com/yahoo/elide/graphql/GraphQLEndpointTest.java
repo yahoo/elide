@@ -299,7 +299,7 @@ public class GraphQLEndpointTest {
     }
 
     @Test
-    void testCannotReadRestrictedField() throws IOException {
+    void testCannotReadRestrictedField() throws JSONException {
         String graphQLRequest = document(
                 selection(
                         field(
@@ -311,8 +311,11 @@ public class GraphQLEndpointTest {
                 )
         ).toQuery();
 
+        //Empty response because the collection is skipped because of failed user check.
+        String expected = "{\"data\":{\"book\":{\"edges\":[]}}}";
+
         Response response = endpoint.post(uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));
-        assertHasErrors(response);
+        assert200EqualBody(response, expected);
     }
 
 
