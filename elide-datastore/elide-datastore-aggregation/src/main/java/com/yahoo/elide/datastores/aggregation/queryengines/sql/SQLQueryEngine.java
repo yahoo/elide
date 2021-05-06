@@ -196,13 +196,13 @@ public class SQLQueryEngine extends QueryEngine {
 
         @Override
         public void close() {
-            stmts.forEach(stmt -> cancelAndCloseSoftly(stmt));
+            stmts.forEach(SQLQueryEngine::cancelAndCloseSoftly);
             closeSoftly(conn);
         }
 
         @Override
         public void cancel() {
-            stmts.forEach(stmt -> cancelSoftly(stmt));
+            stmts.forEach(SQLQueryEngine::cancelSoftly);
         }
     }
 
