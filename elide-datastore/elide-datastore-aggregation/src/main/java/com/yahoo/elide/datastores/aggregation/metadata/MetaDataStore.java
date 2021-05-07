@@ -23,7 +23,6 @@ import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
-import com.yahoo.elide.datastores.aggregation.annotation.NamespaceMeta;
 import com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage;
 import com.yahoo.elide.datastores.aggregation.dynamic.TableType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Argument;
@@ -189,20 +188,20 @@ public class MetaDataStore implements DataStore {
             this.metadataDictionary.bindEntity(cls, Collections.singleton(Join.class));
             this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);
 
-            NamespaceMeta namespaceMeta = cls.getPackage().getDeclaredAnnotation(NamespaceMeta.class);
+            Include include = (Include) EntityDictionary.getFirstPackageAnnotation(cls, Arrays.asList(Include.class));
 
             //Register all the default namespaces.
-            if (namespaceMeta == null) {
+            if (include == null) {
                 Pair<String, String> registration = Pair.of(DEFAULT, version);
                 namespacesToBind.put(registration,
                         new NamespacePackage(DEFAULT, "Default Namespace", DEFAULT, version));
             } else {
-                Pair<String, String> registration = Pair.of(cls.getPackage().getName(), version);
+                Pair<String, String> registration = Pair.of(include.name(), version);
                 namespacesToBind.put(registration,
                         new NamespacePackage(
                                 cls.getPackage().getName(),
-                                namespaceMeta.description(),
-                                namespaceMeta.friendlyName(),
+                                include.description(),
+                                include.friendlyName(),
                                 version));
             }
         });

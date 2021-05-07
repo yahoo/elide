@@ -11,7 +11,6 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Package;
-import com.yahoo.elide.datastores.aggregation.annotation.NamespaceMeta;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
