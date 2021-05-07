@@ -33,6 +33,7 @@ import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Named;
 import com.yahoo.elide.modelconfig.model.NamespaceConfig;
 import com.yahoo.elide.modelconfig.model.Table;
+import com.yahoo.elide.modelconfig.model.TableSource;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.cli.CommandLine;
@@ -646,38 +647,38 @@ public class DynamicConfigValidator implements DynamicConfiguration {
      * Validates tableSource is in format: modelName.logicalColumnName and refers to a defined model and a defined
      * column with in that model.
      */
-    private void validateTableSource(Table table, String tableSource) {
-        if (isBlank(tableSource)) {
+    private void validateTableSource(Table table, TableSource tableSource) {
+        if (tableSource == null) {
             return; // Nothing to validate
         }
 
-        String[] split = tableSource.split("\\.");
-        if (split.length != 2) {
-            throw new IllegalStateException("Invalid tableSource : " + tableSource + " . "
-                            + "More than one dot(.) found, tableSource must be in format: modelName.logicalColumnName");
-        }
-        String modelName = split[0];
-        String fieldName = split[1];
+        String modelName = Table.getModelName(tableSource.getTable(), tableSource.getNamespace());
 
         if (elideTableConfig.hasTable(modelName)) {
             Table lookupTable = elideTableConfig.getTable(modelName);
-            if (!lookupTable.hasField(fieldName)) {
-                throw new IllegalStateException("Invalid tableSource : " + tableSource + " . Field : " + fieldName
-                                + " is undefined for hjson model: " + modelName);
+            if (!lookupTable.hasField(tableSource.getColumn())) {
+                throw new IllegalStateException("Invalid tableSource : "
+                        + tableSource
+                        + " . Field : "
+                        + tableSource.getColumn()
+                        + " is undefined for hjson model: "
+                        + tableSource.getTable());
             }
             return;
         }
 
         //TODO - once tables support versions - replace NO_VERSION with apiVersion
         if (hasStaticModel(modelName, NO_VERSION)) {
-            if (!hasStaticField(modelName, NO_VERSION, fieldName)) {
-                throw new IllegalStateException("Invalid tableSource : " + tableSource + " . Field : " + fieldName
-                                + " is undefined for non-hjson model: " + modelName);
+            if (!hasStaticField(modelName, NO_VERSION, tableSource.getColumn())) {
+                throw new IllegalStateException("Invalid tableSource : " + tableSource
+                        + " . Field : " + tableSource.getColumn()
+                        + " is undefined for non-hjson model: " + tableSource.getTable());
             }
             return;
         }
 
-        throw new IllegalStateException("Invalid tableSource : " + tableSource + " . Undefined model: " + modelName);
+        throw new IllegalStateException("Invalid tableSource : " + tableSource
+                + " . Undefined model: " + tableSource.getTable());
     }
 
     /**
