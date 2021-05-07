@@ -109,9 +109,9 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.name", equalTo("SalesNamespace"))
                 .body("data.attributes.friendlyName", equalTo("Sales"))
                 .body("data.relationships.tables.data.id", contains(
-                        "orderDetails",
-                        "customerDetails",
-                        "deliveryDetails"));
+                        "SalesNamespace_orderDetails",
+                        "SalesNamespace_customerDetails",
+                        "SalesNamespace_deliveryDetails"));
         given()
                 .accept("application/vnd.api+json")
                 .get("/namespace/default")
@@ -213,10 +213,11 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
         // Verify Table Arguments
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/orderDetails?include=arguments")
+                .get("/table/SalesNamespace_orderDetails?include=arguments")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body("data.relationships.arguments.data.id", containsInAnyOrder("orderDetails.denominator"));
+                .body("data.relationships.arguments.data.id",
+                        containsInAnyOrder("SalesNamespace_orderDetails.denominator"));
     }
 
     @Test
@@ -354,12 +355,12 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
         // Verify Metric Arguments
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/orderDetails/metrics/orderDetails.orderTotal?include=arguments")
+                .get("/table/SalesNamespace_orderDetails/metrics/SalesNamespace_orderDetails.orderTotal?include=arguments")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("orderTotal"))
                 .body("data.attributes.friendlyName", equalTo("orderTotal"))
-                .body("data.relationships.arguments.data.id", containsInAnyOrder("orderDetails.orderTotal.precision"));
+                .body("data.relationships.arguments.data.id", containsInAnyOrder("SalesNamespace_orderDetails.orderTotal.precision"));
     }
 
     @Test
@@ -403,7 +404,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/orderDetails/dimensions/orderDetails.customerRegion")
+                .get("/table/SalesNamespace_orderDetails/dimensions/SalesNamespace_orderDetails.customerRegion")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("customerRegion"))
@@ -414,7 +415,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/orderDetails/dimensions/orderDetails.customerRegionRegion")
+                .get("/table/SalesNamespace_orderDetails/dimensions/SalesNamespace_orderDetails.customerRegionRegion")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("customerRegionRegion"))

@@ -9,8 +9,8 @@ package com.yahoo.elide.datastores.aggregation.dynamic;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import com.yahoo.elide.annotation.ApiVersion;
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.datastores.aggregation.annotation.NamespaceMeta;
 import com.yahoo.elide.modelconfig.model.NamespaceConfig;
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +28,7 @@ public class NamespacePackageTest {
         ReadPermission readPermission = (ReadPermission) namespace.getDeclaredAnnotation(ReadPermission.class);
         assertEquals("Prefab.Role.All", readPermission.expression());
 
-        NamespaceMeta meta = (NamespaceMeta) namespace.getDeclaredAnnotation(NamespaceMeta.class);
+        Include meta = (Include) namespace.getDeclaredAnnotation(Include.class);
         assertEquals("A test Namespace", meta.description());
         assertNull(meta.friendlyName());
 

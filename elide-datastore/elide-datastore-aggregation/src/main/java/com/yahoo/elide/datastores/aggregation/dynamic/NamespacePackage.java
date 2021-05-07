@@ -7,9 +7,9 @@ package com.yahoo.elide.datastores.aggregation.dynamic;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.annotation.ApiVersion;
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.type.Package;
-import com.yahoo.elide.datastores.aggregation.annotation.NamespaceMeta;
 import com.yahoo.elide.modelconfig.model.NamespaceConfig;
 
 import java.lang.annotation.Annotation;
@@ -77,11 +77,21 @@ public class NamespacePackage implements Package {
 
         });
 
-        annotations.put(NamespaceMeta.class, new NamespaceMeta() {
+        annotations.put(Include.class, new Include() {
 
             @Override
             public Class<? extends Annotation> annotationType() {
-                return NamespaceMeta.class;
+                return Include.class;
+            }
+
+            @Override
+            public boolean rootLevel() {
+                return true;
+            }
+
+            @Override
+            public String description() {
+                return namespace.getDescription();
             }
 
             @Override
@@ -90,8 +100,8 @@ public class NamespacePackage implements Package {
             }
 
             @Override
-            public String description() {
-                return namespace.getDescription();
+            public String name() {
+                return namespace.getName();
             }
         });
 

@@ -10,7 +10,6 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Package;
-import com.yahoo.elide.datastores.aggregation.annotation.NamespaceMeta;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -54,11 +53,11 @@ public class Namespace {
         name = pkg.getName();
         tables = new HashSet<>();
 
-        NamespaceMeta meta = pkg.getDeclaredAnnotation(NamespaceMeta.class);
-        if (meta != null) {
-            friendlyName = (meta.friendlyName() == null || meta.friendlyName().isEmpty()) ? name
-                    : meta.friendlyName();
-            description = meta.description();
+        Include include = pkg.getDeclaredAnnotation(Include.class);
+        if (include != null) {
+            friendlyName = (include.friendlyName() == null || include.friendlyName().isEmpty()) ? name
+                    : include.friendlyName();
+            description = include.description();
         } else {
             friendlyName = name;
             description = null;
