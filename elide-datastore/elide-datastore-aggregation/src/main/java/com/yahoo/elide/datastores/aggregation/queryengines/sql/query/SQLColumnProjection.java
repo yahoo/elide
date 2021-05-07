@@ -49,7 +49,7 @@ public interface SQLColumnProjection extends ColumnProjection {
                         .column(this)
                         .build();
 
-        return context.resolve();
+        return context.resolve(getExpression());
     }
 
     /**
@@ -68,7 +68,7 @@ public interface SQLColumnProjection extends ColumnProjection {
                         .column(this)
                         .build();
 
-        return context.resolve();
+        return context.resolve(getExpression());
     }
 
     @Override

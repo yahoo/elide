@@ -83,14 +83,10 @@ public class ColumnContext extends Context {
             return ColumnContext.builder()
                             .withColumn(this, newColumn)
                             .build()
-                            .resolve();
+                            .resolve(newColumn.getExpression());
         }
 
         throw new HandlebarsException(new Throwable("Couldn't find: " + key));
-    }
-
-    public String resolve() {
-        return resolve(this.getColumn().getExpression());
     }
 
     public static class ColumnContextBuilder {

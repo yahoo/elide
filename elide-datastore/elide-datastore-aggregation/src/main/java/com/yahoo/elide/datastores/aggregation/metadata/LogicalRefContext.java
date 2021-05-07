@@ -73,14 +73,10 @@ public class LogicalRefContext extends Context {
             return LogicalRefContext.builder()
                             .withColumn(this, newColumn)
                             .build()
-                            .resolve();
+                            .resolve(newColumn.getExpression());
         }
 
         throw new HandlebarsException(new Throwable("Couldn't find: " + key));
-    }
-
-    public String resolve() {
-        return resolve(this.getColumn().getExpression());
     }
 
     @Override
