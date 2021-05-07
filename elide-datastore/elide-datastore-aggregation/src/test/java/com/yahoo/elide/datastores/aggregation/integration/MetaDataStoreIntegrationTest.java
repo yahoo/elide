@@ -274,10 +274,10 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .body("data.attributes.valueSourceType", equalTo("TABLE"))
                 .body("data.attributes.columnType", equalTo("FORMULA"))
-                .body("data.attributes.tableSource",  equalTo("subcountry.nickName"))
                 .body("data.attributes.expression",  equalTo("{{country.nickName}}"))
                 .body("data.attributes.values", equalTo(Collections.emptyList()))
                 .body("data.attributes.cardinality", equalTo("UNKNOWN"))
+                .body("data.relationships.tableSource.data.id",  equalTo("subCountry.name"))
                 .statusCode(HttpStatus.SC_OK);
     }
 
@@ -407,7 +407,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.name", equalTo("customerRegionRegion"))
                 .body("data.attributes.cardinality", equalTo("UNKNOWN"))
                 .body("data.attributes.expression", equalTo("{{customer.region.region}}"))
-                .body("data.attributes.tableSource", equalTo("regionDetails.region"))
-                .body("data.attributes.valueSourceType", equalTo("TABLE"));
+                .body("data.attributes.valueSourceType", equalTo("TABLE"))
+                .body("data.relationships.tableSource.data.id", equalTo("regionDetails.region"));
     }
 }

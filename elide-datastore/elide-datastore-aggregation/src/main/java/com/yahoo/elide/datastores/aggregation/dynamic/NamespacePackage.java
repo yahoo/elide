@@ -21,8 +21,8 @@ import java.util.Map;
  */
 public class NamespacePackage implements Package {
 
-    public static String EMPTY = "";
-    public static String DEFAULT = "default";
+    public static final String EMPTY = "";
+    public static final String DEFAULT = "default";
     public static NamespacePackage DEFAULT_NAMESPACE =
             new NamespacePackage(EMPTY, "Default Namespace", DEFAULT, NO_VERSION);
 

@@ -9,6 +9,7 @@ import static com.yahoo.elide.core.type.ClassType.BIGDECIMAL_TYPE;
 import static com.yahoo.elide.core.type.ClassType.BOOLEAN_TYPE;
 import static com.yahoo.elide.core.type.ClassType.LONG_TYPE;
 import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
+import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT;
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT_NAMESPACE;
 import static com.yahoo.elide.datastores.aggregation.timegrains.Time.TIME_TYPE;
 import static com.yahoo.elide.modelconfig.model.Type.TIME;
@@ -26,6 +27,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
+import com.yahoo.elide.datastores.aggregation.annotation.TableSource;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
@@ -45,6 +47,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -399,8 +402,8 @@ public class TableType implements Type<DynamicModelInstance> {
                 }
 
                 @Override
-                public String tableSource() {
-                    return argument.getTableSource();
+                public TableSource tableSource() {
+                    return buildTableSource(argument.getTableSource());
                 }
 
                 @Override
@@ -450,8 +453,8 @@ public class TableType implements Type<DynamicModelInstance> {
             }
 
             @Override
-            public String tableSource() {
-                return "";
+            public TableSource tableSource() {
+                return buildTableSource(null);
             }
 
             @Override
@@ -519,6 +522,40 @@ public class TableType implements Type<DynamicModelInstance> {
         return annotations;
     }
 
+    private static TableSource buildTableSource(com.yahoo.elide.modelconfig.model.TableSource source) {
+        if (source == null) {
+            return buildTableSource(
+                    new com.yahoo.elide.modelconfig.model.TableSource("", DEFAULT, "", new HashSet<>()));
+        }
+        return new TableSource() {
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return TableSource.class;
+            }
+
+            @Override
+            public String table() {
+                return source.getTable();
+            }
+
+            @Override
+            public String namespace() {
+                return source.getNamespace();
+            }
+
+            @Override
+            public String column() {
+                return source.getColumn();
+            }
+
+            @Override
+            public String[] suggestionColumns() {
+                return source.getSuggestionColumns().toArray(new String[0]);
+            }
+        };
+    }
+
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Dimension dimension) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
@@ -548,8 +585,8 @@ public class TableType implements Type<DynamicModelInstance> {
             }
 
             @Override
-            public String tableSource() {
-                return dimension.getTableSource() == null ? "" : dimension.getTableSource();
+            public TableSource tableSource() {
+                return buildTableSource(dimension.getTableSource());
             }
 
             @Override

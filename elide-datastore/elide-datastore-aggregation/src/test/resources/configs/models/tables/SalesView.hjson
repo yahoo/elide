@@ -82,7 +82,10 @@
           type: TEXT
           definition: '{{customer.region.region}}'
           readAccess: operator
-          tableSource: regionDetails.region
+          tableSource: {
+            table: regionDetails
+            column: region
+          }
         }
         {
           name: zipCode

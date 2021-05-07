@@ -17,6 +17,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TableSource;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
@@ -164,6 +165,28 @@ public abstract class QueryEngine {
         metaDataStore.getModelsToBind().stream()
                 .map(model -> constructTable(metaDataStore.getNamespace(model), model, metadataDictionary))
                 .forEach(metaDataStore::addTable);
+
+        //Populate table sources.
+        metaDataStore.getTables().forEach(table -> {
+            table.getColumns().forEach(column -> {
+
+                //Populate column sources.
+                column.setTableSource(TableSource.fromDefinition(
+                        column.getTableSourceDefinition(),
+                        table.getVersion(),
+                        metaDataStore
+                ));
+
+                //Populate column argument sources.
+                column.getArguments().forEach(argument -> {
+                    argument.setTableSource(TableSource.fromDefinition(
+                            argument.getTableSourceDefinition(),
+                            table.getVersion(),
+                            metaDataStore
+                    ));
+                });
+            });
+        });
     }
 
     /**

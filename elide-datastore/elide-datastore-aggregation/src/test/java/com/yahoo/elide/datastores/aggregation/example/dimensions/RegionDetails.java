@@ -43,7 +43,7 @@ public class RegionDetails {
     }
 
     @ReadPermission(expression = "Principal is guest user")
-    @ColumnMeta(description = "region", category = "", values = {}, tags = {}, tableSource = "")
+    @ColumnMeta(description = "region", category = "", values = {}, tags = {})
     @DimensionFormula("{{$region}}")
     public String getRegion() {
         return region;

@@ -11,11 +11,10 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
  * The definition of Argument.
  */
 public @interface ArgumentDefinition {
-
     String name() default "";
     String description() default "";
     ValueType type() default ValueType.TEXT;
-    String tableSource() default "";
+    TableSource tableSource() default @TableSource(table = "", column = "");
     String [] values() default {};
     String defaultValue() default "";
 }
