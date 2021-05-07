@@ -21,7 +21,6 @@ import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
-import com.yahoo.elide.datastores.aggregation.query.TemplateProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 
 import java.util.LinkedHashSet;
@@ -63,13 +62,12 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
          * Creating new visitor with correct ColumnProjection, so that default arguments can be extracted correctly.
          */
         ColumnProjection column = reference.getColumn();
-        ColumnProjection newColumn = TemplateProjection.builder()
-                        .arguments(getColumnArgMap(this.context.getMetaDataStore(),
-                                                   this.context.getQueryable(),
-                                                   this.context.getQueriedColArgs(),
-                                                   column.getName(),
-                                                   emptyMap()))
-                        .build();
+        ColumnProjection newColumn = column.withArguments(getColumnArgMap(
+                        this.context.getMetaDataStore(),
+                        this.context.getQueryable(),
+                        this.context.getQueriedColArgs(),
+                        column.getName(),
+                        emptyMap()));
 
         ColumnContext newCtx = ColumnContext.builder()
                         .withColumn(context, newColumn)

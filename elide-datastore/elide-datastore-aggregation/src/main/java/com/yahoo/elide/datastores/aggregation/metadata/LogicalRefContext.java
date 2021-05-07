@@ -11,7 +11,6 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.datastores.aggregation.query.TemplateProjection;
 import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.Options;
 
@@ -64,14 +63,12 @@ public class LogicalRefContext extends Context {
         ColumnProjection columnProj = this.queryable.getColumnProjection(keyStr);
         if (columnProj != null) {
 
-            ColumnProjection newColumn = TemplateProjection.builder()
-                            .expression(columnProj.getExpression())
-                            .arguments(getColumnArgMap(this.getMetaDataStore(),
-                                                       this.getQueryable(),
-                                                       this.getQueriedColArgs(),
-                                                       columnProj.getName(),
-                                                       fixedArgs))
-                            .build();
+            ColumnProjection newColumn = columnProj.withArguments(getColumnArgMap(
+                            this.getMetaDataStore(),
+                            this.getQueryable(),
+                            this.getQueriedColArgs(),
+                            columnProj.getName(),
+                            fixedArgs));
 
             return LogicalRefContext.builder()
                             .withColumn(this, newColumn)

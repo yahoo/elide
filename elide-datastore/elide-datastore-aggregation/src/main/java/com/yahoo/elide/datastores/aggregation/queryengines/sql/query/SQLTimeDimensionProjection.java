@@ -134,22 +134,12 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
 
     @Override
     public SQLTimeDimensionProjection withProjected(boolean projected) {
-        return withExpression(expression, projected);
+        return newSQLTimeDimensionProjection(expression, arguments, projected);
     }
 
     @Override
     public SQLTimeDimensionProjection withExpression(String expression, boolean projected) {
-        return SQLTimeDimensionProjection.builder()
-                .name(name)
-                .alias(alias)
-                .valueType(valueType)
-                .columnType(columnType)
-                .expression(expression)
-                .arguments(arguments)
-                .projected(projected)
-                .grain(grain)
-                .timeZone(timeZone)
-                .build();
+        return newSQLTimeDimensionProjection(expression, arguments, projected);
     }
 
     private TimeDimensionGrain getGrainFromArguments(Map<String, Argument> arguments, TimeDimension column) {
@@ -170,5 +160,31 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     @Override
     public boolean isProjected() {
         return projected;
+    }
+
+    @Override
+    public ColumnProjection withArguments(Map<String, Argument> arguments) {
+        return newSQLTimeDimensionProjection(expression, arguments, projected);
+    }
+
+    @Override
+    public ColumnProjection withExpressionAndArguments(String expression, Map<String, Argument> arguments) {
+        return newSQLTimeDimensionProjection(expression, arguments, projected);
+    }
+
+    private SQLTimeDimensionProjection newSQLTimeDimensionProjection(String expression,
+                                                                     Map<String, Argument> arguments,
+                                                                     boolean projected) {
+        return SQLTimeDimensionProjection.builder()
+                        .name(name)
+                        .alias(alias)
+                        .valueType(valueType)
+                        .columnType(columnType)
+                        .expression(expression)
+                        .arguments(arguments)
+                        .projected(projected)
+                        .grain(grain)
+                        .timeZone(timeZone)
+                        .build();
     }
 }

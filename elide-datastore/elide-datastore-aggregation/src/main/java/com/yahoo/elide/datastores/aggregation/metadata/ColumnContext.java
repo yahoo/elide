@@ -13,7 +13,6 @@ import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.S
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.datastores.aggregation.query.TemplateProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 import com.github.jknack.handlebars.HandlebarsException;
 
@@ -74,14 +73,12 @@ public class ColumnContext extends Context {
         ColumnProjection columnProj = this.queryable.getColumnProjection(keyStr);
         if (columnProj != null) {
 
-            ColumnProjection newColumn = TemplateProjection.builder()
-                            .expression(columnProj.getExpression())
-                            .arguments(getColumnArgMap(this.getMetaDataStore(),
-                                                       this.getQueryable(),
-                                                       this.getQueriedColArgs(),
-                                                       columnProj.getName(),
-                                                       fixedArgs))
-                            .build();
+            ColumnProjection newColumn = columnProj.withArguments(getColumnArgMap(
+                            this.getMetaDataStore(),
+                            this.getQueryable(),
+                            this.getQueriedColArgs(),
+                            columnProj.getName(),
+                            fixedArgs));
 
             return ColumnContext.builder()
                             .withColumn(this, newColumn)

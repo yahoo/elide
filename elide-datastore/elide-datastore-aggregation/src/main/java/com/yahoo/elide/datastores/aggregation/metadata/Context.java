@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.datastores.aggregation.metadata;
 
-import static com.yahoo.elide.core.request.Argument.getArgumentMapFromArgumentSet;
 import static com.yahoo.elide.core.request.Argument.getArgumentMapFromString;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
 import static java.util.Collections.emptyMap;
@@ -35,6 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -112,14 +112,13 @@ public abstract class Context {
     public static Map<String, Argument> getDefaultArgumentsMap(
                     Set<com.yahoo.elide.datastores.aggregation.metadata.models.Argument> availableArgs) {
 
-         Set<Argument> arguments = availableArgs.stream()
+         return availableArgs.stream()
                         .filter(arg -> arg.getDefaultValue() != null)
                         .map(arg -> Argument.builder()
                                         .name(arg.getName())
                                         .value(arg.getDefaultValue())
                                         .build())
-                        .collect(Collectors.toSet());
-         return getArgumentMapFromArgumentSet(arguments);
+                        .collect(Collectors.toMap(Argument::getName, Function.identity()));
     }
 
     protected static Map<String, Object> getTableArgMap(Queryable queryable) {

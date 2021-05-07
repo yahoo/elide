@@ -124,6 +124,21 @@ public interface ColumnProjection extends Serializable {
     <T extends ColumnProjection> T withProjected(boolean projected);
 
     /**
+     *
+     * @param arguments
+     * @return The cloned column.
+     */
+    ColumnProjection withArguments(Map<String, Argument> arguments);
+
+    /**
+     *
+     * @param expression
+     * @param arguments
+     * @return The cloned column.
+     */
+    ColumnProjection withExpressionAndArguments(String expression, Map<String, Argument> arguments);
+
+    /**
      * Returns whether or not this column is projected in the output (included in SELECT) or
      * only referenced in a filter expression.
      * @return True if part of the output projection.  False otherwise.
