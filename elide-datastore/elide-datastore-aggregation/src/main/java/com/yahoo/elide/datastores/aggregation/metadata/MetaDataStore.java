@@ -125,7 +125,7 @@ public class MetaDataStore implements DataStore {
 
             TableType tableType = new TableType(table, namespacesToBind.get(registration));
             dynamicTypes.add(tableType);
-            typeMap.put(table.getName(), tableType);
+            typeMap.put(table.getGlobalName(), tableType);
             table.getJoins().stream().forEach(join ->
                 joinNames.add(join.getTo())
             );

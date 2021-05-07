@@ -659,13 +659,6 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         String modelName = split[0];
         String fieldName = split[1];
 
-        //TODO - temporary hack until we make table source an object.
-        /*
-        if (! table.getNamespace().equals(DEFAULT)) {
-            modelName = table.getNamespace() + "_" + modelName;
-        }
-         */
-
         if (elideTableConfig.hasTable(modelName)) {
             Table lookupTable = elideTableConfig.getTable(modelName);
             if (!lookupTable.hasField(fieldName)) {
@@ -698,12 +691,13 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
                 Set<String> joinedTables = table.getJoins()
                         .stream()
+                        //TODO - NOT SURE
                         .map(Join::getTo)
                         .collect(Collectors.toSet());
 
                 Set<String> connections = elideTableConfig.getTables()
                         .stream()
-                        .filter(t -> joinedTables.contains(t.getName()))
+                        .filter(t -> joinedTables.contains(t.getGlobalName()))
                         .map(Table::getDbConnectionName)
                         .collect(Collectors.toSet());
 
@@ -723,8 +717,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
         Set<String> names = new HashSet<>();
         configs.forEach(obj -> {
-            if (!names.add(obj.getName().toLowerCase(Locale.ENGLISH))) {
-                throw new IllegalStateException(errorMsg + obj.getName());
+            if (!names.add(obj.getGlobalName().toLowerCase(Locale.ENGLISH))) {
+                throw new IllegalStateException(errorMsg + obj.getGlobalName());
             }
         });
     }
