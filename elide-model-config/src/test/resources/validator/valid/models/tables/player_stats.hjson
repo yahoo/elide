@@ -81,7 +81,7 @@
            name : teamRegion
            type : TEXT
            definition : '{{playerTeam.region}}'
-           tableSource: PlayerStatsChild.teamRegion
+           tableSource: PlayerNamespace_PlayerStatsChild.teamRegion
          },
          {
            name : createdOn

@@ -21,6 +21,7 @@
         {
           name: customer
           to: customerDetails
+          namespace: SalesNamespace
           type: Left
           // References Physical Columns
           definition: '{{$customer_id}} = {{ customer.$id}}'
@@ -28,6 +29,7 @@
         {
           name: delivery
           to: deliveryDetails
+          namespace: SalesNamespace
           kind: toOne
           // References Logical Columns, multiple join condition
           definition: '''

@@ -106,7 +106,7 @@ public class HandlebarsHydratorTest {
             + "           name : teamRegion\n"
             + "           type : TEXT\n"
             + "           definition : '{{playerTeam.region}}'\n"
-            + "           tableSource: PlayerStatsChild.teamRegion\n"
+            + "           tableSource: PlayerNamespace_PlayerStatsChild.teamRegion\n"
             + "         },\n"
             + "         {\n"
             + "           name : createdOn\n"
