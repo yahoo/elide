@@ -206,27 +206,15 @@ public class Table implements Named {
      * @return Parent model for this model
      */
     public Table getParent(ElideTableConfig elideTableConfig) {
-        return elideTableConfig.getTable(getGlobalExtend());
+        return elideTableConfig.getTable(getExtend());
     }
 
     @Override
     public String getName() {
-        return name;
-    }
-
-    @Override
-    public String getGlobalName() {
         return getNamespacePrefix() + name;
     }
 
-    /**
-     * Return the globally unique table name for the inherited table.
-     * @return The globally unique name for the inherited table or null.
-     */
-    public String getGlobalExtend() {
-        if (extend == null || extend.isEmpty()) {
-            return extend;
-        }
+    public String getExtend() {
         return getNamespacePrefix() + extend;
     }
 

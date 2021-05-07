@@ -659,6 +659,13 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         String modelName = split[0];
         String fieldName = split[1];
 
+        //TODO - temporary hack until we make table source an object.
+        /*
+        if (! table.getNamespace().equals(DEFAULT)) {
+            modelName = table.getNamespace() + "_" + modelName;
+        }
+         */
+
         if (elideTableConfig.hasTable(modelName)) {
             Table lookupTable = elideTableConfig.getTable(modelName);
             if (!lookupTable.hasField(fieldName)) {
