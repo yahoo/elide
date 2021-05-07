@@ -53,6 +53,10 @@ public class Join implements Named {
     @JsonProperty("definition")
     private String definition;
 
+    /**
+     * Returns the destination table of the join.
+     * @return The global name of the destination join table.
+     */
     public String getTo() {
         if (namespace == null || namespace.isEmpty() || namespace.equals(DEFAULT)) {
             return to;
