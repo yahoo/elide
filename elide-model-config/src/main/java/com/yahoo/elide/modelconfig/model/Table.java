@@ -16,7 +16,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.Singular;
 
 import java.util.ArrayList;
@@ -53,7 +52,6 @@ import java.util.Set;
 @Data
 @EqualsAndHashCode()
 @AllArgsConstructor
-@NoArgsConstructor
 @Builder
 public class Table implements Named {
 
@@ -71,11 +69,11 @@ public class Table implements Named {
 
     @Builder.Default
     @JsonProperty("isFact")
-    private Boolean isFact = true;
+    private Boolean isFact;
 
     @Builder.Default
     @JsonProperty("hidden")
-    private Boolean hidden = false;
+    private Boolean hidden;
 
     @JsonProperty("description")
     private String description;
@@ -91,7 +89,7 @@ public class Table implements Named {
 
     @Builder.Default
     @JsonProperty("readAccess")
-    private String readAccess = "Prefab.Role.All";
+    private String readAccess;
 
     @Builder.Default
     @JsonProperty("namespace")
@@ -99,20 +97,20 @@ public class Table implements Named {
 
     @JsonProperty("joins")
     @Singular
-    private List<Join> joins = new ArrayList<>();
+    private List<Join> joins;
 
     @JsonProperty("measures")
     @Singular
-    private List<Measure> measures = new ArrayList<>();
+    private List<Measure> measures;
 
     @JsonProperty("dimensions")
     @Singular
-    private List<Dimension> dimensions = new ArrayList<>();
+    private List<Dimension> dimensions;
 
     @Builder.Default
     @JsonProperty("tags")
     @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<String> tags = new LinkedHashSet<>();
+    private Set<String> tags;
 
     @Builder.Default
     @JsonProperty("hints")
@@ -121,7 +119,7 @@ public class Table implements Named {
 
     @JsonProperty("arguments")
     @Singular
-    private List<Argument> arguments = new ArrayList<>();
+    private List<Argument> arguments;
 
     @JsonProperty("extend")
     private String extend;
@@ -131,6 +129,17 @@ public class Table implements Named {
 
     @JsonProperty("table")
     private String table;
+
+    public Table() {
+        this.isFact = true;
+        this.hidden = false;
+        this.readAccess = "Prefab.Role.All";
+        this.joins = new ArrayList<>();
+        this.measures = new ArrayList<>();
+        this.dimensions = new ArrayList<>();
+        this.tags = new LinkedHashSet<>();
+        this.arguments = new ArrayList<>();
+    }
 
     /**
      * Returns description of the table object.

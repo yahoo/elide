@@ -13,7 +13,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -33,7 +32,6 @@ import java.util.Set;
 @Data
 @EqualsAndHashCode()
 @AllArgsConstructor
-@NoArgsConstructor
 @Builder
 public class Argument implements Named {
 
@@ -48,13 +46,17 @@ public class Argument implements Named {
 
     @JsonProperty("values")
     @JsonDeserialize(as = LinkedHashSet.class)
-    private Set<String> values = new LinkedHashSet<>();
+    private Set<String> values;
 
     @JsonProperty("tableSource")
     private String tableSource;
 
     @JsonProperty("default")
     private Object defaultValue;
+
+    public Argument() {
+        this.values = new LinkedHashSet<>();
+    }
 
     /**
      * Returns description of the argument.
