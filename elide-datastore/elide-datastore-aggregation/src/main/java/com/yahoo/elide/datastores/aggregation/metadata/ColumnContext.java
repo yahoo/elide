@@ -33,9 +33,6 @@ public class ColumnContext extends Context {
     private final MetaDataStore metaDataStore;
     private final Queryable queryable;
     private final String alias;
-
-    // Arguments provided for queried column.
-    private final Map<String, Argument> queriedColArgs;
     private final ColumnProjection column;
 
     @Override
@@ -54,7 +51,7 @@ public class ColumnContext extends Context {
         }
 
         if (keyStr.equals(COL_PREFIX)) {
-            return getColArgMap(this.column, this.queriedColArgs);
+            return getColArgMap(this.column);
         }
 
         if (this.queryable.hasJoin(keyStr)) {
@@ -64,42 +61,30 @@ public class ColumnContext extends Context {
                             .queryable(joinQueryable)
                             .alias(appendAlias(this.alias, keyStr))
                             .metaDataStore(this.metaDataStore)
-                            .queriedColArgs(this.queriedColArgs)
+                            .column(this.column)
                             .build();
 
             return joinCtx;
         }
 
-        ColumnProjection columnProj = this.queryable.getColumnProjection(keyStr);
-        if (columnProj != null) {
+        ColumnProjection column = this.queryable.getColumnProjection(keyStr);
+        if (column != null) {
 
-            ColumnProjection newColumn = columnProj.withArguments(getColumnArgMap(
-                            this.getMetaDataStore(),
-                            this.getQueryable(),
-                            this.getQueriedColArgs(),
-                            columnProj.getName(),
-                            fixedArgs));
+            ColumnProjection newColumn = column.withArguments(
+                            getColumnArgMap(this.getQueryable(),
+                                            column.getName(),
+                                            this.getColumn().getArguments(),
+                                            fixedArgs));
 
             return ColumnContext.builder()
-                            .withColumn(this, newColumn)
+                            .queryable(this.getQueryable())
+                            .alias(this.getAlias())
+                            .metaDataStore(this.getMetaDataStore())
+                            .column(newColumn)
                             .build()
                             .resolve(newColumn.getExpression());
         }
 
         throw new HandlebarsException(new Throwable("Couldn't find: " + key));
-    }
-
-    public static class ColumnContextBuilder {
-
-        public ColumnContextBuilder withColumn(ColumnContext context, ColumnProjection column) {
-
-            queryable(context.getQueryable());
-            alias(context.getAlias());
-            metaDataStore(context.getMetaDataStore());
-            queriedColArgs(context.getQueriedColArgs());
-            column(column);
-
-            return this;
-        }
     }
 }

@@ -12,7 +12,6 @@ import static java.util.Collections.emptyMap;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import com.yahoo.elide.core.request.Argument;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
@@ -135,37 +134,31 @@ public abstract class Context {
         return tblArgsMap;
     }
 
-    protected static Map<String, Object> getColArgMap(ColumnProjection column, Map<String, Argument> queriedColArgs) {
+    protected static Map<String, Object> getColArgMap(ColumnProjection column) {
         Map<String, Object> colArgsMap = new HashMap<>();
-        if (column == null) {
-            colArgsMap.put(ARGS_KEY, queriedColArgs);
-        } else {
-            colArgsMap.put(ARGS_KEY, column.getArguments());
-        }
-
+        colArgsMap.put(ARGS_KEY, column.getArguments());
         return colArgsMap;
     }
 
-    public static Map<String, Argument> getColumnArgMap(MetaDataStore metaDataStore,
-                                                        Queryable queryable,
-                                                        Map<String, Argument> queriedColArgs,
+    public static Map<String, Argument> getColumnArgMap(Queryable queryable,
                                                         String columnName,
+                                                        Map<String, Argument> callingColumnArgs,
                                                         Map<String, Argument> fixedArgs) {
 
         Map<String, Argument> columnArgMap = new HashMap<>();
 
-        Table table = metaDataStore.getTable(queryable.getSource().getName(),
-                                             queryable.getSource().getVersion());
-
-        // Add the default column argument values from metadata store.
-        if (table != null && table.getColumnMap().containsKey(columnName)) {
-            columnArgMap.putAll(getDefaultArgumentsMap(table.getColumnMap().get(columnName).getArguments()));
-        }
-
-        // Override default arguments with queried column's args.
-        columnArgMap.putAll(queriedColArgs);
-        // Any fixed arguments provided in sql helper gets preference.
-        columnArgMap.putAll(fixedArgs);
+        queryable.getSource()
+                 .getColumnProjection(columnName)
+                 .getArguments()
+                        .forEach((argName, arg) -> {
+                            if (fixedArgs.containsKey(argName)) {
+                                columnArgMap.put(argName, fixedArgs.get(argName));
+                            } else if (callingColumnArgs.containsKey(argName)) {
+                                columnArgMap.put(argName, callingColumnArgs.get(argName));
+                            } else {
+                                columnArgMap.put(argName, arg);
+                            }
+                        });
 
         return columnArgMap;
     }

@@ -291,7 +291,6 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
                         .queryable(query)
                         .alias(query.getSource().getAlias())
                         .metaDataStore(referenceTable.getMetaDataStore())
-                        .queriedColArgs(column.getArguments())
                         .column(column)
                         .build();
 

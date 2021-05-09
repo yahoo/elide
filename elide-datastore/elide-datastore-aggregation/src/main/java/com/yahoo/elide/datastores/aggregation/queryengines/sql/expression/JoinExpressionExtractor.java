@@ -62,15 +62,18 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
          * Creating new visitor with correct ColumnProjection, so that default arguments can be extracted correctly.
          */
         ColumnProjection column = reference.getColumn();
-        ColumnProjection newColumn = column.withArguments(getColumnArgMap(
-                        this.context.getMetaDataStore(),
-                        this.context.getQueryable(),
-                        this.context.getQueriedColArgs(),
-                        column.getName(),
-                        emptyMap()));
+
+        ColumnProjection newColumn = column.withArguments(
+                        getColumnArgMap(this.context.getQueryable(),
+                                        column.getName(),
+                                        this.context.getColumn().getArguments(),
+                                        emptyMap()));
 
         ColumnContext newCtx = ColumnContext.builder()
-                        .withColumn(context, newColumn)
+                        .queryable(this.context.getQueryable())
+                        .alias(this.context.getAlias())
+                        .metaDataStore(this.context.getMetaDataStore())
+                        .column(newColumn)
                         .build();
 
         JoinExpressionExtractor visitor = new JoinExpressionExtractor(newCtx);
@@ -115,7 +118,7 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
                                 .queryable(metaDataStore.getTable(joinClass))
                                 .alias(appendAlias(currentCtx.getAlias(), joinFieldName))
                                 .metaDataStore(currentCtx.getMetaDataStore())
-                                .queriedColArgs(currentCtx.getQueriedColArgs())
+                                .column(currentCtx.getColumn())
                                 .build();
 
                 onClause = ON + String.format("%s.%s = %s.%s",

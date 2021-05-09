@@ -32,9 +32,6 @@ public class LogicalRefContext extends Context {
 
     private final MetaDataStore metaDataStore;
     private final Queryable queryable;
-
-    // Arguments provided for queried column.
-    private final Map<String, Argument> queriedColArgs;
     private final ColumnProjection column;
 
     @Override
@@ -52,7 +49,7 @@ public class LogicalRefContext extends Context {
         }
 
         if (keyStr.equals(COL_PREFIX)) {
-            return getColArgMap(this.column, this.queriedColArgs);
+            return getColArgMap(this.column);
         }
 
         // Keep Join References as is
@@ -60,18 +57,19 @@ public class LogicalRefContext extends Context {
             return new StringValue(keyStr);
         }
 
-        ColumnProjection columnProj = this.queryable.getColumnProjection(keyStr);
-        if (columnProj != null) {
+        ColumnProjection column = this.queryable.getColumnProjection(keyStr);
+        if (column != null) {
 
-            ColumnProjection newColumn = columnProj.withArguments(getColumnArgMap(
-                            this.getMetaDataStore(),
-                            this.getQueryable(),
-                            this.getQueriedColArgs(),
-                            columnProj.getName(),
-                            fixedArgs));
+            ColumnProjection newColumn = column.withArguments(
+                            getColumnArgMap(this.getQueryable(),
+                                            column.getName(),
+                                            this.getColumn().getArguments(),
+                                            fixedArgs));
 
             return LogicalRefContext.builder()
-                            .withColumn(this, newColumn)
+                            .queryable(this.getQueryable())
+                            .metaDataStore(this.getMetaDataStore())
+                            .column(newColumn)
                             .build()
                             .resolve(newColumn.getExpression());
         }
@@ -88,18 +86,5 @@ public class LogicalRefContext extends Context {
         }
 
         return super.resolveSQLHandlebar(context, options);
-    }
-
-    public static class LogicalRefContextBuilder {
-
-        public LogicalRefContextBuilder withColumn(LogicalRefContext context, ColumnProjection column) {
-
-            queryable(context.getQueryable());
-            metaDataStore(context.getMetaDataStore());
-            queriedColArgs(context.getQueriedColArgs());
-            column(column);
-
-            return this;
-        }
     }
 }

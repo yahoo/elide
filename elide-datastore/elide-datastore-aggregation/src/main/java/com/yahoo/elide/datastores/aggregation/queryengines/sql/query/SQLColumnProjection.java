@@ -45,7 +45,6 @@ public interface SQLColumnProjection extends ColumnProjection {
                         .queryable(query)
                         .alias(query.getSource().getAlias())
                         .metaDataStore(metaDataStore)
-                        .queriedColArgs(getArguments())
                         .column(this)
                         .build();
 
@@ -64,7 +63,6 @@ public interface SQLColumnProjection extends ColumnProjection {
         LogicalRefContext context = LogicalRefContext.builder()
                         .queryable(query)
                         .metaDataStore(metaDataStore)
-                        .queriedColArgs(getArguments())
                         .column(this)
                         .build();
 

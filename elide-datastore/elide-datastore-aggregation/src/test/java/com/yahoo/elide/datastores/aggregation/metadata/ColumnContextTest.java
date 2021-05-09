@@ -85,22 +85,23 @@ public class ColumnContextTest {
         SQLMetricProjection testImpressions = (SQLMetricProjection) revenueFactTable
                         .getMetricProjection("testImpressions", "testImpressions", testImpressionsArg);
 
-        SQLMetricProjection revenueWithoutArg = (SQLMetricProjection) revenueFactTable.getMetricProjection("testRevenue");
+        SQLMetricProjection testRevenue = (SQLMetricProjection) revenueFactTable.getMetricProjection("testRevenue");
+        SQLMetricProjection testRevenueLogicalRef = (SQLMetricProjection) revenueFactTable.getMetricProjection("testRevenueLogicalRef");
+
         Map<String, Argument> revenueArg = new HashMap<>();
         revenueArg.put("format", Argument.builder().name("format").value("11D00").build());
         SQLMetricProjection revenueWithArg = (SQLMetricProjection) revenueFactTable.getMetricProjection("revenue",
                         "revenueWithArg", revenueArg);
 
-        SQLDimensionProjection conversionRate =
-                        (SQLDimensionProjection) revenueFactTable.getDimensionProjection("conversionRate");
-        SQLDimensionProjection rateProvider =
-                        (SQLDimensionProjection) revenueFactTable.getDimensionProjection("rateProvider");
+        SQLDimensionProjection conversionRate = (SQLDimensionProjection) revenueFactTable.getDimensionProjection("conversionRate");
+        SQLDimensionProjection rateProvider = (SQLDimensionProjection) revenueFactTable.getDimensionProjection("rateProvider");
 
         Query query = Query.builder()
                         .source(revenueFactTable)
                         .metricProjection(impressions)
                         .metricProjection(testImpressions)
-                        .metricProjection(revenueWithoutArg)
+                        .metricProjection(testRevenue)
+                        .metricProjection(testRevenueLogicalRef)
                         .metricProjection(revenueWithArg)
                         .dimensionProjection(conversionRate)
                         .dimensionProjection(rateProvider)
@@ -128,13 +129,22 @@ public class ColumnContextTest {
         assertEquals("MIN(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`impressions`)) * 0.1",
                         testImpressions.toSQL(expandedQuery, metaDataStore));
 
-        // definition: TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, {{$$column.args.format}})
-        // -> default value of 'format' argument in "conversionRate" column of joined table is used while
-        // resolving referenced column "rate.conversionRate".
+        // definition: {{revenue}}
+        // revenue definition: TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, {{$$column.args.format}})
         // -> default value of 'format' argument in "revenue" column is used while resolving this column.
+        // -> default value of 'format' argument in "revenue" column is passed to joined table's "conversionRate" column.
+        assertEquals("TO_CHAR(SUM(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`revenue`)"
+                        + " * TO_CHAR(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`conversion_rate`, 99D00), 99D00)",
+                        testRevenue.toSQL(expandedQuery, metaDataStore));
+
+        // definition: {{revenueUsingLogicalRef}}
+        // revenueUsingLogicalRef's definition: TO_CHAR(SUM({{$revenue}}) * {{conversionRate}}, {{$$column.args.format}})
+        // -> default value of 'format' argument in "revenueUsingLogicalRef" column is used while resolving this column.
+        // -> This column references "conversionRate" which references "rate.conversionRate". Since conversionRate doesn't have
+        // 'format' argument defined, default value of 'format' argument in joined table's "conversionRate" column is used.
         assertEquals("TO_CHAR(SUM(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`revenue`)"
                         + " * TO_CHAR(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`conversion_rate`, 9D0), 99D00)",
-                        revenueWithoutArg.toSQL(expandedQuery, metaDataStore));
+                        testRevenueLogicalRef.toSQL(expandedQuery, metaDataStore));
 
         // definition: TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, {{$$column.args.format}})
         // -> value of 'format' argument is passed in the query for "revenue" column and same is used for resolving
@@ -162,16 +172,14 @@ public class ColumnContextTest {
         SQLMetricProjection revenueUsingSqlHelper = (SQLMetricProjection) revenueFactTable
                         .getMetricProjection("revenueUsingSqlHelper", "revenueUsingSqlHelper", revenueArg);
 
-        SQLMetricProjection impressionsPerUSD =
-                        (SQLMetricProjection) revenueFactTable.getMetricProjection("impressionsPerUSD");
+        SQLMetricProjection impressionsPerUSD = (SQLMetricProjection) revenueFactTable.getMetricProjection("impressionsPerUSD");
 
         Map<String, Argument> impressionsPerUSDArg = new HashMap<>();
         impressionsPerUSDArg.put("format", Argument.builder().name("format").value("11D00").build());
         SQLMetricProjection impressionsPerUSDWithArg = (SQLMetricProjection) revenueFactTable
                         .getMetricProjection("impressionsPerUSD", "impressionsPerUSDWithArg", impressionsPerUSDArg);
         // impressionsPerUSD2 invokes 'revenueUsingSqlHelper' instead of 'revenue'.
-        SQLMetricProjection impressionsPerUSD2 = (SQLMetricProjection) revenueFactTable
-                        .getMetricProjection("impressionsPerUSD2", "impressionsPerUSD2", impressionsPerUSDArg);
+        SQLMetricProjection impressionsPerUSD2 = (SQLMetricProjection) revenueFactTable.getMetricProjection("impressionsPerUSD2");
 
         Query query = Query.builder()
                         .source(revenueFactTable)
@@ -205,22 +213,22 @@ public class ColumnContextTest {
         // -> pinned value (99999D00000) of 'format' argument in SQL helper is used while resolving invoked column
         // "revenue".
         // -> revenue definition is : TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, {{$$column.args.format}}),
-        // default value of 'format' argument is used while resolving referenced column "rate.conversionRate".
+        // Available value of 'format' argument in "revenue" column is passed to joined table's "conversionRate" column.
         assertEquals("TO_CHAR(SUM(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`impressions`)"
                         + " / TO_CHAR(SUM(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`revenue`)"
-                        + " * TO_CHAR(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`conversion_rate`, 9D0), 99999D00000), 999999D000000)",
+                        + " * TO_CHAR(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`conversion_rate`, 99999D00000), 99999D00000), 999999D000000)",
                         impressionsPerUSD.toSQL(expandedQuery, metaDataStore));
 
-        // -> when 'format' is passed in query column args, this value is used while resolving referenced column
-        // "rate.conversionRate".
+        // -> Even 'format' is passed in query column args, pinned value (9999D0000) of 'format' argument in SQL helper is used while
+        // resolving "revenue" column and same is passed to joined table's "conversionRate" column.
         assertEquals("TO_CHAR(SUM(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`impressions`)"
                         + " / TO_CHAR(SUM(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`revenue`)"
-                        + " * TO_CHAR(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`conversion_rate`, 11D00), 99999D00000), 999999D000000)",
+                        + " * TO_CHAR(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`conversion_rate`, 99999D00000), 99999D00000), 999999D000000)",
                         impressionsPerUSDWithArg.toSQL(expandedQuery, metaDataStore));
 
         // definition: TO_CHAR({{sql column='impressions[aggregation:SUM]'}} / {{sql column='revenueUsingSqlHelper[format:99999D00000]'}}, {{$$table.args.format}})
-        // -> even if 'format' is passed in query column args, since "rate.conversionRate" is invoked using SQL helper
-        // from "revenue" column, this uses the fixed value of 'format' argument provided in "revenue" definition.
+        // -> As "rate.conversionRate" is invoked using SQL helper from "revenue" column, this uses the fixed value(9999D0000) of
+        // 'format' argument provided in definition of "revenueUsingSqlHelper" column.
         assertEquals("TO_CHAR(SUM(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`impressions`)"
                         + " / TO_CHAR(SUM(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`revenue`)"
                         + " * TO_CHAR(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`conversion_rate`, 9999D0000), 99999D00000), 999999D000000)",
@@ -254,10 +262,18 @@ class RevenueFact {
     @MetricFormula("{{revenue}}")
     private BigDecimal testRevenue;
 
+    @MetricFormula("{{revenueUsingLogicalRef}}")
+    private BigDecimal testRevenueLogicalRef;
+
     @MetricFormula(value = "TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, {{$$column.args.format}})",
                     arguments = {@ArgumentDefinition(name = "format", type = ValueType.TEXT,
                                     defaultValue = "99D00")})
     private BigDecimal revenue;
+
+    @MetricFormula(value = "TO_CHAR(SUM({{$revenue}}) * {{conversionRate}}, {{$$column.args.format}})",
+                    arguments = {@ArgumentDefinition(name = "format", type = ValueType.TEXT,
+                                    defaultValue = "99D00")})
+    private BigDecimal revenueUsingLogicalRef;
 
     @MetricFormula(value = "TO_CHAR(SUM({{$revenue}}) * {{sql from='rate' column='conversionRate[format:9999D0000]'}}, {{$$column.args.format}})",
                     arguments = {@ArgumentDefinition(name = "format", type = ValueType.TEXT,

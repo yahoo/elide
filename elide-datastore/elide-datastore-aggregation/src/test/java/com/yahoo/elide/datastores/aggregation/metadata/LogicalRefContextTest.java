@@ -75,22 +75,23 @@ public class LogicalRefContextTest {
         SQLMetricProjection testImpressions = (SQLMetricProjection) revenueFactTable
                         .getMetricProjection("testImpressions", "testImpressions", testImpressionsArg);
 
-        SQLMetricProjection revenueWithoutArg = (SQLMetricProjection) revenueFactTable.getMetricProjection("testRevenue");
+        SQLMetricProjection testRevenue = (SQLMetricProjection) revenueFactTable.getMetricProjection("testRevenue");
+        SQLMetricProjection testRevenueLogicalRef = (SQLMetricProjection) revenueFactTable.getMetricProjection("testRevenueLogicalRef");
+
         Map<String, Argument> revenueArg = new HashMap<>();
         revenueArg.put("format", Argument.builder().name("format").value("11D00").build());
         SQLMetricProjection revenueWithArg = (SQLMetricProjection) revenueFactTable.getMetricProjection("revenue",
                         "revenueWithArg", revenueArg);
 
-        SQLDimensionProjection conversionRate =
-                        (SQLDimensionProjection) revenueFactTable.getDimensionProjection("conversionRate");
-        SQLDimensionProjection rateProvider =
-                        (SQLDimensionProjection) revenueFactTable.getDimensionProjection("rateProvider");
+        SQLDimensionProjection conversionRate = (SQLDimensionProjection) revenueFactTable.getDimensionProjection("conversionRate");
+        SQLDimensionProjection rateProvider = (SQLDimensionProjection) revenueFactTable.getDimensionProjection("rateProvider");
 
         Query query = Query.builder()
                         .source(revenueFactTable)
                         .metricProjection(impressions)
                         .metricProjection(testImpressions)
-                        .metricProjection(revenueWithoutArg)
+                        .metricProjection(testRevenue)
+                        .metricProjection(testRevenueLogicalRef)
                         .metricProjection(revenueWithArg)
                         .dimensionProjection(conversionRate)
                         .dimensionProjection(rateProvider)
@@ -116,10 +117,17 @@ public class LogicalRefContextTest {
         // resolving referenced column "impressions".
         assertEquals("MIN({{$impressions}})) * 0.1", testImpressions.resolveLogicalReferences(expandedQuery, metaDataStore));
 
-        // definition: TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, {{$$column.args.format}})
+        // definition: {{revenue}}
+        // revenue definition: TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, {{$$column.args.format}})
         // -> default value of 'format' argument in "revenue" column is used while resolving this column.
         assertEquals("TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, 99D00)",
-                        revenueWithoutArg.resolveLogicalReferences(expandedQuery, metaDataStore));
+                        testRevenue.resolveLogicalReferences(expandedQuery, metaDataStore));
+
+        // definition: {{revenueUsingLogicalRef}}
+        // revenueUsingLogicalRef's definition: TO_CHAR(SUM({{$revenue}}) * {{conversionRate}}, {{$$column.args.format}})
+        // -> default value of 'format' argument in "revenue" column is used while resolving this column.
+        assertEquals("TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, 99D00)",
+                        testRevenueLogicalRef.resolveLogicalReferences(expandedQuery, metaDataStore));
 
         // definition: TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, {{$$column.args.format}})
         // -> value of 'format' argument is passed in the query for "revenue" column and same is used for resolving
@@ -142,11 +150,9 @@ public class LogicalRefContextTest {
         SQLMetricProjection revenueUsingSqlHelper = (SQLMetricProjection) revenueFactTable
                         .getMetricProjection("revenueUsingSqlHelper", "revenueUsingSqlHelper", revenueArg);
 
-        SQLMetricProjection impressionsPerUSD =
-                        (SQLMetricProjection) revenueFactTable.getMetricProjection("impressionsPerUSD");
+        SQLMetricProjection impressionsPerUSD = (SQLMetricProjection) revenueFactTable.getMetricProjection("impressionsPerUSD");
         // impressionsPerUSD2 invokes 'revenueUsingSqlHelper' instead of 'revenue'.
-        SQLMetricProjection impressionsPerUSD2 =
-                        (SQLMetricProjection) revenueFactTable.getMetricProjection("impressionsPerUSD2");
+        SQLMetricProjection impressionsPerUSD2 =  (SQLMetricProjection) revenueFactTable.getMetricProjection("impressionsPerUSD2");
 
         Query query = Query.builder()
                         .source(revenueFactTable)
