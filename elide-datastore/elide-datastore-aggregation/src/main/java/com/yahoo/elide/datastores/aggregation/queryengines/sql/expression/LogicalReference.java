@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import lombok.Builder;
@@ -14,6 +15,7 @@ import lombok.Singular;
 import lombok.Value;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * A reference to a logical column in the same table.
@@ -30,6 +32,8 @@ public class LogicalReference implements Reference {
 
     @NonNull
     private ColumnProjection column;
+
+    private Map<String, Argument> fixedArguments;
 
     @Override
     public <T> T accept(ReferenceVisitor<T> visitor) {

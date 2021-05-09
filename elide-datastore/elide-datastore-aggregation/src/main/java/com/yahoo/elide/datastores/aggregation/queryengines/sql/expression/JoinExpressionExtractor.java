@@ -15,6 +15,7 @@ import static java.util.Collections.emptyMap;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
@@ -25,6 +26,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -63,11 +65,13 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
          */
         ColumnProjection column = reference.getColumn();
 
+        Map<String, Argument> fixedArgs = reference.getFixedArguments();
+
         ColumnProjection newColumn = column.withArguments(
                         getColumnArgMap(this.context.getQueryable(),
                                         column.getName(),
                                         this.context.getColumn().getArguments(),
-                                        emptyMap()));
+                                        fixedArgs == null ? emptyMap() : fixedArgs));
 
         ColumnContext newCtx = ColumnContext.builder()
                         .queryable(this.context.getQueryable())
