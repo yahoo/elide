@@ -49,7 +49,11 @@ public class LogicalRefContext extends Context {
         }
 
         if (keyStr.equals(COL_PREFIX)) {
-            return getColArgMap(this.column);
+            return this;
+        }
+
+        if (keyStr.equals(ARGS_KEY)) {
+            return this.column.getArguments();
         }
 
         // Keep Join References as is

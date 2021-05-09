@@ -12,7 +12,6 @@ import static java.util.Collections.emptyMap;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import com.yahoo.elide.core.request.Argument;
-import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
@@ -31,7 +30,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -41,7 +39,7 @@ import java.util.stream.Collectors;
  */
 @Getter
 @ToString
-public abstract class Context {
+public abstract class Context extends HashMap<String, Object> {
 
     public static final String COL_PREFIX = "$$column";
     public static final String TBL_PREFIX = "$$table";
@@ -97,7 +95,7 @@ public abstract class Context {
     protected String resolveHandlebars(Context context, String expression) {
 
         com.github.jknack.handlebars.Context ctx = com.github.jknack.handlebars.Context.newBuilder(context)
-                        .resolver(new ContextResolver(), new StringValueResolver())
+                        .resolver(new StringValueResolver())
                         .build();
 
         try {
@@ -134,12 +132,6 @@ public abstract class Context {
         return tblArgsMap;
     }
 
-    protected static Map<String, Object> getColArgMap(ColumnProjection column) {
-        Map<String, Object> colArgsMap = new HashMap<>();
-        colArgsMap.put(ARGS_KEY, column.getArguments());
-        return colArgsMap;
-    }
-
     public static Map<String, Argument> getColumnArgMap(Queryable queryable,
                                                         String columnName,
                                                         Map<String, Argument> callingColumnArgs,
@@ -161,27 +153,6 @@ public abstract class Context {
                         });
 
         return columnArgMap;
-    }
-
-    protected class ContextResolver implements ValueResolver {
-
-        @Override
-        public Object resolve(Object context, String name) {
-            if (context instanceof Context) {
-                return ((Context) context).get(name);
-            }
-            return UNRESOLVED;
-        }
-
-        @Override
-        public Object resolve(Object context) {
-            return null;
-        }
-
-        @Override
-        public Set<Entry<String, Object>> propertySet(Object context) {
-            return null;
-        }
     }
 
     /**

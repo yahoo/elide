@@ -51,7 +51,11 @@ public class ColumnContext extends Context {
         }
 
         if (keyStr.equals(COL_PREFIX)) {
-            return getColArgMap(this.column);
+            return this;
+        }
+
+        if (keyStr.equals(ARGS_KEY)) {
+            return this.column.getArguments();
         }
 
         if (this.queryable.hasJoin(keyStr)) {
