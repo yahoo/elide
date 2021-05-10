@@ -320,6 +320,25 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         return allFieldsFilterExpression;
     }
 
+    /**
+     * Build a filter expression for entity permission alone
+     * @param forType Resource class
+     * @param requestScope Request Scope
+     * @return
+     */
+    public FilterExpression buildEntityFilterExpression(Type<?> forType, RequestScope requestScope) {
+        Class<? extends Annotation> annotationClass = ReadPermission.class;
+        ParseTree classPermissions = entityDictionary.getPermissionsForClass(forType, annotationClass);
+        FilterExpression entityFilter = filterExpressionFromParseTree(classPermissions, forType, requestScope);
+        //case where the permissions does not have ANY filterExpressionCheck
+        if (entityFilter == FALSE_USER_CHECK_EXPRESSION
+                || entityFilter == NO_EVALUATION_EXPRESSION
+                || entityFilter == TRUE_USER_CHECK_EXPRESSION) {
+            return null;
+        }
+        return entityFilter;
+    }
+
     private Expression normalizedExpressionFromParseTree(ParseTree permissions, Function<Check, Expression> checkFn) {
         if (permissions == null) {
             return null;
