@@ -32,17 +32,25 @@ public class AggregationStorePermissionExecutor extends AbstractPermissionExecut
     }
 
     @Override
-    public <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass, PersistentResource resource, Set<String> requestedFields) {
+    public <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
+                                                                   PersistentResource resource,
+                                                                   Set<String> requestedFields) {
         return ExpressionResult.PASS;
     }
 
     @Override
-    public <A extends Annotation> ExpressionResult checkSpecificFieldPermissions(PersistentResource<?> resource, ChangeSpec changeSpec, Class<A> annotationClass, String field) {
+    public <A extends Annotation> ExpressionResult checkSpecificFieldPermissions(PersistentResource<?> resource,
+                                                                                 ChangeSpec changeSpec,
+                                                                                 Class<A> annotationClass,
+                                                                                 String field) {
         return checkUserPermissions(resource.getResourceType(), annotationClass, field);
     }
 
     @Override
-    public <A extends Annotation> ExpressionResult checkSpecificFieldPermissionsDeferred(PersistentResource<?> resource, ChangeSpec changeSpec, Class<A> annotationClass, String field) {
+    public <A extends Annotation> ExpressionResult checkSpecificFieldPermissionsDeferred(PersistentResource<?> resource,
+                                                                                         ChangeSpec changeSpec,
+                                                                                         Class<A> annotationClass,
+                                                                                         String field) {
         return null;
     }
 
@@ -54,7 +62,9 @@ public class AggregationStorePermissionExecutor extends AbstractPermissionExecut
      * @param annotationClass Annotation class
      */
     @Override
-    public <A extends Annotation> ExpressionResult checkUserPermissions(Type<?> resourceClass, Class<A> annotationClass, Set<String> requestedFields) {
+    public <A extends Annotation> ExpressionResult checkUserPermissions(Type<?> resourceClass,
+                                                                        Class<A> annotationClass,
+                                                                        Set<String> requestedFields) {
         Supplier<Expression> expressionSupplier = () ->
                 expressionBuilder.buildUserCheckAnyExpression(
                         resourceClass,
@@ -78,7 +88,9 @@ public class AggregationStorePermissionExecutor extends AbstractPermissionExecut
      * @param field The entity field
      */
     @Override
-    public <A extends Annotation> ExpressionResult checkUserPermissions(Type<?> resourceClass, Class<A> annotationClass, String field) {
+    public <A extends Annotation> ExpressionResult checkUserPermissions(Type<?> resourceClass,
+                                                                        Class<A> annotationClass,
+                                                                        String field) {
         Supplier<Expression> expressionSupplier = () ->
                 expressionBuilder.buildUserCheckFieldExpressions(
                         resourceClass,
