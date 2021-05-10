@@ -182,7 +182,7 @@ public abstract class AbstractPermissionExecutor implements PermissionExecutor {
      * @param annotationClass The permission associated with the expression.
      * @param mode The evaluation mode of the expression.
      */
-    private ExpressionResult executeExpressions(final Expression expression,
+    protected ExpressionResult executeExpressions(final Expression expression,
                                                 final Class<? extends Annotation> annotationClass,
                                                 Expression.EvaluationMode mode) {
 

@@ -18,6 +18,7 @@ import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.CheckInstantiator;
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.security.permissions.expressions.AndExpression;
 import com.yahoo.elide.core.security.permissions.expressions.AnyFieldExpression;
 import com.yahoo.elide.core.security.permissions.expressions.CheckExpression;
 import com.yahoo.elide.core.security.permissions.expressions.Expression;
@@ -149,6 +150,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
 
     /**
      * Build an expression that strictly evaluates UserCheck's and ignores other checks for an entity.
+     * expression = (field1Rule OR field2Rule ... OR fieldNRule)
      * <p>
      * NOTE: This method returns _NO_ commit checks.
      *
@@ -169,6 +171,40 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         return buildAnyFieldExpression(
                         new PermissionCondition(annotationClass, resourceClass), leafBuilderFn,
                 requestedFields, requestScope);
+    }
+
+    /**
+     * Build an expression that strictly evaluates UserCheck's and ignores other checks for an entity.
+     * expression = (entityRule AND (field1Rule OR field2Rule ... OR fieldNRule))
+     * <p>
+     * NOTE: This method returns _NO_ commit checks.
+     *
+     * @param resourceClass   Resource class
+     * @param annotationClass Annotation class
+     * @param scope    Request scope
+     * @param <A>             type parameter
+     * @return User check expression to evaluate
+     */
+    public <A extends Annotation> Expression buildUserCheckEntityAndAnyFieldExpression(final Type<?> resourceClass,
+                                                                                       final Class<A> annotationClass,
+                                                                                       Set<String> requestedFields,
+                                                                                       final RequestScope scope) {
+
+        final Function<Check, Expression> leafBuilderFn = (check) ->
+                new CheckExpression(check, null, scope, null, cache);
+
+        ParseTree classPermissions = entityDictionary.getPermissionsForClass(resourceClass, annotationClass);
+        Expression entityExpression = normalizedExpressionFromParseTree(classPermissions, leafBuilderFn);
+
+        Expression anyFiledExpression = buildAnyFieldExpression(
+                new PermissionCondition(annotationClass, resourceClass), leafBuilderFn,
+                requestedFields, scope);
+
+        if (entityExpression == null) {
+            return anyFiledExpression;
+        }
+
+        return new AndExpression(entityExpression, anyFiledExpression);
     }
 
     /**
@@ -327,8 +363,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      * @return
      */
     public FilterExpression buildEntityFilterExpression(Type<?> forType, RequestScope requestScope) {
-        Class<? extends Annotation> annotationClass = ReadPermission.class;
-        ParseTree classPermissions = entityDictionary.getPermissionsForClass(forType, annotationClass);
+        ParseTree classPermissions = entityDictionary.getPermissionsForClass(forType, ReadPermission.class);
         FilterExpression entityFilter = filterExpressionFromParseTree(classPermissions, forType, requestScope);
         //case where the permissions does not have ANY filterExpressionCheck
         if (entityFilter == FALSE_USER_CHECK_EXPRESSION
