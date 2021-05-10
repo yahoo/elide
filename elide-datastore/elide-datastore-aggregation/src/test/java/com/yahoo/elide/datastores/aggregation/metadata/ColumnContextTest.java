@@ -200,18 +200,15 @@ public class ColumnContextTest {
         // definition: TO_CHAR(SUM({{$revenue}}) * {{sql from='rate' column='conversionRate[format:9999D0000]'}}, {{$$column.args.format}})
         // -> value of 'format' argument is passed in the query for "revenueUsingSqlHelper" column and same is used for
         // resolving this column.
-        // -> pinned value (9999D0000) of 'format' argument in SQL helper is used while resolving referenced column
-        // "rate.conversionRate".
+        // -> pinned value (9999D0000) of 'format' argument in SQL helper is used while resolving referenced column "rate.conversionRate".
         assertEquals("TO_CHAR(SUM(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`revenue`)"
                         + " * TO_CHAR(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact_rate`.`conversion_rate`, 9999D0000), 11D00)",
                         revenueUsingSqlHelper.toSQL(expandedQuery, metaDataStore));
 
         // definition: TO_CHAR({{sql column='impressions[aggregation:SUM]'}} / {{sql column='revenue[format:99999D00000]'}}, {{$$table.args.format}})
         // -> {{$$table.args.format}} is resolved using query argument 'format' (999999D000000).
-        // -> pinned value (SUM) of 'aggregation' argument in SQL helper is used while resolving invoked column
-        // "impressions".
-        // -> pinned value (99999D00000) of 'format' argument in SQL helper is used while resolving invoked column
-        // "revenue".
+        // -> pinned value (SUM) of 'aggregation' argument in SQL helper is used while resolving invoked column "impressions".
+        // -> pinned value (99999D00000) of 'format' argument in SQL helper is used while resolving invoked column "revenue".
         // -> revenue definition is : TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, {{$$column.args.format}}),
         // Available value of 'format' argument in "revenue" column is passed to joined table's "conversionRate" column.
         assertEquals("TO_CHAR(SUM(`com_yahoo_elide_datastores_aggregation_metadata_RevenueFact`.`impressions`)"

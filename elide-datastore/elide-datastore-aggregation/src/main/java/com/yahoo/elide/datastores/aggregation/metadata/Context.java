@@ -7,7 +7,6 @@
 package com.yahoo.elide.datastores.aggregation.metadata;
 
 import static com.yahoo.elide.core.request.Argument.getArgumentMapFromString;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
 import static java.util.Collections.emptyMap;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -20,9 +19,7 @@ import com.github.jknack.handlebars.Formatter;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Options;
 import com.github.jknack.handlebars.Template;
-import com.github.jknack.handlebars.ValueResolver;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -44,8 +41,8 @@ public abstract class Context extends HashMap<String, Object> {
     public static final String COL_PREFIX = "$$column";
     public static final String TBL_PREFIX = "$$table";
     public static final String ARGS_KEY = "args";
-    private static final String HANDLEBAR_PREFIX = "{{";
-    private static final String HANDLEBAR_SUFFIX = "}}";
+    public static final String HANDLEBAR_PREFIX = "{{";
+    public static final String HANDLEBAR_SUFFIX = "}}";
 
     protected final Handlebars handlebars = new Handlebars()
             .with(EscapingStrategy.NOOP)
@@ -94,13 +91,9 @@ public abstract class Context extends HashMap<String, Object> {
 
     protected String resolveHandlebars(Context context, String expression) {
 
-        com.github.jknack.handlebars.Context ctx = com.github.jknack.handlebars.Context.newBuilder(context)
-                        .resolver(new StringValueResolver())
-                        .build();
-
         try {
             Template template = handlebars.compileInline(expression);
-            return template.apply(ctx);
+            return template.apply(context);
         } catch (IOException e) {
             throw new IllegalStateException(e.getMessage());
         }
@@ -153,53 +146,5 @@ public abstract class Context extends HashMap<String, Object> {
                         });
 
         return columnArgMap;
-    }
-
-    /**
-     * This tells compiler how to write a {@link StringValue} object as String.
-     */
-    @AllArgsConstructor
-    @Getter
-    protected class StringValue {
-        private final String value;
-
-        @Override
-        public String toString() {
-            // Sql helper returns the value already enclosed inside '{{' and '}}'
-            if (value.startsWith(HANDLEBAR_PREFIX)) {
-                return value;
-            }
-            return HANDLEBAR_PREFIX + value + HANDLEBAR_SUFFIX;
-        }
-    }
-
-    /**
-     * If get method returns a {@link StringValue} object. This class tell how to resolve a field
-     * against {@link StringValue} object.
-     * eg: To resolve {{join.col1}}, get method is called with key 'join' first,
-     *     This can return a {@link StringValue} object which wraps the value 'join'.
-     *     Now 'col1' is resolved against this {@link StringValue} object.
-     */
-    protected class StringValueResolver implements ValueResolver {
-
-        @Override
-        public Object resolve(Object context, String name) {
-            if (context instanceof StringValue) {
-                String value = ((StringValue) context).getValue() + PERIOD + name;
-
-                return new StringValue(value);
-            }
-            return UNRESOLVED;
-        }
-
-        @Override
-        public Object resolve(Object context) {
-            return null;
-        }
-
-        @Override
-        public Set<Entry<String, Object>> propertySet(Object context) {
-            return null;
-        }
     }
 }
