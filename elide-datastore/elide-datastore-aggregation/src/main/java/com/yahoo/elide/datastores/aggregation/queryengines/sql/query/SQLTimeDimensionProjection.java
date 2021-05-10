@@ -167,11 +167,6 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
         return newSQLTimeDimensionProjection(expression, arguments, projected);
     }
 
-    @Override
-    public ColumnProjection withExpressionAndArguments(String expression, Map<String, Argument> arguments) {
-        return newSQLTimeDimensionProjection(expression, arguments, projected);
-    }
-
     private SQLTimeDimensionProjection newSQLTimeDimensionProjection(String expression,
                                                                      Map<String, Argument> arguments,
                                                                      boolean projected) {

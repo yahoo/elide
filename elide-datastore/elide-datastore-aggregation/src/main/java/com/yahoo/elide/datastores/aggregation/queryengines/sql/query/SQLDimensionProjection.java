@@ -66,11 +66,6 @@ public class SQLDimensionProjection implements SQLColumnProjection, DimensionPro
         return newSQLDimensionProjection(expression, arguments, projected);
     }
 
-    @Override
-    public ColumnProjection withExpressionAndArguments(String expression, Map<String, Argument> arguments) {
-        return newSQLDimensionProjection(expression, arguments, projected);
-    }
-
     private SQLDimensionProjection newSQLDimensionProjection(String expression,
                                                              Map<String, Argument> arguments,
                                                              boolean projected) {

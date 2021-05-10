@@ -211,11 +211,6 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
         return newSQLMetricProjection(expression, arguments, projected);
     }
 
-    @Override
-    public SQLMetricProjection withExpressionAndArguments(String expression, Map<String, Argument> arguments) {
-        return newSQLMetricProjection(expression, arguments, projected);
-    }
-
     private SQLMetricProjection newSQLMetricProjection(String expression,
                                                        Map<String, Argument> arguments,
                                                        boolean projected) {
