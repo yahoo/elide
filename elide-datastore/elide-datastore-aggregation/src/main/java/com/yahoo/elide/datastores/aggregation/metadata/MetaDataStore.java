@@ -9,6 +9,7 @@ import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT;
 import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT_NAMESPACE;
+import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.EMPTY;
 import com.yahoo.elide.annotation.ApiVersion;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.Path;
@@ -120,6 +121,7 @@ public class MetaDataStore implements DataStore {
                     throw new IllegalStateException("No matching namespace found: " + table.getNamespace());
                 }
 
+                registration = Pair.of(EMPTY, NO_VERSION);
                 namespacesToBind.put(registration, DEFAULT_NAMESPACE);
             }
 
@@ -192,14 +194,14 @@ public class MetaDataStore implements DataStore {
 
             //Register all the default namespaces.
             if (include == null) {
-                Pair<String, String> registration = Pair.of(DEFAULT, version);
+                Pair<String, String> registration = Pair.of(EMPTY, version);
                 namespacesToBind.put(registration,
-                        new NamespacePackage(DEFAULT, "Default Namespace", DEFAULT, version));
+                        new NamespacePackage(EMPTY, "Default Namespace", DEFAULT, version));
             } else {
                 Pair<String, String> registration = Pair.of(include.name(), version);
                 namespacesToBind.put(registration,
                         new NamespacePackage(
-                                cls.getPackage().getName(),
+                                include.name(),
                                 include.description(),
                                 include.friendlyName(),
                                 version));
@@ -273,26 +275,21 @@ public class MetaDataStore implements DataStore {
      */
     public Namespace getNamespace(Type<?> modelType) {
         String apiVersionName = EntityDictionary.getModelVersion(modelType);
+        Include include = (Include) EntityDictionary.getFirstPackageAnnotation(modelType, Arrays.asList(Include.class));
 
-        //Dynamic and static models annotated with NamespaceMeta
-        Namespace result = namespaces
+        String namespaceName;
+        if (include != null && ! include.name().isEmpty()) {
+            namespaceName = include.name();
+        } else {
+            namespaceName = DEFAULT;
+        }
+
+        return namespaces
                  .stream()
-                 .filter(namespace -> namespace.getName().equals(modelType.getPackage().getName()))
+                 .filter(namespace -> namespace.getName().equals(namespaceName))
                  .filter(namespace -> namespace.getVersion().equals(apiVersionName))
                  .findFirst()
                  .orElse(null);
-
-        //Static models without NamespaceMeta
-        if (result == null) {
-            result = namespaces
-                .stream()
-                .filter(namespace -> namespace.getName().equals(DEFAULT))
-                .filter(namespace -> namespace.getVersion().equals(apiVersionName))
-                .findFirst()
-                .get();
-        }
-
-        return result;
     }
 
     /**

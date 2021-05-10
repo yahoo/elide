@@ -5,11 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
+import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT;
 import com.yahoo.elide.annotation.ApiVersion;
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.type.Package;
+import com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -40,17 +41,17 @@ public class Namespace {
     private final String version;
 
     @Exclude
-    private final Package pkg;
+    private final NamespacePackage pkg;
 
     @OneToMany
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Set<Table> tables;
 
-    public Namespace(Package pkg) {
+    public Namespace(NamespacePackage pkg) {
         this.pkg = pkg;
-        id = pkg.getName();
-        name = pkg.getName();
+        name = pkg.getName().isEmpty() ? DEFAULT : pkg.getName();
+        id = name;
         tables = new HashSet<>();
 
         Include include = pkg.getDeclaredAnnotation(Include.class);

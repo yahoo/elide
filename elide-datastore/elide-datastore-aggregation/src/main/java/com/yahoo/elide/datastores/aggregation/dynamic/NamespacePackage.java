@@ -21,16 +21,26 @@ import java.util.Map;
  */
 public class NamespacePackage implements Package {
 
+    public static String EMPTY = "";
     public static String DEFAULT = "default";
     public static NamespacePackage DEFAULT_NAMESPACE =
-            new NamespacePackage(DEFAULT, "Default Namespace", DEFAULT, NO_VERSION);
+            new NamespacePackage(EMPTY, "Default Namespace", DEFAULT, NO_VERSION);
 
     protected NamespaceConfig namespace;
     private Map<Class<? extends Annotation>, Annotation> annotations;
 
     public NamespacePackage(NamespaceConfig namespace) {
-        this.namespace = namespace;
-        this.annotations = buildAnnotations(namespace);
+        if (namespace.getName().equals(DEFAULT)) {
+            this.namespace = NamespaceConfig.builder()
+                    .name(EMPTY)
+                    .friendlyName(namespace.getFriendlyName())
+                    .description(namespace.getDescription())
+                    .apiVersion(namespace.getApiVersion())
+                    .build() ;
+        } else {
+            this.namespace = namespace;
+        }
+        this.annotations = buildAnnotations(this.namespace);
     }
 
     public NamespacePackage(String name, String description, String friendlyName, String version) {

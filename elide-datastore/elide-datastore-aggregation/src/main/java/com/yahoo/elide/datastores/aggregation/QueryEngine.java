@@ -11,6 +11,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -92,9 +93,10 @@ public abstract class QueryEngine {
      * @param namespacePackage NamespacePackage Type
      * @return constructed Namespace
      */
-    protected abstract Namespace constructNamespace(com.yahoo.elide.core.type.Package namespacePackage);
+    protected abstract Namespace constructNamespace(NamespacePackage namespacePackage);
 
     /**
+     *
      * Construct Table metadata for an entity.
      *
      * @param namespace The table namespace
