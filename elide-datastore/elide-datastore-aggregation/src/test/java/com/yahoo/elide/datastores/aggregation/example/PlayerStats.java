@@ -17,6 +17,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
+import com.yahoo.elide.datastores.aggregation.annotation.TableSource;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.custom.DailyAverageScorePerPeriodMaker;
@@ -193,7 +194,7 @@ public class PlayerStats extends ParameterizedModel {
     @DimensionFormula("{{country.nickName}}")
     @ColumnMeta(
             description = "SubCountry NickName",
-            tableSource = "subcountry.nickName"
+            tableSource = @TableSource(table = "subCountry", column = "name")
     )
     public String getCountryNickName() {
         return fetch("countryNickName", countryNickName);

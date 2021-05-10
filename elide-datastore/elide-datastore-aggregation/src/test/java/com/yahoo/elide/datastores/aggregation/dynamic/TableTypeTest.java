@@ -32,6 +32,7 @@ import com.yahoo.elide.modelconfig.model.Grain;
 import com.yahoo.elide.modelconfig.model.Join;
 import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Table;
+import com.yahoo.elide.modelconfig.model.TableSource;
 import com.yahoo.elide.modelconfig.model.Type;
 import org.junit.jupiter.api.Test;
 
@@ -231,7 +232,10 @@ public class TableTypeTest {
                         .description("A dimension")
                         .tags(tags)
                         .cardinality("small")
-                        .tableSource("region.id")
+                        .tableSource(TableSource.builder()
+                                .table("region")
+                                .column("id")
+                                .build())
                         .build())
                 .build();
 

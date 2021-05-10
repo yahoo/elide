@@ -216,7 +216,7 @@ public class Table implements Named {
 
     @Override
     public String getGlobalName() {
-        return getNamespacePrefix() + name;
+        return getModelName(name, namespace);
     }
 
     /**
@@ -227,14 +227,14 @@ public class Table implements Named {
         if (extend == null || extend.isEmpty()) {
             return extend;
         }
-        return getNamespacePrefix() + extend;
+        return getModelName(extend, namespace);
     }
 
-    private String getNamespacePrefix() {
+    public static String getModelName(String tableName, String namespace) {
         if (namespace == null || namespace.isEmpty() || namespace.equals(DEFAULT)) {
-            return "";
+            return tableName;
         }
 
-        return namespace + "_";
+        return namespace + "_" + tableName;
     }
 }

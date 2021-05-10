@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.models;
 
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.ArgumentDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueSourceType;
@@ -17,6 +18,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 
 /**
  * Arguments that can be provided into a table/column.
@@ -39,7 +41,11 @@ public class Argument {
 
     private Set<String> values;
 
-    private String tableSource;
+    @OneToOne
+    private TableSource tableSource;
+
+    @Exclude
+    private com.yahoo.elide.datastores.aggregation.annotation.TableSource tableSourceDefinition;
 
     private Object defaultValue;
 
@@ -49,8 +55,8 @@ public class Argument {
         this.description = argument.description();
         this.type = argument.type();
         this.values = new HashSet<>(Arrays.asList(argument.values()));
-        this.tableSource = argument.tableSource();
+        this.tableSourceDefinition = argument.tableSource();
         this.defaultValue = argument.defaultValue();
-        this.valueSourceType = ValueSourceType.getValueSourceType(this.values, this.tableSource);
+        this.valueSourceType = ValueSourceType.getValueSourceType(this.values, this.tableSourceDefinition);
     }
 }

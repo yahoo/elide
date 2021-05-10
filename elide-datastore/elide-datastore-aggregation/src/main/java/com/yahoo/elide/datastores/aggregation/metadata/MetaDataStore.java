@@ -306,6 +306,14 @@ public class MetaDataStore implements DataStore {
     }
 
     /**
+     * Returns the complete set of tables.
+     * @return a set of tables.
+     */
+    public Set<Table> getTables() {
+        return new HashSet<>(tables.values());
+    }
+
+    /**
      * Get a {@link Column} from a table.
      *
      * @param tableClass table class
