@@ -71,6 +71,12 @@ public class ColumnContext extends Context {
             return joinCtx;
         }
 
+        // Check if key exists in Map.
+        Object value = getOrDefault(key, null);
+        if (value != null) {
+            return value;
+        }
+
         ColumnProjection column = this.queryable.getColumnProjection(keyStr);
         if (column != null) {
 
