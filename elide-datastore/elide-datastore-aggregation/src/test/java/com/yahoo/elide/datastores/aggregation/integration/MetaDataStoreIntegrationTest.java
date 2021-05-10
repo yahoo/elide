@@ -18,7 +18,6 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.core.IsIterableContaining.hasItem;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
@@ -105,7 +104,6 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/namespace/SalesNamespace")
                 .then()
-                .log().all()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("SalesNamespace"))
                 .body("data.attributes.friendlyName", equalTo("Sales"))
@@ -117,33 +115,20 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/namespace/default")
                 .then()
-                .log().all()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("default"))
                 .body("data.attributes.friendlyName", equalTo("DEFAULT")) // Overridden value
                 .body("data.attributes.description", equalTo("Default Namespace")) // Overridden value
-                .body("data.relationships.tables.data.id", hasItem("playerStats"));
+                .body("data.relationships.tables.data.id", hasItems("playerStats", "country", "planet"));
         given()
                 .accept("application/vnd.api+json")
                 .get("/namespace/NoDescriptionNamespace") //"default" namespace added by Agg Store
                 .then()
-                .log().all()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("NoDescriptionNamespace"))
                 .body("data.attributes.friendlyName", equalTo("NoDescriptionNamespace")) // No FriendlyName provided, defaulted to name
                 .body("data.attributes.description", equalTo("NoDescriptionNamespace")) // No description provided, defaulted to name
                 .body("data.relationships.tables.data.id", empty());
-        given()
-                .accept("application/vnd.api+json")
-                .get("/namespace/com.yahoo.elide.datastores.aggregation.example.dimensions") //"default" namespace added by Agg Store
-                .then()
-                .log().all()
-                .statusCode(HttpStatus.SC_OK)
-                .body("data.attributes.name", equalTo("com.yahoo.elide.datastores.aggregation.example.dimensions"))
-                .body("data.attributes.friendlyName", equalTo("Dimensions"))
-                .body("data.attributes.description", equalTo("Dimensions"))
-                .body("data.relationships.tables.data.id", contains(
-                        "planet", "country", "continent", "subCountry", "countryView", "regionDetails", "countryViewNested"));
     }
 
     @Test
