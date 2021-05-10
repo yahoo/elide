@@ -3,6 +3,7 @@
   [
     {
       name: PlayerStatsChild
+      namespace: PlayerNamespace
       extend: PlayerStats
       description: PlayerStats Child
       cardinality: large

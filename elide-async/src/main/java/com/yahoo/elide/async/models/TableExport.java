@@ -25,7 +25,7 @@ import javax.validation.constraints.NotNull;
  * after asyncexecutorservice is initialized.
  */
 @Entity
-@Include(type = "tableExport")
+@Include(name = "tableExport")
 @ReadPermission(expression = "Principal is Owner OR Principal is Admin")
 @UpdatePermission(expression = "Prefab.Role.None")
 @DeletePermission(expression = "Prefab.Role.None")

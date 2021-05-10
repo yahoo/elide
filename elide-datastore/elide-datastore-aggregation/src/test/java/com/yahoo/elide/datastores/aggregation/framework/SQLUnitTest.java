@@ -11,7 +11,6 @@ import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -31,16 +30,16 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
-import com.yahoo.elide.datastores.aggregation.example.Continent;
-import com.yahoo.elide.datastores.aggregation.example.Country;
-import com.yahoo.elide.datastores.aggregation.example.CountryView;
-import com.yahoo.elide.datastores.aggregation.example.CountryViewNested;
 import com.yahoo.elide.datastores.aggregation.example.GameRevenue;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
-import com.yahoo.elide.datastores.aggregation.example.SubCountry;
+import com.yahoo.elide.datastores.aggregation.example.dimensions.Continent;
+import com.yahoo.elide.datastores.aggregation.example.dimensions.Country;
+import com.yahoo.elide.datastores.aggregation.example.dimensions.CountryView;
+import com.yahoo.elide.datastores.aggregation.example.dimensions.CountryViewNested;
+import com.yahoo.elide.datastores.aggregation.example.dimensions.SubCountry;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
@@ -64,10 +63,8 @@ import com.yahoo.elide.datastores.aggregation.timegrains.Quarter;
 import com.yahoo.elide.datastores.aggregation.timegrains.Second;
 import com.yahoo.elide.datastores.aggregation.timegrains.Week;
 import com.yahoo.elide.datastores.aggregation.timegrains.Year;
-
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -87,7 +84,6 @@ import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
 import javax.inject.Provider;
 import javax.sql.DataSource;
 

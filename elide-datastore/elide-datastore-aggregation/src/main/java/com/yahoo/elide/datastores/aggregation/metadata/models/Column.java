@@ -30,14 +30,13 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
 /**
  * Column is the super class of a field in a table, it can be either dimension or metric.
  */
-@Include(rootLevel = false, type = "column")
+@Include(rootLevel = false, name = "column")
 @Getter
 @EqualsAndHashCode
 @ToString

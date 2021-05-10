@@ -11,7 +11,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 
-@Include(type = "stringForId")
+@Include(name = "stringForId")
 @Entity
 public class StringId {
 

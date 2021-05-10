@@ -16,7 +16,7 @@ import javax.persistence.Id;
 /**
  * Defines how to extract a time dimension for a specific grain from a table.
  */
-@Include(rootLevel = false, type = "timeDimensionGrain")
+@Include(rootLevel = false, name = "timeDimensionGrain")
 @Value
 public class TimeDimensionGrain {
     @Id private final String id;

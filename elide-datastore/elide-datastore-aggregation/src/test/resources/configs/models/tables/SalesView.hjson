@@ -7,6 +7,7 @@
       dbConnectionName: SalesDBConnection
       cardinality: large
       readAccess: guest user
+      namespace: SalesNamespace
       arguments:
       [
         { // An argument that can be used to divide orderTotal to convert orders in Millions, Thousands, etc.
@@ -20,6 +21,7 @@
         {
           name: customer
           to: customerDetails
+          namespace: SalesNamespace
           type: Left
           // References Physical Columns
           definition: '{{$customer_id}} = {{ customer.$id}}'
@@ -27,6 +29,7 @@
         {
           name: delivery
           to: deliveryDetails
+          namespace: SalesNamespace
           kind: toOne
           // References Logical Columns, multiple join condition
           definition: '''
@@ -182,6 +185,7 @@
       dbConnectionName: SalesDBConnection
       cardinality: small
       readAccess: guest user
+      namespace: SalesNamespace
       joins:
       [
         {
@@ -219,6 +223,7 @@
       dbConnectionName: SalesDBConnection
       cardinality: large
       readAccess: guest user
+      namespace: SalesNamespace
       filterTemplate : month>={{start}};month<{{end}}
       dimensions:
       [

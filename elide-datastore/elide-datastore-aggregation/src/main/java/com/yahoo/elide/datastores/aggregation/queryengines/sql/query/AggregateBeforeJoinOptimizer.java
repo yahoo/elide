@@ -21,9 +21,7 @@ import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
-
 import com.google.common.collect.Streams;
-
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collection;

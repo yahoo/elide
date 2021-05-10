@@ -16,7 +16,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Expres
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasJoinVisitor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.PhysicalReferenceExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -87,7 +87,7 @@ public class TableTypeTest {
         TableType testType = new TableType(testTable);
 
         Include include = (Include) testType.getAnnotation(Include.class);
-        assertEquals("Table", include.type());
+        assertEquals("Table", include.name());
 
         FromTable fromTable = (FromTable) testType.getAnnotation(FromTable.class);
         assertEquals("db1.table1", fromTable.name());

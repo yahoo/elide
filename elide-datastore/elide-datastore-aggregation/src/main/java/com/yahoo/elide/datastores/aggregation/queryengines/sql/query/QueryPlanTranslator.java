@@ -14,7 +14,6 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.LogicalReference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.LogicalReferenceExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
-
 import com.google.common.collect.Streams;
 
 import java.util.HashSet;

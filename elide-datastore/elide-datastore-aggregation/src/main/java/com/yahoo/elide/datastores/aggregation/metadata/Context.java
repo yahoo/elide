@@ -12,7 +12,6 @@ import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.S
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 import static java.util.Collections.emptyMap;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Argument;
@@ -29,9 +28,7 @@ import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.Options;
 import com.github.jknack.handlebars.Template;
-
 import org.apache.commons.lang3.tuple.Pair;
-
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;

@@ -28,7 +28,7 @@ import javax.persistence.OneToMany;
  * Tests the invocation &amp; sequencing of DataStoreTransaction method invocations and life cycle events.
  * Model used to mock different lifecycle test scenarios.  This model uses fields instead of properties.
  */
-@Include(type = "testModel")
+@Include(name = "testModel")
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPreSecurityHook.class, operation = CREATE, phase = PRESECURITY)
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPreCommitHook.class, operation = CREATE, phase = PRECOMMIT)
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPostCommitHook.class, operation = CREATE, phase = POSTCOMMIT)

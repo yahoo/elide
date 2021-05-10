@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.modelconfig.model;
 
+import static com.yahoo.elide.modelconfig.model.NamespaceConfig.DEFAULT;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -41,15 +42,16 @@ public class ElideNamespaceConfig {
      * @param name namespace Name
      * @return true if a dynamic namespace exists with the given name.
      */
-    public boolean hasNamespace(String name) {
+    public boolean hasNamespace(String name, String version) {
         String nameLower = name.toLowerCase(Locale.ENGLISH);
-        if (nameLower.equals("default")) {
+        if (nameLower.equals(DEFAULT)) {
             return true;
         }
 
         return namespaceconfigs
-                   .stream()
-                   .map(Named::getName)
-                   .anyMatch(name::equals);
+                .stream()
+                .filter(namespace -> namespace.getApiVersion().equals(version))
+                .map(Named::getName)
+                .anyMatch(name::equals);
     }
 }

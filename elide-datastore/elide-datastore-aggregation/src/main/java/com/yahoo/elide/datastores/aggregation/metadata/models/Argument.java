@@ -16,13 +16,12 @@ import lombok.ToString;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.persistence.Id;
 
 /**
  * Arguments that can be provided into a table/column.
  */
-@Include(rootLevel = false, type = "argument")
+@Include(rootLevel = false, name = "argument")
 @Data
 @ToString
 @AllArgsConstructor

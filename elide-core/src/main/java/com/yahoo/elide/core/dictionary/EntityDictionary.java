@@ -98,7 +98,7 @@ import javax.ws.rs.WebApplicationException;
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
  *
- * @see Include#type
+ * @see Include#name
  */
 @Slf4j
 @SuppressWarnings("static-method")
@@ -1928,6 +1928,17 @@ public class EntityDictionary {
         return (apiVersionAnnotation == null) ? NO_VERSION : apiVersionAnnotation.version();
     }
 
+    private static String getEntityPrefix(Type<?> modelClass) {
+        Include include =
+                (Include) getFirstPackageAnnotation(modelClass, Arrays.asList(Include.class));
+
+        if (include == null || include.name() == null || include.name().isEmpty()) {
+            return "";
+        }
+
+        return include.name() + "_";
+    }
+
     /**
      * Looks up the API model name for a given class.
      * @param modelClass The model class to lookup.
@@ -1939,18 +1950,20 @@ public class EntityDictionary {
             declaringClass = lookupAnnotationDeclarationClass(modelClass, Entity.class);
         }
 
+        String entityPrefix = getEntityPrefix(modelClass);
+
         Preconditions.checkNotNull(declaringClass);
         Include include = declaringClass.getAnnotation(Include.class);
 
-        if (include != null && ! "".equals(include.type())) {
-            return include.type();
+        if (include != null && ! "".equals(include.name())) {
+            return entityPrefix + include.name();
         }
 
         Entity entity = (Entity) getFirstAnnotation(declaringClass, Arrays.asList(Entity.class));
         if (entity == null || "".equals(entity.name())) {
-            return StringUtils.uncapitalize(declaringClass.getSimpleName());
+            return entityPrefix + StringUtils.uncapitalize(declaringClass.getSimpleName());
         }
-        return entity.name();
+        return entityPrefix + entity.name();
     }
 
     public static <T> Type<T> getType(T object) {

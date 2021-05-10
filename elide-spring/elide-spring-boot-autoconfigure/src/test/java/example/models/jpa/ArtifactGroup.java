@@ -17,7 +17,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
-@Include(type = "group")
+@Include(name = "group")
 @Entity
 @Data
 public class ArtifactGroup {

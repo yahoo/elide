@@ -15,6 +15,7 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.TimedFunction;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -114,13 +115,12 @@ public class SQLQueryEngine extends QueryEngine {
     };
 
     @Override
-    protected Namespace constructNamespace(com.yahoo.elide.core.type.Package namespacePackage) {
+    protected Namespace constructNamespace(NamespacePackage namespacePackage) {
         return new Namespace(namespacePackage);
     }
 
     @Override
-    protected Table constructTable(Type<?> entityClass, EntityDictionary metaDataDictionary) {
-
+    protected Table constructTable(Namespace namespace, Type<?> entityClass, EntityDictionary metaDataDictionary) {
         String dbConnectionName = null;
         Annotation annotation = EntityDictionary.getFirstAnnotation(entityClass,
                         Arrays.asList(FromTable.class, FromSubquery.class));
@@ -139,7 +139,7 @@ public class SQLQueryEngine extends QueryEngine {
                                             + metaDataDictionary.getJsonAliasFor(entityClass)));
         }
 
-        return new SQLTable(entityClass, metaDataDictionary, connectionDetails);
+        return new SQLTable(namespace, entityClass, metaDataDictionary, connectionDetails);
     }
 
     @Override

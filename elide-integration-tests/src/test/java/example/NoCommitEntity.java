@@ -23,7 +23,7 @@ import javax.persistence.Table;
  */
 @CreatePermission(expression = "Prefab.Role.All AND noCommit")
 @UpdatePermission(expression = "Prefab.Role.All AND noCommit")
-@Include(type = "nocommit")
+@Include(name = "nocommit")
 // Hibernate
 @Entity
 @Table(name = "nocommit")

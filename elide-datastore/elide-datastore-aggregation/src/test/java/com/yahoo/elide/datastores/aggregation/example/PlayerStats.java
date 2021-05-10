@@ -20,6 +20,8 @@ import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.custom.DailyAverageScorePerPeriodMaker;
+import com.yahoo.elide.datastores.aggregation.example.dimensions.Country;
+import com.yahoo.elide.datastores.aggregation.example.dimensions.SubCountry;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
