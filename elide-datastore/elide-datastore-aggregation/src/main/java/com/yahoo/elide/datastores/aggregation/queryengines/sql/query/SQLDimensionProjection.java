@@ -48,7 +48,7 @@ public class SQLDimensionProjection implements SQLColumnProjection, DimensionPro
 
     @Override
     public SQLDimensionProjection withExpression(String expression, boolean projected) {
-        return newSQLDimensionProjection(expression, arguments, projected);
+        return new SQLDimensionProjection(name, valueType, columnType, expression, alias, arguments, projected);
     }
 
     @Override
@@ -58,25 +58,11 @@ public class SQLDimensionProjection implements SQLColumnProjection, DimensionPro
 
     @Override
     public SQLDimensionProjection withProjected(boolean projected) {
-        return newSQLDimensionProjection(expression, arguments, projected);
+        return new SQLDimensionProjection(name, valueType, columnType, expression, alias, arguments, projected);
     }
 
     @Override
     public ColumnProjection withArguments(Map<String, Argument> arguments) {
-        return newSQLDimensionProjection(expression, arguments, projected);
-    }
-
-    private SQLDimensionProjection newSQLDimensionProjection(String expression,
-                                                             Map<String, Argument> arguments,
-                                                             boolean projected) {
-        return SQLDimensionProjection.builder()
-                        .name(name)
-                        .valueType(valueType)
-                        .columnType(columnType)
-                        .expression(expression)
-                        .alias(alias)
-                        .arguments(arguments)
-                        .projected(projected)
-                        .build();
+        return new SQLDimensionProjection(name, valueType, columnType, expression, alias, arguments, projected);
     }
 }

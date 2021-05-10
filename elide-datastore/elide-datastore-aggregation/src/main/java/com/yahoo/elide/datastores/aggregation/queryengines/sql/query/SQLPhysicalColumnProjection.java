@@ -67,20 +67,16 @@ public class SQLPhysicalColumnProjection implements SQLColumnProjection, Dimensi
 
     @Override
     public SQLPhysicalColumnProjection withProjected(boolean projected) {
-        return newSQLPhysicalColumnProjection();
+        return new SQLPhysicalColumnProjection(name);
     }
 
     @Override
     public SQLPhysicalColumnProjection withExpression(String expression, boolean projected) {
-        return newSQLPhysicalColumnProjection();
+        return new SQLPhysicalColumnProjection(name);
     }
 
     @Override
     public ColumnProjection withArguments(Map<String, Argument> arguments) {
-        return newSQLPhysicalColumnProjection();
-    }
-
-    private SQLPhysicalColumnProjection newSQLPhysicalColumnProjection() {
-        return SQLPhysicalColumnProjection.builder().name(name).build();
+        return new SQLPhysicalColumnProjection(name);
     }
 }
