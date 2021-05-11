@@ -60,7 +60,7 @@ public interface SQLColumnProjection extends ColumnProjection {
      */
     default String resolveLogicalReferences(Queryable query, MetaDataStore metaDataStore) {
 
-        LogicalRefContext context = LogicalRefContext.builder()
+        LogicalRefContext context = LogicalRefContext.logicalRefContextBuilder()
                         .queryable(query)
                         .metaDataStore(metaDataStore)
                         .column(this)

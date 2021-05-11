@@ -7,7 +7,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
-import static com.yahoo.elide.datastores.aggregation.metadata.Context.getColumnArgMap;
+import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.getColumnArgMap;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.hasSql;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.resolveTableOrSubselect;
