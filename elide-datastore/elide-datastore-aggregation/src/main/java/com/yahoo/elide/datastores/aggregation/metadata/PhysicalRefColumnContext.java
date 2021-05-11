@@ -34,11 +34,11 @@ public class PhysicalRefColumnContext extends ColumnContext {
     }
 
     @Override
-    protected ColumnContext getNewContext(ColumnProjection newColumn) {
+    protected ColumnContext getNewContext(ColumnContext context, ColumnProjection newColumn) {
         return PhysicalRefColumnContext.physicalRefContextBuilder()
-                        .queryable(this.getQueryable())
-                        .alias(this.getAlias())
-                        .metaDataStore(this.getMetaDataStore())
+                        .queryable(context.getQueryable())
+                        .alias(context.getAlias())
+                        .metaDataStore(context.getMetaDataStore())
                         .column(newColumn)
                         .build();
     }
@@ -60,8 +60,8 @@ public class PhysicalRefColumnContext extends ColumnContext {
     }
 
     @Override
-    protected String resolvePhysicalReference(String keyStr) {
-        return isBlank(this.alias) ? HANDLEBAR_PREFIX + keyStr + HANDLEBAR_SUFFIX
-                                   : HANDLEBAR_PREFIX + this.alias + PERIOD + keyStr + HANDLEBAR_SUFFIX;
+    protected String resolvePhysicalReference(ColumnContext context, String keyStr) {
+        return isBlank(context.getAlias()) ? HANDLEBAR_PREFIX + keyStr + HANDLEBAR_SUFFIX
+                                           : HANDLEBAR_PREFIX + context.getAlias() + PERIOD + keyStr + HANDLEBAR_SUFFIX;
     }
 }

@@ -66,16 +66,12 @@ public class ColumnContext extends HashMap<String, Object> {
             .registerHelper("sql", this::resolveSQLHandlebar);
 
     public Object get(Object key) {
-        return get(key, emptyMap());
-    }
-
-    protected Object get(Object key, Map<String, Argument> fixedArgs) {
 
         String keyStr = key.toString();
 
         // Physical References starts with $
         if (keyStr.lastIndexOf('$') == 0) {
-            return resolvePhysicalReference(keyStr);
+            return resolvePhysicalReference(this, keyStr);
         }
 
         if (keyStr.equals(TBL_PREFIX)) {
@@ -100,24 +96,28 @@ public class ColumnContext extends HashMap<String, Object> {
             return value;
         }
 
-        ColumnProjection column = this.queryable.getColumnProjection(keyStr);
+        return createContextAndResolve(this, keyStr, emptyMap());
+    }
+
+    private Object createContextAndResolve(ColumnContext context, String keyStr, Map<String, Argument> fixedArgs) {
+        ColumnProjection column = context.getQueryable().getColumnProjection(keyStr);
         if (column != null) {
 
             ColumnProjection newColumn = column.withArguments(
-                            getColumnArgMap(this.getQueryable(),
+                            getColumnArgMap(context.getQueryable(),
                                             column.getName(),
-                                            this.getColumn().getArguments(),
+                                            context.getColumn().getArguments(),
                                             fixedArgs));
 
-            return getNewContext(newColumn).resolve(newColumn.getExpression());
+            return getNewContext(context, newColumn).resolve(newColumn.getExpression());
         }
 
-        throw new HandlebarsException(new Throwable("Couldn't find: " + key));
+        throw new HandlebarsException(new Throwable("Couldn't find: " + keyStr));
     }
 
-    protected String resolvePhysicalReference(String key) {
-        String resolvedExpr = alias + PERIOD + key.substring(1);
-        return applyQuotes(resolvedExpr, queryable.getDialect());
+    protected String resolvePhysicalReference(ColumnContext context, String key) {
+        String resolvedExpr = context.getAlias() + PERIOD + key.substring(1);
+        return applyQuotes(resolvedExpr, context.getQueryable().getDialect());
     }
 
     protected ColumnContext getJoinContext(String key) {
@@ -133,11 +133,11 @@ public class ColumnContext extends HashMap<String, Object> {
         return joinCtx;
     }
 
-    protected ColumnContext getNewContext(ColumnProjection newColumn) {
+    protected ColumnContext getNewContext(ColumnContext context, ColumnProjection newColumn) {
         return ColumnContext.builder()
-                        .queryable(this.getQueryable())
-                        .alias(this.getAlias())
-                        .metaDataStore(this.getMetaDataStore())
+                        .queryable(context.getQueryable())
+                        .alias(context.getAlias())
+                        .metaDataStore(context.getMetaDataStore())
                         .column(newColumn)
                         .build();
     }
@@ -167,14 +167,21 @@ public class ColumnContext extends HashMap<String, Object> {
         ColumnContext currentCtx = (ColumnContext) context;
         // 'from' is optional, so if not provided use the same table context.
         ColumnContext invokedCtx = isBlank(from) ? currentCtx
-                                           : (ColumnContext) currentCtx.get(from);
+                                                 : (ColumnContext) currentCtx.get(from);
+
+        Map<String, Argument> pinnedArgs = new HashMap<>();
 
         if (argsIndex >= 0) {
-            Map<String, Argument> pinnedArgs = getArgumentMapFromString(column.substring(argsIndex));
+            pinnedArgs = getArgumentMapFromString(column.substring(argsIndex));
             invokedColumnName = column.substring(0, argsIndex);
-            return invokedCtx.get(invokedColumnName, pinnedArgs);
         }
-        return invokedCtx.get(invokedColumnName);
+
+        // Physical References starts with $
+        if (invokedColumnName.lastIndexOf('$') == 0) {
+            return resolvePhysicalReference(invokedCtx, invokedColumnName);
+        }
+
+        return createContextAndResolve(invokedCtx, invokedColumnName, pinnedArgs);
     }
 
     public static Map<String, Argument> getDefaultArgumentsMap(
