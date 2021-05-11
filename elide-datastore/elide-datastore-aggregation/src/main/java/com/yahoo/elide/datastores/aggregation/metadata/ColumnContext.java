@@ -96,20 +96,16 @@ public class ColumnContext extends HashMap<String, Object> {
             return value;
         }
 
-        return createContextAndResolve(this, keyStr, emptyMap());
-    }
-
-    private Object createContextAndResolve(ColumnContext context, String keyStr, Map<String, Argument> fixedArgs) {
-        ColumnProjection column = context.getQueryable().getColumnProjection(keyStr);
+        ColumnProjection column = this.getQueryable().getColumnProjection(keyStr);
         if (column != null) {
 
             ColumnProjection newColumn = column.withArguments(
-                            getColumnArgMap(context.getQueryable(),
+                            getColumnArgMap(this.getQueryable(),
                                             column.getName(),
-                                            context.getColumn().getArguments(),
-                                            fixedArgs));
+                                            this.getColumn().getArguments(),
+                                            emptyMap()));
 
-            return getNewContext(context, newColumn).resolve(newColumn.getExpression());
+            return getNewContext(this, newColumn).resolve(newColumn.getExpression());
         }
 
         throw new HandlebarsException(new Throwable("Couldn't find: " + keyStr));
@@ -160,9 +156,9 @@ public class ColumnContext extends HashMap<String, Object> {
     private Object resolveSQLHandlebar(final Object context, final Options options)
                     throws UnsupportedEncodingException {
         String from = options.hash("from");
-        String column = options.hash("column");
-        int argsIndex = column.indexOf('[');
-        String invokedColumnName = column;
+        String columnName = options.hash("column");
+        int argsIndex = columnName.indexOf('[');
+        String invokedColumnName = columnName;
 
         ColumnContext currentCtx = (ColumnContext) context;
         // 'from' is optional, so if not provided use the same table context.
@@ -172,8 +168,8 @@ public class ColumnContext extends HashMap<String, Object> {
         Map<String, Argument> pinnedArgs = new HashMap<>();
 
         if (argsIndex >= 0) {
-            pinnedArgs = getArgumentMapFromString(column.substring(argsIndex));
-            invokedColumnName = column.substring(0, argsIndex);
+            pinnedArgs = getArgumentMapFromString(columnName.substring(argsIndex));
+            invokedColumnName = columnName.substring(0, argsIndex);
         }
 
         // Physical References starts with $
@@ -181,7 +177,19 @@ public class ColumnContext extends HashMap<String, Object> {
             return resolvePhysicalReference(invokedCtx, invokedColumnName);
         }
 
-        return createContextAndResolve(invokedCtx, invokedColumnName, pinnedArgs);
+        ColumnProjection column = invokedCtx.getQueryable().getColumnProjection(invokedColumnName);
+        if (column != null) {
+
+            ColumnProjection newColumn = column.withArguments(
+                            getColumnArgMap(invokedCtx.getQueryable(),
+                                            column.getName(),
+                                            invokedCtx.getColumn().getArguments(),
+                                            pinnedArgs));
+
+            return getNewContext(invokedCtx, newColumn).resolve(newColumn.getExpression());
+        }
+
+        throw new HandlebarsException(new Throwable("Couldn't find: " + invokedColumnName));
     }
 
     public static Map<String, Argument> getDefaultArgumentsMap(
