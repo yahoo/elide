@@ -16,7 +16,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 @UpdatePermission(expression = "Prefab.Role.None")
-@Include(type = "noupdate") // optional here because class has this name
+@Include(name = "noupdate") // optional here because class has this name
 // Hibernate
 @Entity
 @Table(name = "noupdate")

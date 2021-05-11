@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.example;
+package com.yahoo.elide.datastores.aggregation.example.dimensions;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
@@ -27,7 +27,7 @@ import javax.persistence.Id;
 @FromTable(name = "region_details", dbConnectionName = "SalesDBConnection")
 @ReadPermission(expression = "Principal is guest user")
 @TableMeta(description = "RegionDetails", category = "", tags = {}, filterTemplate = "", size = CardinalitySize.SMALL)
-@Include(type = "regionDetails")
+@Include(name = "regionDetails")
 public class RegionDetails {
 
     private String id;
@@ -43,7 +43,7 @@ public class RegionDetails {
     }
 
     @ReadPermission(expression = "Principal is guest user")
-    @ColumnMeta(description = "region", category = "", values = {}, tags = {}, tableSource = "")
+    @ColumnMeta(description = "region", category = "", values = {}, tags = {})
     @DimensionFormula("{{$region}}")
     public String getRegion() {
         return region;

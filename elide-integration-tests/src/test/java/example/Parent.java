@@ -32,7 +32,7 @@ import javax.validation.constraints.NotNull;
 @ReadPermission(expression = "parentInitCheck OR Prefab.Role.All")
 @UpdatePermission(expression = "parentInitCheck OR Prefab.Role.All OR Prefab.Role.None")
 @DeletePermission(expression = "parentInitCheck OR Prefab.Role.All OR Prefab.Role.None")
-@Include(type = "parent") // optional here because class has this name
+@Include(name = "parent") // optional here because class has this name
 @Paginate(maxLimit = 100000)
 // Hibernate
 @Entity

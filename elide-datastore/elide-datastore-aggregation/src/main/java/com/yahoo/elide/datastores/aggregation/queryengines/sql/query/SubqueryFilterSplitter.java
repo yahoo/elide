@@ -19,7 +19,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasJoi
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
-
 import lombok.Builder;
 import lombok.Data;
 

@@ -9,6 +9,8 @@ import static com.yahoo.elide.core.type.ClassType.BIGDECIMAL_TYPE;
 import static com.yahoo.elide.core.type.ClassType.BOOLEAN_TYPE;
 import static com.yahoo.elide.core.type.ClassType.LONG_TYPE;
 import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
+import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT;
+import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT_NAMESPACE;
 import static com.yahoo.elide.datastores.aggregation.timegrains.Time.TIME_TYPE;
 import static com.yahoo.elide.modelconfig.model.Type.TIME;
 import com.yahoo.elide.annotation.Exclude;
@@ -25,6 +27,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
+import com.yahoo.elide.datastores.aggregation.annotation.TableSource;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
@@ -39,12 +42,12 @@ import com.yahoo.elide.modelconfig.model.Grain;
 import com.yahoo.elide.modelconfig.model.Join;
 import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Table;
-
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -64,8 +67,14 @@ public class TableType implements Type<DynamicModelInstance> {
     protected Table table;
     private Map<Class<? extends Annotation>, Annotation> annotations;
     private Map<String, Field> fields;
+    private Package namespace;
 
     public TableType(Table table) {
+        this(table, DEFAULT_NAMESPACE);
+    }
+
+    public TableType(Table table, Package namespace) {
+        this.namespace = namespace;
         this.table = table;
         this.annotations = buildAnnotations(table);
         this.fields = buildFields(table);
@@ -98,7 +107,7 @@ public class TableType implements Type<DynamicModelInstance> {
 
     @Override
     public Package getPackage() {
-        return new ConfigPackage();
+        return namespace;
     }
 
     @Override
@@ -250,23 +259,7 @@ public class TableType implements Type<DynamicModelInstance> {
         if (Boolean.TRUE.equals(table.getHidden())) {
             annotations.put(Exclude.class, new ExcludeAnnotation());
         } else {
-            annotations.put(Include.class, new Include() {
-
-                @Override
-                public Class<? extends Annotation> annotationType() {
-                    return Include.class;
-                }
-
-                @Override
-                public boolean rootLevel() {
-                    return true;
-                }
-
-                @Override
-                public String type() {
-                    return table.getName();
-                }
-            });
+            annotations.put(Include.class, getIncludeAnnotation(table));
         }
 
         if (table.getSql() != null && !table.getSql().isEmpty()) {
@@ -409,8 +402,8 @@ public class TableType implements Type<DynamicModelInstance> {
                 }
 
                 @Override
-                public String tableSource() {
-                    return argument.getTableSource();
+                public TableSource tableSource() {
+                    return buildTableSource(argument.getTableSource());
                 }
 
                 @Override
@@ -460,8 +453,8 @@ public class TableType implements Type<DynamicModelInstance> {
             }
 
             @Override
-            public String tableSource() {
-                return "";
+            public TableSource tableSource() {
+                return buildTableSource(null);
             }
 
             @Override
@@ -529,6 +522,40 @@ public class TableType implements Type<DynamicModelInstance> {
         return annotations;
     }
 
+    private static TableSource buildTableSource(com.yahoo.elide.modelconfig.model.TableSource source) {
+        if (source == null) {
+            return buildTableSource(
+                    new com.yahoo.elide.modelconfig.model.TableSource("", DEFAULT, "", new HashSet<>()));
+        }
+        return new TableSource() {
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return TableSource.class;
+            }
+
+            @Override
+            public String table() {
+                return source.getTable();
+            }
+
+            @Override
+            public String namespace() {
+                return source.getNamespace();
+            }
+
+            @Override
+            public String column() {
+                return source.getColumn();
+            }
+
+            @Override
+            public String[] suggestionColumns() {
+                return source.getSuggestionColumns().toArray(new String[0]);
+            }
+        };
+    }
+
     private static Map<Class<? extends Annotation>, Annotation> buildAnnotations(Dimension dimension) {
         Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
@@ -558,8 +585,8 @@ public class TableType implements Type<DynamicModelInstance> {
             }
 
             @Override
-            public String tableSource() {
-                return dimension.getTableSource() == null ? "" : dimension.getTableSource();
+            public TableSource tableSource() {
+                return buildTableSource(dimension.getTableSource());
             }
 
             @Override
@@ -736,27 +763,40 @@ public class TableType implements Type<DynamicModelInstance> {
         return (str == null) ? null : NEWLINE.matcher(str).replaceAll(SPACE);
     }
 
-    private static final class ConfigPackage implements Package {
-        @Override
-        public <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationClass) {
-            return null;
-        }
-
-        @Override
-        public String getName() {
-            return "config";
-        }
-
-        @Override
-        public Package getParentPackage() {
-            return null;
-        }
-    }
-
     private static final class ExcludeAnnotation implements Exclude {
         @Override
         public Class<? extends Annotation> annotationType() {
             return Exclude.class;
         }
+    }
+
+    private static Include getIncludeAnnotation(Table table) {
+        return new Include() {
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return Include.class;
+            }
+
+            @Override
+            public boolean rootLevel() {
+                return true;
+            }
+
+            @Override
+            public String description() {
+                return table.getDescription();
+            }
+
+            @Override
+            public String friendlyName() {
+                return table.getFriendlyName();
+            }
+
+            @Override
+            public String name() {
+                return table.getName();
+            }
+        };
     }
 }

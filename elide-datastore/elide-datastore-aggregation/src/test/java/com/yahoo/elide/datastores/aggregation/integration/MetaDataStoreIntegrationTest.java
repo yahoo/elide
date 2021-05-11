@@ -12,8 +12,11 @@ import static com.yahoo.elide.datastores.aggregation.integration.AggregationData
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.exceptions.HttpStatus;
@@ -96,14 +99,18 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
-    public void metaDataTest() {
+    public void namespaceTest() {
         given()
                 .accept("application/vnd.api+json")
                 .get("/namespace/SalesNamespace")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("SalesNamespace"))
-                .body("data.attributes.friendlyName", equalTo("Sales"));
+                .body("data.attributes.friendlyName", equalTo("Sales"))
+                .body("data.relationships.tables.data.id", contains(
+                        "SalesNamespace_orderDetails",
+                        "SalesNamespace_customerDetails",
+                        "SalesNamespace_deliveryDetails"));
         given()
                 .accept("application/vnd.api+json")
                 .get("/namespace/default")
@@ -111,7 +118,8 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("default"))
                 .body("data.attributes.friendlyName", equalTo("DEFAULT")) // Overridden value
-                .body("data.attributes.description", equalTo("Default Namespace")); // Overridden value
+                .body("data.attributes.description", equalTo("Default Namespace")) // Overridden value
+                .body("data.relationships.tables.data.id", hasItems("playerStats", "country", "planet"));
         given()
                 .accept("application/vnd.api+json")
                 .get("/namespace/NoDescriptionNamespace") //"default" namespace added by Agg Store
@@ -119,7 +127,12 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("NoDescriptionNamespace"))
                 .body("data.attributes.friendlyName", equalTo("NoDescriptionNamespace")) // No FriendlyName provided, defaulted to name
-                .body("data.attributes.description", equalTo("NoDescriptionNamespace")); // No description provided, defaulted to name
+                .body("data.attributes.description", equalTo("NoDescriptionNamespace")) // No description provided, defaulted to name
+                .body("data.relationships.tables.data.id", empty());
+    }
+
+    @Test
+    public void tableTest() {
         given()
                .accept("application/vnd.api+json")
                .get("/table/planet")
@@ -186,10 +199,11 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
         // Verify Table Arguments
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/orderDetails?include=arguments")
+                .get("/table/SalesNamespace_orderDetails?include=arguments")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body("data.relationships.arguments.data.id", containsInAnyOrder("orderDetails.denominator"));
+                .body("data.relationships.arguments.data.id",
+                        containsInAnyOrder("SalesNamespace_orderDetails.denominator"));
     }
 
     @Test
@@ -260,10 +274,10 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .then()
                 .body("data.attributes.valueSourceType", equalTo("TABLE"))
                 .body("data.attributes.columnType", equalTo("FORMULA"))
-                .body("data.attributes.tableSource",  equalTo("subcountry.nickName"))
                 .body("data.attributes.expression",  equalTo("{{country.nickName}}"))
                 .body("data.attributes.values", equalTo(Collections.emptyList()))
                 .body("data.attributes.cardinality", equalTo("UNKNOWN"))
+                .body("data.relationships.tableSource.data.id",  equalTo("subCountry.name"))
                 .statusCode(HttpStatus.SC_OK);
     }
 
@@ -327,12 +341,12 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
         // Verify Metric Arguments
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/orderDetails/metrics/orderDetails.orderTotal?include=arguments")
+                .get("/table/SalesNamespace_orderDetails/metrics/SalesNamespace_orderDetails.orderTotal?include=arguments")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("orderTotal"))
                 .body("data.attributes.friendlyName", equalTo("orderTotal"))
-                .body("data.relationships.arguments.data.id", containsInAnyOrder("orderDetails.orderTotal.precision"));
+                .body("data.relationships.arguments.data.id", containsInAnyOrder("SalesNamespace_orderDetails.orderTotal.precision"));
     }
 
     @Test
@@ -376,7 +390,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/orderDetails/dimensions/orderDetails.customerRegion")
+                .get("/table/SalesNamespace_orderDetails/dimensions/SalesNamespace_orderDetails.customerRegion")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("customerRegion"))
@@ -387,13 +401,13 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/orderDetails/dimensions/orderDetails.customerRegionRegion")
+                .get("/table/SalesNamespace_orderDetails/dimensions/SalesNamespace_orderDetails.customerRegionRegion")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("customerRegionRegion"))
                 .body("data.attributes.cardinality", equalTo("UNKNOWN"))
                 .body("data.attributes.expression", equalTo("{{customer.region.region}}"))
-                .body("data.attributes.tableSource", equalTo("regionDetails.region"))
-                .body("data.attributes.valueSourceType", equalTo("TABLE"));
+                .body("data.attributes.valueSourceType", equalTo("TABLE"))
+                .body("data.relationships.tableSource.data.id", equalTo("regionDetails.region"));
     }
 }

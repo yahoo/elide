@@ -4,7 +4,7 @@
  * See LICENSE file in project root for terms.
  */
 
-@Include
+@Include(name = "example", description = "Example Package", friendlyName = "Example")
 package example.models.packageinfo;
 
 import com.yahoo.elide.annotation.Include;

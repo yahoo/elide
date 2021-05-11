@@ -887,8 +887,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
      */
     @Test
     public void testDynamicAggregationModel() {
-        String getPath = "/orderDetails?sort=customerRegion,orderTime&page[totals]&"
-                        + "fields[orderDetails]=orderTotal,customerRegion,orderTime&filter=orderTime>=2020-08";
+        String getPath = "/SalesNamespace_orderDetails?sort=customerRegion,orderTime&page[totals]&"
+                        + "fields[SalesNamespace_orderDetails]=orderTotal,customerRegion,orderTime&filter=orderTime>=2020-08";
         given()
             .when()
             .get(getPath)
@@ -909,8 +909,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
     @Test
     public void testInvalidSparseFields() {
-        String expectedError = "Invalid value: orderDetails does not contain the fields: [orderValue, customerState]";
-        String getPath = "/orderDetails?fields[orderDetails]=orderValue,customerState,orderTime";
+        String expectedError = "Invalid value: SalesNamespace_orderDetails does not contain the fields: [orderValue, customerState]";
+        String getPath = "/SalesNamespace_orderDetails?fields[SalesNamespace_orderDetails]=orderValue,customerState,orderTime";
         given()
             .when()
             .get(getPath)
@@ -921,10 +921,10 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
     @Test
     public void missingClientFilterTest() {
-        String expectedError = "Querying deliveryDetails requires a mandatory filter:"
+        String expectedError = "Querying SalesNamespace_deliveryDetails requires a mandatory filter:"
                 + " month&gt;={{start}};month&lt;{{end}}";
         when()
-        .get("/deliveryDetails/")
+        .get("/SalesNamespace_deliveryDetails/")
         .then()
         .body("errors.detail", hasItems(expectedError))
         .statusCode(HttpStatus.SC_BAD_REQUEST);
@@ -932,10 +932,10 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
     @Test
     public void incompleteClientFilterTest() {
-        String expectedError = "Querying deliveryDetails requires a mandatory filter:"
+        String expectedError = "Querying SalesNamespace_deliveryDetails requires a mandatory filter:"
                 + " month&gt;={{start}};month&lt;{{end}}";
         when()
-        .get("/deliveryDetails?filter=month>=2020-08")
+        .get("/SalesNamespace_deliveryDetails?filter=month>=2020-08")
         .then()
         .body("errors.detail", hasItems(expectedError))
         .statusCode(HttpStatus.SC_BAD_REQUEST);
@@ -944,7 +944,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     @Test
     public void completeClientFilterTest() {
         when()
-        .get("/deliveryDetails?filter=month>=2020-08;month<2020-09")
+        .get("/SalesNamespace_deliveryDetails?filter=month>=2020-08;month<2020-09")
         .then()
         .statusCode(HttpStatus.SC_OK);
     }
@@ -954,7 +954,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String graphQLRequest = document(
                 selection(
                         field(
-                                "orderDetails",
+                                "SalesNamespace_orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
                                         argument("filter", "\"orderTime=='2020-08'\"")
@@ -974,7 +974,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String expected = document(
                 selections(
                         field(
-                                "orderDetails",
+                                "SalesNamespace_orderDetails",
                                 selections(
                                         field("orderTotal", 61.43F),
                                         field("customerRegion", "NewYork"),
@@ -1017,7 +1017,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String graphQLRequest = document(
                 selection(
                         field(
-                                "orderDetails",
+                                "SalesNamespace_orderDetails",
                                 arguments(
                                         argument("sort", "\"courierName,deliveryDate,orderTotal\""),
                                         argument("filter", "\"deliveryDate>='2020-09-01',orderTotal>50\"")
@@ -1052,7 +1052,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String expected = document(
                 selections(
                         field(
-                                "orderDetails",
+                                "SalesNamespace_orderDetails",
                                 selections(
                                         field("courierName", "FEDEX"),
                                         field("deliveryTime", "2020-09-11T16:30:11"),
@@ -1133,7 +1133,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String graphQLRequest = document(
                 selection(
                         field(
-                                "orderDetails",
+                                "SalesNamespace_orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
                                         argument("filter", "\"bySecond=='2020-09-08T16:30:11'\"")
@@ -1155,7 +1155,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String expected = document(
                 selections(
                         field(
-                                "orderDetails",
+                                "SalesNamespace_orderDetails",
                                 selections(
                                         field("orderTotal", 181.47F),
                                         field("customerRegion", "Virginia"),
@@ -1175,7 +1175,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String graphQLRequest = document(
                 selection(
                         field(
-                                "orderDetails",
+                                "SalesNamespace_orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
                                         argument("filter", "\"orderTime[grain:DAY]=='2020-08',orderTotal>50\"")
@@ -1191,7 +1191,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 )
         ).toQuery();
 
-        String expected = "Exception while fetching data (/orderDetails) : Invalid operation: Time Dimension field orderTime must use the same grain argument in the projection and the having clause.";
+        String expected = "Exception while fetching data (/SalesNamespace_orderDetails) : Invalid operation: Time Dimension field orderTime must use the same grain argument in the projection and the having clause.";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
@@ -1202,7 +1202,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String graphQLRequest = document(
                 selection(
                         field(
-                                "orderDetails",
+                                "SalesNamespace_orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
                                         argument("filter", "\"orderTime[grain:DAY]=='2020-08',orderTotal>50\"")
@@ -1216,7 +1216,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 )
         ).toQuery();
 
-        String expected = "Exception while fetching data (/orderDetails) : Invalid operation: Time Dimension field orderTime must use the same grain argument in the projection and the having clause.";
+        String expected = "Exception while fetching data (/SalesNamespace_orderDetails) : Invalid operation: Time Dimension field orderTime must use the same grain argument in the projection and the having clause.";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
@@ -1227,7 +1227,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String graphQLRequest = document(
                 selection(
                         field(
-                                "orderDetails",
+                                "SalesNamespace_orderDetails",
                                 arguments(
                                         argument("sort", "\"orderTime\""),
                                         argument("filter", "\"orderTime=='2020-08-01',orderTotal>50\"") //No Grain Arg passed, so works based on Alias's argument in Selection.
@@ -1246,7 +1246,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String expected = document(
                 selections(
                         field(
-                                "orderDetails",
+                                "SalesNamespace_orderDetails",
                                 selections(
                                         field("orderTotal", 103.72F),
                                         field("customerRegion", "Virginia"),
@@ -1275,7 +1275,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String graphQLRequest = document(
                 selection(
                         field(
-                                "orderDetails",
+                                "SalesNamespace_orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
                                         argument("filter", "\"orderTime=='2020-08'\"")
@@ -1294,7 +1294,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String expected = document(
                 selection(
                         field(
-                                "orderDetails",
+                                "SalesNamespace_orderDetails",
                                 selections(
                                         field("orderTotal", 61.43F),
                                         field("customerRegion", "NewYork"),
@@ -1320,7 +1320,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String graphQLRequest = document(
                 selection(
                         field(
-                                "orderDetails",
+                                "SalesNamespace_orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
                                         argument("filter", "\"orderTime=='2020-08'\"")
@@ -1338,7 +1338,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String expected = document(
                 selection(
                         field(
-                                "orderDetails",
+                                "SalesNamespace_orderDetails",
                                 selections(
                                         field("customerRegion", "NewYork"),
                                         field("orderTime", "2020-08")
@@ -1363,7 +1363,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String graphQLRequest = document(
                 selection(
                         field(
-                                "orderDetails",
+                                "SalesNamespace_orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
                                         argument("filter", "\"orderTime=='2020-08'\"")
@@ -1378,7 +1378,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 )
         ).toQuery();
 
-        String expected = "Exception while fetching data (/orderDetails/edges[0]/node/customerRegion) : ReadPermission Denied";
+        String expected = "Exception while fetching data (/SalesNamespace_orderDetails/edges[0]/node/customerRegion) : ReadPermission Denied";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
@@ -1439,7 +1439,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String graphQLRequest = document(
                 selection(
                         field(
-                                "orderDetails",
+                                "SalesNamespace_orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
                                         argument("filter", "\"orderTime[grain:day]=='2020-09-08'\"")
@@ -1458,7 +1458,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String expected = document(
                 selection(
                         field(
-                                "orderDetails",
+                                "SalesNamespace_orderDetails",
                                 selections(
                                         field("customerRegion", "Virginia"),
                                         field("orderTotal", 181.47F),
@@ -1497,11 +1497,11 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
             .post("/graphQL")
             .then()
             .statusCode(HttpStatus.SC_OK)
-            // Verify that the orderDetails Model has an argument "denominator".
-            .body("data.__schema.mutationType.fields.find { it.name == 'orderDetails' }.args.name[7] ", equalTo("denominator"));
+            // Verify that the SalesNamespace_orderDetails Model has an argument "denominator".
+            .body("data.__schema.mutationType.fields.find { it.name == 'SalesNamespace_orderDetails' }.args.name[7] ", equalTo("denominator"));
 
         graphQLRequest = "{"
-                + "__type(name: \"OrderDetails\") {"
+                + "__type(name: \"SalesNamespace_orderDetails\") {"
                 + "   name"
                 + "   fields {"
                 + "     name "

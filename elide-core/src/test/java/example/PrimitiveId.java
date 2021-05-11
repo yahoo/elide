@@ -12,7 +12,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 
-@Include(type = "primitiveTypeId")
+@Include(name = "primitiveTypeId")
 @Entity
 @Data
 public class PrimitiveId {
