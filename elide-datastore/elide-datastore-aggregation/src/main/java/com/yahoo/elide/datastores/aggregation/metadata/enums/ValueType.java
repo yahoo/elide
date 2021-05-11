@@ -16,20 +16,30 @@ import com.google.common.collect.ImmutableMap;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Actual value type of a data type.
  */
 public enum ValueType {
-    TIME,
-    INTEGER,
-    DECIMAL,
-    MONEY,
-    TEXT,
-    COORDINATE,
-    BOOLEAN,
-    RELATIONSHIP,
-    ID;
+    TIME("^yyyy(((((-MM)?-dd)?'T'HH)?:mm)?:ss)?$"),
+    INTEGER("^[+-]?\\d+$"),
+    DECIMAL("^[+-]?((\\d+(\\.\\d*)?)|(\\.\\d+))$"),
+    MONEY("^[-]?[$]?((\\d+(\\.\\d*)?)|(\\.\\d+))$"),
+    TEXT("^[a-zA-Z0-9_]+$"),  //Very restricted to prevent SQL Injection
+    COORDINATE("^(-?\\d+(\\.\\d+)?)|(-?\\d+(\\.\\d+)?),\\s*(-?\\d+(\\.\\d+)?)$"),
+    BOOLEAN("^(?i)true|false(?-i)|0|1$"),
+    ID("^[a-zA-Z0-9_]+$");
+
+    private Pattern pattern;
+
+    ValueType(String regexRestriction) {
+        pattern = Pattern.compile(regexRestriction);
+    }
+
+    public boolean matches(String input) {
+        return pattern.matcher(input).matches();
+    }
 
     private static final Map<Type<?>, ValueType> SCALAR_TYPES = ImmutableMap.<Type<?>, ValueType>builder()
         .put(ClassType.of(short.class), INTEGER)

@@ -232,4 +232,5 @@ public abstract class QueryEngine {
      */
     public abstract List<String> explain(Query query);
 
+    public abstract QueryValidator getValidator();
 }

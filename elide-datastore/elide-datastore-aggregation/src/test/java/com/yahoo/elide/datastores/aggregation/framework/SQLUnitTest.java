@@ -29,6 +29,7 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.example.GameRevenue;
 import com.yahoo.elide.datastores.aggregation.example.Player;
@@ -512,7 +513,7 @@ public abstract class SQLUnitTest {
         connectionDetailsMap.put("SalesDBConnection", new ConnectionDetails(DUMMY_DATASOURCE, sqlDialect));
 
         engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect),
-                connectionDetailsMap, optimizers);
+                connectionDetailsMap, optimizers, new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
         playerStatsTable = (SQLTable) metaDataStore.getTable("playerStats", NO_VERSION);
         videoGameTable = (SQLTable) metaDataStore.getTable("videoGame", NO_VERSION);
     }

@@ -167,16 +167,18 @@ public abstract class Column implements Versioned {
      */
     public static ValueType getValueType(Type<?> tableClass, String fieldName, EntityDictionary dictionary) {
         if (dictionary.isRelation(tableClass, fieldName)) {
-            return ValueType.RELATIONSHIP;
+            return null;
         }
         Type<?> fieldClass = dictionary.getType(tableClass, fieldName);
 
         if (fieldName.equals(dictionary.getIdFieldName(tableClass))) {
             return ValueType.ID;
         }
+
         if (ClassType.DATE_TYPE.isAssignableFrom(fieldClass)) {
             return ValueType.TIME;
         }
+
         return ValueType.getScalarType(fieldClass);
     }
 

@@ -192,7 +192,7 @@ public abstract class Table implements Versioned {
         Set<Column> columns =  dictionary.getAllFields(cls).stream()
                 .filter(field -> {
                     ValueType valueType = getValueType(cls, field, dictionary);
-                    return valueType != null && valueType != ValueType.RELATIONSHIP;
+                    return valueType != null;
                 })
                 .map(field -> {
                     if (isMetricField(dictionary, cls, field)) {
