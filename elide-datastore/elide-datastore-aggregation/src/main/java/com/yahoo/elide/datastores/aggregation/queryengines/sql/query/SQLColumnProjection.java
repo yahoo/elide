@@ -58,7 +58,7 @@ public interface SQLColumnProjection extends ColumnProjection {
      * @param metaDataStore MetaDataStore.
      * @return A String with all arguments and logical references resolved.
      */
-    default String resolveLogicalReferences(Queryable query, MetaDataStore metaDataStore) {
+    default String toPhysicalReferences(Queryable query, MetaDataStore metaDataStore) {
 
         PhysicalRefColumnContext context = PhysicalRefColumnContext.physicalRefContextBuilder()
                         .queryable(query)

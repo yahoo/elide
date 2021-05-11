@@ -109,20 +109,20 @@ public class PhysicalRefColumnContextTest {
         // definition: {{$$column.args.aggregation}}({{$impressions}})
         // -> value of 'aggregation' argument is passed in the query for "impressions" column and same is used while
         // resolving this column.
-        assertEquals("SUM({{$impressions}})", impressions.resolveLogicalReferences(expandedQuery, metaDataStore));
+        assertEquals("SUM({{$impressions}})", impressions.toPhysicalReferences(expandedQuery, metaDataStore));
 
         // definition: {{impressions}}) * {{$$table.args.testPercentage}}
         // -> default value of table argument 'testPercentage' is used.
         // -> value of 'aggregation' argument is passed in the query for "testImpressions" column and same is used while
         // resolving referenced column "impressions".
-        assertEquals("MIN({{$impressions}})) * 0.1", testImpressions.resolveLogicalReferences(expandedQuery, metaDataStore));
+        assertEquals("MIN({{$impressions}})) * 0.1", testImpressions.toPhysicalReferences(expandedQuery, metaDataStore));
 
         // definition: {{revenue}}
         // revenue definition: TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, {{$$column.args.format}})
         // -> default value of 'format' argument in "revenue" column is used while resolving this column.
         // -> default value of 'format' argument in "revenue" column is passed to joined table's "conversionRate" column.
         assertEquals("TO_CHAR(SUM({{$revenue}}) * TO_CHAR({{rate.$conversion_rate}}, 99D00), 99D00)",
-                        testRevenue.resolveLogicalReferences(expandedQuery, metaDataStore));
+                        testRevenue.toPhysicalReferences(expandedQuery, metaDataStore));
 
         // definition: {{revenueUsingLogicalRef}}
         // revenueUsingLogicalRef's definition: TO_CHAR(SUM({{$revenue}}) * {{conversionRate}}, {{$$column.args.format}})
@@ -130,21 +130,21 @@ public class PhysicalRefColumnContextTest {
         // -> This column references "conversionRate" which references "rate.conversionRate". Since conversionRate doesn't have
         // 'format' argument defined, default value of 'format' argument in joined table's "conversionRate" column is used.
         assertEquals("TO_CHAR(SUM({{$revenue}}) * TO_CHAR({{rate.$conversion_rate}}, 9D0), 99D00)",
-                        testRevenueLogicalRef.resolveLogicalReferences(expandedQuery, metaDataStore));
+                        testRevenueLogicalRef.toPhysicalReferences(expandedQuery, metaDataStore));
 
         // definition: TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, {{$$column.args.format}})
         // -> value of 'format' argument is passed in the query for "revenue" column and same is used for resolving
         // referenced column "rate.conversionRate" and this column.
         assertEquals("TO_CHAR(SUM({{$revenue}}) * TO_CHAR({{rate.$conversion_rate}}, 11D00), 11D00)",
-                        revenueWithArg.resolveLogicalReferences(expandedQuery, metaDataStore));
+                        revenueWithArg.toPhysicalReferences(expandedQuery, metaDataStore));
 
         // definition: {{rate.conversionRate}}
         // -> logical column 'conversionRate' doesn't support arguments.
         // -> default value of 'format' argument in "conversionRate" column of joined table is used while resolving this.
-        assertEquals("TO_CHAR({{rate.$conversion_rate}}, 9D0)", conversionRate.resolveLogicalReferences(expandedQuery, metaDataStore));
+        assertEquals("TO_CHAR({{rate.$conversion_rate}}, 9D0)", conversionRate.toPhysicalReferences(expandedQuery, metaDataStore));
 
         // definition: {{rate.$provider}}
-        assertEquals("{{rate.$provider}}", rateProvider.resolveLogicalReferences(expandedQuery, metaDataStore));
+        assertEquals("{{rate.$provider}}", rateProvider.toPhysicalReferences(expandedQuery, metaDataStore));
     }
 
     @Test
@@ -184,7 +184,7 @@ public class PhysicalRefColumnContextTest {
         // resolving this column.
         // -> pinned value (9999D0000) of 'format' argument in SQL helper is used while resolving referenced column "rate.conversionRate".
         assertEquals("TO_CHAR(SUM({{$revenue}}) * TO_CHAR({{rate.$conversion_rate}}, 9999D0000), 11D00)",
-                        revenueUsingSqlHelper.resolveLogicalReferences(expandedQuery, metaDataStore));
+                        revenueUsingSqlHelper.toPhysicalReferences(expandedQuery, metaDataStore));
 
         // definition: TO_CHAR({{sql column='impressions[aggregation:SUM]'}} / {{sql column='revenue[format:99999D00000]'}}, {{$$table.args.format}})
         // -> {{$$table.args.format}} is resolved using query argument 'format' (999999D000000).
@@ -193,17 +193,17 @@ public class PhysicalRefColumnContextTest {
         // -> revenue definition is : TO_CHAR(SUM({{$revenue}}) * {{rate.conversionRate}}, {{$$column.args.format}}),
         // Available value of 'format' argument in "revenue" column is passed to joined table's "conversionRate" column.
         assertEquals("TO_CHAR(SUM({{$impressions}}) / TO_CHAR(SUM({{$revenue}}) * TO_CHAR({{rate.$conversion_rate}}, 99999D00000), 99999D00000), 999999D000000)",
-                        impressionsPerUSD.resolveLogicalReferences(expandedQuery, metaDataStore));
+                        impressionsPerUSD.toPhysicalReferences(expandedQuery, metaDataStore));
 
         // -> Even 'format' is passed in query column args, pinned value (9999D0000) of 'format' argument in SQL helper is used while
         // resolving "revenue" column and same is passed to joined table's "conversionRate" column.
         assertEquals("TO_CHAR(SUM({{$impressions}}) / TO_CHAR(SUM({{$revenue}}) * TO_CHAR({{rate.$conversion_rate}}, 99999D00000), 99999D00000), 999999D000000)",
-                        impressionsPerUSDWithArg.resolveLogicalReferences(expandedQuery, metaDataStore));
+                        impressionsPerUSDWithArg.toPhysicalReferences(expandedQuery, metaDataStore));
 
         // definition: TO_CHAR({{sql column='impressions[aggregation:SUM]'}} / {{sql column='revenueUsingSqlHelper[format:99999D00000]'}}, {{$$table.args.format}})
         // -> As "rate.conversionRate" is invoked using SQL helper from "revenue" column, this uses the fixed value(9999D0000) of
         // 'format' argument provided in definition of "revenueUsingSqlHelper" column.
         assertEquals("TO_CHAR(SUM({{$impressions}}) / TO_CHAR(SUM({{$revenue}}) * TO_CHAR({{rate.$conversion_rate}}, 9999D0000), 99999D00000), 999999D000000)",
-                        impressionsPerUSD2.resolveLogicalReferences(expandedQuery, metaDataStore));
+                        impressionsPerUSD2.toPhysicalReferences(expandedQuery, metaDataStore));
     }
 }
