@@ -29,7 +29,8 @@ public class PhysicalRefColumnContext extends ColumnContext {
     private static final String HANDLEBAR_SUFFIX = "}}";
 
     @Builder(builderMethodName = "physicalRefContextBuilder")
-    public PhysicalRefColumnContext(MetaDataStore metaDataStore, Queryable queryable, String alias, ColumnProjection column) {
+    public PhysicalRefColumnContext(MetaDataStore metaDataStore, Queryable queryable, String alias,
+                    ColumnProjection column) {
         super(metaDataStore, queryable, alias, column);
     }
 
