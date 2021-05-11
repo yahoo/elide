@@ -318,9 +318,5 @@ public abstract class Table implements Versioned {
         return null;
     }
 
-    public ColumnProjection toProjection(Column column) {
-        return toQueryable().getColumnProjection(column.getName());
-    }
-
     public abstract Queryable toQueryable();
 }

@@ -42,13 +42,11 @@ import com.yahoo.elide.datastores.aggregation.example.dimensions.CountryViewNest
 import com.yahoo.elide.datastores.aggregation.example.dimensions.SubCountry;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
-import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Optimizer;
 import com.yahoo.elide.datastores.aggregation.query.Query;
-import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
@@ -72,7 +70,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -551,13 +548,6 @@ public abstract class SQLUnitTest {
     @AfterEach
     public void end() {
         transaction.close();
-    }
-
-    public static TimeDimensionProjection toProjection(TimeDimension dimension, TimeGrain grain) {
-        return engine.constructTimeDimensionProjection(
-                dimension,
-                dimension.getName(),
-                Collections.emptyMap());
     }
 
     protected static List<Object> toList(Iterable<Object> data) {

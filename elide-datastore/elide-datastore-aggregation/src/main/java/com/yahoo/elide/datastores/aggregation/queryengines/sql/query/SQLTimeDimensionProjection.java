@@ -134,22 +134,14 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
 
     @Override
     public SQLTimeDimensionProjection withProjected(boolean projected) {
-        return withExpression(expression, projected);
+        return new SQLTimeDimensionProjection(alias, name, expression, valueType, columnType, grain, timeZone,
+                        arguments, projected);
     }
 
     @Override
     public SQLTimeDimensionProjection withExpression(String expression, boolean projected) {
-        return SQLTimeDimensionProjection.builder()
-                .name(name)
-                .alias(alias)
-                .valueType(valueType)
-                .columnType(columnType)
-                .expression(expression)
-                .arguments(arguments)
-                .projected(projected)
-                .grain(grain)
-                .timeZone(timeZone)
-                .build();
+        return new SQLTimeDimensionProjection(alias, name, expression, valueType, columnType, grain, timeZone,
+                        arguments, projected);
     }
 
     private TimeDimensionGrain getGrainFromArguments(Map<String, Argument> arguments, TimeDimension column) {
@@ -170,5 +162,11 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     @Override
     public boolean isProjected() {
         return projected;
+    }
+
+    @Override
+    public ColumnProjection withArguments(Map<String, Argument> arguments) {
+        return new SQLTimeDimensionProjection(alias, name, expression, valueType, columnType, grain, timeZone,
+                        arguments, projected);
     }
 }

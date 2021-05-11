@@ -6,10 +6,13 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
+import static com.yahoo.elide.core.request.Argument.getArgumentMapFromString;
+import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.getColumnArgMap;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
@@ -23,8 +26,11 @@ import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,14 +50,9 @@ public class ExpressionParser {
             .registerHelper("sql", (context, options) -> {
                 String from = options.hash("from");
                 String column = options.hash("column");
-                int argsIndex = column.indexOf('[');
 
-                // Remove args from column
-                column = argsIndex == -1 ? column : column.substring(0, argsIndex);
                 // Prefix column with join table name
-                column = isEmpty(from) ? column : from + PERIOD + column;
-
-                return column;
+                return isEmpty(from) ? column : from + PERIOD + column;
             });
 
     public ExpressionParser(MetaDataStore store) {
@@ -66,7 +67,7 @@ public class ExpressionParser {
      * @return A list of discovered references.
      */
     public List<Reference> parse(Queryable source, ColumnProjection column) {
-        return parse(source, column.getExpression());
+        return parse(source, column.getExpression(), column.getArguments());
     }
 
     /**
@@ -76,9 +77,21 @@ public class ExpressionParser {
      * @return A list of discovered references.
      */
     public List<Reference> parse(Queryable source, String expression) {
+        return parse(source, expression, Collections.emptyMap());
+    }
+
+    /**
+     * Parses the column or join expression and returns the list of discovered references.
+     * @param source The source table where the column or join expression lives.
+     * @param expression The expression to parse.
+     * @param callingColumnArgs Arguments available with calling column.
+     * @return A list of discovered references.
+     */
+    public List<Reference> parse(Queryable source, String expression, Map<String, Argument> callingColumnArgs) {
         List<String> referenceNames = resolveFormulaReferences(expression);
 
         List<Reference> results = new ArrayList<>();
+        Map<String, Argument> fixedArguments = new HashMap<>();
 
         for (String referenceName : referenceNames) {
 
@@ -87,6 +100,11 @@ public class ExpressionParser {
                 try {
                     Template template = handlebars.compileInline(toFormulaReference(referenceName));
                     referenceName = template.apply(Collections.emptyMap());
+                    int argsIndex = referenceName.indexOf('[');
+                    if (argsIndex >= 0) {
+                        fixedArguments = getArgumentMapFromString(referenceName.substring(argsIndex));
+                        referenceName = referenceName.substring(0, argsIndex);
+                    }
                 } catch (IOException e) {
                     throw new IllegalStateException(e.getMessage());
                 }
@@ -102,14 +120,23 @@ public class ExpressionParser {
                         .name(referenceName.substring(1))
                         .build());
             } else if (referenceName.contains(".")) {
-                results.add(buildJoin(source, referenceName));
+                results.add(buildJoin(source, referenceName, callingColumnArgs, fixedArguments));
             } else {
-                Reference reference = buildReferenceFromField(source, referenceName);
+                ColumnProjection referencedColumn = source.getColumnProjection(referenceName);
+                Preconditions.checkNotNull(referencedColumn);
+
+                ColumnProjection newColumn = referencedColumn.withArguments(
+                                getColumnArgMap(referencedColumn.getArguments(),
+                                                callingColumnArgs,
+                                                fixedArguments));
+
+                List<Reference> references = buildReferenceForColumn(source, newColumn);
+
                 results.add(LogicalReference
                         .builder()
                         .source(source)
-                        .column(source.getColumnProjection(referenceName))
-                        .reference(reference)
+                        .column(newColumn)
+                        .references(references)
                         .build());
             }
         }
@@ -117,27 +144,20 @@ public class ExpressionParser {
         return results;
     }
 
-    private Reference buildReferenceFromField(Queryable source, String fieldName) {
-        ColumnProjection column = source.getColumnProjection(fieldName);
-
-        Preconditions.checkNotNull(column);
-
+    private List<Reference> buildReferenceForColumn(Queryable source, ColumnProjection column) {
         if (column.getColumnType() == ColumnType.FIELD) {
-            return PhysicalReference
+            return Arrays.asList(PhysicalReference
                     .builder()
                     .source(source)
                     .name(column.getName())
-                    .build();
+                    .build());
         }
-        return LogicalReference
-                .builder()
-                .source(source)
-                .column(column)
-                .references(parse(source, column))
-                .build();
+        return parse(source, column);
     }
 
-    private JoinReference buildJoin(Queryable source, String referenceName) {
+    private JoinReference buildJoin(Queryable source, String referenceName, Map<String, Argument> callingColumnArgs,
+                    Map<String, Argument> fixedArguments) {
+
         Queryable root = source.getRoot();
         Type<?> tableClass = dictionary.getEntityClass(root.getName(), root.getVersion());
 
@@ -155,7 +175,18 @@ public class ExpressionParser {
                     .name(fieldName.substring(1))
                     .build();
         } else {
-            reference = buildReferenceFromField(joinSource, fieldName);
+            ColumnProjection referencedColumn = joinSource.getColumnProjection(fieldName);
+            ColumnProjection newColumn = referencedColumn.withArguments(
+                            getColumnArgMap(referencedColumn.getArguments(),
+                                            callingColumnArgs,
+                                            fixedArguments));
+
+            reference = LogicalReference
+                            .builder()
+                            .source(joinSource)
+                            .column(newColumn)
+                            .references(buildReferenceForColumn(joinSource, newColumn))
+                            .build();
         }
 
         return JoinReference
