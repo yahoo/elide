@@ -7,7 +7,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
-import com.yahoo.elide.datastores.aggregation.metadata.LogicalRefContext;
+import com.yahoo.elide.datastores.aggregation.metadata.PhysicalRefColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
@@ -60,7 +60,7 @@ public interface SQLColumnProjection extends ColumnProjection {
      */
     default String resolveLogicalReferences(Queryable query, MetaDataStore metaDataStore) {
 
-        LogicalRefContext context = LogicalRefContext.logicalRefContextBuilder()
+        PhysicalRefColumnContext context = PhysicalRefColumnContext.physicalRefContextBuilder()
                         .queryable(query)
                         .metaDataStore(metaDataStore)
                         .column(this)

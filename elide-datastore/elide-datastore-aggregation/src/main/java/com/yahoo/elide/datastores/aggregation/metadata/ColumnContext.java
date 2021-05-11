@@ -39,7 +39,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Context for resolving handlebars.
+ * Context for resolving all handlebars in provided expression.
  */
 @Getter
 @ToString

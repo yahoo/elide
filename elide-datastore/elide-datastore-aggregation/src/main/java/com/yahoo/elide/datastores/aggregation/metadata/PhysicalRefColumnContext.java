@@ -18,24 +18,24 @@ import lombok.Getter;
 import lombok.ToString;
 
 /**
- * Context for resolving arguments and logical references in column's expression. Keeps physical and join references as
+ * Context for resolving all handlebars in provided expression except physical references. Keeps physical references as
  * is.
  */
 @Getter
 @ToString
-public class LogicalRefContext extends ColumnContext {
+public class PhysicalRefColumnContext extends ColumnContext {
 
     private static final String HANDLEBAR_PREFIX = "{{";
     private static final String HANDLEBAR_SUFFIX = "}}";
 
-    @Builder(builderMethodName = "logicalRefContextBuilder")
-    public LogicalRefContext(MetaDataStore metaDataStore, Queryable queryable, String alias, ColumnProjection column) {
+    @Builder(builderMethodName = "physicalRefContextBuilder")
+    public PhysicalRefColumnContext(MetaDataStore metaDataStore, Queryable queryable, String alias, ColumnProjection column) {
         super(metaDataStore, queryable, alias, column);
     }
 
     @Override
     protected ColumnContext getNewContext(ColumnProjection newColumn) {
-        return LogicalRefContext.logicalRefContextBuilder()
+        return PhysicalRefColumnContext.physicalRefContextBuilder()
                         .queryable(this.getQueryable())
                         .alias(this.getAlias())
                         .metaDataStore(this.getMetaDataStore())
@@ -49,7 +49,7 @@ public class LogicalRefContext extends ColumnContext {
         Queryable joinQueryable = metaDataStore.getTable(sqlJoin.getJoinTableType());
         String joinPath = isBlank(this.alias) ? key : this.alias + PERIOD + key;
 
-        LogicalRefContext joinCtx = LogicalRefContext.logicalRefContextBuilder()
+        PhysicalRefColumnContext joinCtx = PhysicalRefColumnContext.physicalRefContextBuilder()
                         .queryable(joinQueryable)
                         .alias(joinPath)
                         .metaDataStore(this.metaDataStore)
