@@ -26,6 +26,7 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.JoinExpressionExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
@@ -49,6 +50,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
     private final EntityDictionary dictionary;
     private final SQLDialect dialect;
     private FilterTranslator filterTranslator;
+    private final ExpressionParser parser;
 
     public QueryTranslator(SQLReferenceTable referenceTable, SQLDialect sqlDialect) {
         this.referenceTable = referenceTable;
@@ -56,6 +58,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
         this.dictionary = referenceTable.getDictionary();
         this.dialect = sqlDialect;
         this.filterTranslator = new FilterTranslator(dictionary);
+        this.parser = new ExpressionParser(referenceTable.getMetaDataStore());
     }
 
     @Override
@@ -295,7 +298,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
                         .build();
 
         JoinExpressionExtractor visitor = new JoinExpressionExtractor(context);
-        List<Reference> references = referenceTable.getReferenceTree(query.getSource(), column.getName());
+        List<Reference> references = parser.parse(query.getSource(), column);
         references.forEach(ref -> joinExpressions.addAll(ref.accept(visitor)));
         return joinExpressions;
     }

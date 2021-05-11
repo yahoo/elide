@@ -85,7 +85,6 @@ public class ExpressionParserTest {
                                 )
                                 .build()
                         )
-                        .fixedArguments(emptyMap())
                         .build())
                 .build();
     }

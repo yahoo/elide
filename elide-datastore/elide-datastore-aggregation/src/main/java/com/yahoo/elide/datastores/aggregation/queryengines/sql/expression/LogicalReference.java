@@ -33,8 +33,6 @@ public class LogicalReference implements Reference {
     @NonNull
     private ColumnProjection column;
 
-    private Map<String, Argument> fixedArguments;
-
     @Override
     public <T> T accept(ReferenceVisitor<T> visitor) {
         return visitor.visitLogicalReference(this);

@@ -207,21 +207,26 @@ public class ColumnContext extends HashMap<String, Object> {
                                                         String columnName,
                                                         Map<String, Argument> callingColumnArgs,
                                                         Map<String, Argument> fixedArgs) {
+        return getColumnArgMap(queryable.getSource().getColumnProjection(columnName).getArguments(),
+                               callingColumnArgs,
+                               fixedArgs);
+    }
+
+    public static Map<String, Argument> getColumnArgMap(Map<String, Argument> referencedColumnArgs,
+                                                        Map<String, Argument> callingColumnArgs,
+                                                        Map<String, Argument> fixedArgs) {
 
         Map<String, Argument> columnArgMap = new HashMap<>();
 
-        queryable.getSource()
-                 .getColumnProjection(columnName)
-                 .getArguments()
-                        .forEach((argName, arg) -> {
-                            if (fixedArgs.containsKey(argName)) {
-                                columnArgMap.put(argName, fixedArgs.get(argName));
-                            } else if (callingColumnArgs.containsKey(argName)) {
-                                columnArgMap.put(argName, callingColumnArgs.get(argName));
-                            } else {
-                                columnArgMap.put(argName, arg);
-                            }
-                        });
+        referencedColumnArgs.forEach((argName, arg) -> {
+            if (fixedArgs.containsKey(argName)) {
+                columnArgMap.put(argName, fixedArgs.get(argName));
+            } else if (callingColumnArgs.containsKey(argName)) {
+                columnArgMap.put(argName, callingColumnArgs.get(argName));
+            } else {
+                columnArgMap.put(argName, arg);
+            }
+        });
 
         return columnArgMap;
     }

@@ -7,15 +7,12 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
-import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.getColumnArgMap;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.hasSql;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.resolveTableOrSubselect;
-import static java.util.Collections.emptyMap;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
@@ -26,7 +23,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -61,17 +57,9 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
 
         /**
          * For the scenario: col1:{{col2}}, col2:{{col3}}, col3:{{join.col1}}
-         * Creating new visitor with correct ColumnProjection, so that default arguments can be extracted correctly.
+         * Creating new visitor with new ColumnProjection.
          */
-        ColumnProjection column = reference.getColumn();
-
-        Map<String, Argument> fixedArgs = reference.getFixedArguments();
-
-        ColumnProjection newColumn = column.withArguments(
-                        getColumnArgMap(this.context.getQueryable(),
-                                        column.getName(),
-                                        this.context.getColumn().getArguments(),
-                                        fixedArgs == null ? emptyMap() : fixedArgs));
+        ColumnProjection newColumn = reference.getColumn();
 
         ColumnContext newCtx = ColumnContext.builder()
                         .queryable(this.context.getQueryable())
