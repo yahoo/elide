@@ -49,6 +49,7 @@ public class ColumnContext extends HashMap<String, Object> {
     public static final String COL_PREFIX = "$$column";
     public static final String TBL_PREFIX = "$$table";
     public static final String ARGS_KEY = "args";
+    public static final String EXPR_KEY = "expr";
 
     protected final MetaDataStore metaDataStore;
     protected final Queryable queryable;
@@ -84,6 +85,10 @@ public class ColumnContext extends HashMap<String, Object> {
 
         if (keyStr.equals(ARGS_KEY)) {
             return this.column.getArguments();
+        }
+
+        if (keyStr.equals(EXPR_KEY)) {
+            return this.resolve(this.getColumn().getExpression());
         }
 
         if (this.queryable.hasJoin(keyStr)) {

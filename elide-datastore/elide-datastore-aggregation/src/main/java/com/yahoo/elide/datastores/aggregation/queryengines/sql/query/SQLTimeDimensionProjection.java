@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.core.exceptions.InvalidParameterizedAttributeException;
 import com.yahoo.elide.core.request.Argument;
+import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
@@ -39,8 +40,6 @@ import java.util.TimeZone;
 @Builder
 @AllArgsConstructor
 public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDimensionProjection {
-
-    private static final String TIME_DIMENSION_REPLACEMENT_REGEX = "\\{\\{(\\s*)}}";
 
     private String alias;
     private String name;
@@ -80,10 +79,14 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     @Override
     public String toSQL(Queryable query, MetaDataStore metaDataStore) {
 
-        String resolvedExpr = SQLColumnProjection.super.toSQL(query, metaDataStore);
+        ColumnContext context = ColumnContext.builder()
+                        .queryable(query)
+                        .alias(query.getSource().getAlias())
+                        .metaDataStore(metaDataStore)
+                        .column(this)
+                        .build();
 
-        // TODO - We will likely migrate to a templating language when we support parameterized metrics.
-        return grain.getExpression().replaceAll(TIME_DIMENSION_REPLACEMENT_REGEX, resolvedExpr);
+        return context.resolve(grain.getExpression());
     }
 
     @Override
