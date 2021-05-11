@@ -130,7 +130,7 @@ public class ExpressionParser {
                                                 callingColumnArgs,
                                                 fixedArguments));
 
-                List<Reference> references = buildReferenceFromField(source, newColumn);
+                List<Reference> references = buildReferenceForColumn(source, newColumn);
 
                 results.add(LogicalReference
                         .builder()
@@ -144,7 +144,7 @@ public class ExpressionParser {
         return results;
     }
 
-    private List<Reference> buildReferenceFromField(Queryable source, ColumnProjection column) {
+    private List<Reference> buildReferenceForColumn(Queryable source, ColumnProjection column) {
         if (column.getColumnType() == ColumnType.FIELD) {
             return Arrays.asList(PhysicalReference
                     .builder()
@@ -184,8 +184,8 @@ public class ExpressionParser {
             reference = LogicalReference
                             .builder()
                             .source(joinSource)
-                            .column(joinSource.getColumnProjection(fieldName))
-                            .references(buildReferenceFromField(joinSource, newColumn))
+                            .column(newColumn)
+                            .references(buildReferenceForColumn(joinSource, newColumn))
                             .build();
         }
 
