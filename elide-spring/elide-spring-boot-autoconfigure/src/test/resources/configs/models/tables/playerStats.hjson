@@ -43,7 +43,7 @@
                 [{
                     type : DAY
                     sql : '''
-                    PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+                    PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
                     '''
                 }]
             },
@@ -55,7 +55,7 @@
                 [{
                     type : MONTH
                     sql : '''
-                    PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
+                    PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-01'), 'yyyy-MM-dd')
                     '''
                 }]
             }

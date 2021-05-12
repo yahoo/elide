@@ -301,9 +301,9 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("included.attributes.grain", containsInAnyOrder("DAY", "MONTH", "QUARTER"))
                 .body("included.attributes.expression",
                         containsInAnyOrder(
-                                "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')",
-                                "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')",
-                                "PARSEDATETIME(CONCAT(FORMATDATETIME({{}}, 'yyyy-'), 3 * QUARTER({{}}) - 2), 'yyyy-MM')"
+                                "PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')",
+                                "PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM'), 'yyyy-MM')",
+                                "PARSEDATETIME(CONCAT(FORMATDATETIME({{$$column.expr}}, 'yyyy-'), 3 * QUARTER({{$$column.expr}}) - 2), 'yyyy-MM')"
                         ));
     }
 
