@@ -30,6 +30,16 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
     }
 
     @Test
+    public void testOnlyId() {
+        Query query = Query.builder()
+                .source(playerStatsTable)
+                .dimensionProjection(playerStatsTable.getDimensionProjection("id"))
+                .build();
+
+        validateQuery(query, "Invalid operation: Cannot query a fact table only by ID");
+    }
+
+    @Test
     public void testSortingOnId() {
         Map<String, Sorting.SortOrder> sortMap = new TreeMap<>();
         sortMap.put("id", Sorting.SortOrder.asc);

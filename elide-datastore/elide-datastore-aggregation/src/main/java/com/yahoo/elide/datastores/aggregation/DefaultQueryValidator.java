@@ -12,10 +12,13 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
 import java.util.List;
 import java.util.Map;
@@ -33,17 +36,7 @@ public class DefaultQueryValidator implements QueryValidator {
         this.dictionary = dictionary;
     }
 
-    /**
-     * Validate the having clause before execution. Having clause is not as flexible as where clause,
-     * the fields in having clause must be either or these two:
-     * 1. A grouped by dimension in this query
-     * 2. An aggregated metric in this query
-     *
-     * All grouped by dimensions are defined in the entity bean, so the last entity class of a filter path
-     * must match entity class of the query.
-     *
-     * @param query The client query to validate;
-     */
+    @Override
     public void validateHavingClause(Query query) {
 
         FilterExpression havingClause = query.getHavingFilter();
@@ -89,10 +82,8 @@ public class DefaultQueryValidator implements QueryValidator {
         });
     }
 
-    /**
-     * Ensures that no filter predicates tries not navigate a relationship.
-     * @param query
-     */
+
+    @Override
     public void validateWhereClause(Query query) {
 
         FilterExpression whereClause = query.getWhereFilter();
@@ -109,10 +100,7 @@ public class DefaultQueryValidator implements QueryValidator {
         });
     }
 
-    /**
-     * Method to verify that all the sorting options provided
-     * by the user are valid and supported.
-     */
+    @Override
     public void validateSorting(Query query) {
         Sorting sorting = query.getSorting();
 
@@ -152,6 +140,17 @@ public class DefaultQueryValidator implements QueryValidator {
         if (dictionary.getIdFieldName(currentClass).equals(currentField)
                 || currentField.equals(EntityDictionary.REGULAR_ID_NAME)) {
             throw new InvalidOperationException("Sorting on id field is not permitted");
+        }
+    }
+
+
+    @Override
+    public void validateProjectedColumns(Query query) {
+        boolean onlyId = query.getColumnProjections().stream()
+                .allMatch(column -> column.getValueType().equals(ValueType.ID));
+
+        if (((SQLTable) query.getSource()).isFact() && onlyId) {
+            throw new InvalidOperationException("Cannot query a fact table only by ID");
         }
     }
 }
