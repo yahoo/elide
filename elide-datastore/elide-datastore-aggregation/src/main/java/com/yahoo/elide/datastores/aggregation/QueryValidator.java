@@ -16,6 +16,7 @@ public interface QueryValidator {
         validateHavingClause(query);
         validateSorting(query);
         validateProjectedColumns(query);
+        validateQueryArguments(query);
     }
 
     /**
@@ -49,4 +50,10 @@ public interface QueryValidator {
      * @param query
      */
     void validateProjectedColumns(Query query);
+
+    /**
+     * Validates that the arguments sent in the query.
+     * @param query
+     */
+    void validateQueryArguments(Query query);
 }

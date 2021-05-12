@@ -267,7 +267,7 @@ public abstract class Table implements Versioned {
      * @param <T> metadata class
      * @return column as requested type if found
      */
-    protected final <T extends Column> T getColumn(Class<T> cls, String fieldName) {
+    public final <T extends Column> T getColumn(Class<T> cls, String fieldName) {
         Column column = columnMap.get(fieldName);
         return column != null && cls.isAssignableFrom(column.getClass()) ? cls.cast(column) : null;
     }

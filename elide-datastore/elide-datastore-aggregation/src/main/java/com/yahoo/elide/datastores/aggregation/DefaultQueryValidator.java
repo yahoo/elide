@@ -10,10 +10,11 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
@@ -30,7 +31,7 @@ import java.util.stream.Collectors;
  * Checks include validate sorting, having clause and make sure there is at least 1 metric queried.
  */
 public class DefaultQueryValidator implements QueryValidator {
-    private EntityDictionary dictionary;
+    protected EntityDictionary dictionary;
 
     public DefaultQueryValidator(EntityDictionary dictionary) {
         this.dictionary = dictionary;
@@ -122,7 +123,7 @@ public class DefaultQueryValidator implements QueryValidator {
      * @param path The path that we are validating
      * @param allFields Set of all field names included in initial query
      */
-    private void validateSortingPath(Path path, Set<String> allFields) {
+    protected void validateSortingPath(Path path, Set<String> allFields) {
         List<Path.PathElement> pathElements = path.getPathElements();
 
         if (pathElements.size() > 1) {
@@ -154,5 +155,45 @@ public class DefaultQueryValidator implements QueryValidator {
         if (onlyId) {
             throw new InvalidOperationException("Cannot query a table only by ID");
         }
+
+        query.getColumnProjections().forEach(column -> validateColumnArguments(query, column));
+    }
+
+    @Override
+    public void validateQueryArguments(Query query) {
+        SQLTable table = (SQLTable) query.getSource();
+
+        table.getArguments().forEach(tableArgument -> {
+            if (query.getArguments().containsKey(tableArgument.getName())) {
+                Argument clientArgument = query.getArguments().get(tableArgument.getName());
+
+                boolean isValid = tableArgument.getType().matches(clientArgument.getValue().toString());
+
+                if (!isValid) {
+                    throw new InvalidOperationException(String.format("Argument %s has an invalid value: %s",
+                            tableArgument.getName(),
+                            clientArgument.getValue()));
+                }
+            }
+        });
+    }
+
+    protected void validateColumnArguments(Query query, ColumnProjection projection) {
+        SQLTable table = (SQLTable) query.getSource();
+        Column column = table.getColumn(Column.class, projection.getName());
+
+        column.getArguments().forEach(columnArgument -> {
+            if (projection.getArguments().containsKey(columnArgument.getName())) {
+                Argument clientArgument = projection.getArguments().get(columnArgument.getName());
+
+                boolean isValid = columnArgument.getType().matches(clientArgument.getValue().toString());
+
+                if (!isValid) {
+                    throw new InvalidOperationException(String.format("Argument %s has an invalid value: %s",
+                            columnArgument.getName(),
+                            clientArgument.getValue()));
+                }
+            }
+        });
     }
 }
