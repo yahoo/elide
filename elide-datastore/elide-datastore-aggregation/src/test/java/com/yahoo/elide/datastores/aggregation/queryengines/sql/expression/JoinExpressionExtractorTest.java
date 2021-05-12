@@ -296,7 +296,7 @@ public class JoinExpressionExtractorTest {
     // dim4 and dim5 passes different value for column argument 'arg6'
     // 2 Join expressions are generated.
     @Test
-    void test4d() {
+    void testArgumentsInJoinExprPart4() {
 
         Map<String, Argument> dim4Arg = new HashMap<>();
         dim4Arg.put("exprArg", Argument.builder().name("exprArg").value("same").build());
