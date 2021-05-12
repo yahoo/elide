@@ -285,6 +285,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
      */
     private Set<String> extractJoinExpressions(Query query) {
         return query.getColumnProjections().stream()
+                .filter(column -> column.isProjected())
                 .map(column -> extractJoinExpressions(column, query))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toCollection(LinkedHashSet::new));

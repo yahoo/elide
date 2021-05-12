@@ -211,7 +211,7 @@ public class JoinExpressionExtractorTest {
     // dim4 and dim5 passes different value for join expression's argument 'exprArg'
     // 2 Join expressions are generated.
     @Test
-    void testArgumentsInJoinExprCase2() {
+    void testArgumentsInJoinExprCase2a() {
 
         Map<String, Argument> dim4Arg = new HashMap<>();
         dim4Arg.put("exprArg", Argument.builder().name("exprArg").value("value4").build());
@@ -229,7 +229,6 @@ public class JoinExpressionExtractorTest {
                         .build();
 
         String generatedSql = engine.explain(query).get(0);
-        System.out.println(generatedSql);
 
         String expectedSQL =
                           "SELECT " + NL
@@ -245,6 +244,42 @@ public class JoinExpressionExtractorTest {
                         + "  `join_table` AS `MainTable_join2_XXX` " + NL
                         + "ON " + NL
                         + "  value = 'value5' AND `MainTable`.`dim6` - 'bar' = `MainTable_join2_XXX`.`dim4` - 'foo' ";
+
+        assertEquals(formatExpected(expectedSQL), formatGenerated(generatedSql));
+    }
+
+    // dim4x and dim5x passes different value for join expression's argument 'exprArg'
+    // 1 Join expression is generated as they invoke dim4 and dim5 using sql helper with same value
+    @Test
+    void testArgumentsInJoinExprCase2b() {
+
+        Map<String, Argument> dim4Arg = new HashMap<>();
+        dim4Arg.put("exprArg", Argument.builder().name("exprArg").value("value4").build());
+        SQLDimensionProjection dim4x = (SQLDimensionProjection) table.getDimensionProjection("dim4x", "dim4x", dim4Arg);
+
+        Map<String, Argument> dim5Arg = new HashMap<>();
+        dim5Arg.put("exprArg", Argument.builder().name("exprArg").value("value5").build());
+        SQLDimensionProjection dim5x = (SQLDimensionProjection) table.getDimensionProjection("dim5x", "dim5x", dim5Arg);
+
+        Query query = Query.builder()
+                        .source(table)
+                        .dimensionProjection(dim4x)
+                        .dimensionProjection(dim5x)
+                        .arguments(emptyMap())
+                        .build();
+
+        String generatedSql = engine.explain(query).get(0);
+
+        String expectedSQL =
+                          "SELECT " + NL
+                        + "  DISTINCT `MainTable_join2_XXX`.`dim1` - 'value4' AS `dim4x`," + NL
+                        + "           `MainTable_join2_XXX`.`dim1` - 'value5' AS `dim5x` " + NL
+                        + "FROM " + NL
+                        + "  `main_table` AS `MainTable` " + NL
+                        + "LEFT OUTER JOIN " + NL
+                        + "  `join_table` AS `MainTable_join2_XXX` " + NL
+                        + "ON " + NL
+                        + "  value = 'fixedExpr' AND `MainTable`.`dim6` - 'bar' = `MainTable_join2_XXX`.`dim4` - 'fixedArg' ";
 
         assertEquals(formatExpected(expectedSQL), formatGenerated(generatedSql));
     }
@@ -359,7 +394,6 @@ public class JoinExpressionExtractorTest {
                         .build();
 
         String generatedSql = engine.explain(query).get(0);
-        System.out.println(generatedSql);
 
         String expectedSQL =
                           "SELECT " + NL
@@ -417,20 +451,30 @@ class MainTable {
                                     @ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT)})
     private String dim4;
 
-    @DimensionFormula(value = "{{join2a.dim1}}",
-                      arguments = {@ArgumentDefinition(name = "exprArg", type = ValueType.TEXT),
-                                    @ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT)})
-    private String dim4a;
-
     @DimensionFormula(value = "{{join2.dim1}}",
-                      arguments = {@ArgumentDefinition(name = "exprArg", type = ValueType.TEXT),
+                      arguments = { @ArgumentDefinition(name = "exprArg", type = ValueType.TEXT),
                                     @ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT)})
     private String dim5;
 
     @DimensionFormula(value = "{{join2a.dim1}}",
                       arguments = { @ArgumentDefinition(name = "exprArg", type = ValueType.TEXT),
                                     @ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT)})
+    private String dim4a;
+
+    @DimensionFormula(value = "{{join2a.dim1}}",
+                      arguments = { @ArgumentDefinition(name = "exprArg", type = ValueType.TEXT),
+                                    @ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT)})
     private String dim5a;
+
+    @DimensionFormula(value = "{{sql column='dim4[exprArg:fixedExpr][joinArg4:fixedArg]'}} - '{{$$column.args.exprArg}}'",
+                      arguments = { @ArgumentDefinition(name = "exprArg", type = ValueType.TEXT),
+                                    @ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT)})
+    private String dim4x;
+
+    @DimensionFormula(value = "{{sql column='dim5[exprArg:fixedExpr][joinArg4:fixedArg]'}} - '{{$$column.args.exprArg}}'",
+                      arguments = { @ArgumentDefinition(name = "exprArg", type = ValueType.TEXT),
+                                    @ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT)})
+    private String dim5x;
 
     @Join("value = '{{$$column.args.exprArg}}' AND {{dim6}} = {{join2.dim4}}")
     private JoinTable join2;
