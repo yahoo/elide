@@ -175,7 +175,7 @@ public class JoinExpressionExtractorTest {
     // Both dim4 and dim5 passes same value for join expression's argument 'exprArg'
     // Single Join expression is generated.
     @Test
-    void testArgumentsInJoinExprPart1() {
+    void testArgumentsInJoinExprCase1() {
 
         Map<String, Argument> dim4Arg = new HashMap<>();
         dim4Arg.put("exprArg", Argument.builder().name("exprArg").value("same").build());
@@ -211,7 +211,7 @@ public class JoinExpressionExtractorTest {
     // dim4 and dim5 passes different value for join expression's argument 'exprArg'
     // 2 Join expressions are generated.
     @Test
-    void testArgumentsInJoinExprPart2() {
+    void testArgumentsInJoinExprCase2() {
 
         Map<String, Argument> dim4Arg = new HashMap<>();
         dim4Arg.put("exprArg", Argument.builder().name("exprArg").value("value4").build());
@@ -253,7 +253,7 @@ public class JoinExpressionExtractorTest {
     // dim4 and dim5 passes different value for join table's column argument 'joinArg4'
     // 2 Join expressions are generated.
     @Test
-    void testArgumentsInJoinExprPart3() {
+    void testArgumentsInJoinExprCase3() {
 
         Map<String, Argument> dim4Arg = new HashMap<>();
         dim4Arg.put("exprArg", Argument.builder().name("exprArg").value("same").build());
@@ -296,7 +296,7 @@ public class JoinExpressionExtractorTest {
     // dim4 and dim5 passes different value for column argument 'arg6'
     // 2 Join expressions are generated.
     @Test
-    void testArgumentsInJoinExprPart4() {
+    void testArgumentsInJoinExprCase4() {
 
         Map<String, Argument> dim4Arg = new HashMap<>();
         dim4Arg.put("exprArg", Argument.builder().name("exprArg").value("same").build());
@@ -331,6 +331,46 @@ public class JoinExpressionExtractorTest {
                         + "  `join_table` AS `MainTable_join2_XXX` " + NL
                         + "ON " + NL
                         + "  value = 'same' AND `MainTable`.`dim6` - 'bar5' = `MainTable_join2_XXX`.`dim4` - 'foo' ";
+
+        assertEquals(formatExpected(expectedSQL), formatGenerated(generatedSql));
+    }
+
+    // Both dim4a and dim5a passes same value for join expression's argument 'exprArg'
+    // dim4a and dim5a passes different value for join table's column argument 'joinArg4'
+    // 1 Join expressions is generated as fixed value of joinArg4 is used while calling join table's column.
+    @Test
+    void testArgumentsInJoinExprCase5() {
+
+        Map<String, Argument> dim4Arg = new HashMap<>();
+        dim4Arg.put("exprArg", Argument.builder().name("exprArg").value("same").build());
+        dim4Arg.put("joinArg4", Argument.builder().name("joinArg4").value("foo4").build());
+        SQLDimensionProjection dim4a = (SQLDimensionProjection) table.getDimensionProjection("dim4a", "dim4a", dim4Arg);
+
+        Map<String, Argument> dim5Arg = new HashMap<>();
+        dim5Arg.put("exprArg", Argument.builder().name("exprArg").value("same").build());
+        dim5Arg.put("joinArg4", Argument.builder().name("joinArg4").value("foo5").build());
+        SQLDimensionProjection dim5a = (SQLDimensionProjection) table.getDimensionProjection("dim5a", "dim5a", dim5Arg);
+
+        Query query = Query.builder()
+                        .source(table)
+                        .dimensionProjection(dim4a)
+                        .dimensionProjection(dim5a)
+                        .arguments(emptyMap())
+                        .build();
+
+        String generatedSql = engine.explain(query).get(0);
+        System.out.println(generatedSql);
+
+        String expectedSQL =
+                          "SELECT " + NL
+                        + "  DISTINCT `MainTable_join2a_XXX`.`dim1` AS `dim4a`," + NL
+                        + "           `MainTable_join2a_XXX`.`dim1` AS `dim5a` " + NL
+                        + "FROM " + NL
+                        + "  `main_table` AS `MainTable` " + NL
+                        + "LEFT OUTER JOIN " + NL
+                        + "  `join_table` AS `MainTable_join2a_XXX` " + NL
+                        + "ON " + NL
+                        + "  value = 'same' AND `MainTable`.`dim6` - 'bar' = `MainTable_join2a_XXX`.`dim4` - 'fixedFoo' ";
 
         assertEquals(formatExpected(expectedSQL), formatGenerated(generatedSql));
     }
@@ -377,15 +417,25 @@ class MainTable {
                                     @ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT)})
     private String dim4;
 
+    @DimensionFormula(value = "{{join2a.dim1}}",
+                      arguments = {@ArgumentDefinition(name = "exprArg", type = ValueType.TEXT),
+                                    @ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT)})
+    private String dim4a;
+
     @DimensionFormula(value = "{{join2.dim1}}",
-                      arguments = { @ArgumentDefinition(name = "exprArg", type = ValueType.TEXT),
+                      arguments = {@ArgumentDefinition(name = "exprArg", type = ValueType.TEXT),
                                     @ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT)})
     private String dim5;
+
+    @DimensionFormula(value = "{{join2a.dim1}}",
+                      arguments = { @ArgumentDefinition(name = "exprArg", type = ValueType.TEXT),
+                                    @ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT)})
+    private String dim5a;
 
     @Join("value = '{{$$column.args.exprArg}}' AND {{dim6}} = {{join2.dim4}}")
     private JoinTable join2;
 
-    @Join("value = '{{$$column.args.exprArg}}' AND {{dim6}} = {{join2.dim4a}}")
+    @Join("value = '{{$$column.args.exprArg}}' AND {{dim6}} = {{join2a.dim4a}}")
     private JoinTable join2a;
 
     @DimensionFormula(value = "{{$dim6}} - '{{$$column.args.arg6}}'",
@@ -416,6 +466,10 @@ class JoinTable {
     @DimensionFormula(value = "{{$dim4}} - '{{$$column.args.joinArg4}}'",
                       arguments = {@ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT, defaultValue = "foo")})
     private String dim4;
+
+    @DimensionFormula(value = "{{sql column='dim4[joinArg4:fixedFoo]'}}",
+                      arguments = {@ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT, defaultValue = "foo")})
+    private String dim4a;
 
     @Join("{{$id}} = {{joinjoin.$id}}")
     private JoinJoinTable joinjoin;
