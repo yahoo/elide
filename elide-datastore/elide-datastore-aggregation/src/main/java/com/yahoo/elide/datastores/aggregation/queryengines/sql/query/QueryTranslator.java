@@ -51,14 +51,16 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
     private final SQLDialect dialect;
     private FilterTranslator filterTranslator;
     private final ExpressionParser parser;
+    private final ColumnContext context;
 
-    public QueryTranslator(SQLReferenceTable referenceTable, SQLDialect sqlDialect) {
+    public QueryTranslator(SQLReferenceTable referenceTable, SQLDialect sqlDialect, ColumnContext context) {
         this.referenceTable = referenceTable;
         this.metaDataStore = referenceTable.getMetaDataStore();
         this.dictionary = referenceTable.getDictionary();
         this.dialect = sqlDialect;
         this.filterTranslator = new FilterTranslator(dictionary);
         this.parser = new ExpressionParser(referenceTable.getMetaDataStore());
+        this.context = context;
     }
 
     @Override
@@ -132,7 +134,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
         String tableAlias = applyQuotes(table.getAlias());
 
         String tableStatement = tableCls.isAnnotationPresent(FromSubquery.class)
-                ? "(" + tableCls.getAnnotation(FromSubquery.class).sql() + ")"
+                ? "(" + context.resolve(tableCls.getAnnotation(FromSubquery.class).sql()) + ")"
                 : tableCls.isAnnotationPresent(FromTable.class)
                 ? applyQuotes(tableCls.getAnnotation(FromTable.class).name())
                 : applyQuotes(table.getName());

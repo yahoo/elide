@@ -87,6 +87,8 @@ import javax.sql.DataSource;
 public abstract class SQLUnitTest {
 
     protected static SQLTable playerStatsTable;
+    protected static SQLTable playerStatsViewTable;
+    protected static Map<String, Argument> playerStatsViewTableArgs;
     protected static EntityDictionary dictionary;
     protected static RSQLFilterDialect filterParser;
     protected static MetaDataStore metaDataStore;
@@ -260,10 +262,10 @@ public abstract class SQLUnitTest {
                     .build();
         }),
         SUBQUERY (() -> {
-            SQLTable playerStatsViewTable = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
             return Query.builder()
                     .source(playerStatsViewTable)
                     .metricProjection(playerStatsViewTable.getMetricProjection("highScore"))
+                    .arguments(playerStatsViewTableArgs)
                     .build();
         }),
         ORDER_BY_DIMENSION_NOT_IN_SELECT (() -> {
@@ -515,6 +517,10 @@ public abstract class SQLUnitTest {
                 connectionDetailsMap, optimizers);
         playerStatsTable = (SQLTable) metaDataStore.getTable("playerStats", NO_VERSION);
         videoGameTable = (SQLTable) metaDataStore.getTable("videoGame", NO_VERSION);
+        playerStatsViewTable = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
+        playerStatsViewTableArgs = new HashMap<>();
+        playerStatsViewTableArgs.put("overallRating", Argument.builder().name("overallRating").value("Great").build());
+        playerStatsViewTableArgs.put("minScore", Argument.builder().name("minScore").value("0").build());
     }
 
     private static String getCompatabilityMode(String dialectType) {

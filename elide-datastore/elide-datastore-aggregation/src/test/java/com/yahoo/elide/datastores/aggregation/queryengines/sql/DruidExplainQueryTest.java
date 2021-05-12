@@ -214,7 +214,7 @@ public class DruidExplainQueryTest  extends SQLUnitTest {
                 "SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStatsView\".\"highScore\") AS "
                         + "\"highScore\" FROM (SELECT stats.highScore, stats.player_id, c.name as countryName FROM "
                         + "playerStats AS stats LEFT JOIN countries AS c ON stats.country_id = c.id "
-                        + "WHERE stats.overallRating = 'Great') AS "
+                        + "WHERE stats.overallRating = 'Great' AND stats.highScore >= 0) AS "
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStatsView\"";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.SUBQUERY.getQuery()));
