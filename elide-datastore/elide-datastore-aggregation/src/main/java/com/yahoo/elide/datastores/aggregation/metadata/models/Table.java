@@ -209,7 +209,6 @@ public abstract class Table implements Versioned {
         if (dictionary.getIdFieldName(cls) != null) {
             columns.add(constructDimension(dictionary.getIdFieldName(cls), dictionary));
         }
-
         return columns;
     }
 

@@ -146,11 +146,13 @@ public class DefaultQueryValidator implements QueryValidator {
 
     @Override
     public void validateProjectedColumns(Query query) {
+
+        //TODO - We should generate ID metric columns as ROW_NUMBER() if they do not exist.
         boolean onlyId = query.getColumnProjections().stream()
                 .allMatch(column -> column.getValueType().equals(ValueType.ID));
 
-        if (((SQLTable) query.getSource()).isFact() && onlyId) {
-            throw new InvalidOperationException("Cannot query a fact table only by ID");
+        if (onlyId) {
+            throw new InvalidOperationException("Cannot query a table only by ID");
         }
     }
 }

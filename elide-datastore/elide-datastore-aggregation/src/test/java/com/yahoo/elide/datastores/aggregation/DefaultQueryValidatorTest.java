@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
@@ -30,13 +31,13 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
     }
 
     @Test
-    public void testOnlyId() {
+    public void queryOnlyById() {
         Query query = Query.builder()
                 .source(playerStatsTable)
                 .dimensionProjection(playerStatsTable.getDimensionProjection("id"))
                 .build();
 
-        validateQuery(query, "Invalid operation: Cannot query a fact table only by ID");
+        validateQuery(query, "Invalid operation: Cannot query a table only by ID");
     }
 
     @Test
@@ -129,5 +130,11 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
         InvalidOperationException exception = assertThrows(InvalidOperationException.class,
                 () -> validator.validate(query));
         assertEquals(message, exception.getMessage());
+    }
+
+    private void validateQueryDoesNotThrow(Query query) {
+        DefaultQueryValidator validator = new DefaultQueryValidator(dictionary);
+
+        assertDoesNotThrow(() -> validator.validate(query));
     }
 }
