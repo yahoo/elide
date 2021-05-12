@@ -10,8 +10,10 @@ import static com.yahoo.elide.core.type.ClassType.BOOLEAN_TYPE;
 import static com.yahoo.elide.core.type.ClassType.LONG_TYPE;
 import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import static com.yahoo.elide.datastores.aggregation.timegrains.Time.TIME_TYPE;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.google.common.collect.ImmutableMap;
 
 import java.math.BigDecimal;
@@ -22,10 +24,11 @@ import java.util.regex.Pattern;
  * Actual value type of a data type.
  */
 public enum ValueType {
-    TIME("^yyyy(((((-MM)?-dd)?'T'HH)?:mm)?:ss)?$"),
+
+    TIME(".*"), //Validated by Serde Deserialization
     INTEGER("^[+-]?\\d+$"),
     DECIMAL("^[+-]?((\\d+(\\.\\d*)?)|(\\.\\d+))$"),
-    MONEY("^[-]?[$]?((\\d+(\\.\\d*)?)|(\\.\\d+))$"),
+    MONEY("^[+-]?((\\d+(\\.\\d*)?)|(\\.\\d+))$"),
     TEXT("^[a-zA-Z0-9_]+$"),  //Very restricted to prevent SQL Injection
     COORDINATE("^(-?\\d+(\\.\\d+)?)|(-?\\d+(\\.\\d+)?),\\s*(-?\\d+(\\.\\d+)?)$"),
     BOOLEAN("^(?i)true|false(?-i)|0|1$"),
@@ -38,6 +41,13 @@ public enum ValueType {
     }
 
     public boolean matches(String input) {
+
+        Object converted;
+        try {
+            converted = CoerceUtil.coerce(input, getType(this));
+        } catch (InvalidValueException e) {
+            return false;
+        }
         return pattern.matcher(input).matches();
     }
 

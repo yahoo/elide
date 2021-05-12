@@ -81,6 +81,38 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
 
     @Test
     public void testInvalidColumnArgument() {
+        SQLTable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
+
+        Map<String, Argument> argumentMap = new HashMap<>();
+        argumentMap.put("format", Argument.builder().name("format").value(";").build());
+
+        Query query = Query.builder()
+                .source(source)
+                .metricProjection(source.getMetricProjection("highScore"))
+                .dimensionProjection(source.getDimensionProjection("countryName", "countryName", argumentMap))
+                .build();
+
+        validateQuery(query, "Invalid operation: Argument format has an invalid value: ;");
+    }
+
+    @Test
+    public void testValidColumnArgument() {
+        SQLTable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
+
+        Map<String, Argument> argumentMap = new HashMap<>();
+        argumentMap.put("format", Argument.builder().name("format").value("lower").build());
+
+        Query query = Query.builder()
+                .source(source)
+                .metricProjection(source.getMetricProjection("highScore"))
+                .dimensionProjection(source.getDimensionProjection("countryName", "countryName", argumentMap))
+                .build();
+
+        validateQueryDoesNotThrow(query);
+    }
+
+    @Test
+    public void testQueryingByIdAlone() {
         Query query = Query.builder()
                 .source(playerStatsTable)
                 .dimensionProjection(playerStatsTable.getDimensionProjection("id"))
