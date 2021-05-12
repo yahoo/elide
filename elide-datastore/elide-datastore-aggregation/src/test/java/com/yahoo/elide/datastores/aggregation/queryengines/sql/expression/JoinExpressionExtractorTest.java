@@ -78,7 +78,7 @@ public class JoinExpressionExtractorTest {
     // dim1 -> {{join.dim1}}
     // {{join.dim1}} -> Physical
     @Test
-    void test1() {
+    void test2TableJoin() {
 
         SQLDimensionProjection dim1 = (SQLDimensionProjection) table.getDimensionProjection("dim1");
 
@@ -109,7 +109,7 @@ public class JoinExpressionExtractorTest {
     // {{join.dim3}} -> {{joinjoin.dim3}}
     // {{joinjoin.dim3}} -> Physical
     @Test
-    void test2() {
+    void test3TableJoinWithLogicalColumn() {
 
         SQLDimensionProjection dim2 = (SQLDimensionProjection) table.getDimensionProjection("dim2");
 
@@ -143,7 +143,7 @@ public class JoinExpressionExtractorTest {
     // {{join.joinjoin.dim2}} -> {{join.joinjoin.dim3}}
     // {{join.joinjoin.dim3}} -> Physical
     @Test
-    void test3() {
+    void test3TableJoinWithoutLogicalColumn() {
 
         SQLDimensionProjection dim3 = (SQLDimensionProjection) table.getDimensionProjection("dim3");
 
@@ -175,7 +175,7 @@ public class JoinExpressionExtractorTest {
     // Both dim4 and dim5 passes same value for join expression's argument 'exprArg'
     // Single Join expression is generated.
     @Test
-    void test4a() {
+    void testArgumentsInJoinExprPart1() {
 
         Map<String, Argument> dim4Arg = new HashMap<>();
         dim4Arg.put("exprArg", Argument.builder().name("exprArg").value("same").build());
@@ -211,7 +211,7 @@ public class JoinExpressionExtractorTest {
     // dim4 and dim5 passes different value for join expression's argument 'exprArg'
     // 2 Join expressions are generated.
     @Test
-    void test4b() {
+    void testArgumentsInJoinExprPart2() {
 
         Map<String, Argument> dim4Arg = new HashMap<>();
         dim4Arg.put("exprArg", Argument.builder().name("exprArg").value("value4").build());
@@ -253,7 +253,7 @@ public class JoinExpressionExtractorTest {
     // dim4 and dim5 passes different value for join table's column argument 'joinArg4'
     // 2 Join expressions are generated.
     @Test
-    void test4c() {
+    void testArgumentsInJoinExprPart3() {
 
         Map<String, Argument> dim4Arg = new HashMap<>();
         dim4Arg.put("exprArg", Argument.builder().name("exprArg").value("same").build());
@@ -384,6 +384,9 @@ class MainTable {
 
     @Join("value = '{{$$column.args.exprArg}}' AND {{dim6}} = {{join2.dim4}}")
     private JoinTable join2;
+
+    @Join("value = '{{$$column.args.exprArg}}' AND {{dim6}} = {{join2.dim4a}}")
+    private JoinTable join2a;
 
     @DimensionFormula(value = "{{$dim6}} - '{{$$column.args.arg6}}'",
                       arguments = {@ArgumentDefinition(name = "arg6", type = ValueType.TEXT, defaultValue = "bar")})
