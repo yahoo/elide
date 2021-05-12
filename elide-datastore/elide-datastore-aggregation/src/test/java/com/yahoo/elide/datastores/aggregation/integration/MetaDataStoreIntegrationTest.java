@@ -40,6 +40,11 @@ import javax.sql.DataSource;
 
 public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
+    public MetaDataStoreIntegrationTest() {
+        super();
+        userRoles.addAll(VALIDATOR.getElideSecurityConfig().getRoles());
+    }
+
     @Override
     protected DataStoreTestHarness createHarness() {
 

@@ -37,6 +37,8 @@ import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Integration test initializer.  Tests are intended to run sequentially (so they don't stomp on each other's data).
@@ -47,6 +49,7 @@ public abstract class IntegrationTest {
 
     /* Shared between the test setup code (to insert test data) as well as the Jetty server (to serve test data) */
     protected static DataStoreTestHarness dataStoreHarness;
+    protected static Set<String> userRoles = new HashSet<>();
 
     protected final ObjectMapper mapper = new ObjectMapper();
     protected DataStore dataStore = null;
@@ -104,6 +107,10 @@ public abstract class IntegrationTest {
      */
     public static DataStore getDataStore() {
         return dataStoreHarness.getDataStore();
+    }
+
+    public static Set<String> getAdditionalUserRoles() {
+        return userRoles;
     }
 
     @AfterEach

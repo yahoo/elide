@@ -25,7 +25,7 @@ import javax.persistence.Id;
 @ToString
 @Data
 @FromTable(name = "region_details", dbConnectionName = "SalesDBConnection")
-@ReadPermission(expression = "Principal is guest user")
+@ReadPermission(expression = "guest user")
 @TableMeta(description = "RegionDetails", category = "", tags = {}, filterTemplate = "", size = CardinalitySize.SMALL)
 @Include(name = "regionDetails")
 public class RegionDetails {
@@ -42,7 +42,7 @@ public class RegionDetails {
         this.id = id;
     }
 
-    @ReadPermission(expression = "Principal is guest user")
+    @ReadPermission(expression = "guest user")
     @ColumnMeta(description = "region", category = "", values = {}, tags = {})
     @DimensionFormula("{{$region}}")
     public String getRegion() {

@@ -14,6 +14,9 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.EntityPermissions;
+import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
+import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.modelconfig.Config;
@@ -54,6 +57,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -65,6 +69,7 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 /**
@@ -544,7 +549,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
      * @return boolean true if all provided table properties passes validation
      */
     private boolean validateTableConfig() {
-        Set<String> extractedChecks = new HashSet<>();
+        Set<String> extractedFieldChecks = new HashSet<>();
+        Set<String> extractedTableChecks = new HashSet<>();
         PermissionExpressionVisitor visitor = new PermissionExpressionVisitor();
 
         for (Table table : elideTableConfig.getTables()) {
@@ -560,14 +566,14 @@ public class DynamicConfigValidator implements DynamicConfiguration {
                 validateSql(dim.getDefinition());
                 validateTableSource(table, dim.getTableSource());
                 validateArguments(table, dim.getArguments());
-                extractChecksFromExpr(dim.getReadAccess(), extractedChecks, visitor);
+                extractChecksFromExpr(dim.getReadAccess(), extractedFieldChecks, visitor);
             });
 
             table.getMeasures().forEach(measure -> {
                 validateFieldNameUniqueness(tableFields, measure.getName(), table.getName());
                 validateSql(measure.getDefinition());
                 validateArguments(table, measure.getArguments());
-                extractChecksFromExpr(measure.getReadAccess(), extractedChecks, visitor);
+                extractChecksFromExpr(measure.getReadAccess(), extractedFieldChecks, visitor);
             });
 
             table.getJoins().forEach(join -> {
@@ -578,10 +584,10 @@ public class DynamicConfigValidator implements DynamicConfiguration {
                 validateNamespaceExists(join.getNamespace(), NO_VERSION);
             });
 
-            extractChecksFromExpr(table.getReadAccess(), extractedChecks, visitor);
+            extractChecksFromExpr(table.getReadAccess(), extractedTableChecks, visitor);
         }
 
-        validateChecks(extractedChecks);
+        validateChecks(extractedTableChecks, extractedFieldChecks);
 
         return true;
     }
@@ -598,7 +604,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
             extractChecksFromExpr(namespace.getReadAccess(), extractedChecks, visitor);
         }
 
-        validateChecks(extractedChecks);
+        validateChecks(extractedChecks, Collections.EMPTY_SET);
 
         return true;
     }
@@ -608,16 +614,15 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         arguments.forEach(arg -> validateTableSource(table, arg.getTableSource()));
     }
 
-    private void validateChecks(Set<String> checks) {
+    private void validateChecks(Set<String> tableChecks, Set<String> fieldChecks) {
 
-        if (checks.isEmpty()) {
+        if (tableChecks.isEmpty() && fieldChecks.isEmpty()) {
             return; // Nothing to validate
         }
 
         Set<String> staticChecks = dictionary.getCheckIdentifiers();
 
-        List<String> undefinedChecks = checks
-                        .stream()
+        List<String> undefinedChecks = Stream.concat(tableChecks.stream(), fieldChecks.stream())
                         .filter(check -> !(elideSecurityConfig.hasCheckDefined(check) || staticChecks.contains(check)))
                         .sorted()
                         .collect(Collectors.toList());
@@ -625,6 +630,28 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         if (!undefinedChecks.isEmpty()) {
             throw new IllegalStateException("Found undefined security checks: " + undefinedChecks);
         }
+
+        tableChecks.stream()
+                .filter(check -> dictionary.getCheckMappings().containsKey(check))
+                .forEach(check -> {
+                    Class<? extends Check> checkClass = dictionary.getCheck(check);
+                    //Validates if the permission check either user Check or FilterExpressionCheck Check
+                    if (!(UserCheck.class.isAssignableFrom(checkClass)
+                            || FilterExpressionCheck.class.isAssignableFrom(checkClass))) {
+                        throw new IllegalStateException("Table or Namespace cannot have Operation Checks. Given: "
+                                + checkClass);
+                    }
+                });
+        fieldChecks.stream()
+                .filter(check -> dictionary.getCheckMappings().containsKey(check))
+                .forEach(check -> {
+                    Class<? extends Check> checkClass = dictionary.getCheck(check);
+                    //Validates if the permission check is User check
+                    if (!UserCheck.class.isAssignableFrom(checkClass)) {
+                        throw new IllegalStateException("Field can only have User checks or Roles. Given: "
+                                + checkClass);
+                    }
+                });
     }
 
     private static void extractChecksFromExpr(String readAccess, Set<String> extractedChecks,
