@@ -5,12 +5,14 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
@@ -18,9 +20,12 @@ import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -32,6 +37,50 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
 
     @Test
     public void queryOnlyById() {
+        Query query = Query.builder()
+                .source(playerStatsTable)
+                .dimensionProjection(playerStatsTable.getDimensionProjection("id"))
+                .build();
+
+        validateQuery(query, "Invalid operation: Cannot query a table only by ID");
+    }
+
+    @Test
+    public void testInvalidTableArgument() {
+        Queryable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
+
+        Map<String, Argument> argumentMap = new HashMap<>();
+        argumentMap.put("rating", Argument.builder().name("rating").value("SELECT * FROM FOO;").build());
+
+        Query query = Query.builder()
+                .source(source)
+                .arguments(argumentMap)
+                .metricProjection(source.getMetricProjection("highScore"))
+                .dimensionProjection(source.getDimensionProjection("countryName"))
+                .build();
+
+        validateQuery(query, "Invalid operation: Argument rating has an invalid value: SELECT * FROM FOO;");
+    }
+
+    @Test
+    public void testValidTableArgument() {
+        Queryable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
+
+        Map<String, Argument> argumentMap = new HashMap<>();
+        argumentMap.put("rating", Argument.builder().name("rating").value("Terrible").build());
+
+        Query query = Query.builder()
+                .source(source)
+                .arguments(argumentMap)
+                .metricProjection(source.getMetricProjection("highScore"))
+                .dimensionProjection(source.getDimensionProjection("countryName"))
+                .build();
+
+        validateQueryDoesNotThrow(query);
+    }
+
+    @Test
+    public void testInvalidColumnArgument() {
         Query query = Query.builder()
                 .source(playerStatsTable)
                 .dimensionProjection(playerStatsTable.getDimensionProjection("id"))
