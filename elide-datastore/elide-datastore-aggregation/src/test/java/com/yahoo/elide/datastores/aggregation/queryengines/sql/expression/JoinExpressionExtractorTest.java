@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
-import static com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest.replaceDynamicAliases;
 import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -92,13 +91,13 @@ public class JoinExpressionExtractorTest {
 
         String expectedSQL =
                           "SELECT " + NL
-                        + "  DISTINCT `MainTable_join_XXX`.`dim1` AS `dim1` " + NL
+                        + "  DISTINCT `MainTable_join_258525107`.`dim1` AS `dim1` " + NL
                         + "FROM " + NL
                         + "  `main_table` AS `MainTable` " + NL
                         + "LEFT OUTER JOIN " + NL
-                        + "  `join_table` AS `MainTable_join_XXX` " + NL
+                        + "  `join_table` AS `MainTable_join_258525107` " + NL
                         + "ON " + NL
-                        + "  `MainTable`.`id` = `MainTable_join_XXX`.`id` ";
+                        + "  `MainTable`.`id` = `MainTable_join_258525107`.`id` ";
 
         assertEquals(formatExpected(expectedSQL), formatGenerated(generatedSql));
     }
@@ -123,17 +122,17 @@ public class JoinExpressionExtractorTest {
 
         String expectedSQL =
                           "SELECT " + NL
-                        + "  DISTINCT `MainTable_join_XXX_joinjoin_XXX`.`dim3` AS `dim2` " + NL
+                        + "  DISTINCT `MainTable_join_258525107_joinjoin_88940112`.`dim3` AS `dim2` " + NL
                         + "FROM " + NL
                         + "  `main_table` AS `MainTable` " + NL
                         + "LEFT OUTER JOIN " + NL
-                        + "  `join_table` AS `MainTable_join_XXX` " + NL
+                        + "  `join_table` AS `MainTable_join_258525107` " + NL
                         + "ON " + NL
-                        + "  `MainTable`.`id` = `MainTable_join_XXX`.`id` " + NL
+                        + "  `MainTable`.`id` = `MainTable_join_258525107`.`id` " + NL
                         + "LEFT OUTER JOIN " + NL
-                        + "  `joinjoin_table` AS `MainTable_join_XXX_joinjoin_XXX` " + NL
+                        + "  `joinjoin_table` AS `MainTable_join_258525107_joinjoin_88940112` " + NL
                         + "ON " + NL
-                        + "  `MainTable_join_XXX`.`id` = `MainTable_join_XXX_joinjoin_XXX`.`id` ";
+                        + "  `MainTable_join_258525107`.`id` = `MainTable_join_258525107_joinjoin_88940112`.`id` ";
 
         assertEquals(formatExpected(expectedSQL), formatGenerated(generatedSql));
     }
@@ -157,17 +156,17 @@ public class JoinExpressionExtractorTest {
 
         String expectedSQL =
                           "SELECT " + NL
-                        + "  DISTINCT `MainTable_join_XXX_joinjoin_XXX`.`dim3` AS `dim3` " + NL
+                        + "  DISTINCT `MainTable_join_258525107_joinjoin_88940112`.`dim3` AS `dim3` " + NL
                         + "FROM " + NL
                         + "  `main_table` AS `MainTable` " + NL
                         + "LEFT OUTER JOIN " + NL
-                        + "  `join_table` AS `MainTable_join_XXX` " + NL
+                        + "  `join_table` AS `MainTable_join_258525107` " + NL
                         + "ON " + NL
-                        + "  `MainTable`.`id` = `MainTable_join_XXX`.`id` " + NL
+                        + "  `MainTable`.`id` = `MainTable_join_258525107`.`id` " + NL
                         + "LEFT OUTER JOIN " + NL
-                        + "  `joinjoin_table` AS `MainTable_join_XXX_joinjoin_XXX` " + NL
+                        + "  `joinjoin_table` AS `MainTable_join_258525107_joinjoin_88940112` " + NL
                         + "ON " + NL
-                        + "  `MainTable_join_XXX`.`id` = `MainTable_join_XXX_joinjoin_XXX`.`id` ";
+                        + "  `MainTable_join_258525107`.`id` = `MainTable_join_258525107_joinjoin_88940112`.`id` ";
 
         assertEquals(formatExpected(expectedSQL), formatGenerated(generatedSql));
     }
@@ -196,14 +195,14 @@ public class JoinExpressionExtractorTest {
 
         String expectedSQL =
                           "SELECT " + NL
-                        + "  DISTINCT `MainTable_join2_XXX`.`dim1` AS `dim4`," + NL
-                        + "           `MainTable_join2_XXX`.`dim1` AS `dim5` " + NL
+                        + "  DISTINCT `MainTable_join2_201179280`.`dim1` AS `dim4`," + NL
+                        + "           `MainTable_join2_201179280`.`dim1` AS `dim5` " + NL
                         + "FROM " + NL
                         + "  `main_table` AS `MainTable` " + NL
                         + "LEFT OUTER JOIN " + NL
-                        + "  `join_table` AS `MainTable_join2_XXX` " + NL
+                        + "  `join_table` AS `MainTable_join2_201179280` " + NL
                         + "ON " + NL
-                        + "  value = 'same' AND `MainTable`.`dim6` - 'bar' = `MainTable_join2_XXX`.`dim4` - 'foo' ";
+                        + "  value = 'same' AND `MainTable`.`dim6` - 'bar' = `MainTable_join2_201179280`.`dim4` - 'foo' ";
 
         assertEquals(formatExpected(expectedSQL), formatGenerated(generatedSql));
     }
@@ -232,18 +231,18 @@ public class JoinExpressionExtractorTest {
 
         String expectedSQL =
                           "SELECT " + NL
-                        + "  DISTINCT `MainTable_join2_XXX`.`dim1` AS `dim4`," + NL
-                        + "           `MainTable_join2_XXX`.`dim1` AS `dim5` " + NL
+                        + "  DISTINCT `MainTable_join2_63993339`.`dim1` AS `dim4`," + NL
+                        + "           `MainTable_join2_86115708`.`dim1` AS `dim5` " + NL
                         + "FROM " + NL
                         + "  `main_table` AS `MainTable` " + NL
                         + "LEFT OUTER JOIN " + NL
-                        + "  `join_table` AS `MainTable_join2_XXX` " + NL
+                        + "  `join_table` AS `MainTable_join2_63993339` " + NL
                         + "ON " + NL
-                        + "  value = 'value4' AND `MainTable`.`dim6` - 'bar' = `MainTable_join2_XXX`.`dim4` - 'foo' "
+                        + "  value = 'value4' AND `MainTable`.`dim6` - 'bar' = `MainTable_join2_63993339`.`dim4` - 'foo' "
                         + "LEFT OUTER JOIN " + NL
-                        + "  `join_table` AS `MainTable_join2_XXX` " + NL
+                        + "  `join_table` AS `MainTable_join2_86115708` " + NL
                         + "ON " + NL
-                        + "  value = 'value5' AND `MainTable`.`dim6` - 'bar' = `MainTable_join2_XXX`.`dim4` - 'foo' ";
+                        + "  value = 'value5' AND `MainTable`.`dim6` - 'bar' = `MainTable_join2_86115708`.`dim4` - 'foo' ";
 
         assertEquals(formatExpected(expectedSQL), formatGenerated(generatedSql));
     }
@@ -272,32 +271,32 @@ public class JoinExpressionExtractorTest {
 
         String expectedSQL =
                           "SELECT " + NL
-                        + "  DISTINCT `MainTable_join2_XXX`.`dim1` - 'value4' AS `dim4x`," + NL
-                        + "           `MainTable_join2_XXX`.`dim1` - 'value5' AS `dim5x` " + NL
+                        + "  DISTINCT `MainTable_join2_156385021`.`dim1` - 'value4' AS `dim4x`," + NL
+                        + "           `MainTable_join2_156385021`.`dim1` - 'value5' AS `dim5x` " + NL
                         + "FROM " + NL
                         + "  `main_table` AS `MainTable` " + NL
                         + "LEFT OUTER JOIN " + NL
-                        + "  `join_table` AS `MainTable_join2_XXX` " + NL
+                        + "  `join_table` AS `MainTable_join2_156385021` " + NL
                         + "ON " + NL
-                        + "  value = 'fixedExpr' AND `MainTable`.`dim6` - 'bar' = `MainTable_join2_XXX`.`dim4` - 'fixedArg' ";
+                        + "  value = 'fixedExpr' AND `MainTable`.`dim6` - 'bar' = `MainTable_join2_156385021`.`dim4` - 'fixedArg' ";
 
         assertEquals(formatExpected(expectedSQL), formatGenerated(generatedSql));
     }
 
     // Both dim4 and dim5 passes same value for join expression's argument 'exprArg'
-    // dim4 and dim5 passes different value for join table's column argument 'joinArg4'
+    // dim4 and dim5 passes different value for join table's column argument 'joinArg'
     // 2 Join expressions are generated.
     @Test
     void testArgumentsInJoinExprCase3() {
 
         Map<String, Argument> dim4Arg = new HashMap<>();
         dim4Arg.put("exprArg", Argument.builder().name("exprArg").value("same").build());
-        dim4Arg.put("joinArg4", Argument.builder().name("joinArg4").value("foo4").build());
+        dim4Arg.put("joinArg", Argument.builder().name("joinArg").value("foo4").build());
         SQLDimensionProjection dim4 = (SQLDimensionProjection) table.getDimensionProjection("dim4", "dim4", dim4Arg);
 
         Map<String, Argument> dim5Arg = new HashMap<>();
         dim5Arg.put("exprArg", Argument.builder().name("exprArg").value("same").build());
-        dim5Arg.put("joinArg4", Argument.builder().name("joinArg4").value("foo5").build());
+        dim5Arg.put("joinArg", Argument.builder().name("joinArg").value("foo5").build());
         SQLDimensionProjection dim5 = (SQLDimensionProjection) table.getDimensionProjection("dim5", "dim5", dim5Arg);
 
         Query query = Query.builder()
@@ -311,18 +310,18 @@ public class JoinExpressionExtractorTest {
 
         String expectedSQL =
                           "SELECT " + NL
-                        + "  DISTINCT `MainTable_join2_XXX`.`dim1` AS `dim4`," + NL
-                        + "           `MainTable_join2_XXX`.`dim1` AS `dim5` " + NL
+                        + "  DISTINCT `MainTable_join2_201179732`.`dim1` AS `dim4`," + NL
+                        + "           `MainTable_join2_201179856`.`dim1` AS `dim5` " + NL
                         + "FROM " + NL
                         + "  `main_table` AS `MainTable` " + NL
                         + "LEFT OUTER JOIN " + NL
-                        + "  `join_table` AS `MainTable_join2_XXX` " + NL
+                        + "  `join_table` AS `MainTable_join2_201179732` " + NL
                         + "ON " + NL
-                        + "  value = 'same' AND `MainTable`.`dim6` - 'bar' = `MainTable_join2_XXX`.`dim4` - 'foo4' "
+                        + "  value = 'same' AND `MainTable`.`dim6` - 'bar' = `MainTable_join2_201179732`.`dim4` - 'foo4' "
                         + "LEFT OUTER JOIN " + NL
-                        + "  `join_table` AS `MainTable_join2_XXX` " + NL
+                        + "  `join_table` AS `MainTable_join2_201179856` " + NL
                         + "ON " + NL
-                        + "  value = 'same' AND `MainTable`.`dim6` - 'bar' = `MainTable_join2_XXX`.`dim4` - 'foo5' ";
+                        + "  value = 'same' AND `MainTable`.`dim6` - 'bar' = `MainTable_join2_201179856`.`dim4` - 'foo5' ";
 
         assertEquals(formatExpected(expectedSQL), formatGenerated(generatedSql));
     }
@@ -354,36 +353,36 @@ public class JoinExpressionExtractorTest {
 
         String expectedSQL =
                           "SELECT " + NL
-                        + "  DISTINCT `MainTable_join2_XXX`.`dim1` AS `dim4`," + NL
-                        + "           `MainTable_join2_XXX`.`dim1` AS `dim5` " + NL
+                        + "  DISTINCT `MainTable_join2_148518185`.`dim1` AS `dim4`," + NL
+                        + "           `MainTable_join2_209848490`.`dim1` AS `dim5` " + NL
                         + "FROM " + NL
                         + "  `main_table` AS `MainTable` " + NL
                         + "LEFT OUTER JOIN " + NL
-                        + "  `join_table` AS `MainTable_join2_XXX` " + NL
+                        + "  `join_table` AS `MainTable_join2_148518185` " + NL
                         + "ON " + NL
-                        + "  value = 'same' AND `MainTable`.`dim6` - 'bar4' = `MainTable_join2_XXX`.`dim4` - 'foo' "
+                        + "  value = 'same' AND `MainTable`.`dim6` - 'bar4' = `MainTable_join2_148518185`.`dim4` - 'foo' "
                         + "LEFT OUTER JOIN " + NL
-                        + "  `join_table` AS `MainTable_join2_XXX` " + NL
+                        + "  `join_table` AS `MainTable_join2_209848490` " + NL
                         + "ON " + NL
-                        + "  value = 'same' AND `MainTable`.`dim6` - 'bar5' = `MainTable_join2_XXX`.`dim4` - 'foo' ";
+                        + "  value = 'same' AND `MainTable`.`dim6` - 'bar5' = `MainTable_join2_209848490`.`dim4` - 'foo' ";
 
         assertEquals(formatExpected(expectedSQL), formatGenerated(generatedSql));
     }
 
     // Both dim4a and dim5a passes same value for join expression's argument 'exprArg'
-    // dim4a and dim5a passes different value for join table's column argument 'joinArg4'
-    // 1 Join expressions is generated as fixed value of joinArg4 is used while calling join table's column.
+    // dim4a and dim5a passes different value for join table's column argument 'joinArg'
+    // 1 Join expressions is generated as fixed value of joinArg is used while calling join table's column.
     @Test
-    void testArgumentsInJoinExprCase5() {
+    void testArgumentsInJoinExprCase5a() {
 
         Map<String, Argument> dim4Arg = new HashMap<>();
         dim4Arg.put("exprArg", Argument.builder().name("exprArg").value("same").build());
-        dim4Arg.put("joinArg4", Argument.builder().name("joinArg4").value("foo4").build());
+        dim4Arg.put("joinArg", Argument.builder().name("joinArg").value("foo4").build());
         SQLDimensionProjection dim4a = (SQLDimensionProjection) table.getDimensionProjection("dim4a", "dim4a", dim4Arg);
 
         Map<String, Argument> dim5Arg = new HashMap<>();
         dim5Arg.put("exprArg", Argument.builder().name("exprArg").value("same").build());
-        dim5Arg.put("joinArg4", Argument.builder().name("joinArg4").value("foo5").build());
+        dim5Arg.put("joinArg", Argument.builder().name("joinArg").value("foo5").build());
         SQLDimensionProjection dim5a = (SQLDimensionProjection) table.getDimensionProjection("dim5a", "dim5a", dim5Arg);
 
         Query query = Query.builder()
@@ -397,14 +396,57 @@ public class JoinExpressionExtractorTest {
 
         String expectedSQL =
                           "SELECT " + NL
-                        + "  DISTINCT `MainTable_join2a_XXX`.`dim1` AS `dim4a`," + NL
-                        + "           `MainTable_join2a_XXX`.`dim1` AS `dim5a` " + NL
+                        + "  DISTINCT `MainTable_join2a_157775546`.`dim1` AS `dim4a`," + NL
+                        + "           `MainTable_join2a_157775546`.`dim1` AS `dim5a` " + NL
                         + "FROM " + NL
                         + "  `main_table` AS `MainTable` " + NL
                         + "LEFT OUTER JOIN " + NL
-                        + "  `join_table` AS `MainTable_join2a_XXX` " + NL
+                        + "  `join_table` AS `MainTable_join2a_157775546` " + NL
                         + "ON " + NL
-                        + "  value = 'same' AND `MainTable`.`dim6` - 'bar' = `MainTable_join2a_XXX`.`dim4` - 'fixedFoo' ";
+                        + "  value = 'same' AND `MainTable`.`dim6` - 'bar' = `MainTable_join2a_157775546`.`dim4` - 'fixedFoo' ";
+
+        assertEquals(formatExpected(expectedSQL), formatGenerated(generatedSql));
+    }
+
+    // dim4a and dim5a passes different value for join expression's argument 'exprArg'
+    // dim4a and dim5a passes different value for join table's column argument 'joinArg'
+    // 2 Join expressions are generated as 'exprArg' is different but fixed value of 'joinArg' is used.
+    @Test
+    void testArgumentsInJoinExprCase5b() {
+
+        Map<String, Argument> dim4Arg = new HashMap<>();
+        dim4Arg.put("exprArg", Argument.builder().name("exprArg").value("value4").build());
+        dim4Arg.put("joinArg", Argument.builder().name("joinArg").value("foo4").build());
+        SQLDimensionProjection dim4a = (SQLDimensionProjection) table.getDimensionProjection("dim4a", "dim4a", dim4Arg);
+
+        Map<String, Argument> dim5Arg = new HashMap<>();
+        dim5Arg.put("exprArg", Argument.builder().name("exprArg").value("value5").build());
+        dim5Arg.put("joinArg", Argument.builder().name("joinArg").value("foo5").build());
+        SQLDimensionProjection dim5a = (SQLDimensionProjection) table.getDimensionProjection("dim5a", "dim5a", dim5Arg);
+
+        Query query = Query.builder()
+                        .source(table)
+                        .dimensionProjection(dim4a)
+                        .dimensionProjection(dim5a)
+                        .arguments(emptyMap())
+                        .build();
+
+        String generatedSql = engine.explain(query).get(0);
+
+        String expectedSQL =
+                          "SELECT " + NL
+                        + "  DISTINCT `MainTable_join2a_16142728`.`dim1` AS `dim4a`," + NL
+                        + "           `MainTable_join2a_29675529`.`dim1` AS `dim5a` " + NL
+                        + "FROM " + NL
+                        + "  `main_table` AS `MainTable` " + NL
+                        + "LEFT OUTER JOIN " + NL
+                        + "  `join_table` AS `MainTable_join2a_16142728` " + NL
+                        + "ON " + NL
+                        + "  value = 'value4' AND `MainTable`.`dim6` - 'bar' = `MainTable_join2a_16142728`.`dim4` - 'fixedFoo' " + NL
+                        + "LEFT OUTER JOIN " + NL
+                        + "  `join_table` AS `MainTable_join2a_29675529` " + NL
+                        + "ON " + NL
+                        + "  value = 'value5' AND `MainTable`.`dim6` - 'bar' = `MainTable_join2a_29675529`.`dim4` - 'fixedFoo' ";
 
         assertEquals(formatExpected(expectedSQL), formatGenerated(generatedSql));
     }
@@ -418,8 +460,7 @@ public class JoinExpressionExtractorTest {
 
     private String formatGenerated(String generatedSql) {
         generatedSql = generatedSql.replace(ALIAS_PREFIX, "");
-        generatedSql = REPEATEDSPACE_PATTERN.matcher(generatedSql).replaceAll(" ");
-        return replaceDynamicAliases(generatedSql);
+        return REPEATEDSPACE_PATTERN.matcher(generatedSql).replaceAll(" ");
     }
 }
 
@@ -448,32 +489,32 @@ class MainTable {
 
     @DimensionFormula(value = "{{join2.dim1}}",
                       arguments = { @ArgumentDefinition(name = "exprArg", type = ValueType.TEXT),
-                                    @ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT)})
+                                    @ArgumentDefinition(name = "joinArg", type = ValueType.TEXT)})
     private String dim4;
 
     @DimensionFormula(value = "{{join2.dim1}}",
                       arguments = { @ArgumentDefinition(name = "exprArg", type = ValueType.TEXT),
-                                    @ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT)})
+                                    @ArgumentDefinition(name = "joinArg", type = ValueType.TEXT)})
     private String dim5;
 
     @DimensionFormula(value = "{{join2a.dim1}}",
                       arguments = { @ArgumentDefinition(name = "exprArg", type = ValueType.TEXT),
-                                    @ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT)})
+                                    @ArgumentDefinition(name = "joinArg", type = ValueType.TEXT)})
     private String dim4a;
 
     @DimensionFormula(value = "{{join2a.dim1}}",
                       arguments = { @ArgumentDefinition(name = "exprArg", type = ValueType.TEXT),
-                                    @ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT)})
+                                    @ArgumentDefinition(name = "joinArg", type = ValueType.TEXT)})
     private String dim5a;
 
-    @DimensionFormula(value = "{{sql column='dim4[exprArg:fixedExpr][joinArg4:fixedArg]'}} - '{{$$column.args.exprArg}}'",
+    @DimensionFormula(value = "{{sql column='dim4[exprArg:fixedExpr][joinArg:fixedArg]'}} - '{{$$column.args.exprArg}}'",
                       arguments = { @ArgumentDefinition(name = "exprArg", type = ValueType.TEXT),
-                                    @ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT)})
+                                    @ArgumentDefinition(name = "joinArg", type = ValueType.TEXT)})
     private String dim4x;
 
-    @DimensionFormula(value = "{{sql column='dim5[exprArg:fixedExpr][joinArg4:fixedArg]'}} - '{{$$column.args.exprArg}}'",
+    @DimensionFormula(value = "{{sql column='dim5[exprArg:fixedExpr][joinArg:fixedArg]'}} - '{{$$column.args.exprArg}}'",
                       arguments = { @ArgumentDefinition(name = "exprArg", type = ValueType.TEXT),
-                                    @ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT)})
+                                    @ArgumentDefinition(name = "joinArg", type = ValueType.TEXT)})
     private String dim5x;
 
     @Join("value = '{{$$column.args.exprArg}}' AND {{dim6}} = {{join2.dim4}}")
@@ -507,12 +548,12 @@ class JoinTable {
     @DimensionFormula("{{joinjoin.dim3}}")
     private String dim3;
 
-    @DimensionFormula(value = "{{$dim4}} - '{{$$column.args.joinArg4}}'",
-                      arguments = {@ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT, defaultValue = "foo")})
+    @DimensionFormula(value = "{{$dim4}} - '{{$$column.args.joinArg}}'",
+                      arguments = {@ArgumentDefinition(name = "joinArg", type = ValueType.TEXT, defaultValue = "foo")})
     private String dim4;
 
-    @DimensionFormula(value = "{{sql column='dim4[joinArg4:fixedFoo]'}}",
-                      arguments = {@ArgumentDefinition(name = "joinArg4", type = ValueType.TEXT, defaultValue = "foo")})
+    @DimensionFormula(value = "{{sql column='dim4[joinArg:fixedFoo]'}}",
+                      arguments = {@ArgumentDefinition(name = "joinArg", type = ValueType.TEXT, defaultValue = "foo")})
     private String dim4a;
 
     @Join("{{$id}} = {{joinjoin.$id}}")
