@@ -142,7 +142,7 @@ public class DefaultQueryValidator implements QueryValidator {
         }
 
         Path.PathElement currentElement = pathElements.get(0);
-        String currentField = currentElement.getFieldName();
+        String currentField = currentElement.getAlias();
         Type<?> currentClass = currentElement.getType();
 
         // TODO: support sorting using alias

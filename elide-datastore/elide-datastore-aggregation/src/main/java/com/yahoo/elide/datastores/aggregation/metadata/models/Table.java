@@ -205,8 +205,8 @@ public abstract class Table implements Versioned {
                 })
                 .collect(Collectors.toSet());
 
-        // add id field if exists and this is not a fact model
-        if (!this.isFact() && dictionary.getIdFieldName(cls) != null) {
+        // add id field if exists
+        if (dictionary.getIdFieldName(cls) != null) {
             columns.add(constructDimension(dictionary.getIdFieldName(cls), dictionary));
         }
 

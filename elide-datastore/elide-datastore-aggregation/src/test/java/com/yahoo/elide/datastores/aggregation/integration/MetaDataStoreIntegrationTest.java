@@ -162,7 +162,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.isFact", equalTo(true)) //TableMeta Present, isFact default true
                 .body("data.attributes.cardinality", equalTo("UNKNOWN"))
-                .body("data.relationships.columns.data.id", containsInAnyOrder("country.name",
+                .body("data.relationships.columns.data.id", containsInAnyOrder("country.id", "country.name",
                         "country.inUsa", "country.unSeats", "country.nickName", "country.isoCode"));
         given()
                 .accept("application/vnd.api+json")
@@ -182,6 +182,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body(
                         "data.relationships.dimensions.data.id",
                         containsInAnyOrder(
+                                "playerStats.id",
                                 "playerStats.playerName",
                                 "playerStats.playerRank",
                                 "playerStats.playerLevel",
