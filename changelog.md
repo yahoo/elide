@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.7.2
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/eeab22ce7cc591c9747b40e509fea4a77e56c8af) Removed elide-example module 
+
 ## 4.7.1
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/032894eb40944db1d16a9d5090128aa7e3561df6) bump dependency versions (#1884) 
