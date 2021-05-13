@@ -13,7 +13,6 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
-
 import example.TestCheckMappings;
 import example.models.triggers.services.BillingService;
 import org.glassfish.hk2.api.Factory;
