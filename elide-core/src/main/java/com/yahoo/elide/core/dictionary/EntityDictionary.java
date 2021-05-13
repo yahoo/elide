@@ -177,7 +177,7 @@ public class EntityDictionary {
 
     /**
      * Instantiate a new EntityDictionary with the provided set of checks and an injection function.
-     * In addition all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
+     * In addition, all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
      * to {@code Prefab.CONTAINER.CHECK} * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
      * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
      * @param checks a map that links the identifiers used in the permission expression strings
@@ -191,13 +191,13 @@ public class EntityDictionary {
 
     /**
      * Instantiate a new EntityDictionary with the provided set of checks and an injection function.
-     * In addition all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
+     * In addition, all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
      * to {@code Prefab.CONTAINER.CHECK} * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
      * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
      * @param checks a map that links the identifiers used in the permission expression strings
      *               to their implementing classes
      * @param roleChecks a map that links the user check identifiers used in the permission expression strings
-     *      *               to their User Check object
+     *                   to their User Check object
      * @param injector a function typically associated with a dependency injection framework that will
      *                 initialize Elide models.
      */
@@ -208,7 +208,7 @@ public class EntityDictionary {
 
     /**
      * Instantiate a new EntityDictionary with the provided set of checks and an injection function.
-     * In addition all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
+     * In addition, all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
      * to {@code Prefab.CONTAINER.CHECK} * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
      * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
      * @param checks a map that links the identifiers used in the permission expression strings

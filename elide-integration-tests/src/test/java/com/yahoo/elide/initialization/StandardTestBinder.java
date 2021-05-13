@@ -13,7 +13,6 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
-import com.yahoo.elide.core.security.checks.prefab.Role;
 
 import example.TestCheckMappings;
 import example.models.triggers.services.BillingService;
@@ -54,11 +53,6 @@ public class StandardTestBinder extends AbstractBinder {
                 MultipleFilterDialect multipleFilterStrategy = new MultipleFilterDialect(
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy),
                         Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
-                );
-
-                dictionary.scanForSecurityChecks();
-                IntegrationTest.getAdditionalUserRoles().forEach(role ->
-                        dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))
                 );
 
                 return new Elide(new ElideSettingsBuilder(IntegrationTest.getDataStore())
