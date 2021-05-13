@@ -21,7 +21,7 @@ public interface QueryValidator {
 
     /**
      * Ensures that no filter predicates tries not navigate a relationship.
-     * @param query
+     * @param query The client query to validate.
      */
     void validateWhereClause(Query query);
 
@@ -35,25 +35,25 @@ public interface QueryValidator {
      * All grouped by dimensions are defined in the entity bean, so the last entity class of a filter path
      * must match entity class of the query.
      *
-     * @param query The client query to validate;
+     * @param query The client query to validate.
      */
     void validateHavingClause(Query query);
 
     /**
      * Method to verify that all the sorting options provided by the user are valid and supported.
-     * @param query The client query to validate;
+     * @param query The client query to validate.
      */
     void validateSorting(Query query);
 
     /**
      * Validates that the requested set of columns can be queried together.
-     * @param query
+     * @param query The client query to validate.
      */
     void validateProjectedColumns(Query query);
 
     /**
      * Validates that the arguments sent in the query.
-     * @param query
+     * @param query The client query to validate.
      */
     void validateQueryArguments(Query query);
 }

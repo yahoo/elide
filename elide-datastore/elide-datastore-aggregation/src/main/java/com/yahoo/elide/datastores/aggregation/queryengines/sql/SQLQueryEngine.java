@@ -352,9 +352,7 @@ public class SQLQueryEngine extends QueryEngine {
      * @return the SQL query.
      */
     private NativeQuery toSQL(Query query, SQLDialect sqlDialect) {
-        SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, query);
-
-        QueryTranslator translator = new QueryTranslator(queryReferenceTable, sqlDialect);
+        QueryTranslator translator = new QueryTranslator(metaDataStore, sqlDialect, query);
 
         return query.accept(translator).build();
     }
@@ -457,7 +455,6 @@ public class SQLQueryEngine extends QueryEngine {
      */
     private NativeQuery toPageTotalSQL(Query query, NativeQuery sql, SQLDialect sqlDialect) {
 
-        SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, query);
         // TODO: refactor this method
         String groupByDimensions =
                 query.getAllDimensionProjections()
