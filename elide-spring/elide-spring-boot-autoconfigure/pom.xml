@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-spring-parent-pom</artifactId>
-        <version>4.7.1-SNAPSHOT</version>
+        <version>4.7.1</version>
     </parent>
 
     <licenses>
@@ -34,7 +34,7 @@
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
         <url>https://github.com/yahoo/elide.git</url>
-        <tag>HEAD</tag>
+        <tag>4.7.1</tag>
     </scm>
 
     <properties>
@@ -50,35 +50,35 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>4.7.1-SNAPSHOT</version>
+            <version>4.7.1</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>4.7.1-SNAPSHOT</version>
+            <version>4.7.1</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-annotations</artifactId>
-            <version>4.7.1-SNAPSHOT</version>
+            <version>4.7.1</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>4.7.1-SNAPSHOT</version>
+            <version>4.7.1</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>4.7.1-SNAPSHOT</version>
+            <version>4.7.1</version>
             <optional>true</optional>
         </dependency>
 
@@ -141,7 +141,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>4.7.1-SNAPSHOT</version>
+            <version>4.7.1</version>
             <scope>test</scope>
         </dependency>
 
