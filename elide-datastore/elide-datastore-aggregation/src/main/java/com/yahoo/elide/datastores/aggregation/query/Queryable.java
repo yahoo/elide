@@ -19,8 +19,10 @@ import com.google.common.collect.Streams;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -297,5 +299,34 @@ public interface Queryable {
      */
     default SQLDialect getDialect() {
         return getConnectionDetails().getDialect();
+    }
+
+    /**
+     * Converts a filter expression into a set of ColumnProjections
+     * @param query The parent query.
+     * @param expression The filter expression to extract.
+     * @return A set of zero or more column projections with their arguments.
+     */
+    static Set<ColumnProjection> extractFilterProjections(Queryable query, FilterExpression expression) {
+        if (expression == null) {
+            return new LinkedHashSet<>();
+        }
+
+        Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
+
+        Set<ColumnProjection> filterProjections = new LinkedHashSet<>();
+        predicates.stream().forEach((predicate -> {
+            Map<String, Argument> arguments = new HashMap<>();
+
+            predicate.getPath().lastElement().get().getArguments().forEach(argument ->
+                    arguments.put(argument.getName(), argument)
+            );
+
+            ColumnProjection projection = query.getSource().getColumnProjection(predicate.getField(), arguments);
+
+            filterProjections.add(projection);
+        }));
+
+        return filterProjections;
     }
 }

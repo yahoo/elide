@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
+import static com.yahoo.elide.datastores.aggregation.query.Queryable.extractFilterProjections;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
@@ -18,11 +19,11 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -56,30 +57,25 @@ public class DefaultQueryValidator implements QueryValidator {
                 throw new InvalidOperationException("Relationship traversal not supported for analytic queries.");
             }
 
-            if (source.getDimensionProjection(fieldName) != null) {
-                if (query.getAllDimensionProjections().stream().noneMatch(dim -> dim.getAlias().equals(fieldName))) {
-                    throw new InvalidOperationException(
-                            String.format(
-                                    "Dimension field %s must be grouped before filtering in having clause.",
-                                    fieldName));
-                }
-            }
+            extractFilterProjections(query, havingClause).stream().forEach(projection -> {
+                if (query.getColumnProjection(projection.getAlias(), projection.getArguments()) == null) {
 
-            if (source.getTimeDimensionProjection(fieldName) != null) {
-                query.getAllDimensionProjections()
-                        .stream()
-                        .filter(dim -> dim.getAlias().equals(fieldName)
-                                && TimeDimensionProjection.class.isAssignableFrom(dim.getClass()))
-                        .forEach(dim -> {
-                            Object grain = dim.getArguments().get("grain").getValue();
-                            if (last.getArguments().stream().noneMatch(arg -> (arg.getValue()).equals(grain))) {
-                                throw new InvalidOperationException(
-                                        String.format(
-                                                "Time Dimension field %s must use the same grain argument "
-                                                        + "in the projection and the having clause.", fieldName));
-                            }
-                        });
-            }
+                    //The column wasn't projected at all.
+                    if (query.getColumnProjection(projection.getAlias()) == null) {
+                        throw new InvalidOperationException(String.format(
+                                "Post aggregation filtering on '%s' requires the field to be projected in the response",
+                                projection.getAlias()));
+
+                    //The column was projected but arguments didn't match.
+                    } else {
+                        throw new InvalidOperationException(String.format(
+                                "Post aggregation filtering on '%s' requires the field to be projected "
+                                        + "in the response with matching arguments",
+                                projection.getAlias()));
+                    }
+                }
+                validateColumnArguments(query, projection);
+            });
         });
     }
 
@@ -98,6 +94,10 @@ public class DefaultQueryValidator implements QueryValidator {
             if (path.getPathElements().size() > 1) {
                 throw new InvalidOperationException("Relationship traversal not supported for analytic queries.");
             }
+        });
+
+        extractFilterProjections(query, whereClause).stream().forEach(projection -> {
+            validateColumnArguments(query, projection);
         });
     }
 
@@ -164,11 +164,10 @@ public class DefaultQueryValidator implements QueryValidator {
         SQLTable table = (SQLTable) query.getSource();
 
         table.getArguments().forEach(tableArgument -> {
-            if (query.getArguments().containsKey(tableArgument.getName())) {
-                Argument clientArgument = query.getArguments().get(tableArgument.getName());
+            Argument clientArgument = query.getArguments().get(tableArgument.getName());
 
-                validateArgument(clientArgument, tableArgument);
-            }
+            validateArgument(Optional.ofNullable(clientArgument), tableArgument,
+                    "table '" + query.getSource().getName() + "'");
         });
     }
 
@@ -177,25 +176,37 @@ public class DefaultQueryValidator implements QueryValidator {
         Column column = table.getColumn(Column.class, projection.getName());
 
         column.getArguments().forEach(columnArgument -> {
-            if (projection.getArguments().containsKey(columnArgument.getName())) {
-                Argument clientArgument = projection.getArguments().get(columnArgument.getName());
+            Argument clientArgument = projection.getArguments().get(columnArgument.getName());
 
-                validateArgument(clientArgument, columnArgument);
-            }
+            validateArgument(Optional.ofNullable(clientArgument), columnArgument,
+                    "column '" + projection.getAlias() + "'");
         });
     }
 
     protected void validateArgument(
-            Argument clientArgument,
-            com.yahoo.elide.datastores.aggregation.metadata.models.Argument argumentDefinition
+            Optional<Argument> clientArgument,
+            com.yahoo.elide.datastores.aggregation.metadata.models.Argument argumentDefinition,
+            String context
     ) {
 
-        boolean isValid = argumentDefinition.getType().matches(clientArgument.getValue().toString());
+        if (! clientArgument.isPresent()) {
+            if (argumentDefinition.isRequired()) {
+                throw new InvalidOperationException(String.format("Argument '%s' for %s is required",
+                        context,
+                        argumentDefinition.getName()
+                ));
+            }
+            return;
+        }
+
+        Object clientArgumentValue = clientArgument.get().getValue();
+        boolean isValid = argumentDefinition.getType().matches(clientArgumentValue.toString());
 
         if (!isValid) {
-            throw new InvalidOperationException(String.format("Argument %s has an invalid value: %s",
+            throw new InvalidOperationException(String.format("Argument '%s' for %s has an invalid value: %s",
                     argumentDefinition.getName(),
-                    clientArgument.getValue()));
+                    context,
+                    clientArgumentValue));
         }
     }
 }

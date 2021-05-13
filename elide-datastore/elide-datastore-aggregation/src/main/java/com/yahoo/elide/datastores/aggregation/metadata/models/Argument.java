@@ -49,6 +49,10 @@ public class Argument {
 
     private Object defaultValue;
 
+    public boolean isRequired() {
+        return (defaultValue == null);
+    }
+
     public Argument(String idPrefix, ArgumentDefinition argument) {
         this.id = idPrefix + "." + argument.name();
         this.name = argument.name();

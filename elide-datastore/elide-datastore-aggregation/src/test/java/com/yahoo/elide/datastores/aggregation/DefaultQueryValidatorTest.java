@@ -49,7 +49,7 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
                 .dimensionProjection(source.getDimensionProjection("countryName"))
                 .build();
 
-        validateQuery(query, "Invalid operation: Argument overallRating has an invalid value: SELECT * FROM FOO;");
+        validateQuery(query, "Invalid operation: Argument 'rating' for table 'playerStatsView' has an invalid value: SELECT * FROM FOO;");
     }
 
     @Test
@@ -82,7 +82,7 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
                 .dimensionProjection(source.getDimensionProjection("countryName", "countryName", argumentMap))
                 .build();
 
-        validateQuery(query, "Invalid operation: Argument format has an invalid value: ;");
+        validateQuery(query, "Invalid operation: Argument 'format' for column 'countryName' has an invalid value: ;");
     }
 
     @Test
@@ -173,7 +173,7 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
                 .havingFilter(havingFilter)
                 .build();
 
-        validateQuery(query, "Invalid operation: Dimension field countryIsoCode must be grouped before filtering in having clause.");
+        validateQuery(query, "Invalid operation: Post aggregation filtering on 'countryIsoCode' requires the field to be projected in the response");
     }
 
     @Test
