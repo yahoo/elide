@@ -1,5 +1,14 @@
 # Change Log
 
+## 4.7.1
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/032894eb40944db1d16a9d5090128aa7e3561df6) bump dependency versions (#1884) 
+   * [view commit](https://github.com/yahoo/elide/commit/707ef1390261c85fbe4631388024af4ec303004f) Modifications from pom on master (#2028) 
+   * [view commit](https://github.com/yahoo/elide/commit/18cd1d67507956cb7c11829dcbb766969f2987b2) Fix bug in filter pushdown extractor (#2030) 
+   * [view commit](https://github.com/yahoo/elide/commit/7dcb3df09527b0e1f79585ee5b23b8644b578403) normalize permission expression before converting to filter expression (#2039) 
+   * [view commit](https://github.com/yahoo/elide/commit/38e66ac9fc59c7694de382ecdbe4a3bae356d88e) sonar (#2044) 
+   * [view commit](https://github.com/yahoo/elide/commit/9788e6cdd4f335d3c071630ed5d1f81be188e9d6) Add ability to handle conversion of Date instances to ISO8601DateSerde (#2046) 
+
 ## 4.7.0
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/ec8e6602cc1a8183079f18ae98ed753625690e65) Removing jetty from spring boot starter (#1805) 
