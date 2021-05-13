@@ -5,8 +5,6 @@
  */
 package example.packageshareable;
 
-import com.yahoo.elide.annotation.Include;
-
 import java.util.Collection;
 
 import javax.persistence.Entity;
@@ -20,7 +18,6 @@ import javax.persistence.OneToMany;
  * Container for ShareableWithPackageShare and UnshareableWithEntityUnshare.
  */
 @Entity
-@Include(rootLevel = true)
 public class ContainerWithPackageShare {
     private long id;
     private Collection<UnshareableWithEntityUnshare> unshareableWithEntityUnshares;
