@@ -167,13 +167,7 @@ public class DefaultQueryValidator implements QueryValidator {
             if (query.getArguments().containsKey(tableArgument.getName())) {
                 Argument clientArgument = query.getArguments().get(tableArgument.getName());
 
-                boolean isValid = tableArgument.getType().matches(clientArgument.getValue().toString());
-
-                if (!isValid) {
-                    throw new InvalidOperationException(String.format("Argument %s has an invalid value: %s",
-                            tableArgument.getName(),
-                            clientArgument.getValue()));
-                }
+                validateArgument(clientArgument, tableArgument);
             }
         });
     }
@@ -186,14 +180,22 @@ public class DefaultQueryValidator implements QueryValidator {
             if (projection.getArguments().containsKey(columnArgument.getName())) {
                 Argument clientArgument = projection.getArguments().get(columnArgument.getName());
 
-                boolean isValid = columnArgument.getType().matches(clientArgument.getValue().toString());
-
-                if (!isValid) {
-                    throw new InvalidOperationException(String.format("Argument %s has an invalid value: %s",
-                            columnArgument.getName(),
-                            clientArgument.getValue()));
-                }
+                validateArgument(clientArgument, columnArgument);
             }
         });
+    }
+
+    protected void validateArgument(
+            Argument clientArgument,
+            com.yahoo.elide.datastores.aggregation.metadata.models.Argument argumentDefinition
+    ) {
+
+        boolean isValid = argumentDefinition.getType().matches(clientArgument.getValue().toString());
+
+        if (!isValid) {
+            throw new InvalidOperationException(String.format("Argument %s has an invalid value: %s",
+                    argumentDefinition.getName(),
+                    clientArgument.getValue()));
+        }
     }
 }
