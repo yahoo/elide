@@ -19,7 +19,6 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
@@ -275,21 +274,24 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
     }
 
     /**
-     * Given the set of group by dimensions or projection metrics,
-     * extract any entity relationship traversals that require joins.
-     * This method takes in a {@link Table} because the sql join path meta data is stored in it.
-     *
-     * @param columnProjections The list of dimensions we are grouping on.
-     * @param source queried table
+     * Get required join expressions for all the projected columns in given Query.
+     * @param query Expanded Query.
      * @return A set of Join expressions that capture a relationship traversal.
      */
     private Set<String> extractJoinExpressions(Query query) {
         return query.getColumnProjections().stream()
+                .filter(column -> column.isProjected())
                 .map(column -> extractJoinExpressions(column, query))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
+    /**
+     * Get required join expressions for given column in given Query.
+     * @param column {@link ColumnProjection}
+     * @param query Expanded Query.
+     * @return A set of Join expressions that capture a relationship traversal.
+     */
     private Set<String> extractJoinExpressions(ColumnProjection column, Query query) {
         Set<String> joinExpressions = new LinkedHashSet<>();
 

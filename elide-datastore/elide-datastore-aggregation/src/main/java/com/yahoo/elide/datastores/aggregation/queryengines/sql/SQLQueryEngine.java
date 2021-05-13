@@ -382,7 +382,7 @@ public class SQLQueryEngine extends QueryEngine {
         QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query, referenceTable);
 
         Query merged = (mergedPlan == null)
-                ? query
+                ? QueryPlanTranslator.addHiddenProjections(referenceTable, query).build()
                 : queryPlanTranslator.translate(mergedPlan);
 
         for (Optimizer optimizer : optimizers) {

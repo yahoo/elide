@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.metadata;
 
 import static com.yahoo.elide.core.request.Argument.getArgumentMapFromString;
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.datastores.aggregation.query.ColumnProjection.createSafeAlias;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 import static java.util.Collections.emptyMap;
@@ -118,10 +119,23 @@ public class ColumnContext extends HashMap<String, Object> {
 
     protected ColumnContext getJoinContext(String key) {
         SQLJoin sqlJoin = this.queryable.getJoin(key);
+
+        String joinExpression = sqlJoin.getJoinExpression();
+        PhysicalRefColumnContext context = PhysicalRefColumnContext.physicalRefContextBuilder()
+                        .queryable(this.getQueryable())
+                        .metaDataStore(this.getMetaDataStore())
+                        .column(this.getColumn())
+                        .build();
+
+        // This will resolve everything within join expression except Physical References, Use this resolved value
+        // to create alias for join dynamically.
+        String resolvedJoinExpr = context.resolve(joinExpression);
+        String joinAlias = createSafeAlias(appendAlias(this.alias, key), resolvedJoinExpr);
+
         Queryable joinQueryable = metaDataStore.getTable(sqlJoin.getJoinTableType());
         ColumnContext joinCtx = ColumnContext.builder()
                         .queryable(joinQueryable)
-                        .alias(appendAlias(this.alias, key))
+                        .alias(joinAlias)
                         .metaDataStore(this.metaDataStore)
                         .column(this.column)
                         .build();
