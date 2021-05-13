@@ -10,26 +10,49 @@ import static com.yahoo.elide.core.type.ClassType.BOOLEAN_TYPE;
 import static com.yahoo.elide.core.type.ClassType.LONG_TYPE;
 import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import static com.yahoo.elide.datastores.aggregation.timegrains.Time.TIME_TYPE;
+import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.google.common.collect.ImmutableMap;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Actual value type of a data type.
  */
 public enum ValueType {
-    TIME,
-    INTEGER,
-    DECIMAL,
-    MONEY,
-    TEXT,
-    COORDINATE,
-    BOOLEAN,
-    RELATIONSHIP,
-    ID;
+
+    TIME("^[-0-9:TZ]+$"),
+    INTEGER("^[+-]?\\d+$"),
+    DECIMAL("^[+-]?((\\d+(\\.\\d+)?)|(\\.\\d+))$"),
+    MONEY("^[+-]?((\\d+(\\.\\d+)?)|(\\.\\d+))$"),
+    TEXT("^[a-zA-Z0-9_]+$"),  //Very restricted to prevent SQL Injection
+    COORDINATE("^(-?\\d+(\\.\\d+)?)|(-?\\d+(\\.\\d+)?),\\s*(-?\\d+(\\.\\d+)?)$"),
+    BOOLEAN("^(?i)true|false(?-i)|0|1$"),
+    ID("^[a-zA-Z0-9_]+$"),
+    UNKNOWN("^$");
+
+    private Pattern pattern;
+
+    ValueType(String regexRestriction) {
+        pattern = Pattern.compile(regexRestriction);
+    }
+
+    public boolean matches(String input) {
+        if (this.equals(UNKNOWN)) {
+            return false;
+        }
+
+        try {
+            CoerceUtil.coerce(input, getType(this));
+        } catch (InvalidValueException e) {
+            return false;
+        }
+        return pattern.matcher(input).matches();
+    }
 
     private static final Map<Type<?>, ValueType> SCALAR_TYPES = ImmutableMap.<Type<?>, ValueType>builder()
         .put(ClassType.of(short.class), INTEGER)

@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.ArgumentDefinition;
+import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
@@ -44,6 +45,10 @@ public class PlayerStatsView {
     /**
      * A degenerate dimension.
      */
+    //TODO - @DimensionFormula(value = "$$column.args.format({{$countryName}})", arguments = {
+    @DimensionFormula(value = "{{$countryName}}", arguments = {
+            @ArgumentDefinition(name = "format", defaultValue = "lower", values = {"lower, upper"})
+    })
     private String countryName;
 
     @Join("{{$player_id}} = {{player.$id}}")

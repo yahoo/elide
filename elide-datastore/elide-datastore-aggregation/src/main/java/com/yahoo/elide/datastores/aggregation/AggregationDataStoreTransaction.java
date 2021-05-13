@@ -127,6 +127,7 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
                 scope.getApiVersion());
         String bypassCacheStr = scope.getRequestHeaderByName("bypasscache");
         Boolean bypassCache = "true".equals(bypassCacheStr);
+
         EntityProjectionTranslator translator = new EntityProjectionTranslator(
                 queryEngine,
                 table,

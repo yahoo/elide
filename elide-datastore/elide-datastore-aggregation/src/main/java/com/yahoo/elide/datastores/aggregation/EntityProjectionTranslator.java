@@ -86,8 +86,8 @@ public class EntityProjectionTranslator {
                 .scope(scope)
                 .build();
 
-        QueryValidator validator = new QueryValidator(query, getAllFields(), dictionary);
-        validator.validate();
+        QueryValidator validator = engine.getValidator();
+        validator.validate(query);
         return query;
     }
 

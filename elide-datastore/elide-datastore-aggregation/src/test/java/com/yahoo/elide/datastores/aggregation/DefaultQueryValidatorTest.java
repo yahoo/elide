@@ -5,11 +5,14 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
@@ -17,20 +20,95 @@ import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
-public class QueryValidatorTest extends SQLUnitTest {
+public class DefaultQueryValidatorTest extends SQLUnitTest {
     @BeforeAll
     public static void init() {
         SQLUnitTest.init();
+    }
+
+    @Test
+    public void testInvalidTableArgument() {
+        Queryable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
+
+        Map<String, Argument> argumentMap = new HashMap<>();
+        argumentMap.put("rating", Argument.builder().name("rating").value("SELECT * FROM FOO;").build());
+
+        Query query = Query.builder()
+                .source(source)
+                .arguments(argumentMap)
+                .metricProjection(source.getMetricProjection("highScore"))
+                .dimensionProjection(source.getDimensionProjection("countryName"))
+                .build();
+
+        validateQuery(query, "Invalid operation: Argument rating has an invalid value: SELECT * FROM FOO;");
+    }
+
+    @Test
+    public void testValidTableArgument() {
+        Queryable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
+
+        Map<String, Argument> argumentMap = new HashMap<>();
+        argumentMap.put("rating", Argument.builder().name("rating").value("Terrible").build());
+
+        Query query = Query.builder()
+                .source(source)
+                .arguments(argumentMap)
+                .metricProjection(source.getMetricProjection("highScore"))
+                .dimensionProjection(source.getDimensionProjection("countryName"))
+                .build();
+
+        validateQueryDoesNotThrow(query);
+    }
+
+    @Test
+    public void testInvalidColumnArgument() {
+        SQLTable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
+
+        Map<String, Argument> argumentMap = new HashMap<>();
+        argumentMap.put("format", Argument.builder().name("format").value(";").build());
+
+        Query query = Query.builder()
+                .source(source)
+                .metricProjection(source.getMetricProjection("highScore"))
+                .dimensionProjection(source.getDimensionProjection("countryName", "countryName", argumentMap))
+                .build();
+
+        validateQuery(query, "Invalid operation: Argument format has an invalid value: ;");
+    }
+
+    @Test
+    public void testValidColumnArgument() {
+        SQLTable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
+
+        Map<String, Argument> argumentMap = new HashMap<>();
+        argumentMap.put("format", Argument.builder().name("format").value("lower").build());
+
+        Query query = Query.builder()
+                .source(source)
+                .metricProjection(source.getMetricProjection("highScore"))
+                .dimensionProjection(source.getDimensionProjection("countryName", "countryName", argumentMap))
+                .build();
+
+        validateQueryDoesNotThrow(query);
+    }
+
+    @Test
+    public void testQueryingByIdAlone() {
+        Query query = Query.builder()
+                .source(playerStatsTable)
+                .dimensionProjection(playerStatsTable.getDimensionProjection("id"))
+                .build();
+
+        validateQuery(query, "Invalid operation: Cannot query a table only by ID");
     }
 
     @Test
@@ -46,11 +124,7 @@ public class QueryValidatorTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
-        Set<String> allFields = new HashSet<>(Arrays.asList("id", "overallRating", "lowScore"));
-        QueryValidator validator = new QueryValidator(query, allFields, dictionary);
-
-        InvalidOperationException exception = assertThrows(InvalidOperationException.class, validator::validate);
-        assertEquals("Invalid operation: Sorting on id field is not permitted", exception.getMessage());
+        validateQuery(query, "Invalid operation: Sorting on id field is not permitted");
     }
 
     @Test
@@ -65,11 +139,7 @@ public class QueryValidatorTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
-        Set<String> allFields = new HashSet<>(Arrays.asList("overallRating", "lowScore"));
-        QueryValidator validator = new QueryValidator(query, allFields, dictionary);
-
-        InvalidOperationException exception = assertThrows(InvalidOperationException.class, validator::validate);
-        assertEquals("Invalid operation: Can not sort on countryIsoCode as it is not present in query", exception.getMessage());
+        validateQuery(query, "Invalid operation: Can not sort on countryIsoCode as it is not present in query");
     }
 
     @Test
@@ -84,11 +154,7 @@ public class QueryValidatorTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();
 
-        Set<String> allFields = new HashSet<>(Arrays.asList("overallRating", "lowScore"));
-        QueryValidator validator = new QueryValidator(query, allFields, dictionary);
-
-        InvalidOperationException exception = assertThrows(InvalidOperationException.class, validator::validate);
-        assertEquals("Invalid operation: Can not sort on highScore as it is not present in query", exception.getMessage());
+        validateQuery(query, "Invalid operation: Can not sort on highScore as it is not present in query");
     }
 
     @Test
@@ -107,13 +173,7 @@ public class QueryValidatorTest extends SQLUnitTest {
                 .havingFilter(havingFilter)
                 .build();
 
-        Set<String> allFields = new HashSet<>(Collections.singletonList("lowScore"));
-        QueryValidator validator = new QueryValidator(query, allFields, dictionary);
-
-        InvalidOperationException exception = assertThrows(InvalidOperationException.class, validator::validate);
-        assertEquals(
-                "Invalid operation: Dimension field countryIsoCode must be grouped before filtering in having clause.",
-                exception.getMessage());
+        validateQuery(query, "Invalid operation: Dimension field countryIsoCode must be grouped before filtering in having clause.");
     }
 
     @Test
@@ -132,12 +192,20 @@ public class QueryValidatorTest extends SQLUnitTest {
                 .havingFilter(havingFilter)
                 .build();
 
-        Set<String> allFields = new HashSet<>(Collections.singletonList("lowScore"));
-        QueryValidator validator = new QueryValidator(query, allFields, dictionary);
+        validateQuery(query, "Invalid operation: Relationship traversal not supported for analytic queries.");
+    }
 
-        InvalidOperationException exception = assertThrows(InvalidOperationException.class, validator::validate);
-        assertEquals(
-                "Invalid operation: Relationship traversal not supported for analytic queries.",
-                exception.getMessage());
+    private void validateQuery(Query query, String message) {
+        DefaultQueryValidator validator = new DefaultQueryValidator(dictionary);
+
+        InvalidOperationException exception = assertThrows(InvalidOperationException.class,
+                () -> validator.validate(query));
+        assertEquals(message, exception.getMessage());
+    }
+
+    private void validateQueryDoesNotThrow(Query query) {
+        DefaultQueryValidator validator = new DefaultQueryValidator(dictionary);
+
+        assertDoesNotThrow(() -> validator.validate(query));
     }
 }
