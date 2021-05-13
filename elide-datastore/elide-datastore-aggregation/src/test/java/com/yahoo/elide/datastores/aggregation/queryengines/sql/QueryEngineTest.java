@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
-import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.datastores.aggregation.timegrains.Time.TIME_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -26,7 +25,6 @@ import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.timegrains.Day;
 import com.yahoo.elide.datastores.aggregation.timegrains.Month;
 import com.google.common.collect.ImmutableList;
@@ -44,12 +42,10 @@ import java.util.Set;
 import java.util.TreeMap;
 
 public class QueryEngineTest extends SQLUnitTest {
-    private static SQLTable playerStatsViewTable;
 
     @BeforeAll
     public static void init() {
         SQLUnitTest.init();
-        playerStatsViewTable = (SQLTable) engine.getMetaDataStore().getTable("playerStatsView", NO_VERSION);
     }
 
     /**
@@ -99,6 +95,7 @@ public class QueryEngineTest extends SQLUnitTest {
         Query query = Query.builder()
                 .source(playerStatsViewTable.toQueryable())
                 .metricProjection(playerStatsViewTable.getMetricProjection("highScore"))
+                .arguments(playerStatsViewTableArgs)
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
@@ -127,6 +124,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .whereFilter(filterParser.parseFilterExpression("countryName=='United States'", playerStatsViewType, false))
                 .havingFilter(filterParser.parseFilterExpression("highScore > 300", playerStatsViewType, false))
                 .sorting(new SortingImpl(sortMap, PlayerStatsView.class, dictionary))
+                .arguments(playerStatsViewTableArgs)
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
@@ -177,6 +175,7 @@ public class QueryEngineTest extends SQLUnitTest {
                 .metricProjection(playerStatsViewTable.getMetricProjection("highScore"))
                 .whereFilter(filterParser.parseFilterExpression("countryName=='United States'",
                         playerStatsViewType, false))
+                .arguments(playerStatsViewTableArgs)
                 .build();
 
         List<Object> results = toList(engine.executeQuery(query, transaction).getData());
