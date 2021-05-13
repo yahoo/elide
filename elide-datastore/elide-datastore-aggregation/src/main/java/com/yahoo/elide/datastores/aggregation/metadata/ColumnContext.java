@@ -72,21 +72,18 @@ public class ColumnContext extends HashMap<String, Object> {
         }
 
         if (keyStr.equals(TBL_PREFIX)) {
-            return TableContext.builder()
+            return TableSubContext.tableSubContextBuilder()
                             .queryable(this.queryable)
                             .build();
         }
 
         if (keyStr.equals(COL_PREFIX)) {
-            return this;
-        }
-
-        if (keyStr.equals(ARGS_KEY)) {
-            return this.column.getArguments();
-        }
-
-        if (keyStr.equals(EXPR_KEY)) {
-            return this.resolve(this.getColumn().getExpression());
+            return ColumnSubContext.columnSubContextBuilder()
+                            .queryable(this.getQueryable())
+                            .alias(this.getAlias())
+                            .metaDataStore(this.getMetaDataStore())
+                            .column(this.getColumn())
+                            .build();
         }
 
         if (this.queryable.hasJoin(keyStr)) {

@@ -6,13 +6,9 @@
 
 package com.yahoo.elide.datastores.aggregation.metadata;
 
-import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.ARGS_KEY;
 import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.TBL_PREFIX;
 
-import com.yahoo.elide.core.request.Argument;
-import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
 import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Formatter;
@@ -26,10 +22,6 @@ import lombok.ToString;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Context for resolving table arguments in provided expression.
@@ -39,7 +31,7 @@ import java.util.stream.Collectors;
 @Builder
 public class TableContext extends HashMap<String, Object> {
 
-    private final Queryable queryable;
+    protected final Queryable queryable;
 
     private final Handlebars handlebars = new Handlebars()
                     .with(EscapingStrategy.NOOP)
@@ -53,18 +45,9 @@ public class TableContext extends HashMap<String, Object> {
     public Object get(Object key) {
 
         if (key.equals(TBL_PREFIX)) {
-            return this;
-        }
-
-        if (key.equals(ARGS_KEY)) {
-
-            if (queryable instanceof SQLTable) {
-                SQLTable table = (SQLTable) queryable;
-                return getDefaultArgumentsMap(table.getArguments());
-            }
-
-            Query query = (Query) queryable;
-            return query.getArguments();
+            return TableSubContext.tableSubContextBuilder()
+                            .queryable(this.queryable)
+                            .build();
         }
 
         throw new HandlebarsException(new Throwable("Couldn't find: " + key));
@@ -83,17 +66,5 @@ public class TableContext extends HashMap<String, Object> {
         } catch (IOException e) {
             throw new IllegalStateException(e.getMessage());
         }
-    }
-
-    public static Map<String, Argument> getDefaultArgumentsMap(
-                    Set<com.yahoo.elide.datastores.aggregation.metadata.models.Argument> availableArgs) {
-
-         return availableArgs.stream()
-                        .filter(arg -> arg.getDefaultValue() != null)
-                        .map(arg -> Argument.builder()
-                                        .name(arg.getName())
-                                        .value(arg.getDefaultValue())
-                                        .build())
-                        .collect(Collectors.toMap(Argument::getName, Function.identity()));
     }
 }
