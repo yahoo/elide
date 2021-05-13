@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>4.7.1</version>
+        <version>4.7.2-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -40,7 +40,7 @@
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
         <url>https://github.com/yahoo/elide.git</url>
-        <tag>4.7.1</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <properties>
@@ -59,17 +59,17 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>4.7.1</version>
+            <version>4.7.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>4.7.1</version>
+            <version>4.7.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>4.7.1</version>
+            <version>4.7.2-SNAPSHOT</version>
         </dependency>
 
         <!-- JPA -->
@@ -187,7 +187,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>4.7.1</version>
+            <version>4.7.2-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
