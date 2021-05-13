@@ -50,7 +50,7 @@ public class Argument {
     private Object defaultValue;
 
     public boolean isRequired() {
-        return (defaultValue == null);
+        return (defaultValue == null || defaultValue.toString().equals(""));
     }
 
     public Argument(String idPrefix, ArgumentDefinition argument) {

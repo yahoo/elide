@@ -192,8 +192,8 @@ public class DefaultQueryValidator implements QueryValidator {
         if (! clientArgument.isPresent()) {
             if (argumentDefinition.isRequired()) {
                 throw new InvalidOperationException(String.format("Argument '%s' for %s is required",
-                        context,
-                        argumentDefinition.getName()
+                        argumentDefinition.getName(),
+                        context
                 ));
             }
             return;
