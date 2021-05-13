@@ -36,16 +36,6 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
     }
 
     @Test
-    public void queryOnlyById() {
-        Query query = Query.builder()
-                .source(playerStatsTable)
-                .dimensionProjection(playerStatsTable.getDimensionProjection("id"))
-                .build();
-
-        validateQuery(query, "Invalid operation: Cannot query a table only by ID");
-    }
-
-    @Test
     public void testInvalidTableArgument() {
         Queryable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
 
