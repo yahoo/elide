@@ -18,6 +18,7 @@ import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -45,22 +46,20 @@ import java.util.stream.Stream;
  */
 public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuilder> {
 
-    private final SQLReferenceTable referenceTable;
     private final MetaDataStore metaDataStore;
     private final EntityDictionary dictionary;
     private final SQLDialect dialect;
     private FilterTranslator filterTranslator;
     private final ExpressionParser parser;
-    private final ColumnContext context;
+    private final Query clientQuery;
 
-    public QueryTranslator(SQLReferenceTable referenceTable, SQLDialect sqlDialect, ColumnContext context) {
-        this.referenceTable = referenceTable;
-        this.metaDataStore = referenceTable.getMetaDataStore();
-        this.dictionary = referenceTable.getDictionary();
+    public QueryTranslator(MetaDataStore metaDataStore, SQLDialect sqlDialect, Query clientQuery) {
+        this.metaDataStore = metaDataStore;
+        this.dictionary = metaDataStore.getMetadataDictionary();
         this.dialect = sqlDialect;
         this.filterTranslator = new FilterTranslator(dictionary);
-        this.parser = new ExpressionParser(referenceTable.getMetaDataStore());
-        this.context = context;
+        this.parser = new ExpressionParser(metaDataStore);
+        this.clientQuery = clientQuery;
     }
 
     @Override
@@ -132,6 +131,8 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
 
         Type<?> tableCls = dictionary.getEntityClass(table.getName(), table.getVersion());
         String tableAlias = applyQuotes(table.getAlias());
+
+        TableContext context = TableContext.builder().queryable(clientQuery).build();
 
         String tableStatement = tableCls.isAnnotationPresent(FromSubquery.class)
                 ? "(" + context.resolve(tableCls.getAnnotation(FromSubquery.class).sql()) + ")"
@@ -295,7 +296,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
         ColumnContext context = ColumnContext.builder()
                         .queryable(query)
                         .alias(query.getSource().getAlias())
-                        .metaDataStore(referenceTable.getMetaDataStore())
+                        .metaDataStore(metaDataStore)
                         .column(column)
                         .build();
 

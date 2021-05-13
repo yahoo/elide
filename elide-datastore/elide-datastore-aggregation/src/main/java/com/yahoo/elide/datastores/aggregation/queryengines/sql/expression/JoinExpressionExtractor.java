@@ -153,7 +153,7 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
 
         if (hasSql(cls)) {
             // Resolve any table arguments with in FromSubquery or Subselect
-            TableContext context = TableContext.tableContextBuilder().queryable(queryable).build();
+            TableContext context = TableContext.builder().queryable(queryable).build();
             String selectSql = context.resolve(resolveTableOrSubselect(dictionary, cls));
             return OPEN_BRACKET + selectSql + CLOSE_BRACKET;
         }

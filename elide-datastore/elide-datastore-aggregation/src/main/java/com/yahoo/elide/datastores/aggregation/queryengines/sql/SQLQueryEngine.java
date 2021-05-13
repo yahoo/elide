@@ -17,7 +17,6 @@ import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
@@ -337,10 +336,7 @@ public class SQLQueryEngine extends QueryEngine {
      * @return the SQL query.
      */
     private NativeQuery toSQL(Query query, SQLDialect sqlDialect) {
-        SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, query);
-        TableContext context = TableContext.tableContextBuilder().queryable(query).build();
-
-        QueryTranslator translator = new QueryTranslator(queryReferenceTable, sqlDialect, context);
+        QueryTranslator translator = new QueryTranslator(metaDataStore, sqlDialect, query);
 
         return query.accept(translator).build();
     }
@@ -443,7 +439,6 @@ public class SQLQueryEngine extends QueryEngine {
      */
     private NativeQuery toPageTotalSQL(Query query, NativeQuery sql, SQLDialect sqlDialect) {
 
-        SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, query);
         // TODO: refactor this method
         String groupByDimensions =
                 query.getAllDimensionProjections()

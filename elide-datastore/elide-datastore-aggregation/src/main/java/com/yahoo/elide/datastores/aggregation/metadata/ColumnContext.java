@@ -15,10 +15,9 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
-import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+
 import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Formatter;
 import com.github.jknack.handlebars.Handlebars;
@@ -34,9 +33,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Context for resolving all handlebars in provided expression.
@@ -76,7 +72,9 @@ public class ColumnContext extends HashMap<String, Object> {
         }
 
         if (keyStr.equals(TBL_PREFIX)) {
-            return getTableArgMap(this.queryable);
+            return TableContext.builder()
+                            .queryable(this.queryable)
+                            .build();
         }
 
         if (keyStr.equals(COL_PREFIX)) {
@@ -195,32 +193,6 @@ public class ColumnContext extends HashMap<String, Object> {
         }
 
         throw new HandlebarsException(new Throwable("Couldn't find: " + invokedColumnName));
-    }
-
-    public static Map<String, Argument> getDefaultArgumentsMap(
-                    Set<com.yahoo.elide.datastores.aggregation.metadata.models.Argument> availableArgs) {
-
-         return availableArgs.stream()
-                        .filter(arg -> arg.getDefaultValue() != null)
-                        .map(arg -> Argument.builder()
-                                        .name(arg.getName())
-                                        .value(arg.getDefaultValue())
-                                        .build())
-                        .collect(Collectors.toMap(Argument::getName, Function.identity()));
-    }
-
-    protected static Map<String, Object> getTableArgMap(Queryable queryable) {
-        Map<String, Object> tblArgsMap = new HashMap<>();
-
-        if (queryable instanceof SQLTable) {
-            SQLTable table = (SQLTable) queryable;
-            tblArgsMap.put(ARGS_KEY, getDefaultArgumentsMap(table.getArguments()));
-            return tblArgsMap;
-        }
-
-        Query query = (Query) queryable;
-        tblArgsMap.put(ARGS_KEY, query.getArguments());
-        return tblArgsMap;
     }
 
     public static Map<String, Argument> getColumnArgMap(Queryable queryable,
