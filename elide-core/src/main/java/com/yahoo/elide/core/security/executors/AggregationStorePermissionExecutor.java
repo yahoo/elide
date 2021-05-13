@@ -49,13 +49,18 @@ public class AggregationStorePermissionExecutor extends AbstractPermissionExecut
             return ExpressionResult.FAIL;
         }
 
-        Expression expression = expressionBuilder.buildUserCheckAnyExpression(
+        Supplier<Expression> expressionSupplier = () ->
+                expressionBuilder.buildUserCheckAnyFieldOnlyExpression(
+                        resource.getResourceType(),
+                        annotationClass,
+                        requestedFields,
+                        requestScope);
+
+        return checkOnlyUserPermissions(
                 resource.getResourceType(),
                 annotationClass,
-                requestedFields,
-                requestScope);
-
-        return executeExpressions(expression, annotationClass, Expression.EvaluationMode.ALL_CHECKS);
+                Optional.empty(),
+                expressionSupplier);
     }
 
 
@@ -113,18 +118,16 @@ public class AggregationStorePermissionExecutor extends AbstractPermissionExecut
             return ExpressionResult.FAIL;
         }
 
-        Supplier<Expression> expressionSupplier = () ->
-                expressionBuilder.buildUserCheckEntityAndAnyFieldExpression(
+        Expression expression = expressionBuilder.buildUserCheckEntityAndAnyFieldExpression(
                         resourceClass,
                         annotationClass,
                         requestedFields,
                         requestScope);
 
-        return checkOnlyUserPermissions(
-                resourceClass,
-                annotationClass,
-                Optional.empty(),
-                expressionSupplier);
+        // Skips userPermissionCheckCache and directly executes the expression.
+        // Cache is used by checkPermission() which is called for every resource returned.
+        // Cache cannot be shared b/w checkUserPermissions and checkPermissions because of difference in computation.
+        return executeExpressions(expression, annotationClass, Expression.EvaluationMode.USER_CHECKS_ONLY);
     }
 
     /**
@@ -148,7 +151,9 @@ public class AggregationStorePermissionExecutor extends AbstractPermissionExecut
                         resourceClass,
                         requestScope,
                         annotationClass,
-                        field);
+                        field,
+                        false);
+
 
         return checkOnlyUserPermissions(
                 resourceClass,

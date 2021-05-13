@@ -82,7 +82,8 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         final Function<Function<Check, Expression>, Expression> buildExpressionFn =
                 (checkFn) -> buildSpecificFieldExpression(
                         PermissionCondition.create(annotationClass, resource, field, changeSpec),
-                        checkFn
+                        checkFn,
+                        true
                 );
 
         return buildExpressionFn.apply(leafBuilderFn);
@@ -137,6 +138,27 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                                                                              final RequestScope scope,
                                                                              final Class<A> annotationClass,
                                                                              final String field) {
+        return buildUserCheckFieldExpressions(resourceClass, scope, annotationClass, field, true);
+    }
+
+    /**
+     * Build an expression that strictly evaluates UserCheck's and ignores other checks for a specific field.
+     * <p>
+     * NOTE: This method returns _NO_ commit checks.
+     *
+     * @param resourceClass   Resource Class
+     * @param scope           The request scope.
+     * @param annotationClass Annotation class
+     * @param field           Field to check (if null only check entity-level)
+     * @param includeEntityPermission whether entity permission needs to be evaluated in the absence of field permission
+     * @param <A>             type parameter
+     * @return User check expression to evaluate
+     */
+    public <A extends Annotation> Expression buildUserCheckFieldExpressions(final Type<?> resourceClass,
+                                                                            final RequestScope scope,
+                                                                            final Class<A> annotationClass,
+                                                                            final String field,
+                                                                            final boolean includeEntityPermission) {
         if (!entityDictionary.entityHasChecksForPermission(resourceClass, annotationClass)) {
             return SUCCESSFUL_EXPRESSION;
         }
@@ -145,7 +167,7 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
                 new CheckExpression(check, null, scope, null, cache);
 
         return buildSpecificFieldExpression(new PermissionCondition(annotationClass, resourceClass, field),
-                leafBuilderFn);
+                leafBuilderFn, includeEntityPermission);
     }
 
     /**
@@ -175,6 +197,30 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
 
     /**
      * Build an expression that strictly evaluates UserCheck's and ignores other checks for an entity.
+     * expression = (field1Rule OR field2Rule ... OR fieldNRule)
+     * <p>
+     * NOTE: This method returns _NO_ commit checks.
+     *
+     * @param resourceClass   Resource class
+     * @param annotationClass Annotation class
+     * @param requestScope    Request scope
+     * @param <A>             type parameter
+     * @return User check expression to evaluate
+     */
+    public <A extends Annotation> Expression buildUserCheckAnyFieldOnlyExpression(final Type<?> resourceClass,
+                                                                                  final Class<A> annotationClass,
+                                                                                  Set<String> requestedFields,
+                                                                                  final RequestScope requestScope) {
+
+        final Function<Check, Expression> leafBuilderFn = (check) ->
+                new CheckExpression(check, null, requestScope, null, cache);
+
+        return buildAnyFieldOnlyExpression(
+                new PermissionCondition(annotationClass, resourceClass), leafBuilderFn, requestedFields);
+    }
+
+    /**
+     * Build an expression that strictly evaluates UserCheck's and ignores other checks for an entity.
      * expression = (entityRule AND (field1Rule OR field2Rule ... OR fieldNRule))
      * <p>
      * NOTE: This method returns _NO_ commit checks.
@@ -196,9 +242,9 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         ParseTree classPermissions = entityDictionary.getPermissionsForClass(resourceClass, annotationClass);
         Expression entityExpression = normalizedExpressionFromParseTree(classPermissions, leafBuilderFn);
 
-        Expression anyFieldExpression = buildAnyFieldExpression(
+        Expression anyFieldExpression = buildAnyFieldOnlyExpression(
                 new PermissionCondition(annotationClass, resourceClass), leafBuilderFn,
-                requestedFields, scope);
+                requestedFields);
 
         if (entityExpression == null) {
             return anyFieldExpression;
@@ -212,19 +258,27 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
      *
      * @param condition       The condition which triggered this permission expression check
      * @param checkFn         Operation check function
+     * @param includeEntityPermission whether entity permission needs to be evaluated in the absence of field permission
      * @return Expressions representing specific field
      */
     private Expression buildSpecificFieldExpression(final PermissionCondition condition,
-            final Function<Check, Expression> checkFn) {
+            final Function<Check, Expression> checkFn,
+            boolean includeEntityPermission) {
         Type<?> resourceClass = condition.getEntityClass();
         Class<? extends Annotation> annotationClass = condition.getPermission();
         String field = condition.getField().orElse(null);
 
-        ParseTree classPermissions = entityDictionary.getPermissionsForClass(resourceClass, annotationClass);
         ParseTree fieldPermissions = entityDictionary.getPermissionsForField(resourceClass, field, annotationClass);
 
+        if (includeEntityPermission) {
+            ParseTree classPermissions = entityDictionary.getPermissionsForClass(resourceClass, annotationClass);
+            return new SpecificFieldExpression(condition,
+                    normalizedExpressionFromParseTree(classPermissions, checkFn),
+                    normalizedExpressionFromParseTree(fieldPermissions, checkFn)
+            );
+        }
         return new SpecificFieldExpression(condition,
-                normalizedExpressionFromParseTree(classPermissions, checkFn),
+                null,
                 normalizedExpressionFromParseTree(fieldPermissions, checkFn)
         );
     }
@@ -293,6 +347,43 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
 
         return new AnyFieldExpression(condition, allFieldsExpression);
     }
+
+    /**
+     * Builds disjunction of permission expression of all requested fields.
+     * If the field permission is null, then return default SUCCESSFUL_EXPRESSION.
+     * expression = (field1Rule OR field2Rule ... OR fieldNRule)
+     * @param condition The condition which triggered this permission expression check
+     * @param checkFn check function
+     * @param requestedFields The list of requested fields
+     * @return Expression
+     */
+    private Expression buildAnyFieldOnlyExpression(final PermissionCondition condition,
+                                                   final Function<Check, Expression> checkFn,
+                                                   final Set<String> requestedFields) {
+        Type<?> resourceClass = condition.getEntityClass();
+        Class<? extends Annotation> annotationClass = condition.getPermission();
+
+        OrExpression allFieldsExpression = new OrExpression(FAILURE, null);
+        List<String> fields = entityDictionary.getAllFields(resourceClass);
+
+        for (String field : fields) {
+            if (requestedFields != null && !requestedFields.contains(field)) {
+                continue;
+            }
+
+            ParseTree fieldPermissions = entityDictionary.getPermissionsForField(resourceClass, field, annotationClass);
+            Expression fieldExpression = normalizedExpressionFromParseTree(fieldPermissions, checkFn);
+
+            if (fieldExpression == null) {
+                return SUCCESSFUL_EXPRESSION;
+            }
+
+            allFieldsExpression = new OrExpression(allFieldsExpression, fieldExpression);
+        }
+
+        return new AnyFieldExpression(condition, allFieldsExpression);
+    }
+
 
     /**
      * Build an expression representing any field on an entity.

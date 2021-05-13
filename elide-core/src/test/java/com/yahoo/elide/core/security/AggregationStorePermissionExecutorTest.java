@@ -35,7 +35,6 @@ import org.junit.jupiter.api.TestInstance;
 import lombok.Value;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -110,9 +109,9 @@ public class AggregationStorePermissionExecutorTest {
                 () -> executor.checkUserPermissions(ClassType.of(Model.class), ReadPermission.class, "metric"));
 
 
-        // evaluated expression = (user none or filter check)
+        // evaluated expression = null -> false
         Assertions.assertEquals(
-                ExpressionResult.DEFERRED,
+                ExpressionResult.PASS,
                 executor.checkSpecificFieldPermissions(
                         new PersistentResource(new Model("dim1", 0, 1), "1", scope),
                         null, ReadPermission.class, "metric2"));
@@ -129,6 +128,13 @@ public class AggregationStorePermissionExecutorTest {
                 executor.checkPermission(ReadPermission.class,
                         new PersistentResource(new Model("dim1", 0, 1), "1", scope),
                         new HashSet<>(Arrays.asList("filterDim", "metric"))));
+
+        // evaluated expression = (user none OR null)
+        Assertions.assertEquals(
+                ExpressionResult.PASS,
+                executor.checkPermission(ReadPermission.class,
+                        new PersistentResource(new Model("dim1", 0, 1), "1", scope),
+                        new HashSet<>(Arrays.asList("metric", "metric2"))));
 
 
     }
@@ -147,7 +153,9 @@ public class AggregationStorePermissionExecutorTest {
         com.yahoo.elide.core.RequestScope scope = bindAndgetRequestScope(Model1.class);
         PermissionExecutor executor = scope.getPermissionExecutor();
 
-        FilterExpression expression = executor.getReadPermissionFilter(ClassType.of(Model1.class), Collections.emptySet()).orElse(null);
+        FilterExpression expression = executor.getReadPermissionFilter(ClassType.of(Model1.class),
+                new HashSet<>(Arrays.asList("filterDim", "metric")))
+                .orElse(null);
         Assertions.assertNotNull(expression);
         Assertions.assertEquals("model1.filterDim NOTNULL []", expression.toString());
 
@@ -164,7 +172,7 @@ public class AggregationStorePermissionExecutorTest {
         scope = bindAndgetRequestScope(Model2.class);
         executor = scope.getPermissionExecutor();
 
-        expression = executor.getReadPermissionFilter(ClassType.of(Model2.class), Collections.emptySet()).orElse(null);
+        expression = executor.getReadPermissionFilter(ClassType.of(Model2.class), new HashSet<>(Arrays.asList("filterDim", "metric"))).orElse(null);
         Assertions.assertNull(expression);
 
         @Entity
@@ -179,7 +187,7 @@ public class AggregationStorePermissionExecutorTest {
         scope = bindAndgetRequestScope(Model3.class);
         executor = scope.getPermissionExecutor();
 
-        expression = executor.getReadPermissionFilter(ClassType.of(Model3.class), Collections.emptySet()).orElse(null);
+        expression = executor.getReadPermissionFilter(ClassType.of(Model3.class), new HashSet<>(Arrays.asList("filterDim", "metric"))).orElse(null);
         Assertions.assertNull(expression);
     }
 
