@@ -40,7 +40,7 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
         Queryable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
 
         Map<String, Argument> argumentMap = new HashMap<>();
-        argumentMap.put("rating", Argument.builder().name("rating").value("SELECT * FROM FOO;").build());
+        argumentMap.put("overallRating", Argument.builder().name("overallRating").value("SELECT * FROM FOO;").build());
 
         Query query = Query.builder()
                 .source(source)
@@ -49,7 +49,7 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
                 .dimensionProjection(source.getDimensionProjection("countryName"))
                 .build();
 
-        validateQuery(query, "Invalid operation: Argument rating has an invalid value: SELECT * FROM FOO;");
+        validateQuery(query, "Invalid operation: Argument overallRating has an invalid value: SELECT * FROM FOO;");
     }
 
     @Test
