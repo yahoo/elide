@@ -18,7 +18,9 @@ import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 
 import java.util.LinkedHashSet;
@@ -122,7 +124,7 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
 
             String joinAlias = applyQuotes(joinCtx.getAlias(), currentCtx.getQueryable().getDialect());
             String joinKeyword = currentCtx.getQueryable().getDialect().getJoinKeyword(joinType);
-            String joinSource = constructTableOrSubselect(joinCtx, joinClass);
+            String joinSource = constructTableOrSubselect(joinCtx.getQueryable(), joinClass);
 
             String fullExpression = String.format("%s %s AS %s %s", joinKeyword, joinSource, joinAlias, onClause);
             joinExpressions.add(fullExpression);
@@ -143,18 +145,19 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
 
     /**
      * Get the SELECT SQL or tableName for given entity.
-     * @param context {@link ColumnContext} for resolving table args in query.
+     * @param queryable Queryable.
      * @param cls Entity class.
      * @return resolved tableName or sql in Subselect/FromSubquery.
      */
-    private String constructTableOrSubselect(ColumnContext context, Type<?> cls) {
+    private String constructTableOrSubselect(Queryable queryable, Type<?> cls) {
 
         if (hasSql(cls)) {
             // Resolve any table arguments with in FromSubquery or Subselect
+            TableContext context = TableContext.tableContextBuilder().queryable(queryable).build();
             String selectSql = context.resolve(resolveTableOrSubselect(dictionary, cls));
             return OPEN_BRACKET + selectSql + CLOSE_BRACKET;
         }
 
-        return applyQuotes(resolveTableOrSubselect(dictionary, cls), context.getQueryable().getDialect());
+        return applyQuotes(resolveTableOrSubselect(dictionary, cls), queryable.getDialect());
     }
 }
