@@ -196,15 +196,15 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         ParseTree classPermissions = entityDictionary.getPermissionsForClass(resourceClass, annotationClass);
         Expression entityExpression = normalizedExpressionFromParseTree(classPermissions, leafBuilderFn);
 
-        Expression anyFiledExpression = buildAnyFieldExpression(
+        Expression anyFieldExpression = buildAnyFieldExpression(
                 new PermissionCondition(annotationClass, resourceClass), leafBuilderFn,
                 requestedFields, scope);
 
         if (entityExpression == null) {
-            return anyFiledExpression;
+            return anyFieldExpression;
         }
 
-        return new AndExpression(entityExpression, anyFiledExpression);
+        return new AndExpression(entityExpression, anyFieldExpression);
     }
 
     /**

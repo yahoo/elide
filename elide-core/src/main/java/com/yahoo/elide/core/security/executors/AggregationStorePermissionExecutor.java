@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.core.security.executors;
 
+import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -44,6 +45,10 @@ public class AggregationStorePermissionExecutor extends AbstractPermissionExecut
     public <A extends Annotation> ExpressionResult checkPermission(Class<A> annotationClass,
                                                                    PersistentResource resource,
                                                                    Set<String> requestedFields) {
+        if (!annotationClass.equals(ReadPermission.class)) {
+            return ExpressionResult.FAIL;
+        }
+
         Expression expression = expressionBuilder.buildUserCheckAnyExpression(
                 resource.getResourceType(),
                 annotationClass,
@@ -69,6 +74,9 @@ public class AggregationStorePermissionExecutor extends AbstractPermissionExecut
                                                                                  ChangeSpec changeSpec,
                                                                                  Class<A> annotationClass,
                                                                                  String field) {
+        if (!annotationClass.equals(ReadPermission.class)) {
+            return ExpressionResult.FAIL;
+        }
         return checkUserPermissions(resource.getResourceType(), annotationClass, field);
     }
 
@@ -101,6 +109,10 @@ public class AggregationStorePermissionExecutor extends AbstractPermissionExecut
     public <A extends Annotation> ExpressionResult checkUserPermissions(Type<?> resourceClass,
                                                                         Class<A> annotationClass,
                                                                         Set<String> requestedFields) {
+        if (!annotationClass.equals(ReadPermission.class)) {
+            return ExpressionResult.FAIL;
+        }
+
         Supplier<Expression> expressionSupplier = () ->
                 expressionBuilder.buildUserCheckEntityAndAnyFieldExpression(
                         resourceClass,
@@ -127,6 +139,10 @@ public class AggregationStorePermissionExecutor extends AbstractPermissionExecut
     public <A extends Annotation> ExpressionResult checkUserPermissions(Type<?> resourceClass,
                                                                         Class<A> annotationClass,
                                                                         String field) {
+        if (!annotationClass.equals(ReadPermission.class)) {
+            return ExpressionResult.FAIL;
+        }
+
         Supplier<Expression> expressionSupplier = () ->
                 expressionBuilder.buildUserCheckFieldExpressions(
                         resourceClass,
