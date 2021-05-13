@@ -56,13 +56,6 @@ public class Argument {
         this.type = argument.type();
         this.values = new HashSet<>(Arrays.asList(argument.values()));
         this.tableSourceDefinition = argument.tableSource();
-
-        this.values.forEach(value -> {
-            if (! type.matches(value)) {
-                throw new IllegalArgumentException("Illegal argument value: " + value + " for type: " + type);
-            }
-        });
-
         this.defaultValue = argument.defaultValue();
         this.valueSourceType = ValueSourceType.getValueSourceType(this.values, this.tableSourceDefinition);
     }
