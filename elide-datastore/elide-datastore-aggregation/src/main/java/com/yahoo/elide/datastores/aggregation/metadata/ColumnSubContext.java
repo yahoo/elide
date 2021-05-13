@@ -17,7 +17,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 /**
- * Context for resolving table arguments in provided expression.
+ * Context for resolving args, expr etc under $$column. eg: {{$$column.args.arg1}}, {{$$column.expr}}.
  */
 @Getter
 @ToString

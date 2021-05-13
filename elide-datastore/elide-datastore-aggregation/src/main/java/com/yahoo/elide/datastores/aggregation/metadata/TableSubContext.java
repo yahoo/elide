@@ -25,7 +25,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Context for resolving table arguments in provided expression.
+ * Context for resolving args under $$table. eg: {{$$table.args.arg1}}.
  */
 @Getter
 @ToString
