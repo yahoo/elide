@@ -21,7 +21,8 @@ import javax.persistence.Id;
  */
 @Include
 @Data
-@FromSubquery(sql = "SELECT stats.highScore, stats.player_id, c.name as countryName FROM playerStats AS stats LEFT JOIN countries AS c ON stats.country_id = c.id WHERE stats.overallRating = '$$table.args.rating'")
+//TODO - @FromSubquery(sql = "SELECT stats.highScore, stats.player_id, c.name as countryName FROM playerStats AS stats LEFT JOIN countries AS c ON stats.country_id = c.id WHERE stats.overallRating = '$$table.args.rating'")
+@FromSubquery(sql = "SELECT stats.highScore, stats.player_id, c.name as countryName FROM playerStats AS stats LEFT JOIN countries AS c ON stats.country_id = c.id WHERE stats.overallRating = 'Great'")
 @TableMeta(
         arguments = {
                 @ArgumentDefinition(name = "rating", defaultValue = "Great")
@@ -44,7 +45,8 @@ public class PlayerStatsView {
     /**
      * A degenerate dimension.
      */
-    @DimensionFormula(value = "$$column.args.format({{$countryName}})", arguments = {
+    //TODO - @DimensionFormula(value = "$$column.args.format({{$countryName}})", arguments = {
+    @DimensionFormula(value = "{{$countryName}}", arguments = {
             @ArgumentDefinition(name = "format", defaultValue = "lower", values = {"lower, upper"})
     })
     private String countryName;

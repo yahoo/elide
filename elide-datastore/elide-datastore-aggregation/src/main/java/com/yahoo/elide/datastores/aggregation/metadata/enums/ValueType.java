@@ -25,14 +25,15 @@ import java.util.regex.Pattern;
  */
 public enum ValueType {
 
-    TIME(".*"), //Validated by Serde Deserialization
+    TIME("^[-0-9:TZ]+$"),
     INTEGER("^[+-]?\\d+$"),
     DECIMAL("^[+-]?((\\d+(\\.\\d*)?)|(\\.\\d+))$"),
     MONEY("^[+-]?((\\d+(\\.\\d*)?)|(\\.\\d+))$"),
     TEXT("^[a-zA-Z0-9_]+$"),  //Very restricted to prevent SQL Injection
     COORDINATE("^(-?\\d+(\\.\\d+)?)|(-?\\d+(\\.\\d+)?),\\s*(-?\\d+(\\.\\d+)?)$"),
     BOOLEAN("^(?i)true|false(?-i)|0|1$"),
-    ID("^[a-zA-Z0-9_]+$");
+    ID("^[a-zA-Z0-9_]+$"),
+    UNKNOWN("^$");
 
     private Pattern pattern;
 
@@ -41,10 +42,12 @@ public enum ValueType {
     }
 
     public boolean matches(String input) {
+        if (this.equals(UNKNOWN)) {
+            return false;
+        }
 
-        Object converted;
         try {
-            converted = CoerceUtil.coerce(input, getType(this));
+            CoerceUtil.coerce(input, getType(this));
         } catch (InvalidValueException e) {
             return false;
         }

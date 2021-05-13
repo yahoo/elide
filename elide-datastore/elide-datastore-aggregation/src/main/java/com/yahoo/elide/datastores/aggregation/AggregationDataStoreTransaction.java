@@ -10,7 +10,6 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
-import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
@@ -129,19 +128,14 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
         String bypassCacheStr = scope.getRequestHeaderByName("bypasscache");
         Boolean bypassCache = "true".equals(bypassCacheStr);
 
-        Query query;
-        try {
-            EntityProjectionTranslator translator = new EntityProjectionTranslator(
-                    queryEngine,
-                    table,
-                    entityProjection,
-                    scope,
-                    bypassCache);
+        EntityProjectionTranslator translator = new EntityProjectionTranslator(
+                queryEngine,
+                table,
+                entityProjection,
+                scope,
+                bypassCache);
 
-            query = translator.getQuery();
-        } catch (IllegalArgumentException e) {
-            throw new InvalidValueException(e.getMessage());
-        }
+        Query query = translator.getQuery();
 
         FilterExpression filterTemplate = table.getRequiredFilter(scope.getDictionary());
         if (filterTemplate != null && ! MatchesTemplateVisitor.isValid(filterTemplate, query.getWhereFilter())) {
