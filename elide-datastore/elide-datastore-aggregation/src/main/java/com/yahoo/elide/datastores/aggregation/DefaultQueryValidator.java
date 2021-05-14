@@ -111,6 +111,10 @@ public class DefaultQueryValidator implements QueryValidator {
 
         Column column = table.getColumn(Column.class, projection.getName());
 
+        if (column.getValueType().equals(ValueType.ID)) {
+            throw new InvalidOperationException("Filtering by ID is not supported on " + query.getSource().getName());
+        }
+
         if (column.getValues() == null || column.getValues().isEmpty()) {
             return;
         }
