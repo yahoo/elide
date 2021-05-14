@@ -20,7 +20,6 @@ import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
-import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -37,33 +36,40 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
 
     @Test
     public void testInvalidTableArgument() {
-        Queryable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
+        SQLTable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
 
-        Map<String, Argument> argumentMap = new HashMap<>();
-        argumentMap.put("overallRating", Argument.builder().name("overallRating").value("SELECT * FROM FOO;").build());
+
+        Map<String, Argument> tableArguments = new HashMap<>();
+        tableArguments.put("rating", Argument.builder().name("rating").value("SELECT * FROM FOO;").build());
+
+        Map<String, Argument> columnArguments = new HashMap<>();
+        columnArguments.put("format", Argument.builder().name("format").value("lower").build());
 
         Query query = Query.builder()
                 .source(source)
-                .arguments(argumentMap)
+                .arguments(tableArguments)
                 .metricProjection(source.getMetricProjection("highScore"))
-                .dimensionProjection(source.getDimensionProjection("countryName"))
+                .dimensionProjection(source.getDimensionProjection("countryName", columnArguments))
                 .build();
 
-        validateQuery(query, "Invalid operation: Argument overallRating has an invalid value: SELECT * FROM FOO;");
+        validateQuery(query, "Invalid operation: Argument 'rating' for table 'playerStatsView' has an invalid value: SELECT * FROM FOO;");
     }
 
     @Test
     public void testValidTableArgument() {
-        Queryable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
+        SQLTable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
 
-        Map<String, Argument> argumentMap = new HashMap<>();
-        argumentMap.put("rating", Argument.builder().name("rating").value("Terrible").build());
+        Map<String, Argument> tableArguments = new HashMap<>();
+        tableArguments.put("rating", Argument.builder().name("rating").value("Terrible").build());
+
+        Map<String, Argument> columnArguments = new HashMap<>();
+        columnArguments.put("format", Argument.builder().name("format").value("lower").build());
 
         Query query = Query.builder()
                 .source(source)
-                .arguments(argumentMap)
+                .arguments(tableArguments)
                 .metricProjection(source.getMetricProjection("highScore"))
-                .dimensionProjection(source.getDimensionProjection("countryName"))
+                .dimensionProjection(source.getDimensionProjection("countryName", columnArguments))
                 .build();
 
         validateQueryDoesNotThrow(query);
@@ -82,18 +88,22 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
                 .dimensionProjection(source.getDimensionProjection("countryName", "countryName", argumentMap))
                 .build();
 
-        validateQuery(query, "Invalid operation: Argument format has an invalid value: ;");
+        validateQuery(query, "Invalid operation: Argument 'format' for column 'countryName' must match one of these values: [lower, upper]");
     }
 
     @Test
     public void testValidColumnArgument() {
         SQLTable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
 
+        Map<String, Argument> tableArguments = new HashMap<>();
+        tableArguments.put("rating", Argument.builder().name("rating").value("Terrible").build());
+
         Map<String, Argument> argumentMap = new HashMap<>();
         argumentMap.put("format", Argument.builder().name("format").value("lower").build());
 
         Query query = Query.builder()
                 .source(source)
+                .arguments(tableArguments)
                 .metricProjection(source.getMetricProjection("highScore"))
                 .dimensionProjection(source.getDimensionProjection("countryName", "countryName", argumentMap))
                 .build();
@@ -173,7 +183,27 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
                 .havingFilter(havingFilter)
                 .build();
 
-        validateQuery(query, "Invalid operation: Dimension field countryIsoCode must be grouped before filtering in having clause.");
+        validateQuery(query, "Invalid operation: Post aggregation filtering on 'countryIsoCode' requires the field to be projected in the response");
+    }
+
+    @Test
+    public void testInvalidColumnValueInFilter() throws ParseException {
+        FilterExpression originalFilter = filterParser.parseFilterExpression("countryIsoCode==Invalid,lowScore<45",
+                playerStatsType, false);
+        SplitFilterExpressionVisitor visitor = new SplitFilterExpressionVisitor(playerStatsTable);
+        FilterConstraints constraints = originalFilter.accept(visitor);
+        FilterExpression whereFilter = constraints.getWhereExpression();
+        FilterExpression havingFilter = constraints.getHavingExpression();
+
+        Query query = Query.builder()
+                .source(playerStatsTable)
+                .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
+                .dimensionProjection(playerStatsTable.getDimensionProjection("countryIsoCode"))
+                .whereFilter(whereFilter)
+                .havingFilter(havingFilter)
+                .build();
+
+        validateQuery(query, "Invalid operation: Column 'countryIsoCode' values must match one of these values: [HK, USA]");
     }
 
     @Test
@@ -193,6 +223,74 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
                 .build();
 
         validateQuery(query, "Invalid operation: Relationship traversal not supported for analytic queries.");
+    }
+
+    @Test
+    public void testHavingFilterMismatchedWithProjection() throws ParseException {
+        SQLTable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
+
+        FilterExpression havingFilter = filterParser.parseFilterExpression("countryName[format:upper]==USA",
+                playerStatsViewType, false);
+
+        Query query = Query.builder()
+                .source(source)
+                .dimensionProjection(source.getDimensionProjection("countryName"))
+                .havingFilter(havingFilter)
+                .build();
+
+        validateQuery(query, "Invalid operation: Post aggregation filtering on 'countryName' requires the field to be projected in the response with matching arguments");
+    }
+
+    @Test
+    public void testHavingFilterMatchesProjection() throws ParseException {
+        SQLTable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
+
+        Map<String, Argument> tableArguments = new HashMap<>();
+        tableArguments.put("rating", Argument.builder().name("rating").value("Terrible").build());
+
+        Map<String, Argument> arguments = new HashMap<>();
+        arguments.put("format", Argument.builder().name("format").value("lower").build());
+
+        FilterExpression havingFilter = filterParser.parseFilterExpression("countryName[format:lower]==usa",
+                playerStatsViewType, false);
+
+        Query query = Query.builder()
+                .source(source)
+                .arguments(tableArguments)
+                .dimensionProjection(source.getDimensionProjection("countryName", arguments))
+                .havingFilter(havingFilter)
+                .build();
+
+        validateQueryDoesNotThrow(query);
+    }
+
+    @Test
+    public void testMissingRequiredParameterInProjection() throws ParseException {
+        SQLTable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
+
+        Query query = Query.builder()
+                .source(source)
+                .metricProjection(source.getMetricProjection("highScore"))
+                .dimensionProjection(source.getDimensionProjection("countryName"))
+                .build();
+
+        validateQuery(query, "Invalid operation: Argument 'format' for column 'countryName' is required");
+    }
+
+    @Test
+    public void testMissingRequiredParameterInFilter() throws ParseException {
+        SQLTable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
+
+        FilterExpression havingFilter = filterParser.parseFilterExpression("countryName==usa",
+                playerStatsViewType, false);
+
+        Query query = Query.builder()
+                .source(source)
+                .dimensionProjection(source.getDimensionProjection("countryName"))
+                .havingFilter(havingFilter)
+                .build();
+
+        validateQuery(query, "Invalid operation: Argument 'format' for column 'countryName' is required");
     }
 
     private void validateQuery(Query query, String message) {

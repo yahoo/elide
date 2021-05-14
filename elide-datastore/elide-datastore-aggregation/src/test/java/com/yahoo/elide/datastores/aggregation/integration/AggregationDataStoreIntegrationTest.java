@@ -551,7 +551,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         ).toQuery();
 
         String errorMessage = "Exception while fetching data (/playerStats) : Invalid operation: "
-                + "Dimension field countryIsoCode must be grouped before filtering in having clause.";
+                + "Post aggregation filtering on &#39;countryIsoCode&#39; requires the field to be projected in the response";
 
         runQueryWithExpectedError(graphQLRequest, errorMessage);
     }
@@ -1191,7 +1191,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 )
         ).toQuery();
 
-        String expected = "Exception while fetching data (/SalesNamespace_orderDetails) : Invalid operation: Time Dimension field orderTime must use the same grain argument in the projection and the having clause.";
+        String expected = "Exception while fetching data (/SalesNamespace_orderDetails) : Invalid operation: Post aggregation filtering on &#39;orderTime&#39; requires the field to be projected in the response with matching arguments";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
@@ -1216,7 +1216,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 )
         ).toQuery();
 
-        String expected = "Exception while fetching data (/SalesNamespace_orderDetails) : Invalid operation: Time Dimension field orderTime must use the same grain argument in the projection and the having clause.";
+        String expected = "Exception while fetching data (/SalesNamespace_orderDetails) : Invalid operation: Post aggregation filtering on &#39;orderTime&#39; requires the field to be projected in the response with matching arguments";
+
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }

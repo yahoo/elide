@@ -27,7 +27,6 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -100,8 +99,8 @@ public abstract class Column implements Versioned {
                     : name;
             this.description = meta.description();
             this.category = meta.category();
-            this.values = new HashSet<>(Arrays.asList(meta.values()));
-            this.tags = new HashSet<>(Arrays.asList(meta.tags()));
+            this.values = new LinkedHashSet<>(Arrays.asList(meta.values()));
+            this.tags = new LinkedHashSet<>(Arrays.asList(meta.tags()));
             this.tableSourceDefinition = meta.tableSource();
             this.valueSourceType = ValueSourceType.getValueSourceType(this.values, this.tableSourceDefinition);
             this.cardinality = meta.size();
@@ -110,7 +109,7 @@ public abstract class Column implements Versioned {
             this.description = null;
             this.category = null;
             this.values = null;
-            this.tags = new HashSet<>();
+            this.tags = new LinkedHashSet<>();
             this.tableSourceDefinition = null;
             this.valueSourceType = ValueSourceType.NONE;
             this.cardinality = CardinalitySize.UNKNOWN;
@@ -135,7 +134,7 @@ public abstract class Column implements Versioned {
         } else {
             columnType = FIELD;
             expression = "{{$" + dictionary.getAnnotatedColumnName(tableClass, fieldName) + "}}";
-            this.arguments = new HashSet<>();
+            this.arguments = new LinkedHashSet<>();
         }
 
         this.valueType = getValueType(tableClass, fieldName, dictionary);

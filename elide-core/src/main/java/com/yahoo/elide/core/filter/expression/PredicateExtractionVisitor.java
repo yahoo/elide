@@ -9,7 +9,7 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import lombok.Getter;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 /**
  * A Visitor which extracts the set of predicates from a filter FilterExpression.
@@ -22,7 +22,7 @@ public class PredicateExtractionVisitor implements FilterExpressionVisitor<Colle
      * Defaults to extracting a set of predicates.
      */
     public PredicateExtractionVisitor() {
-        filterPredicates = new HashSet<>();
+        filterPredicates = new LinkedHashSet<>();
     }
 
     /**
