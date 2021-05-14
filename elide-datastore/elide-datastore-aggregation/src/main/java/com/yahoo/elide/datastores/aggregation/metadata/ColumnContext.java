@@ -98,14 +98,12 @@ public class ColumnContext extends HashMap<String, Object> {
             return value;
         }
 
-        ColumnProjection column = this.getQueryable().getColumnProjection(keyStr);
+        ColumnProjection column = this.getQueryable().getSource().getColumnProjection(keyStr);
         if (column != null) {
 
             ColumnProjection newColumn = column.withArguments(
-                            getColumnArgMap(this.getQueryable(),
-                                            column.getName(),
-                                            this.getColumn().getArguments(),
-                                            emptyMap()));
+                            mergedArgumentMap(column.getArguments(),
+                                              this.getColumn().getArguments()));
 
             return getNewContext(this, newColumn).resolve(newColumn.getExpression());
         }
@@ -196,28 +194,18 @@ public class ColumnContext extends HashMap<String, Object> {
             return resolvePhysicalReference(invokedCtx, invokedColumnName);
         }
 
-        ColumnProjection column = invokedCtx.getQueryable().getColumnProjection(invokedColumnName);
+        ColumnProjection column = invokedCtx.getQueryable().getSource().getColumnProjection(invokedColumnName);
         if (column != null) {
 
             ColumnProjection newColumn = column.withArguments(
-                            getColumnArgMap(invokedCtx.getQueryable(),
-                                            column.getName(),
-                                            invokedCtx.getColumn().getArguments(),
-                                            pinnedArgs));
+                            mergedArgumentMap(column.getArguments(),
+                                              invokedCtx.getColumn().getArguments(),
+                                              pinnedArgs));
 
             return getNewContext(invokedCtx, newColumn).resolve(newColumn.getExpression());
         }
 
         throw new HandlebarsException(new Throwable("Couldn't find: " + invokedColumnName));
-    }
-
-    public static Map<String, Argument> getColumnArgMap(Queryable queryable,
-                                                        String columnName,
-                                                        Map<String, Argument> callingColumnArgs,
-                                                        Map<String, Argument> fixedArgs) {
-        return mergedArgumentMap(queryable.getSource().getColumnProjection(columnName).getArguments(),
-                                 callingColumnArgs,
-                                 fixedArgs);
     }
 
     public static Map<String, Argument> mergedArgumentMap(Map<String, Argument> referencedColumnArgs,
