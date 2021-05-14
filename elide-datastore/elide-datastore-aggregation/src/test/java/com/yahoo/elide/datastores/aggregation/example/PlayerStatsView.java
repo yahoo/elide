@@ -47,7 +47,7 @@ public class PlayerStatsView {
      */
     //TODO - @DimensionFormula(value = "$$column.args.format({{$countryName}})", arguments = {
     @DimensionFormula(value = "{{$countryName}}", arguments = {
-            @ArgumentDefinition(name = "format", values = {"lower, upper"})
+            @ArgumentDefinition(name = "format", values = {"lower", "upper"})
     })
     private String countryName;
 

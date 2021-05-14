@@ -324,7 +324,9 @@ public interface Queryable {
 
             ColumnProjection projection = query.getSource().getColumnProjection(predicate.getField(), arguments);
 
-            filterProjections.add(projection);
+            if (projection != null) {
+                filterProjections.add(projection);
+            }
         }));
 
         return filterProjections;

@@ -88,7 +88,7 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
                 .dimensionProjection(source.getDimensionProjection("countryName", "countryName", argumentMap))
                 .build();
 
-        validateQuery(query, "Invalid operation: Argument 'format' for column 'countryName' has an invalid value: ;");
+        validateQuery(query, "Invalid operation: Argument 'format' for column 'countryName' must match one of these values: [lower, upper]");
     }
 
     @Test

@@ -18,9 +18,9 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
-import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,7 +40,6 @@ public class DefaultQueryValidator implements QueryValidator {
 
     @Override
     public void validateHavingClause(Query query) {
-
         FilterExpression havingClause = query.getHavingFilter();
 
         if (havingClause == null) {
@@ -49,7 +48,6 @@ public class DefaultQueryValidator implements QueryValidator {
 
         havingClause.accept(new PredicateExtractionVisitor()).forEach(predicate -> {
             Path path = predicate.getPath();
-            Path.PathElement last = path.lastElement().get();
 
             if (path.getPathElements().size() > 1) {
                 throw new InvalidOperationException("Relationship traversal not supported for analytic queries.");
@@ -72,7 +70,7 @@ public class DefaultQueryValidator implements QueryValidator {
                                 projection.getAlias()));
                     }
                 }
-                validateColumnArguments(query, projection);
+                validateColumn(query, projection);
             });
         });
     }
@@ -95,7 +93,7 @@ public class DefaultQueryValidator implements QueryValidator {
         });
 
         extractFilterProjections(query, whereClause).stream().forEach(projection -> {
-            validateColumnArguments(query, projection);
+            validateColumn(query, projection);
         });
     }
 
@@ -111,7 +109,7 @@ public class DefaultQueryValidator implements QueryValidator {
         Set<String> allFields = query.getColumnProjections()
                 .stream()
                 .map(ColumnProjection::getAlias)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         sortClauses.keySet().forEach((path) -> validateSortingPath(path, allFields));
     }
@@ -154,7 +152,7 @@ public class DefaultQueryValidator implements QueryValidator {
             throw new InvalidOperationException("Cannot query a table only by ID");
         }
 
-        query.getColumnProjections().forEach(column -> validateColumnArguments(query, column));
+        query.getColumnProjections().forEach(column -> validateColumn(query, column));
     }
 
     @Override
@@ -167,6 +165,10 @@ public class DefaultQueryValidator implements QueryValidator {
             validateArgument(Optional.ofNullable(clientArgument), tableArgument,
                     "table '" + query.getSource().getName() + "'");
         });
+    }
+
+    protected void validateColumn(Query query, ColumnProjection projection) {
+        validateColumnArguments(query, projection);
     }
 
     protected void validateColumnArguments(Query query, ColumnProjection projection) {
@@ -195,6 +197,16 @@ public class DefaultQueryValidator implements QueryValidator {
                 ));
             }
             return;
+        }
+
+        if (argumentDefinition.getValues() != null && ! argumentDefinition.getValues().isEmpty()) {
+            if (! argumentDefinition.getValues().contains(clientArgument.get().getValue().toString())) {
+                throw new InvalidOperationException(String.format(
+                        "Argument '%s' for %s must match one of these values: %s",
+                        argumentDefinition.getName(),
+                        context,
+                        argumentDefinition.getValues()));
+            }
         }
 
         Object clientArgumentValue = clientArgument.get().getValue();
