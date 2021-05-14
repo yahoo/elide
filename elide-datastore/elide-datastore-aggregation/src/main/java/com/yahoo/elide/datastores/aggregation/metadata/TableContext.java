@@ -9,6 +9,7 @@ package com.yahoo.elide.datastores.aggregation.metadata;
 import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.TBL_PREFIX;
 
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+
 import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Formatter;
 import com.github.jknack.handlebars.Handlebars;

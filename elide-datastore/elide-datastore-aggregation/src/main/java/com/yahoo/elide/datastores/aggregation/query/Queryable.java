@@ -341,6 +341,11 @@ public interface Queryable {
         return Collections.emptyMap();
     }
 
+    /**
+     * Clones the queryable with provided arguments.
+     * @param arguments A map of String and {@link Argument}
+     * @return The cloned queryable.
+     */
     default Queryable withArguments(Map<String, Argument> arguments) {
         return this;
     }

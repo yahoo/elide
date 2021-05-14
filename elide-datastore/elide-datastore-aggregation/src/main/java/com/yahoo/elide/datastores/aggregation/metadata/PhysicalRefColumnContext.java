@@ -51,7 +51,6 @@ public class PhysicalRefColumnContext extends ColumnContext {
         String joinPath = isBlank(this.alias) ? key : this.alias + PERIOD + key;
 
         PhysicalRefColumnContext joinCtx = PhysicalRefColumnContext.physicalRefContextBuilder()
-                        .queryable(joinQueryable)
                         .queryable(joinQueryable.withArguments(
                                         mergedArgumentMap(joinQueryable.getAvailableArguments(),
                                                           this.queryable.getAvailableArguments())))
