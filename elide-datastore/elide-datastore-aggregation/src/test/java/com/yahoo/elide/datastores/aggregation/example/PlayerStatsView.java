@@ -24,9 +24,9 @@ import javax.persistence.Id;
 @Data
 @FromSubquery(sql = "SELECT stats.highScore, stats.player_id, c.name as countryName FROM playerStats AS stats "
                 + "LEFT JOIN countries AS c ON stats.country_id = c.id "
-                + "WHERE stats.overallRating = '{{$$table.args.overallRating}}' AND stats.highScore >= {{$$table.args.minScore}}")
+                + "WHERE stats.overallRating = '{{$$table.args.rating}}' AND stats.highScore >= {{$$table.args.minScore}}")
 @TableMeta(arguments = {
-                @ArgumentDefinition(name = "overallRating", type = ValueType.TEXT),
+                @ArgumentDefinition(name = "rating", type = ValueType.TEXT),
                 @ArgumentDefinition(name = "minScore", type = ValueType.INTEGER, defaultValue = "0")})
 public class PlayerStatsView {
 

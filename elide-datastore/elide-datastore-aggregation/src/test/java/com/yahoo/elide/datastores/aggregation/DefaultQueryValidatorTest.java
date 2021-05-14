@@ -95,11 +95,15 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
     public void testValidColumnArgument() {
         SQLTable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
 
+        Map<String, Argument> tableArguments = new HashMap<>();
+        tableArguments.put("rating", Argument.builder().name("rating").value("Terrible").build());
+
         Map<String, Argument> argumentMap = new HashMap<>();
         argumentMap.put("format", Argument.builder().name("format").value("lower").build());
 
         Query query = Query.builder()
                 .source(source)
+                .arguments(tableArguments)
                 .metricProjection(source.getMetricProjection("highScore"))
                 .dimensionProjection(source.getDimensionProjection("countryName", "countryName", argumentMap))
                 .build();
@@ -221,6 +225,9 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
     public void testHavingFilterMatchesProjection() throws ParseException {
         SQLTable source = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
 
+        Map<String, Argument> tableArguments = new HashMap<>();
+        tableArguments.put("rating", Argument.builder().name("rating").value("Terrible").build());
+
         Map<String, Argument> arguments = new HashMap<>();
         arguments.put("format", Argument.builder().name("format").value("lower").build());
 
@@ -229,6 +236,7 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
 
         Query query = Query.builder()
                 .source(source)
+                .arguments(tableArguments)
                 .dimensionProjection(source.getDimensionProjection("countryName", arguments))
                 .havingFilter(havingFilter)
                 .build();

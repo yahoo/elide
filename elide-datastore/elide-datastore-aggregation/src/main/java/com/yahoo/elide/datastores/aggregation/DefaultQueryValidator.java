@@ -42,7 +42,6 @@ public class DefaultQueryValidator implements QueryValidator {
     public void validateHavingClause(Query query) {
 
         FilterExpression havingClause = query.getHavingFilter();
-        Queryable source = query.getSource();
 
         if (havingClause == null) {
             return;
@@ -51,7 +50,6 @@ public class DefaultQueryValidator implements QueryValidator {
         havingClause.accept(new PredicateExtractionVisitor()).forEach(predicate -> {
             Path path = predicate.getPath();
             Path.PathElement last = path.lastElement().get();
-            String fieldName = last.getFieldName();
 
             if (path.getPathElements().size() > 1) {
                 throw new InvalidOperationException("Relationship traversal not supported for analytic queries.");
