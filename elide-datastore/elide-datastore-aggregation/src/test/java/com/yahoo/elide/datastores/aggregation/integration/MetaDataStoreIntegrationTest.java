@@ -143,7 +143,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/table/book/dimensions")
                 .then()
-                .body("data.id", containsInAnyOrder("book.language", "book.id",
+                .body("data.id", containsInAnyOrder("book.language", "book.id", "book.awards",
                         "book.chapterCount", "book.publishDate", "book.editorName", "book.title", "book.genre"))
                 .statusCode(HttpStatus.SC_OK);
     }
@@ -154,7 +154,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/table/embedded/dimensions")
                 .then()
-                .body("data.id", containsInAnyOrder("embedded.id"))
+                .body("data.id", containsInAnyOrder("embedded.id", "embedded.segmentIds"))
                 .statusCode(HttpStatus.SC_OK);
     }
 
@@ -222,7 +222,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.isFact", equalTo(true)) //TableMeta Present, isFact default true
                 .body("data.attributes.cardinality", equalTo("UNKNOWN"))
-                .body("data.relationships.columns.data.id", containsInAnyOrder("country.name",
+                .body("data.relationships.columns.data.id", containsInAnyOrder("country.id", "country.name",
                         "country.inUsa", "country.unSeats", "country.nickName", "country.isoCode"));
         given()
                 .accept("application/vnd.api+json")
@@ -242,6 +242,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body(
                         "data.relationships.dimensions.data.id",
                         containsInAnyOrder(
+                                "playerStats.id",
                                 "playerStats.playerName",
                                 "playerStats.playerRank",
                                 "playerStats.playerLevel",
@@ -292,7 +293,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/table/playerStats/dimensions/playerStats.countryIsoCode")
                 .then()
-                .body("data.attributes.values", containsInAnyOrder("US", "HK"))
+                .body("data.attributes.values", containsInAnyOrder("USA", "HK"))
                 .body("data.attributes.valueSourceType", equalTo("ENUM"))
                 .body("data.attributes.tableSource", nullValue())
                 .body("data.attributes.columnType", equalTo("FORMULA"))
@@ -306,7 +307,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/table/playerStats/dimensions/playerStats.overallRating")
                 .then()
-                .body("data.attributes.values", containsInAnyOrder("GOOD", "OK", "TERRIBLE"))
+                .body("data.attributes.values", containsInAnyOrder("Good", "OK", "Terrible"))
                 .body("data.attributes.valueSourceType", equalTo("ENUM"))
                 .body("data.attributes.tableSource", nullValue())
                 .body("data.attributes.columnType", equalTo("FIELD"))
@@ -361,9 +362,9 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("included.attributes.grain", containsInAnyOrder("DAY", "MONTH", "QUARTER"))
                 .body("included.attributes.expression",
                         containsInAnyOrder(
-                                "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')",
-                                "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')",
-                                "PARSEDATETIME(CONCAT(FORMATDATETIME({{}}, 'yyyy-'), 3 * QUARTER({{}}) - 2), 'yyyy-MM')"
+                                "PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')",
+                                "PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM'), 'yyyy-MM')",
+                                "PARSEDATETIME(CONCAT(FORMATDATETIME({{$$column.expr}}, 'yyyy-'), 3 * QUARTER({{$$column.expr}}) - 2), 'yyyy-MM')"
                         ));
     }
 

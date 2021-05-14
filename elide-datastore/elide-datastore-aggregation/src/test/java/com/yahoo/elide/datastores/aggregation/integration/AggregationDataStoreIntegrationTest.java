@@ -9,6 +9,7 @@ import static com.yahoo.elide.test.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.arguments;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.document;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.field;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.mutation;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
 import static io.restassured.RestAssured.given;
@@ -29,6 +30,7 @@ import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.checks.OperatorCheck;
+import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
@@ -59,6 +61,7 @@ import org.mockito.quality.Strictness;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -551,7 +554,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         ).toQuery();
 
         String errorMessage = "Exception while fetching data (/playerStats) : Invalid operation: "
-                + "Dimension field countryIsoCode must be grouped before filtering in having clause.";
+                + "Post aggregation filtering on &#39;countryIsoCode&#39; requires the field to be projected in the response";
 
         runQueryWithExpectedError(graphQLRequest, errorMessage);
     }
@@ -1191,7 +1194,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 )
         ).toQuery();
 
-        String expected = "Exception while fetching data (/SalesNamespace_orderDetails) : Invalid operation: Time Dimension field orderTime must use the same grain argument in the projection and the having clause.";
+        String expected = "Exception while fetching data (/SalesNamespace_orderDetails) : Invalid operation: Post aggregation filtering on &#39;orderTime&#39; requires the field to be projected in the response with matching arguments";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
@@ -1216,7 +1219,8 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 )
         ).toQuery();
 
-        String expected = "Exception while fetching data (/SalesNamespace_orderDetails) : Invalid operation: Time Dimension field orderTime must use the same grain argument in the projection and the having clause.";
+        String expected = "Exception while fetching data (/SalesNamespace_orderDetails) : Invalid operation: Post aggregation filtering on &#39;orderTime&#39; requires the field to be projected in the response with matching arguments";
+
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
@@ -1524,5 +1528,111 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
             .statusCode(HttpStatus.SC_OK)
             // Verify that the orderTotal attribute has an argument "precision".
             .body("data.__type.fields.find { it.name == 'orderTotal' }.args.name[0]", equalTo("precision"));
+    }
+
+    @Test
+    public void testDelete() throws IOException {
+        String graphQLRequest = mutation(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("op", "DELETE"),
+                                        argument("ids", Arrays.asList("0"))
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("overallRating")
+                                )
+                        )
+                )
+        ).toGraphQLSpec();
+
+        String expected = "Exception while fetching data (/playerStats) : Invalid operation: Filtering by ID is not supported on playerStats";
+
+        runQueryWithExpectedError(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testUpdate() throws IOException {
+
+        PlayerStats playerStats = new PlayerStats();
+        playerStats.setId("1");
+        playerStats.setHighScore(100);
+
+        String graphQLRequest = mutation(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("op", "UPDATE"),
+                                        argument("data", playerStats)
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("overallRating")
+                                )
+                        )
+                )
+        ).toGraphQLSpec();
+
+        String expected = "Exception while fetching data (/playerStats) : Invalid operation: Filtering by ID is not supported on playerStats";
+
+        runQueryWithExpectedError(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testUpsertWithStaticModel() throws IOException {
+
+        PlayerStats playerStats = new PlayerStats();
+        playerStats.setId("1");
+        playerStats.setHighScore(100);
+
+        String graphQLRequest = mutation(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("op", "UPSERT"),
+                                        argument("data", playerStats)
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("overallRating")
+                                )
+                        )
+                )
+        ).toGraphQLSpec();
+
+        String expected = "Exception while fetching data (/playerStats) : Invalid operation: Filtering by ID is not supported on playerStats";
+
+        runQueryWithExpectedError(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testUpsertWithDynamicModel() throws IOException {
+
+        Map<String, Object> order = new HashMap<>();
+        order.put("orderId", "1");
+        order.put("courierName", "foo");
+
+        String graphQLRequest = mutation(
+                selection(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                arguments(
+                                        argument("op", "UPSERT"),
+                                        argument("data", order)
+                                ),
+                                selections(
+                                        field("orderId")
+                                )
+                        )
+                )
+        ).toGraphQLSpec();
+
+        String expected = "Invalid operation: SalesNamespace_orderDetails is read only.";
+
+        runQueryWithExpectedError(graphQLRequest, expected);
     }
 }

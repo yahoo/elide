@@ -192,7 +192,7 @@ public abstract class Table implements Versioned {
         Set<Column> columns =  dictionary.getAllFields(cls).stream()
                 .filter(field -> {
                     ValueType valueType = getValueType(cls, field, dictionary);
-                    return valueType != null && valueType != ValueType.RELATIONSHIP;
+                    return valueType != ValueType.UNKNOWN;
                 })
                 .map(field -> {
                     if (isMetricField(dictionary, cls, field)) {
@@ -205,11 +205,10 @@ public abstract class Table implements Versioned {
                 })
                 .collect(Collectors.toSet());
 
-        // add id field if exists and this is not a fact model
-        if (!this.isFact() && dictionary.getIdFieldName(cls) != null) {
+        // add id field if exists
+        if (dictionary.getIdFieldName(cls) != null) {
             columns.add(constructDimension(dictionary.getIdFieldName(cls), dictionary));
         }
-
         return columns;
     }
 
@@ -268,7 +267,7 @@ public abstract class Table implements Versioned {
      * @param <T> metadata class
      * @return column as requested type if found
      */
-    protected final <T extends Column> T getColumn(Class<T> cls, String fieldName) {
+    public final <T extends Column> T getColumn(Class<T> cls, String fieldName) {
         Column column = columnMap.get(fieldName);
         return column != null && cls.isAssignableFrom(column.getClass()) ? cls.cast(column) : null;
     }
@@ -316,10 +315,6 @@ public abstract class Table implements Versioned {
             }
         }
         return null;
-    }
-
-    public ColumnProjection toProjection(Column column) {
-        return toQueryable().getColumnProjection(column.getName());
     }
 
     public abstract Queryable toQueryable();

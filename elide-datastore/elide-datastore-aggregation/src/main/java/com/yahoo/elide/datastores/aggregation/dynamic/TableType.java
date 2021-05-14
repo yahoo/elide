@@ -54,6 +54,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 /**
@@ -674,7 +676,7 @@ public class TableType implements Type<DynamicModelInstance> {
                             public String expression() {
                                 String sql = grain.getSql();
                                 if (StringUtils.isEmpty(sql)) {
-                                    return "{{}}";
+                                    return "{{$$column.expr}}";
                                 }
                                 return grain.getSql();
                             }
@@ -717,6 +719,24 @@ public class TableType implements Type<DynamicModelInstance> {
             @Override
             public Class<? extends Annotation> annotationType() {
                 return Id.class;
+            }
+        });
+
+        annotations.put(GeneratedValue.class, new GeneratedValue() {
+
+            @Override
+            public GenerationType strategy() {
+                return GenerationType.AUTO;
+            }
+
+            @Override
+            public String generator() {
+                return "";
+            }
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return GeneratedValue.class;
             }
         });
 

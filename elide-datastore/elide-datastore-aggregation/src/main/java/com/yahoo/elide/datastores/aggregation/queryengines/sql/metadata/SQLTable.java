@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import static java.util.Collections.emptyMap;
 import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.Argument;
@@ -25,16 +25,15 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -81,31 +80,21 @@ public class SQLTable extends Table implements Queryable {
     }
 
     @Override
-    public ColumnProjection toProjection(Column column) {
-        ColumnProjection projection;
-        projection = getTimeDimensionProjection(column.getName());
-        if (projection != null) {
-            return projection;
-        }
-        projection = getMetricProjection(column.getName());
-        if (projection != null) {
-            return projection;
-        }
-        return getColumnProjection(column.getName());
-    }
-
-    @Override
     public Queryable toQueryable() {
         return this;
     }
 
     @Override
     public MetricProjection getMetricProjection(String fieldName) {
-        return getMetricProjection(fieldName, null);
+        return getMetricProjection(fieldName, emptyMap());
     }
 
     public MetricProjection getMetricProjection(String fieldName, String alias) {
-        return getMetricProjection(fieldName, alias, new HashMap<>());
+        return getMetricProjection(fieldName, alias, emptyMap());
+    }
+
+    public MetricProjection getMetricProjection(String fieldName, Map<String, Argument> arguments) {
+        return getMetricProjection(fieldName, fieldName, arguments);
     }
 
     public MetricProjection getMetricProjection(String fieldName, String alias, Map<String, Argument> arguments) {
@@ -114,28 +103,31 @@ public class SQLTable extends Table implements Queryable {
             return null;
         }
 
-        return metric.getMetricProjectionMaker().make(metric,
-                isBlank(alias) ? metric.getName() : alias,
-                arguments);
+        return getMetricProjection(metric, alias, arguments);
+    }
+
+    public MetricProjection getMetricProjection(Metric metric, String alias, Map<String, Argument> arguments) {
+        return metric.getMetricProjectionMaker().make(metric, alias, arguments);
     }
 
     @Override
     public List<MetricProjection> getMetricProjections() {
         return super.getMetrics().stream()
-                .map((metric) ->
-                        new SQLMetricProjection(metric,
-                                metric.getName(),
-                                new HashMap<>()))
+                .map(metric -> getMetricProjection(metric, metric.getName(), prepareArgMap(metric.getArguments())))
                 .collect(Collectors.toList());
     }
 
     @Override
     public DimensionProjection getDimensionProjection(String fieldName) {
-        return getDimensionProjection(fieldName, null);
+        return getDimensionProjection(fieldName, emptyMap());
     }
 
     public DimensionProjection getDimensionProjection(String fieldName, String alias) {
-        return getDimensionProjection(fieldName, alias, new HashMap<>());
+        return getDimensionProjection(fieldName, alias, emptyMap());
+    }
+
+    public DimensionProjection getDimensionProjection(String fieldName, Map<String, Argument> arguments) {
+        return getDimensionProjection(fieldName, fieldName, arguments);
     }
 
     public DimensionProjection getDimensionProjection(String fieldName, String alias, Map<String, Argument> arguments) {
@@ -143,18 +135,20 @@ public class SQLTable extends Table implements Queryable {
         if (dimension == null) {
             return null;
         }
-        return new SQLDimensionProjection(dimension,
-                isBlank(alias) ? dimension.getName() : alias,
-                arguments, true);
+        return getDimensionProjection(dimension, alias, arguments);
+    }
+
+    public DimensionProjection getDimensionProjection(Dimension dimension, String alias,
+                    Map<String, Argument> arguments) {
+        return new SQLDimensionProjection(dimension, alias, arguments, true);
     }
 
     @Override
     public List<DimensionProjection> getDimensionProjections() {
         return super.getDimensions()
                 .stream()
-                .map((dimension) -> new SQLDimensionProjection(dimension,
-                        dimension.getName(),
-                        new HashMap<>(), true))
+                .map(dimension -> getDimensionProjection(dimension, dimension.getName(),
+                                prepareArgMap(dimension.getArguments())))
                 .collect(Collectors.toList());
     }
 
@@ -164,13 +158,13 @@ public class SQLTable extends Table implements Queryable {
     }
 
     public TimeDimensionProjection getTimeDimensionProjection(String fieldName, Map<String, Argument> arguments) {
-        return getTimeDimensionProjection(fieldName, null, arguments);
+        return getTimeDimensionProjection(fieldName, fieldName, arguments);
     }
 
     public TimeDimensionProjection getTimeDimensionProjection(String fieldName, Set<Argument> arguments) {
         Map<String, Argument> argumentMap =
                 arguments.stream().collect(Collectors.toMap(Argument::getName, argument -> argument));
-        return getTimeDimensionProjection(fieldName, null, argumentMap);
+        return getTimeDimensionProjection(fieldName, fieldName, argumentMap);
     }
 
     public TimeDimensionProjection getTimeDimensionProjection(String fieldName, String alias,
@@ -179,20 +173,20 @@ public class SQLTable extends Table implements Queryable {
         if (dimension == null) {
             return null;
         }
-        return new SQLTimeDimensionProjection(dimension,
-                dimension.getTimezone(),
-                isBlank(alias) ? dimension.getName() : alias,
-                arguments, true);
+        return getTimeDimensionProjection(dimension, alias, arguments);
+    }
+
+    public TimeDimensionProjection getTimeDimensionProjection(TimeDimension dimension, String alias,
+                    Map<String, Argument> arguments) {
+        return new SQLTimeDimensionProjection(dimension, dimension.getTimezone(), alias, arguments, true);
     }
 
     @Override
     public List<TimeDimensionProjection> getTimeDimensionProjections() {
         return super.getTimeDimensions()
                 .stream()
-                .map((dimension) -> new SQLTimeDimensionProjection(dimension,
-                        dimension.getTimezone(),
-                        dimension.getName(),
-                        new HashMap<>(), true))
+                .map(dimension -> getTimeDimensionProjection(dimension, dimension.getName(),
+                                prepareArgMap(dimension.getArguments())))
                 .collect(Collectors.toList());
     }
 
@@ -206,7 +200,13 @@ public class SQLTable extends Table implements Queryable {
 
     @Override
     public ColumnProjection getColumnProjection(String name) {
-        return getColumnProjection(name, Collections.emptyMap());
+        Column column = super.getColumn(Column.class, name);
+
+        if (column == null) {
+            return null;
+        }
+
+        return getColumnProjection(column, prepareArgMap(column.getArguments()));
     }
 
     @Override
@@ -217,15 +217,19 @@ public class SQLTable extends Table implements Queryable {
             return null;
         }
 
+        return getColumnProjection(column, arguments);
+    }
+
+    private ColumnProjection getColumnProjection(Column column, Map<String, Argument> arguments) {
         if (column instanceof TimeDimension) {
-            return getTimeDimensionProjection(name, arguments);
+            return getTimeDimensionProjection((TimeDimension) column, column.getName(), arguments);
         }
 
         if (column instanceof Metric) {
-            return getMetricProjection(name);
+            return getMetricProjection((Metric) column, column.getName(), arguments);
         }
 
-        return getDimensionProjection(name);
+        return getDimensionProjection((Dimension) column, column.getName(), arguments);
     }
 
     /**
@@ -268,5 +272,20 @@ public class SQLTable extends Table implements Queryable {
     @Override
     public Queryable getSource() {
         return this;
+    }
+
+    /**
+     * Create a map of String and {@link Argument} using {@link Column}'s arguments.
+     * @param arguments Set of available {@link Column} arguments.
+     * @return A map of String and {@link Argument}
+     */
+    private static Map<String, Argument> prepareArgMap(
+                    Set<com.yahoo.elide.datastores.aggregation.metadata.models.Argument> arguments) {
+        return arguments.stream()
+                        .map(arg -> Argument.builder()
+                                        .name(arg.getName())
+                                        .value(arg.getDefaultValue())
+                                        .build())
+                        .collect(Collectors.toMap(Argument::getName, Function.identity()));
     }
 }
