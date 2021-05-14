@@ -274,6 +274,11 @@ public class SQLTable extends Table implements Queryable {
         return this;
     }
 
+    @Override
+    public Map<String, Argument> getAvailableArguments() {
+        return prepareArgMap(getArguments());
+    }
+
     /**
      * Create a map of String and {@link Argument} using {@link Column}'s arguments.
      * @param arguments Set of available {@link Column} arguments.
