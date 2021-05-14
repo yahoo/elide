@@ -19,7 +19,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -1549,7 +1548,35 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 )
         ).toGraphQLSpec();
 
-        String expected = "";
+        String expected = "Exception while fetching data (/playerStats) : Invalid operation: Filtering by ID is not supported on playerStats";
+
+        runQueryWithExpectedError(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testUpdate() throws IOException {
+
+        PlayerStats playerStats = new PlayerStats();
+        playerStats.setId("1");
+        playerStats.setHighScore(100);
+
+        String graphQLRequest = mutation(
+                selection(
+                        field(
+                                "playerStats",
+                                arguments(
+                                        argument("op", "UPDATE"),
+                                        argument("data", playerStats)
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("overallRating")
+                                )
+                        )
+                )
+        ).toGraphQLSpec();
+
+        String expected = "Exception while fetching data (/playerStats) : Invalid operation: Filtering by ID is not supported on playerStats";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
@@ -1577,7 +1604,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 )
         ).toGraphQLSpec();
 
-        String expected = "";
+        String expected = "Exception while fetching data (/playerStats) : Invalid operation: Filtering by ID is not supported on playerStats";
 
         runQueryWithExpectedError(graphQLRequest, expected);
     }
