@@ -11,6 +11,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.Type;
@@ -53,6 +54,8 @@ public class DefaultQueryValidator implements QueryValidator {
                 throw new InvalidOperationException("Relationship traversal not supported for analytic queries.");
             }
 
+            validatePredicate(query, predicate);
+
             extractFilterProjections(query, havingClause).stream().forEach(projection -> {
                 if (query.getColumnProjection(projection.getAlias(), projection.getArguments()) == null) {
 
@@ -70,7 +73,6 @@ public class DefaultQueryValidator implements QueryValidator {
                                 projection.getAlias()));
                     }
                 }
-                validateColumn(query, projection);
             });
         });
     }
@@ -90,10 +92,36 @@ public class DefaultQueryValidator implements QueryValidator {
             if (path.getPathElements().size() > 1) {
                 throw new InvalidOperationException("Relationship traversal not supported for analytic queries.");
             }
-        });
 
-        extractFilterProjections(query, whereClause).stream().forEach(projection -> {
-            validateColumn(query, projection);
+            validatePredicate(query, predicate);
+        });
+    }
+
+    protected void validatePredicate(Query query, FilterPredicate predicate) {
+        SQLTable table = (SQLTable) query.getSource();
+        Set<ColumnProjection> projections = extractFilterProjections(query, predicate);
+
+        if (projections.isEmpty()) {
+            return;
+        }
+
+        ColumnProjection projection = projections.iterator().next();
+
+        validateColumn(query, projection);
+
+        Column column = table.getColumn(Column.class, projection.getName());
+
+        if (column.getValues() == null || column.getValues().isEmpty()) {
+            return;
+        }
+
+        predicate.getValues().forEach(value -> {
+            if (! column.getValues().contains(value)) {
+                throw new InvalidOperationException(String.format(
+                        "Column '%s' values must match one of these values: %s",
+                        projection.getAlias(),
+                        column.getValues()));
+            }
         });
     }
 
