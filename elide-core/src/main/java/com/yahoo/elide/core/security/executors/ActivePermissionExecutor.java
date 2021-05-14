@@ -228,7 +228,6 @@ public class ActivePermissionExecutor implements PermissionExecutor {
                 expressionSupplier);
     }
 
-
     /**
      * First attempts to check user permissions (by looking in the cache and if not present by executing user
      * permissions).  If user permissions don't short circuit the check, run the provided expression executor.
