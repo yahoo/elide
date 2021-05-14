@@ -14,7 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
-@Include(type = "product", rootLevel = false)
+@Include(name = "product", rootLevel = false)
 @Entity
 public class ArtifactProduct {
     @Id

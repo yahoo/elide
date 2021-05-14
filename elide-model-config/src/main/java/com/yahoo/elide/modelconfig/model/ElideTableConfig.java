@@ -42,7 +42,7 @@ public class ElideTableConfig {
     public boolean hasTable(String name) {
         return tables
                    .stream()
-                   .map(Named::getName)
+                   .map(Named::getGlobalName)
                    .anyMatch(name::equals);
     }
 
@@ -54,7 +54,7 @@ public class ElideTableConfig {
     public Table getTable(String name) {
         return tables
                    .stream()
-                   .filter(t -> t.getName().equals(name))
+                   .filter(t -> t.getGlobalName().equals(name))
                    .findFirst()
                    .orElse(null);
     }

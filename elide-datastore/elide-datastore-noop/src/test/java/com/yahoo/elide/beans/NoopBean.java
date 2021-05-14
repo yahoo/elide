@@ -12,7 +12,7 @@ import javax.persistence.Id;
 /**
  * Simple bean intended to not be persisted.
  */
-@Include(rootLevel = false, type = "theNoopBean")
+@Include(rootLevel = false, name = "theNoopBean")
 public class NoopBean {
     private Long id;
     private String test;

@@ -93,7 +93,7 @@ public class Dimension implements Named {
     private Set<String> values = new LinkedHashSet<>();
 
     @JsonProperty("tableSource")
-    private String tableSource;
+    private TableSource tableSource;
 
     /**
      * Returns description of the dimension.

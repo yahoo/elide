@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.FIELD;
 import static com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType.FORMULA;
+import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ToOne;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -20,24 +21,23 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueSourceType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
-import org.apache.commons.lang3.StringUtils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 /**
  * Column is the super class of a field in a table, it can be either dimension or metric.
  */
-@Include(rootLevel = false, type = "column")
+@Include(rootLevel = false, name = "column")
 @Getter
 @EqualsAndHashCode
 @ToString
@@ -71,7 +71,12 @@ public abstract class Column implements Versioned {
 
     private final Set<String> values;
 
-    private final String tableSource;
+    @OneToOne
+    @Setter
+    private TableSource tableSource = null;
+
+    @Exclude
+    private com.yahoo.elide.datastores.aggregation.annotation.TableSource tableSourceDefinition;
 
     @OneToMany
     @ToString.Exclude
@@ -94,19 +99,18 @@ public abstract class Column implements Versioned {
                     : name;
             this.description = meta.description();
             this.category = meta.category();
-            this.values = new HashSet<>(Arrays.asList(meta.values()));
-            this.tags = new HashSet<>(Arrays.asList(meta.tags()));
-            this.tableSource = StringUtils.isBlank(meta.tableSource()) ? null : meta.tableSource();
-            this.valueSourceType = ValueSourceType.getValueSourceType(this.values,
-                    this.tableSource);
+            this.values = new LinkedHashSet<>(Arrays.asList(meta.values()));
+            this.tags = new LinkedHashSet<>(Arrays.asList(meta.tags()));
+            this.tableSourceDefinition = meta.tableSource();
+            this.valueSourceType = ValueSourceType.getValueSourceType(this.values, this.tableSourceDefinition);
             this.cardinality = meta.size();
         } else {
             this.friendlyName = name;
             this.description = null;
             this.category = null;
             this.values = null;
-            this.tags = new HashSet<>();
-            this.tableSource = null;
+            this.tags = new LinkedHashSet<>();
+            this.tableSourceDefinition = null;
             this.valueSourceType = ValueSourceType.NONE;
             this.cardinality = CardinalitySize.UNKNOWN;
         }
@@ -130,12 +134,12 @@ public abstract class Column implements Versioned {
         } else {
             columnType = FIELD;
             expression = "{{$" + dictionary.getAnnotatedColumnName(tableClass, fieldName) + "}}";
-            this.arguments = new HashSet<>();
+            this.arguments = new LinkedHashSet<>();
         }
 
         this.valueType = getValueType(tableClass, fieldName, dictionary);
 
-        if (valueType == null) {
+        if (valueType == ValueType.UNKNOWN) {
             throw new IllegalArgumentException("Unknown data type for " + this.id);
         }
     }
@@ -162,16 +166,18 @@ public abstract class Column implements Versioned {
      */
     public static ValueType getValueType(Type<?> tableClass, String fieldName, EntityDictionary dictionary) {
         if (dictionary.isRelation(tableClass, fieldName)) {
-            return ValueType.RELATIONSHIP;
+            return ValueType.UNKNOWN;
         }
         Type<?> fieldClass = dictionary.getType(tableClass, fieldName);
 
         if (fieldName.equals(dictionary.getIdFieldName(tableClass))) {
             return ValueType.ID;
         }
+
         if (ClassType.DATE_TYPE.isAssignableFrom(fieldClass)) {
             return ValueType.TIME;
         }
+
         return ValueType.getScalarType(fieldClass);
     }
 

@@ -13,7 +13,7 @@ import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
 
 @Entity
-@Include(type = "noShareBid")
+@Include(name = "noShareBid")
 public class NoTransferBiDirectional extends BaseId {
     private NoTransferBiDirectional other;
 

@@ -14,7 +14,7 @@ import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
 
 @Entity
-@Include(type = "strictNoShare")
+@Include(name = "strictNoShare")
 @NonTransferable(strict = true)
 public class StrictNoTransfer extends BaseId {
     private StrictNoTransfer other;

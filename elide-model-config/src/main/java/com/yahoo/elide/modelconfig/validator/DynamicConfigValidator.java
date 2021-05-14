@@ -33,6 +33,7 @@ import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Named;
 import com.yahoo.elide.modelconfig.model.NamespaceConfig;
 import com.yahoo.elide.modelconfig.model.Table;
+import com.yahoo.elide.modelconfig.model.TableSource;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.cli.CommandLine;
@@ -549,22 +550,23 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         for (Table table : elideTableConfig.getTables()) {
 
             validateSql(table.getSql());
-            validateArguments(table.getArguments());
-            validateNamespaceExists(table.getNamespace());
+            validateArguments(table, table.getArguments());
+            //TODO - once tables support versions - replace NO_VERSION with apiVersion
+            validateNamespaceExists(table.getNamespace(), NO_VERSION);
             Set<String> tableFields = new HashSet<>();
 
             table.getDimensions().forEach(dim -> {
                 validateFieldNameUniqueness(tableFields, dim.getName(), table.getName());
                 validateSql(dim.getDefinition());
-                validateTableSource(dim.getTableSource());
-                validateArguments(dim.getArguments());
+                validateTableSource(table, dim.getTableSource());
+                validateArguments(table, dim.getArguments());
                 extractChecksFromExpr(dim.getReadAccess(), extractedChecks, visitor);
             });
 
             table.getMeasures().forEach(measure -> {
                 validateFieldNameUniqueness(tableFields, measure.getName(), table.getName());
                 validateSql(measure.getDefinition());
-                validateArguments(measure.getArguments());
+                validateArguments(table, measure.getArguments());
                 extractChecksFromExpr(measure.getReadAccess(), extractedChecks, visitor);
             });
 
@@ -572,7 +574,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
                 validateFieldNameUniqueness(tableFields, join.getName(), table.getName());
                 validateSql(join.getDefinition());
                 validateModelExists(join.getTo());
-                validateNamespaceExists(join.getNamespace());
+                //TODO - once tables support versions - replace NO_VERSION with apiVersion
+                validateNamespaceExists(join.getNamespace(), NO_VERSION);
             });
 
             extractChecksFromExpr(table.getReadAccess(), extractedChecks, visitor);
@@ -600,9 +603,9 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         return true;
     }
 
-    private void validateArguments(List<Argument> arguments) {
+    private void validateArguments(Table table, List<Argument> arguments) {
         validateNameUniqueness(arguments, "Multiple Arguments found with the same name: ");
-        arguments.forEach(arg -> validateTableSource(arg.getTableSource()));
+        arguments.forEach(arg -> validateTableSource(table, arg.getTableSource()));
     }
 
     private void validateChecks(Set<String> checks) {
@@ -644,37 +647,38 @@ public class DynamicConfigValidator implements DynamicConfiguration {
      * Validates tableSource is in format: modelName.logicalColumnName and refers to a defined model and a defined
      * column with in that model.
      */
-    private void validateTableSource(String tableSource) {
-        if (isBlank(tableSource)) {
+    private void validateTableSource(Table table, TableSource tableSource) {
+        if (tableSource == null) {
             return; // Nothing to validate
         }
 
-        String[] split = tableSource.split("\\.");
-        if (split.length != 2) {
-            throw new IllegalStateException("Invalid tableSource : " + tableSource + " . "
-                            + "More than one dot(.) found, tableSource must be in format: modelName.logicalColumnName");
-        }
-        String modelName = split[0];
-        String fieldName = split[1];
+        String modelName = Table.getModelName(tableSource.getTable(), tableSource.getNamespace());
 
         if (elideTableConfig.hasTable(modelName)) {
-            Table table = elideTableConfig.getTable(modelName);
-            if (!table.hasField(fieldName)) {
-                throw new IllegalStateException("Invalid tableSource : " + tableSource + " . Field : " + fieldName
-                                + " is undefined for hjson model: " + modelName);
+            Table lookupTable = elideTableConfig.getTable(modelName);
+            if (!lookupTable.hasField(tableSource.getColumn())) {
+                throw new IllegalStateException("Invalid tableSource : "
+                        + tableSource
+                        + " . Field : "
+                        + tableSource.getColumn()
+                        + " is undefined for hjson model: "
+                        + tableSource.getTable());
             }
             return;
         }
 
+        //TODO - once tables support versions - replace NO_VERSION with apiVersion
         if (hasStaticModel(modelName, NO_VERSION)) {
-            if (!hasStaticField(modelName, NO_VERSION, fieldName)) {
-                throw new IllegalStateException("Invalid tableSource : " + tableSource + " . Field : " + fieldName
-                                + " is undefined for non-hjson model: " + modelName);
+            if (!hasStaticField(modelName, NO_VERSION, tableSource.getColumn())) {
+                throw new IllegalStateException("Invalid tableSource : " + tableSource
+                        + " . Field : " + tableSource.getColumn()
+                        + " is undefined for non-hjson model: " + tableSource.getTable());
             }
             return;
         }
 
-        throw new IllegalStateException("Invalid tableSource : " + tableSource + " . Undefined model: " + modelName);
+        throw new IllegalStateException("Invalid tableSource : " + tableSource
+                + " . Undefined model: " + tableSource.getTable());
     }
 
     /**
@@ -688,12 +692,13 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
                 Set<String> joinedTables = table.getJoins()
                         .stream()
+                        //TODO - NOT SURE
                         .map(Join::getTo)
                         .collect(Collectors.toSet());
 
                 Set<String> connections = elideTableConfig.getTables()
                         .stream()
-                        .filter(t -> joinedTables.contains(t.getName()))
+                        .filter(t -> joinedTables.contains(t.getGlobalName()))
                         .map(Table::getDbConnectionName)
                         .collect(Collectors.toSet());
 
@@ -713,8 +718,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
         Set<String> names = new HashSet<>();
         configs.forEach(obj -> {
-            if (!names.add(obj.getName().toLowerCase(Locale.ENGLISH))) {
-                throw new IllegalStateException(errorMsg + obj.getName());
+            if (!names.add(obj.getGlobalName().toLowerCase(Locale.ENGLISH))) {
+                throw new IllegalStateException(errorMsg + obj.getGlobalName());
             }
         });
     }
@@ -757,8 +762,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         }
     }
 
-    private void validateNamespaceExists(String name) {
-        if (!elideNamespaceConfig.hasNamespace(name)) {
+    private void validateNamespaceExists(String name, String version) {
+        if (!elideNamespaceConfig.hasNamespace(name, version)) {
             throw new IllegalStateException(
                             "Namespace: " + name + " is not included in dynamic configs");
         }

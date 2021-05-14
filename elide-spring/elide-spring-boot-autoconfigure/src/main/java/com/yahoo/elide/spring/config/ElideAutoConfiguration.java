@@ -19,6 +19,7 @@ import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
+import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.cache.CaffeineCache;
@@ -268,7 +269,8 @@ public class ElideAutoConfiguration {
             });
 
             return new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap,
-                    new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))));
+                    new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))),
+                    new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
         }
         MetaDataStore metaDataStore = new MetaDataStore(enableMetaDataStore);
         return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);

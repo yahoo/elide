@@ -49,6 +49,7 @@ public class Query implements Queryable {
     private FilterExpression havingFilter;
     private Sorting sorting;
     private ImmutablePagination pagination;
+
     @Builder.Default
     private Map<String, Argument> arguments = new HashMap<>();
 

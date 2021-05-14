@@ -5,11 +5,11 @@
  */
 package com.yahoo.elide.datastores.aggregation.filter.visitor;
 
+import static com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage.DEFAULT_NAMESPACE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
@@ -19,13 +19,13 @@ import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.type.ClassType;
-import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
-import com.yahoo.elide.datastores.aggregation.example.SubCountry;
+import com.yahoo.elide.datastores.aggregation.example.dimensions.Country;
+import com.yahoo.elide.datastores.aggregation.example.dimensions.SubCountry;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -54,7 +54,8 @@ public class SplitFilterExpressionVisitorTest {
         entityDictionary.bindEntity(SubCountry.class);
         entityDictionary.bindEntity(Player.class);
 
-        Table table = new SQLTable(ClassType.of(PlayerStats.class), entityDictionary);
+        Namespace namespace = new Namespace(DEFAULT_NAMESPACE);
+        Table table = new SQLTable(namespace, ClassType.of(PlayerStats.class), entityDictionary);
         splitFilterExpressionVisitor = new SplitFilterExpressionVisitor(table);
     }
 

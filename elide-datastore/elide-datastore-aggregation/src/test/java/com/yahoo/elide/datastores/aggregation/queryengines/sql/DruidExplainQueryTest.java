@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -44,9 +43,9 @@ public class DruidExplainQueryTest  extends SQLUnitTest {
                 "SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS \"overallRating\" "
                         + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
-                        + "LEFT OUTER JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\" "
-                        + "ON \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"country_id\" = \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"id\" "
-                        + "WHERE (\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" IS NOT NULL AND \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"iso_code\" IN (:XXX)) "
+                        + "LEFT OUTER JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX\" "
+                        + "ON \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"country_id\" = \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX\".\"id\" "
+                        + "WHERE (\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" IS NOT NULL AND \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX\".\"iso_code\" IN (:XXX)) "
                         + " GROUP BY \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\"\n";
 
         compareQueryLists(expectedQueryStr, engine.explain(query));
@@ -61,9 +60,9 @@ public class DruidExplainQueryTest  extends SQLUnitTest {
                 "SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"highScore\") AS \"highScore\","
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" AS \"overallRating\" "
                         + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
-                        + "LEFT OUTER JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\" "
-                        + "ON \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"country_id\" = \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"id\" "
-                        + "WHERE (\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" IS NOT NULL OR \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"iso_code\" IN (:XXX)) "
+                        + "LEFT OUTER JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX\" "
+                        + "ON \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"country_id\" = \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX\".\"id\" "
+                        + "WHERE (\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\" IS NOT NULL OR \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX\".\"iso_code\" IN (:XXX)) "
                         + " GROUP BY \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\"\n";
 
         compareQueryLists(expectedQueryStr, engine.explain(query));
@@ -215,7 +214,7 @@ public class DruidExplainQueryTest  extends SQLUnitTest {
                 "SELECT MAX(\"com_yahoo_elide_datastores_aggregation_example_PlayerStatsView\".\"highScore\") AS "
                         + "\"highScore\" FROM (SELECT stats.highScore, stats.player_id, c.name as countryName FROM "
                         + "playerStats AS stats LEFT JOIN countries AS c ON stats.country_id = c.id "
-                        + "WHERE stats.overallRating = 'Great') AS "
+                        + "WHERE stats.overallRating = 'Great' AND stats.highScore >= 0) AS "
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStatsView\"";
         List<String> expectedQueryList = Arrays.asList(expectedQueryStr);
         compareQueryLists(expectedQueryList, engine.explain(TestQuery.SUBQUERY.getQuery()));
@@ -246,10 +245,10 @@ public class DruidExplainQueryTest  extends SQLUnitTest {
                         + "(SELECT \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') "
                         + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
-                        + "LEFT OUTER JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\" "
+                        + "LEFT OUTER JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX\" "
                         + "ON \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"country_id\" = "
-                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"id\" "
-                        + "WHERE \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"iso_code\" "
+                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX\".\"id\" "
+                        + "WHERE \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX\".\"iso_code\" "
                         + "IN (:XXX) "
                         + "GROUP BY \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
                         + "PARSEDATETIME(FORMATDATETIME(\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), 'yyyy-MM-dd') "
@@ -262,10 +261,10 @@ public class DruidExplainQueryTest  extends SQLUnitTest {
                         + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"recordedDate\", 'yyyy-MM-dd'), "
                         + "'yyyy-MM-dd') AS \"recordedDate\" "
                         + "FROM \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\" "
-                        + "LEFT OUTER JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\" "
+                        + "LEFT OUTER JOIN \"countries\" AS \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX\" "
                         + "ON \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"country_id\" = "
-                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"id\" "
-                        + "WHERE \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country\".\"iso_code\" "
+                        + "\"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX\".\"id\" "
+                        + "WHERE \"com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX\".\"iso_code\" "
                         + "IN (:XXX) "
                         + "GROUP BY \"com_yahoo_elide_datastores_aggregation_example_PlayerStats\".\"overallRating\", "
                         + "PARSEDATETIME(FORMATDATETIME("
@@ -390,6 +389,7 @@ public class DruidExplainQueryTest  extends SQLUnitTest {
         queryStr = repeatedWhitespacePattern.matcher(queryStr).replaceAll(" ");
         queryStr = queryStr.replaceAll(":[a-zA-Z0-9_]+", ":XXX");
         queryStr = queryStr.replaceAll("PlayerStats_\\d+", "PlayerStats_XXX");
+        queryStr = queryStr.replaceAll("PlayerStats_country_\\d+", "PlayerStats_country_XXX");
 
         String expectedStr = getExpectedNestedMetricWithAliasesSQL(true).replace(BACKTICK, DOUBLE_QUOTE);
         assertEquals(expectedStr, queryStr);
@@ -415,9 +415,9 @@ public class DruidExplainQueryTest  extends SQLUnitTest {
         Query query = TestQuery.LEFT_JOIN.getQuery();
 
         String expectedQueryStr =
-                "SELECT DISTINCT \"com_yahoo_elide_datastores_aggregation_example_VideoGame_player\".\"name\" AS \"playerName\" FROM \"videoGames\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame\""
-                        + " LEFT OUTER JOIN \"players\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame_player\" ON \"com_yahoo_elide_datastores_aggregation_example_VideoGame\".\"player_id\""
-                        + " = \"com_yahoo_elide_datastores_aggregation_example_VideoGame_player\".\"id\"";
+                "SELECT DISTINCT \"com_yahoo_elide_datastores_aggregation_example_VideoGame_player_XXX\".\"name\" AS \"playerName\" FROM \"videoGames\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame\""
+                        + " LEFT OUTER JOIN \"players\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame_player_XXX\" ON \"com_yahoo_elide_datastores_aggregation_example_VideoGame\".\"player_id\""
+                        + " = \"com_yahoo_elide_datastores_aggregation_example_VideoGame_player_XXX\".\"id\"";
 
         compareQueryLists(expectedQueryStr, engine.explain(query));
         testQueryExecution(query);
@@ -428,9 +428,9 @@ public class DruidExplainQueryTest  extends SQLUnitTest {
         Query query = TestQuery.INNER_JOIN.getQuery();
 
         String expectedQueryStr =
-                "SELECT DISTINCT \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerInnerJoin\".\"name\" AS \"playerNameInnerJoin\" FROM \"videoGames\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame\""
-                        + " INNER JOIN \"players\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerInnerJoin\" ON \"com_yahoo_elide_datastores_aggregation_example_VideoGame\".\"player_id\""
-                        + " = \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerInnerJoin\".\"id\"";
+                "SELECT DISTINCT \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerInnerJoin_XXX\".\"name\" AS \"playerNameInnerJoin\" FROM \"videoGames\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame\""
+                        + " INNER JOIN \"players\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerInnerJoin_XXX\" ON \"com_yahoo_elide_datastores_aggregation_example_VideoGame\".\"player_id\""
+                        + " = \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerInnerJoin_XXX\".\"id\"";
 
         compareQueryLists(expectedQueryStr, engine.explain(query));
         testQueryExecution(query);
@@ -441,8 +441,8 @@ public class DruidExplainQueryTest  extends SQLUnitTest {
         Query query = TestQuery.CROSS_JOIN.getQuery();
 
         String expectedQueryStr =
-                "SELECT DISTINCT \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerCrossJoin\".\"name\" AS \"playerNameCrossJoin\" FROM \"videoGames\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame\""
-                        + " CROSS JOIN \"players\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerCrossJoin\"";
+                "SELECT DISTINCT \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerCrossJoin_XXX\".\"name\" AS \"playerNameCrossJoin\" FROM \"videoGames\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame\""
+                        + " CROSS JOIN \"players\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerCrossJoin_XXX\"";
 
         compareQueryLists(expectedQueryStr, engine.explain(query));
         testQueryExecution(query);
@@ -453,10 +453,10 @@ public class DruidExplainQueryTest  extends SQLUnitTest {
         Query query = TestQuery.METRIC_JOIN.getQuery();
 
         String expectedQueryStr = "SELECT "
-                + "MAX(\"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerStats\".\"highScore\") / SUM(\"com_yahoo_elide_datastores_aggregation_example_VideoGame\".\"timeSpent\") AS \"normalizedHighScore\" "
+                + "MAX(\"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerStats_XXX\".\"highScore\") / SUM(\"com_yahoo_elide_datastores_aggregation_example_VideoGame\".\"timeSpent\") AS \"normalizedHighScore\" "
                 + "FROM \"videoGames\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame\" "
-                + "LEFT OUTER JOIN \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerStats\" "
-                + "ON \"com_yahoo_elide_datastores_aggregation_example_VideoGame\".\"player_id\" = \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerStats\".\"id\"";
+                + "LEFT OUTER JOIN \"playerStats\" AS \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerStats_XXX\" "
+                + "ON \"com_yahoo_elide_datastores_aggregation_example_VideoGame\".\"player_id\" = \"com_yahoo_elide_datastores_aggregation_example_VideoGame_playerStats_XXX\".\"id\"";
 
         compareQueryLists(expectedQueryStr, engine.explain(query));
         testQueryExecution(query);

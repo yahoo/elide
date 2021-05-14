@@ -23,9 +23,7 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
-
 import org.apache.commons.lang3.StringUtils;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -38,12 +36,13 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
 /**
  * Super class of all logical or physical tables.
  */
-@Include(type = "table")
+@Include(name = "table")
 @Getter
 @EqualsAndHashCode
 @ToString
@@ -68,6 +67,9 @@ public abstract class Table implements Versioned {
     private final String requiredFilter;
 
     private final boolean isFact;
+
+    @ManyToOne
+    private final Namespace namespace;
 
     @OneToMany
     @ToString.Exclude
@@ -103,16 +105,20 @@ public abstract class Table implements Versioned {
     @ToString.Exclude
     private final Set<Argument> arguments;
 
-    public Table(Type<?> cls, EntityDictionary dictionary) {
+    public Table(Namespace namespace, Type<?> cls, EntityDictionary dictionary) {
         if (!dictionary.getBoundClasses().contains(cls)) {
             throw new IllegalArgumentException(
                     String.format("Table class {%s} is not defined in dictionary.", cls));
         }
 
+        this.namespace = namespace;
+        namespace.addTable(this);
+
         this.name = dictionary.getJsonAliasFor(cls);
         this.version = EntityDictionary.getModelVersion(cls);
 
         this.alias = TypeHelper.getTypeAlias(cls);
+
         this.id = this.name;
 
         TableMeta meta = cls.getAnnotation(TableMeta.class);
@@ -186,7 +192,7 @@ public abstract class Table implements Versioned {
         Set<Column> columns =  dictionary.getAllFields(cls).stream()
                 .filter(field -> {
                     ValueType valueType = getValueType(cls, field, dictionary);
-                    return valueType != null && valueType != ValueType.RELATIONSHIP;
+                    return valueType != ValueType.UNKNOWN;
                 })
                 .map(field -> {
                     if (isMetricField(dictionary, cls, field)) {
@@ -199,11 +205,10 @@ public abstract class Table implements Versioned {
                 })
                 .collect(Collectors.toSet());
 
-        // add id field if exists and this is not a fact model
-        if (!this.isFact() && dictionary.getIdFieldName(cls) != null) {
+        // add id field if exists
+        if (dictionary.getIdFieldName(cls) != null) {
             columns.add(constructDimension(dictionary.getIdFieldName(cls), dictionary));
         }
-
         return columns;
     }
 
@@ -262,7 +267,7 @@ public abstract class Table implements Versioned {
      * @param <T> metadata class
      * @return column as requested type if found
      */
-    protected final <T extends Column> T getColumn(Class<T> cls, String fieldName) {
+    public final <T extends Column> T getColumn(Class<T> cls, String fieldName) {
         Column column = columnMap.get(fieldName);
         return column != null && cls.isAssignableFrom(column.getClass()) ? cls.cast(column) : null;
     }
@@ -310,10 +315,6 @@ public abstract class Table implements Versioned {
             }
         }
         return null;
-    }
-
-    public ColumnProjection toProjection(Column column) {
-        return toQueryable().getColumnProjection(column.getName());
     }
 
     public abstract Queryable toQueryable();

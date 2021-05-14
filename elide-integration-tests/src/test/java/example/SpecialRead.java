@@ -19,7 +19,7 @@ import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 
 @Entity
-@Include(type = "specialread")
+@Include(name = "specialread")
 @ReadPermission(expression = "specialValue")
 @UpdatePermission(expression = "Prefab.Role.None")
 @CreatePermission(expression = "Prefab.Role.All")

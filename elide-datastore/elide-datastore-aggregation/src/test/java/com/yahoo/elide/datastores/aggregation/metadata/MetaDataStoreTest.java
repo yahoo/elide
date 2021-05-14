@@ -9,14 +9,14 @@ import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.utils.ClassScanner;
-import com.yahoo.elide.datastores.aggregation.example.Country;
-import com.yahoo.elide.datastores.aggregation.example.CountryView;
-import com.yahoo.elide.datastores.aggregation.example.CountryViewNested;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
-import com.yahoo.elide.datastores.aggregation.example.SubCountry;
+import com.yahoo.elide.datastores.aggregation.example.dimensions.Country;
+import com.yahoo.elide.datastores.aggregation.example.dimensions.CountryView;
+import com.yahoo.elide.datastores.aggregation.example.dimensions.CountryViewNested;
+import com.yahoo.elide.datastores.aggregation.example.dimensions.SubCountry;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

@@ -14,7 +14,7 @@ import javax.persistence.Table;
 /**
  * Must inherit @CreatePermission from package.  Do not add here.
  */
-@Include(type = "nocreate") // optional here because class has this name
+@Include(name = "nocreate") // optional here because class has this name
 @Entity
 @Table(name = "nocreate")
 public class NoCreateEntity {

@@ -26,7 +26,7 @@ import javax.persistence.Id;
 /**
  * Model used to mock different lifecycle test scenarios using legacy annotations.
  */
-@Include(type = "legacyTestModel")
+@Include(name = "legacyTestModel")
 public class LegacyTestModel {
 
     @Id
