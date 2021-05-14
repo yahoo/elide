@@ -21,6 +21,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
@@ -69,7 +70,6 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
                         .alias(this.context.getAlias())
                         .metaDataStore(this.context.getMetaDataStore())
                         .column(newColumn)
-                        .tableArguments(this.context.getTableArguments())
                         .build();
 
         JoinExpressionExtractor visitor = new JoinExpressionExtractor(newCtx);
@@ -110,14 +110,14 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
                 }
             } else {
                 joinType = JoinType.LEFT;
-                SQLTable table = metaDataStore.getTable(joinClass);
+                SQLTable joinTable = metaDataStore.getTable(joinClass);
                 joinCtx = ColumnContext.builder()
-                                .queryable(table)
+                                .queryable(joinTable.withArguments(
+                                                mergedArgumentMap(joinTable.getAvailableArguments(),
+                                                                  currentCtx.getQueryable().getAvailableArguments())))
                                 .alias(appendAlias(currentCtx.getAlias(), joinFieldName))
                                 .metaDataStore(currentCtx.getMetaDataStore())
                                 .column(currentCtx.getColumn())
-                                .tableArguments(mergedArgumentMap(table.getAvailableArguments(),
-                                                                  currentCtx.getTableArguments()))
                                 .build();
 
                 onClause = ON + String.format("%s.%s = %s.%s",
@@ -129,7 +129,7 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
 
             String joinAlias = applyQuotes(joinCtx.getAlias(), currentCtx.getQueryable().getDialect());
             String joinKeyword = currentCtx.getQueryable().getDialect().getJoinKeyword(joinType);
-            String joinSource = constructTableOrSubselect(joinCtx, joinClass);
+            String joinSource = constructTableOrSubselect(joinCtx.getQueryable(), joinClass);
 
             String fullExpression = String.format("%s %s AS %s %s", joinKeyword, joinSource, joinAlias, onClause);
             joinExpressions.add(fullExpression);
@@ -150,19 +150,19 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
 
     /**
      * Get the SELECT SQL or tableName for given entity.
-     * @param columnCtx {@link ColumnContext}.
+     * @param queryable Queryable.
      * @param cls Entity class.
      * @return resolved tableName or sql in Subselect/FromSubquery.
      */
-    private String constructTableOrSubselect(ColumnContext columnCtx, Type<?> cls) {
+    private String constructTableOrSubselect(Queryable queryable, Type<?> cls) {
 
         if (hasSql(cls)) {
             // Resolve any table arguments with in FromSubquery or Subselect
-            TableContext context = TableContext.builder().tableArguments(columnCtx.getTableArguments()).build();
+            TableContext context = TableContext.builder().queryable(queryable).build();
             String selectSql = context.resolve(resolveTableOrSubselect(dictionary, cls));
             return OPEN_BRACKET + selectSql + CLOSE_BRACKET;
         }
 
-        return applyQuotes(resolveTableOrSubselect(dictionary, cls), columnCtx.getQueryable().getDialect());
+        return applyQuotes(resolveTableOrSubselect(dictionary, cls), queryable.getDialect());
     }
 }

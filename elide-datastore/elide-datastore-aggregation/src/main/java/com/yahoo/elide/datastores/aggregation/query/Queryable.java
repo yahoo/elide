@@ -340,4 +340,8 @@ public interface Queryable {
     default Map<String, Argument> getAvailableArguments() {
         return Collections.emptyMap();
     }
+
+    default Queryable withArguments(Map<String, Argument> arguments) {
+        return this;
+    }
 }

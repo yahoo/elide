@@ -84,7 +84,6 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
                         .alias(query.getSource().getAlias())
                         .metaDataStore(metaDataStore)
                         .column(this)
-                        .tableArguments(query.getAvailableArguments())
                         .build();
 
         return context.resolve(grain.getExpression());

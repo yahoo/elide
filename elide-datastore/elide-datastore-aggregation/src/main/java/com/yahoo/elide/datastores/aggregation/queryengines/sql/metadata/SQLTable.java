@@ -26,6 +26,7 @@ import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -47,6 +48,8 @@ public class SQLTable extends Table implements Queryable {
 
     private Map<String, SQLJoin> joins;
 
+    private Map<String, Argument> availableArguments;
+
     public SQLTable(Namespace namespace,
                     Type<?> cls,
                     EntityDictionary dictionary,
@@ -54,6 +57,7 @@ public class SQLTable extends Table implements Queryable {
         super(namespace, cls, dictionary);
         this.connectionDetails = connectionDetails;
         this.joins = new HashMap<>();
+        this.availableArguments = prepareArgMap(this.getArguments());
 
         EntityBinding binding = dictionary.getEntityBinding(cls);
         binding.fieldsToValues.forEach((name, field) -> {
@@ -72,6 +76,17 @@ public class SQLTable extends Table implements Queryable {
 
     public SQLTable(Namespace namespace, Type<?> cls, EntityDictionary dictionary) {
         this(namespace, cls, dictionary, null);
+    }
+
+    public SQLTable(SQLTable table, Map<String, Argument> availableArguments) {
+        super(table.getId(), table.getName(), table.getFriendlyName(), table.getCategory(), table.getVersion(),
+                        table.getDescription(), table.getCardinality(), table.getRequiredFilter(), table.isFact(),
+                        table.getNamespace(), table.getColumns(), table.getMetrics(), table.getDimensions(),
+                        table.getTimeDimensions(), table.getTags(), table.getHints(), table.getColumnMap(),
+                        table.getAlias(), table.getArguments());
+        this.connectionDetails = table.getConnectionDetails();
+        this.joins = table.getJoins();
+        this.availableArguments = availableArguments;
     }
 
     @Override
@@ -274,11 +289,6 @@ public class SQLTable extends Table implements Queryable {
         return this;
     }
 
-    @Override
-    public Map<String, Argument> getAvailableArguments() {
-        return prepareArgMap(getArguments());
-    }
-
     /**
      * Create a map of String and {@link Argument} using {@link Column}'s arguments.
      * @param arguments Set of available {@link Column} arguments.
@@ -292,5 +302,10 @@ public class SQLTable extends Table implements Queryable {
                                         .value(arg.getDefaultValue())
                                         .build())
                         .collect(Collectors.toMap(Argument::getName, Function.identity()));
+    }
+
+    @Override
+    public Queryable withArguments(Map<String, Argument> arguments) {
+        return new SQLTable(this, arguments);
     }
 }

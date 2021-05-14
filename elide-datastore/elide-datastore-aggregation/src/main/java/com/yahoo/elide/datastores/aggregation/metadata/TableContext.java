@@ -8,7 +8,7 @@ package com.yahoo.elide.datastores.aggregation.metadata;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.TBL_PREFIX;
 
-import com.yahoo.elide.core.request.Argument;
+import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Formatter;
 import com.github.jknack.handlebars.Handlebars;
@@ -21,7 +21,6 @@ import lombok.ToString;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Context for resolving table arguments in provided expression.
@@ -31,7 +30,7 @@ import java.util.Map;
 @Builder
 public class TableContext extends HashMap<String, Object> {
 
-    protected final Map<String, Argument> tableArguments;
+    protected final Queryable queryable;
 
     private final Handlebars handlebars = new Handlebars()
                     .with(EscapingStrategy.NOOP)
@@ -46,7 +45,7 @@ public class TableContext extends HashMap<String, Object> {
 
         if (key.equals(TBL_PREFIX)) {
             return TableSubContext.tableSubContextBuilder()
-                            .tableArguments(this.tableArguments)
+                            .queryable(this.queryable)
                             .build();
         }
 

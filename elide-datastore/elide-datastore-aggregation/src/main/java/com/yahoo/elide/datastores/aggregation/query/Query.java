@@ -95,4 +95,21 @@ public class Query implements Queryable {
     public Map<String, Argument> getAvailableArguments() {
         return getArguments();
     }
+
+    @Override
+    public Queryable withArguments(Map<String, Argument> arguments) {
+        return Query.builder()
+                        .source(source)
+                        .metricProjections(metricProjections)
+                        .dimensionProjections(dimensionProjections)
+                        .timeDimensionProjections(timeDimensionProjections)
+                        .whereFilter(whereFilter)
+                        .havingFilter(havingFilter)
+                        .sorting(sorting)
+                        .pagination(pagination)
+                        .arguments(arguments)
+                        .bypassingCache(bypassingCache)
+                        .scope(scope)
+                        .build();
+    }
 }
