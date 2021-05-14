@@ -21,6 +21,8 @@ import com.yahoo.elide.core.security.permissions.PermissionExpressionBuilder;
 import com.yahoo.elide.core.security.permissions.expressions.Expression;
 import com.yahoo.elide.core.type.Type;
 
+import com.google.common.collect.ImmutableSet;
+
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 
@@ -32,6 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -45,7 +48,8 @@ public abstract class AbstractPermissionExecutor implements PermissionExecutor {
 
     protected final RequestScope requestScope;
     protected final PermissionExpressionBuilder expressionBuilder;
-    protected final Map<Triple<Class<? extends Annotation>, Type, String>, ExpressionResult> userPermissionCheckCache;
+    protected final Map<Triple<Class<? extends Annotation>, Type, ImmutableSet<String>>, ExpressionResult>
+            userPermissionCheckCache;
     protected final Map<String, Long> checkStats;
 
     public AbstractPermissionExecutor(Logger log, RequestScope requestScope) {
@@ -84,20 +88,21 @@ public abstract class AbstractPermissionExecutor implements PermissionExecutor {
      * @param <A> type parameter
      * @param resourceClass Resource class
      * @param annotationClass Annotation class
-     * @param field Optional field name that is being accessed
+     * @param fields Set of all field names that is being accessed
      * @param expressionSupplier Builds a permission expression.
      * @param expressionExecutor Evaluates the expression (post user check evaluation)
      */
     protected <A extends Annotation> ExpressionResult checkPermissions(
             Type<?> resourceClass,
             Class<A> annotationClass,
-            Optional<String> field,
+            Set<String> fields,
             Supplier<Expression> expressionSupplier,
             Optional<Function<Expression, ExpressionResult>> expressionExecutor) {
 
         // If the user check has already been evaluated before, return the result directly and save the building cost
+        ImmutableSet<String> immutableFields = fields == null ? null : ImmutableSet.copyOf(fields);
         ExpressionResult expressionResult
-                = userPermissionCheckCache.get(Triple.of(annotationClass, resourceClass, field.orElse(null)));
+                = userPermissionCheckCache.get(Triple.of(annotationClass, resourceClass, immutableFields));
 
         if (expressionResult == PASS) {
             return expressionResult;
@@ -112,7 +117,7 @@ public abstract class AbstractPermissionExecutor implements PermissionExecutor {
                     Expression.EvaluationMode.USER_CHECKS_ONLY);
 
             userPermissionCheckCache.put(
-                    Triple.of(annotationClass, resourceClass, field.orElse(null)), expressionResult);
+                    Triple.of(annotationClass, resourceClass, immutableFields), expressionResult);
 
             if (expressionResult == PASS) {
                 return expressionResult;
@@ -130,19 +135,19 @@ public abstract class AbstractPermissionExecutor implements PermissionExecutor {
      * @param <A> type parameter
      * @param resourceClass Resource class
      * @param annotationClass Annotation class
-     * @param field Optional field name that is being accessed
+     * @param fields Set of all field names that is being accessed
      * @param expressionSupplier Builds a permission expression.
      */
     protected <A extends Annotation> ExpressionResult checkOnlyUserPermissions(
             Type<?> resourceClass,
             Class<A> annotationClass,
-            Optional<String> field,
+            Set<String> fields,
             Supplier<Expression> expressionSupplier) {
 
         return checkPermissions(
                 resourceClass,
                 annotationClass,
-                field,
+                fields,
                 expressionSupplier,
                 Optional.empty()
         );
@@ -155,21 +160,21 @@ public abstract class AbstractPermissionExecutor implements PermissionExecutor {
      * @param <A> type parameter
      * @param resourceClass Resource class
      * @param annotationClass Annotation class
-     * @param field Optional field name that is being accessed
+     * @param fields Set of all field names that is being accessed
      * @param expressionSupplier Builds a permission expression.
      * @param expressionExecutor Evaluates the expression (post user check evaluation)
      */
     protected <A extends Annotation> ExpressionResult checkPermissions(
             Type<?> resourceClass,
             Class<A> annotationClass,
-            Optional<String> field,
+            Set<String> fields,
             Supplier<Expression> expressionSupplier,
             Function<Expression, ExpressionResult> expressionExecutor) {
 
         return checkPermissions(
                 resourceClass,
                 annotationClass,
-                field,
+                fields,
                 expressionSupplier,
                 Optional.of(expressionExecutor)
         );

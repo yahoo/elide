@@ -18,6 +18,7 @@ import com.yahoo.elide.core.type.Type;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -59,7 +60,7 @@ public class AggregationStorePermissionExecutor extends AbstractPermissionExecut
         return checkOnlyUserPermissions(
                 resource.getResourceType(),
                 annotationClass,
-                Optional.empty(),
+                requestedFields,
                 expressionSupplier);
     }
 
@@ -158,7 +159,7 @@ public class AggregationStorePermissionExecutor extends AbstractPermissionExecut
         return checkOnlyUserPermissions(
                 resourceClass,
                 annotationClass,
-                Optional.of(field),
+                Collections.singleton(field),
                 expressionSupplier);
     }
 
