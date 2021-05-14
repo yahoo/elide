@@ -520,7 +520,7 @@ public abstract class SQLUnitTest {
         videoGameTable = (SQLTable) metaDataStore.getTable("videoGame", NO_VERSION);
         playerStatsViewTable = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
         playerStatsViewTableArgs = new HashMap<>();
-        playerStatsViewTableArgs.put("overallRating", Argument.builder().name("overallRating").value("Great").build());
+        playerStatsViewTableArgs.put("rating", Argument.builder().name("overallRating").value("Great").build());
         playerStatsViewTableArgs.put("minScore", Argument.builder().name("minScore").value("0").build());
     }
 
