@@ -337,7 +337,7 @@ public interface Queryable {
      * Gets the available arguments for this queryable.
      * @return available arguments for this queryable as map of String and {@link Argument}.
      */
-    default Map<String, Argument> getAvailableArguments() {
+    default Map<String, Argument> getArguments() {
         return Collections.emptyMap();
     }
 }

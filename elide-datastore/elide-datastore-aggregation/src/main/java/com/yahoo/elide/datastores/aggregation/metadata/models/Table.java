@@ -103,7 +103,7 @@ public abstract class Table implements Versioned {
 
     @OneToMany
     @ToString.Exclude
-    private final Set<Argument> arguments;
+    private final Set<ArgumentDefinition> argumentDefinitions;
 
     public Table(Namespace namespace, Type<?> cls, EntityDictionary dictionary) {
         if (!dictionary.getBoundClasses().contains(cls)) {
@@ -151,10 +151,10 @@ public abstract class Table implements Versioned {
             this.hints = new LinkedHashSet<>(Arrays.asList(meta.hints()));
             this.cardinality = meta.size();
             if (meta.arguments().length == 0) {
-                this.arguments = new HashSet<>();
+                this.argumentDefinitions = new HashSet<>();
             } else {
-                this.arguments = Arrays.stream(meta.arguments())
-                        .map(argument -> new Argument(getId(), argument))
+                this.argumentDefinitions = Arrays.stream(meta.arguments())
+                        .map(argument -> new ArgumentDefinition(getId(), argument))
                         .collect(Collectors.toCollection(LinkedHashSet::new));
             }
         } else {
@@ -165,7 +165,7 @@ public abstract class Table implements Versioned {
             this.tags = new HashSet<>();
             this.hints = new LinkedHashSet<>();
             this.cardinality = CardinalitySize.UNKNOWN;
-            this.arguments = new HashSet<>();
+            this.argumentDefinitions = new HashSet<>();
         }
     }
 

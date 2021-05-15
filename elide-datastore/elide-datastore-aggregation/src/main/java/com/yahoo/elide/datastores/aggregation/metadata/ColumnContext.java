@@ -138,7 +138,7 @@ public class ColumnContext extends HashMap<String, Object> {
                         .alias(joinAlias)
                         .metaDataStore(this.metaDataStore)
                         .column(this.column)
-                        .tableArguments(mergedArgumentMap(joinQueryable.getAvailableArguments(),
+                        .tableArguments(mergedArgumentMap(joinQueryable.getArguments(),
                                                           this.getTableArguments()))
                         .build();
 

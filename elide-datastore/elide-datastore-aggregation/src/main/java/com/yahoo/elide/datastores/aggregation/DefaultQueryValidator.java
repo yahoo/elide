@@ -16,6 +16,7 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.yahoo.elide.datastores.aggregation.metadata.models.ArgumentDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -187,7 +188,7 @@ public class DefaultQueryValidator implements QueryValidator {
     public void validateQueryArguments(Query query) {
         SQLTable table = (SQLTable) query.getSource();
 
-        table.getArguments().forEach(tableArgument -> {
+        table.getArgumentDefinitions().forEach(tableArgument -> {
             Argument clientArgument = query.getArguments().get(tableArgument.getName());
 
             validateArgument(Optional.ofNullable(clientArgument), tableArgument,
@@ -203,7 +204,7 @@ public class DefaultQueryValidator implements QueryValidator {
         SQLTable table = (SQLTable) query.getSource();
         Column column = table.getColumn(Column.class, projection.getName());
 
-        column.getArguments().forEach(columnArgument -> {
+        column.getArgumentDefinitions().forEach(columnArgument -> {
             Argument clientArgument = projection.getArguments().get(columnArgument.getName());
 
             validateArgument(Optional.ofNullable(clientArgument), columnArgument,
@@ -213,7 +214,7 @@ public class DefaultQueryValidator implements QueryValidator {
 
     protected void validateArgument(
             Optional<Argument> clientArgument,
-            com.yahoo.elide.datastores.aggregation.metadata.models.Argument argumentDefinition,
+            ArgumentDefinition argumentDefinition,
             String context
     ) {
 

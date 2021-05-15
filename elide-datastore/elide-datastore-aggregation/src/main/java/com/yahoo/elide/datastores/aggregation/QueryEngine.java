@@ -178,7 +178,7 @@ public abstract class QueryEngine {
                 ));
 
                 //Populate column argument sources.
-                column.getArguments().forEach(argument -> {
+                column.getArgumentDefinitions().forEach(argument -> {
                     argument.setTableSource(TableSource.fromDefinition(
                             argument.getTableSourceDefinition(),
                             table.getVersion(),

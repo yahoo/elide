@@ -59,7 +59,7 @@ public class PhysicalRefColumnContext extends ColumnContext {
                         .alias(joinPath)
                         .metaDataStore(this.metaDataStore)
                         .column(this.column)
-                        .tableArguments(mergedArgumentMap(joinQueryable.getAvailableArguments(),
+                        .tableArguments(mergedArgumentMap(joinQueryable.getArguments(),
                                                           this.getTableArguments()))
                         .build();
 

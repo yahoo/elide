@@ -80,7 +80,7 @@ public abstract class Column implements Versioned {
 
     @OneToMany
     @ToString.Exclude
-    private final Set<Argument> arguments;
+    private final Set<ArgumentDefinition> argumentDefinitions;
 
     @ToString.Exclude
     private final Set<String> tags;
@@ -120,21 +120,21 @@ public abstract class Column implements Versioned {
             MetricFormula metricFormula = dictionary.getAttributeOrRelationAnnotation(tableClass, MetricFormula.class,
                     fieldName);
             this.expression = metricFormula.value();
-            this.arguments = Arrays.stream(metricFormula.arguments())
-                    .map(argument -> new Argument(getId(), argument))
+            this.argumentDefinitions = Arrays.stream(metricFormula.arguments())
+                    .map(argument -> new ArgumentDefinition(getId(), argument))
                     .collect(Collectors.toCollection(LinkedHashSet::new));
         } else if (dictionary.attributeOrRelationAnnotationExists(tableClass, fieldName, DimensionFormula.class)) {
             columnType = FORMULA;
             DimensionFormula dimensionFormula = dictionary.getAttributeOrRelationAnnotation(tableClass,
                     DimensionFormula.class, fieldName);
             this.expression = dimensionFormula.value();
-            this.arguments = Arrays.stream(dimensionFormula.arguments())
-                    .map(argument -> new Argument(getId(), argument))
+            this.argumentDefinitions = Arrays.stream(dimensionFormula.arguments())
+                    .map(argument -> new ArgumentDefinition(getId(), argument))
                     .collect(Collectors.toCollection(LinkedHashSet::new));
         } else {
             columnType = FIELD;
             expression = "{{$" + dictionary.getAnnotatedColumnName(tableClass, fieldName) + "}}";
-            this.arguments = new LinkedHashSet<>();
+            this.argumentDefinitions = new LinkedHashSet<>();
         }
 
         this.valueType = getValueType(tableClass, fieldName, dictionary);

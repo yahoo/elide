@@ -90,9 +90,4 @@ public class Query implements Queryable {
             return this;
         }
     }
-
-    @Override
-    public Map<String, Argument> getAvailableArguments() {
-        return getArguments();
-    }
 }

@@ -116,7 +116,7 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
                                 .alias(appendAlias(currentCtx.getAlias(), joinFieldName))
                                 .metaDataStore(currentCtx.getMetaDataStore())
                                 .column(currentCtx.getColumn())
-                                .tableArguments(mergedArgumentMap(table.getAvailableArguments(),
+                                .tableArguments(mergedArgumentMap(table.getArguments(),
                                                                   currentCtx.getTableArguments()))
                                 .build();
 

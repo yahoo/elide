@@ -46,7 +46,7 @@ public interface SQLColumnProjection extends ColumnProjection {
                         .alias(query.getSource().getAlias())
                         .metaDataStore(metaDataStore)
                         .column(this)
-                        .tableArguments(query.getAvailableArguments())
+                        .tableArguments(query.getArguments())
                         .build();
 
         return context.resolve(getExpression());
@@ -65,7 +65,7 @@ public interface SQLColumnProjection extends ColumnProjection {
                         .queryable(query)
                         .metaDataStore(metaDataStore)
                         .column(this)
-                        .tableArguments(query.getAvailableArguments())
+                        .tableArguments(query.getArguments())
                         .build();
 
         return context.resolve(getExpression());
