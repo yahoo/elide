@@ -8,13 +8,15 @@ package com.yahoo.elide.datastores.aggregation.metadata;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.ARGS_KEY;
 
-import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.core.request.Argument;
 
 import com.github.jknack.handlebars.HandlebarsException;
 
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
+
+import java.util.Map;
 
 /**
  * Context for resolving args under $$table. eg: {{$$table.args.arg1}}.
@@ -24,15 +26,15 @@ import lombok.ToString;
 public class TableSubContext extends TableContext {
 
     @Builder(builderMethodName = "tableSubContextBuilder")
-    public TableSubContext(Queryable queryable) {
-        super(queryable);
+    public TableSubContext(Map<String, Argument> tableArguments) {
+        super(tableArguments);
     }
 
     @Override
     public Object get(Object key) {
 
         if (key.equals(ARGS_KEY)) {
-            return this.queryable.getAvailableArguments();
+            return this.getTableArguments();
         }
 
         throw new HandlebarsException(new Throwable("Couldn't find: " + key));

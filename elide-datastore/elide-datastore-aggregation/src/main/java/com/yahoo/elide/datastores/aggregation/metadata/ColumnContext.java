@@ -18,7 +18,6 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
-
 import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Formatter;
 import com.github.jknack.handlebars.Handlebars;
@@ -52,6 +51,7 @@ public class ColumnContext extends HashMap<String, Object> {
     protected final Queryable queryable;
     protected final String alias;
     protected final ColumnProjection column;
+    protected final Map<String, Argument> tableArguments;
 
     private final Handlebars handlebars = new Handlebars()
             .with(EscapingStrategy.NOOP)
@@ -74,7 +74,7 @@ public class ColumnContext extends HashMap<String, Object> {
 
         if (keyStr.equals(TBL_PREFIX)) {
             return TableSubContext.tableSubContextBuilder()
-                            .queryable(this.queryable)
+                            .tableArguments(this.tableArguments)
                             .build();
         }
 
@@ -84,6 +84,7 @@ public class ColumnContext extends HashMap<String, Object> {
                             .alias(this.getAlias())
                             .metaDataStore(this.getMetaDataStore())
                             .column(this.getColumn())
+                            .tableArguments(this.getTableArguments())
                             .build();
         }
 
@@ -123,6 +124,7 @@ public class ColumnContext extends HashMap<String, Object> {
                         .queryable(this.getQueryable())
                         .metaDataStore(this.getMetaDataStore())
                         .column(this.getColumn())
+                        .tableArguments(this.getTableArguments())
                         .build();
 
         // This will resolve everything within join expression except Physical References, Use this resolved value
@@ -132,12 +134,12 @@ public class ColumnContext extends HashMap<String, Object> {
 
         Queryable joinQueryable = metaDataStore.getTable(sqlJoin.getJoinTableType());
         ColumnContext joinCtx = ColumnContext.builder()
-                        .queryable(joinQueryable.withArguments(
-                                        mergedArgumentMap(joinQueryable.getAvailableArguments(),
-                                                          this.queryable.getAvailableArguments())))
+                        .queryable(joinQueryable)
                         .alias(joinAlias)
                         .metaDataStore(this.metaDataStore)
                         .column(this.column)
+                        .tableArguments(mergedArgumentMap(joinQueryable.getAvailableArguments(),
+                                                          this.getTableArguments()))
                         .build();
 
         return joinCtx;
@@ -149,6 +151,7 @@ public class ColumnContext extends HashMap<String, Object> {
                         .alias(context.getAlias())
                         .metaDataStore(context.getMetaDataStore())
                         .column(newColumn)
+                        .tableArguments(context.getTableArguments())
                         .build();
     }
 
