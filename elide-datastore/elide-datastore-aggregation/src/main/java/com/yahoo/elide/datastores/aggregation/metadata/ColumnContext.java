@@ -98,6 +98,9 @@ public class ColumnContext extends HashMap<String, Object> {
             return value;
         }
 
+        // In case of colA references colB and user query has both colA and colB,
+        // we should use default arguments for colB while resolving colA instead of user provided argument for colB.
+        // so taking colB's details from current queryable's source.
         ColumnProjection column = this.getQueryable().getSource().getColumnProjection(keyStr);
         if (column != null) {
 
