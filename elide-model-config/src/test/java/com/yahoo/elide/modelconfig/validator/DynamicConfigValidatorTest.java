@@ -9,12 +9,9 @@ import static com.github.stefanbirkner.systemlambda.SystemLambda.catchSystemExit
 import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemErr;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.yahoo.elide.modelconfig.model.Argument;
 import com.yahoo.elide.modelconfig.model.Table;
-import com.yahoo.elide.modelconfig.model.Type;
 
 import org.junit.jupiter.api.Test;
 
@@ -404,19 +401,6 @@ public class DynamicConfigValidatorTest {
         });
         assertTrue(error.contains("DBConnection name mismatch between table: "));
         assertTrue(error.contains(" and tables in its Join Clause."));
-    }
-
-    @Test
-    public void testDuplicateArgumentName() throws Exception {
-        DynamicConfigValidator testClass = new DynamicConfigValidator("src/test/resources/validator/valid");
-        testClass.readConfigs();
-        Table playerStatsTable = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStats");
-
-        // PlayerStats table already has argument 'countryCode' with type 'TEXT'.
-        // Adding another argument 'countryCode' with type 'INTEGER'.
-        playerStatsTable.getArguments().add(Argument.builder().name("countryCode").type(Type.INTEGER).build());
-        Exception e = assertThrows(IllegalStateException.class, () -> testClass.validateConfigs());
-        assertEquals("Multiple Arguments found with the same name: countryCode", e.getMessage());
     }
 
     @Test

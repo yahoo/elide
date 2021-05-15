@@ -76,8 +76,6 @@ import java.util.stream.Stream;
  * Util class to validate and parse the config files. Optionally compiles config files.
  */
 public class DynamicConfigValidator implements DynamicConfiguration {
-    public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
-
 
     private static final Set<String> SQL_DISALLOWED_WORDS = new HashSet<>(
             Arrays.asList("DROP", "TRUNCATE", "DELETE", "INSERT", "UPDATE", "ALTER", "COMMENT", "CREATE", "DESCRIBE",
@@ -196,10 +194,11 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         validateRequiredConfigsProvided();
         validateNameUniqueness(this.elideSQLDBConfig.getDbconfigs(), "Multiple DB configs found with the same name: ");
         validateNameUniqueness(this.elideTableConfig.getTables(), "Multiple Table configs found with the same name: ");
-        validateTableConfig();
         validateNameUniqueness(this.elideNamespaceConfig.getNamespaceconfigs(),
                 "Multiple Namespace configs found with the same name: ");
         validateNamespaceConfig();
+        validateTableConfig();
+        validateArguments();
         validateJoinedTablesDBConnectionName(this.elideTableConfig);
     }
 
@@ -556,7 +555,6 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         for (Table table : elideTableConfig.getTables()) {
 
             validateSql(table.getSql());
-            validateArguments(table, table.getArguments());
             //TODO - once tables support versions - replace NO_VERSION with apiVersion
             validateNamespaceExists(table.getNamespace(), NO_VERSION);
             Set<String> tableFields = new HashSet<>();
@@ -564,15 +562,13 @@ public class DynamicConfigValidator implements DynamicConfiguration {
             table.getDimensions().forEach(dim -> {
                 validateFieldNameUniqueness(tableFields, dim.getName(), table.getName());
                 validateSql(dim.getDefinition());
-                validateTableSource(table, dim.getTableSource());
-                validateArguments(table, dim.getArguments());
+                validateTableSource(elideTableConfig, dictionary, dim.getTableSource());
                 extractChecksFromExpr(dim.getReadAccess(), extractedFieldChecks, visitor);
             });
 
             table.getMeasures().forEach(measure -> {
                 validateFieldNameUniqueness(tableFields, measure.getName(), table.getName());
                 validateSql(measure.getDefinition());
-                validateArguments(table, measure.getArguments());
                 extractChecksFromExpr(measure.getReadAccess(), extractedFieldChecks, visitor);
             });
 
@@ -592,6 +588,22 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         return true;
     }
 
+    private void validateArguments() {
+
+        for (Table table : elideTableConfig.getTables()) {
+            TableArgumentValidator tableArgValidator = new TableArgumentValidator(elideTableConfig, dictionary, table);
+            tableArgValidator.validate();
+
+            table.getDimensions().forEach(dim -> {
+                new ColumnArgumentValidator(elideTableConfig, dictionary, table, dim).validate();
+            });
+
+            table.getMeasures().forEach(measure -> {
+                new ColumnArgumentValidator(elideTableConfig, dictionary, table, measure).validate();
+            });
+        }
+    }
+
     /**
      * Validate namespace configs.
      * @return boolean true if all provided namespace properties passes validation
@@ -607,11 +619,6 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         validateChecks(extractedChecks, Collections.EMPTY_SET);
 
         return true;
-    }
-
-    private void validateArguments(Table table, List<Argument> arguments) {
-        validateNameUniqueness(arguments, "Multiple Arguments found with the same name: ");
-        arguments.forEach(arg -> validateTableSource(table, arg.getTableSource()));
     }
 
     private void validateChecks(Set<String> tableChecks, Set<String> fieldChecks) {
@@ -674,7 +681,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
      * Validates tableSource is in format: modelName.logicalColumnName and refers to a defined model and a defined
      * column with in that model.
      */
-    private void validateTableSource(Table table, TableSource tableSource) {
+    public static void validateTableSource(ElideTableConfig elideTableConfig, EntityDictionary dictionary,
+                    TableSource tableSource) {
         if (tableSource == null) {
             return; // Nothing to validate
         }
@@ -695,8 +703,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         }
 
         //TODO - once tables support versions - replace NO_VERSION with apiVersion
-        if (hasStaticModel(modelName, NO_VERSION)) {
-            if (!hasStaticField(modelName, NO_VERSION, tableSource.getColumn())) {
+        if (hasStaticModel(dictionary, modelName, NO_VERSION)) {
+            if (!hasStaticField(dictionary, modelName, NO_VERSION, tableSource.getColumn())) {
                 throw new IllegalStateException("Invalid tableSource : " + tableSource
                         + " . Field : " + tableSource.getColumn()
                         + " is undefined for non-hjson model: " + tableSource.getTable());
@@ -741,7 +749,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     /**
      * Validates table (or db connection) name is unique across all the dynamic table (or db connection) configs.
      */
-    private static void validateNameUniqueness(Collection<? extends Named> configs, String errorMsg) {
+    public static void validateNameUniqueness(Collection<? extends Named> configs, String errorMsg) {
 
         Set<String> names = new HashSet<>();
         configs.forEach(obj -> {
@@ -783,7 +791,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     }
 
     private void validateModelExists(String name) {
-        if (!(elideTableConfig.hasTable(name) || hasStaticModel(name, NO_VERSION))) {
+        if (!(elideTableConfig.hasTable(name) || hasStaticModel(dictionary, name, NO_VERSION))) {
             throw new IllegalStateException(
                             "Model: " + name + " is neither included in dynamic models nor in static models");
         }
@@ -857,7 +865,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         return filePath;
     }
 
-    private boolean hasStaticField(String modelName, String version, String fieldName) {
+    private static boolean hasStaticField(EntityDictionary dictionary, String modelName, String version,
+                    String fieldName) {
         Type<?> modelType = dictionary.getEntityClass(modelName, version);
         if (modelType == null) {
             return false;
@@ -870,7 +879,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
         }
     }
 
-    private boolean hasStaticModel(String modelName, String version) {
+    private static boolean hasStaticModel(EntityDictionary dictionary, String modelName, String version) {
         Type<?> modelType = dictionary.getEntityClass(modelName, version);
         return modelType != null;
     }

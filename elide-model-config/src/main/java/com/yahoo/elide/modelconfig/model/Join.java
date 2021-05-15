@@ -33,7 +33,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Join implements Named {
+public class Join implements Column {
 
     @JsonProperty("name")
     private String name;

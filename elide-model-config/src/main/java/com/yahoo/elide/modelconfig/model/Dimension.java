@@ -47,7 +47,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Dimension implements Named {
+public class Dimension implements Column {
 
     @JsonProperty("name")
     private String name;
@@ -102,14 +102,5 @@ public class Dimension implements Named {
      */
     public String getDescription() {
         return (this.description == null ? getName() : this.description);
-    }
-
-    /**
-     * Checks if this dimension has provided argument.
-     * @param argName Name of the {@link Argument} to  check for.
-     * @return true if this dimension has provided argument.
-     */
-    public boolean hasArgument(String argName) {
-        return hasName(this.arguments, argName);
     }
 }

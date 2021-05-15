@@ -43,7 +43,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Measure implements Named {
+public class Measure implements Column {
 
     @JsonProperty("name")
     private String name;
@@ -87,14 +87,5 @@ public class Measure implements Named {
      */
     public String getDescription() {
         return (this.description == null ? getName() : this.description);
-    }
-
-    /**
-     * Checks if this measure has provided argument.
-     * @param argName Name of the {@link Argument} to  check for.
-     * @return true if this measure has provided argument.
-     */
-    public boolean hasArgument(String argName) {
-        return hasName(this.arguments, argName);
     }
 }

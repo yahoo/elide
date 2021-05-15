@@ -21,9 +21,12 @@ import lombok.NoArgsConstructor;
 import lombok.Singular;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Table Model JSON.
@@ -155,7 +158,7 @@ public class Table implements Named {
      * @param fieldName Name of {@link Dimension} or {@link Measure} to retrieve.
      * @return Field for provided field name.
      */
-    public Named getField(String fieldName) {
+    public Column getField(String fieldName) {
         return Streams.concat(this.dimensions.stream(), this.measures.stream())
                         .filter(col -> col.getName().equals(fieldName))
                         .findFirst()
@@ -169,6 +172,13 @@ public class Table implements Named {
      */
     public boolean hasArgument(String argName) {
         return hasName(this.arguments, argName);
+    }
+
+    public Argument getArgument(String argName) {
+        return this.arguments.stream()
+                        .filter(arg -> arg.getName().equals(argName))
+                        .findFirst()
+                        .orElse(null);
     }
 
     /**
@@ -236,5 +246,15 @@ public class Table implements Named {
         }
 
         return namespace + "_" + tableName;
+    }
+
+    /**
+     * Get the list of {@link Column} defined for this table.
+     * @return List of {@link Column} defined for this table.
+     */
+    public List<Column> getColumns() {
+        return Stream.of(dimensions, measures, joins)
+                        .flatMap(Collection::stream)
+                        .collect(Collectors.toList());
     }
 }
