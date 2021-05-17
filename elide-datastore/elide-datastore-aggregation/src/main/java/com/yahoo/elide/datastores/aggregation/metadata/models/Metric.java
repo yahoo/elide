@@ -15,8 +15,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.lang.annotation.Annotation;
-
 /**
  * Column which supports aggregation.
  */
