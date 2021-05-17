@@ -94,6 +94,7 @@ public interface SQLColumnProjection extends ColumnProjection {
                 .metaDataStore(metaDataStore)
                 .column(this)
                 .queryable(source)
+                .tableArguments(source.getArguments())
                 .alias(source.getSource().getAlias())
                 .build();
 
