@@ -166,4 +166,14 @@ public class AggregationDataStore implements DataStore {
                     }
                 });
     }
+
+    /**
+     * Determines if a model is managed by the aggregation data store.
+     * @param model The model in question.
+     * @return True if the model is managed by the aggregation data store.  False otherwise.
+     */
+    public static final boolean isAggregationStoreModel(Type<?> model) {
+        return AGGREGATION_STORE_CLASSES.stream()
+                .anyMatch((annotation) -> model.getDeclaredAnnotation(annotation) != null);
+    }
 }
