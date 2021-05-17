@@ -13,6 +13,8 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.ArgumentDefinition;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -22,10 +24,12 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjectionMaker;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -77,6 +81,22 @@ public class SQLTable extends Table implements Queryable {
 
     @Override
     protected Metric constructMetric(String fieldName, EntityDictionary dictionary) {
+        if (dictionary.getIdFieldName(getModel()).equals(fieldName)) {
+            MetricProjectionMaker maker = (metric, alias, arguments) -> {
+                return SQLMetricProjection
+                        .builder()
+                        .projected(true)
+                        .alias(fieldName)
+                        .name(fieldName)
+                        .expression("")
+                        .valueType(ValueType.ID)
+                        .columnType(ColumnType.FIELD)
+                        .arguments(new HashMap<>())
+                        .build();
+
+            };
+            return new Metric(maker, this, fieldName, dictionary);
+        }
         return new Metric(this, fieldName, dictionary);
     }
 

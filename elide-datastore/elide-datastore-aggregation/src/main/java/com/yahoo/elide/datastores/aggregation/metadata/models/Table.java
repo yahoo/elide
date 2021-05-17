@@ -113,6 +113,9 @@ public abstract class Table implements Versioned {
         return this.arguments;
     }
 
+    @Exclude
+    private Type<?> model;
+
     public Table(Namespace namespace, Type<?> cls, EntityDictionary dictionary) {
         if (!dictionary.getBoundClasses().contains(cls)) {
             throw new IllegalArgumentException(
@@ -124,6 +127,7 @@ public abstract class Table implements Versioned {
 
         this.name = dictionary.getJsonAliasFor(cls);
         this.version = EntityDictionary.getModelVersion(cls);
+        this.model = cls;
 
         this.alias = TypeHelper.getTypeAlias(cls);
 

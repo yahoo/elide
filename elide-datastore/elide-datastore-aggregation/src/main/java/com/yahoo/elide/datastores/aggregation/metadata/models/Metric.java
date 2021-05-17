@@ -9,11 +9,8 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.datastores.aggregation.annotation.ArgumentDefinition;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
-import com.yahoo.elide.datastores.aggregation.query.DefaultMetricProjectionMaker;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjectionMaker;
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -27,43 +24,21 @@ import java.lang.annotation.Annotation;
 @Getter
 @EqualsAndHashCode(callSuper = true)
 @ToString
-@AllArgsConstructor
 public class Metric extends Column {
     @Exclude
     @ToString.Exclude
     private final MetricProjectionMaker metricProjectionMaker;
 
+    public Metric(MetricProjectionMaker maker, Table table, String fieldName, EntityDictionary dictionary) {
+        super(table, fieldName, dictionary);
+        this.metricProjectionMaker = maker;
+    }
+
     public Metric(Table table, String fieldName, EntityDictionary dictionary) {
         super(table, fieldName, dictionary);
         Type<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
 
-        MetricFormula formula;
-        if (dictionary.getIdFieldName(tableClass).equals(fieldName)) {
-            formula = new MetricFormula() {
-
-                @Override
-                public Class<? extends Annotation> annotationType() {
-                    return MetricFormula.class;
-                }
-
-                @Override
-                public String value() {
-                    return "ROW_NUMBER()";
-                }
-
-                @Override
-                public Class<? extends MetricProjectionMaker> maker() {
-                    return DefaultMetricProjectionMaker.class;
-                }
-
-                @Override
-                public ArgumentDefinition[] arguments() {
-                    return new ArgumentDefinition[0];
-                }
-            };
-        } else {
-            formula = dictionary.getAttributeOrRelationAnnotation(tableClass, MetricFormula.class, fieldName);
-        }
+        MetricFormula formula = dictionary.getAttributeOrRelationAnnotation(tableClass, MetricFormula.class, fieldName);
 
         verifyFormula(formula);
         this.metricProjectionMaker = dictionary.getInjector().instantiate(formula.maker());
