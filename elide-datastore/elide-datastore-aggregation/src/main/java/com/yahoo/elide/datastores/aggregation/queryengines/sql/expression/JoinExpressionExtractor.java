@@ -28,11 +28,17 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * Provides Join Expressions for all the {@link JoinReference} in a given reference tree.
  */
 public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
+
+    @FunctionalInterface
+    public interface JoinResolver {
+        public String resolve(String expression, ColumnContext context);
+    }
 
     private static final String ON = "ON ";
     private static final String OPEN_BRACKET = "(";
@@ -45,10 +51,17 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
     private final MetaDataStore metaDataStore;
     private final EntityDictionary dictionary;
 
+    private final JoinResolver columnResolver;
+
     public JoinExpressionExtractor(ColumnContext context) {
+        this(context, (expression, ctx) -> { return ctx.resolve(expression); });
+    }
+
+    public JoinExpressionExtractor(ColumnContext context, JoinResolver resolver) {
         this.context = context;
         this.metaDataStore = context.getMetaDataStore();
         this.dictionary = context.getMetaDataStore().getMetadataDictionary();
+        this.columnResolver = resolver;
     }
 
     @Override
@@ -107,7 +120,7 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
                 if (joinType.equals(JoinType.CROSS)) {
                     onClause = EMPTY;
                 } else {
-                    onClause = ON + currentCtx.resolve(sqlJoin.getJoinExpression());
+                    onClause = ON + columnResolver.resolve(sqlJoin.getJoinExpression(), currentCtx);
                 }
             } else {
                 joinType = JoinType.LEFT;

@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.COL_PREFIX;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.PhysicalRefColumnContext;
@@ -15,6 +16,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SyntaxVer
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasJoinVisitor;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.JoinExpressionExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.PhysicalReferenceExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
 import org.apache.commons.lang3.tuple.Pair;
@@ -81,9 +83,34 @@ public interface SQLColumnProjection extends ColumnProjection {
         boolean canNest = verifier.verify(sql);
         if (! canNest) {
             LOGGER.debug("Unable to nest {} because {}", this.getName(), verifier.getLastError());
+
+            return false;
         }
 
-        return canNest;
+        List<Reference> references = new ExpressionParser(metaDataStore).parse(source, this);
+
+        ColumnContext ctx = ColumnContext
+                .builder()
+                .metaDataStore(metaDataStore)
+                .column(this)
+                .queryable(source)
+                .alias(source.getSource().getAlias())
+                .build();
+
+        //Search for any join expression that contains $$column.  If found, we cannot nest
+        //because rewriting the SQL in the outer expression will lose the context of the calling $$column.
+        JoinExpressionExtractor.JoinResolver columnResolver = (expression, context) -> expression;
+
+        return ! (references.stream().anyMatch(reference -> {
+            Set<String> joinExpressions = reference.accept(new JoinExpressionExtractor(ctx, columnResolver));
+
+            return joinExpressions.stream().anyMatch(expression -> {
+                if (expression.contains(COL_PREFIX)) {
+                    return true;
+                }
+                return false;
+            });
+        }));
     }
 
     @Override
