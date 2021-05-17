@@ -56,6 +56,7 @@ public final class MultiplexManager implements DataStore {
         for (DataStore dataStore : dataStores) {
             EntityDictionary subordinateDictionary = new EntityDictionary(
                 dictionary.getCheckMappings(),
+                dictionary.getRoleChecks(),
                 dictionary.getInjector()
             );
 

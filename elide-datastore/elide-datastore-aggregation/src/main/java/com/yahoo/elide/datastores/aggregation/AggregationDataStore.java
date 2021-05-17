@@ -5,10 +5,14 @@
  */
 package com.yahoo.elide.datastores.aggregation;
 
+import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
+import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
@@ -23,6 +27,10 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.yahoo.elide.modelconfig.validator.PermissionExpressionVisitor;
+
+import org.antlr.v4.runtime.tree.ParseTree;
+
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.ToString;
@@ -31,7 +39,9 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * DataStore that supports Aggregation. Uses {@link QueryEngine} to return results.
@@ -60,12 +70,14 @@ public class AggregationDataStore implements DataStore {
         if (dynamicCompiledClasses != null && dynamicCompiledClasses.size() != 0) {
             dynamicCompiledClasses.forEach(dynamicLoadedClass -> {
                 dictionary.bindEntity(dynamicLoadedClass, Collections.singleton(Join.class));
+                validateModelExpressionChecks(dictionary, dynamicLoadedClass);
                 dictionary.bindPermissionExecutor(dynamicLoadedClass, ActivePermissionExecutor::new);
             });
         }
 
         ClassScanner.getAnnotatedClasses(AGGREGATION_STORE_CLASSES).forEach(cls -> {
                     dictionary.bindEntity(cls, Collections.singleton(Join.class));
+                    validateModelExpressionChecks(dictionary, ClassType.of(cls));
                     dictionary.bindPermissionExecutor(cls, ActivePermissionExecutor::new);
                 }
         );
@@ -101,5 +113,57 @@ public class AggregationDataStore implements DataStore {
     @Override
     public DataStoreTransaction beginTransaction() {
         return new AggregationDataStoreTransaction(queryEngine, cache, queryLogger);
+    }
+
+    /**
+     * Validates The security Check expression type for both Table and all its fields.
+     * Table Security Check Condition - User Checks and Filter Expression Checks
+     * Field Security Check Condition - User Checks
+     * @param dictionary - Entity Dictionary
+     * @param clz - Model Type.
+     */
+    private void validateModelExpressionChecks(EntityDictionary dictionary, Type<?> clz) {
+        PermissionExpressionVisitor visitor = new PermissionExpressionVisitor();
+        ParseTree parseTree = dictionary.getPermissionsForClass(clz, ReadPermission.class);
+        if (parseTree != null) {
+            validateExpression(dictionary,
+                    visitor.visit(parseTree),
+                    (checkClass) -> UserCheck.class.isAssignableFrom(checkClass)
+                            || FilterExpressionCheck.class.isAssignableFrom(checkClass),
+                    "Table Can only have User Check and Filter Expression Check."
+                    + "Operation Checks Not allowed. given - %s");
+        }
+
+        dictionary.getAllFields(clz).stream()
+                .map(field -> dictionary.getPermissionsForField(clz, field, ReadPermission.class))
+                .filter(Objects::nonNull)
+                .forEach(tree ->
+                        validateExpression(dictionary,
+                                visitor.visit(tree),
+                                (checkClass) -> UserCheck.class.isAssignableFrom(checkClass),
+                                "Fields Can only have User checks. Given - %s"));
+    }
+
+    /**
+     * Validates the Expression Check class to check whether it complies with the given predicate
+     * @param dictionary - Entity dictionary
+     * @param expressionChecksIdentifiers - Set of identifiers for whose the security check class is validated
+     * @param validCheckPredicate - Predicate that takes security check class as argument.
+     * @param errorMsgFormat - Error message format for the exception when predicate fails.
+     * @throws IllegalStateException
+     */
+    private void validateExpression(EntityDictionary dictionary,
+                                    Set<String> expressionChecksIdentifiers,
+                                    Predicate<Class> validCheckPredicate,
+                                    String errorMsgFormat) throws IllegalStateException {
+        expressionChecksIdentifiers.stream()
+                .filter(check -> dictionary.getRoleCheck(check) == null)  // skip all role checks
+                .forEach(check -> {
+                    Class<? extends Check> checkClass = dictionary.getCheck(check);
+                    if (!validCheckPredicate.test(checkClass)) {
+                        throw new IllegalStateException(String.format(errorMsgFormat,
+                                "(" + check + "-" + checkClass + ")"));
+                    }
+                });
     }
 }

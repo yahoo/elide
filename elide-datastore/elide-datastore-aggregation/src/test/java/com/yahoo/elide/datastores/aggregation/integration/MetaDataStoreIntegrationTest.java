@@ -18,27 +18,87 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+
+import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
+import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.datastores.aggregation.checks.OperatorCheck;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
+
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+
+import example.TestCheckMappings;
+
+import org.glassfish.jersey.internal.inject.AbstractBinder;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
+import javax.inject.Inject;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;
 
 public class MetaDataStoreIntegrationTest extends IntegrationTest {
+
+    private static final class SecurityHjsonIntegrationTestResourceConfig extends ResourceConfig {
+
+        @Inject
+        public SecurityHjsonIntegrationTestResourceConfig() {
+            register(new AbstractBinder() {
+                @Override
+                protected void configure() {
+                    Map<String, Class<? extends Check>> map = new HashMap<>(TestCheckMappings.MAPPINGS);
+                    map.put(OperatorCheck.OPERTOR_CHECK, OperatorCheck.class);
+                    EntityDictionary dictionary = new EntityDictionary(map);
+
+                    VALIDATOR.getElideSecurityConfig().getRoles().forEach(role ->
+                            dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))
+                    );
+
+                    DefaultFilterDialect defaultFilterStrategy = new DefaultFilterDialect(dictionary);
+                    RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
+
+                    MultipleFilterDialect multipleFilterStrategy = new MultipleFilterDialect(
+                            Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy),
+                            Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
+                    );
+
+                    Elide elide = new Elide(new ElideSettingsBuilder(IntegrationTest.getDataStore())
+                            .withJoinFilterDialect(multipleFilterStrategy)
+                            .withSubqueryFilterDialect(multipleFilterStrategy)
+                            .withEntityDictionary(dictionary)
+                            .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
+                            .build());
+                    bind(elide).to(Elide.class).named("elide");
+                }
+            });
+        }
+    }
+
+    public MetaDataStoreIntegrationTest() {
+        super(SecurityHjsonIntegrationTestResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
+    }
 
     @Override
     protected DataStoreTestHarness createHarness() {
