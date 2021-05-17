@@ -73,4 +73,12 @@ public class GameRevenue {
     }, timeZone = "UTC")
     @DimensionFormula("{{playerStats.recordedDate}}")
     private Day sessionDate;
+
+    @Temporal(grains = {
+            @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DATE_FORMAT),
+            @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT),
+            @TimeGrainDefinition(grain = TimeGrain.QUARTER, expression = QUARTER_FORMAT)
+     }, timeZone = "UTC")
+    @DimensionFormula("CASE WHEN {{sessionDate}} > {{saleDate}} THEN {{sessionDate}} ELSE {{saleDate}} END")
+    private Day lastDate;
 }
