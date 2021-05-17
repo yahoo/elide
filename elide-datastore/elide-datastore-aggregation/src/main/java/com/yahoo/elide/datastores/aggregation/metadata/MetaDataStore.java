@@ -26,7 +26,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage;
 import com.yahoo.elide.datastores.aggregation.dynamic.TableType;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Argument;
+import com.yahoo.elide.datastores.aggregation.metadata.models.ArgumentDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
@@ -243,7 +243,7 @@ public class MetaDataStore implements DataStore {
         addMetaData(table, version);
         table.getColumns().forEach(this::addColumn);
 
-        table.getArguments().forEach(arg -> addArgument(arg, version));
+        table.getArgumentDefinitions().forEach(arg -> addArgument(arg, version));
     }
 
     /**
@@ -360,7 +360,7 @@ public class MetaDataStore implements DataStore {
             }
         }
 
-        column.getArguments().forEach(arg -> addArgument(arg, version));
+        column.getArgumentDefinitions().forEach(arg -> addArgument(arg, version));
     }
 
     /**
@@ -368,7 +368,7 @@ public class MetaDataStore implements DataStore {
      *
      * @param argument argument metadata
      */
-    private void addArgument(Argument argument, String version) {
+    private void addArgument(ArgumentDefinition argument, String version) {
         addMetaData(argument, version);
     }
 

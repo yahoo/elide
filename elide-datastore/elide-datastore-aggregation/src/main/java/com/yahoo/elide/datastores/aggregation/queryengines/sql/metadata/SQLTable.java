@@ -12,6 +12,7 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.models.ArgumentDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -113,7 +114,8 @@ public class SQLTable extends Table implements Queryable {
     @Override
     public List<MetricProjection> getMetricProjections() {
         return super.getMetrics().stream()
-                .map(metric -> getMetricProjection(metric, metric.getName(), prepareArgMap(metric.getArguments())))
+                .map(metric -> getMetricProjection(metric, metric.getName(),
+                                prepareArgMap(metric.getArgumentDefinitions())))
                 .collect(Collectors.toList());
     }
 
@@ -148,7 +150,7 @@ public class SQLTable extends Table implements Queryable {
         return super.getDimensions()
                 .stream()
                 .map(dimension -> getDimensionProjection(dimension, dimension.getName(),
-                                prepareArgMap(dimension.getArguments())))
+                                prepareArgMap(dimension.getArgumentDefinitions())))
                 .collect(Collectors.toList());
     }
 
@@ -186,7 +188,7 @@ public class SQLTable extends Table implements Queryable {
         return super.getTimeDimensions()
                 .stream()
                 .map(dimension -> getTimeDimensionProjection(dimension, dimension.getName(),
-                                prepareArgMap(dimension.getArguments())))
+                                prepareArgMap(dimension.getArgumentDefinitions())))
                 .collect(Collectors.toList());
     }
 
@@ -206,7 +208,7 @@ public class SQLTable extends Table implements Queryable {
             return null;
         }
 
-        return getColumnProjection(column, prepareArgMap(column.getArguments()));
+        return getColumnProjection(column, prepareArgMap(column.getArgumentDefinitions()));
     }
 
     @Override
@@ -274,13 +276,17 @@ public class SQLTable extends Table implements Queryable {
         return this;
     }
 
+    @Override
+    public Map<String, Argument> getArguments() {
+        return prepareArgMap(getArgumentDefinitions());
+    }
+
     /**
      * Create a map of String and {@link Argument} using {@link Column}'s arguments.
      * @param arguments Set of available {@link Column} arguments.
      * @return A map of String and {@link Argument}
      */
-    private static Map<String, Argument> prepareArgMap(
-                    Set<com.yahoo.elide.datastores.aggregation.metadata.models.Argument> arguments) {
+    private static Map<String, Argument> prepareArgMap(Set<ArgumentDefinition> arguments) {
         return arguments.stream()
                         .map(arg -> Argument.builder()
                                         .name(arg.getName())

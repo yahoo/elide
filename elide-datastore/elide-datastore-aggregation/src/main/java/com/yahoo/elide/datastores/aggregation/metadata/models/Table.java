@@ -24,6 +24,8 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import org.apache.commons.lang3.StringUtils;
+
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -103,7 +105,12 @@ public abstract class Table implements Versioned {
 
     @OneToMany
     @ToString.Exclude
-    private final Set<Argument> arguments;
+    @Getter(value = AccessLevel.NONE)
+    private final Set<ArgumentDefinition> arguments;
+
+    public Set<ArgumentDefinition> getArgumentDefinitions() {
+        return this.arguments;
+    }
 
     public Table(Namespace namespace, Type<?> cls, EntityDictionary dictionary) {
         if (!dictionary.getBoundClasses().contains(cls)) {
@@ -154,7 +161,7 @@ public abstract class Table implements Versioned {
                 this.arguments = new HashSet<>();
             } else {
                 this.arguments = Arrays.stream(meta.arguments())
-                        .map(argument -> new Argument(getId(), argument))
+                        .map(argument -> new ArgumentDefinition(getId(), argument))
                         .collect(Collectors.toCollection(LinkedHashSet::new));
             }
         } else {

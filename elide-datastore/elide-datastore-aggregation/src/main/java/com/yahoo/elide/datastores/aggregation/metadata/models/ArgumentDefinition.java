@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.annotation.ArgumentDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueSourceType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import lombok.AllArgsConstructor;
@@ -27,7 +26,7 @@ import javax.persistence.OneToOne;
 @Data
 @ToString
 @AllArgsConstructor
-public class Argument {
+public class ArgumentDefinition {
     @Id
     private String id;
 
@@ -53,7 +52,8 @@ public class Argument {
         return (defaultValue == null || defaultValue.toString().equals(""));
     }
 
-    public Argument(String idPrefix, ArgumentDefinition argument) {
+    public ArgumentDefinition(String idPrefix,
+                              com.yahoo.elide.datastores.aggregation.annotation.ArgumentDefinition argument) {
         this.id = idPrefix + "." + argument.name();
         this.name = argument.name();
         this.description = argument.description();
