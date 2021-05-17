@@ -211,17 +211,26 @@ public class ColumnContext extends HashMap<String, Object> {
         throw new HandlebarsException(new Throwable("Couldn't find: " + invokedColumnName));
     }
 
-    public static Map<String, Argument> mergedArgumentMap(Map<String, Argument> referencedColumnArgs,
-                                                          Map<String, Argument> callingColumnArgs,
+    /**
+     * Checks if referenced {@link ColumnProjection} or {@link Queryable} arguments are available in either calling
+     * object's arguments or in fixed arguments. If yes, use that value. Fixed arguments gets preference over calling
+     * object's arguments.
+     * @param referencedObjectArgs referenced {@link ColumnProjection} or {@link Queryable} arguments.
+     * @param callingObjectArgs calling {@link ColumnProjection} or {@link Queryable} arguments.
+     * @param fixedArgs Fixed arguments.
+     * @return Available arguments for referenced {@link ColumnProjection} or {@link Queryable}.
+     */
+    public static Map<String, Argument> mergedArgumentMap(Map<String, Argument> referencedObjectArgs,
+                                                          Map<String, Argument> callingObjectArgs,
                                                           Map<String, Argument> fixedArgs) {
 
         Map<String, Argument> columnArgMap = new HashMap<>();
 
-        referencedColumnArgs.forEach((argName, arg) -> {
+        referencedObjectArgs.forEach((argName, arg) -> {
             if (fixedArgs.containsKey(argName)) {
                 columnArgMap.put(argName, fixedArgs.get(argName));
-            } else if (callingColumnArgs.containsKey(argName)) {
-                columnArgMap.put(argName, callingColumnArgs.get(argName));
+            } else if (callingObjectArgs.containsKey(argName)) {
+                columnArgMap.put(argName, callingObjectArgs.get(argName));
             } else {
                 columnArgMap.put(argName, arg);
             }
@@ -230,8 +239,15 @@ public class ColumnContext extends HashMap<String, Object> {
         return columnArgMap;
     }
 
-    public static Map<String, Argument> mergedArgumentMap(Map<String, Argument> referencedColumnArgs,
-                    Map<String, Argument> callingColumnArgs) {
-        return mergedArgumentMap(referencedColumnArgs, callingColumnArgs, emptyMap());
+    /**
+     * Checks if referenced {@link ColumnProjection} or {@link Queryable} arguments are available in calling
+     * object's arguments. If yes, use that value.
+     * @param referencedObjectArgs referenced {@link ColumnProjection} or {@link Queryable} arguments.
+     * @param callingObjectArgs calling {@link ColumnProjection} or {@link Queryable} arguments.
+     * @return Available arguments for referenced {@link ColumnProjection} or {@link Queryable}.
+     */
+    public static Map<String, Argument> mergedArgumentMap(Map<String, Argument> referencedObjectArgs,
+                    Map<String, Argument> callingObjectArgs) {
+        return mergedArgumentMap(referencedObjectArgs, callingObjectArgs, emptyMap());
     }
 }

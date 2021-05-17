@@ -200,10 +200,10 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
         // Verify Table Arguments
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/SalesNamespace_orderDetails?include=argumentDefinitions")
+                .get("/table/SalesNamespace_orderDetails?include=arguments")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body("data.relationships.argumentDefinitions.data.id",
+                .body("data.relationships.arguments.data.id",
                         containsInAnyOrder("SalesNamespace_orderDetails.denominator"));
     }
 
@@ -324,7 +324,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.category",  equalTo("Score Category"))
                 .body("data.attributes.description",  equalTo("very low score"))
                 .body("data.attributes.tags",  containsInAnyOrder("PRIVATE"))
-                .body("data.attributes.argumentDefinitions", nullValue()) // No Arguments were set.
+                .body("data.attributes.arguments", nullValue()) // No Arguments were set.
                 .body("data.relationships.table.data.id", equalTo("playerStats"));
 
         given()
@@ -336,18 +336,18 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.valueType",  equalTo("DECIMAL"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.expression",  equalTo("({{timeSpent}} / (CASE WHEN SUM({{$game_rounds}}) = 0 THEN 1 ELSE {{sessions}} END))"))
-                .body("data.attributes.argumentDefinitions", nullValue()) // No Arguments were set.
+                .body("data.attributes.arguments", nullValue()) // No Arguments were set.
                 .body("data.relationships.table.data.id", equalTo("videoGame"));
 
         // Verify Metric Arguments
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/SalesNamespace_orderDetails/metrics/SalesNamespace_orderDetails.orderTotal?include=argumentDefinitions")
+                .get("/table/SalesNamespace_orderDetails/metrics/SalesNamespace_orderDetails.orderTotal?include=arguments")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.name", equalTo("orderTotal"))
                 .body("data.attributes.friendlyName", equalTo("orderTotal"))
-                .body("data.relationships.argumentDefinitions.data.id", containsInAnyOrder("SalesNamespace_orderDetails.orderTotal.precision"));
+                .body("data.relationships.arguments.data.id", containsInAnyOrder("SalesNamespace_orderDetails.orderTotal.precision"));
     }
 
     @Test

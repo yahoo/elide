@@ -21,6 +21,8 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueSourceType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -80,7 +82,12 @@ public abstract class Column implements Versioned {
 
     @OneToMany
     @ToString.Exclude
-    private final Set<ArgumentDefinition> argumentDefinitions;
+    @Getter(value = AccessLevel.NONE)
+    private final Set<ArgumentDefinition> arguments;
+
+    public Set<ArgumentDefinition> getArgumentDefinitions() {
+        return this.arguments;
+    }
 
     @ToString.Exclude
     private final Set<String> tags;
@@ -120,7 +127,7 @@ public abstract class Column implements Versioned {
             MetricFormula metricFormula = dictionary.getAttributeOrRelationAnnotation(tableClass, MetricFormula.class,
                     fieldName);
             this.expression = metricFormula.value();
-            this.argumentDefinitions = Arrays.stream(metricFormula.arguments())
+            this.arguments = Arrays.stream(metricFormula.arguments())
                     .map(argument -> new ArgumentDefinition(getId(), argument))
                     .collect(Collectors.toCollection(LinkedHashSet::new));
         } else if (dictionary.attributeOrRelationAnnotationExists(tableClass, fieldName, DimensionFormula.class)) {
@@ -128,13 +135,13 @@ public abstract class Column implements Versioned {
             DimensionFormula dimensionFormula = dictionary.getAttributeOrRelationAnnotation(tableClass,
                     DimensionFormula.class, fieldName);
             this.expression = dimensionFormula.value();
-            this.argumentDefinitions = Arrays.stream(dimensionFormula.arguments())
+            this.arguments = Arrays.stream(dimensionFormula.arguments())
                     .map(argument -> new ArgumentDefinition(getId(), argument))
                     .collect(Collectors.toCollection(LinkedHashSet::new));
         } else {
             columnType = FIELD;
             expression = "{{$" + dictionary.getAnnotatedColumnName(tableClass, fieldName) + "}}";
-            this.argumentDefinitions = new LinkedHashSet<>();
+            this.arguments = new LinkedHashSet<>();
         }
 
         this.valueType = getValueType(tableClass, fieldName, dictionary);

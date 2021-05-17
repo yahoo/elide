@@ -24,6 +24,8 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import org.apache.commons.lang3.StringUtils;
+
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -103,7 +105,12 @@ public abstract class Table implements Versioned {
 
     @OneToMany
     @ToString.Exclude
-    private final Set<ArgumentDefinition> argumentDefinitions;
+    @Getter(value = AccessLevel.NONE)
+    private final Set<ArgumentDefinition> arguments;
+
+    public Set<ArgumentDefinition> getArgumentDefinitions() {
+        return this.arguments;
+    }
 
     public Table(Namespace namespace, Type<?> cls, EntityDictionary dictionary) {
         if (!dictionary.getBoundClasses().contains(cls)) {
@@ -151,9 +158,9 @@ public abstract class Table implements Versioned {
             this.hints = new LinkedHashSet<>(Arrays.asList(meta.hints()));
             this.cardinality = meta.size();
             if (meta.arguments().length == 0) {
-                this.argumentDefinitions = new HashSet<>();
+                this.arguments = new HashSet<>();
             } else {
-                this.argumentDefinitions = Arrays.stream(meta.arguments())
+                this.arguments = Arrays.stream(meta.arguments())
                         .map(argument -> new ArgumentDefinition(getId(), argument))
                         .collect(Collectors.toCollection(LinkedHashSet::new));
             }
@@ -165,7 +172,7 @@ public abstract class Table implements Versioned {
             this.tags = new HashSet<>();
             this.hints = new LinkedHashSet<>();
             this.cardinality = CardinalitySize.UNKNOWN;
-            this.argumentDefinitions = new HashSet<>();
+            this.arguments = new HashSet<>();
         }
     }
 
