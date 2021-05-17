@@ -28,7 +28,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * Provides Join Expressions for all the {@link JoinReference} in a given reference tree.
