@@ -284,7 +284,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.expression",  equalTo("{{player.name}}"))
                 .body("data.attributes.tableSource",  nullValue())
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
-                .body("data.attributes.arguments", nullValue()); // No Arguments were set.
+                .body("data.relationships.arguments.data", empty()); // No Arguments were set.
     }
 
     @Test
@@ -376,7 +376,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.valueType",  equalTo("TIME"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.expression",  equalTo("{{$recordedDate}}"))
-                .body("data.attributes.arguments", nullValue()) // No Arguments were set.
+                .body("data.relationships.arguments.data", empty()) // No Arguments were set.
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
                 .body("data.relationships.supportedGrains.data.id", containsInAnyOrder("playerStats.recordedDate.day", "playerStats.recordedDate.month", "playerStats.recordedDate.quarter"))
                 .body("included.id", containsInAnyOrder("playerStats.recordedDate.day", "playerStats.recordedDate.month", "playerStats.recordedDate.quarter"))
@@ -405,7 +405,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.category",  equalTo("Score Category"))
                 .body("data.attributes.description",  equalTo("very low score"))
                 .body("data.attributes.tags",  containsInAnyOrder("PRIVATE"))
-                .body("data.attributes.arguments", nullValue()) // No Arguments were set.
+                .body("data.relationships.arguments.data", empty()) // No Arguments were set.
                 .body("data.relationships.table.data.id", equalTo("playerStats"));
 
         given()
@@ -417,7 +417,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.valueType",  equalTo("DECIMAL"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.expression",  equalTo("({{timeSpent}} / (CASE WHEN SUM({{$game_rounds}}) = 0 THEN 1 ELSE {{sessions}} END))"))
-                .body("data.attributes.arguments", nullValue()) // No Arguments were set.
+                .body("data.relationships.arguments.data", empty()) // No Arguments were set.
                 .body("data.relationships.table.data.id", equalTo("videoGame"));
 
         // Verify Metric Arguments
@@ -429,6 +429,24 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.name", equalTo("orderTotal"))
                 .body("data.attributes.friendlyName", equalTo("orderTotal"))
                 .body("data.relationships.arguments.data.id", containsInAnyOrder("SalesNamespace_orderDetails.orderTotal.precision"));
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_orderDetails/metrics/SalesNamespace_orderDetails.id")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("id"))
+                .body("data.attributes.friendlyName", equalTo("Row Number"))
+                .body("data.attributes.valueType",  equalTo("ID"))
+                .body("data.attributes.valueSourceType",  equalTo("NONE"))
+                .body("data.attributes.columnType",  equalTo("FIELD"))
+                .body("data.attributes.description",  equalTo("Row number for each record returned by a query."))
+                .body("data.attributes.expression",  equalTo("{{$id}}"))
+                .body("data.attributes.category",  nullValue())
+                .body("data.attributes.tags",  empty())
+                .body("data.attributes.values",  empty())
+                .body("data.relationships.arguments.data", empty()) // No Arguments were set.
+                .body("data.relationships.table.data.id", equalTo("SalesNamespace_orderDetails"));
     }
 
     @Test
