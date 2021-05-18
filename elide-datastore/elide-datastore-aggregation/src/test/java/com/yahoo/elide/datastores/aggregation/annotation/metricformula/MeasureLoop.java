@@ -11,6 +11,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
 
+import javax.persistence.Id;
+
 @Include
 @EqualsAndHashCode
 @ToString
@@ -34,5 +36,10 @@ public class MeasureLoop {
     @MetricFormula("{{highScore}}")
     public long getLowScore() {
         return lowScore;
+    }
+
+    @Id
+    public String getId() {
+        return id;
     }
 }
