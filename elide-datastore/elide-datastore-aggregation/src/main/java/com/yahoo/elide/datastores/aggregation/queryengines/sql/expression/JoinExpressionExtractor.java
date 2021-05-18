@@ -11,6 +11,7 @@ import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.merg
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.hasSql;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.resolveTableOrSubselect;
+import static java.util.Collections.emptySet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -164,5 +165,15 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
         }
 
         return applyQuotes(resolveTableOrSubselect(dictionary, cls), columnCtx.getQueryable().getDialect());
+    }
+
+    @Override
+    public Set<String> visitColumnArgReference(ColumnArgReference reference) {
+        return emptySet();
+    }
+
+    @Override
+    public Set<String> visitTableArgReference(TableArgReference reference) {
+        return emptySet();
     }
 }
