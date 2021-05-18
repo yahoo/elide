@@ -109,6 +109,7 @@ public class EntityDictionary {
 
     protected final ConcurrentHashMap<Pair<String, String>, Type<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Type<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
+    @Getter
     protected final ConcurrentHashMap<Type<?>, Function<RequestScope, PermissionExecutor>> entityPermissionExecutor =
             new ConcurrentHashMap<>();
     protected final CopyOnWriteArrayList<Type<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
@@ -1088,7 +1089,7 @@ public class EntityDictionary {
      * @param scope - request scope to generate permission executor.
      * @return Map of bound model type to its permission executor object.
      */
-    public Map<Type<?>, PermissionExecutor> getPermissionExecutors(RequestScope scope) {
+    public Map<Type<?>, PermissionExecutor> buildPermissionExecutors(RequestScope scope) {
         return entityPermissionExecutor.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,

@@ -110,9 +110,9 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
         Set<ColumnProjection> innerProjections;
 
         if (requiresJoin && joinInOuter) {
-            outerProjection = withExpression(getExpression(), inProjection);
+            String outerProjectionExpression = toPhysicalReferences(source, store);
+            outerProjection = withExpression(outerProjectionExpression, inProjection);
 
-            //TODO - the expression needs to be rewritten to leverage the inner column physical projections.
             innerProjections = SQLColumnProjection.extractPhysicalReferences(references, store);
         } else {
             outerProjection = SQLTimeDimensionProjection.builder()

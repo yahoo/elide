@@ -30,6 +30,7 @@ import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.checks.OperatorCheck;
+import com.yahoo.elide.datastores.aggregation.checks.VideoGameFilterCheck;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
@@ -106,6 +107,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 protected void configure() {
                     Map<String, Class<? extends Check>> map = new HashMap<>(TestCheckMappings.MAPPINGS);
                     map.put(OperatorCheck.OPERTOR_CHECK, OperatorCheck.class);
+                    map.put(VideoGameFilterCheck.NAME_FILTER, VideoGameFilterCheck.class);
                     EntityDictionary dictionary = new EntityDictionary(map);
 
                     VALIDATOR.getElideSecurityConfig().getRoles().forEach(role ->
@@ -293,15 +295,46 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                         field("playerName", "Jon Doe")
                                 ),
                                 selections(
-                                        field("timeSpent", 200),
-                                        field("sessions", 10),
-                                        field("timeSpentPerSession", 20.0),
+                                        field("timeSpent", 350),
+                                        field("sessions", 25),
+                                        field("timeSpentPerSession", 14.0),
                                         field("playerName", "Jane Doe")
+                                ),
+                                selections(
+                                        field("timeSpent", 300),
+                                        field("sessions", 10),
+                                        field("timeSpentPerSession", 30.0),
+                                        field("playerName", "Han")
                                 )
                         )
                 )
         ).toResponse();
 
+        runQueryWithExpectedResult(graphQLRequest, expected);
+
+        //When admin = false
+
+        when(securityContextMock.isUserInRole("admin.user")).thenReturn(false);
+
+        expected = document(
+                selections(
+                        field(
+                                "videoGame",
+                                selections(
+                                        field("timeSpent", 720),
+                                        field("sessions", 60),
+                                        field("timeSpentPerSession", 12.0),
+                                        field("playerName", "Jon Doe")
+                                ),
+                                selections(
+                                        field("timeSpent", 350),
+                                        field("sessions", 25),
+                                        field("timeSpentPerSession", 14.0),
+                                        field("playerName", "Jane Doe")
+                                )
+                        )
+                )
+        ).toResponse();
         runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
@@ -1634,5 +1667,68 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
         String expected = "Invalid operation: SalesNamespace_orderDetails is read only.";
 
         runQueryWithExpectedError(graphQLRequest, expected);
+    }
+
+
+    //Security
+    @Test
+    public void testPermissionFilters() throws IOException {
+        when(securityContextMock.isUserInRole("admin.user")).thenReturn(false);
+
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "videoGame",
+                                arguments(
+                                        argument("sort", "\"timeSpentPerSession\"")
+                                ),
+                                selections(
+                                        field("timeSpent"),
+                                        field("sessions"),
+                                        field("timeSpentPerSession")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        //Records for Jon Doe and Jane Doe will only be aggregated.
+        String expected = document(
+                selections(
+                        field(
+                                "videoGame",
+                                selections(
+                                        field("timeSpent", 1070),
+                                        field("sessions", 85),
+                                        field("timeSpentPerSession", 12.588235)
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+
+    }
+
+    @Test
+    public void testFieldPermissions() throws IOException {
+        when(securityContextMock.isUserInRole("operator")).thenReturn(false);
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "videoGame",
+                                selections(
+                                        field("timeSpent"),
+                                        field("sessions"),
+                                        field("timeSpentPerSession"),
+                                        field("timeSpentPerGame")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = "Exception while fetching data (/videoGame/edges[0]/node/timeSpentPerGame) : ReadPermission Denied";
+
+        runQueryWithExpectedError(graphQLRequest, expected);
+
     }
 }

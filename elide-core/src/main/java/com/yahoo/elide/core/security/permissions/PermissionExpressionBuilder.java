@@ -366,6 +366,8 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
         OrExpression allFieldsExpression = new OrExpression(FAILURE, null);
         List<String> fields = entityDictionary.getAllFields(resourceClass);
 
+        boolean fieldExpressionUsed = false;
+
         for (String field : fields) {
             if (requestedFields != null && !requestedFields.contains(field)) {
                 continue;
@@ -377,8 +379,13 @@ public class PermissionExpressionBuilder implements CheckInstantiator {
             if (fieldExpression == null) {
                 return SUCCESSFUL_EXPRESSION;
             }
+            fieldExpressionUsed = true;
 
             allFieldsExpression = new OrExpression(allFieldsExpression, fieldExpression);
+        }
+
+        if (!fieldExpressionUsed) {
+            return SUCCESSFUL_EXPRESSION;
         }
 
         return new AnyFieldExpression(condition, allFieldsExpression);
