@@ -100,7 +100,7 @@ public class AggregationStorePermissionExecutor extends AbstractPermissionExecut
                                                                                          ChangeSpec changeSpec,
                                                                                          Class<A> annotationClass,
                                                                                          String field) {
-        throw new UnsupportedOperationException();
+        return checkSpecificFieldPermissions(resource, changeSpec, annotationClass, field);
     }
 
     /**
