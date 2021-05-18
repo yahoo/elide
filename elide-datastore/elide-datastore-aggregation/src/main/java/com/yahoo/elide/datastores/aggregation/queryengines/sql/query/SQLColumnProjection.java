@@ -99,9 +99,14 @@ public interface SQLColumnProjection extends ColumnProjection {
         Set<ColumnProjection> innerProjections;
 
         if (requiresJoin && joinInOuter) {
-
-            //TODO - the expression needs to be rewritten to leverage the inner column physical projections.
-            outerProjection = withExpression(getExpression(), inProjection);
+            PhysicalRefColumnContext context = PhysicalRefColumnContext.physicalRefContextBuilder()
+                    .queryable(source)
+                    .alias("")
+                    .metaDataStore(store)
+                    .column(this)
+                    .tableArguments(source.getArguments())
+                    .build();
+            outerProjection = withExpression(context.resolve(getExpression()), inProjection);
 
             innerProjections = extractPhysicalReferences(references, store);
         } else {

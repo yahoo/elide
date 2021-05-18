@@ -81,4 +81,7 @@ public class GameRevenue {
      }, timeZone = "UTC")
     @DimensionFormula("CASE WHEN {{sessionDate}} > {{saleDate}} THEN {{sessionDate}} ELSE {{saleDate}} END")
     private Day lastDate;
+
+    @DimensionFormula("CASE WHEN {{countryIsoCode}} = 'US' THEN {{category}} ELSE 'UNKNONWN' END")
+    private String countryCategory;
 }
