@@ -1376,8 +1376,8 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, GameRevenue.class, dictionary))
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`," +
-                "PARSEDATETIME(FORMATDATETIME(CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `lastDate` "
+        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "PARSEDATETIME(FORMATDATETIME(CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `lastDate` "
                 + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
                 + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` AS `player_stats_id`,"
                 + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate` AS `saleDate` "
