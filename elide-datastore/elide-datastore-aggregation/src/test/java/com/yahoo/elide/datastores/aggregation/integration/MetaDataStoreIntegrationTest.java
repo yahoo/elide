@@ -242,7 +242,6 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body(
                         "data.relationships.dimensions.data.id",
                         containsInAnyOrder(
-                                "playerStats.id",
                                 "playerStats.playerName",
                                 "playerStats.playerRank",
                                 "playerStats.playerLevel",
@@ -253,7 +252,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                                 "playerStats.countryIsoCode",
                                 "playerStats.subCountryIsoCode",
                                 "playerStats.overallRating"))
-                .body("data.relationships.metrics.data.id", containsInAnyOrder("playerStats.lowScore",
+                .body("data.relationships.metrics.data.id", containsInAnyOrder("playerStats.id", "playerStats.lowScore",
                         "playerStats.highScore", "playerStats.dailyAverageScorePerPeriod"))
                 .body("data.relationships.timeDimensions.data.id", containsInAnyOrder("playerStats.recordedDate",
                         "playerStats.updatedDate"));
@@ -323,6 +322,26 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .get("/table/playerStats/dimensions/playerStats.overallRating")
                 .then()
                 .body("data.attributes.tags", containsInAnyOrder("PUBLIC"))
+                .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void dimensionIdTest() {
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/book/dimensions/book.id")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void metricIdTest() {
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/planet/metrics/planet.id")
+                .then()
                 .statusCode(HttpStatus.SC_OK);
     }
 

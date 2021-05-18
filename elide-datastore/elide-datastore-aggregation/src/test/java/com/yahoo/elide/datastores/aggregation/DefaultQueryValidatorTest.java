@@ -115,7 +115,7 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
     public void testQueryingByIdAlone() {
         Query query = Query.builder()
                 .source(playerStatsTable)
-                .dimensionProjection(playerStatsTable.getDimensionProjection("id"))
+                .metricProjection(playerStatsTable.getMetricProjection("id"))
                 .build();
 
         validateQuery(query, "Invalid operation: Cannot query a table only by ID");
@@ -129,7 +129,7 @@ public class DefaultQueryValidatorTest extends SQLUnitTest {
         Query query = Query.builder()
                 .source(playerStatsTable)
                 .metricProjection(playerStatsTable.getMetricProjection("lowScore"))
-                .dimensionProjection(playerStatsTable.getDimensionProjection("id"))
+                .metricProjection(playerStatsTable.getMetricProjection("id"))
                 .dimensionProjection(playerStatsTable.getDimensionProjection("overallRating"))
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .build();

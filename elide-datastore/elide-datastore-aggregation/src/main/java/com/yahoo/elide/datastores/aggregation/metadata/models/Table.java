@@ -15,6 +15,7 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.TypeHelper;
+import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
@@ -112,6 +113,9 @@ public abstract class Table implements Versioned {
         return this.arguments;
     }
 
+    @Exclude
+    private Type<?> model;
+
     public Table(Namespace namespace, Type<?> cls, EntityDictionary dictionary) {
         if (!dictionary.getBoundClasses().contains(cls)) {
             throw new IllegalArgumentException(
@@ -123,6 +127,7 @@ public abstract class Table implements Versioned {
 
         this.name = dictionary.getJsonAliasFor(cls);
         this.version = EntityDictionary.getModelVersion(cls);
+        this.model = cls;
 
         this.alias = TypeHelper.getTypeAlias(cls);
 
@@ -214,7 +219,13 @@ public abstract class Table implements Versioned {
 
         // add id field if exists
         if (dictionary.getIdFieldName(cls) != null) {
-            columns.add(constructDimension(dictionary.getIdFieldName(cls), dictionary));
+
+            String idFieldName = dictionary.getIdFieldName(cls);
+            if (AggregationDataStore.isAggregationStoreModel(cls)) {
+                columns.add(constructMetric(idFieldName, dictionary));
+            } else {
+                columns.add(constructDimension(idFieldName, dictionary));
+            }
         }
         return columns;
     }

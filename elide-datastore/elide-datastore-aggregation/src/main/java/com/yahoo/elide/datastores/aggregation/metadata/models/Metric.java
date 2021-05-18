@@ -27,19 +27,24 @@ public class Metric extends Column {
     @ToString.Exclude
     private final MetricProjectionMaker metricProjectionMaker;
 
+    public Metric(MetricProjectionMaker maker, Table table, String fieldName, EntityDictionary dictionary) {
+        super(table, fieldName, dictionary);
+        this.metricProjectionMaker = maker;
+    }
+
     public Metric(Table table, String fieldName, EntityDictionary dictionary) {
         super(table, fieldName, dictionary);
         Type<?> tableClass = dictionary.getEntityClass(table.getName(), table.getVersion());
 
         MetricFormula formula = dictionary.getAttributeOrRelationAnnotation(tableClass, MetricFormula.class, fieldName);
 
-        verfiyFormula(formula);
-
+        verifyFormula(formula);
         this.metricProjectionMaker = dictionary.getInjector().instantiate(formula.maker());
+
         dictionary.getInjector().inject(this.metricProjectionMaker);
     }
 
-    private void verfiyFormula(MetricFormula formula) {
+    private void verifyFormula(MetricFormula formula) {
         if (formula == null) {
             throw new IllegalStateException("Trying to construct metric field " + getId() + " without @MetricFormula.");
         }
