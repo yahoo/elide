@@ -64,6 +64,7 @@ public interface SQLColumnProjection extends ColumnProjection {
         PhysicalRefColumnContext context = PhysicalRefColumnContext.physicalRefContextBuilder()
                         .queryable(query)
                         .metaDataStore(metaDataStore)
+                        .alias("")
                         .column(this)
                         .tableArguments(query.getArguments())
                         .build();
@@ -99,14 +100,8 @@ public interface SQLColumnProjection extends ColumnProjection {
         Set<ColumnProjection> innerProjections;
 
         if (requiresJoin && joinInOuter) {
-            PhysicalRefColumnContext context = PhysicalRefColumnContext.physicalRefContextBuilder()
-                    .queryable(source)
-                    .alias("")
-                    .metaDataStore(store)
-                    .column(this)
-                    .tableArguments(source.getArguments())
-                    .build();
-            outerProjection = withExpression(context.resolve(getExpression()), inProjection);
+            String outerProjectionExpression = toPhysicalReferences(source, store);
+            outerProjection = withExpression(outerProjectionExpression, inProjection);
 
             innerProjections = extractPhysicalReferences(references, store);
         } else {

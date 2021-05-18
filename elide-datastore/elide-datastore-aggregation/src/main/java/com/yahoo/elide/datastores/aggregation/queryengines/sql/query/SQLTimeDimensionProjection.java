@@ -10,7 +10,6 @@ import com.yahoo.elide.core.exceptions.InvalidParameterizedAttributeException;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.PhysicalRefColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
@@ -111,15 +110,8 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
         Set<ColumnProjection> innerProjections;
 
         if (requiresJoin && joinInOuter) {
-
-            PhysicalRefColumnContext context = PhysicalRefColumnContext.physicalRefContextBuilder()
-                    .queryable(source)
-                    .alias("")
-                    .metaDataStore(store)
-                    .column(this)
-                    .tableArguments(source.getArguments())
-                    .build();
-            outerProjection = withExpression(context.resolve(getExpression()), inProjection);
+            String outerProjectionExpression = toPhysicalReferences(source, store);
+            outerProjection = withExpression(outerProjectionExpression, inProjection);
 
             innerProjections = SQLColumnProjection.extractPhysicalReferences(references, store);
         } else {
