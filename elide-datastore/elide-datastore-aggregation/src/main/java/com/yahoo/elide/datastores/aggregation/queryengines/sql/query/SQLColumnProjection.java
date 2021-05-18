@@ -16,9 +16,9 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SyntaxVer
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasJoinVisitor;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.JoinExpressionExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.PhysicalReferenceExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ReferenceMatchingVisitor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -89,28 +90,12 @@ public interface SQLColumnProjection extends ColumnProjection {
 
         List<Reference> references = new ExpressionParser(metaDataStore).parse(source, this);
 
-        ColumnContext ctx = ColumnContext
-                .builder()
-                .metaDataStore(metaDataStore)
-                .column(this)
-                .queryable(source)
-                .tableArguments(source.getArguments())
-                .alias(source.getSource().getAlias())
-                .build();
-
         //Search for any join expression that contains $$column.  If found, we cannot nest
         //because rewriting the SQL in the outer expression will lose the context of the calling $$column.
-        JoinExpressionExtractor.JoinResolver columnResolver = (expression, context) -> expression;
+        Predicate<String> matcher = (expression) -> expression.contains(COL_PREFIX);
 
         return ! (references.stream().anyMatch(reference -> {
-            Set<String> joinExpressions = reference.accept(new JoinExpressionExtractor(ctx, columnResolver));
-
-            return joinExpressions.stream().anyMatch(expression -> {
-                if (expression.contains(COL_PREFIX)) {
-                    return true;
-                }
-                return false;
-            });
+            return reference.accept(new ReferenceMatchingVisitor(matcher, metaDataStore));
         }));
     }
 
