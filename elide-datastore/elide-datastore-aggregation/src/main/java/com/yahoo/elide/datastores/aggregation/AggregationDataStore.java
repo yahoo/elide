@@ -6,14 +6,16 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import com.yahoo.elide.annotation.ReadPermission;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.UserCheck;
-import com.yahoo.elide.core.security.executors.ActivePermissionExecutor;
+import com.yahoo.elide.core.security.executors.AggregationStorePermissionExecutor;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
@@ -41,6 +43,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -53,6 +56,9 @@ public class AggregationDataStore implements DataStore {
     private final Cache cache;
     private final Set<Type<?>> dynamicCompiledClasses;
     private final QueryLogger queryLogger;
+
+    private final Function<RequestScope, PermissionExecutor> aggPermissionExecutor =
+            AggregationStorePermissionExecutor::new;
 
     /**
      * These are the classes the Aggregation Store manages.
@@ -71,14 +77,14 @@ public class AggregationDataStore implements DataStore {
             dynamicCompiledClasses.forEach(dynamicLoadedClass -> {
                 dictionary.bindEntity(dynamicLoadedClass, Collections.singleton(Join.class));
                 validateModelExpressionChecks(dictionary, dynamicLoadedClass);
-                dictionary.bindPermissionExecutor(dynamicLoadedClass, ActivePermissionExecutor::new);
+                dictionary.bindPermissionExecutor(dynamicLoadedClass, aggPermissionExecutor);
             });
         }
 
         ClassScanner.getAnnotatedClasses(AGGREGATION_STORE_CLASSES).forEach(cls -> {
                     dictionary.bindEntity(cls, Collections.singleton(Join.class));
                     validateModelExpressionChecks(dictionary, ClassType.of(cls));
-                    dictionary.bindPermissionExecutor(cls, ActivePermissionExecutor::new);
+                    dictionary.bindPermissionExecutor(cls, aggPermissionExecutor);
                 }
         );
 

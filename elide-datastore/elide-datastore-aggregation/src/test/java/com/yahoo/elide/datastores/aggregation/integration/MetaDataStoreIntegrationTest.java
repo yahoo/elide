@@ -30,6 +30,7 @@ import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.datastores.aggregation.checks.OperatorCheck;
+import com.yahoo.elide.datastores.aggregation.checks.VideoGameFilterCheck;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
@@ -70,6 +71,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 protected void configure() {
                     Map<String, Class<? extends Check>> map = new HashMap<>(TestCheckMappings.MAPPINGS);
                     map.put(OperatorCheck.OPERTOR_CHECK, OperatorCheck.class);
+                    map.put(VideoGameFilterCheck.NAME_FILTER, VideoGameFilterCheck.class);
                     EntityDictionary dictionary = new EntityDictionary(map);
 
                     VALIDATOR.getElideSecurityConfig().getRoles().forEach(role ->
