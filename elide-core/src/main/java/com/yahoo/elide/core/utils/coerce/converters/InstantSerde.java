@@ -14,7 +14,6 @@ import java.time.format.DateTimeParseException;
  *
  * Uses the semantics of {@link java.time.format.DateTimeFormatter#ISO_INSTANT}
  */
-@ElideTypeConverter(type = Instant.class, name = "Instant")
 public class InstantSerde implements Serde<String, Instant> {
     @Override
     public Instant deserialize(final String value) {

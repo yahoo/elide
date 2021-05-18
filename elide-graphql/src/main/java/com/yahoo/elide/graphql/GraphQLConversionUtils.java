@@ -17,7 +17,6 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
-import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLArgument;
@@ -66,16 +65,13 @@ public class GraphQLConversionUtils {
     }
 
     private void registerCustomScalars() {
-        for (Class serdeType : CoerceUtil.getSerdes().keySet()) {
-            Serde serde = CoerceUtil.lookup(serdeType);
-            ElideTypeConverter elideTypeConverter = serde.getClass()
-                    .getAnnotation(ElideTypeConverter.class);
-            if (elideTypeConverter != null) {
-                SerdeCoercing serdeCoercing = new SerdeCoercing(ERROR_MESSAGE, serde);
-                scalarMap.put(ClassType.of(elideTypeConverter.type()), new GraphQLScalarType(elideTypeConverter.name(),
-                        elideTypeConverter.description(), serdeCoercing));
-            }
-        }
+        CoerceUtil.getSerdes().forEach((type, serde) -> {
+            SerdeCoercing<?, ?> serdeCoercing = new SerdeCoercing<>(ERROR_MESSAGE, serde);
+            ElideTypeConverter elideTypeConverter = serde.getClass().getAnnotation(ElideTypeConverter.class);
+            String name = elideTypeConverter != null ? elideTypeConverter.name() : type.getSimpleName();
+            String description = elideTypeConverter != null ? elideTypeConverter.description() : type.getSimpleName();
+            scalarMap.put(ClassType.of(type), new GraphQLScalarType(name, description, serdeCoercing));
+        });
     }
 
     /**
