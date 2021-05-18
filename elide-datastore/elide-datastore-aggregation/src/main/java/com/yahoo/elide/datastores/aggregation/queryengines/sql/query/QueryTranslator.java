@@ -131,7 +131,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
         Type<?> tableCls = dictionary.getEntityClass(table.getName(), table.getVersion());
         String tableAlias = applyQuotes(table.getAlias());
 
-        TableContext context = TableContext.builder().queryable(clientQuery).build();
+        TableContext context = TableContext.builder().tableArguments(clientQuery.getArguments()).build();
 
         String tableStatement = tableCls.isAnnotationPresent(FromSubquery.class)
                 ? "(" + context.resolve(tableCls.getAnnotation(FromSubquery.class).sql()) + ")"
@@ -300,6 +300,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
                         .alias(query.getSource().getAlias())
                         .metaDataStore(metaDataStore)
                         .column(column)
+                        .tableArguments(query.getArguments())
                         .build();
 
         JoinExpressionExtractor visitor = new JoinExpressionExtractor(context);

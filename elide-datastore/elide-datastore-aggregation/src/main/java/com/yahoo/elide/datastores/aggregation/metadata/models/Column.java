@@ -21,6 +21,8 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueSourceType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -80,7 +82,12 @@ public abstract class Column implements Versioned {
 
     @OneToMany
     @ToString.Exclude
-    private final Set<Argument> arguments;
+    @Getter(value = AccessLevel.NONE)
+    private final Set<ArgumentDefinition> arguments;
+
+    public Set<ArgumentDefinition> getArgumentDefinitions() {
+        return this.arguments;
+    }
 
     @ToString.Exclude
     private final Set<String> tags;
@@ -121,7 +128,7 @@ public abstract class Column implements Versioned {
                     fieldName);
             this.expression = metricFormula.value();
             this.arguments = Arrays.stream(metricFormula.arguments())
-                    .map(argument -> new Argument(getId(), argument))
+                    .map(argument -> new ArgumentDefinition(getId(), argument))
                     .collect(Collectors.toCollection(LinkedHashSet::new));
         } else if (dictionary.attributeOrRelationAnnotationExists(tableClass, fieldName, DimensionFormula.class)) {
             columnType = FORMULA;
@@ -129,7 +136,7 @@ public abstract class Column implements Versioned {
                     DimensionFormula.class, fieldName);
             this.expression = dimensionFormula.value();
             this.arguments = Arrays.stream(dimensionFormula.arguments())
-                    .map(argument -> new Argument(getId(), argument))
+                    .map(argument -> new ArgumentDefinition(getId(), argument))
                     .collect(Collectors.toCollection(LinkedHashSet::new));
         } else {
             columnType = FIELD;

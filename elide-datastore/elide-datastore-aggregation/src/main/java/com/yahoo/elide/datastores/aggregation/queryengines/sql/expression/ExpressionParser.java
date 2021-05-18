@@ -7,7 +7,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
 import static com.yahoo.elide.core.request.Argument.getArgumentMapFromString;
-import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.getColumnArgMap;
+import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.mergedArgumentMap;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import com.yahoo.elide.core.Path;
@@ -126,9 +126,9 @@ public class ExpressionParser {
                 Preconditions.checkNotNull(referencedColumn);
 
                 ColumnProjection newColumn = referencedColumn.withArguments(
-                                getColumnArgMap(referencedColumn.getArguments(),
-                                                callingColumnArgs,
-                                                fixedArguments));
+                                mergedArgumentMap(referencedColumn.getArguments(),
+                                                  callingColumnArgs,
+                                                  fixedArguments));
 
                 List<Reference> references = buildReferenceForColumn(source, newColumn);
 
@@ -177,9 +177,9 @@ public class ExpressionParser {
         } else {
             ColumnProjection referencedColumn = joinSource.getColumnProjection(fieldName);
             ColumnProjection newColumn = referencedColumn.withArguments(
-                            getColumnArgMap(referencedColumn.getArguments(),
-                                            callingColumnArgs,
-                                            fixedArguments));
+                            mergedArgumentMap(referencedColumn.getArguments(),
+                                              callingColumnArgs,
+                                              fixedArguments));
 
             reference = LogicalReference
                             .builder()

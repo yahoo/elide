@@ -171,7 +171,6 @@ public class SQLQueryEngine extends QueryEngine {
     public MetricProjection constructMetricProjection(Metric metric,
                                                       String alias,
                                                       Map<String, Argument> arguments) {
-
         return metric.getMetricProjectionMaker().make(metric, alias, arguments);
     }
 

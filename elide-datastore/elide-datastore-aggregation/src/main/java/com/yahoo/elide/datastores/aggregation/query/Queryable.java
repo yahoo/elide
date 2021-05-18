@@ -18,6 +18,7 @@ import com.google.common.collect.Streams;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -330,5 +331,13 @@ public interface Queryable {
         }));
 
         return filterProjections;
+    }
+
+    /**
+     * Gets the available arguments for this queryable.
+     * @return available arguments for this queryable as map of String and {@link Argument}.
+     */
+    default Map<String, Argument> getArguments() {
+        return Collections.emptyMap();
     }
 }

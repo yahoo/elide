@@ -18,6 +18,7 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.ArgumentDefinition;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
+import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -52,6 +53,7 @@ public class JoinExpressionExtractorTest {
     private SQLTable table;
     private MetaDataStore metaDataStore;
     private SQLQueryEngine engine;
+    private Map<String, Argument> queryArgs;
 
     public JoinExpressionExtractorTest() {
 
@@ -71,6 +73,8 @@ public class JoinExpressionExtractorTest {
         // The query engine populates the metadata store with actual tables.
         engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(mockDataSource, new H2Dialect()));
         table = metaDataStore.getTable(ClassType.of(MainTable.class));
+        queryArgs = new HashMap<>();
+        queryArgs.put("tableArg", Argument.builder().name("tableArg").value("tableArgValue").build());
     }
 
     // Case:
@@ -115,14 +119,14 @@ public class JoinExpressionExtractorTest {
         Query query = Query.builder()
                         .source(table)
                         .dimensionProjection(dim2)
-                        .arguments(emptyMap())
+                        .arguments(queryArgs)
                         .build();
 
         String generatedSql = engine.explain(query).get(0);
 
         String expectedSQL =
                           "SELECT " + NL
-                        + "  DISTINCT `MainTable_join_258525107_joinjoin_88940112`.`dim3` AS `dim2` " + NL
+                        + "  DISTINCT `MainTable_join_258525107_joinjoin_88940112`.`dim3` - 'tableArgValue' AS `dim2` " + NL
                         + "FROM " + NL
                         + "  `main_table` AS `MainTable` " + NL
                         + "LEFT OUTER JOIN " + NL
@@ -149,14 +153,14 @@ public class JoinExpressionExtractorTest {
         Query query = Query.builder()
                         .source(table)
                         .dimensionProjection(dim3)
-                        .arguments(emptyMap())
+                        .arguments(queryArgs)
                         .build();
 
         String generatedSql = engine.explain(query).get(0);
 
         String expectedSQL =
                           "SELECT " + NL
-                        + "  DISTINCT `MainTable_join_258525107_joinjoin_88940112`.`dim3` AS `dim3` " + NL
+                        + "  DISTINCT `MainTable_join_258525107_joinjoin_88940112`.`dim3` - 'tableArgValue' AS `dim3` " + NL
                         + "FROM " + NL
                         + "  `main_table` AS `MainTable` " + NL
                         + "LEFT OUTER JOIN " + NL
@@ -470,6 +474,7 @@ public class JoinExpressionExtractorTest {
 @Data
 @FromTable(name = "main_table")
 @Include(name = "mainTable")
+@TableMeta(arguments = {@ArgumentDefinition(name = "tableArg", type = ValueType.TEXT)})
 class MainTable {
 
     @Id
@@ -534,6 +539,7 @@ class MainTable {
 @Data
 @FromTable(name = "join_table")
 @Include(name = "joinTable")
+@TableMeta(arguments = {@ArgumentDefinition(name = "tableArg", type = ValueType.TEXT)})
 class JoinTable {
 
     @Id
@@ -566,6 +572,7 @@ class JoinTable {
 @Data
 @FromTable(name = "joinjoin_table")
 @Include(name = "joinjoinTable")
+@TableMeta(arguments = {@ArgumentDefinition(name = "tableArg", type = ValueType.TEXT)})
 class JoinJoinTable {
 
     @Id
@@ -577,6 +584,6 @@ class JoinJoinTable {
     @DimensionFormula("{{dim3}}")
     private String dim2;
 
-    @DimensionFormula("{{$dim3}}")
+    @DimensionFormula("{{$dim3}} - '{{$$table.args.tableArg}}'")
     private String dim3;
 }

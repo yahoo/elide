@@ -23,7 +23,7 @@ import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Argument;
+import com.yahoo.elide.datastores.aggregation.metadata.models.ArgumentDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
@@ -99,7 +99,7 @@ public class AggregationDataStore implements DataStore {
 
             /* Add argument to each Column */
             for (Column col : table.getColumns()) {
-                for (Argument arg : col.getArguments()) {
+                for (ArgumentDefinition arg : col.getArgumentDefinitions()) {
                     dictionary.addArgumentToAttribute(
                             dictionary.getEntityClass(table.getName(), table.getVersion()),
                             col.getName(),
@@ -108,7 +108,7 @@ public class AggregationDataStore implements DataStore {
             }
 
             /* Add argument to each Table */
-            for (Argument arg : table.getArguments()) {
+            for (ArgumentDefinition arg : table.getArgumentDefinitions()) {
                 dictionary.addArgumentToEntity(
                         dictionary.getEntityClass(table.getName(), table.getVersion()),
                         new ArgumentType(arg.getName(), ValueType.getType(arg.getType()), arg.getDefaultValue()));
@@ -171,5 +171,15 @@ public class AggregationDataStore implements DataStore {
                                 "(" + check + "-" + checkClass + ")"));
                     }
                 });
+    }
+
+    /**
+     * Determines if a model is managed by the aggregation data store.
+     * @param model The model in question.
+     * @return True if the model is managed by the aggregation data store.  False otherwise.
+     */
+    public static final boolean isAggregationStoreModel(Type<?> model) {
+        return AGGREGATION_STORE_CLASSES.stream()
+                .anyMatch((annotation) -> model.getDeclaredAnnotation(annotation) != null);
     }
 }
