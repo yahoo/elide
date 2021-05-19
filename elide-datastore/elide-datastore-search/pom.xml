@@ -45,7 +45,7 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-search-orm</artifactId>
-            <version>5.11.8.Final</version>
+            <version>5.11.9.Final</version>
             <exclusions>
                 <exclusion>
                     <groupId>dom4j</groupId>
