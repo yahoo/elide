@@ -13,7 +13,6 @@ import static com.yahoo.elide.modelconfig.validator.DynamicConfigValidator.valid
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.ArgumentDefinition;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.TableArgReference;
@@ -44,15 +43,15 @@ public class TableArgumentValidator {
         validateNameUniqueness(table.getArgumentDefinitions(),
                         errorMsgPrefix + "Multiple Table Arguments found with the same name: ");
 
-        verifyTableArgsInTableSql();
-        verifyTableArgsInColumnDefinition();
-        verifyTableArgsInJoinExpressions();
-        verifyRequiredTableArgsForJoinTables();
-
         table.getArgumentDefinitions().forEach(arg -> {
             verifyValues(arg, errorMsgPrefix);
             verifyDefaultvalue(arg, errorMsgPrefix);
         });
+
+        verifyTableArgsInTableSql();
+        verifyTableArgsInColumnDefinition();
+        verifyTableArgsInJoinExpressions();
+        verifyRequiredTableArgsForJoinTables();
     }
 
     private void verifyTableArgsInTableSql() {
@@ -91,15 +90,19 @@ public class TableArgumentValidator {
     private void verifyRequiredTableArgsForJoinTables() {
         table.getJoins().forEach((joinName, sqlJoin) -> {
             SQLTable joinTable = metaDataStore.getTable(sqlJoin.getJoinTableType());
-            joinTable.getArgumentDefinitions().forEach(argDef -> {
-                String argName = argDef.getName();
-                ValueType argType = argDef.getType();
-                if (!(table.hasArgumentDefinition(argName)
-                                && argType == table.getArgumentDefinition(argName).getType())) {
-                    throw new IllegalStateException(String.format(
-                                    errorMsgPrefix + "Argument '%s' with type '%s' is not defined but is required by"
-                                                    + " join table: %s.",
-                                    argName, argType, joinTable.getName()));
+            joinTable.getArgumentDefinitions().forEach(joinArgDef -> {
+                String joinArgName = joinArgDef.getName();
+
+                if (table.hasArgumentDefinition(joinArgName)) {
+                    if (joinArgDef.getType() != table.getArgumentDefinition(joinArgName).getType()) {
+                        throw new IllegalStateException(String.format(errorMsgPrefix
+                                        + "Argument type mismatch. Join table: '%s' has Argument: '%s' with type '%s'.",
+                                        joinTable.getName(), joinArgName, joinArgDef.getType()));
+                    }
+                } else if (joinArgDef.getDefaultValue() == null) {
+                    throw new IllegalStateException(String.format(errorMsgPrefix
+                                    + "Argument '%s' with type '%s' is not defined but is required by join table: %s.",
+                                    joinArgName, joinArgDef.getType(), joinTable.getName()));
                 }
             });
         });
