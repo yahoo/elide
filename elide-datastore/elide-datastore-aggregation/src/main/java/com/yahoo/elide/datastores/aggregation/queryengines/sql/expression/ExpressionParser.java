@@ -136,7 +136,8 @@ public class ExpressionParser {
                 results.add(buildJoin(source, referenceName, callingColumnArgs, fixedArguments));
             } else {
                 ColumnProjection referencedColumn = source.getColumnProjection(referenceName);
-                Preconditions.checkNotNull(referencedColumn);
+                Preconditions.checkNotNull(referencedColumn, String.format("Couldn't find column: '%s' for table: '%s'",
+                                referenceName, source.getName()));
 
                 ColumnProjection newColumn = referencedColumn.withArguments(
                                 mergedArgumentMap(referencedColumn.getArguments(),

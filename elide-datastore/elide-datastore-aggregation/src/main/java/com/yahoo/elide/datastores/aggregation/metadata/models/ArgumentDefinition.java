@@ -9,6 +9,8 @@ import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueSourceType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.yahoo.elide.modelconfig.model.Named;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
@@ -26,7 +28,7 @@ import javax.persistence.OneToOne;
 @Data
 @ToString
 @AllArgsConstructor
-public class ArgumentDefinition {
+public class ArgumentDefinition implements Named {
     @Id
     private String id;
 

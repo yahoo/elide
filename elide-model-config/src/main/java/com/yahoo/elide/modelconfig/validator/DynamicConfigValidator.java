@@ -741,7 +741,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     /**
      * Validates table (or db connection) name is unique across all the dynamic table (or db connection) configs.
      */
-    private static void validateNameUniqueness(Collection<? extends Named> configs, String errorMsg) {
+    public static void validateNameUniqueness(Collection<? extends Named> configs, String errorMsg) {
 
         Set<String> names = new HashSet<>();
         configs.forEach(obj -> {
