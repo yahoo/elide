@@ -740,6 +740,48 @@ public class TableType implements Type<DynamicModelInstance> {
             }
         });
 
+        annotations.put(ColumnMeta.class, new ColumnMeta() {
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return ColumnMeta.class;
+            }
+
+            @Override
+            public String friendlyName() {
+                return "Row Number";
+            }
+
+            @Override
+            public String description() {
+                return "Row number for each record returned by a query.";
+            }
+
+            @Override
+            public String category() {
+                return null;
+            }
+
+            @Override
+            public TableSource tableSource() {
+                return buildTableSource(null);
+            }
+
+            @Override
+            public String[] tags() {
+                return new String[0];
+            }
+
+            @Override
+            public String[] values() {
+                return new String[0];
+            }
+
+            @Override
+            public CardinalitySize size() {
+                return CardinalitySize.UNKNOWN;
+            }
+        });
+
         return new FieldType("id", LONG_TYPE, annotations);
     }
 
