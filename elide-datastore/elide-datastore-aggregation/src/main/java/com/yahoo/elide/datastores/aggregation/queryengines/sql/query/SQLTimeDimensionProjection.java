@@ -113,7 +113,7 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
             String outerProjectionExpression = toPhysicalReferences(source, store);
             outerProjection = withExpression(outerProjectionExpression, inProjection);
 
-            innerProjections = SQLColumnProjection.extractPhysicalReferences(references, store);
+            innerProjections = SQLColumnProjection.extractPhysicalReferences(source, references, store);
         } else {
             outerProjection = SQLTimeDimensionProjection.builder()
                     .name(name)
