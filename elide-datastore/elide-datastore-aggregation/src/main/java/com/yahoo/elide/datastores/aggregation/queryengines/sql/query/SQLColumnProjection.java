@@ -97,7 +97,7 @@ public interface SQLColumnProjection extends ColumnProjection {
                         new ReferenceExtractor<JoinReference>(JoinReference.class, metaDataStore, source)))
                 .flatMap(Set::stream)
                 .map(reference -> reference.accept(
-                        new ReferenceExtractor<ColumnArgReference>(ColumnArgReference.class, metaDataStore, source)))
+                        new ReferenceExtractor<ColumnArgReference>(ColumnArgReference.class, metaDataStore)))
                 .flatMap(Set::stream)
                 .collect(Collectors.toSet())
                 .isEmpty();
