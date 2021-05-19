@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
@@ -137,6 +138,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
     @BeforeEach
     public void setUp() {
+        reset(securityContextMock);
         when(securityContextMock.isUserInRole("admin.user")).thenReturn(true);
         when(securityContextMock.isUserInRole("operator")).thenReturn(true);
         when(securityContextMock.isUserInRole("guest user")).thenReturn(true);

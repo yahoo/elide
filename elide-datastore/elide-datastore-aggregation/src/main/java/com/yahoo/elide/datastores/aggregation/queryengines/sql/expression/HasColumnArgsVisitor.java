@@ -15,37 +15,32 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Predicate;
 
 /**
- * Traverses every reference expression in the reference tree and returns true if at least one reference matches
- * the provided matcher/predicate.  This visitor descends into joins.
+ * Traverses every reference expression in the reference tree and returns true if there is at least
+ * one column reference.  This visitor descends into joins.
  */
-public class ReferenceMatchingVisitor implements ReferenceVisitor<Boolean> {
+public class HasColumnArgsVisitor implements ReferenceVisitor<Boolean> {
 
-    private Predicate<String> matcher;
     private MetaDataStore store;
     private ExpressionParser parser;
     private Set<SQLJoin> visitedJoins;
 
-    public ReferenceMatchingVisitor(Predicate<String> matcher, MetaDataStore store) {
+    public HasColumnArgsVisitor(MetaDataStore store) {
         this.store = store;
-        this.matcher = matcher;
         parser = new ExpressionParser(store);
         visitedJoins = new HashSet<>();
     }
 
     @Override
     public Boolean visitPhysicalReference(PhysicalReference reference) {
-        return matcher.test(reference.getName());
+        return false;
     }
 
     @Override
     public Boolean visitLogicalReference(LogicalReference reference) {
-        boolean matches = reference.getReferences().stream()
+        return reference.getReferences().stream()
                 .anyMatch(child -> child.accept(this));
-
-        return matches | matcher.test(reference.getColumn().getExpression());
     }
 
     @Override
@@ -70,10 +65,6 @@ public class ReferenceMatchingVisitor implements ReferenceVisitor<Boolean> {
             }
             visitedJoins.add(join);
 
-            if (matcher.test(join.getJoinExpression())) {
-                return true;
-            }
-
             boolean matches = parser.parse(table, join.getJoinExpression()).stream().anyMatch(
                     ref -> ref.accept(this));
 
@@ -83,5 +74,15 @@ public class ReferenceMatchingVisitor implements ReferenceVisitor<Boolean> {
         }
 
         return reference.getReference().accept(this);
+    }
+
+    @Override
+    public Boolean visitColumnArgReference(ColumnArgReference reference) {
+        return true;
+    }
+
+    @Override
+    public Boolean visitTableArgReference(TableArgReference reference) {
+        return false;
     }
 }

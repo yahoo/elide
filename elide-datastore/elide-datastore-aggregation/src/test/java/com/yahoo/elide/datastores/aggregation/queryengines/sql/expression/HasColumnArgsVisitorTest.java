@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
-import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.COL_PREFIX;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -28,14 +27,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import javax.persistence.Id;
 import javax.sql.DataSource;
 
-public class ReferenceMatchingVisitorTest {
+public class HasColumnArgsVisitorTest {
 
     private MetaDataStore metaDataStore;
-    private static final Predicate<String> MATCHER = (expression) -> expression.contains(COL_PREFIX);
 
     @Include
     class TableA {
@@ -97,7 +94,7 @@ public class ReferenceMatchingVisitorTest {
         String joinWithPhysicalToPhysical;
     }
 
-    public ReferenceMatchingVisitorTest() {
+    public HasColumnArgsVisitorTest() {
 
         Set<Type<?>> models = new HashSet<>();
         models.add(ClassType.of(TableA.class));
@@ -146,7 +143,7 @@ public class ReferenceMatchingVisitorTest {
         assertFalse(matches(table, projection));
     }
 
-    //@Test - TODO - uncomment after ExpressionParser adds node for Column Arguments
+    @Test
     public void testColumnArgs() throws Exception {
         SQLTable table = metaDataStore.getTable(ClassType.of(TableC.class));
         ColumnProjection projection = table.getColumnProjection("columnArgs");
@@ -171,7 +168,7 @@ public class ReferenceMatchingVisitorTest {
         List<Reference> references = new ExpressionParser(metaDataStore).parse(source, projection);
 
         return (references.stream().anyMatch(reference -> {
-            return reference.accept(new ReferenceMatchingVisitor(MATCHER, metaDataStore));
+            return reference.accept(new HasColumnArgsVisitor(metaDataStore));
         }));
     }
 }

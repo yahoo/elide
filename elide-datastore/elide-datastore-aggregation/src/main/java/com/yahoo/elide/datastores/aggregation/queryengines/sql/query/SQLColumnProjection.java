@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
-import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.COL_PREFIX;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.PhysicalRefColumnContext;
@@ -15,10 +14,11 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SyntaxVerifier;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasColumnArgsVisitor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasJoinVisitor;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.JoinReference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.PhysicalReferenceExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ReferenceMatchingVisitor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +27,6 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -92,11 +91,15 @@ public interface SQLColumnProjection extends ColumnProjection {
 
         //Search for any join expression that contains $$column.  If found, we cannot nest
         //because rewriting the SQL in the outer expression will lose the context of the calling $$column.
-        Predicate<String> matcher = (expression) -> expression.contains(COL_PREFIX);
+        boolean hasColumnArgsInJoin = references.stream()
+                .filter(reference -> reference instanceof JoinReference)
+                .anyMatch(reference -> {
+                    return reference.accept(new HasColumnArgsVisitor(metaDataStore));
+                });
 
-        return ! (references.stream().anyMatch(reference -> {
-            return reference.accept(new ReferenceMatchingVisitor(matcher, metaDataStore));
-        }));
+        boolean hasJoin = references.stream().anyMatch(reference -> reference.accept(new HasJoinVisitor()));
+
+        return ! (hasJoin & hasColumnArgsInJoin);
     }
 
     @Override

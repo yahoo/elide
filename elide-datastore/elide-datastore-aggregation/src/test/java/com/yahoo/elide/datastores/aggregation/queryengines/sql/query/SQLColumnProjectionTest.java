@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import javax.persistence.Id;
 import javax.sql.DataSource;
@@ -44,6 +46,8 @@ public class SQLColumnProjectionTest {
         @DimensionFormula(value = "{{tableB.dim1}}")
         String dim1;
 
+        @DimensionFormula(value = "{{$$column.args.foo}}")
+        String dim2;
     }
 
     @Include
@@ -85,10 +89,22 @@ public class SQLColumnProjectionTest {
     }
 
     @Test
-    public void testColumnThatCanNest() throws Exception {
+    public void testPhysicalColumnThatCanNest() throws Exception {
         SQLTable table = metaDataStore.getTable(ClassType.of(TableB.class));
 
         ColumnProjection projection = table.getColumnProjection("dim1");
+
+        assertTrue(projection.canNest(table, metaDataStore));
+    }
+
+    @Test
+    public void testColumnArgsColumnThatCanNest() throws Exception {
+        SQLTable table = metaDataStore.getTable(ClassType.of(TableA.class));
+
+        Map<String, Argument> args = new HashMap<>();
+        args.put("foo", Argument.builder().name("foo").value("bar").build());
+
+        ColumnProjection projection = table.getColumnProjection("dim2", args);
 
         assertTrue(projection.canNest(table, metaDataStore));
     }
