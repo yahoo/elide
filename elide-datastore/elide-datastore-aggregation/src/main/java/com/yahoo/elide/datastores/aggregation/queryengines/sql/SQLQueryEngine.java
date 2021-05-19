@@ -18,6 +18,7 @@ import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.QueryValidator;
 import com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage;
+import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -45,6 +46,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnPr
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
+import com.yahoo.elide.datastores.aggregation.validator.TableArgumentValidator;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 import lombok.Getter;
@@ -79,6 +81,7 @@ public class SQLQueryEngine extends QueryEngine {
     private final Map<String, ConnectionDetails> connectionDetailsMap;
     private final Set<Optimizer> optimizers;
     private final QueryValidator validator;
+    private final FormulaValidator formulaValidator;
 
     public SQLQueryEngine(MetaDataStore metaDataStore, ConnectionDetails defaultConnectionDetails) {
         this(metaDataStore, defaultConnectionDetails, Collections.emptyMap(), new HashSet<>(),
@@ -108,6 +111,7 @@ public class SQLQueryEngine extends QueryEngine {
         this.connectionDetailsMap = connectionDetailsMap;
         this.metaDataStore = metaDataStore;
         this.validator = validator;
+        this.formulaValidator = new FormulaValidator(metaDataStore);
         this.metadataDictionary = metaDataStore.getMetadataDictionary();
         populateMetaData(metaDataStore);
         this.referenceTable = new SQLReferenceTable(metaDataStore);
@@ -172,6 +176,24 @@ public class SQLQueryEngine extends QueryEngine {
                                                       String alias,
                                                       Map<String, Argument> arguments) {
         return metric.getMetricProjectionMaker().make(metric, alias, arguments);
+    }
+
+    @Override
+    protected void verifyMetaData(MetaDataStore metaDataStore) {
+        metaDataStore.getTables().forEach(table -> {
+            SQLTable sqlTable = (SQLTable) table;
+            checkForCycles(sqlTable);
+            TableArgumentValidator tableArgValidator = new TableArgumentValidator(metaDataStore, sqlTable);
+            tableArgValidator.validate();
+        });
+    }
+
+    /**
+     * Verify that there is no reference loop for given {@link SQLTable}.
+     * @param sqlTable Queryable to validate.
+     */
+    private void checkForCycles(SQLTable sqlTable) {
+        sqlTable.getColumnProjections().forEach(column -> formulaValidator.parse(sqlTable, column));
     }
 
     /**
