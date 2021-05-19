@@ -1,4 +1,13 @@
+/*
+ * Copyright 2021, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+
 package com.yahoo.elide.datastores.aggregation.validator;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
@@ -26,10 +35,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-
 public class TableArgumentValidatorTest {
 
     private final ConnectionDetails connection;
@@ -39,7 +44,7 @@ public class TableArgumentValidatorTest {
 
     private Table.TableBuilder mainTableBuilder;
     private final Collection<NamespaceConfig> namespaceConfigs;
-    
+
     public TableArgumentValidatorTest() {
         this.connection = new ConnectionDetails(new HikariDataSource(), SQLDialectFactory.getDefaultDialect());
         this.connectionDetailsMap.put("mycon", this.connection);
@@ -213,7 +218,7 @@ public class TableArgumentValidatorTest {
         assertEquals("Failed to verify table arguments for table: namespace_MainTable. Argument 'joinArg1' with type 'INTEGER' is not defined but is required by join table: namespace_JoinTable.",
                         e.getMessage());
     }
-    
+
     @Test
     public void testTableArgsTypeMismatchForJoinTable() {
         Table mainTable = mainTableBuilder
