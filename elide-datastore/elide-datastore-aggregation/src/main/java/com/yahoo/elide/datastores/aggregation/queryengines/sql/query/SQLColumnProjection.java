@@ -13,8 +13,8 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SyntaxVerifier;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ColumnArgReference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasColumnArgsVisitor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasJoinVisitor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.JoinReference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.PhysicalReference;
@@ -92,11 +92,15 @@ public interface SQLColumnProjection extends ColumnProjection {
 
         //Search for any join expression that contains $$column.  If found, we cannot nest
         //because rewriting the SQL in the outer expression will lose the context of the calling $$column.
-        return ! references.stream()
-                .filter(reference -> reference instanceof JoinReference)
-                .anyMatch(reference -> {
-                    return reference.accept(new HasColumnArgsVisitor(metaDataStore));
-                });
+        return references.stream()
+                .map(reference -> reference.accept(
+                        new ReferenceExtractor<JoinReference>(JoinReference.class, metaDataStore, source)))
+                .flatMap(Set::stream)
+                .map(reference -> reference.accept(
+                        new ReferenceExtractor<ColumnArgReference>(ColumnArgReference.class, metaDataStore, source)))
+                .flatMap(Set::stream)
+                .collect(Collectors.toSet())
+                .isEmpty();
     }
 
     @Override

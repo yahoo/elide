@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.persistence.Id;
 import javax.sql.DataSource;
 
@@ -167,8 +168,11 @@ public class HasColumnArgsVisitorTest {
     private boolean matches(SQLTable source, ColumnProjection projection) {
         List<Reference> references = new ExpressionParser(metaDataStore).parse(source, projection);
 
-        return (references.stream().anyMatch(reference -> {
-            return reference.accept(new HasColumnArgsVisitor(metaDataStore));
-        }));
+        return ! references.stream()
+                .map(reference -> reference.accept(new ReferenceExtractor<ColumnArgReference>(
+                        ColumnArgReference.class, metaDataStore)))
+                .flatMap(Set::stream)
+                .collect(Collectors.toSet())
+                .isEmpty();
     }
 }
