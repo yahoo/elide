@@ -32,4 +32,18 @@ public interface ReferenceVisitor<T> {
      * @return a type T.
      */
     T visitJoinReference(JoinReference reference);
+
+    /**
+     * Visits a column argument reference.
+     * @param reference The column argument reference
+     * @return a type T.
+     */
+    T visitColumnArgReference(ColumnArgReference reference);
+
+    /**
+     * Visits a table argument reference.
+     * @param reference The table argument reference
+     * @return a type T.
+     */
+    T visitTableArgReference(TableArgReference reference);
 }

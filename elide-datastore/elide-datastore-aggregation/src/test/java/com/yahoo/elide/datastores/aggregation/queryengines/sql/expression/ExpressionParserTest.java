@@ -178,4 +178,24 @@ public class ExpressionParserTest {
         assertEquals(countryInUSAJoinReference, references.get(2));
 
     }
+
+    @Test
+    public void testArgReferences() {
+        List<Reference> references = parser.parse(playerStats, "{{$country_id}} with {{$$column.expr}} = {{$$column.args.foo}} OR {{$$table.args.bar}}");
+
+        assertTrue(references.size() == 3);
+
+        assertEquals(PhysicalReference.builder()
+                .name("country_id")
+                .source(playerStats)
+                .build(), references.get(0));
+
+        assertEquals(ColumnArgReference.builder()
+                .argName("foo")
+                .build(), references.get(1));
+
+        assertEquals(TableArgReference.builder()
+                .argName("bar")
+                .build(), references.get(2));
+    }
 }
