@@ -35,7 +35,7 @@ import javax.persistence.Transient;
 @Entity(name = "childEntity")
 @CreatePermission(expression = "initCheck")
 @ReadPermission(expression = "negativeChildId AND negativeIntegerUser AND initCheck AND initCheckFilter")
-@Include(type = "child")
+@Include(name = "child")
 @Audit(action = Audit.Action.DELETE,
        operation = 0,
        logStatement = "DELETE Child {0} Parent {1}",

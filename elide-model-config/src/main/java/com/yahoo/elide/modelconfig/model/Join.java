@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.modelconfig.model;
 
+import static com.yahoo.elide.modelconfig.model.NamespaceConfig.DEFAULT;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -38,7 +39,7 @@ public class Join implements Named {
     private String name;
 
     @JsonProperty("namespace")
-    private String namespace = "default";
+    private String namespace = DEFAULT;
 
     @JsonProperty("to")
     private String to;
@@ -51,6 +52,18 @@ public class Join implements Named {
 
     @JsonProperty("definition")
     private String definition;
+
+    /**
+     * Returns the destination table of the join.
+     * @return The global name of the destination join table.
+     */
+    public String getTo() {
+        if (namespace == null || namespace.isEmpty() || namespace.equals(DEFAULT)) {
+            return to;
+        }
+
+        return namespace + "_" + to;
+    }
 
     public enum Kind {
 

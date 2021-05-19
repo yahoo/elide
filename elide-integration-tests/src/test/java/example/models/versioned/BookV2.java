@@ -14,7 +14,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-@Include(type = "book")
+@Include(name = "book")
 @Entity
 @Data
 @Table(name = "book")

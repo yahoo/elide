@@ -63,7 +63,7 @@ import javax.persistence.Transient;
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
  *
- * @see com.yahoo.elide.annotation.Include#type
+ * @see com.yahoo.elide.annotation.Include#name
  */
 public class EntityBinding {
 

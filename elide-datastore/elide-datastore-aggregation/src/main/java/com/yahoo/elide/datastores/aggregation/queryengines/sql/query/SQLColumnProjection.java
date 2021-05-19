@@ -6,8 +6,9 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
-import com.yahoo.elide.datastores.aggregation.metadata.Context;
+import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.PhysicalRefColumnContext;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SyntaxVerifier;
@@ -16,7 +17,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Expres
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasJoinVisitor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.PhysicalReferenceExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,14 +41,35 @@ public interface SQLColumnProjection extends ColumnProjection {
      */
     default String toSQL(Queryable query, MetaDataStore metaDataStore) {
 
-        Context context = Context.builder()
+        ColumnContext context = ColumnContext.builder()
                         .queryable(query)
                         .alias(query.getSource().getAlias())
                         .metaDataStore(metaDataStore)
-                        .queriedColArgs(getArguments())
+                        .column(this)
+                        .tableArguments(query.getArguments())
                         .build();
 
-        return context.resolveHandlebars(this);
+        return context.resolve(getExpression());
+    }
+
+    /**
+     * Generate a partially resolved string for current column's expression. Fully resolves arguments and logical
+     * references but keeps physical and join references as is.
+     * @param query current Queryable.
+     * @param metaDataStore MetaDataStore.
+     * @return A String with all arguments and logical references resolved.
+     */
+    default String toPhysicalReferences(Queryable query, MetaDataStore metaDataStore) {
+
+        PhysicalRefColumnContext context = PhysicalRefColumnContext.physicalRefContextBuilder()
+                        .queryable(query)
+                        .metaDataStore(metaDataStore)
+                        .alias("")
+                        .column(this)
+                        .tableArguments(query.getArguments())
+                        .build();
+
+        return context.resolve(getExpression());
     }
 
     @Override
@@ -79,9 +100,8 @@ public interface SQLColumnProjection extends ColumnProjection {
         Set<ColumnProjection> innerProjections;
 
         if (requiresJoin && joinInOuter) {
-
-            //TODO - the expression needs to be rewritten to leverage the inner column physical projections.
-            outerProjection = withExpression(getExpression(), inProjection);
+            String outerProjectionExpression = toPhysicalReferences(source, store);
+            outerProjection = withExpression(outerProjectionExpression, inProjection);
 
             innerProjections = extractPhysicalReferences(references, store);
         } else {

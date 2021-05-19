@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.aggregation;
 
 import static com.yahoo.elide.core.request.Argument.getArgumentMapFromArgumentSet;
-
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
@@ -87,8 +86,8 @@ public class EntityProjectionTranslator {
                 .scope(scope)
                 .build();
 
-        QueryValidator validator = new QueryValidator(query, getAllFields(), dictionary);
-        validator.validate();
+        QueryValidator validator = engine.getValidator();
+        validator.validate(query);
         return query;
     }
 

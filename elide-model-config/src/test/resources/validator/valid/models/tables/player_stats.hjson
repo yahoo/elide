@@ -31,7 +31,10 @@
           {
              name: countryCode
              type: TEXT
-             tableSource: Country.isoCode
+             tableSource: {
+                 table: Country
+                 column: isoCode
+             }
           }
       ]
       joins: [
@@ -81,7 +84,11 @@
            name : teamRegion
            type : TEXT
            definition : '{{playerTeam.region}}'
-           tableSource: PlayerStatsChild.teamRegion
+           tableSource: {
+              table: PlayerStatsChild
+              namespace: PlayerNamespace
+              column: teamRegion
+           }
          },
          {
            name : createdOn

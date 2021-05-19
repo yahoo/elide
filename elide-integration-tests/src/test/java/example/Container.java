@@ -18,7 +18,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "container")
-@Include(type = "container")
+@Include(name = "container")
 @NonTransferable
 public class Container extends BaseId {
     private Collection<Untransferable> untransferables;

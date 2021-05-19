@@ -14,7 +14,6 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.LogicalReference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.LogicalReferenceExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
-
 import com.google.common.collect.Streams;
 
 import java.util.HashSet;
@@ -173,5 +172,21 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
         });
 
         return builder;
+    }
+
+    public static Query.QueryBuilder addHiddenProjections(SQLReferenceTable lookupTable, Query query) {
+        Query.QueryBuilder builder = Query.builder()
+                        .source(query.getSource())
+                        .metricProjections(query.getMetricProjections())
+                        .dimensionProjections(query.getDimensionProjections())
+                        .timeDimensionProjections(query.getTimeDimensionProjections())
+                        .havingFilter(query.getHavingFilter())
+                        .whereFilter(query.getWhereFilter())
+                        .sorting(query.getSorting())
+                        .pagination(query.getPagination())
+                        .scope(query.getScope())
+                        .arguments(query.getArguments());
+
+        return addHiddenProjections(lookupTable, builder, query);
     }
 }

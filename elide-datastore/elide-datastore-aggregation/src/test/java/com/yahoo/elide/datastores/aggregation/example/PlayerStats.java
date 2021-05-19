@@ -17,9 +17,12 @@ import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
+import com.yahoo.elide.datastores.aggregation.annotation.TableSource;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
 import com.yahoo.elide.datastores.aggregation.custom.DailyAverageScorePerPeriodMaker;
+import com.yahoo.elide.datastores.aggregation.example.dimensions.Country;
+import com.yahoo.elide.datastores.aggregation.example.dimensions.SubCountry;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
@@ -170,7 +173,7 @@ public class PlayerStats extends ParameterizedModel {
     }
 
     @FriendlyName
-    @ColumnMeta(values = {"GOOD", "OK", "TERRIBLE"}, tags = {"PUBLIC"}, size = CardinalitySize.MEDIUM)
+    @ColumnMeta(values = {"Good", "OK", "Terrible"}, tags = {"PUBLIC"}, size = CardinalitySize.MEDIUM)
     public String getOverallRating() {
         return fetch("overallRating", overallRating);
     }
@@ -191,7 +194,7 @@ public class PlayerStats extends ParameterizedModel {
     @DimensionFormula("{{country.nickName}}")
     @ColumnMeta(
             description = "SubCountry NickName",
-            tableSource = "subcountry.nickName"
+            tableSource = @TableSource(table = "subCountry", column = "name")
     )
     public String getCountryNickName() {
         return fetch("countryNickName", countryNickName);
@@ -211,7 +214,7 @@ public class PlayerStats extends ParameterizedModel {
     }
 
     @DimensionFormula("{{country.isoCode}}")
-    @ColumnMeta(values = {"HK", "US"})
+    @ColumnMeta(values = {"HK", "USA"})
     public String getCountryIsoCode() {
         return fetch("countryIsoCode", countryIsoCode);
     }

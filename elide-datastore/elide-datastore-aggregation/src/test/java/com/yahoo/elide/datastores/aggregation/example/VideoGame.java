@@ -6,6 +6,7 @@
 package com.yahoo.elide.datastores.aggregation.example;
 
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
@@ -21,6 +22,7 @@ import javax.persistence.Id;
  */
 @Include
 @FromTable(name = "videoGames", dbConnectionName = "mycon")
+@ReadPermission(expression = "admin.user or player name filter")
 public class VideoGame {
     @Setter
     private Long id;
@@ -82,6 +84,7 @@ public class VideoGame {
         return timeSpentPerSession;
     }
 
+    @ReadPermission(expression = "operator")
     @MetricFormula("{{timeSpentPerSession}} / 100")
     public Float getTimeSpentPerGame() {
         return timeSpentPerGame;

@@ -13,18 +13,17 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
-import com.yahoo.elide.datastores.aggregation.example.Country;
 import com.yahoo.elide.datastores.aggregation.example.Player;
 import com.yahoo.elide.datastores.aggregation.example.PlayerRanking;
 import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
-import com.yahoo.elide.datastores.aggregation.example.SubCountry;
+import com.yahoo.elide.datastores.aggregation.example.dimensions.Country;
+import com.yahoo.elide.datastores.aggregation.example.dimensions.SubCountry;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
-
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -178,5 +177,25 @@ public class ExpressionParserTest {
 
         assertEquals(countryInUSAJoinReference, references.get(2));
 
+    }
+
+    @Test
+    public void testArgReferences() {
+        List<Reference> references = parser.parse(playerStats, "{{$country_id}} with {{$$column.expr}} = {{$$column.args.foo}} OR {{$$table.args.bar}}");
+
+        assertTrue(references.size() == 3);
+
+        assertEquals(PhysicalReference.builder()
+                .name("country_id")
+                .source(playerStats)
+                .build(), references.get(0));
+
+        assertEquals(ColumnArgReference.builder()
+                .argName("foo")
+                .build(), references.get(1));
+
+        assertEquals(TableArgReference.builder()
+                .argName("bar")
+                .build(), references.get(2));
     }
 }

@@ -6,11 +6,8 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import static com.yahoo.elide.datastores.aggregation.query.Queryable.extractFilterProjections;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryPlanTranslator.addHiddenProjections;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
-import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
-import com.yahoo.elide.core.filter.predicates.FilterPredicate;
-import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
@@ -21,15 +18,10 @@ import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
-
 import com.google.common.collect.Streams;
-
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -121,35 +113,6 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                     .build();
 
             return outer;
-        }
-
-        /**
-         * Extracts the columns referenced in a filter expression.
-         * @param query The parent query.
-         * @param expression The filter expression.
-         * @return set of referenced columns.
-         */
-        private Set<SQLColumnProjection> extractFilterProjections(Query query, FilterExpression expression) {
-            if (expression == null) {
-                return new LinkedHashSet<>();
-            }
-
-            Collection<FilterPredicate> predicates = expression.accept(new PredicateExtractionVisitor());
-
-            Set<SQLColumnProjection> filterProjections = new LinkedHashSet<>();
-            predicates.stream().forEach((predicate -> {
-                Map<String, Argument> arguments = new HashMap<>();
-
-                predicate.getPath().lastElement().get().getArguments().forEach(argument ->
-                    arguments.put(argument.getName(), argument)
-                );
-
-                ColumnProjection projection = query.getSource().getColumnProjection(predicate.getField(), arguments);
-
-                filterProjections.add((SQLColumnProjection) projection);
-            }));
-
-            return filterProjections;
         }
 
        @Override

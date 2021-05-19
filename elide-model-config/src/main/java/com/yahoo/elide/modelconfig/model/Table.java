@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.modelconfig.model;
 
+import static com.yahoo.elide.modelconfig.model.NamespaceConfig.DEFAULT;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -56,7 +57,6 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 public class Table implements Named {
-
     @JsonProperty("name")
     private String name;
 
@@ -95,7 +95,7 @@ public class Table implements Named {
 
     @Builder.Default
     @JsonProperty("namespace")
-    private String namespace = "default";
+    private String namespace = DEFAULT;
 
     @JsonProperty("joins")
     @Singular
@@ -206,6 +206,35 @@ public class Table implements Named {
      * @return Parent model for this model
      */
     public Table getParent(ElideTableConfig elideTableConfig) {
-        return elideTableConfig.getTable(this.extend);
+        return elideTableConfig.getTable(getGlobalExtend());
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String getGlobalName() {
+        return getModelName(name, namespace);
+    }
+
+    /**
+     * Return the globally unique table name for the inherited table.
+     * @return The globally unique name for the inherited table or null.
+     */
+    public String getGlobalExtend() {
+        if (extend == null || extend.isEmpty()) {
+            return extend;
+        }
+        return getModelName(extend, namespace);
+    }
+
+    public static String getModelName(String tableName, String namespace) {
+        if (namespace == null || namespace.isEmpty() || namespace.equals(DEFAULT)) {
+            return tableName;
+        }
+
+        return namespace + "_" + tableName;
     }
 }

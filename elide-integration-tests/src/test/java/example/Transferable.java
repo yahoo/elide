@@ -17,7 +17,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "transferable")
-@Include(type = "transferable")
+@Include(name = "transferable")
 public class Transferable extends BaseId {
     private Container container;
 
