@@ -6,6 +6,8 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
+import static java.util.Collections.emptySet;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
@@ -63,5 +65,15 @@ public class PhysicalReferenceExtractor implements ReferenceVisitor<Set<Physical
                 .forEach(ref -> ref.accept(this));
 
         return references;
+    }
+
+    @Override
+    public Set<PhysicalReference> visitColumnArgReference(ColumnArgReference reference) {
+        return emptySet();
+    }
+
+    @Override
+    public Set<PhysicalReference> visitTableArgReference(TableArgReference reference) {
+        return emptySet();
     }
 }

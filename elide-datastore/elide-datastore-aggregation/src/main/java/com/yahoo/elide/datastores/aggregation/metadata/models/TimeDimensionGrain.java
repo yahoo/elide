@@ -34,7 +34,7 @@ public class TimeDimensionGrain {
     public TimeDimensionGrain(String fieldName, TimeGrain grain) {
         this.id = getId(fieldName, grain);
         this.grain = grain;
-        this.expression = "{{}}";
+        this.expression = "{{$$column.expr}}";
         this.format = grain.getFormat();
     }
 

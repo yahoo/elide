@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
+import static java.util.Collections.emptySet;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
@@ -65,5 +66,15 @@ public class LogicalReferenceExtractor implements ReferenceVisitor<Set<LogicalRe
                 .forEach(ref -> ref.accept(this));
 
         return references;
+    }
+
+    @Override
+    public Set<LogicalReference> visitColumnArgReference(ColumnArgReference reference) {
+        return emptySet();
+    }
+
+    @Override
+    public Set<LogicalReference> visitTableArgReference(TableArgReference reference) {
+        return emptySet();
     }
 }

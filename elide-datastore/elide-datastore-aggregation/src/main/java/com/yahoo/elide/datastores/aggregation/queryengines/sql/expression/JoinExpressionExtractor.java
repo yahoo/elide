@@ -7,9 +7,11 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.mergedArgumentMap;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.hasSql;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.resolveTableOrSubselect;
+import static java.util.Collections.emptySet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -18,8 +20,10 @@ import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -66,6 +70,7 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
                         .alias(this.context.getAlias())
                         .metaDataStore(this.context.getMetaDataStore())
                         .column(newColumn)
+                        .tableArguments(this.context.getTableArguments())
                         .build();
 
         JoinExpressionExtractor visitor = new JoinExpressionExtractor(newCtx);
@@ -106,11 +111,14 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
                 }
             } else {
                 joinType = JoinType.LEFT;
+                SQLTable table = metaDataStore.getTable(joinClass);
                 joinCtx = ColumnContext.builder()
-                                .queryable(metaDataStore.getTable(joinClass))
+                                .queryable(table)
                                 .alias(appendAlias(currentCtx.getAlias(), joinFieldName))
                                 .metaDataStore(currentCtx.getMetaDataStore())
                                 .column(currentCtx.getColumn())
+                                .tableArguments(mergedArgumentMap(table.getArguments(),
+                                                                  currentCtx.getTableArguments()))
                                 .build();
 
                 onClause = ON + String.format("%s.%s = %s.%s",
@@ -143,18 +151,29 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
 
     /**
      * Get the SELECT SQL or tableName for given entity.
-     * @param context {@link ColumnContext} for resolving table args in query.
+     * @param columnCtx {@link ColumnContext}.
      * @param cls Entity class.
      * @return resolved tableName or sql in Subselect/FromSubquery.
      */
-    private String constructTableOrSubselect(ColumnContext context, Type<?> cls) {
+    private String constructTableOrSubselect(ColumnContext columnCtx, Type<?> cls) {
 
         if (hasSql(cls)) {
             // Resolve any table arguments with in FromSubquery or Subselect
+            TableContext context = TableContext.builder().tableArguments(columnCtx.getTableArguments()).build();
             String selectSql = context.resolve(resolveTableOrSubselect(dictionary, cls));
             return OPEN_BRACKET + selectSql + CLOSE_BRACKET;
         }
 
-        return applyQuotes(resolveTableOrSubselect(dictionary, cls), context.getQueryable().getDialect());
+        return applyQuotes(resolveTableOrSubselect(dictionary, cls), columnCtx.getQueryable().getDialect());
+    }
+
+    @Override
+    public Set<String> visitColumnArgReference(ColumnArgReference reference) {
+        return emptySet();
+    }
+
+    @Override
+    public Set<String> visitTableArgReference(TableArgReference reference) {
+        return emptySet();
     }
 }

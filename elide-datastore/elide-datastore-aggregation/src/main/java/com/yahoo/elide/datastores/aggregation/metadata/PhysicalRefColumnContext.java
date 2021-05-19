@@ -9,6 +9,7 @@ package com.yahoo.elide.datastores.aggregation.metadata;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
@@ -16,6 +17,8 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
+
+import java.util.Map;
 
 /**
  * Context for resolving all handlebars in provided expression except physical references. Keeps physical references as
@@ -30,8 +33,8 @@ public class PhysicalRefColumnContext extends ColumnContext {
 
     @Builder(builderMethodName = "physicalRefContextBuilder")
     public PhysicalRefColumnContext(MetaDataStore metaDataStore, Queryable queryable, String alias,
-                    ColumnProjection column) {
-        super(metaDataStore, queryable, alias, column);
+                    ColumnProjection column, Map<String, Argument> tableArguments) {
+        super(metaDataStore, queryable, alias, column, tableArguments);
     }
 
     @Override
@@ -41,6 +44,7 @@ public class PhysicalRefColumnContext extends ColumnContext {
                         .alias(context.getAlias())
                         .metaDataStore(context.getMetaDataStore())
                         .column(newColumn)
+                        .tableArguments(context.getTableArguments())
                         .build();
     }
 
@@ -55,6 +59,8 @@ public class PhysicalRefColumnContext extends ColumnContext {
                         .alias(joinPath)
                         .metaDataStore(this.metaDataStore)
                         .column(this.column)
+                        .tableArguments(mergedArgumentMap(joinQueryable.getArguments(),
+                                                          this.getTableArguments()))
                         .build();
 
         return joinCtx;

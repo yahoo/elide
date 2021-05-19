@@ -168,6 +168,14 @@ public abstract class QueryEngine {
 
         //Populate table sources.
         metaDataStore.getTables().forEach(table -> {
+            table.getArgumentDefinitions().forEach(argument -> {
+                argument.setTableSource(TableSource.fromDefinition(
+                        argument.getTableSourceDefinition(),
+                        table.getVersion(),
+                        metaDataStore
+                ));
+            });
+
             table.getColumns().forEach(column -> {
 
                 //Populate column sources.
@@ -178,7 +186,7 @@ public abstract class QueryEngine {
                 ));
 
                 //Populate column argument sources.
-                column.getArguments().forEach(argument -> {
+                column.getArgumentDefinitions().forEach(argument -> {
                     argument.setTableSource(TableSource.fromDefinition(
                             argument.getTableSourceDefinition(),
                             table.getVersion(),
@@ -232,4 +240,5 @@ public abstract class QueryEngine {
      */
     public abstract List<String> explain(Query query);
 
+    public abstract QueryValidator getValidator();
 }

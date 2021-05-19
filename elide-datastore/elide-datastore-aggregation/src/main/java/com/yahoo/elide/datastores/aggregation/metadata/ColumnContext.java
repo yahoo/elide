@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.metadata;
 
 import static com.yahoo.elide.core.request.Argument.getArgumentMapFromString;
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.datastores.aggregation.query.ColumnProjection.createSafeAlias;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 import static java.util.Collections.emptyMap;
@@ -15,10 +16,8 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
-import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Formatter;
 import com.github.jknack.handlebars.Handlebars;
@@ -34,9 +33,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Context for resolving all handlebars in provided expression.
@@ -49,11 +45,13 @@ public class ColumnContext extends HashMap<String, Object> {
     public static final String COL_PREFIX = "$$column";
     public static final String TBL_PREFIX = "$$table";
     public static final String ARGS_KEY = "args";
+    public static final String EXPR_KEY = "expr";
 
     protected final MetaDataStore metaDataStore;
     protected final Queryable queryable;
     protected final String alias;
     protected final ColumnProjection column;
+    protected final Map<String, Argument> tableArguments;
 
     private final Handlebars handlebars = new Handlebars()
             .with(EscapingStrategy.NOOP)
@@ -75,15 +73,19 @@ public class ColumnContext extends HashMap<String, Object> {
         }
 
         if (keyStr.equals(TBL_PREFIX)) {
-            return getTableArgMap(this.queryable);
+            return TableSubContext.tableSubContextBuilder()
+                            .tableArguments(this.tableArguments)
+                            .build();
         }
 
         if (keyStr.equals(COL_PREFIX)) {
-            return this;
-        }
-
-        if (keyStr.equals(ARGS_KEY)) {
-            return this.column.getArguments();
+            return ColumnSubContext.columnSubContextBuilder()
+                            .queryable(this.getQueryable())
+                            .alias(this.getAlias())
+                            .metaDataStore(this.getMetaDataStore())
+                            .column(this.getColumn())
+                            .tableArguments(this.getTableArguments())
+                            .build();
         }
 
         if (this.queryable.hasJoin(keyStr)) {
@@ -96,14 +98,15 @@ public class ColumnContext extends HashMap<String, Object> {
             return value;
         }
 
-        ColumnProjection column = this.getQueryable().getColumnProjection(keyStr);
+        // In case of colA references colB and user query has both colA and colB,
+        // we should use default arguments for colB while resolving colA instead of user provided argument for colB.
+        // so taking colB's details from current queryable's source.
+        ColumnProjection column = this.getQueryable().getSource().getColumnProjection(keyStr);
         if (column != null) {
 
             ColumnProjection newColumn = column.withArguments(
-                            getColumnArgMap(this.getQueryable(),
-                                            column.getName(),
-                                            this.getColumn().getArguments(),
-                                            emptyMap()));
+                            mergedArgumentMap(column.getArguments(),
+                                              this.getColumn().getArguments()));
 
             return getNewContext(this, newColumn).resolve(newColumn.getExpression());
         }
@@ -118,12 +121,28 @@ public class ColumnContext extends HashMap<String, Object> {
 
     protected ColumnContext getJoinContext(String key) {
         SQLJoin sqlJoin = this.queryable.getJoin(key);
+
+        String joinExpression = sqlJoin.getJoinExpression();
+        PhysicalRefColumnContext context = PhysicalRefColumnContext.physicalRefContextBuilder()
+                        .queryable(this.getQueryable())
+                        .metaDataStore(this.getMetaDataStore())
+                        .column(this.getColumn())
+                        .tableArguments(this.getTableArguments())
+                        .build();
+
+        // This will resolve everything within join expression except Physical References, Use this resolved value
+        // to create alias for join dynamically.
+        String resolvedJoinExpr = context.resolve(joinExpression);
+        String joinAlias = createSafeAlias(appendAlias(this.alias, key), resolvedJoinExpr);
+
         Queryable joinQueryable = metaDataStore.getTable(sqlJoin.getJoinTableType());
         ColumnContext joinCtx = ColumnContext.builder()
                         .queryable(joinQueryable)
-                        .alias(appendAlias(this.alias, key))
+                        .alias(joinAlias)
                         .metaDataStore(this.metaDataStore)
                         .column(this.column)
+                        .tableArguments(mergedArgumentMap(joinQueryable.getArguments(),
+                                                          this.getTableArguments()))
                         .build();
 
         return joinCtx;
@@ -135,6 +154,7 @@ public class ColumnContext extends HashMap<String, Object> {
                         .alias(context.getAlias())
                         .metaDataStore(context.getMetaDataStore())
                         .column(newColumn)
+                        .tableArguments(context.getTableArguments())
                         .build();
     }
 
@@ -177,14 +197,13 @@ public class ColumnContext extends HashMap<String, Object> {
             return resolvePhysicalReference(invokedCtx, invokedColumnName);
         }
 
-        ColumnProjection column = invokedCtx.getQueryable().getColumnProjection(invokedColumnName);
+        ColumnProjection column = invokedCtx.getQueryable().getSource().getColumnProjection(invokedColumnName);
         if (column != null) {
 
             ColumnProjection newColumn = column.withArguments(
-                            getColumnArgMap(invokedCtx.getQueryable(),
-                                            column.getName(),
-                                            invokedCtx.getColumn().getArguments(),
-                                            pinnedArgs));
+                            mergedArgumentMap(column.getArguments(),
+                                              invokedCtx.getColumn().getArguments(),
+                                              pinnedArgs));
 
             return getNewContext(invokedCtx, newColumn).resolve(newColumn.getExpression());
         }
@@ -192,57 +211,43 @@ public class ColumnContext extends HashMap<String, Object> {
         throw new HandlebarsException(new Throwable("Couldn't find: " + invokedColumnName));
     }
 
-    public static Map<String, Argument> getDefaultArgumentsMap(
-                    Set<com.yahoo.elide.datastores.aggregation.metadata.models.Argument> availableArgs) {
-
-         return availableArgs.stream()
-                        .filter(arg -> arg.getDefaultValue() != null)
-                        .map(arg -> Argument.builder()
-                                        .name(arg.getName())
-                                        .value(arg.getDefaultValue())
-                                        .build())
-                        .collect(Collectors.toMap(Argument::getName, Function.identity()));
-    }
-
-    protected static Map<String, Object> getTableArgMap(Queryable queryable) {
-        Map<String, Object> tblArgsMap = new HashMap<>();
-
-        if (queryable instanceof SQLTable) {
-            SQLTable table = (SQLTable) queryable;
-            tblArgsMap.put(ARGS_KEY, getDefaultArgumentsMap(table.getArguments()));
-            return tblArgsMap;
-        }
-
-        Query query = (Query) queryable;
-        tblArgsMap.put(ARGS_KEY, query.getArguments());
-        return tblArgsMap;
-    }
-
-    public static Map<String, Argument> getColumnArgMap(Queryable queryable,
-                                                        String columnName,
-                                                        Map<String, Argument> callingColumnArgs,
-                                                        Map<String, Argument> fixedArgs) {
-        return getColumnArgMap(queryable.getSource().getColumnProjection(columnName).getArguments(),
-                               callingColumnArgs,
-                               fixedArgs);
-    }
-
-    public static Map<String, Argument> getColumnArgMap(Map<String, Argument> referencedColumnArgs,
-                                                        Map<String, Argument> callingColumnArgs,
-                                                        Map<String, Argument> fixedArgs) {
+    /**
+     * Checks if referenced {@link ColumnProjection} or {@link Queryable} arguments are available in either calling
+     * object's arguments or in fixed arguments. If yes, use that value. Fixed arguments gets preference over calling
+     * object's arguments.
+     * @param referencedObjectArgs referenced {@link ColumnProjection} or {@link Queryable} arguments.
+     * @param callingObjectArgs calling {@link ColumnProjection} or {@link Queryable} arguments.
+     * @param fixedArgs Fixed arguments.
+     * @return Available arguments for referenced {@link ColumnProjection} or {@link Queryable}.
+     */
+    public static Map<String, Argument> mergedArgumentMap(Map<String, Argument> referencedObjectArgs,
+                                                          Map<String, Argument> callingObjectArgs,
+                                                          Map<String, Argument> fixedArgs) {
 
         Map<String, Argument> columnArgMap = new HashMap<>();
 
-        referencedColumnArgs.forEach((argName, arg) -> {
+        referencedObjectArgs.forEach((argName, arg) -> {
             if (fixedArgs.containsKey(argName)) {
                 columnArgMap.put(argName, fixedArgs.get(argName));
-            } else if (callingColumnArgs.containsKey(argName)) {
-                columnArgMap.put(argName, callingColumnArgs.get(argName));
+            } else if (callingObjectArgs.containsKey(argName)) {
+                columnArgMap.put(argName, callingObjectArgs.get(argName));
             } else {
                 columnArgMap.put(argName, arg);
             }
         });
 
         return columnArgMap;
+    }
+
+    /**
+     * Checks if referenced {@link ColumnProjection} or {@link Queryable} arguments are available in calling
+     * object's arguments. If yes, use that value.
+     * @param referencedObjectArgs referenced {@link ColumnProjection} or {@link Queryable} arguments.
+     * @param callingObjectArgs calling {@link ColumnProjection} or {@link Queryable} arguments.
+     * @return Available arguments for referenced {@link ColumnProjection} or {@link Queryable}.
+     */
+    public static Map<String, Argument> mergedArgumentMap(Map<String, Argument> referencedObjectArgs,
+                    Map<String, Argument> callingObjectArgs) {
+        return mergedArgumentMap(referencedObjectArgs, callingObjectArgs, emptyMap());
     }
 }

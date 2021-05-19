@@ -173,7 +173,7 @@ public class PlayerStats extends ParameterizedModel {
     }
 
     @FriendlyName
-    @ColumnMeta(values = {"GOOD", "OK", "TERRIBLE"}, tags = {"PUBLIC"}, size = CardinalitySize.MEDIUM)
+    @ColumnMeta(values = {"Good", "OK", "Terrible"}, tags = {"PUBLIC"}, size = CardinalitySize.MEDIUM)
     public String getOverallRating() {
         return fetch("overallRating", overallRating);
     }
@@ -214,7 +214,7 @@ public class PlayerStats extends ParameterizedModel {
     }
 
     @DimensionFormula("{{country.isoCode}}")
-    @ColumnMeta(values = {"HK", "US"})
+    @ColumnMeta(values = {"HK", "USA"})
     public String getCountryIsoCode() {
         return fetch("countryIsoCode", countryIsoCode);
     }

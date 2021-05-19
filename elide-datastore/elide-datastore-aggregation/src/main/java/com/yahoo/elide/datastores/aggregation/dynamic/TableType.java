@@ -54,6 +54,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 /**
@@ -674,7 +676,7 @@ public class TableType implements Type<DynamicModelInstance> {
                             public String expression() {
                                 String sql = grain.getSql();
                                 if (StringUtils.isEmpty(sql)) {
-                                    return "{{}}";
+                                    return "{{$$column.expr}}";
                                 }
                                 return grain.getSql();
                             }
@@ -717,6 +719,66 @@ public class TableType implements Type<DynamicModelInstance> {
             @Override
             public Class<? extends Annotation> annotationType() {
                 return Id.class;
+            }
+        });
+
+        annotations.put(GeneratedValue.class, new GeneratedValue() {
+
+            @Override
+            public GenerationType strategy() {
+                return GenerationType.AUTO;
+            }
+
+            @Override
+            public String generator() {
+                return "";
+            }
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return GeneratedValue.class;
+            }
+        });
+
+        annotations.put(ColumnMeta.class, new ColumnMeta() {
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return ColumnMeta.class;
+            }
+
+            @Override
+            public String friendlyName() {
+                return "Row Number";
+            }
+
+            @Override
+            public String description() {
+                return "Row number for each record returned by a query.";
+            }
+
+            @Override
+            public String category() {
+                return null;
+            }
+
+            @Override
+            public TableSource tableSource() {
+                return buildTableSource(null);
+            }
+
+            @Override
+            public String[] tags() {
+                return new String[0];
+            }
+
+            @Override
+            public String[] values() {
+                return new String[0];
+            }
+
+            @Override
+            public CardinalitySize size() {
+                return CardinalitySize.UNKNOWN;
             }
         });
 

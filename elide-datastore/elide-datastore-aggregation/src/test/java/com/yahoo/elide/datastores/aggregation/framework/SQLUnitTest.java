@@ -29,6 +29,7 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.example.GameRevenue;
 import com.yahoo.elide.datastores.aggregation.example.Player;
@@ -87,6 +88,8 @@ import javax.sql.DataSource;
 public abstract class SQLUnitTest {
 
     protected static SQLTable playerStatsTable;
+    protected static SQLTable playerStatsViewTable;
+    protected static Map<String, Argument> playerStatsViewTableArgs;
     protected static EntityDictionary dictionary;
     protected static RSQLFilterDialect filterParser;
     protected static MetaDataStore metaDataStore;
@@ -260,10 +263,10 @@ public abstract class SQLUnitTest {
                     .build();
         }),
         SUBQUERY (() -> {
-            SQLTable playerStatsViewTable = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
             return Query.builder()
                     .source(playerStatsViewTable)
                     .metricProjection(playerStatsViewTable.getMetricProjection("highScore"))
+                    .arguments(playerStatsViewTableArgs)
                     .build();
         }),
         ORDER_BY_DIMENSION_NOT_IN_SELECT (() -> {
@@ -512,9 +515,13 @@ public abstract class SQLUnitTest {
         connectionDetailsMap.put("SalesDBConnection", new ConnectionDetails(DUMMY_DATASOURCE, sqlDialect));
 
         engine = new SQLQueryEngine(metaDataStore, new ConnectionDetails(dataSource, sqlDialect),
-                connectionDetailsMap, optimizers);
+                connectionDetailsMap, optimizers, new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
         playerStatsTable = (SQLTable) metaDataStore.getTable("playerStats", NO_VERSION);
         videoGameTable = (SQLTable) metaDataStore.getTable("videoGame", NO_VERSION);
+        playerStatsViewTable = (SQLTable) metaDataStore.getTable("playerStatsView", NO_VERSION);
+        playerStatsViewTableArgs = new HashMap<>();
+        playerStatsViewTableArgs.put("rating", Argument.builder().name("overallRating").value("Great").build());
+        playerStatsViewTableArgs.put("minScore", Argument.builder().name("minScore").value("0").build());
     }
 
     private static String getCompatabilityMode(String dialectType) {
@@ -674,8 +681,8 @@ public abstract class SQLUnitTest {
                 + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
                 + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
                 + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country` ON `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`id` "
-                + "WHERE `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`iso_code` IN (:XXX) "
+                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX` ON `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX`.`id` "
+                + "WHERE `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX`.`iso_code` IN (:XXX) "
                 + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
                 + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
                 + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
@@ -726,14 +733,14 @@ public abstract class SQLUnitTest {
                         + "        FROM \n"
                         + "            `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` \n"
                         + "            LEFT OUTER JOIN \n"
-                        + "            `countries` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country` \n"
+                        + "            `countries` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX` \n"
                         + "            ON \n"
-                        + "            `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`id` \n"
+                        + "            `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX`.`id` \n"
                         + "        WHERE \n"
                         + "            (\n"
                         + "                (CASE WHEN `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` = 'Good' THEN 1 ELSE 2 END IN (:XXX, :XXX) \n"
                         + "                AND \n"
-                        + "                `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country`.`iso_code` IN (:XXX)) \n"
+                        + "                `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX`.`iso_code` IN (:XXX)) \n"
                         + "                AND \n"
                         + "                PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IS NOT NULL\n"
                         + "            ) \n"

@@ -18,7 +18,7 @@ import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
@@ -45,20 +45,20 @@ import java.util.stream.Stream;
  */
 public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuilder> {
 
-    private final SQLReferenceTable referenceTable;
     private final MetaDataStore metaDataStore;
     private final EntityDictionary dictionary;
     private final SQLDialect dialect;
     private FilterTranslator filterTranslator;
     private final ExpressionParser parser;
+    private final Query clientQuery;
 
-    public QueryTranslator(SQLReferenceTable referenceTable, SQLDialect sqlDialect) {
-        this.referenceTable = referenceTable;
-        this.metaDataStore = referenceTable.getMetaDataStore();
-        this.dictionary = referenceTable.getDictionary();
+    public QueryTranslator(MetaDataStore metaDataStore, SQLDialect sqlDialect, Query clientQuery) {
+        this.metaDataStore = metaDataStore;
+        this.dictionary = metaDataStore.getMetadataDictionary();
         this.dialect = sqlDialect;
         this.filterTranslator = new FilterTranslator(dictionary);
-        this.parser = new ExpressionParser(referenceTable.getMetaDataStore());
+        this.parser = new ExpressionParser(metaDataStore);
+        this.clientQuery = clientQuery;
     }
 
     @Override
@@ -131,8 +131,10 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
         Type<?> tableCls = dictionary.getEntityClass(table.getName(), table.getVersion());
         String tableAlias = applyQuotes(table.getAlias());
 
+        TableContext context = TableContext.builder().tableArguments(clientQuery.getArguments()).build();
+
         String tableStatement = tableCls.isAnnotationPresent(FromSubquery.class)
-                ? "(" + tableCls.getAnnotation(FromSubquery.class).sql() + ")"
+                ? "(" + context.resolve(tableCls.getAnnotation(FromSubquery.class).sql()) + ")"
                 : tableCls.isAnnotationPresent(FromTable.class)
                 ? applyQuotes(tableCls.getAnnotation(FromTable.class).name())
                 : applyQuotes(table.getName());
@@ -272,29 +274,33 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
     }
 
     /**
-     * Given the set of group by dimensions or projection metrics,
-     * extract any entity relationship traversals that require joins.
-     * This method takes in a {@link Table} because the sql join path meta data is stored in it.
-     *
-     * @param columnProjections The list of dimensions we are grouping on.
-     * @param source queried table
+     * Get required join expressions for all the projected columns in given Query.
+     * @param query Expanded Query.
      * @return A set of Join expressions that capture a relationship traversal.
      */
     private Set<String> extractJoinExpressions(Query query) {
         return query.getColumnProjections().stream()
+                .filter(column -> column.isProjected())
                 .map(column -> extractJoinExpressions(column, query))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
+    /**
+     * Get required join expressions for given column in given Query.
+     * @param column {@link ColumnProjection}
+     * @param query Expanded Query.
+     * @return A set of Join expressions that capture a relationship traversal.
+     */
     private Set<String> extractJoinExpressions(ColumnProjection column, Query query) {
         Set<String> joinExpressions = new LinkedHashSet<>();
 
         ColumnContext context = ColumnContext.builder()
                         .queryable(query)
                         .alias(query.getSource().getAlias())
-                        .metaDataStore(referenceTable.getMetaDataStore())
+                        .metaDataStore(metaDataStore)
                         .column(column)
+                        .tableArguments(query.getArguments())
                         .build();
 
         JoinExpressionExtractor visitor = new JoinExpressionExtractor(context);

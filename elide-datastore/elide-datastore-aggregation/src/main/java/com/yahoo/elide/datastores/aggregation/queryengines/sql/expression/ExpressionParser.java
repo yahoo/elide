@@ -7,7 +7,7 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
 import static com.yahoo.elide.core.request.Argument.getArgumentMapFromString;
-import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.getColumnArgMap;
+import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.mergedArgumentMap;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import com.yahoo.elide.core.Path;
@@ -42,6 +42,9 @@ public class ExpressionParser {
 
     private static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
     private static final String SQL_HELPER_PREFIX = "sql ";
+    private static final String COLUMN_ARGS_PREFIX = "$$column.args.";
+    private static final String TABLE_ARGS_PREFIX = "$$table.args.";
+    private static final String COLUMN_EXPR = "$$column.expr";
 
     private MetaDataStore metaDataStore;
     private EntityDictionary dictionary;
@@ -110,10 +113,20 @@ public class ExpressionParser {
                 }
             }
 
-            if (referenceName.startsWith("$$")) {
+            // ignore $$column.expr
+            if (referenceName.equals(COLUMN_EXPR)) {
                 continue;
             }
-            if (referenceName.startsWith("$")) {
+
+            if (referenceName.startsWith(COLUMN_ARGS_PREFIX)) {
+                results.add(ColumnArgReference.builder()
+                                .argName(referenceName.substring(COLUMN_ARGS_PREFIX.length()))
+                                .build());
+            } else if (referenceName.startsWith(TABLE_ARGS_PREFIX)) {
+                results.add(TableArgReference.builder()
+                                .argName(referenceName.substring(TABLE_ARGS_PREFIX.length()))
+                                .build());
+            } else if (referenceName.startsWith("$")) {
                 results.add(PhysicalReference
                         .builder()
                         .source(source)
@@ -126,9 +139,9 @@ public class ExpressionParser {
                 Preconditions.checkNotNull(referencedColumn);
 
                 ColumnProjection newColumn = referencedColumn.withArguments(
-                                getColumnArgMap(referencedColumn.getArguments(),
-                                                callingColumnArgs,
-                                                fixedArguments));
+                                mergedArgumentMap(referencedColumn.getArguments(),
+                                                  callingColumnArgs,
+                                                  fixedArguments));
 
                 List<Reference> references = buildReferenceForColumn(source, newColumn);
 
@@ -177,9 +190,9 @@ public class ExpressionParser {
         } else {
             ColumnProjection referencedColumn = joinSource.getColumnProjection(fieldName);
             ColumnProjection newColumn = referencedColumn.withArguments(
-                            getColumnArgMap(referencedColumn.getArguments(),
-                                            callingColumnArgs,
-                                            fixedArguments));
+                            mergedArgumentMap(referencedColumn.getArguments(),
+                                              callingColumnArgs,
+                                              fixedArguments));
 
             reference = LogicalReference
                             .builder()

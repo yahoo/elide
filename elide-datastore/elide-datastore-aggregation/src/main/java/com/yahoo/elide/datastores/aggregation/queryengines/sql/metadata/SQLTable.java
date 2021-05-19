@@ -12,6 +12,9 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
+import com.yahoo.elide.datastores.aggregation.metadata.models.ArgumentDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -21,10 +24,12 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
+import com.yahoo.elide.datastores.aggregation.query.MetricProjectionMaker;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -76,6 +81,22 @@ public class SQLTable extends Table implements Queryable {
 
     @Override
     protected Metric constructMetric(String fieldName, EntityDictionary dictionary) {
+        if (dictionary.getIdFieldName(getModel()).equals(fieldName)) {
+            MetricProjectionMaker maker = (metric, alias, arguments) -> {
+                return SQLMetricProjection
+                        .builder()
+                        .projected(true)
+                        .alias(fieldName)
+                        .name(fieldName)
+                        .expression("")
+                        .valueType(ValueType.ID)
+                        .columnType(ColumnType.FIELD)
+                        .arguments(new HashMap<>())
+                        .build();
+
+            };
+            return new Metric(maker, this, fieldName, dictionary);
+        }
         return new Metric(this, fieldName, dictionary);
     }
 
@@ -113,7 +134,8 @@ public class SQLTable extends Table implements Queryable {
     @Override
     public List<MetricProjection> getMetricProjections() {
         return super.getMetrics().stream()
-                .map(metric -> getMetricProjection(metric, metric.getName(), prepareArgMap(metric.getArguments())))
+                .map(metric -> getMetricProjection(metric, metric.getName(),
+                                prepareArgMap(metric.getArgumentDefinitions())))
                 .collect(Collectors.toList());
     }
 
@@ -148,7 +170,7 @@ public class SQLTable extends Table implements Queryable {
         return super.getDimensions()
                 .stream()
                 .map(dimension -> getDimensionProjection(dimension, dimension.getName(),
-                                prepareArgMap(dimension.getArguments())))
+                                prepareArgMap(dimension.getArgumentDefinitions())))
                 .collect(Collectors.toList());
     }
 
@@ -186,7 +208,7 @@ public class SQLTable extends Table implements Queryable {
         return super.getTimeDimensions()
                 .stream()
                 .map(dimension -> getTimeDimensionProjection(dimension, dimension.getName(),
-                                prepareArgMap(dimension.getArguments())))
+                                prepareArgMap(dimension.getArgumentDefinitions())))
                 .collect(Collectors.toList());
     }
 
@@ -206,7 +228,7 @@ public class SQLTable extends Table implements Queryable {
             return null;
         }
 
-        return getColumnProjection(column, prepareArgMap(column.getArguments()));
+        return getColumnProjection(column, prepareArgMap(column.getArgumentDefinitions()));
     }
 
     @Override
@@ -274,13 +296,17 @@ public class SQLTable extends Table implements Queryable {
         return this;
     }
 
+    @Override
+    public Map<String, Argument> getArguments() {
+        return prepareArgMap(getArgumentDefinitions());
+    }
+
     /**
      * Create a map of String and {@link Argument} using {@link Column}'s arguments.
      * @param arguments Set of available {@link Column} arguments.
      * @return A map of String and {@link Argument}
      */
-    private static Map<String, Argument> prepareArgMap(
-                    Set<com.yahoo.elide.datastores.aggregation.metadata.models.Argument> arguments) {
+    private static Map<String, Argument> prepareArgMap(Set<ArgumentDefinition> arguments) {
         return arguments.stream()
                         .map(arg -> Argument.builder()
                                         .name(arg.getName())

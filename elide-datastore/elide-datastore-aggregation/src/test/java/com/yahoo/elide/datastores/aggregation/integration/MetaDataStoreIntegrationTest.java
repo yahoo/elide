@@ -18,27 +18,89 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+
+import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatus;
+import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
+import com.yahoo.elide.core.filter.dialect.jsonapi.MultipleFilterDialect;
+import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.datastores.aggregation.checks.OperatorCheck;
+import com.yahoo.elide.datastores.aggregation.checks.VideoGameFilterCheck;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
+
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+
+import example.TestCheckMappings;
+
+import org.glassfish.jersey.internal.inject.AbstractBinder;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
+import javax.inject.Inject;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;
 
 public class MetaDataStoreIntegrationTest extends IntegrationTest {
+
+    private static final class SecurityHjsonIntegrationTestResourceConfig extends ResourceConfig {
+
+        @Inject
+        public SecurityHjsonIntegrationTestResourceConfig() {
+            register(new AbstractBinder() {
+                @Override
+                protected void configure() {
+                    Map<String, Class<? extends Check>> map = new HashMap<>(TestCheckMappings.MAPPINGS);
+                    map.put(OperatorCheck.OPERTOR_CHECK, OperatorCheck.class);
+                    map.put(VideoGameFilterCheck.NAME_FILTER, VideoGameFilterCheck.class);
+                    EntityDictionary dictionary = new EntityDictionary(map);
+
+                    VALIDATOR.getElideSecurityConfig().getRoles().forEach(role ->
+                            dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))
+                    );
+
+                    DefaultFilterDialect defaultFilterStrategy = new DefaultFilterDialect(dictionary);
+                    RSQLFilterDialect rsqlFilterStrategy = new RSQLFilterDialect(dictionary);
+
+                    MultipleFilterDialect multipleFilterStrategy = new MultipleFilterDialect(
+                            Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy),
+                            Arrays.asList(rsqlFilterStrategy, defaultFilterStrategy)
+                    );
+
+                    Elide elide = new Elide(new ElideSettingsBuilder(IntegrationTest.getDataStore())
+                            .withJoinFilterDialect(multipleFilterStrategy)
+                            .withSubqueryFilterDialect(multipleFilterStrategy)
+                            .withEntityDictionary(dictionary)
+                            .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", Calendar.getInstance().getTimeZone())
+                            .build());
+                    bind(elide).to(Elide.class).named("elide");
+                }
+            });
+        }
+    }
+
+    public MetaDataStoreIntegrationTest() {
+        super(SecurityHjsonIntegrationTestResourceConfig.class, JsonApiEndpoint.class.getPackage().getName());
+    }
 
     @Override
     protected DataStoreTestHarness createHarness() {
@@ -83,7 +145,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/table/book/dimensions")
                 .then()
-                .body("data.id", containsInAnyOrder("book.language", "book.id",
+                .body("data.id", containsInAnyOrder("book.language", "book.id", "book.awards",
                         "book.chapterCount", "book.publishDate", "book.editorName", "book.title", "book.genre"))
                 .statusCode(HttpStatus.SC_OK);
     }
@@ -94,7 +156,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/table/embedded/dimensions")
                 .then()
-                .body("data.id", containsInAnyOrder("embedded.id"))
+                .body("data.id", containsInAnyOrder("embedded.id", "embedded.segmentIds"))
                 .statusCode(HttpStatus.SC_OK);
     }
 
@@ -162,7 +224,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("data.attributes.isFact", equalTo(true)) //TableMeta Present, isFact default true
                 .body("data.attributes.cardinality", equalTo("UNKNOWN"))
-                .body("data.relationships.columns.data.id", containsInAnyOrder("country.name",
+                .body("data.relationships.columns.data.id", containsInAnyOrder("country.id", "country.name",
                         "country.inUsa", "country.unSeats", "country.nickName", "country.isoCode"));
         given()
                 .accept("application/vnd.api+json")
@@ -192,7 +254,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                                 "playerStats.countryIsoCode",
                                 "playerStats.subCountryIsoCode",
                                 "playerStats.overallRating"))
-                .body("data.relationships.metrics.data.id", containsInAnyOrder("playerStats.lowScore",
+                .body("data.relationships.metrics.data.id", containsInAnyOrder("playerStats.id", "playerStats.lowScore",
                         "playerStats.highScore", "playerStats.dailyAverageScorePerPeriod"))
                 .body("data.relationships.timeDimensions.data.id", containsInAnyOrder("playerStats.recordedDate",
                         "playerStats.updatedDate"));
@@ -222,7 +284,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.expression",  equalTo("{{player.name}}"))
                 .body("data.attributes.tableSource",  nullValue())
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
-                .body("data.attributes.arguments", nullValue()); // No Arguments were set.
+                .body("data.relationships.arguments.data", empty()); // No Arguments were set.
     }
 
     @Test
@@ -232,7 +294,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/table/playerStats/dimensions/playerStats.countryIsoCode")
                 .then()
-                .body("data.attributes.values", containsInAnyOrder("US", "HK"))
+                .body("data.attributes.values", containsInAnyOrder("USA", "HK"))
                 .body("data.attributes.valueSourceType", equalTo("ENUM"))
                 .body("data.attributes.tableSource", nullValue())
                 .body("data.attributes.columnType", equalTo("FORMULA"))
@@ -246,7 +308,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/table/playerStats/dimensions/playerStats.overallRating")
                 .then()
-                .body("data.attributes.values", containsInAnyOrder("GOOD", "OK", "TERRIBLE"))
+                .body("data.attributes.values", containsInAnyOrder("Good", "OK", "Terrible"))
                 .body("data.attributes.valueSourceType", equalTo("ENUM"))
                 .body("data.attributes.tableSource", nullValue())
                 .body("data.attributes.columnType", equalTo("FIELD"))
@@ -262,6 +324,26 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .get("/table/playerStats/dimensions/playerStats.overallRating")
                 .then()
                 .body("data.attributes.tags", containsInAnyOrder("PUBLIC"))
+                .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void dimensionIdTest() {
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/book/dimensions/book.id")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void metricIdTest() {
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/planet/metrics/planet.id")
+                .then()
                 .statusCode(HttpStatus.SC_OK);
     }
 
@@ -294,16 +376,16 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.valueType",  equalTo("TIME"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.expression",  equalTo("{{$recordedDate}}"))
-                .body("data.attributes.arguments", nullValue()) // No Arguments were set.
+                .body("data.relationships.arguments.data", empty()) // No Arguments were set.
                 .body("data.relationships.table.data.id", equalTo("playerStats"))
                 .body("data.relationships.supportedGrains.data.id", containsInAnyOrder("playerStats.recordedDate.day", "playerStats.recordedDate.month", "playerStats.recordedDate.quarter"))
                 .body("included.id", containsInAnyOrder("playerStats.recordedDate.day", "playerStats.recordedDate.month", "playerStats.recordedDate.quarter"))
                 .body("included.attributes.grain", containsInAnyOrder("DAY", "MONTH", "QUARTER"))
                 .body("included.attributes.expression",
                         containsInAnyOrder(
-                                "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')",
-                                "PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')",
-                                "PARSEDATETIME(CONCAT(FORMATDATETIME({{}}, 'yyyy-'), 3 * QUARTER({{}}) - 2), 'yyyy-MM')"
+                                "PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')",
+                                "PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM'), 'yyyy-MM')",
+                                "PARSEDATETIME(CONCAT(FORMATDATETIME({{$$column.expr}}, 'yyyy-'), 3 * QUARTER({{$$column.expr}}) - 2), 'yyyy-MM')"
                         ));
     }
 
@@ -323,7 +405,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.category",  equalTo("Score Category"))
                 .body("data.attributes.description",  equalTo("very low score"))
                 .body("data.attributes.tags",  containsInAnyOrder("PRIVATE"))
-                .body("data.attributes.arguments", nullValue()) // No Arguments were set.
+                .body("data.relationships.arguments.data", empty()) // No Arguments were set.
                 .body("data.relationships.table.data.id", equalTo("playerStats"));
 
         given()
@@ -335,7 +417,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.valueType",  equalTo("DECIMAL"))
                 .body("data.attributes.columnType",  equalTo("FORMULA"))
                 .body("data.attributes.expression",  equalTo("({{timeSpent}} / (CASE WHEN SUM({{$game_rounds}}) = 0 THEN 1 ELSE {{sessions}} END))"))
-                .body("data.attributes.arguments", nullValue()) // No Arguments were set.
+                .body("data.relationships.arguments.data", empty()) // No Arguments were set.
                 .body("data.relationships.table.data.id", equalTo("videoGame"));
 
         // Verify Metric Arguments
@@ -347,6 +429,24 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.name", equalTo("orderTotal"))
                 .body("data.attributes.friendlyName", equalTo("orderTotal"))
                 .body("data.relationships.arguments.data.id", containsInAnyOrder("SalesNamespace_orderDetails.orderTotal.precision"));
+
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/SalesNamespace_orderDetails/metrics/SalesNamespace_orderDetails.id")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.attributes.name", equalTo("id"))
+                .body("data.attributes.friendlyName", equalTo("Row Number"))
+                .body("data.attributes.valueType",  equalTo("ID"))
+                .body("data.attributes.valueSourceType",  equalTo("NONE"))
+                .body("data.attributes.columnType",  equalTo("FIELD"))
+                .body("data.attributes.description",  equalTo("Row number for each record returned by a query."))
+                .body("data.attributes.expression",  equalTo("{{$id}}"))
+                .body("data.attributes.category",  nullValue())
+                .body("data.attributes.tags",  empty())
+                .body("data.attributes.values",  empty())
+                .body("data.relationships.arguments.data", empty()) // No Arguments were set.
+                .body("data.relationships.table.data.id", equalTo("SalesNamespace_orderDetails"));
     }
 
     @Test

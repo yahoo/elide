@@ -109,6 +109,7 @@ public class EntityDictionary {
 
     protected final ConcurrentHashMap<Pair<String, String>, Type<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Type<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
+    @Getter
     protected final ConcurrentHashMap<Type<?>, Function<RequestScope, PermissionExecutor>> entityPermissionExecutor =
             new ConcurrentHashMap<>();
     protected final CopyOnWriteArrayList<Type<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
@@ -177,7 +178,7 @@ public class EntityDictionary {
 
     /**
      * Instantiate a new EntityDictionary with the provided set of checks and an injection function.
-     * In addition all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
+     * In addition, all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
      * to {@code Prefab.CONTAINER.CHECK} * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
      * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
      * @param checks a map that links the identifiers used in the permission expression strings
@@ -191,7 +192,24 @@ public class EntityDictionary {
 
     /**
      * Instantiate a new EntityDictionary with the provided set of checks and an injection function.
-     * In addition all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
+     * In addition, all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
+     * to {@code Prefab.CONTAINER.CHECK} * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
+     * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
+     * @param checks a map that links the identifiers used in the permission expression strings
+     *               to their implementing classes
+     * @param roleChecks a map that links the user check identifiers used in the permission expression strings
+     *                   to their User Check object
+     * @param injector a function typically associated with a dependency injection framework that will
+     *                 initialize Elide models.
+     */
+    public EntityDictionary(Map<String, Class<? extends Check>> checks,
+                            Map<String, UserCheck> roleChecks, Injector injector) {
+        this(checks, roleChecks, injector, CoerceUtil::lookup, Collections.emptySet());
+    }
+
+    /**
+     * Instantiate a new EntityDictionary with the provided set of checks and an injection function.
+     * In addition, all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
      * to {@code Prefab.CONTAINER.CHECK} * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
      * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
      * @param checks a map that links the identifiers used in the permission expression strings
@@ -215,9 +233,17 @@ public class EntityDictionary {
             Injector injector,
             Function<Class, Serde> serdeLookup,
             Set<Type<?>> entitiesToExclude) {
+        this(checks, null, injector, serdeLookup, entitiesToExclude);
+    }
+
+    public EntityDictionary(Map<String, Class<? extends Check>> checks,
+                            Map<String, UserCheck> roleChecks,
+                            Injector injector,
+                            Function<Class, Serde> serdeLookup,
+                            Set<Type<?>> entitiesToExclude) {
         this.serdeLookup = serdeLookup;
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
-        this.roleChecks = new HashMap<>();
+        this.roleChecks = roleChecks == null ? new HashMap<>() : roleChecks;
         this.apiVersions = new HashSet<>();
         initializeChecks();
         this.injector = injector;
@@ -266,6 +292,14 @@ public class EntityDictionary {
      */
     public UserCheck getRoleCheck(String role) {
         return roleChecks.get(role);
+    }
+
+    /**
+     * Returns the map of role to their user role check object.
+     * @return
+     */
+    public Map<String, UserCheck> getRoleChecks() {
+        return roleChecks;
     }
 
     /**
@@ -1055,7 +1089,7 @@ public class EntityDictionary {
      * @param scope - request scope to generate permission executor.
      * @return Map of bound model type to its permission executor object.
      */
-    public Map<Type<?>, PermissionExecutor> getPermissionExecutors(RequestScope scope) {
+    public Map<Type<?>, PermissionExecutor> buildPermissionExecutors(RequestScope scope) {
         return entityPermissionExecutor.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,

@@ -228,7 +228,9 @@ public class EntityDictionaryTest extends EntityDictionary {
         EntityDictionary testDictionary = new EntityDictionary(
                 new HashMap<>(),
                 null,
-                unused -> new ISO8601DateSerde());
+                null,
+                unused -> new ISO8601DateSerde(),
+                Collections.emptySet());
 
         testDictionary.bindEntity(EntityWithDateId.class);
 
