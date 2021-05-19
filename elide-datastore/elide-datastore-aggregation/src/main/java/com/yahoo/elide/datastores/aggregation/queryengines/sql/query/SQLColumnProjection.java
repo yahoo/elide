@@ -17,8 +17,9 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Expres
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasColumnArgsVisitor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasJoinVisitor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.JoinReference;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.PhysicalReferenceExtractor;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.PhysicalReference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ReferenceExtractor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,15 +92,11 @@ public interface SQLColumnProjection extends ColumnProjection {
 
         //Search for any join expression that contains $$column.  If found, we cannot nest
         //because rewriting the SQL in the outer expression will lose the context of the calling $$column.
-        boolean hasColumnArgsInJoin = references.stream()
+        return ! references.stream()
                 .filter(reference -> reference instanceof JoinReference)
                 .anyMatch(reference -> {
                     return reference.accept(new HasColumnArgsVisitor(metaDataStore));
                 });
-
-        boolean hasJoin = references.stream().anyMatch(reference -> reference.accept(new HasJoinVisitor()));
-
-        return ! (hasJoin & hasColumnArgsInJoin);
     }
 
     @Override
@@ -119,7 +116,7 @@ public interface SQLColumnProjection extends ColumnProjection {
             String outerProjectionExpression = toPhysicalReferences(source, store);
             outerProjection = withExpression(outerProjectionExpression, inProjection);
 
-            innerProjections = extractPhysicalReferences(references, store);
+            innerProjections = extractPhysicalReferences(source, references, store);
         } else {
             outerProjection = withExpression("{{$" + this.getSafeAlias() + "}}", isProjected());
             innerProjections = new LinkedHashSet<>(Arrays.asList(this));
@@ -153,13 +150,18 @@ public interface SQLColumnProjection extends ColumnProjection {
 
     /**
      * Extracts all of the physical column projections that are referenced in a list of references.
+     * @param source The calling query.
      * @param references The list of references.
      * @param store The MetaDataStore.
      * @return A set of physical column projections.
      */
-    static Set<ColumnProjection> extractPhysicalReferences(List<Reference> references, MetaDataStore store) {
+    static Set<ColumnProjection> extractPhysicalReferences(
+            Queryable source,
+            List<Reference> references,
+            MetaDataStore store) {
         return references.stream()
-                .map(ref -> ref.accept(new PhysicalReferenceExtractor(store)))
+                .map(ref ->
+                        ref.accept(new ReferenceExtractor<PhysicalReference>(PhysicalReference.class, store, source)))
                 .flatMap(Set::stream)
                 .map(ref -> SQLPhysicalColumnProjection.builder()
                         .name(ref.getName())
