@@ -83,7 +83,7 @@ import javax.persistence.Transient;
 public class EntityDictionaryTest extends EntityDictionary {
 
     //Test class to validate inheritance logic
-    @Include(type = "friend")
+    @Include(name = "friend")
     private class Friend extends Child {
     }
 
@@ -228,7 +228,9 @@ public class EntityDictionaryTest extends EntityDictionary {
         EntityDictionary testDictionary = new EntityDictionary(
                 new HashMap<>(),
                 null,
-                unused -> new ISO8601DateSerde());
+                null,
+                unused -> new ISO8601DateSerde(),
+                Collections.emptySet());
 
         testDictionary.bindEntity(EntityWithDateId.class);
 
@@ -1078,5 +1080,11 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertFalse(hasBinding(ClassType.of((ExcludedPackageLevel.class))));
         assertFalse(hasBinding(ClassType.of((ExcludedSubPackage.class))));
         assertFalse(hasBinding(ClassType.of((ExcludedBySuperClass.class))));
+    }
+
+    @Test
+    public void testEntityPrefix() {
+        assertEquals("example_includedPackageLevel",
+                getJsonAliasFor(ClassType.of(IncludedPackageLevel.class)));
     }
 }

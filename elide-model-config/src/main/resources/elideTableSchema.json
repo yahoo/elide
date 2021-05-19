@@ -33,9 +33,7 @@
                     }
                 },
                 "tableSource": {
-                    "title": "Table stores argument values",
-                    "description": "Table and column name where to find the values : tableName.columnName",
-                    "type": "string"
+                    "$ref": "#/definitions/tableSource"
                 },
                 "default": {
                     "title": "Default argument value",
@@ -99,6 +97,47 @@
             "required": [
                 "name",
                 "to"
+            ],
+            "additionalProperties": false
+        },
+        "tableSource": {
+            "title": "Table Source",
+            "description": "Provides information about where a column or argument values can be found.",
+            "type": "object",
+            "properties": {
+                "table": {
+                    "title": "Source table",
+                    "description": "The source table that contains the colum or argument values.",
+                    "type": "string",
+                    "format": "elideName"
+                },
+                "namespace": {
+                    "title": "Source table namespace",
+                    "description": "Namespace for the source table.",
+                    "type": "string",
+                    "format": "elideNamespaceName",
+                    "default": "default"
+                },
+                "column": {
+                    "title": "Primary source table column name",
+                    "description": "The column that provides a unique list of values for the given column or argument",
+                    "type": "string",
+                    "format": "elideFieldName"
+                },
+                "suggestionColumns": {
+                    "title": "Secondary search columns",
+                    "description": "Secondary columns that can be searched to locate the primary column(s)",
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                        "type": "string",
+                        "format": "elideFieldName"
+                    }
+                }
+            },
+            "required": [
+                "table",
+                "column"
             ],
             "additionalProperties": false
         },
@@ -285,9 +324,7 @@
                             }
                         },
                         "tableSource": {
-                            "title": "Table stores dimension values",
-                            "description": "Table and column name where to find the values : tableName.columnName",
-                            "type": "string"
+                            "$ref": "#/definitions/tableSource"
                         }
                     }
                 }

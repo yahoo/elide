@@ -29,7 +29,7 @@ import javax.persistence.Table;
 @ReadPermission(expression = "Prefab.Role.All")
 @UpdatePermission(expression = "Prefab.Role.None OR Prefab.Role.All")
 @DeletePermission(expression = "Prefab.Role.None AND Prefab.Role.All")
-@Include(type = "fun") // optional here because class has this name
+@Include(name = "fun") // optional here because class has this name
 @Entity
 @Table(name = "fun")
 public class FunWithPermissions {

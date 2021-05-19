@@ -51,7 +51,7 @@ public class Argument implements Named {
     private Set<String> values = new LinkedHashSet<>();
 
     @JsonProperty("tableSource")
-    private String tableSource;
+    private TableSource tableSource;
 
     @JsonProperty("default")
     private Object defaultValue;

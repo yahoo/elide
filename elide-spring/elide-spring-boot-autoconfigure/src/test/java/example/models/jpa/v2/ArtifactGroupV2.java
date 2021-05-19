@@ -14,7 +14,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-@Include(type = "group")
+@Include(name = "group")
 @Entity
 @Data
 @Table(name = "ArtifactGroup")

@@ -8,7 +8,19 @@ package com.yahoo.elide.modelconfig.model;
 import java.util.Collection;
 
 public interface Named {
-    public String getName();
+    /**
+     * Get the name local to its parent.
+     * @return the local name
+     */
+    String getName();
+
+    /**
+     * Get the globally unique name .
+     * @return the global name
+     */
+    default String getGlobalName() {
+        return getName();
+    }
 
     /**
      * Checks if the collection has an object with given name.

@@ -12,7 +12,6 @@ import com.yahoo.elide.core.type.ParameterizedModel;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
-import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
@@ -125,16 +124,12 @@ public class EntityHydrator {
             Type<?> fieldType = getType(entityClass, dim);
             Attribute attribute = projectionToAttribute(dim, fieldType);
 
-            if (dim != null && dim.getValueType().equals(ValueType.RELATIONSHIP)) {
-                // We don't hydrate relationships here.
+            if (entityInstance instanceof ParameterizedModel) {
+                ((ParameterizedModel) entityInstance).addAttributeValue(
+                    attribute,
+                    CoerceUtil.coerce(value, fieldType));
             } else {
-                if (entityInstance instanceof ParameterizedModel) {
-                    ((ParameterizedModel) entityInstance).addAttributeValue(
-                            attribute,
-                            CoerceUtil.coerce(value, fieldType));
-                } else {
                     getEntityDictionary().setValue(entityInstance, fieldName, value);
-                }
             }
         });
 

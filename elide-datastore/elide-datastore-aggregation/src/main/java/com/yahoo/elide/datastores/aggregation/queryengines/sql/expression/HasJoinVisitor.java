@@ -24,4 +24,14 @@ public class HasJoinVisitor implements ReferenceVisitor<Boolean> {
     public Boolean visitJoinReference(JoinReference reference) {
         return true;
     }
+
+    @Override
+    public Boolean visitColumnArgReference(ColumnArgReference reference) {
+        return false;
+    }
+
+    @Override
+    public Boolean visitTableArgReference(TableArgReference reference) {
+        return false;
+    }
 }

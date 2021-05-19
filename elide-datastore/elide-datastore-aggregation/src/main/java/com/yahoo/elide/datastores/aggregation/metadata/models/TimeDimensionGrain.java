@@ -16,7 +16,7 @@ import javax.persistence.Id;
 /**
  * Defines how to extract a time dimension for a specific grain from a table.
  */
-@Include(rootLevel = false, type = "timeDimensionGrain")
+@Include(rootLevel = false, name = "timeDimensionGrain")
 @Value
 public class TimeDimensionGrain {
     @Id private final String id;
@@ -34,7 +34,7 @@ public class TimeDimensionGrain {
     public TimeDimensionGrain(String fieldName, TimeGrain grain) {
         this.id = getId(fieldName, grain);
         this.grain = grain;
-        this.expression = "{{}}";
+        this.expression = "{{$$column.expr}}";
         this.format = grain.getFormat();
     }
 

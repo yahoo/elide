@@ -21,7 +21,7 @@ import javax.persistence.Entity;
  * after asyncexecutorservice is initialized.
  */
 @Entity
-@Include(type = "asyncQuery")
+@Include(name = "asyncQuery")
 @ReadPermission(expression = "Principal is Owner OR Principal is Admin")
 @UpdatePermission(expression = "Prefab.Role.None")
 @DeletePermission(expression = "Prefab.Role.None")

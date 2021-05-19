@@ -7,6 +7,7 @@
       dbConnectionName: SalesDBConnection
       cardinality: large
       readAccess: guest user
+      namespace: SalesNamespace
       arguments:
       [
         { // An argument that can be used to divide orderTotal to convert orders in Millions, Thousands, etc.
@@ -20,6 +21,7 @@
         {
           name: customer
           to: customerDetails
+          namespace: SalesNamespace
           type: Left
           // References Physical Columns
           definition: '{{$customer_id}} = {{ customer.$id}}'
@@ -27,6 +29,7 @@
         {
           name: delivery
           to: deliveryDetails
+          namespace: SalesNamespace
           kind: toOne
           // References Logical Columns, multiple join condition
           definition: '''
@@ -79,7 +82,10 @@
           type: TEXT
           definition: '{{customer.region.region}}'
           readAccess: operator
-          tableSource: regionDetails.region
+          tableSource: {
+            table: regionDetails
+            column: region
+          }
         }
         {
           name: zipCode
@@ -97,15 +103,15 @@
           [
             {
               type: MONTH
-              sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
+              sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM'), 'yyyy-MM')
             },
             {
               type: SECOND
-              sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd HH:mm:ss'), 'yyyy-MM-dd HH:mm:ss')
+              sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd HH:mm:ss'), 'yyyy-MM-dd HH:mm:ss')
             },
             {
               type: DAY
-              sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+              sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
             }
           ]
         }
@@ -128,7 +134,7 @@
           readAccess: guest user
           grains:
           [{
-            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
           }]
         }
         {
@@ -140,7 +146,7 @@
           grains:
           [{
             type: MONTH
-            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
+            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM'), 'yyyy-MM')
           }]
         }
         {
@@ -152,7 +158,7 @@
           grains:
           [{
             type: HOUR
-            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd HH'), 'yyyy-MM-dd HH')
+            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd HH'), 'yyyy-MM-dd HH')
           }]
         }
         {
@@ -164,7 +170,7 @@
           grains:
           [{
             type: YEAR
-            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy'), 'yyyy')
+            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy'), 'yyyy')
           }]
         }
         {
@@ -182,6 +188,7 @@
       dbConnectionName: SalesDBConnection
       cardinality: small
       readAccess: guest user
+      namespace: SalesNamespace
       joins:
       [
         {
@@ -219,6 +226,7 @@
       dbConnectionName: SalesDBConnection
       cardinality: large
       readAccess: guest user
+      namespace: SalesNamespace
       filterTemplate : month>={{start}};month<{{end}}
       dimensions:
       [
@@ -242,7 +250,7 @@
           grains:
           [{
             type: SECOND
-            sql: '{{}}'
+            sql: '{{$$column.expr}}'
           }]
         }
         {
@@ -253,7 +261,7 @@
           grains:
           [{
             type: DAY
-            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
           }]
         }
         {
@@ -264,7 +272,7 @@
           grains:
           [{
             type: MONTH
-            sql: PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM'), 'yyyy-MM')
+            sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM'), 'yyyy-MM')
           }]
         }
       ]

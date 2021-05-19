@@ -24,8 +24,8 @@ public class DynamicConfigValidatorTest {
     public void testValidInheritanceConfig() throws Exception {
         DynamicConfigValidator testClass = new DynamicConfigValidator("src/test/resources/validator/valid");
         testClass.readConfigs();
-        Table parent = testClass.getElideTableConfig().getTable("PlayerStats");
-        Table child = testClass.getElideTableConfig().getTable("PlayerStatsChild");
+        Table parent = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStats");
+        Table child = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStatsChild");
 
         // parent class dim + 3 new in child class + 2 overridden
         assertEquals(parent.getDimensions().size(), 4);
@@ -52,11 +52,11 @@ public class DynamicConfigValidatorTest {
     public void testValidNamespace() throws Exception {
         DynamicConfigValidator testClass = new DynamicConfigValidator("src/test/resources/validator/valid");
         testClass.readConfigs();
-        Table parent = testClass.getElideTableConfig().getTable("PlayerStats");
-        Table child = testClass.getElideTableConfig().getTable("PlayerStatsChild");
+        Table parent = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStats");
+        Table child = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStatsChild");
         Table referred = testClass.getElideTableConfig().getTable("Country");
 
-        assertEquals("default", child.getNamespace()); //PlayerStatsChild -> no namespace was provided, so defaulted
+        assertEquals("PlayerNamespace", child.getNamespace());
         assertEquals("PlayerNamespace", parent.getNamespace());
         assertEquals("default", referred.getNamespace()); // Namespace in HJson "default".
     }
@@ -410,7 +410,7 @@ public class DynamicConfigValidatorTest {
     public void testDuplicateArgumentName() throws Exception {
         DynamicConfigValidator testClass = new DynamicConfigValidator("src/test/resources/validator/valid");
         testClass.readConfigs();
-        Table playerStatsTable = testClass.getElideTableConfig().getTable("PlayerStats");
+        Table playerStatsTable = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStats");
 
         // PlayerStats table already has argument 'countryCode' with type 'TEXT'.
         // Adding another argument 'countryCode' with type 'INTEGER'.
