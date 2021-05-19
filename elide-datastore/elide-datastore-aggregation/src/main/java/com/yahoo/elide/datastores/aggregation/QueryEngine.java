@@ -168,6 +168,14 @@ public abstract class QueryEngine {
 
         //Populate table sources.
         metaDataStore.getTables().forEach(table -> {
+            table.getArgumentDefinitions().forEach(argument -> {
+                argument.setTableSource(TableSource.fromDefinition(
+                        argument.getTableSourceDefinition(),
+                        table.getVersion(),
+                        metaDataStore
+                ));
+            });
+
             table.getColumns().forEach(column -> {
 
                 //Populate column sources.

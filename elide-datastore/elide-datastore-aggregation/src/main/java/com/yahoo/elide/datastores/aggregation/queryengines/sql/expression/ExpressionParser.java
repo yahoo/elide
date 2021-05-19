@@ -42,6 +42,9 @@ public class ExpressionParser {
 
     private static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
     private static final String SQL_HELPER_PREFIX = "sql ";
+    private static final String COLUMN_ARGS_PREFIX = "$$column.args.";
+    private static final String TABLE_ARGS_PREFIX = "$$table.args.";
+    private static final String COLUMN_EXPR = "$$column.expr";
 
     private MetaDataStore metaDataStore;
     private EntityDictionary dictionary;
@@ -110,10 +113,20 @@ public class ExpressionParser {
                 }
             }
 
-            if (referenceName.startsWith("$$")) {
+            // ignore $$column.expr
+            if (referenceName.equals(COLUMN_EXPR)) {
                 continue;
             }
-            if (referenceName.startsWith("$")) {
+
+            if (referenceName.startsWith(COLUMN_ARGS_PREFIX)) {
+                results.add(ColumnArgReference.builder()
+                                .argName(referenceName.substring(COLUMN_ARGS_PREFIX.length()))
+                                .build());
+            } else if (referenceName.startsWith(TABLE_ARGS_PREFIX)) {
+                results.add(TableArgReference.builder()
+                                .argName(referenceName.substring(TABLE_ARGS_PREFIX.length()))
+                                .build());
+            } else if (referenceName.startsWith("$")) {
                 results.add(PhysicalReference
                         .builder()
                         .source(source)
