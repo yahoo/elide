@@ -45,6 +45,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnPr
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
+import com.yahoo.elide.datastores.aggregation.validator.TableArgumentValidator;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 import lombok.Getter;
@@ -172,6 +173,15 @@ public class SQLQueryEngine extends QueryEngine {
                                                       String alias,
                                                       Map<String, Argument> arguments) {
         return metric.getMetricProjectionMaker().make(metric, alias, arguments);
+    }
+
+    @Override
+    protected void verifyMetaData(MetaDataStore metaDataStore) {
+        metaDataStore.getTables().forEach(table -> {
+            SQLTable sqlTable = (SQLTable) table;
+            TableArgumentValidator tableArgValidator = new TableArgumentValidator(metaDataStore, sqlTable);
+            tableArgValidator.validate();
+        });
     }
 
     /**

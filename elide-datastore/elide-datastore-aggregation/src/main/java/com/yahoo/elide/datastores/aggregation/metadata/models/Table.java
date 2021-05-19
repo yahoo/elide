@@ -24,6 +24,8 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.yahoo.elide.modelconfig.model.Named;
+
 import org.apache.commons.lang3.StringUtils;
 
 import lombok.AccessLevel;
@@ -49,7 +51,7 @@ import javax.persistence.OneToMany;
 @Getter
 @EqualsAndHashCode
 @ToString
-public abstract class Table implements Versioned {
+public abstract class Table implements Versioned, Named {
 
     @Id
     private final String id;
@@ -333,6 +335,17 @@ public abstract class Table implements Versioned {
             }
         }
         return null;
+    }
+
+    public boolean hasArgumentDefinition(String argName) {
+        return hasName(this.arguments, argName);
+    }
+
+    public ArgumentDefinition getArgumentDefinition(String argName) {
+        return this.arguments.stream()
+                        .filter(arg -> arg.getName().equals(argName))
+                        .findFirst()
+                        .orElse(null);
     }
 
     public abstract Queryable toQueryable();
