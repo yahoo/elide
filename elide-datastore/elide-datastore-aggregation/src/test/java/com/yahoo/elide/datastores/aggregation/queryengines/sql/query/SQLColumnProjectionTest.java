@@ -14,9 +14,11 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.datastores.aggregation.annotation.ArgumentDefinition;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
@@ -43,10 +45,12 @@ public class SQLColumnProjectionTest {
         @Join(value = "{{$$column.args.foo}} = '123' AND {{$id}} == {{tableB.$id}}")
         TableB tableB;
 
-        @DimensionFormula(value = "{{tableB.dim1}}")
+        @DimensionFormula(value = "{{tableB.dim1}}",
+                          arguments = {@ArgumentDefinition(name = "foo", type = ValueType.TEXT)})
         String dim1;
 
-        @DimensionFormula(value = "{{$$column.args.foo}}")
+        @DimensionFormula(value = "{{$$column.args.foo}}",
+                          arguments = {@ArgumentDefinition(name = "foo", type = ValueType.TEXT)})
         String dim2;
     }
 

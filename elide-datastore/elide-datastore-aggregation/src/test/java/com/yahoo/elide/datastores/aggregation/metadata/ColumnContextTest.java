@@ -304,7 +304,7 @@ class CurrencyRate {
     private String id;
 
     @DimensionFormula(value = "TO_CHAR({{$conversion_rate}}, {{$$column.args.format}})",
-                    arguments = {@ArgumentDefinition(name = "format", type = ValueType.INTEGER,
+                    arguments = {@ArgumentDefinition(name = "format", type = ValueType.TEXT,
                                     defaultValue = "9D0")})
     private String conversionRate;
 }

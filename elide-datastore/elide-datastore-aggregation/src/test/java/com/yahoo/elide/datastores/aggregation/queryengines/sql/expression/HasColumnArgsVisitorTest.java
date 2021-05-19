@@ -13,9 +13,11 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.datastores.aggregation.annotation.ArgumentDefinition;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
@@ -43,7 +45,8 @@ public class HasColumnArgsVisitorTest {
         @Join(value = "{{$$column.args.foo}} = '123' AND {{$id}} == {{joinWithColumnArgs.$id}}")
         TableB joinWithColumnArgs;
 
-        @DimensionFormula(value = "{{joinWithColumnArgs.physical}}")
+        @DimensionFormula(value = "{{joinWithColumnArgs.physical}}",
+                          arguments = {@ArgumentDefinition(name = "foo", type = ValueType.TEXT)})
         String joinWithColumnArgsToPhysical;
 
         @DimensionFormula(value = "{{physical}}")
@@ -76,7 +79,8 @@ public class HasColumnArgsVisitorTest {
         @Join(value = "{{$id}} == {{simpleJoin.$id}} AND {{columnArgs}} = '123'")
         TableB joinWithLogicalWithColumnArgs;
 
-        @DimensionFormula(value = "{{simpleJoin.joinWithColumnArgs.physical}}")
+        @DimensionFormula(value = "{{simpleJoin.joinWithColumnArgs.physical}}",
+                          arguments = {@ArgumentDefinition(name = "foo", type = ValueType.TEXT)})
         String nestedJoinWithColumnArgs;
 
         @DimensionFormula(value = "{{simpleJoin.logical}}")
@@ -85,10 +89,12 @@ public class HasColumnArgsVisitorTest {
         @DimensionFormula(value = "{{$physical}}")
         String physical;
 
-        @DimensionFormula(value = "{{$$column.args.foo}}")
+        @DimensionFormula(value = "{{$$column.args.foo}}",
+                          arguments = {@ArgumentDefinition(name = "foo", type = ValueType.TEXT)})
         String columnArgs;
 
-        @DimensionFormula(value = "{{joinWithLogicalWithColumnArgs.physical}}")
+        @DimensionFormula(value = "{{joinWithLogicalWithColumnArgs.physical}}",
+                          arguments = {@ArgumentDefinition(name = "foo", type = ValueType.TEXT)})
         String joinWithLogicalWithColumnArgsToPhysical;
 
         @DimensionFormula(value = "{{joinWithPhysical.physical}}")
