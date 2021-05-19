@@ -19,6 +19,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.TableA
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Set;
 
@@ -99,7 +100,7 @@ public class TableArgumentValidator {
                                         + "Argument type mismatch. Join table: '%s' has Argument: '%s' with type '%s'.",
                                         joinTable.getName(), joinArgName, joinArgDef.getType()));
                     }
-                } else if (joinArgDef.getDefaultValue() == null) {
+                } else if (StringUtils.isBlank(joinArgDef.getDefaultValue().toString())) {
                     throw new IllegalStateException(String.format(errorMsgPrefix
                                     + "Argument '%s' with type '%s' is not defined but is required by join table: %s.",
                                     joinArgName, joinArgDef.getType(), joinTable.getName()));
@@ -126,12 +127,12 @@ public class TableArgumentValidator {
 
     public static void verifyDefaultvalue(ArgumentDefinition argument, String errorMsgPrefix) {
 
-        if (argument.getDefaultValue() == null) {
-            return;
-        }
-
         String defaultValue = argument.getDefaultValue().toString();
         Set<String> values = argument.getValues();
+
+        if (StringUtils.isBlank(defaultValue)) {
+            return;
+        }
 
         if (CollectionUtils.isEmpty(values)) {
             if (!argument.getType().matches(defaultValue)) {
