@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.validator;
 
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.hasSql;
 import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.resolveTableOrSubselect;
-import static com.yahoo.elide.modelconfig.validator.DynamicConfigValidator.validateNameUniqueness;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
@@ -40,9 +39,6 @@ public class TableArgumentValidator {
     }
 
     public void validate() {
-
-        validateNameUniqueness(table.getArgumentDefinitions(),
-                        errorMsgPrefix + "Multiple Table Arguments found with the same name: ");
 
         table.getArgumentDefinitions().forEach(arg -> {
             verifyValues(arg, errorMsgPrefix);
@@ -97,7 +93,8 @@ public class TableArgumentValidator {
                 if (table.hasArgumentDefinition(joinArgName)) {
                     if (joinArgDef.getType() != table.getArgumentDefinition(joinArgName).getType()) {
                         throw new IllegalStateException(String.format(errorMsgPrefix
-                                        + "Argument type mismatch. Join table: '%s' has Argument: '%s' with type '%s'.",
+                                        + "Argument type mismatch. Join table: '%s' has same Argument: '%s'"
+                                        + " with type '%s'.",
                                         joinTable.getName(), joinArgName, joinArgDef.getType()));
                     }
                 } else if (StringUtils.isBlank(joinArgDef.getDefaultValue().toString())) {
