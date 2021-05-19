@@ -195,7 +195,16 @@ public abstract class QueryEngine {
                 });
             });
         });
+
+        // Verify populated tables in metadata store.
+        verifyMetaData(metaDataStore);
     }
+
+    /**
+     * Verifies all tables in metadata store after they are constructed by {@link #populateMetaData(MetaDataStore)}.
+     * @param metaDataStore metadata store to verify.
+     */
+    protected abstract void verifyMetaData(MetaDataStore metaDataStore);
 
     /**
      * Contains state necessary for query execution.
