@@ -28,7 +28,6 @@ import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.Optimizer;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.H2Dialect;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.DynamicSQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -153,9 +152,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
 
         AggregateBeforeJoinOptimizer optimizer = new AggregateBeforeJoinOptimizer(metaDataStore);
 
-        DynamicSQLReferenceTable lookupTable = new DynamicSQLReferenceTable(engine.getReferenceTable(), query);
-
-        assertFalse(optimizer.canOptimize(query, lookupTable));
+        assertFalse(optimizer.canOptimize(query));
     }
 
     @Test
@@ -170,9 +167,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
 
         AggregateBeforeJoinOptimizer optimizer = new AggregateBeforeJoinOptimizer(metaDataStore);
 
-        DynamicSQLReferenceTable lookupTable = new DynamicSQLReferenceTable(engine.getReferenceTable(), query);
-
-        assertFalse(optimizer.canOptimize(query, lookupTable));
+        assertFalse(optimizer.canOptimize(query));
     }
 
     @Test

@@ -15,9 +15,9 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.visitors.FilterExpressionNormalizationVisitor;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasJoinVisitor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import lombok.Builder;
 import lombok.Data;
@@ -39,16 +39,15 @@ public class SubqueryFilterSplitter
         FilterExpression inner;
     }
 
-    private SQLReferenceTable lookupTable;
     private MetaDataStore metaDataStore;
+    private ExpressionParser parser;
 
-    public SubqueryFilterSplitter(MetaDataStore metaDataStore, SQLReferenceTable lookupTable) {
+    public SubqueryFilterSplitter(MetaDataStore metaDataStore) {
         this.metaDataStore = metaDataStore;
-        this.lookupTable = lookupTable;
+        this.parser = new ExpressionParser(metaDataStore);
     }
 
     public static SplitFilter splitFilter(
-            SQLReferenceTable lookupTable,
             MetaDataStore metaDataStore,
             FilterExpression expression) {
 
@@ -59,7 +58,7 @@ public class SubqueryFilterSplitter
         FilterExpressionNormalizationVisitor normalizer = new FilterExpressionNormalizationVisitor();
         FilterExpression normalizedExpression = expression.accept(normalizer);
 
-        return normalizedExpression.accept(new SubqueryFilterSplitter(metaDataStore, lookupTable));
+        return normalizedExpression.accept(new SubqueryFilterSplitter(metaDataStore));
     }
 
     @Override
@@ -69,7 +68,7 @@ public class SubqueryFilterSplitter
 
         SQLTable table = metaDataStore.getTable(tableType);
 
-        List<Reference> references = lookupTable.getReferenceTree(table, fieldName);
+        List<Reference> references = parser.parse(table, table.getColumnProjection(fieldName));
         boolean hasJoin = references.stream().anyMatch(ref -> ref.accept(new HasJoinVisitor()));
         if (hasJoin) {
             return SplitFilter.builder().outer(filterPredicate).build();

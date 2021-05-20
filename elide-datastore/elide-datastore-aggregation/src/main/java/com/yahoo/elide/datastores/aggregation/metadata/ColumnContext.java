@@ -9,15 +9,15 @@ package com.yahoo.elide.datastores.aggregation.metadata;
 import static com.yahoo.elide.core.request.Argument.getArgumentMapFromString;
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
 import static com.yahoo.elide.datastores.aggregation.query.ColumnProjection.createSafeAlias;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
 import static java.util.Collections.emptyMap;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
+
 import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Formatter;
 import com.github.jknack.handlebars.Handlebars;
@@ -46,6 +46,7 @@ public class ColumnContext extends HashMap<String, Object> {
     public static final String TBL_PREFIX = "$$table";
     public static final String ARGS_KEY = "args";
     public static final String EXPR_KEY = "expr";
+    public static final String PERIOD = ".";
 
     protected final MetaDataStore metaDataStore;
     protected final Queryable queryable;
@@ -249,5 +250,36 @@ public class ColumnContext extends HashMap<String, Object> {
     public static Map<String, Argument> mergedArgumentMap(Map<String, Argument> referencedObjectArgs,
                     Map<String, Argument> callingObjectArgs) {
         return mergedArgumentMap(referencedObjectArgs, callingObjectArgs, emptyMap());
+    }
+
+    /**
+     * Split a string on ".", append quotes around each split and join it back.
+     * eg: game.order_details to `game`.`order_details` .
+     *
+     * @param str column name / alias
+     * @param beginQuote prefix char
+     * @param endQuote suffix char
+     * @return quoted string
+     */
+    private static String applyQuotes(String str, char beginQuote, char endQuote) {
+        if (isBlank(str)) {
+            return str;
+        }
+        if (str.contains(PERIOD)) {
+            return beginQuote + str.trim().replace(PERIOD, endQuote + PERIOD + beginQuote) + endQuote;
+        }
+        return beginQuote + str.trim() + endQuote;
+    }
+
+    /**
+     * Split a string on ".", append quotes around each split and join it back.
+     * eg: game.order_details to `game`.`order_details` .
+     *
+     * @param str column name / alias
+     * @param dialect Elide SQL dialect
+     * @return quoted string
+     */
+    public static String applyQuotes(String str, SQLDialect dialect) {
+        return applyQuotes(str, dialect.getBeginQuote(), dialect.getEndQuote());
     }
 }

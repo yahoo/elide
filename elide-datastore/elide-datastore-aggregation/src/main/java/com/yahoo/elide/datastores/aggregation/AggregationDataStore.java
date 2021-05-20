@@ -151,7 +151,7 @@ public class AggregationDataStore implements DataStore {
     }
 
     /**
-     * Validates the Expression Check class to check whether it complies with the given predicate
+     * Validates the Expression Check class to check whether it complies with the given predicate.
      * @param dictionary - Entity dictionary
      * @param expressionChecksIdentifiers - Set of identifiers for whose the security check class is validated
      * @param validCheckPredicate - Predicate that takes security check class as argument.

@@ -68,10 +68,10 @@ public class ColumnArgumentValidator {
 
         List<Reference> references = parser.parse(table, column.getExpression());
 
-        ReferenceExtractor<LogicalReference> logicalRefExtractor = new ReferenceExtractor(LogicalReference.class,
-                        metaDataStore, ReferenceExtractor.Mode.SAME_COLUMN);
-        ReferenceExtractor<ColumnArgReference> columnArgRefExtractor = new ReferenceExtractor(ColumnArgReference.class,
-                        metaDataStore, ReferenceExtractor.Mode.SAME_COLUMN);
+        ReferenceExtractor<LogicalReference> logicalRefExtractor = new ReferenceExtractor<LogicalReference>(
+                        LogicalReference.class, metaDataStore, ReferenceExtractor.Mode.SAME_COLUMN);
+        ReferenceExtractor<ColumnArgReference> columnArgRefExtractor = new ReferenceExtractor<ColumnArgReference>(
+                        ColumnArgReference.class, metaDataStore, ReferenceExtractor.Mode.SAME_COLUMN);
 
         references.stream()
                         .map(reference -> reference.accept(columnArgRefExtractor))
