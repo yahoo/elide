@@ -101,7 +101,6 @@ public class ColumnArgumentValidator {
 
         Column refColumn = sqlTable.getColumn(Column.class, columnProj.getName());
 
-
         verifyPinnedArguments(mergedArguments, refColumn, String.format(errorMsgPrefix
                         + "Type mismatch of Fixed value provided for Dependent Column: '%s' in table: '%s'. ",
                         refColumn.getName(), sqlTable.getName()));

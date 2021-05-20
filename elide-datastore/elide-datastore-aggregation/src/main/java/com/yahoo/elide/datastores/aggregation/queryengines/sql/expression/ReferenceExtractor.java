@@ -80,8 +80,6 @@ public class ReferenceExtractor<T extends Reference> implements ReferenceVisitor
                             .map(ref -> ref.accept(this))
                             .flatMap(Set::stream)
                             .forEach(references::add);
-
-            return references;
         }
 
         return references;
