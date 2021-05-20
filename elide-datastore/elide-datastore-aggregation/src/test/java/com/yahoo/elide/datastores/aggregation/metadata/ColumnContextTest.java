@@ -238,7 +238,7 @@ public class ColumnContextTest {
 @Data
 @FromTable(name = "revenue_fact")
 @TableMeta(arguments = {
-                @ArgumentDefinition(name = "testPercentage", type = ValueType.TEXT, defaultValue = "0.1"),
+                @ArgumentDefinition(name = "testPercentage", type = ValueType.DECIMAL, defaultValue = "0.1"),
                 @ArgumentDefinition(name = "format", type = ValueType.TEXT)})
 @Include(name = "revenueFact")
 class RevenueFact {

@@ -69,7 +69,9 @@ public class PhysicalReferenceExtractorTest {
 
         assertTrue(references.size() == 1);
 
-        PhysicalReferenceExtractor extractor = new PhysicalReferenceExtractor(metaDataStore);
+        ReferenceExtractor<PhysicalReference> extractor =
+                new ReferenceExtractor(PhysicalReference.class, metaDataStore, playerStats);
+
         Set<PhysicalReference> physicalReferences = references.get(0).accept(extractor);
 
         assertTrue(physicalReferences.size() == 1);
@@ -89,7 +91,9 @@ public class PhysicalReferenceExtractorTest {
 
         assertTrue(references.size() == 1);
 
-        PhysicalReferenceExtractor extractor = new PhysicalReferenceExtractor(metaDataStore);
+        ReferenceExtractor<PhysicalReference> extractor =
+                new ReferenceExtractor(PhysicalReference.class, metaDataStore, playerStats);
+
         Set<PhysicalReference> physicalReferences = references.get(0).accept(extractor);
 
         assertEquals(1, physicalReferences.size());
@@ -109,7 +113,8 @@ public class PhysicalReferenceExtractorTest {
 
         assertTrue(references.size() == 1);
 
-        PhysicalReferenceExtractor extractor = new PhysicalReferenceExtractor(metaDataStore);
+        ReferenceExtractor<PhysicalReference> extractor =
+                new ReferenceExtractor(PhysicalReference.class, metaDataStore, playerStats);
         Set<PhysicalReference> physicalReferences = references.get(0).accept(extractor);
 
         assertEquals(1, physicalReferences.size());
