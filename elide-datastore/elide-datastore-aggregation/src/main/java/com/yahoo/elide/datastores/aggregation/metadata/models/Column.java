@@ -21,6 +21,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueSourceType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.modelconfig.model.Named;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
@@ -43,7 +44,7 @@ import javax.persistence.OneToOne;
 @Getter
 @EqualsAndHashCode
 @ToString
-public abstract class Column implements Versioned {
+public abstract class Column implements Versioned, Named {
 
     @Id
     private final String id;
@@ -195,5 +196,16 @@ public abstract class Column implements Versioned {
     @Override
     public String getVersion() {
         return table.getVersion();
+    }
+
+    public boolean hasArgumentDefinition(String argName) {
+        return hasName(this.arguments, argName);
+    }
+
+    public ArgumentDefinition getArgumentDefinition(String argName) {
+        return this.arguments.stream()
+                        .filter(arg -> arg.getName().equals(argName))
+                        .findFirst()
+                        .orElse(null);
     }
 }

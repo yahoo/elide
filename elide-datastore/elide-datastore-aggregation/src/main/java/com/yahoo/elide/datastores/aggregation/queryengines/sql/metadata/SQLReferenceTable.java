@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
@@ -97,15 +96,9 @@ public class SQLReferenceTable {
             referenceTree.put(key, new HashMap<>());
         }
 
-        FormulaValidator validator = new FormulaValidator(metaDataStore);
-
         queryable.getColumnProjections().forEach(column -> {
-            // validate that there is no reference loop
-            validator.parse(queryable, column);
-
             String fieldName = column.getName();
             referenceTree.get(key).put(fieldName, parser.parse(queryable, column));
-
         });
     }
 

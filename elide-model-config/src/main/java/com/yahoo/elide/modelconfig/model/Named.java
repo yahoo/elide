@@ -31,7 +31,7 @@ public interface Named {
     default boolean hasName(Collection<? extends Named> collection, String name) {
         return collection
                         .stream()
-                        .map(Named::getName)
+                        .map(Named::getGlobalName)
                         .anyMatch(name::equals);
     }
 }

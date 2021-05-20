@@ -238,7 +238,7 @@ public class ColumnContextTest {
 @Data
 @FromTable(name = "revenue_fact")
 @TableMeta(arguments = {
-                @ArgumentDefinition(name = "testPercentage", type = ValueType.TEXT, defaultValue = "0.1"),
+                @ArgumentDefinition(name = "testPercentage", type = ValueType.DECIMAL, defaultValue = "0.1"),
                 @ArgumentDefinition(name = "format", type = ValueType.TEXT)})
 @Include(name = "revenueFact")
 class RevenueFact {
@@ -304,7 +304,7 @@ class CurrencyRate {
     private String id;
 
     @DimensionFormula(value = "TO_CHAR({{$conversion_rate}}, {{$$column.args.format}})",
-                    arguments = {@ArgumentDefinition(name = "format", type = ValueType.INTEGER,
+                    arguments = {@ArgumentDefinition(name = "format", type = ValueType.TEXT,
                                     defaultValue = "9D0")})
     private String conversionRate;
 }

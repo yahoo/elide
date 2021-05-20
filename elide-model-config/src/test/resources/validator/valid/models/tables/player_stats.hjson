@@ -99,7 +99,7 @@
             [{
              type : DaY
              sql :  '''
-             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+             PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
              '''
             }]
          },

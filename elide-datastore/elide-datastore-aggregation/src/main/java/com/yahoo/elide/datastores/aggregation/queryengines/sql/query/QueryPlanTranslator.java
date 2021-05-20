@@ -12,7 +12,7 @@ import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.LogicalReference;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.LogicalReferenceExtractor;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ReferenceExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.google.common.collect.Streams;
 
@@ -156,7 +156,10 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
         Set<ColumnProjection> indirectReferenceColumns = new HashSet<>();
         directReferencedColumns.forEach(column -> {
             lookupTable.getReferenceTree(query.getSource(), column.getName()).stream()
-                    .map(reference -> reference.accept(new LogicalReferenceExtractor(lookupTable.getMetaDataStore())))
+                    .map(reference -> reference.accept(new ReferenceExtractor<LogicalReference>(
+                            LogicalReference.class,
+                            lookupTable.getMetaDataStore(),
+                            ReferenceExtractor.Mode.SAME_QUERY)))
                     .flatMap(Set::stream)
                     .map(LogicalReference::getColumn)
                     .forEach(indirectReferenceColumns::add);
