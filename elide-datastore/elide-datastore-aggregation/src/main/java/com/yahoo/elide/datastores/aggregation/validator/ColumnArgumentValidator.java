@@ -71,16 +71,10 @@ public class ColumnArgumentValidator {
             verifyDefaultValue(arg, errorMsgPrefix);
         });
 
-        List<Reference> references =
-                        verifyColumnArgsExists(table, column.getExpression(), "in this column's definition.");
+        List<Reference> references = parser.parse(table, column.getExpression());
+        verifyColumnArgsExists(references, "in this column's definition.");
         verifyColumnArgsWithDirectlyDependentColumnsArgs(references, "in this column's definition.");
         verifyColumnArgsInJoinExpressions(references);
-    }
-
-    private List<Reference> verifyColumnArgsExists(SQLTable table, String expression, String errorMsgSuffix) {
-        List<Reference> references = parser.parse(table, expression);
-        verifyColumnArgsExists(references, errorMsgSuffix);
-        return references;
     }
 
     private void verifyColumnArgsExists(List<Reference> references, String errorMsgSuffix) {
@@ -108,9 +102,9 @@ public class ColumnArgumentValidator {
                         .forEach(joinExprKV -> {
                             String joinExpression = joinExprKV.getValue();
                             String errorMsgSuffix = String.format("in join expression: '%s'.", joinExpression);
-                            List<Reference> joinExprReferences = verifyColumnArgsExists(joinExprKV.getKey(),
-                                                                                        joinExpression,
-                                                                                        errorMsgSuffix);
+                            List<Reference> joinExprReferences = parser.parse(joinExprKV.getKey(), joinExpression);
+
+                            verifyColumnArgsExists(joinExprReferences, errorMsgSuffix);
                             verifyColumnArgsWithDirectlyDependentColumnsArgs(joinExprReferences, errorMsgSuffix);
                         });
     }
