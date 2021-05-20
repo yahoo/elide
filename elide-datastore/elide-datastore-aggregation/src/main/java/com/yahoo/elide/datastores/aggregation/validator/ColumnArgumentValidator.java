@@ -80,7 +80,7 @@ public class ColumnArgumentValidator {
                         .forEach(argName -> {
                             if (!column.hasArgumentDefinition(argName)) {
                                 throw new IllegalStateException(String.format(errorMsgPrefix
-                                                + "Argument '%s' is not defined but found '{{$$ccolumn.args.%s}}'.",
+                                                + "Argument '%s' is not defined but found '{{$$column.args.%s}}'.",
                                                 argName, argName));
                             }
                         });

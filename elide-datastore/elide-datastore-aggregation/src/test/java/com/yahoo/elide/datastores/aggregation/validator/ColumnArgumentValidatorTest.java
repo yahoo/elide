@@ -86,7 +86,7 @@ class ColumnArgumentValidatorTest {
         MetaDataStore metaDataStore = new MetaDataStore(tables, this.namespaceConfigs, true);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
 
-        assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Argument 'mainArg2' is not defined but found '{{$$ccolumn.args.mainArg2}}'.",
+        assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Argument 'mainArg2' is not defined but found '{{$$column.args.mainArg2}}'.",
                         e.getMessage());
     }
 
@@ -115,7 +115,7 @@ class ColumnArgumentValidatorTest {
         MetaDataStore metaDataStore = new MetaDataStore(tables, this.namespaceConfigs, true);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
 
-        assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Argument 'mainArg2' is not defined but found '{{$$ccolumn.args.mainArg2}}'.",
+        assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Argument 'mainArg2' is not defined but found '{{$$column.args.mainArg2}}'.",
                         e.getMessage());
     }
 
