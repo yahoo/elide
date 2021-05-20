@@ -46,6 +46,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnPr
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
+import com.yahoo.elide.datastores.aggregation.validator.ColumnArgumentValidator;
 import com.yahoo.elide.datastores.aggregation.validator.TableArgumentValidator;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
@@ -182,9 +183,16 @@ public class SQLQueryEngine extends QueryEngine {
     protected void verifyMetaData(MetaDataStore metaDataStore) {
         metaDataStore.getTables().forEach(table -> {
             SQLTable sqlTable = (SQLTable) table;
+
             checkForCycles(sqlTable);
+
             TableArgumentValidator tableArgValidator = new TableArgumentValidator(metaDataStore, sqlTable);
             tableArgValidator.validate();
+
+            sqlTable.getColumns().forEach(column -> {
+                ColumnArgumentValidator colArgValidator = new ColumnArgumentValidator(metaDataStore, sqlTable, column);
+                colArgValidator.validate();
+            });
         });
     }
 
