@@ -93,8 +93,8 @@ public interface SQLColumnProjection extends ColumnProjection {
         //Search for any join expression that contains $$column.  If found, we cannot nest
         //because rewriting the SQL in the outer expression will lose the context of the calling $$column.
         return references.stream()
-                .map(reference -> reference.accept(
-                        new ReferenceExtractor<JoinReference>(JoinReference.class, metaDataStore, source)))
+                .map(reference -> reference.accept(new ReferenceExtractor<JoinReference>(
+                                JoinReference.class, metaDataStore, ReferenceExtractor.Mode.SAME_QUERY)))
                 .flatMap(Set::stream)
                 .map(reference -> reference.accept(
                         new ReferenceExtractor<ColumnArgReference>(ColumnArgReference.class, metaDataStore)))
@@ -164,8 +164,8 @@ public interface SQLColumnProjection extends ColumnProjection {
             List<Reference> references,
             MetaDataStore store) {
         return references.stream()
-                .map(ref ->
-                        ref.accept(new ReferenceExtractor<PhysicalReference>(PhysicalReference.class, store, source)))
+                .map(ref -> ref.accept(new ReferenceExtractor<PhysicalReference>(
+                                PhysicalReference.class, store, ReferenceExtractor.Mode.SAME_QUERY)))
                 .flatMap(Set::stream)
                 .map(ref -> SQLPhysicalColumnProjection.builder()
                         .name(ref.getName())
