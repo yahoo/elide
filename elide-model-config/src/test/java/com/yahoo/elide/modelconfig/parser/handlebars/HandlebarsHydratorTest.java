@@ -124,7 +124,7 @@ public class HandlebarsHydratorTest {
             + "            [{\n"
             + "             type : DaY\n"
             + "             sql :  '''\n"
-            + "             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM-dd')\n"
+            + "             PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')\n"
             + "             '''\n"
             + "            }]\n"
             + "         },\n"
