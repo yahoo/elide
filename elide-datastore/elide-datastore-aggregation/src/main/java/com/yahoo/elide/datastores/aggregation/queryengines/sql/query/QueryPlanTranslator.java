@@ -159,7 +159,7 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                     .map(reference -> reference.accept(new ReferenceExtractor<LogicalReference>(
                             LogicalReference.class,
                             lookupTable.getMetaDataStore(),
-                            query.getSource())))
+                            ReferenceExtractor.Mode.SAME_QUERY)))
                     .flatMap(Set::stream)
                     .map(LogicalReference::getColumn)
                     .forEach(indirectReferenceColumns::add);

@@ -69,7 +69,7 @@ public class LogicalReferenceExtractorTest {
 
         assertTrue(references.size() == 1);
         ReferenceExtractor<LogicalReference> extractor =
-                new ReferenceExtractor(LogicalReference.class, metaDataStore, playerStats);
+                new ReferenceExtractor(LogicalReference.class, metaDataStore, ReferenceExtractor.Mode.SAME_QUERY);
         Set<LogicalReference> logicalReferences = references.get(0).accept(extractor);
 
         assertTrue(logicalReferences.size() == 0);
@@ -84,7 +84,7 @@ public class LogicalReferenceExtractorTest {
         assertTrue(references.size() == 1);
 
         ReferenceExtractor<LogicalReference> extractor =
-                new ReferenceExtractor(LogicalReference.class, metaDataStore, playerStats);
+                new ReferenceExtractor(LogicalReference.class, metaDataStore, ReferenceExtractor.Mode.SAME_QUERY);
 
         Set<LogicalReference> logicalReferences = references.get(0).accept(extractor);
 
@@ -99,7 +99,7 @@ public class LogicalReferenceExtractorTest {
 
         assertTrue(references.size() == 1);
         ReferenceExtractor<LogicalReference> extractor =
-                new ReferenceExtractor(LogicalReference.class, metaDataStore, playerStats);
+                new ReferenceExtractor(LogicalReference.class, metaDataStore, ReferenceExtractor.Mode.SAME_QUERY);
         Set<LogicalReference> logicalReferences = references.get(0).accept(extractor);
 
         assertEquals(1, logicalReferences.size());

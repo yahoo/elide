@@ -10,25 +10,20 @@ import static com.yahoo.elide.datastores.aggregation.validator.TableArgumentVali
 import static com.yahoo.elide.datastores.aggregation.validator.TableArgumentValidator.verifyValue;
 import static com.yahoo.elide.datastores.aggregation.validator.TableArgumentValidator.verifyValues;
 
-import com.yahoo.elide.core.Path.PathElement;
 import com.yahoo.elide.core.request.Argument;
-import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.ArgumentDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ColumnArgReference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.JoinReference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.LogicalReference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ReferenceExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -72,82 +67,31 @@ public class ColumnArgumentValidator {
         });
 
         List<Reference> references = parser.parse(table, column.getExpression());
-        verifyColumnArgsExists(references, "in this column's definition.");
-        verifyColumnArgsWithDirectlyDependentColumnsArgs(references, "in this column's definition.");
-        verifyColumnArgsInJoinExpressions(references);
-    }
 
-    private void verifyColumnArgsExists(List<Reference> references, String errorMsgSuffix) {
+        ReferenceExtractor<LogicalReference> logicalRefExtractor = new ReferenceExtractor(LogicalReference.class,
+                        metaDataStore, ReferenceExtractor.Mode.SAME_COLUMN);
+        ReferenceExtractor<ColumnArgReference> columnArgRefExtractor = new ReferenceExtractor(ColumnArgReference.class,
+                        metaDataStore, ReferenceExtractor.Mode.SAME_COLUMN);
+
         references.stream()
-                        .filter(ref -> ref instanceof ColumnArgReference)
-                        .map(ColumnArgReference.class::cast)
+                        .map(reference -> reference.accept(columnArgRefExtractor))
+                        .flatMap(Set::stream)
                         .map(ColumnArgReference::getArgName)
                         .forEach(argName -> {
                             if (!column.hasArgumentDefinition(argName)) {
                                 throw new IllegalStateException(String.format(errorMsgPrefix
-                                                + "Argument '%s' is not defined but found '{{$$ccolumn.args.%s}}' "
-                                                + errorMsgSuffix, argName, argName));
+                                                + "Argument '%s' is not defined but found '{{$$ccolumn.args.%s}}'.",
+                                                argName, argName));
                             }
                         });
-    }
 
-    private void verifyColumnArgsInJoinExpressions(List<Reference> references) {
         references.stream()
-                        .filter(ref -> ref instanceof JoinReference)
-                        .map(JoinReference.class::cast)
-                        .map(JoinReference::getPath)
-                        .map(this::extractJoinExpressionsFromJoinPath)
-                        .map(Map::entrySet)
+                        .map(reference -> reference.accept(logicalRefExtractor))
                         .flatMap(Set::stream)
-                        .forEach(joinExprKV -> {
-                            String joinExpression = joinExprKV.getValue();
-                            String errorMsgSuffix = String.format("in join expression: '%s'.", joinExpression);
-                            List<Reference> joinExprReferences = parser.parse(joinExprKV.getKey(), joinExpression);
-
-                            verifyColumnArgsExists(joinExprReferences, errorMsgSuffix);
-                            verifyColumnArgsWithDirectlyDependentColumnsArgs(joinExprReferences, errorMsgSuffix);
-                        });
+                        .forEach(this::verifyLogicalReference);
     }
 
-    private Map<SQLTable, String> extractJoinExpressionsFromJoinPath(JoinPath joinPath) {
-
-        List<PathElement> pathElements = joinPath.getPathElements();
-        Map<SQLTable, String> joinExpressions = new HashMap<>();
-        SQLTable currentTable = this.table;
-
-        for (int i = 0; i < pathElements.size() - 1; i++) {
-            PathElement pathElement = pathElements.get(i);
-            Type<?> joinClass = pathElement.getFieldType();
-            SQLTable joinTable = metaDataStore.getTable(joinClass);
-            String joinFieldName = pathElement.getFieldName();
-
-            SQLJoin sqlJoin = currentTable.getJoin(joinFieldName);
-            if (sqlJoin != null) {
-                joinExpressions.put(currentTable, sqlJoin.getJoinExpression());
-            }
-            currentTable = joinTable;
-        }
-
-        return joinExpressions;
-    }
-
-    /**
-     * Verifies dependent column's argument requirements are satisfied by this column.
-     */
-    private void verifyColumnArgsWithDirectlyDependentColumnsArgs(List<Reference> references, String errorMsgSuffix) {
-        references.forEach(reference -> {
-            if (reference instanceof LogicalReference) {
-                verifyLogicalReference((LogicalReference) reference, errorMsgSuffix);
-            } else if (reference instanceof JoinReference) {
-                JoinReference joinRef = (JoinReference) reference;
-                if (joinRef.getReference() instanceof LogicalReference) {
-                    verifyLogicalReference((LogicalReference) joinRef.getReference(), errorMsgSuffix);
-                }
-            }
-        });
-    }
-
-    private void verifyLogicalReference(LogicalReference reference, String errorMsgSuffix) {
+    private void verifyLogicalReference(LogicalReference reference) {
 
         SQLTable sqlTable = (SQLTable) reference.getSource();
         ColumnProjection columnProj = reference.getColumn();
@@ -157,7 +101,10 @@ public class ColumnArgumentValidator {
 
         Column refColumn = sqlTable.getColumn(Column.class, columnProj.getName());
 
-        verifyPinnedArguments(mergedArguments, refColumn, errorMsgSuffix);
+
+        verifyPinnedArguments(mergedArguments, refColumn, String.format(errorMsgPrefix
+                        + "Type mismatch of Fixed value provided for Dependent Column: '%s' in table: '%s'. ",
+                        refColumn.getName(), sqlTable.getName()));
 
         refColumn.getArgumentDefinitions().forEach(argDef -> {
             String argName = argDef.getName();
@@ -165,16 +112,16 @@ public class ColumnArgumentValidator {
             if (column.hasArgumentDefinition(argName)) {
                 if (argDef.getType() != column.getArgumentDefinition(argName).getType()) {
                     throw new IllegalStateException(String.format(errorMsgPrefix
-                                    + "Argument type mismatch. Dependent Column: '%s' %s has same Argument: '%s'"
-                                    + " with type '%s'.",
-                                    refColumn.getName(), StringUtils.chop(errorMsgSuffix), argName, argDef.getType()));
+                                    + "Argument type mismatch. Dependent Column: '%s' in table: '%s' has same"
+                                    + " Argument: '%s' with type '%s'.",
+                                    refColumn.getName(), sqlTable.getName(), argName, argDef.getType()));
                 }
             } else if (StringUtils.isBlank(argDef.getDefaultValue().toString())
                             && StringUtils.isBlank(mergedArguments.get(argName).getValue().toString())) {
                 throw new IllegalStateException(String.format(errorMsgPrefix
-                                + "Argument '%s' with type '%s' is not defined but is required by"
-                                + " Dependent Column: '%s' %s",
-                                argName, argDef.getType(), refColumn.getName(), errorMsgSuffix));
+                                + "Argument '%s' with type '%s' is not defined but is required for"
+                                + " Dependent Column: '%s' in table: '%s'.",
+                                argName, argDef.getType(), refColumn.getName(), sqlTable.getName()));
             }
         });
     }
@@ -184,16 +131,16 @@ public class ColumnArgumentValidator {
      * @param mergedArguments Dependent {@link Column}'s defined arguments merged with pinned arguments used to
      *         invoke this column.
      * @param refColumn Original dependent {@link Column}.
-     * @param errorMsgSuffix Custom error message.
+     * @param errorMsgPrefix Custom error message.
      */
-    private void verifyPinnedArguments(Map<String, Argument> mergedArguments, Column refColumn, String errorMsgSuffix) {
+    private void verifyPinnedArguments(Map<String, Argument> mergedArguments, Column refColumn, String errorMsgPrefix) {
         mergedArguments.forEach((argName, arg) -> {
             Object originalValue = refColumn.getArgumentDefinition(argName).getDefaultValue();
 
             if (! arg.getValue().equals(originalValue)) {
                 verifyValue(refColumn.getArgumentDefinition(argName),
                             arg.getValue().toString(),
-                            errorMsgPrefix + "Type mismatch for Pinned value " + errorMsgSuffix + " Pinned ");
+                            errorMsgPrefix + "Pinned ");
             }
         });
     }

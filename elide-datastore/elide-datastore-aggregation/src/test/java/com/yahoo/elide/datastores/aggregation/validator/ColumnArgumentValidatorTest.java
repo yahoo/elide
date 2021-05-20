@@ -20,6 +20,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.modelconfig.model.Argument;
 import com.yahoo.elide.modelconfig.model.Dimension;
+import com.yahoo.elide.modelconfig.model.Join;
 import com.yahoo.elide.modelconfig.model.NamespaceConfig;
 import com.yahoo.elide.modelconfig.model.Table;
 import com.yahoo.elide.modelconfig.model.Type;
@@ -41,7 +42,7 @@ class ColumnArgumentValidatorTest {
     private final Set<Optimizer> optimizers = new HashSet<>();
     private final QueryValidator queryValidator = new DefaultQueryValidator(new EntityDictionary(new HashMap<>()));
 
-    private Table.TableBuilder mainTableBuilder;
+    private Table.TableBuilder mainTableBuilder, joinTableBuilder;
     private final Argument mainArg1;
     private final Collection<NamespaceConfig> namespaceConfigs;
 
@@ -55,6 +56,9 @@ class ColumnArgumentValidatorTest {
         this.mainTableBuilder = Table.builder()
                         .name("MainTable")
                         .namespace("namespace");
+        this.joinTableBuilder = Table.builder()
+                        .name("JoinTable")
+                        .namespace("namespace");
 
         this.mainArg1 = Argument.builder()
                         .name("mainArg1")
@@ -65,7 +69,7 @@ class ColumnArgumentValidatorTest {
     }
 
     @Test
-    public void testUndefinedTableArgsInColumnDefinition() {
+    public void testUndefinedColumnArgsInColumnDefinition() {
         Table mainTable = mainTableBuilder
                         .dimension(Dimension.builder()
                                         .name("dim1")
@@ -82,7 +86,36 @@ class ColumnArgumentValidatorTest {
         MetaDataStore metaDataStore = new MetaDataStore(tables, this.namespaceConfigs, true);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
 
-        assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Argument 'mainArg2' is not defined but found '{{$$ccolumn.args.mainArg2}}' in this column's definition.",
+        assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Argument 'mainArg2' is not defined but found '{{$$ccolumn.args.mainArg2}}'.",
+                        e.getMessage());
+    }
+
+    @Test
+    public void testUndefinedColumnArgsInJoinExpression() {
+        Table mainTable = mainTableBuilder
+                        .join(Join.builder()
+                                        .name("join")
+                                        .namespace("namespace")
+                                        .to("JoinTable")
+                                        .definition("start {{$$column.args.mainArg2}} blah")
+                                        .build())
+                        .dimension(Dimension.builder()
+                                        .name("dim1")
+                                        .type(Type.BOOLEAN)
+                                        .values(Collections.emptySet())
+                                        .tags(Collections.emptySet())
+                                        .definition("start {{$$column.args.mainArg1}} blah {{join.$joinCol}} end")
+                                        .argument(mainArg1)
+                                        .build())
+                        .build();
+
+        Set<Table> tables = new HashSet<>();
+        tables.add(mainTable);
+        tables.add(joinTableBuilder.build());
+        MetaDataStore metaDataStore = new MetaDataStore(tables, this.namespaceConfigs, true);
+        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
+
+        assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Argument 'mainArg2' is not defined but found '{{$$ccolumn.args.mainArg2}}'.",
                         e.getMessage());
     }
 
@@ -118,12 +151,13 @@ class ColumnArgumentValidatorTest {
         MetaDataStore metaDataStore = new MetaDataStore(tables, this.namespaceConfigs, true);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
 
-        assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Argument type mismatch. Dependent Column: 'dim2' in this column's definition has same Argument: 'mainArg1' with type 'TEXT'.",
+        assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Argument type mismatch. Dependent Column: 'dim2' in table: 'namespace_MainTable'"
+                        + " has same Argument: 'mainArg1' with type 'TEXT'.",
                         e.getMessage());
     }
 
     @Test
-    public void testMissingRequiredColumnArgsForDepenedentColumn() {
+    public void testMissingRequiredColumnArgsForDepenedentColumnCase1() {
         Table mainTable = mainTableBuilder
                         .dimension(Dimension.builder()
                                         .name("dim1")
@@ -154,7 +188,8 @@ class ColumnArgumentValidatorTest {
         MetaDataStore metaDataStore = new MetaDataStore(tables, this.namespaceConfigs, true);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
 
-        assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Argument 'dependentArg1' with type 'INTEGER' is not defined but is required by Dependent Column: 'dim2' in this column's definition.",
+        assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Argument 'dependentArg1' with type 'INTEGER' is not defined but is"
+                        + " required for Dependent Column: 'dim2' in table: 'namespace_MainTable'.",
                         e.getMessage());
 
         // If 'dim2' is invoked using SQL helper, must not complain.
@@ -190,7 +225,79 @@ class ColumnArgumentValidatorTest {
     }
 
     @Test
-    public void testMissingRequiredColumnArgsForDepenedentColumnInvalidPinnedArg() {
+    public void testMissingRequiredColumnArgsForDepenedentColumnCase2() {
+        Table mainTable = mainTableBuilder
+                        .join(Join.builder()
+                                        .name("join")
+                                        .namespace("namespace")
+                                        .to("JoinTable")
+                                        .definition("start {{$$column.args.mainArg1}} blah {{join.$joinCol}} end")
+                                        .build())
+                        .dimension(Dimension.builder()
+                                        .name("dim1")
+                                        .type(Type.BOOLEAN)
+                                        .values(Collections.emptySet())
+                                        .tags(Collections.emptySet())
+                                        .definition("start {{$$column.args.mainArg1}} blah {{join.joinCol}} end")
+                                        .argument(mainArg1)
+                                        .build())
+                        .build();
+
+        Table joinTable = joinTableBuilder
+                        .dimension(Dimension.builder()
+                                        .name("joinCol")
+                                        .type(Type.BOOLEAN)
+                                        .values(Collections.emptySet())
+                                        .tags(Collections.emptySet())
+                                        .definition("{{$joinCol}} blah {{$$column.args.joinArg1}} end")
+                                        .argument(Argument.builder()
+                                                        .name("joinArg1")
+                                                        .type(Type.INTEGER)
+                                                        .values(Collections.emptySet())
+                                                        .defaultValue("")
+                                                        .build())
+                                        .build())
+                        .build();
+
+        Set<Table> tables = new HashSet<>();
+        tables.add(mainTable);
+        tables.add(joinTable);
+
+        MetaDataStore metaDataStore = new MetaDataStore(tables, this.namespaceConfigs, true);
+        Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
+
+        assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Argument 'joinArg1' with type 'INTEGER' is not defined but is"
+                        + " required for Dependent Column: 'joinCol' in table: 'namespace_JoinTable'.",
+                        e.getMessage());
+
+        // If 'join.joinCol' is invoked using SQL helper, must not complain.
+        mainTable = mainTableBuilder
+                        .join(Join.builder()
+                                        .name("join")
+                                        .namespace("namespace")
+                                        .to("JoinTable")
+                                        .definition("start {{$$column.args.mainArg1}} blah {{join.$joinCol}} end")
+                                        .build())
+                        .dimension(Dimension.builder()
+                                        .name("dim1")
+                                        .type(Type.BOOLEAN)
+                                        .values(Collections.emptySet())
+                                        .tags(Collections.emptySet())
+                                        .definition("start {{$$column.args.mainArg1}} blah {{sql from='join' column='joinCol[joinArg1:123]'}} end")
+                                        .argument(mainArg1)
+                                        .build())
+                        .build();
+
+        tables = new HashSet<>();
+        tables.add(mainTable);
+        tables.add(joinTable);
+
+        MetaDataStore metaDataStore1 = new MetaDataStore(tables, this.namespaceConfigs, true);
+        assertDoesNotThrow(() -> new SQLQueryEngine(metaDataStore1, connection, connectionDetailsMap, optimizers, queryValidator));
+    }
+
+    @Test
+    public void testInvalidPinnedArgForDepenedentColumn() {
         // 'dim2' is invoked using SQL helper, pinned value is Invalid
         Table mainTable = mainTableBuilder
                         .dimension(Dimension.builder()
@@ -222,7 +329,8 @@ class ColumnArgumentValidatorTest {
         MetaDataStore metaDataStore = new MetaDataStore(tables, this.namespaceConfigs, true);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
 
-        assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Type mismatch for Pinned value in this column's definition. Pinned Value: 'foo' for Argument 'dependentArg1' with Type 'INTEGER' is invalid.",
+        assertEquals("Failed to verify column arguments for column: dim1 in table: namespace_MainTable. Type mismatch of Fixed value provided for Dependent Column: 'dim2'"
+                        + " in table: 'namespace_MainTable'. Pinned Value: 'foo' for Argument 'dependentArg1' with Type 'INTEGER' is invalid.",
                         e.getMessage());
     }
 }
