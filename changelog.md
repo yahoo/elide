@@ -1,4 +1,9 @@
 # Change Log
+## 5.0.1
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/8b713e15d262f0b0087c9de79dc45fca16891ca0) Update README.md 
+   * [view commit](https://github.com/yahoo/elide/commit/a691913ed2bcb782c6659d3b24c3621ad0fa47da) Fix bug querying a dynamic analytic model by ID in GraphQL (#2120) 
 
 ## 5.0.0
 
