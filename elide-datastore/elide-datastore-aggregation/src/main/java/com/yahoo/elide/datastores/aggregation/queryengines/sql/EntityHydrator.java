@@ -12,6 +12,7 @@ import com.yahoo.elide.core.type.ParameterizedModel;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
@@ -65,6 +66,7 @@ public class EntityHydrator {
         Map<String, String> projections = this.query.getMetricProjections().stream()
                 .map(SQLMetricProjection.class::cast)
                 .filter(SQLColumnProjection::isProjected)
+                .filter(projection -> ! projection.getValueType().equals(ValueType.ID))
                 .collect(Collectors.toMap(MetricProjection::getAlias, MetricProjection::getSafeAlias));
 
         projections.putAll(this.query.getAllDimensionProjections().stream()
