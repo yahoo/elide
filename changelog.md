@@ -1,9 +1,11 @@
 # Change Log
 
 ## 5.0.0
+
 Elide 5 Official Release.  See the [migration guide](https://elide.io/pages/guide/v5/17-migration.html) for a full recap of changes since Elide 4.
 
 **Features**
+
 Major changes since last pre-release include:
    * Parameterized tables, metrics, & dimensions for Aggregation store models.
    * A new security model (permission executor) for Aggregation store models.
