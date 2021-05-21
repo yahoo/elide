@@ -7,10 +7,10 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
 import static com.yahoo.elide.core.utils.TypeHelper.appendAlias;
+import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.applyQuotes;
 import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.mergedArgumentMap;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.applyQuotes;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.hasSql;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.resolveTableOrSubselect;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable.hasSql;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable.resolveTableOrSubselect;
 import static java.util.Collections.emptySet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import com.yahoo.elide.core.Path.PathElement;

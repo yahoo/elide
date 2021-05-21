@@ -7,8 +7,8 @@
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 
 import static com.yahoo.elide.core.request.Argument.getArgumentMapFromString;
+import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.PERIOD;
 import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.mergedArgumentMap;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;

@@ -18,7 +18,6 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
@@ -37,7 +36,6 @@ public class PhysicalRefColumnContextTest {
     private SQLTable revenueFactTable;
     private MetaDataStore metaDataStore;
     private Map<String, Argument> queryArgs = new HashMap<>();
-    private SQLReferenceTable refTable;
 
     public PhysicalRefColumnContextTest() {
         Set<Type<?>> models = new HashSet<>();
@@ -55,7 +53,6 @@ public class PhysicalRefColumnContextTest {
         // The query engine populates the metadata store with actual tables.
         new SQLQueryEngine(metaDataStore, new ConnectionDetails(mockDataSource, SQLDialectFactory.getDefaultDialect()));
 
-        refTable = new SQLReferenceTable(metaDataStore);
         revenueFactTable = metaDataStore.getTable(ClassType.of(RevenueFact.class));
 
         queryArgs.put("format", Argument.builder().name("format").value("999999D000000").build());
@@ -104,7 +101,7 @@ public class PhysicalRefColumnContextTest {
                         .dimensionProjections(query.getDimensionProjections())
                         .arguments(query.getArguments());
 
-        Query expandedQuery = addHiddenProjections(refTable, builder, query).build();
+        Query expandedQuery = addHiddenProjections(metaDataStore, builder, query).build();
 
         // definition: {{$$column.args.aggregation}}({{$impressions}})
         // -> value of 'aggregation' argument is passed in the query for "impressions" column and same is used while
@@ -177,7 +174,7 @@ public class PhysicalRefColumnContextTest {
                         .metricProjections(query.getMetricProjections())
                         .arguments(query.getArguments());
 
-        Query expandedQuery = addHiddenProjections(refTable, builder, query).build();
+        Query expandedQuery = addHiddenProjections(metaDataStore, builder, query).build();
 
         // definition: TO_CHAR(SUM({{$revenue}}) * {{sql from='rate' column='conversionRate[format:9999D0000]'}}, {{$$column.args.format}})
         // -> value of 'format' argument is passed in the query for "revenueUsingSqlHelper" column and same is used for

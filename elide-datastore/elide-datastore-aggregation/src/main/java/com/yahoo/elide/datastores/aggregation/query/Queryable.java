@@ -303,7 +303,7 @@ public interface Queryable {
     }
 
     /**
-     * Converts a filter expression into a set of ColumnProjections
+     * Converts a filter expression into a set of ColumnProjections.
      * @param query The parent query.
      * @param expression The filter expression to extract.
      * @return A set of zero or more column projections with their arguments.

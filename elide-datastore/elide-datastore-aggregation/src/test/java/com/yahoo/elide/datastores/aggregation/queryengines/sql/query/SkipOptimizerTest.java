@@ -54,7 +54,7 @@ public class SkipOptimizerTest extends SQLUnitTest {
         Query query = TestQuery.WHERE_AND.getQuery();
         engine.explain(query);
 
-        verify(optimizer, never()).optimize(any(), any());
+        verify(optimizer, never()).optimize(any());
     }
 
     @Test
@@ -64,6 +64,6 @@ public class SkipOptimizerTest extends SQLUnitTest {
         Query query = TestQuery.WHERE_AND.getQuery();
         engine.explain(query);
 
-        verify(optimizer, never()).optimize(any(), any());
+        verify(optimizer, never()).optimize(any());
     }
 }
