@@ -39,7 +39,6 @@ Major changes since last pre-release include:
    * [view commit](https://github.com/yahoo/elide/commit/6591f9a7c5def55726e081dc0aecf15cbb915c44) Bump version.antlr4 from 4.9.1 to 4.9.2 (#2060) 
    * [view commit](https://github.com/yahoo/elide/commit/d21f942a219ba7f32757f334d7e61c78e126d6be) Use only queried column args & default args for logical column expansion (#2054) 
    * [view commit](https://github.com/yahoo/elide/commit/ee220445dbd72d789e09dbea5c233b46b4768f3e) Bump junit-jupiter-params from 5.7.0 to 5.7.1 (#2057) 
-
    * [view commit](https://github.com/yahoo/elide/commit/dd33ea956b389e5fb37ea313564b7c80f0891bb9) Bump spring.boot.version from 2.4.3 to 2.4.5 (#2033) 
    * [view commit](https://github.com/yahoo/elide/commit/26f9d627781a4023f19c81065bd0434159b9da1e) Bump guava from 30.1-jre to 30.1.1-jre (#2056) 
    * [view commit](https://github.com/yahoo/elide/commit/21b4c5a728a2fd55339282b1e13bfb02cf26c875) get permission executor from datastore for each model that it manages. (#2070) 
