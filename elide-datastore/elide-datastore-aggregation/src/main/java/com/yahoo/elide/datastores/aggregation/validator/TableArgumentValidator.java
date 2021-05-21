@@ -6,8 +6,8 @@
 
 package com.yahoo.elide.datastores.aggregation.validator;
 
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.hasSql;
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.resolveTableOrSubselect;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable.hasSql;
+import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable.resolveTableOrSubselect;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
@@ -22,6 +22,17 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Set;
 
+/**
+ * Verifies all defined arguments for table.
+ * Ensures all arguments required for table are defined.
+ * For any table:
+ * <ul>
+ *   <li>All the table arguments used (in the column definition, Join expressions, or table's SQL) must be defined
+ *    in the argument list for this table (with or without default value).</li>
+ *   <li>All the table arguments required for join tables must be defined in the argument list for this table
+ *    (with or without default value).</li>
+ * </ul>
+ */
 public class TableArgumentValidator {
 
     private final MetaDataStore metaDataStore;
@@ -42,7 +53,7 @@ public class TableArgumentValidator {
 
         table.getArgumentDefinitions().forEach(arg -> {
             verifyValues(arg, errorMsgPrefix);
-            verifyDefaultvalue(arg, errorMsgPrefix);
+            verifyDefaultValue(arg, errorMsgPrefix);
         });
 
         verifyTableArgsInTableSql();
@@ -70,7 +81,7 @@ public class TableArgumentValidator {
                         String.format("in definition of join: '%s'.", joinName)));
     }
 
-    private void verifyTableArgsExists(String expression, String errorMsg) {
+    private void verifyTableArgsExists(String expression, String errorMsgSuffix) {
         parser.parse(table, expression).stream()
                         .filter(ref -> ref instanceof TableArgReference)
                         .map(TableArgReference.class::cast)
@@ -79,7 +90,7 @@ public class TableArgumentValidator {
                             if (!table.hasArgumentDefinition(argName)) {
                                 throw new IllegalStateException(String.format(errorMsgPrefix
                                                 + "Argument '%s' is not defined but found '{{$$table.args.%s}}' "
-                                                + errorMsg, argName, argName));
+                                                + errorMsgSuffix, argName, argName));
                             }
                         });
     }
@@ -122,27 +133,30 @@ public class TableArgumentValidator {
         });
     }
 
-    public static void verifyDefaultvalue(ArgumentDefinition argument, String errorMsgPrefix) {
-
+    public static void verifyDefaultValue(ArgumentDefinition argument, String errorMsgPrefix) {
         String defaultValue = argument.getDefaultValue().toString();
+        verifyValue(argument, defaultValue, errorMsgPrefix + "Default ");
+    }
+
+    public static void verifyValue(ArgumentDefinition argument, String value, String errorMsgPrefix) {
+
         Set<String> values = argument.getValues();
 
-        if (StringUtils.isBlank(defaultValue)) {
+        if (StringUtils.isBlank(value)) {
             return;
         }
 
         if (CollectionUtils.isEmpty(values)) {
-            if (!argument.getType().matches(defaultValue)) {
+            if (!argument.getType().matches(value)) {
                 throw new IllegalStateException(String.format(errorMsgPrefix
-                                + "Default Value: '%s' for Argument '%s' with Type '%s' is invalid.",
-                                defaultValue, argument.getName(), argument.getType()));
+                                + "Value: '%s' for Argument '%s' with Type '%s' is invalid.",
+                                value, argument.getName(), argument.getType()));
             }
         } else {
-            if (!values.contains(defaultValue)) {
+            if (!values.contains(value)) {
                 throw new IllegalStateException(String.format(errorMsgPrefix
-                                + "Default Value: '%s' for Argument '%s' with Type '%s' must match one of these"
-                                + " values: %s.",
-                                defaultValue, argument.getName(), argument.getType(), values));
+                                + "Value: '%s' for Argument '%s' with Type '%s' must match one of these values: %s.",
+                                value, argument.getName(), argument.getType(), values));
             }
         }
     }

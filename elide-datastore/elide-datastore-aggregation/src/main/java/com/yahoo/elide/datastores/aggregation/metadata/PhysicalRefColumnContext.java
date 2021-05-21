@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.datastores.aggregation.metadata;
 
-import static com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable.PERIOD;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import com.yahoo.elide.core.request.Argument;

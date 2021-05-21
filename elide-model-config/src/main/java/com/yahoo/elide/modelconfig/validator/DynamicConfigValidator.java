@@ -76,8 +76,6 @@ import java.util.stream.Stream;
  * Util class to validate and parse the config files. Optionally compiles config files.
  */
 public class DynamicConfigValidator implements DynamicConfiguration {
-    public static final Pattern REFERENCE_PARENTHESES = Pattern.compile("\\{\\{(.+?)}}");
-
 
     private static final Set<String> SQL_DISALLOWED_WORDS = new HashSet<>(
             Arrays.asList("DROP", "TRUNCATE", "DELETE", "INSERT", "UPDATE", "ALTER", "COMMENT", "CREATE", "DESCRIBE",
@@ -564,7 +562,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
             table.getDimensions().forEach(dim -> {
                 validateFieldNameUniqueness(tableFields, dim.getName(), table.getName());
                 validateSql(dim.getDefinition());
-                validateTableSource(table, dim.getTableSource());
+                validateTableSource(dim.getTableSource());
                 validateArguments(table, dim.getArguments());
                 extractChecksFromExpr(dim.getReadAccess(), extractedFieldChecks, visitor);
             });
@@ -611,7 +609,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
 
     private void validateArguments(Table table, List<Argument> arguments) {
         validateNameUniqueness(arguments, "Multiple Arguments found with the same name: ");
-        arguments.forEach(arg -> validateTableSource(table, arg.getTableSource()));
+        arguments.forEach(arg -> validateTableSource(arg.getTableSource()));
     }
 
     private void validateChecks(Set<String> tableChecks, Set<String> fieldChecks) {
@@ -674,7 +672,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
      * Validates tableSource is in format: modelName.logicalColumnName and refers to a defined model and a defined
      * column with in that model.
      */
-    private void validateTableSource(Table table, TableSource tableSource) {
+    private void validateTableSource(TableSource tableSource) {
         if (tableSource == null) {
             return; // Nothing to validate
         }

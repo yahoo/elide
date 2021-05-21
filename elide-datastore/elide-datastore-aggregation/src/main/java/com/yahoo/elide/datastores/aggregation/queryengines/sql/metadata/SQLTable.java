@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata;
 
+import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.PERIOD;
 import static java.util.Collections.emptyMap;
 import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -28,9 +29,15 @@ import com.yahoo.elide.datastores.aggregation.query.MetricProjectionMaker;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.Subselect;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -313,5 +320,56 @@ public class SQLTable extends Table implements Queryable {
                                         .value(arg.getDefaultValue())
                                         .build())
                         .collect(Collectors.toMap(Argument::getName, Function.identity()));
+    }
+
+    /**
+     * Check whether a class is mapped to a subselect query instead of a physical table.
+     * @param cls The entity class.
+     * @return True if the class has {@link Subselect}/{@link FromSubquery} annotation.
+     */
+    public static boolean hasSql(Type<?> cls) {
+        return cls.isAnnotationPresent(Subselect.class) || cls.isAnnotationPresent(FromSubquery.class);
+    }
+
+    /**
+     * Maps an entity class to a physical table or subselect query, if neither {@link javax.persistence.Table}
+     * nor {@link Subselect} annotation is present on this class, try {@link FromTable} and {@link FromSubquery}.
+     * @param cls The entity class.
+     * @return The physical SQL table or subselect query.
+     */
+    public static String resolveTableOrSubselect(EntityDictionary dictionary, Type<?> cls) {
+        if (hasSql(cls)) {
+            if (cls.isAnnotationPresent(FromSubquery.class)) {
+                return dictionary.getAnnotation(cls, FromSubquery.class).sql();
+            }
+            return dictionary.getAnnotation(cls, Subselect.class).value();
+        }
+        javax.persistence.Table table = dictionary.getAnnotation(cls, javax.persistence.Table.class);
+
+        if (table != null) {
+            return resolveTableAnnotation(table);
+        }
+        FromTable fromTable = dictionary.getAnnotation(cls, FromTable.class);
+
+        return fromTable != null ? fromTable.name() : cls.getSimpleName();
+    }
+
+    /**
+     * Get the full table name from JPA {@link javax.persistence.Table} annotation.
+     * @param table table annotation.
+     * @return <code>catalog.schema.name</code>
+     */
+    private static String resolveTableAnnotation(javax.persistence.Table table) {
+        StringBuilder fullTableName = new StringBuilder();
+
+        if (StringUtils.isNotBlank(table.catalog())) {
+            fullTableName.append(table.catalog()).append(PERIOD);
+        }
+
+        if (StringUtils.isNotBlank(table.schema())) {
+            fullTableName.append(table.schema()).append(PERIOD);
+        }
+
+        return fullTableName.append(table.name()).toString();
     }
 }

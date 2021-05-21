@@ -36,8 +36,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSu
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.DynamicSQLReferenceTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.NativeQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryPlanTranslator;
@@ -46,6 +44,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnPr
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
+import com.yahoo.elide.datastores.aggregation.validator.ColumnArgumentValidator;
 import com.yahoo.elide.datastores.aggregation.validator.TableArgumentValidator;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
@@ -76,7 +75,6 @@ import javax.sql.DataSource;
 public class SQLQueryEngine extends QueryEngine {
 
     @Getter
-    private final SQLReferenceTable referenceTable;
     private final ConnectionDetails defaultConnectionDetails;
     private final Map<String, ConnectionDetails> connectionDetailsMap;
     private final Set<Optimizer> optimizers;
@@ -114,7 +112,6 @@ public class SQLQueryEngine extends QueryEngine {
         this.formulaValidator = new FormulaValidator(metaDataStore);
         this.metadataDictionary = metaDataStore.getMetadataDictionary();
         populateMetaData(metaDataStore);
-        this.referenceTable = new SQLReferenceTable(metaDataStore);
         this.optimizers = optimizers;
     }
 
@@ -182,9 +179,16 @@ public class SQLQueryEngine extends QueryEngine {
     protected void verifyMetaData(MetaDataStore metaDataStore) {
         metaDataStore.getTables().forEach(table -> {
             SQLTable sqlTable = (SQLTable) table;
+
             checkForCycles(sqlTable);
+
             TableArgumentValidator tableArgValidator = new TableArgumentValidator(metaDataStore, sqlTable);
             tableArgValidator.validate();
+
+            sqlTable.getColumns().forEach(column -> {
+                ColumnArgumentValidator colArgValidator = new ColumnArgumentValidator(metaDataStore, sqlTable, column);
+                colArgValidator.validate();
+            });
         });
     }
 
@@ -400,14 +404,13 @@ public class SQLQueryEngine extends QueryEngine {
             }
         }
 
-        QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query, referenceTable);
+        QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query, metaDataStore);
 
         Query merged = (mergedPlan == null)
-                ? QueryPlanTranslator.addHiddenProjections(referenceTable, query).build()
+                ? QueryPlanTranslator.addHiddenProjections(metaDataStore, query).build()
                 : queryPlanTranslator.translate(mergedPlan);
 
         for (Optimizer optimizer : optimizers) {
-            SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, merged);
             SQLTable table = (SQLTable) query.getSource();
 
             //TODO - support hints in table joins & query header.  Query Header hints override join hints which
@@ -420,8 +423,8 @@ public class SQLQueryEngine extends QueryEngine {
                 continue;
             }
 
-            if (optimizer.canOptimize(merged, queryReferenceTable)) {
-                merged = optimizer.optimize(merged, queryReferenceTable);
+            if (optimizer.canOptimize(merged)) {
+                merged = optimizer.optimize(merged);
             }
         }
 

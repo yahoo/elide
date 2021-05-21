@@ -17,7 +17,6 @@ import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.google.common.collect.Streams;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -43,16 +42,11 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
     }
 
     private class OptimizerVisitor implements QueryVisitor<Queryable> {
-        private SQLReferenceTable lookupTable;
-
-        public OptimizerVisitor(SQLReferenceTable lookupTable) {
-            this.lookupTable = lookupTable;
-        }
 
         @Override
         public Queryable visitQuery(Query query) {
             SubqueryFilterSplitter.SplitFilter splitWhere =
-                    SubqueryFilterSplitter.splitFilter(lookupTable, metaDataStore, query.getWhereFilter());
+                    SubqueryFilterSplitter.splitFilter(metaDataStore, query.getWhereFilter());
 
             Set<ColumnProjection> allProjections = Streams.concat(
                     query.getColumnProjections().stream(),
@@ -60,7 +54,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                     .collect(Collectors.toCollection(LinkedHashSet::new));
 
             Set<Pair<ColumnProjection, Set<ColumnProjection>>> allProjectionsNested = allProjections.stream()
-                    .map((projection) -> projection.nest(query, lookupTable.getMetaDataStore(), true))
+                    .map((projection) -> projection.nest(query, metaDataStore, true))
                     .collect(Collectors.toCollection(LinkedHashSet::new));
 
             Set<ColumnProjection> allOuterProjections = allProjectionsNested.stream()
@@ -88,7 +82,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
                             .collect(Collectors.toCollection(LinkedHashSet::new)))
                     .whereFilter(splitWhere.getInner());
 
-            addHiddenProjections(lookupTable, inner, query);
+            addHiddenProjections(metaDataStore, inner, query);
 
             Query outer = Query.builder()
                     .metricProjections(allOuterProjections.stream()
@@ -127,8 +121,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
     }
 
     @Override
-    public boolean canOptimize(Query query, SQLReferenceTable lookupTable) {
-        MetaDataStore store = lookupTable.getMetaDataStore();
+    public boolean canOptimize(Query query) {
         //For simplicity, we will not optimize an already nested query.
         if (query.isNested()) {
             return false;
@@ -136,7 +129,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
 
         //Every column must be nestable.
         if (! query.getColumnProjections().stream()
-                .allMatch((projection) -> projection.canNest(query, store))) {
+                .allMatch((projection) -> projection.canNest(query, metaDataStore))) {
             return false;
         }
 
@@ -153,7 +146,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
         //the projection and we check projections below.
         if (query.getWhereFilter() != null) {
             SubqueryFilterSplitter.SplitFilter splitFilter =
-                    SubqueryFilterSplitter.splitFilter(lookupTable, metaDataStore, query.getWhereFilter());
+                    SubqueryFilterSplitter.splitFilter(metaDataStore, query.getWhereFilter());
 
             if (splitFilter.getOuter() != null) {
                 return true;
@@ -162,7 +155,7 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
 
         //Next check the projection for required joins.
         for (ColumnProjection column: query.getColumnProjections()) {
-            boolean requiresJoin = SQLColumnProjection.requiresJoin(query.getSource(), column, store);
+            boolean requiresJoin = SQLColumnProjection.requiresJoin(query.getSource(), column, metaDataStore);
 
             if (requiresJoin) {
                 return true;
@@ -173,11 +166,11 @@ public class AggregateBeforeJoinOptimizer implements Optimizer {
     }
 
     @Override
-    public Query optimize(Query query, SQLReferenceTable lookupTable) {
-        if (! canOptimize(query, lookupTable)) {
+    public Query optimize(Query query) {
+        if (! canOptimize(query)) {
             return query;
         }
 
-        return (Query) query.accept(new OptimizerVisitor(lookupTable));
+        return (Query) query.accept(new OptimizerVisitor());
     }
 }

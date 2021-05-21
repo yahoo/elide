@@ -6,14 +6,15 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
+import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryPlan;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.LogicalReference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ReferenceExtractor;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.google.common.collect.Streams;
 
 import java.util.HashSet;
@@ -33,10 +34,10 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
     //Whether or not this visitor has been invoked yet.
     private boolean invoked = false;
 
-    private SQLReferenceTable lookupTable;
+    private MetaDataStore metaDataStore;
 
-    public QueryPlanTranslator(Query clientQuery, SQLReferenceTable lookupTable) {
-        this.lookupTable = lookupTable;
+    public QueryPlanTranslator(Query clientQuery, MetaDataStore metaDataStore) {
+        this.metaDataStore = metaDataStore;
         this.clientQuery = clientQuery;
     }
 
@@ -55,11 +56,11 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .build();
 
         //Merge it with the metric plan.
-        if (plan.isNested() && !clientQueryPlan.canNest(lookupTable.getMetaDataStore())) {
+        if (plan.isNested() && !clientQueryPlan.canNest(metaDataStore)) {
             throw new UnsupportedOperationException("Cannot nest one or more dimensions from the client query");
         }
 
-        QueryPlan merged = clientQueryPlan.merge(plan, lookupTable.getMetaDataStore());
+        QueryPlan merged = clientQueryPlan.merge(plan, metaDataStore);
 
         //Decorate the result with filters, sorting, and pagination.
         return merged.accept(this).build();
@@ -94,7 +95,7 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .whereFilter(clientQuery.getWhereFilter())
                 .arguments(clientQuery.getArguments());
 
-        return addHiddenProjections(lookupTable, builder, clientQuery);
+        return addHiddenProjections(metaDataStore, builder, clientQuery);
     }
 
     private Query.QueryBuilder visitOuterQueryPlan(Queryable plan)  {
@@ -139,11 +140,11 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 .scope(clientQuery.getScope())
                 .arguments(clientQuery.getArguments());
 
-        return addHiddenProjections(lookupTable, builder, clientQuery);
+        return addHiddenProjections(metaDataStore, builder, clientQuery);
     }
 
     public static Query.QueryBuilder addHiddenProjections(
-            SQLReferenceTable lookupTable,
+            MetaDataStore metaDataStore,
             Query.QueryBuilder builder,
             Query query
     ) {
@@ -153,13 +154,14 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                 query.getFilterProjections(query.getWhereFilter(), ColumnProjection.class).stream()
         ).collect(Collectors.toSet());
 
+        ExpressionParser parser = new ExpressionParser(metaDataStore);
         Set<ColumnProjection> indirectReferenceColumns = new HashSet<>();
         directReferencedColumns.forEach(column -> {
-            lookupTable.getReferenceTree(query.getSource(), column.getName()).stream()
+            parser.parse(query.getSource(), column).stream()
                     .map(reference -> reference.accept(new ReferenceExtractor<LogicalReference>(
                             LogicalReference.class,
-                            lookupTable.getMetaDataStore(),
-                            query.getSource())))
+                            metaDataStore,
+                            ReferenceExtractor.Mode.SAME_QUERY)))
                     .flatMap(Set::stream)
                     .map(LogicalReference::getColumn)
                     .forEach(indirectReferenceColumns::add);
@@ -177,7 +179,7 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
         return builder;
     }
 
-    public static Query.QueryBuilder addHiddenProjections(SQLReferenceTable lookupTable, Query query) {
+    public static Query.QueryBuilder addHiddenProjections(MetaDataStore metaDataStore, Query query) {
         Query.QueryBuilder builder = Query.builder()
                         .source(query.getSource())
                         .metricProjections(query.getMetricProjections())
@@ -190,6 +192,6 @@ public class QueryPlanTranslator implements QueryVisitor<Query.QueryBuilder> {
                         .scope(query.getScope())
                         .arguments(query.getArguments());
 
-        return addHiddenProjections(lookupTable, builder, query);
+        return addHiddenProjections(metaDataStore, builder, query);
     }
 }

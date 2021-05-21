@@ -10,7 +10,6 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.core.JoinPath;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
@@ -24,12 +23,18 @@ import java.util.Set;
  */
 public class ReferenceExtractor<T extends Reference> implements ReferenceVisitor<Set<T>> {
 
-    private final Queryable limitedTo;
     private final Class<T> referenceType;
     private final Set<T> references;
     private MetaDataStore metaDataStore;
     private Set<SQLJoin> visitedJoins;
     private ExpressionParser parser;
+    private Mode mode;
+
+    public enum Mode {
+        ALL,
+        SAME_QUERY,
+        SAME_COLUMN,
+    }
 
     /**
      * Constructor.
@@ -37,18 +42,17 @@ public class ReferenceExtractor<T extends Reference> implements ReferenceVisitor
      * @param metaDataStore Metadata store.
      */
     public ReferenceExtractor(Class<T> referenceType, MetaDataStore metaDataStore) {
-        this(referenceType, metaDataStore, null);
+        this(referenceType, metaDataStore, Mode.ALL);
     }
 
     /**
      * Constructor.
      * @param referenceType The reference type to extract.
      * @param metaDataStore Metadata store.
-     * @param limitedTo Only extract references that belong to the source table.  null means extract everything
-     *                  regardless of source table.
+     * @param mode {@link Mode}.
      */
-    public ReferenceExtractor(Class<T> referenceType, MetaDataStore metaDataStore, Queryable limitedTo) {
-        this.limitedTo = limitedTo;
+    public ReferenceExtractor(Class<T> referenceType, MetaDataStore metaDataStore, Mode mode) {
+        this.mode = mode;
         this.referenceType = referenceType;
         this.references = new LinkedHashSet<>();
         this.metaDataStore = metaDataStore;
@@ -58,11 +62,6 @@ public class ReferenceExtractor<T extends Reference> implements ReferenceVisitor
 
     @Override
     public Set<T> visitPhysicalReference(PhysicalReference reference) {
-        //This visitor is limited to references that belong to the given queryable.
-        if (limitedTo != null && ! sameSourceTable(reference.getSource())) {
-            return references;
-        }
-
         if (referenceType.equals(PhysicalReference.class)) {
             references.add((T) reference);
         }
@@ -72,19 +71,16 @@ public class ReferenceExtractor<T extends Reference> implements ReferenceVisitor
 
     @Override
     public Set<T> visitLogicalReference(LogicalReference reference) {
-        //This visitor is limited to references that belong to the given queryable.
-        if (limitedTo != null && ! sameSourceTable(reference.getSource())) {
-            return references;
-        }
-
         if (referenceType.equals(LogicalReference.class)) {
             references.add((T) reference);
         }
 
-        reference.getReferences().stream()
-                .map(ref -> ref.accept(this))
-                .flatMap(Set::stream)
-                .forEach(references::add);
+        if (mode != Mode.SAME_COLUMN) {
+            reference.getReferences().stream()
+                            .map(ref -> ref.accept(this))
+                            .flatMap(Set::stream)
+                            .forEach(references::add);
+        }
 
         return references;
     }
@@ -92,18 +88,15 @@ public class ReferenceExtractor<T extends Reference> implements ReferenceVisitor
     @Override
     public Set<T> visitJoinReference(JoinReference reference) {
 
-        //This visitor is limited to references that belong to the given queryable.
-        if (limitedTo != null && ! sameSourceTable(reference.getSource())) {
-            return references;
-        }
-
         if (referenceType.equals(JoinReference.class)) {
             references.add((T) reference);
         }
 
         JoinPath path = reference.getPath();
 
-        for (int idx = 0; idx < path.getPathElements().size() - 1; idx++) {
+        int pathLimit = (mode == Mode.SAME_QUERY) ? 1 : path.getPathElements().size() - 1;
+
+        for (int idx = 0; idx < pathLimit; idx++) {
             Path.PathElement pathElement = path.getPathElements().get(idx);
 
             String fieldName = pathElement.getFieldName();
@@ -119,10 +112,13 @@ public class ReferenceExtractor<T extends Reference> implements ReferenceVisitor
 
             parser.parse(table, join.getJoinExpression()).stream().forEach(
                     ref -> ref.accept(this));
-
         }
 
-        return reference.getReference().accept(this);
+        if (mode != Mode.SAME_QUERY) {
+            return reference.getReference().accept(this);
+        }
+
+        return references;
     }
 
     @Override
@@ -141,9 +137,5 @@ public class ReferenceExtractor<T extends Reference> implements ReferenceVisitor
         }
 
         return references;
-    }
-
-    private boolean sameSourceTable(Queryable referenceSource) {
-        return limitedTo.getRoot().equals(referenceSource.getRoot());
     }
 }
