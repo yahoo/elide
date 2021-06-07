@@ -13,15 +13,15 @@ import lombok.ToString;
 
 import java.util.Set;
 import javax.persistence.Embedded;
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
 @Include
 @Data
 @Entity
 public class Building {
-    @Id
+    @EmbeddedId
     @Embedded
     private Address address;
 
