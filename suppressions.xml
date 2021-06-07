@@ -21,4 +21,11 @@
     <suppress until="2021-06-01Z">
         <cve>CVE-2020-25638</cve>
     </suppress>
+
+    <!-- Hibernate 3 CVE errors (only in the legacy hibernate 3 data store).  Use Hibernate 3 at your own risk. -->
+    <suppress until="2031-06-01Z">
+        <cve>CVE-2020-25638</cve>
+        <cve>CVE-2019-14900</cve>
+    </suppress>
+
 </suppressions>
