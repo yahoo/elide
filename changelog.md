@@ -1,4 +1,97 @@
 # Change Log
+## 5.0.1
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/8b713e15d262f0b0087c9de79dc45fca16891ca0) Update README.md 
+   * [view commit](https://github.com/yahoo/elide/commit/a691913ed2bcb782c6659d3b24c3621ad0fa47da) Fix bug querying a dynamic analytic model by ID in GraphQL (#2120) 
+
+## 5.0.0
+
+Elide 5 Official Release.  See the [migration guide](https://elide.io/pages/guide/v5/17-migration.html) for a full recap of changes since Elide 4.
+
+**Features**
+
+Major changes since last pre-release include:
+   * Parameterized tables, metrics, & dimensions for Aggregation store models.
+   * A new security model (permission executor) for Aggregation store models.
+   * @Include at package level introduces the concept of 'Namespaces'.
+   * @Include includes metadata (that will soon be added to Swagger and Graphiql documents).
+   * A query optimizer was added for Aggregation Store.
+   * Metadata changes for the Aggregation Store to support richer search suggestions.
+   * [view commit](https://github.com/yahoo/elide/commit/63b444aa04e4c0e9b6fcb16cbb8560a9dba6fa79) Expose query params on security.RequestScope (#2067) 
+   * [view commit](https://github.com/yahoo/elide/commit/9facb56979112d0ce1d09f9a529b7a32950d4dd6) Allow custom serdes to override default ones (#1421). (#2103)
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/fdfe852b9498de2748f127e618b5436bf854edd2) Disable Dependency Check (#2017) 
+   * [view commit](https://github.com/yahoo/elide/commit/2cb51c39ababdbfbd270f7478710f05122d5c31b) Table Namespace Model Config (#2013) 
+   * [view commit](https://github.com/yahoo/elide/commit/7a901acc7407dedfe5794e3509683649e746bd58) Test Cases for Namespace Dynamic Configs (#2015) 
+   * [view commit](https://github.com/yahoo/elide/commit/89e96b0bb45da69b08e6c8df6d8d7d23090eec37) Resolution using Table Context (#2004) 
+   * [view commit](https://github.com/yahoo/elide/commit/ff182deee468044339501f0818a089a63189bb2f) Revert "Disable Dependency Check (#2017)" (#2023) 
+   * [view commit](https://github.com/yahoo/elide/commit/0c9fff2684f6bff02222fd36c9b12a686ee655ef) ClassType.of (#2027) 
+   * [view commit](https://github.com/yahoo/elide/commit/0cb3f2505270b755cc50a5a646719da32a533f33) Update README.md (#2024) 
+   * [view commit](https://github.com/yahoo/elide/commit/9fb218f29b6fd0b3c803bbe0216f0ee9366129ea) Bump version.jackson from 2.12.2 to 2.12.3 (#2005) 
+   * [view commit](https://github.com/yahoo/elide/commit/6143d108eb7b1a2250370409d5362c6722c95b23) Cleanup (#2026) 
+   * [view commit](https://github.com/yahoo/elide/commit/50a41527ad49571d5029b922382647184752027d) Fix handling in filter pushdown extractor (#2030) (#2038) 
+   * [view commit](https://github.com/yahoo/elide/commit/53b23330ff54b12041e530a931329986ddd3e454) Aggregation Store: Namespace Metadata changes (#2037) 
+   * [view commit](https://github.com/yahoo/elide/commit/e64bd8e8ab6ff8353b7a0bb1d4db03c8a4eedaac) Permission visitor normalization (#2035) 
+   * [view commit](https://github.com/yahoo/elide/commit/ea57369f2b8af263efd9de99bfe59cae1b88202a) Test Cases + Enable Namespace in Standalone and Spring (#2040) 
+   * [view commit](https://github.com/yahoo/elide/commit/b126fc12c0102fa8441e5900b81ad95d1b0bb3c3) Use TableContext to resolve join expressions. (#2036) 
+   * [view commit](https://github.com/yahoo/elide/commit/b911028feb3655bb897041047caa7602f3f0c761) Add missing default values for ElideAutoConfiguration (#2052) 
+   * [view commit](https://github.com/yahoo/elide/commit/256ca8e18dbae4b8ff6c1adbd8e37b236ef5e575) Refactor Column Projections (#2049) 
+   * [view commit](https://github.com/yahoo/elide/commit/4e611ab9f310af630c79dc9e475af45127e40246) Upgrade to GitHub-native Dependabot (#2041) 
+   * [view commit](https://github.com/yahoo/elide/commit/eda2eb0643884d0c145e132ad76c0e28e3ac699a) Bump metrics.version from 4.1.19 to 4.1.21 (#2062) 
+   * [view commit](https://github.com/yahoo/elide/commit/4e8ea8eebe887ecfca30d45491ff7cfa82c28bcd) Bump groovy.version from 3.0.7 to 3.0.8 (#2059) 
+   * [view commit](https://github.com/yahoo/elide/commit/e7224f95f46446e9787f6e03a8837fd65ae9368c) Bump spring-core from 5.2.9.RELEASE to 5.3.6 (#2058) 
+   * [view commit](https://github.com/yahoo/elide/commit/a4e09c25871bdef9ab5088ea4d2d3bef920f772d) Refactored AnyFieldExpression logic (#2050) 
+   * [view commit](https://github.com/yahoo/elide/commit/6591f9a7c5def55726e081dc0aecf15cbb915c44) Bump version.antlr4 from 4.9.1 to 4.9.2 (#2060) 
+   * [view commit](https://github.com/yahoo/elide/commit/d21f942a219ba7f32757f334d7e61c78e126d6be) Use only queried column args & default args for logical column expansion (#2054) 
+   * [view commit](https://github.com/yahoo/elide/commit/ee220445dbd72d789e09dbea5c233b46b4768f3e) Bump junit-jupiter-params from 5.7.0 to 5.7.1 (#2057) 
+   * [view commit](https://github.com/yahoo/elide/commit/dd33ea956b389e5fb37ea313564b7c80f0891bb9) Bump spring.boot.version from 2.4.3 to 2.4.5 (#2033) 
+   * [view commit](https://github.com/yahoo/elide/commit/26f9d627781a4023f19c81065bd0434159b9da1e) Bump guava from 30.1-jre to 30.1.1-jre (#2056) 
+   * [view commit](https://github.com/yahoo/elide/commit/21b4c5a728a2fd55339282b1e13bfb02cf26c875) get permission executor from datastore for each model that it manages. (#2070) 
+   * [view commit](https://github.com/yahoo/elide/commit/16107fbc78798004044ae626930d82159b4dabca) Bump maven-site-plugin from 3.7.1 to 3.9.1 (#2055) 
+   * [view commit](https://github.com/yahoo/elide/commit/10a8a027e896e0ed928ef2f8e4c3bf5808c023da) Source sparse fields from entity projection (#2051) 
+   * [view commit](https://github.com/yahoo/elide/commit/cc1a380deaf5ea3ca3c9f7e0df716198f717a4fe) Bump commons-lang3 from 3.11 to 3.12.0 (#1913) 
+   * [view commit](https://github.com/yahoo/elide/commit/b7d1e10c5d98bc7e5fd811df45395e0a0216561f) Bump mockito-core from 3.6.28 to 3.9.0 (#2034) 
+   * [view commit](https://github.com/yahoo/elide/commit/5c260f3ea1fc87ad6d3fb7be9b6354d67a294804) [Security] Bump version.jetty from 9.4.39.v20210325 to 9.4.40.v20210413 (#2032) 
+   * [view commit](https://github.com/yahoo/elide/commit/d2843b24f4a1ed35907726ff62f09049ce37d081) Optional flow (#2069) 
+   * [view commit](https://github.com/yahoo/elide/commit/222f1e1b616343984d71243a0f8c23cb2610b4a6) Bump micrometer-core from 1.6.4 to 1.6.6 (#2006) 
+   * [view commit](https://github.com/yahoo/elide/commit/73eb5ded68c41c661516fed08684a53bcb89c9b1) Add ability to handle conversion of Date instances to ISO8601DateSerde (#2047) 
+   * [view commit](https://github.com/yahoo/elide/commit/bdeef8376dfd3c35b1f12d0fc41a51385b16fa5d) Bump caffeine from 2.8.8 to 3.0.2 (#2064) 
+   * [view commit](https://github.com/yahoo/elide/commit/40cc29938d205453201062f930a8724a18572740) Bump dependency-check-maven from 6.1.5 to 6.1.6 (#2081) 
+   * [view commit](https://github.com/yahoo/elide/commit/ea7919943a77cb7ee33668170e7da16e9e338bc4) bump dependency-check (#2076) 
+   * [view commit](https://github.com/yahoo/elide/commit/1bb35bea711c420f00cfd97596dfa9177e15277e) Populating namespaces in metadatastore (#2071) 
+   * [view commit](https://github.com/yahoo/elide/commit/e722d3e2ac0acf976920871dd0a52a14f2cfd545) Refactor tableSource for Column and Argument (#2075) 
+   * [view commit](https://github.com/yahoo/elide/commit/b8a9ae644bff7db48b761d83cfac20821f8029e3) Context for partially resolving expressions (#2068) 
+   * [view commit](https://github.com/yahoo/elide/commit/066142e9acd4bd2582aa4e2eb5683a8bbd31d100) Remove usage of {{}} for time demensions (#2011) 
+   * [view commit](https://github.com/yahoo/elide/commit/0a3776bacb5809845d9a04a1263db9760f117b92) Injection Protection for parameterized metrics/dimensions (#2090) 
+   * [view commit](https://github.com/yahoo/elide/commit/35e214dd718e164e30529eff4feab4d5fcd62d27) Resolve arguments in FromSubquery (#2089) 
+   * [view commit](https://github.com/yahoo/elide/commit/e5e5f921b666bd7a6277832b6afa2d7f7cbe25a8) change permission executor cache to store set of fields (#2091) 
+   * [view commit](https://github.com/yahoo/elide/commit/bf246b21912e4b299e4330089198ba2eee01fbec) Generate dynamic alias for join source (#2065) 
+   * [view commit](https://github.com/yahoo/elide/commit/20cccc1e7386d25e7f112e912822afdfc612e79a) Validate required arguments (#2092) 
+   * [view commit](https://github.com/yahoo/elide/commit/c82b507d31043f0956023f9b83040b71277df02e) Aggregation Store: Verify write requests are denied (#2096) 
+   * [view commit](https://github.com/yahoo/elide/commit/b75011e6d084b36ce3b9ada52e309cf1cf5bdba5) Add AggregationStorePermissionExecutor (#2086) 
+   * [view commit](https://github.com/yahoo/elide/commit/0cb5028cb5c37225e4f30d5a08469499cc9fba22) add validation for security checks in agg model table, namespace and fields (#2088) 
+   * [view commit](https://github.com/yahoo/elide/commit/c3d71ad98a89137ed78e86deb091897836203f75) Propogate client query arguments to join tables (#2095) 
+   * [view commit](https://github.com/yahoo/elide/commit/32856f2244a3334028099eeb7ecd13b69fa41016) Aggregation Store ID Column Metadata (#2099) 
+   * [view commit](https://github.com/yahoo/elide/commit/06fbda9b30433d71d45e62ceab5727246c59b904) use AggregationStorePermissionExecutor for Aggregation Store Model (#2102) 
+   * [view commit](https://github.com/yahoo/elide/commit/4f0ff5f77322d56d33e3de3c961f96bb9ce5d26f) Aggregation Store - Optimizer complex formula tests (#2101) 
+   * [view commit](https://github.com/yahoo/elide/commit/6d341a829a16ea8c1dc0fb2815e320601545467d) Parse table and column arguments in Expression parser (#2105) 
+   * [view commit](https://github.com/yahoo/elide/commit/7bc4ed6f28c7ac31f1fa8071bb30ae0f5f8f7407) Added column metadata for HJSON ID column (#2104) 
+   * [view commit](https://github.com/yahoo/elide/commit/58c194cd875ffaeb01219bc3aa7fded0c8fb3da3) Bump hibernate-search-orm from 5.11.8.Final to 5.11.9.Final (#2085) 
+   * [view commit](https://github.com/yahoo/elide/commit/815b201d91369e2580ad43e81d75c462f4c494c5) Bump jacoco-maven-plugin from 0.8.6 to 0.8.7 (#2080) 
+   * [view commit](https://github.com/yahoo/elide/commit/bc656ea2fdef26b6d522d55d39a034085eeb5a25) Bump classgraph from 4.8.104 to 4.8.105 (#2079) 
+   * [view commit](https://github.com/yahoo/elide/commit/15df48408d453340eed0911a1fbc52b21f03a9ef) Bump jedis from 3.5.1 to 3.6.0 (#2106) 
+   * [view commit](https://github.com/yahoo/elide/commit/f0626ea0a2bd5244f85a6211f05681e732d4046b) Bump version.junit from 5.7.1 to 5.7.2 (#2107) 
+   * [view commit](https://github.com/yahoo/elide/commit/607b6cdb5b2f65e3752f1cdea5189404838d2994) Bump metrics.version from 4.1.21 to 4.2.0 (#2109) 
+   * [view commit](https://github.com/yahoo/elide/commit/e1c93d9f34829c4ee142a4919b5fde26502eaa11) Verify table arguments. (#2110) 
+   * [view commit](https://github.com/yahoo/elide/commit/4e62925ecfa7119e5476f74f9acc5058579aac21) Prevent nesting for columns that reference joins that contain $$column references (#2098) 
+   * [view commit](https://github.com/yahoo/elide/commit/27aa83a604ee5a4b6a1be7c5f9ab112ba2e8ae37) Bump mockito-core from 3.9.0 to 3.10.0 (#2111) 
+   * [view commit](https://github.com/yahoo/elide/commit/b2eadb111297a8167f2715e027b9284c765adb32) Verify column arguments. (#2114) 
+   * [view commit](https://github.com/yahoo/elide/commit/2594c061c2b76b2e5258d596f6280b8434b766dc) Code cleanup for elide-model-config (#2115) 
+   * [view commit](https://github.com/yahoo/elide/commit/e1f90ce023aff7b1d0a87250c314a66d240ef418) Bump javassist from 3.27.0-GA to 3.28.0-GA (#2084) 
+   * [view commit](https://github.com/yahoo/elide/commit/4b8310f782f755f20fa79b52b7e4d13480b140f9) Remove usage of SQLReferenceTable. (#2116) 
+   * [view commit](https://github.com/yahoo/elide/commit/5ee0719fee3e24d45a1a8f46b251d11acecbe2f6) Bump spring.boot.version from 2.4.5 to 2.4.6 (#2117) 
 
 ## 5.0.0-pr34
 5th public release candidate for Elide 5.0.  Major features will likely come in the next release as this release lays foundation for parameterized attributes and Handlebars templating support in HJSON configuration files.  
@@ -241,6 +334,19 @@ Because Elide 5 is a major release, we took time to reorganize the module & pack
    * elide-annotations has been absorbed into elide-core.
    * New modules were created for elide-async (async API), elide-model-config (the semantic layer), and elide-datastore/elide-datastore-aggregation (the analytics module).
    * Some classes in elide-core were reorganized into new packages.
+
+## 4.7.2
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/eeab22ce7cc591c9747b40e509fea4a77e56c8af) Removed elide-example module 
+
+## 4.7.1
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/032894eb40944db1d16a9d5090128aa7e3561df6) bump dependency versions (#1884) 
+   * [view commit](https://github.com/yahoo/elide/commit/707ef1390261c85fbe4631388024af4ec303004f) Modifications from pom on master (#2028) 
+   * [view commit](https://github.com/yahoo/elide/commit/18cd1d67507956cb7c11829dcbb766969f2987b2) Fix bug in filter pushdown extractor (#2030) 
+   * [view commit](https://github.com/yahoo/elide/commit/7dcb3df09527b0e1f79585ee5b23b8644b578403) normalize permission expression before converting to filter expression (#2039) 
+   * [view commit](https://github.com/yahoo/elide/commit/38e66ac9fc59c7694de382ecdbe4a3bae356d88e) sonar (#2044) 
+   * [view commit](https://github.com/yahoo/elide/commit/9788e6cdd4f335d3c071630ed5d1f81be188e9d6) Add ability to handle conversion of Date instances to ISO8601DateSerde (#2046) 
 
 ## 4.7.0
 **Fixes**

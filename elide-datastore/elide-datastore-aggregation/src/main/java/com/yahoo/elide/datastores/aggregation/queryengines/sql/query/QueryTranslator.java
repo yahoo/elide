@@ -19,6 +19,7 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
@@ -29,7 +30,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.JoinExpressionExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -182,6 +182,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
         List<String> metricProjections = query.getMetricProjections().stream()
                 .map(SQLMetricProjection.class::cast)
                 .filter(SQLColumnProjection::isProjected)
+                .filter(projection -> ! projection.getValueType().equals(ValueType.ID))
                 .map(invocation -> invocation.toSQL(query, metaDataStore) + " AS "
                                 + applyQuotes(invocation.getSafeAlias()))
                 .collect(Collectors.toList());
@@ -369,6 +370,6 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
      * @return quoted alias
      */
     private String applyQuotes(String str) {
-        return SQLReferenceTable.applyQuotes(str, dialect);
+        return ColumnContext.applyQuotes(str, dialect);
     }
 }

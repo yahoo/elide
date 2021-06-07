@@ -909,6 +909,35 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     }
 
     @Test
+    public void testGraphqlQueryDynamicModelById() throws IOException {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                selections(
+                                        field("id"),
+                                        field("orderTotal")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "SalesNamespace_orderDetails",
+                                selections(
+                                        field("id", "0"),
+                                        field("orderTotal", 434.84)
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
     public void jsonApiAggregationTest() {
         given()
                 .accept("application/vnd.api+json")
