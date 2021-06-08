@@ -42,7 +42,7 @@
         <hjson.version>3.0.0</hjson.version>
         <handlebars.version>4.2.0</handlebars.version>
         <json-schema-validator.version>2.2.14</json-schema-validator.version>
-        <commons-io.version>2.8.0</commons-io.version>
+        <commons-io.version>2.9.0</commons-io.version>
         <commons-cli.version>1.4</commons-cli.version>
         <commons-compress.version>1.20</commons-compress.version>
         <spring-core.verions>5.3.7</spring-core.verions>
