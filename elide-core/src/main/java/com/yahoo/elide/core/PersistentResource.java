@@ -154,7 +154,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
         // Keep track of new resources for non-transferable resources
         requestScope.getNewPersistentResources().add(newResource);
-        checkUserPermission(CreatePermission.class, obj, requestScope, ALL_FIELDS);
+        checkPermission(CreatePermission.class, newResource);
 
         newResource.auditClass(Audit.Action.CREATE, new ChangeSpec(newResource, null, null, newResource.getObject()));
 
