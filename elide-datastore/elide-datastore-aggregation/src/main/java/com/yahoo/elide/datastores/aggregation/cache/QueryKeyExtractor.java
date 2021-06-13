@@ -58,12 +58,12 @@ public final class QueryKeyExtractor implements FilterExpressionVisitor<Object> 
         endGroup();
         beginGroup();
         // `groupByDimensions` is an unordered set - sort
-        query.getDimensionProjections().stream().sorted(Comparator.comparing(ColumnProjection::getAlias))
+        query.getDimensionProjections().stream().sorted(Comparator.comparing(ColumnProjection::getSafeAlias))
                 .forEachOrdered(this::visit);
         endGroup();
         beginGroup();
         // `timeDimensions` is an unordered set - sort
-        query.getTimeDimensionProjections().stream().sorted(Comparator.comparing(ColumnProjection::getAlias))
+        query.getTimeDimensionProjections().stream().sorted(Comparator.comparing(ColumnProjection::getSafeAlias))
                 .forEachOrdered(this::visit);
         endGroup();
 
@@ -80,7 +80,7 @@ public final class QueryKeyExtractor implements FilterExpressionVisitor<Object> 
     }
 
     private void visit(ColumnProjection columnProjection) {
-        visit(columnProjection.getAlias());
+        visit(columnProjection.getSafeAlias());
         visit(columnProjection.getArguments());
     }
 
