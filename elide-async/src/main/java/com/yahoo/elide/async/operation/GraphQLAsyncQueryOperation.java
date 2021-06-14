@@ -16,12 +16,9 @@ import com.yahoo.elide.graphql.QueryRunner;
 
 import com.jayway.jsonpath.JsonPath;
 
-import org.apache.commons.collections4.CollectionUtils;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -52,10 +49,9 @@ public class GraphQLAsyncQueryOperation extends AsyncQueryOperation {
 
     @Override
     public Integer calculateRecordCount(AsyncQuery queryObj, ElideResponse response) {
-        Integer count = null;
+        Integer count = 0;
         if (response.getResponseCode() == 200) {
-            List<Integer> countList = JsonPath.read(response.getBody(), "$..edges.length()");
-            count = CollectionUtils.isNotEmpty(countList) ? countList.get(0) : 0;
+            count = JsonPath.read(response.getBody(), "$..edges.length()");
         }
         return count;
     }
