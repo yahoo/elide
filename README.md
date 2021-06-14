@@ -75,8 +75,6 @@ Alternatively, use [elide-standalone](https://github.com/yahoo/elide/tree/master
 
 ## Usage 
 
-The following examples leverage elide 5 (now in pre-release).  For documentation on prior/stable versions, visit [here](https://elide.io/pages/guide/v4/01-start.html).
-
 ### For CRUD APIs
 
 The simplest way to use Elide is by leveraging [JPA](https://en.wikipedia.org/wiki/Java_Persistence_API) to map your Elide models to persistence:
@@ -174,7 +172,7 @@ For example API calls, look at:
 
 ### For Analytic APIs
 
-Analytic models including tables, measures, dimensions, and joins can be created with a friendly HJSON configuration language:
+Analytic models including tables, measures, dimensions, and joins can be created either as POJOs or with a friendly HJSON configuration language:
 
 ```hjson
 {
@@ -186,14 +184,14 @@ Analytic models including tables, measures, dimensions, and joins can be created
         {
           name: orderTotal
           type: DECIMAL
-          definition: 'SUM({{order_total}})'
+          definition: 'SUM({{$order_total}})'
         }
       ]
       dimensions: [
         {
           name: orderId
           type: TEXT
-          definition: '{{order_id}}'
+          definition: '{{$order_id}}'
         }
       ]
     }

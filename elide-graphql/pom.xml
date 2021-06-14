@@ -11,7 +11,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>5.0.2-SNAPSHOT</version>
+        <version>5.0.3-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -44,12 +44,12 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>5.0.2-SNAPSHOT</version>
+            <version>5.0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>5.0.2-SNAPSHOT</version>
+            <version>5.0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -78,7 +78,7 @@
          <dependency>
              <groupId>org.apache.ant</groupId>
              <artifactId>ant</artifactId>
-             <version>1.10.9</version>
+             <version>1.10.10</version>
             <scope>test</scope>
          </dependency>
 
