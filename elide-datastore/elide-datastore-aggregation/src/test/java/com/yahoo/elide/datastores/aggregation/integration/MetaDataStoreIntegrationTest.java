@@ -194,6 +194,17 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    public void tableSourceTest() {
+        given()
+                .accept("application/vnd.api+json")
+                .get("/table/playerStats/dimensions/playerStats.countryNickName/tableSource")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data.relationships.suggestionColumns.data.id", containsInAnyOrder("subCountry.id", "subCountry.isoCode"))
+                .body("data.relationships.valueSource.data.id", equalTo("subCountry.name"));
+    }
+
+    @Test
     public void tableTest() {
         given()
                .accept("application/vnd.api+json")
