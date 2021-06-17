@@ -352,7 +352,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
 
         given()
                 .accept("application/vnd.api+json")
-                .get("/table/playerStats/dimensions/playerStats.countryNickName")
+                .get("/table/playerStats/dimensions/playerStats.countryNickName?include=tableSource")
                 .then()
                 .body("data.attributes.valueSourceType", equalTo("TABLE"))
                 .body("data.attributes.columnType", equalTo("FORMULA"))
@@ -360,6 +360,12 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .body("data.attributes.values", equalTo(Collections.emptyList()))
                 .body("data.attributes.cardinality", equalTo("UNKNOWN"))
                 .body("data.relationships.tableSource.data.id",  equalTo("subCountry.name"))
+                .body("included", hasSize(1))
+                .body("included[0].type", equalTo("tableSource"))
+                .body("included[0].id", equalTo("subCountry.name"))
+                .body("included[0].relationships.valueSource.data.id", equalTo("subCountry.name"))
+                .body("included[0].relationships.suggestionColumns.data", hasSize(1))
+                .body("included[0].relationships.suggestionColumns.data[0].id", equalTo("subCountry.isoCode"))
                 .statusCode(HttpStatus.SC_OK);
     }
 
