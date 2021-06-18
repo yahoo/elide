@@ -73,7 +73,7 @@ public class TableSource {
         if (sourceDefinition.suggestionColumns().length > 0) {
             for (int idx = 0; idx < sourceDefinition.suggestionColumns().length; idx++) {
                 String suggestionColumnName = sourceDefinition.suggestionColumns()[idx];
-                Column suggestionColumn = sourceTable.getDimension(sourceDefinition.column());
+                Column suggestionColumn = sourceTable.getDimension(suggestionColumnName);
 
                 Preconditions.checkNotNull(sourceTable, "Unable to locate table suggestion column: "
                         + suggestionColumnName);
