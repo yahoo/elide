@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -64,12 +65,19 @@ public class JsonApiController {
         this.elide = elide;
     }
 
+    private <K, V> MultivaluedHashMap<K, V> convert(MultiValueMap<K, V> springMVMap) {
+        MultivaluedHashMap<K, V> convertedMap = new MultivaluedHashMap<>(springMVMap.size());
+        springMVMap.forEach(convertedMap::put);
+        return convertedMap;
+    }
+
     @GetMapping(value = "/**", produces = JSON_API_CONTENT_TYPE)
     public Callable<ResponseEntity<String>> elideGet(@RequestHeader HttpHeaders requestHeaders,
-                                                     @RequestParam Map<String, String> allRequestParams,
+                                                     @RequestParam MultiValueMap<String, String> allRequestParams,
                                                      HttpServletRequest request, Authentication authentication) {
         final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
-        final Map<String, List<String>> requestHeadersCleaned = HeaderUtils.removeAuthHeaders(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned =
+                HeaderUtils.lowercaseAndRemoveAuthHeaders(requestHeaders);
         final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
         final User user = new AuthenticationUser(authentication);
         final String baseUrl = getBaseUrlEndpoint();
@@ -78,7 +86,7 @@ public class JsonApiController {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide.get(baseUrl, pathname,
-                        new MultivaluedHashMap<>(allRequestParams), requestHeadersCleaned,
+                        convert(allRequestParams), requestHeadersCleaned,
                         user, apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
@@ -87,11 +95,12 @@ public class JsonApiController {
 
     @PostMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE, produces = JSON_API_CONTENT_TYPE)
     public Callable<ResponseEntity<String>> elidePost(@RequestHeader HttpHeaders requestHeaders,
-                                                      @RequestParam Map<String, String> allRequestParams,
+                                                      @RequestParam MultiValueMap<String, String> allRequestParams,
                                                       @RequestBody String body,
                                                       HttpServletRequest request, Authentication authentication) {
         final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
-        final Map<String, List<String>> requestHeadersCleaned = HeaderUtils.removeAuthHeaders(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned =
+                HeaderUtils.lowercaseAndRemoveAuthHeaders(requestHeaders);
         final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
         final User user = new AuthenticationUser(authentication);
         final String baseUrl = getBaseUrlEndpoint();
@@ -99,7 +108,7 @@ public class JsonApiController {
         return new Callable<ResponseEntity<String>>() {
             @Override
             public ResponseEntity<String> call() throws Exception {
-                ElideResponse response = elide.post(baseUrl, pathname, body, new MultivaluedHashMap<>(allRequestParams),
+                ElideResponse response = elide.post(baseUrl, pathname, body, convert(allRequestParams),
                         requestHeadersCleaned, user, apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
@@ -108,11 +117,12 @@ public class JsonApiController {
 
     @PatchMapping(value = "/**", consumes = { JSON_API_CONTENT_TYPE, JSON_API_PATCH_CONTENT_TYPE})
     public Callable<ResponseEntity<String>> elidePatch(@RequestHeader HttpHeaders requestHeaders,
-                                                       @RequestParam Map<String, String> allRequestParams,
+                                                       @RequestParam MultiValueMap<String, String> allRequestParams,
                                                        @RequestBody String body,
                                                        HttpServletRequest request, Authentication authentication) {
         final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
-        final Map<String, List<String>> requestHeadersCleaned = HeaderUtils.removeAuthHeaders(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned =
+                HeaderUtils.lowercaseAndRemoveAuthHeaders(requestHeaders);
         final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
         final User user = new AuthenticationUser(authentication);
         final String baseUrl = getBaseUrlEndpoint();
@@ -122,8 +132,7 @@ public class JsonApiController {
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide
                         .patch(baseUrl, request.getContentType(), request.getContentType(), pathname, body,
-                               new MultivaluedHashMap<>(allRequestParams),
-                               requestHeadersCleaned, user, apiVersion,
+                               convert(allRequestParams), requestHeadersCleaned, user, apiVersion,
                                UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
@@ -132,11 +141,12 @@ public class JsonApiController {
 
     @DeleteMapping(value = "/**")
     public Callable<ResponseEntity<String>> elideDelete(@RequestHeader HttpHeaders requestHeaders,
-                                                        @RequestParam Map<String, String> allRequestParams,
+                                                        @RequestParam MultiValueMap<String, String> allRequestParams,
                                                         HttpServletRequest request,
                                                         Authentication authentication) {
         final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
-        final Map<String, List<String>> requestHeadersCleaned = HeaderUtils.removeAuthHeaders(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned =
+                HeaderUtils.lowercaseAndRemoveAuthHeaders(requestHeaders);
         final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
         final User user = new AuthenticationUser(authentication);
         final String baseUrl = getBaseUrlEndpoint();
@@ -145,7 +155,7 @@ public class JsonApiController {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide.delete(baseUrl, pathname, null,
-                        new MultivaluedHashMap<>(allRequestParams), requestHeadersCleaned,
+                        convert(allRequestParams), requestHeadersCleaned,
                         user, apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }
@@ -153,13 +163,15 @@ public class JsonApiController {
     }
 
     @DeleteMapping(value = "/**", consumes = JSON_API_CONTENT_TYPE)
-    public Callable<ResponseEntity<String>> elideDeleteRelation(@RequestHeader HttpHeaders requestHeaders,
-                                                                    @RequestParam Map<String, String> allRequestParams,
-                                                                    @RequestBody String body,
-                                                                    HttpServletRequest request,
-                                                                    Authentication authentication) {
+    public Callable<ResponseEntity<String>> elideDeleteRelation(
+            @RequestHeader HttpHeaders requestHeaders,
+            @RequestParam MultiValueMap<String, String> allRequestParams,
+            @RequestBody String body,
+            HttpServletRequest request,
+            Authentication authentication) {
         final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
-        final Map<String, List<String>> requestHeadersCleaned = HeaderUtils.removeAuthHeaders(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned =
+                HeaderUtils.lowercaseAndRemoveAuthHeaders(requestHeaders);
         final String pathname = getJsonApiPath(request, settings.getJsonApi().getPath());
         final User user = new AuthenticationUser(authentication);
         final String baseUrl = getBaseUrlEndpoint();
@@ -168,7 +180,7 @@ public class JsonApiController {
             @Override
             public ResponseEntity<String> call() throws Exception {
                 ElideResponse response = elide
-                        .delete(baseUrl, pathname, body, new MultivaluedHashMap<>(allRequestParams),
+                        .delete(baseUrl, pathname, body, convert(allRequestParams),
                                 requestHeadersCleaned, user, apiVersion, UUID.randomUUID());
                 return ResponseEntity.status(response.getResponseCode()).body(response.getBody());
             }

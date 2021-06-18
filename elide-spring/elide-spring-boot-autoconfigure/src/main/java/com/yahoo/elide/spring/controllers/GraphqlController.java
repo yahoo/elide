@@ -78,7 +78,8 @@ public class GraphqlController {
                                                  @RequestBody String graphQLDocument, Authentication principal) {
         final User user = new AuthenticationUser(principal);
         final String apiVersion = HeaderUtils.resolveApiVersion(requestHeaders);
-        final Map<String, List<String>> requestHeadersCleaned = HeaderUtils.removeAuthHeaders(requestHeaders);
+        final Map<String, List<String>> requestHeadersCleaned =
+                HeaderUtils.lowercaseAndRemoveAuthHeaders(requestHeaders);
         final QueryRunner runner = runners.get(apiVersion);
         final String baseUrl = getBaseUrlEndpoint();
 
