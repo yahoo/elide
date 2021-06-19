@@ -1,5 +1,23 @@
 # Change Log
 
+## 5.0.3
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/6eef744fb655ee054ad2559284afa7ec082d3c2b) use column name to extract cache key in agg datastore (#2144) 
+   * [view commit](https://github.com/yahoo/elide/commit/655d8975589d9d40462e9abd1a7bfb468bac2894) use CheckPermission for CreateObject to include user checks and operation checks (#2143) 
+   * [view commit](https://github.com/yahoo/elide/commit/ce2433410a458438e8d3dfbe22416f916513267e) Bump spring.boot.version from 2.4.6 to 2.5.1 (#2149) 
+   * [view commit](https://github.com/yahoo/elide/commit/44129901a2a05c113e9bd98de8a591498e24a989) Bump mockito-junit-jupiter from 3.11.0 to 3.11.1 (#2151) 
+   * [view commit](https://github.com/yahoo/elide/commit/0310c513ef8c13580b23bc88e3e498463ffa4820) Bump commons-io from 2.9.0 to 2.10.0 (#2150) 
+   * [view commit](https://github.com/yahoo/elide/commit/96ae87384ea28304efe6160396326f74a0cca062) Bump hibernate5.version from 5.4.30.Final to 5.5.2.Final (#2152) 
+   * [view commit](https://github.com/yahoo/elide/commit/e55a4cc2380f09761cb039a6b35ec29066307322) Bump jedis from 3.6.0 to 3.6.1 (#2147) 
+   * [view commit](https://github.com/yahoo/elide/commit/52329bd57064352e042f01fecd3c15721dd9ac04) Bump jansi from 2.3.2 to 2.3.3 (#2155) 
+   * [view commit](https://github.com/yahoo/elide/commit/018b1c473631148f47d54e65ac0446714f05ab05) Bump json-path from 2.4.0 to 2.6.0 (#2130) 
+   * [view commit](https://github.com/yahoo/elide/commit/44da3b6f2e8dc40c99e9ff3fb38ecc7cacca322c) Bump spring-core from 5.3.7 to 5.3.8 (#2154) 
+   * [view commit](https://github.com/yahoo/elide/commit/f0c8c100194841f47ad588a42521abb57aa20953) Bump HikariCP from 4.0.2 to 4.0.3 (#2157) 
+   * [view commit](https://github.com/yahoo/elide/commit/d2751e0c8f9ab236ad3849ba5bbf4830c1a7f98c) Bump mockito-core from 3.11.0 to 3.11.1 (#2159) 
+   * [view commit](https://github.com/yahoo/elide/commit/19cfd236db24561a66faa9c43fd6c30e0c5893fe) Fix suggestionColumns to add correct columns (#2164) 
+   * [view commit](https://github.com/yahoo/elide/commit/e1c3e187fe53ea5c045620fe446abdee8273bfab) Bump classgraph from 4.8.105 to 4.8.108 (#2156) 
+   * [view commit](https://github.com/yahoo/elide/commit/5a21949eb0cf012f246f8a481d17736435a0802d) Allow multivalue params and fix header sanitization (#2169) 
+
 ## 5.0.2
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/450874f676513d58485014897f4864aa50a98bfd) Support for EmbeddedId (#2132) 
