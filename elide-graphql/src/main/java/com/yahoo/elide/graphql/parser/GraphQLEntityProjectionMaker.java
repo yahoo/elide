@@ -419,7 +419,7 @@ public class GraphQLEntityProjectionMaker {
                     pagination.getOffset(),
                     value,
                     elideSettings.getDefaultPageSize(),
-                    elideSettings.getDefaultPageSize(),
+                    elideSettings.getDefaultMaxPageSize(),
                     pagination.returnPageTotals(),
                     false);
         } else if (ModelBuilder.ARGUMENT_AFTER.equals(argument.getName())) {
@@ -428,7 +428,7 @@ public class GraphQLEntityProjectionMaker {
                     value,
                     pagination.getLimit(),
                     elideSettings.getDefaultPageSize(),
-                    elideSettings.getDefaultPageSize(),
+                    elideSettings.getDefaultMaxPageSize(),
                     pagination.returnPageTotals(),
                     false);
         }
