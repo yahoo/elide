@@ -22,6 +22,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLJoin;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 
@@ -99,6 +100,7 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
             ColumnContext joinCtx;
             String onClause;
             JoinType joinType;
+            String fullExpression;
 
             if (sqlJoin != null) {
                 joinType = sqlJoin.getJoinType();
@@ -128,11 +130,16 @@ public class JoinExpressionExtractor implements ReferenceVisitor<Set<String>> {
                                 dictionary.getAnnotatedColumnName(joinClass, dictionary.getIdFieldName(joinClass)));
             }
 
-            String joinAlias = applyQuotes(joinCtx.getAlias(), currentCtx.getQueryable().getDialect());
+            SQLDialect sqlDialect = currentCtx.getQueryable().getDialect();
+            String joinAlias = applyQuotes(joinCtx.getAlias(), sqlDialect);
             String joinKeyword = currentCtx.getQueryable().getDialect().getJoinKeyword(joinType);
             String joinSource = constructTableOrSubselect(joinCtx, joinClass);
 
-            String fullExpression = String.format("%s %s AS %s %s", joinKeyword, joinSource, joinAlias, onClause);
+            if (sqlDialect.useASBeforeTableAlias()) {
+                fullExpression = String.format("%s %s AS %s %s", joinKeyword, joinSource, joinAlias, onClause);
+            } else {
+                fullExpression = String.format("%s %s %s %s", joinKeyword, joinSource, joinAlias, onClause);
+            }
             joinExpressions.add(fullExpression);
 
             /**
