@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
+import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.applyQuotes;
+
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
@@ -505,8 +507,9 @@ public class SQLQueryEngine extends QueryEngine {
 
         return NativeQuery.builder()
                 .projectionClause("COUNT(*)")
-                .fromClause(String.format("(%s) AS %spagination_subquery%s",
-                        innerQuery.toString(), sqlDialect.getBeginQuote(), sqlDialect.getEndQuote()))
+                .fromClause(QueryTranslator.getFromClause("(" + innerQuery + ")",
+                                                          applyQuotes("pagination_subquery", sqlDialect),
+                                                          sqlDialect))
                 .build();
     }
 

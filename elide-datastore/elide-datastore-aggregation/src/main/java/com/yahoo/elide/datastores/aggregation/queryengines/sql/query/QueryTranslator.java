@@ -68,8 +68,9 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
         if (query.isNested()) {
             NativeQuery innerQuery = builder.build();
 
-            builder = NativeQuery.builder().fromClause("(" + innerQuery + ") AS "
-                    + applyQuotes(query.getSource().getAlias()));
+            builder = NativeQuery.builder().fromClause(getFromClause("(" + innerQuery + ")",
+                                                                     applyQuotes(query.getSource().getAlias()),
+                                                                     dialect));
         }
 
         Set<String> joinExpressions = new LinkedHashSet<>();
@@ -139,7 +140,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
                 ? applyQuotes(tableCls.getAnnotation(FromTable.class).name())
                 : applyQuotes(table.getName());
 
-        return builder.fromClause(String.format("%s AS %s", tableStatement, tableAlias));
+        return builder.fromClause(getFromClause(tableStatement, tableAlias, dialect));
     }
 
     /**
@@ -371,5 +372,20 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
      */
     private String applyQuotes(String str) {
         return ColumnContext.applyQuotes(str, dialect);
+    }
+
+    /**
+     * Generates from clause with provided statement and alias.
+     * @param fromStatement table name / subquery.
+     * @param fromAlias alias for table name / subquery.
+     * @param sqlDialect SQLDialect.
+     * @return Generated from clause with or without "AS" before alias.
+     */
+    public static String getFromClause(String fromStatement, String fromAlias, SQLDialect sqlDialect) {
+
+        if (sqlDialect.useASBeforeTableAlias()) {
+            return String.format("%s AS %s", fromStatement, fromAlias);
+        }
+        return String.format("%s %s", fromStatement, fromAlias);
     }
 }
