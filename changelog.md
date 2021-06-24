@@ -1,4 +1,46 @@
 # Change Log
+
+## 5.0.3
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/6eef744fb655ee054ad2559284afa7ec082d3c2b) use column name to extract cache key in agg datastore (#2144) 
+   * [view commit](https://github.com/yahoo/elide/commit/655d8975589d9d40462e9abd1a7bfb468bac2894) use CheckPermission for CreateObject to include user checks and operation checks (#2143) 
+   * [view commit](https://github.com/yahoo/elide/commit/ce2433410a458438e8d3dfbe22416f916513267e) Bump spring.boot.version from 2.4.6 to 2.5.1 (#2149) 
+   * [view commit](https://github.com/yahoo/elide/commit/44129901a2a05c113e9bd98de8a591498e24a989) Bump mockito-junit-jupiter from 3.11.0 to 3.11.1 (#2151) 
+   * [view commit](https://github.com/yahoo/elide/commit/0310c513ef8c13580b23bc88e3e498463ffa4820) Bump commons-io from 2.9.0 to 2.10.0 (#2150) 
+   * [view commit](https://github.com/yahoo/elide/commit/96ae87384ea28304efe6160396326f74a0cca062) Bump hibernate5.version from 5.4.30.Final to 5.5.2.Final (#2152) 
+   * [view commit](https://github.com/yahoo/elide/commit/e55a4cc2380f09761cb039a6b35ec29066307322) Bump jedis from 3.6.0 to 3.6.1 (#2147) 
+   * [view commit](https://github.com/yahoo/elide/commit/52329bd57064352e042f01fecd3c15721dd9ac04) Bump jansi from 2.3.2 to 2.3.3 (#2155) 
+   * [view commit](https://github.com/yahoo/elide/commit/018b1c473631148f47d54e65ac0446714f05ab05) Bump json-path from 2.4.0 to 2.6.0 (#2130) 
+   * [view commit](https://github.com/yahoo/elide/commit/44da3b6f2e8dc40c99e9ff3fb38ecc7cacca322c) Bump spring-core from 5.3.7 to 5.3.8 (#2154) 
+   * [view commit](https://github.com/yahoo/elide/commit/f0c8c100194841f47ad588a42521abb57aa20953) Bump HikariCP from 4.0.2 to 4.0.3 (#2157) 
+   * [view commit](https://github.com/yahoo/elide/commit/d2751e0c8f9ab236ad3849ba5bbf4830c1a7f98c) Bump mockito-core from 3.11.0 to 3.11.1 (#2159) 
+   * [view commit](https://github.com/yahoo/elide/commit/19cfd236db24561a66faa9c43fd6c30e0c5893fe) Fix suggestionColumns to add correct columns (#2164) 
+   * [view commit](https://github.com/yahoo/elide/commit/e1c3e187fe53ea5c045620fe446abdee8273bfab) Bump classgraph from 4.8.105 to 4.8.108 (#2156) 
+   * [view commit](https://github.com/yahoo/elide/commit/5a21949eb0cf012f246f8a481d17736435a0802d) Allow multivalue params and fix header sanitization (#2169) 
+
+## 5.0.2
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/450874f676513d58485014897f4864aa50a98bfd) Support for EmbeddedId (#2132) 
+   
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/6622a0f857df15031e5e7abda2dca0750c35fce3) Updating suppressions.xml to ignore hibernate 3 CVE errors for the legacy hibernate 3 data store.  Use at your own risk or upgrade to hibernate 5 (#2127) 
+   * [view commit](https://github.com/yahoo/elide/commit/51b61f2841e9be5fa4f7afd8ecaab243cc793826) Bump hibernate-validator from 6.1.0.Final to 6.1.5.Final in /elide-async (#2126) 
+   * [view commit](https://github.com/yahoo/elide/commit/6a80b04abf4ee09e633a3cd1ded2df15f985c63b) Bump mockito-junit-jupiter from 3.9.0 to 3.11.0 (#2129) 
+   * [view commit](https://github.com/yahoo/elide/commit/3c1f14e9588b3ef3a5ecbb865d3d74ec69a2e46d) Bump calcite-core from 1.26.0 to 1.27.0 (#2131) 
+   * [view commit](https://github.com/yahoo/elide/commit/3da93d519295fc05ae845ab78ebe65f24120a47b) Bump junit-platform-launcher from 1.7.1 to 1.7.2 (#2113) 
+   * [view commit](https://github.com/yahoo/elide/commit/2e6beca2d833aace35c6cf76e306ecd2cfb04823) Bump jansi from 2.1.1 to 2.3.2 (#2083) 
+   * [view commit](https://github.com/yahoo/elide/commit/a633890761169e682088d9a1960a974b9f32d251) Bump gson from 2.8.6 to 2.8.7 (#2133) 
+   * [view commit](https://github.com/yahoo/elide/commit/e86211f739c2f288262a9481f34086ba4773d611) Fixing CVE-2021-22118 (#2137) 
+   * [view commit](https://github.com/yahoo/elide/commit/b9183cf0ec70988fa067bbe266fec006be93b063) Bump ant from 1.10.9 to 1.10.10 (#2077) 
+   * [view commit](https://github.com/yahoo/elide/commit/0b9cde0aa3aa5216adffc5da164b46f92f7ba2e6) Bump version.restassured from 4.3.3 to 4.4.0 (#2136) 
+   * [view commit](https://github.com/yahoo/elide/commit/a68f7670c8e0137e1fd86a9c82feafcf4e87331a) Bump mockito-core from 3.10.0 to 3.11.0 (#2138) 
+   * [view commit](https://github.com/yahoo/elide/commit/c66df3772034df94e7651e2fc1cae97dcd442c95) Bump commons-io from 2.8.0 to 2.9.0 (#2139) 
+   * [view commit](https://github.com/yahoo/elide/commit/53b029d1477ab7faeb1add5c0389f463363dd7cf) Bump micrometer-core from 1.6.6 to 1.7.0 (#2134) 
+   * [view commit](https://github.com/yahoo/elide/commit/cd52b90c9f472c01325fd285eeac1d0092e8af95) Bump maven-javadoc-plugin from 3.2.0 to 3.3.0 (#2140) 
+   * [view commit](https://github.com/yahoo/elide/commit/f939e4a5f757fef7402a503630d04a66c1c843e4) Bump maven-gpg-plugin from 1.6 to 3.0.1 (#2135) 
+   * [view commit](https://github.com/yahoo/elide/commit/6cbffcbe143357215eeac1485005dc8ea66310a1) Bump nexus-staging-maven-plugin from 1.6.7 to 1.6.8 (#2078) 
+   * [view commit](https://github.com/yahoo/elide/commit/e46b8461c27d26112e3fe5794f8aaf5b4857ea67) Small edits to readme to reflect Elide 5. (#2141) 
+
 ## 5.0.1
 
 **Fixes**

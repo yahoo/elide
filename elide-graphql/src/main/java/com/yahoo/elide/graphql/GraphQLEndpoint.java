@@ -75,7 +75,8 @@ public class GraphQLEndpoint {
             @Context SecurityContext securityContext,
             String graphQLDocument) {
         String apiVersion = HeaderUtils.resolveApiVersion(headers.getRequestHeaders());
-        Map<String, List<String>> requestHeaders = HeaderUtils.removeAuthHeaders(headers.getRequestHeaders());
+        Map<String, List<String>> requestHeaders =
+                HeaderUtils.lowercaseAndRemoveAuthHeaders(headers.getRequestHeaders());
         User user = new SecurityContextUser(securityContext);
         QueryRunner runner = runners.getOrDefault(apiVersion, null);
 

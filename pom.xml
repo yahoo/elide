@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-parent-pom</artifactId>
-    <version>5.0.2-SNAPSHOT</version>
+    <version>5.0.4-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Elide: Parent Pom</name>
     <description>Parent pom for Elide project</description>
@@ -86,13 +86,13 @@
         <version.antlr4>4.9.2</version.antlr4>
         <version.logback>1.2.3</version.logback>
         <version.jetty>9.4.40.v20210413</version.jetty>
-        <version.restassured>4.3.3</version.restassured>
+        <version.restassured>4.4.0</version.restassured>
         <version.jackson>2.12.3</version.jackson>
         <version.jersey>2.32</version.jersey>
         <version.junit>5.7.2</version.junit>
         <version.junit.platform>1.7.2</version.junit.platform>
         <hibernate3.version>3.6.10.Final</hibernate3.version>
-        <hibernate5.version>5.4.30.Final</hibernate5.version>
+        <hibernate5.version>5.5.2.Final</hibernate5.version>
         <slf4j-api.version>1.7.30</slf4j-api.version>
         <maven-site-plugin-version>3.9.1</maven-site-plugin-version>
         <mpir.skip>true</mpir.skip>
@@ -230,7 +230,7 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>3.10.0</version>
+                <version>3.11.1</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -335,7 +335,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
+                        <version>3.0.1</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
@@ -355,7 +355,7 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.7</version>
+                        <version>1.6.8</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>ossrh</serverId>
@@ -482,7 +482,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>3.3.0</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
