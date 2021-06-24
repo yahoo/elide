@@ -30,6 +30,12 @@ public interface SQLDialect {
     boolean useAliasForOrderByClause();
 
     /**
+     * Add "AS" before table/subquery aliases in generated SQL.
+     * @return boolean.
+     */
+    boolean useASBeforeTableAlias();
+
+    /**
      * Generates required offset and limit clause.
      * @param offset position of the first record.
      * @param limit maximum number of record.
