@@ -20,7 +20,7 @@ public class UseASBeforeTableAliasExplainQueryTest extends SQLUnitTest {
     @BeforeAll
     public static void init() {
         SQLUnitTest.init(new AbstractSqlDialect() {
-            
+
             @Override
             public String getDialectType() {
                 return "test";
