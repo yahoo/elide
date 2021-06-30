@@ -101,7 +101,18 @@
                     <groupId>log4j</groupId>
                     <artifactId>log4j</artifactId>
                 </exclusion>
+                <!-- Excluded for conflict with elide-async's version -->
+                <exclusion>
+                    <groupId>com.jayway.jsonpath</groupId>
+                    <artifactId>json-path</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+            <version>${jsonpath.version}</version>
         </dependency>
 
         <!-- Hibernate Entity Manager -->
