@@ -40,7 +40,7 @@
 
     <properties>
         <parent.pom.dir>${project.basedir}/../..</parent.pom.dir>
-        <spring.boot.version>2.5.1</spring.boot.version>
+        <spring.boot.version>2.5.2</spring.boot.version>
         <groovy.version>3.0.8</groovy.version>
     </properties>
 
