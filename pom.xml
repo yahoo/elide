@@ -87,7 +87,7 @@
         <version.logback>1.2.3</version.logback>
         <version.jetty>9.4.41.v20210516</version.jetty>
         <version.restassured>4.4.0</version.restassured>
-        <version.jackson>2.12.3</version.jackson>
+        <version.jackson>2.12.4</version.jackson>
         <version.jersey>2.32</version.jersey>
         <version.junit>5.7.2</version.junit>
         <version.junit.platform>1.7.2</version.junit.platform>
