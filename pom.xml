@@ -412,7 +412,7 @@
                         <dependency>
                             <groupId>com.puppycrawl.tools</groupId>
                             <artifactId>checkstyle</artifactId>
-                            <version>8.41</version>
+                            <version>8.44</version>
                             <scope>compile</scope>
                         </dependency>
                     </dependencies>
