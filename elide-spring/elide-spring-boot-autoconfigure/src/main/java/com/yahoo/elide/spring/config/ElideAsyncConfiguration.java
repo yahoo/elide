@@ -11,6 +11,7 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.P
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.async.export.formatter.CSVExportFormatter;
 import com.yahoo.elide.async.export.formatter.JSONExportFormatter;
 import com.yahoo.elide.async.export.formatter.TableExportFormatter;
@@ -74,8 +75,7 @@ public class ElideAsyncConfiguration {
         AsyncExecutorService asyncExecutorService = new AsyncExecutorService(elide, executor, updater, asyncQueryDao);
 
         // Binding AsyncQuery LifeCycleHook
-        AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService,
-                asyncProperties.getMaxAsyncAfterSeconds());
+        AsyncQueryHook asyncQueryHook = new AsyncQueryHook(asyncExecutorService, elide.getElideSettings());
         dictionary.bindTrigger(AsyncQuery.class, READ, PRESECURITY, asyncQueryHook, false);
         dictionary.bindTrigger(AsyncQuery.class, CREATE, POSTCOMMIT, asyncQueryHook, false);
         dictionary.bindTrigger(AsyncQuery.class, CREATE, PRESECURITY, asyncQueryHook, false);
@@ -109,14 +109,14 @@ public class ElideAsyncConfiguration {
             ElideConfigProperties settings, Map<ResultType, TableExportFormatter> supportedFormatters,
             ResultStorageEngine resultStorageEngine) {
         boolean exportEnabled = ElideAutoConfiguration.isExportEnabled(settings.getAsync());
-
+        ElideSettings elideSettings = asyncExecutorService.getElide().getElideSettings();
         TableExportHook tableExportHook = null;
         if (exportEnabled) {
-            tableExportHook = new TableExportHook(asyncExecutorService, settings.getAsync().getMaxAsyncAfterSeconds(),
-                    supportedFormatters, resultStorageEngine);
+            tableExportHook = new TableExportHook(asyncExecutorService, elideSettings, supportedFormatters,
+                    resultStorageEngine);
         } else {
-            tableExportHook = new TableExportHook(asyncExecutorService, settings.getAsync().getMaxAsyncAfterSeconds(),
-                    supportedFormatters, resultStorageEngine) {
+            tableExportHook = new TableExportHook(asyncExecutorService, elideSettings, supportedFormatters,
+                    resultStorageEngine) {
                 @Override
                 public void validateOptions(AsyncAPI export, RequestScope requestScope) {
                     throw new InvalidOperationException("TableExport is not supported.");

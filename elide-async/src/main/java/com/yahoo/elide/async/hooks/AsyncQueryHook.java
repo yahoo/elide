@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.async.hooks;
 
+import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.annotation.LifeCycleHookBinding.Operation;
 import com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase;
 import com.yahoo.elide.async.models.AsyncAPI;
@@ -27,8 +28,8 @@ import java.util.concurrent.Callable;
  */
 public class AsyncQueryHook extends AsyncAPIHook<AsyncQuery> {
 
-    public AsyncQueryHook (AsyncExecutorService asyncExecutorService, Integer maxAsyncAfterSeconds) {
-        super(asyncExecutorService, maxAsyncAfterSeconds);
+    public AsyncQueryHook (AsyncExecutorService asyncExecutorService, ElideSettings elideSettings) {
+        super(asyncExecutorService, elideSettings);
     }
 
     @Override

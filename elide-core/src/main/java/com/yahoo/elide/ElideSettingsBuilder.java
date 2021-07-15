@@ -64,6 +64,7 @@ public class ElideSettingsBuilder {
     private String jsonApiPath;
     private String graphQLApiPath;
     private String exportApiPath;
+    private int maxAsyncAfterSeconds = 10;
 
     /**
      * A new builder used to generate Elide instances. Instantiates an {@link EntityDictionary} without
@@ -120,7 +121,8 @@ public class ElideSettingsBuilder {
                 baseUrl,
                 jsonApiPath,
                 graphQLApiPath,
-                exportApiPath);
+                exportApiPath,
+                maxAsyncAfterSeconds);
     }
 
     public ElideSettingsBuilder withAuditLogger(AuditLogger auditLogger) {
@@ -235,6 +237,11 @@ public class ElideSettingsBuilder {
 
     public ElideSettingsBuilder withStrictQueryParams(boolean enabled) {
         this.strictQueryParams = enabled;
+        return this;
+    }
+
+    public ElideSettingsBuilder withMaxAsyncAfterSeconds(int maxAsyncAfterSeconds) {
+        this.maxAsyncAfterSeconds = maxAsyncAfterSeconds;
         return this;
     }
 }

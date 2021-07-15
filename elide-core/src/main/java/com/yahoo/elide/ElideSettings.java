@@ -47,4 +47,5 @@ public class ElideSettings {
     @Getter private final String jsonApiPath;
     @Getter private final String graphQLApiPath;
     @Getter private final String exportApiPath;
+    @Getter private final int maxAsyncAfterSeconds;
 }
