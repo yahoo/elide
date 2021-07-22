@@ -14,6 +14,7 @@ import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
+import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
@@ -135,10 +136,13 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public Elide initializeElide(EntityDictionary dictionary,
-            DataStore dataStore, ElideConfigProperties settings) {
+                                 DataStore dataStore,
+                                 ElideConfigProperties settings,
+                                 ErrorMapper errorMapper) {
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
+                .withErrorMapper(errorMapper)
                 .withDefaultMaxPageSize(settings.getMaxPageSize())
                 .withDefaultPageSize(settings.getPageSize())
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
@@ -386,6 +390,12 @@ public class ElideAutoConfiguration {
     @ConditionalOnMissingBean
     public ClassScanner getClassScanner() {
         return new DefaultClassScanner();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ErrorMapper getErrorMapper() {
+        return error -> null;
     }
 
     private boolean isDynamicConfigEnabled(ElideConfigProperties settings) {

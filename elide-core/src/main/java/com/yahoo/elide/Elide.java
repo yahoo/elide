@@ -14,6 +14,7 @@ import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.CustomErrorException;
+import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.core.exceptions.ErrorObjects;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatus;
@@ -21,7 +22,6 @@ import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.exceptions.InvalidURLException;
 import com.yahoo.elide.core.exceptions.JsonPatchExtensionException;
-import com.yahoo.elide.core.exceptions.TimeoutException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.utils.ClassScanner;
@@ -79,6 +79,7 @@ public class Elide {
     @Getter private final AuditLogger auditLogger;
     @Getter private final DataStore dataStore;
     @Getter private final JsonApiMapper mapper;
+    @Getter private final ErrorMapper errorMapper;
     @Getter private final TransactionRegistry transactionRegistry;
     @Getter private final ClassScanner scanner;
 
@@ -104,6 +105,7 @@ public class Elide {
         this.dataStore = new InMemoryDataStore(elideSettings.getDataStore());
         this.dataStore.populateEntityDictionary(elideSettings.getDictionary());
         this.mapper = elideSettings.getMapper();
+        this.errorMapper = elideSettings.getErrorMapper();
         this.transactionRegistry = new TransactionRegistry();
 
         elideSettings.getSerdes().forEach((type, serde) -> registerCustomSerde(type, serde, type.getSimpleName()));
@@ -491,50 +493,11 @@ public class Elide {
 
             return response;
 
-        } catch (WebApplicationException e) {
-            throw e;
-        } catch (ForbiddenAccessException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("{}", e.getLoggedMessage());
-            }
-            return buildErrorResponse(e, isVerbose);
-        } catch (JsonPatchExtensionException e) {
-            log.debug("JSON patch extension exception caught", e);
-            return buildErrorResponse(e, isVerbose);
-        } catch (HttpStatusException e) {
-            log.debug("Caught HTTP status exception", e);
-            return buildErrorResponse(e, isVerbose);
         } catch (IOException e) {
             log.error("IO Exception uncaught by Elide", e);
             return buildErrorResponse(new TransactionException(e), isVerbose);
-        } catch (ParseCancellationException e) {
-            log.debug("Parse cancellation exception uncaught by Elide (i.e. invalid URL)", e);
-            return buildErrorResponse(new InvalidURLException(e), isVerbose);
-        } catch (ConstraintViolationException e) {
-            log.debug("Constraint violation exception caught", e);
-            String message = "Constraint violation";
-            final ErrorObjects.ErrorObjectsBuilder errorObjectsBuilder = ErrorObjects.builder();
-            for (ConstraintViolation<?> constraintViolation : e.getConstraintViolations()) {
-                errorObjectsBuilder.addError()
-                    .withDetail(constraintViolation.getMessage());
-                final String propertyPathString = constraintViolation.getPropertyPath().toString();
-                if (!propertyPathString.isEmpty()) {
-                    Map<String, Object> source = new HashMap<>(1);
-                    source.put("property", propertyPathString);
-                    errorObjectsBuilder.with("source", source);
-                }
-            }
-            return buildErrorResponse(
-                new CustomErrorException(HttpStatus.SC_BAD_REQUEST, message, errorObjectsBuilder.build()),
-                isVerbose
-            );
-        } catch (Exception | Error e) {
-            if (e instanceof InterruptedException) {
-                log.debug("Request Thread interrupted.", e);
-                return buildErrorResponse(new TimeoutException(e), isVerbose);
-            }
-            log.error("Error or exception uncaught by Elide", e);
-            throw e;
+        } catch (RuntimeException e) {
+            return handleRuntimeException(e, isVerbose);
         } finally {
             transactionRegistry.removeRunningTransaction(requestId);
             auditLogger.clear();
@@ -548,6 +511,85 @@ public class Elide {
 
         return buildResponse(isVerbose ? error.getVerboseErrorResponse()
                 : error.getErrorResponse());
+    }
+
+    private ElideResponse handleRuntimeException(RuntimeException error, boolean isVerbose) {
+        CustomErrorException mappedException = mapError(error);
+
+        if (mappedException != null) {
+            return buildErrorResponse(mappedException, isVerbose);
+        }
+
+        if (error instanceof WebApplicationException) {
+            throw error;
+        }
+
+        if (error instanceof ForbiddenAccessException) {
+            ForbiddenAccessException e = (ForbiddenAccessException) error;
+            if (log.isDebugEnabled()) {
+                log.debug("{}", e.getLoggedMessage());
+            }
+            return buildErrorResponse(e, isVerbose);
+        }
+
+        if (error instanceof JsonPatchExtensionException) {
+            JsonPatchExtensionException e = (JsonPatchExtensionException) error;
+            log.debug("JSON patch extension exception caught", e);
+            return buildErrorResponse(e, isVerbose);
+        }
+
+        if (error instanceof HttpStatusException) {
+            HttpStatusException e = (HttpStatusException) error;
+            log.debug("Caught HTTP status exception", e);
+            return buildErrorResponse(e, isVerbose);
+        }
+
+        if (error instanceof ParseCancellationException) {
+            ParseCancellationException e = (ParseCancellationException) error;
+            log.debug("Parse cancellation exception uncaught by Elide (i.e. invalid URL)", e);
+            return buildErrorResponse(new InvalidURLException(e), isVerbose);
+        }
+
+        if (error instanceof ConstraintViolationException) {
+            ConstraintViolationException e = (ConstraintViolationException) error;
+            log.debug("Constraint violation exception caught", e);
+            String message = "Constraint violation";
+            final ErrorObjects.ErrorObjectsBuilder errorObjectsBuilder = ErrorObjects.builder();
+            for (ConstraintViolation<?> constraintViolation : e.getConstraintViolations()) {
+                errorObjectsBuilder.addError()
+                        .withDetail(constraintViolation.getMessage());
+                final String propertyPathString = constraintViolation.getPropertyPath().toString();
+                if (!propertyPathString.isEmpty()) {
+                    Map<String, Object> source = new HashMap<>(1);
+                    source.put("property", propertyPathString);
+                    errorObjectsBuilder.with("source", source);
+                }
+            }
+            return buildErrorResponse(
+                    new CustomErrorException(HttpStatus.SC_BAD_REQUEST, message, errorObjectsBuilder.build()),
+                    isVerbose
+            );
+        }
+
+        log.error("Error or exception uncaught by Elide", error);
+        throw new RuntimeException(error);
+    }
+
+    protected CustomErrorException mapError(RuntimeException error) {
+        if (errorMapper != null) {
+            log.trace("Attempting to map unknown exception of type {}", error.getClass());
+            CustomErrorException customizedError = errorMapper.map(error);
+
+            if (customizedError != null) {
+                log.debug("Successfully mapped exception from type {} to {}",
+                        error.getClass(), customizedError.getClass());
+                return customizedError;
+            } else {
+                log.debug("No error mapping present for {}", error.getClass());
+            }
+        }
+
+        return null;
     }
 
     protected ElideResponse buildResponse(Pair<Integer, JsonNode> response) {

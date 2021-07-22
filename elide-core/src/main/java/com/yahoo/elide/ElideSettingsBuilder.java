@@ -10,6 +10,7 @@ import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.exceptions.ErrorMapper;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.dialect.graphql.FilterDialect;
@@ -48,6 +49,7 @@ public class ElideSettingsBuilder {
     private final DataStore dataStore;
     private AuditLogger auditLogger;
     private JsonApiMapper jsonApiMapper;
+    private ErrorMapper errorMapper;
     private EntityDictionary entityDictionary;
     private Function<RequestScope, PermissionExecutor> permissionExecutorFunction = ActivePermissionExecutor::new;
     private List<JoinFilterDialect> joinFilterDialects;
@@ -110,6 +112,7 @@ public class ElideSettingsBuilder {
                 dataStore,
                 entityDictionary,
                 jsonApiMapper,
+                errorMapper,
                 permissionExecutorFunction,
                 joinFilterDialects,
                 subqueryFilterDialects,
@@ -139,6 +142,12 @@ public class ElideSettingsBuilder {
 
     public ElideSettingsBuilder withJsonApiMapper(JsonApiMapper jsonApiMapper) {
         this.jsonApiMapper = jsonApiMapper;
+        return this;
+    }
+
+
+    public ElideSettingsBuilder withErrorMapper(ErrorMapper errorMapper) {
+        this.errorMapper = errorMapper;
         return this;
     }
 
