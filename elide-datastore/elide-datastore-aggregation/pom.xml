@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>5.0.4-SNAPSHOT</version>
+        <version>5.0.5-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -46,31 +46,31 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>5.0.4-SNAPSHOT</version>
+            <version>5.0.5-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>5.0.4-SNAPSHOT</version>
+            <version>5.0.5-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>5.0.4-SNAPSHOT</version>
+            <version>5.0.5-SNAPSHOT</version>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-multiplex</artifactId>
-            <version>5.0.4-SNAPSHOT</version>
+            <version>5.0.5-SNAPSHOT</version>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-model-config</artifactId>
-            <version>5.0.4-SNAPSHOT</version>
+            <version>5.0.5-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -101,7 +101,18 @@
                     <groupId>log4j</groupId>
                     <artifactId>log4j</artifactId>
                 </exclusion>
+                <!-- Excluded for conflict with elide-async's version -->
+                <exclusion>
+                    <groupId>com.jayway.jsonpath</groupId>
+                    <artifactId>json-path</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+            <version>${jsonpath.version}</version>
         </dependency>
 
         <!-- Hibernate Entity Manager -->
@@ -167,7 +178,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>3.11.1</version>
+            <version>3.11.2</version>
             <scope>test</scope>
         </dependency>
 
@@ -175,7 +186,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-            <version>5.0.4-SNAPSHOT</version>
+            <version>5.0.5-SNAPSHOT</version>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>

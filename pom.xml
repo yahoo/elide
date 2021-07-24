@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-parent-pom</artifactId>
-    <version>5.0.4-SNAPSHOT</version>
+    <version>5.0.5-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Elide: Parent Pom</name>
     <description>Parent pom for Elide project</description>
@@ -85,15 +85,16 @@
         <!-- dependency versions -->
         <version.antlr4>4.9.2</version.antlr4>
         <version.logback>1.2.3</version.logback>
-        <version.jetty>9.4.40.v20210413</version.jetty>
+        <version.jetty>9.4.43.v20210629</version.jetty>
         <version.restassured>4.4.0</version.restassured>
-        <version.jackson>2.12.3</version.jackson>
+        <version.jackson>2.12.4</version.jackson>
         <version.jersey>2.32</version.jersey>
         <version.junit>5.7.2</version.junit>
         <version.junit.platform>1.7.2</version.junit.platform>
+        <jsonpath.version>2.6.0</jsonpath.version>
         <hibernate3.version>3.6.10.Final</hibernate3.version>
         <hibernate5.version>5.5.2.Final</hibernate5.version>
-        <slf4j-api.version>1.7.30</slf4j-api.version>
+        <slf4j-api.version>1.7.31</slf4j-api.version>
         <maven-site-plugin-version>3.9.1</maven-site-plugin-version>
         <mpir.skip>true</mpir.skip>
 
@@ -124,7 +125,7 @@
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>log4j-over-slf4j</artifactId>
-                <version>1.7.30</version>
+                <version>1.7.31</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
@@ -230,7 +231,7 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>3.11.1</version>
+                <version>3.11.2</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

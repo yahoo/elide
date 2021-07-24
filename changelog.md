@@ -1,5 +1,14 @@
 # Change Log
 
+## 5.0.4
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/987311f96ee5883279f63dc4fee8c888bdb52340) Fix defaultMaxPageSize setting (#2177) 
+   * [view commit](https://github.com/yahoo/elide/commit/f9c2304cdbd7a1fb0f62cb024a19b2f2335832f2) Make AS before table alias optional, i.e. dialect based (#2179) 
+   * [view commit](https://github.com/yahoo/elide/commit/f6eff8a0612919e2476a680a9d70964e5a0c14c6) Bump slf4j-api from 1.7.30 to 1.7.31 (#2172) 
+   * [view commit](https://github.com/yahoo/elide/commit/4756f7131e09efb6a37bd1f97f39eda148324e1a) Bump metrics.version from 4.2.0 to 4.2.1 (#2173) 
+   * [view commit](https://github.com/yahoo/elide/commit/fa65687f2aef93cb84a47698450fd7875ae3f9e5) Bump jetty-server from 9.4.40.v20210413 to 9.4.41.v20210516 (#2176) 
+   * [view commit](https://github.com/yahoo/elide/commit/16e251c4829459d629adfa5e4f7c8fedde752391) Bump log4j-over-slf4j from 1.7.30 to 1.7.31 (#2174) 
+
 ## 5.0.3
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/6eef744fb655ee054ad2559284afa7ec082d3c2b) use column name to extract cache key in agg datastore (#2144) 
