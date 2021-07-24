@@ -45,7 +45,7 @@
         <commons-io.version>2.11.0</commons-io.version>
         <commons-cli.version>1.4</commons-cli.version>
         <commons-compress.version>1.20</commons-compress.version>
-        <spring-core.verions>5.3.8</spring-core.verions>
+        <spring-core.verions>5.3.9</spring-core.verions>
     </properties>
 
     <dependencies>
