@@ -129,7 +129,7 @@
     <module name="JavadocMethod">
       <metadata name="net.sf.eclipsecs.core.comment" value="Checks the Javadoc of a method or constructor."/>
       <property name="severity" value="warning"/>
-      <property name="scope" value="protected"/>
+      <property name="accessModifiers" value="protected"/>
       <property name="validateThrows" value="true"/>
       <property name="allowMissingParamTags" value="true"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
