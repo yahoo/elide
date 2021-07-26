@@ -11,6 +11,7 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Set;
@@ -26,6 +27,7 @@ import javax.validation.constraints.Size;
 @ReadPermission(expression = "Principal is author OR Principal is publisher")
 @CreatePermission(expression = "Principal is author")
 @DeletePermission(expression = "Prefab.Role.None")
+@ApiModel(description = "A book")
 public class Book {
     @OneToMany
     @Size(max = 10)

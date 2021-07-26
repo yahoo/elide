@@ -470,6 +470,8 @@ public class SwaggerBuilderTest {
         Model bookModel = definitions.get("book");
         assertTrue(bookModel instanceof Resource);
 
+        assertEquals("A book", bookModel.getDescription());
+
         ObjectProperty attributeProps = (ObjectProperty) bookModel.getProperties().get("attributes");
         assertTrue(attributeProps.getProperties().containsKey("title"));
 
