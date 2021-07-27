@@ -39,7 +39,7 @@
     </scm>
 
     <properties>
-        <hikari.version>4.0.3</hikari.version>
+        <hikari.version>5.0.0</hikari.version>
     </properties>
 
     <dependencies>
