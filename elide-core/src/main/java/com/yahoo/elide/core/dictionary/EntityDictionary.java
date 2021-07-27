@@ -2000,6 +2000,20 @@ public class EntityDictionary {
         return entityPrefix + entity.name();
     }
 
+    /**
+     * Looks up the model description for a given class.
+     * @param modelClass The model class to lookup.
+     * @return the description for the model class.
+     */
+    public static String getEntityDescription(Type<?> modelClass) {
+        Include include = (Include) getFirstAnnotation(modelClass, Arrays.asList(Include.class));
+        if (include == null || include.description().isEmpty()) {
+            return null;
+        }
+
+        return include.description();
+    }
+
     public static <T> Type<T> getType(T object) {
         return object instanceof Dynamic
                 ? ((Dynamic) object).getType()

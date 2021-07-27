@@ -81,6 +81,9 @@ public class JsonApiModelResolverTest {
         assertEquals("A book", model.getDescription());
 
         model = getModel(KEY_AUTHOR);
+        assertEquals("The Author", model.getDescription());
+
+        model = getModel(KEY_PUBLISHER);
         assertNull(model.getDescription());
     }
 

@@ -7,6 +7,7 @@ package com.yahoo.elide.swagger;
 
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -153,7 +154,14 @@ public class JsonApiModelResolver extends ModelResolver {
     private String getModelDescription(Type<?> clazz) {
         ApiModel model = getApiModel(clazz);
         if (model == null) {
-            return null;
+
+            String description = EntityDictionary.getEntityDescription(clazz);
+
+            if (description == null || description.isEmpty()) {
+                return null;
+            }
+
+            return description;
         }
         return model.description();
     }
