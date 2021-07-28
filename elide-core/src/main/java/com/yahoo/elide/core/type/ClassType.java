@@ -229,7 +229,7 @@ public class ClassType<T> implements Type<T> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(cls);
+        return Objects.hashCode(cls);
     }
 
     @Override
