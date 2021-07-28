@@ -2007,9 +2007,7 @@ public class EntityDictionary {
         } else {
             ClassType<T> classType = (ClassType<T>) TYPE_MAP.computeIfAbsent(
                     object.getClass(),
-                    x -> new ClassType<>(object.getClass())
-
-            );
+                    ClassType::new);
             return classType;
         }
     }
