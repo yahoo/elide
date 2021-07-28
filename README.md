@@ -4,7 +4,8 @@
 
 ![Elide Logo](elide-logo.svg)
 
-[![Spectrum](https://withspectrum.github.io/badge/badge.svg)](https://spectrum.chat/elide)
+![Discord](https://img.shields.io/discord/869678398241398854)
+[![Spectrum (Archive Only)](https://withspectrum.github.io/badge/badge.svg)](https://spectrum.chat/elide)
 [![Build Status](https://cd.screwdriver.cd/pipelines/6103/badge)](https://cd.screwdriver.cd/pipelines/6103)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core)
 [![Coverage Status](https://coveralls.io/repos/github/yahoo/elide/badge.svg?branch=master)](https://coveralls.io/github/yahoo/elide?branch=master)
@@ -210,7 +211,9 @@ Please refer to [the contributing.md file](CONTRIBUTING.md) for information abou
 
 If you are contributing to Elide using an IDE, such as IntelliJ, make sure to install the [Lombok](https://projectlombok.org/) plugin.
 
-Discussion is on [spectrum](https://spectrum.chat/elide) or through filing issues.
+Discussion is on discord or through filing issues:
+
+<iframe src="https://discord.com/widget?id=869678398241398854&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
 
 ## License
 This project is licensed under the terms of the [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0.html) open source license.
