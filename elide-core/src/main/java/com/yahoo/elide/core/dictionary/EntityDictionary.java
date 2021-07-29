@@ -106,6 +106,7 @@ public class EntityDictionary {
 
     public static final String ELIDE_PACKAGE_PREFIX = "com.yahoo.elide";
     public static final String NO_VERSION = "";
+    private static final Map<Class<?>, Type<?>> TYPE_MAP = new ConcurrentHashMap<>();
 
     protected final ConcurrentHashMap<Pair<String, String>, Type<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Type<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
@@ -2001,9 +2002,14 @@ public class EntityDictionary {
     }
 
     public static <T> Type<T> getType(T object) {
-        return object instanceof Dynamic
-                ? ((Dynamic) object).getType()
-                : new ClassType(object.getClass());
+        if (object instanceof Dynamic) {
+            return ((Dynamic) object).getType();
+        } else {
+            ClassType<T> classType = (ClassType<T>) TYPE_MAP.computeIfAbsent(
+                    object.getClass(),
+                    ClassType::new);
+            return classType;
+        }
     }
 
     public void bindLegacyHooks(EntityBinding binding) {
