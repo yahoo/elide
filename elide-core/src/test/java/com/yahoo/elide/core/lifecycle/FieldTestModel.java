@@ -11,6 +11,7 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.POSTCOMMIT;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRECOMMIT;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PREFLUSH;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.TransactionPhase.PRESECURITY;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
@@ -30,17 +31,21 @@ import javax.persistence.OneToMany;
  */
 @Include(name = "testModel")
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPreSecurityHook.class, operation = CREATE, phase = PRESECURITY)
+@LifeCycleHookBinding(hook = FieldTestModel.ClassPreFlushHook.class, operation = CREATE, phase = PREFLUSH)
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPreCommitHook.class, operation = CREATE, phase = PRECOMMIT)
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPostCommitHook.class, operation = CREATE, phase = POSTCOMMIT)
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPreSecurityHook.class, operation = DELETE, phase = PRESECURITY)
+@LifeCycleHookBinding(hook = FieldTestModel.ClassPreFlushHook.class, operation = DELETE, phase = PREFLUSH)
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPreCommitHookEverything.class, operation = CREATE,
         phase = PRECOMMIT, oncePerRequest = false)
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPreCommitHook.class, operation = DELETE, phase = PRECOMMIT)
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPostCommitHook.class, operation = DELETE, phase = POSTCOMMIT)
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPreSecurityHook.class, operation = UPDATE, phase = PRESECURITY)
+@LifeCycleHookBinding(hook = FieldTestModel.ClassPreFlushHook.class, operation = UPDATE, phase = PREFLUSH)
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPreCommitHook.class, operation = UPDATE, phase = PRECOMMIT)
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPostCommitHook.class, operation = UPDATE, phase = POSTCOMMIT)
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPreSecurityHook.class, operation = READ, phase = PRESECURITY)
+@LifeCycleHookBinding(hook = FieldTestModel.ClassPreFlushHook.class, operation = READ, phase = PREFLUSH)
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPreCommitHook.class, operation = READ, phase = PRECOMMIT)
 @LifeCycleHookBinding(hook = FieldTestModel.ClassPostCommitHook.class, operation = READ, phase = POSTCOMMIT)
 public class FieldTestModel {
@@ -51,15 +56,19 @@ public class FieldTestModel {
     @Getter
     @Setter
     @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = CREATE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreFlushHook.class, operation = CREATE, phase = PREFLUSH)
     @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = CREATE, phase = PRECOMMIT)
     @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = CREATE, phase = POSTCOMMIT)
     @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = DELETE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreFlushHook.class, operation = DELETE, phase = PREFLUSH)
     @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = DELETE, phase = PRECOMMIT)
     @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = DELETE, phase = POSTCOMMIT)
     @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = UPDATE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreFlushHook.class, operation = UPDATE, phase = PREFLUSH)
     @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = UPDATE, phase = PRECOMMIT)
     @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = UPDATE, phase = POSTCOMMIT)
     @LifeCycleHookBinding(hook = FieldTestModel.AttributePreSecurityHook.class, operation = READ, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.AttributePreFlushHook.class, operation = READ, phase = PREFLUSH)
     @LifeCycleHookBinding(hook = FieldTestModel.AttributePreCommitHook.class, operation = READ, phase = PRECOMMIT)
     @LifeCycleHookBinding(hook = FieldTestModel.AttributePostCommitHook.class, operation = READ, phase = POSTCOMMIT)
     private String field;
@@ -68,15 +77,19 @@ public class FieldTestModel {
     @Setter
     @OneToMany
     @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = CREATE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreFlushHook.class, operation = CREATE, phase = PREFLUSH)
     @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = CREATE, phase = PRECOMMIT)
     @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = CREATE, phase = POSTCOMMIT)
     @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = DELETE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreFlushHook.class, operation = DELETE, phase = PREFLUSH)
     @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = DELETE, phase = PRECOMMIT)
     @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = DELETE, phase = POSTCOMMIT)
     @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = UPDATE, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreFlushHook.class, operation = UPDATE, phase = PREFLUSH)
     @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = UPDATE, phase = PRECOMMIT)
     @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = UPDATE, phase = POSTCOMMIT)
     @LifeCycleHookBinding(hook = FieldTestModel.RelationPreSecurityHook.class, operation = READ, phase = PRESECURITY)
+    @LifeCycleHookBinding(hook = FieldTestModel.RelationPreFlushHook.class, operation = READ, phase = PREFLUSH)
     @LifeCycleHookBinding(hook = FieldTestModel.RelationPreCommitHook.class, operation = READ, phase = PRECOMMIT)
     @LifeCycleHookBinding(hook = FieldTestModel.RelationPostCommitHook.class, operation = READ, phase = POSTCOMMIT)
     private Set<FieldTestModel> models = new HashSet<>();
@@ -89,6 +102,17 @@ public class FieldTestModel {
                             com.yahoo.elide.core.security.RequestScope requestScope,
                             Optional<ChangeSpec> changes) {
             elideEntity.classCallback(operation, PRESECURITY);
+        }
+    }
+
+    static class ClassPreFlushHook implements LifeCycleHook<FieldTestModel> {
+        @Override
+        public void execute(LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
+                            FieldTestModel elideEntity,
+                            com.yahoo.elide.core.security.RequestScope requestScope,
+                            Optional<ChangeSpec> changes) {
+            elideEntity.classCallback(operation, PREFLUSH);
         }
     }
 
@@ -136,6 +160,17 @@ public class FieldTestModel {
         }
     }
 
+    static class AttributePreFlushHook implements LifeCycleHook<FieldTestModel> {
+        @Override
+        public void execute(LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
+                            FieldTestModel elideEntity,
+                            com.yahoo.elide.core.security.RequestScope requestScope,
+                            Optional<ChangeSpec> changes) {
+            elideEntity.attributeCallback(operation, PREFLUSH, changes.orElse(null));
+        }
+    }
+
     static class AttributePreCommitHook implements LifeCycleHook<FieldTestModel> {
         @Override
         public void execute(LifeCycleHookBinding.Operation operation,
@@ -166,6 +201,17 @@ public class FieldTestModel {
                             com.yahoo.elide.core.security.RequestScope requestScope,
                             Optional<ChangeSpec> changes) {
             elideEntity.relationCallback(operation, PRESECURITY, changes.orElse(null));
+        }
+    }
+
+    static class RelationPreFlushHook implements LifeCycleHook<FieldTestModel> {
+        @Override
+        public void execute(LifeCycleHookBinding.Operation operation,
+                            LifeCycleHookBinding.TransactionPhase phase,
+                            FieldTestModel elideEntity,
+                            com.yahoo.elide.core.security.RequestScope requestScope,
+                            Optional<ChangeSpec> changes) {
+            elideEntity.relationCallback(operation, PREFLUSH, changes.orElse(null));
         }
     }
 
