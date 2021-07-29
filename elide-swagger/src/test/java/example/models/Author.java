@@ -14,7 +14,7 @@ import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 
 @Entity
-@Include(rootLevel = false)
+@Include(rootLevel = false, description = "The Author")
 public class Author {
 
     public AuthorType membershipType;

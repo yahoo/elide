@@ -18,6 +18,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.ClassType;
 
+import example.Address;
 import example.Author;
 import example.Book;
 import example.Publisher;
@@ -91,6 +92,7 @@ public class ModelBuilderTest {
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Publisher.class);
+        dictionary.bindEntity(Address.class);
     }
 
     @Test
@@ -155,6 +157,21 @@ public class ModelBuilderTest {
 
         GraphQLObjectType bookType = getConnectedType((GraphQLObjectType) schema.getType(TYPE_BOOK_CONNECTION), null);
         GraphQLObjectType authorType = getConnectedType((GraphQLObjectType) schema.getType(TYPE_AUTHOR_CONNECTION), null);
+        GraphQLObjectType publisherConnectionType = (GraphQLObjectType) bookType.getFieldDefinition(FIELD_PUBLISHER)
+                .getType();
+        GraphQLList publisherEdgesType = (GraphQLList) publisherConnectionType.getFieldDefinition(EDGES)
+                .getType();
+
+        GraphQLObjectType publisherType = (GraphQLObjectType) ((GraphQLObjectType) publisherEdgesType.getWrappedType())
+                .getFieldDefinition(NODE)
+                .getType();
+
+        //Test root type description fields.
+        assertEquals("A GraphQL Book", bookType.getDescription());
+        assertNull(authorType.getDescription());
+
+        //Test non-root type description fields.
+        assertEquals("A book publisher", publisherType.getDescription());
 
         assertEquals(Scalars.GraphQLString, bookType.getFieldDefinition(FIELD_TITLE).getType());
         assertEquals(Scalars.GraphQLString, bookType.getFieldDefinition(FIELD_GENRE).getType());
@@ -165,7 +182,6 @@ public class ModelBuilderTest {
         GraphQLObjectType addressType = (GraphQLObjectType) authorType.getFieldDefinition("homeAddress").getType();
         assertEquals(Scalars.GraphQLString, addressType.getFieldDefinition("street1").getType());
         assertEquals(Scalars.GraphQLString, addressType.getFieldDefinition("street2").getType());
-
 
         GraphQLObjectType authorsType = (GraphQLObjectType) bookType.getFieldDefinition(FIELD_AUTHORS).getType();
         GraphQLObjectType authorsNodeType = getConnectedType(authorsType, null);

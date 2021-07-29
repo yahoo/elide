@@ -19,7 +19,7 @@ import javax.persistence.OneToMany;
  * Model for publisher.
  */
 @Entity
-@Include(rootLevel = false)
+@Include(rootLevel = false, description = "A book publisher")
 public class Publisher {
     private long id;
     private String name;
