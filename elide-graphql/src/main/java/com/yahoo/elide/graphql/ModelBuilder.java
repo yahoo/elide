@@ -169,6 +169,7 @@ public class ModelBuilder {
             String entityName = entityDictionary.getJsonAliasFor(clazz);
             root.field(newFieldDefinition()
                     .name(entityName)
+                    .description(EntityDictionary.getEntityDescription(clazz))
                     .dataFetcher(dataFetcher)
                     .argument(relationshipOpArg)
                     .argument(idArgument)
@@ -244,7 +245,8 @@ public class ModelBuilder {
         log.debug("Building query object for {}", entityClass.getName());
 
         GraphQLObjectType.Builder builder = newObject()
-                .name(nameUtils.toNodeName(entityClass));
+                .name(nameUtils.toNodeName(entityClass))
+                .description(EntityDictionary.getEntityDescription(entityClass));
 
         String id = entityDictionary.getIdFieldName(entityClass);
 

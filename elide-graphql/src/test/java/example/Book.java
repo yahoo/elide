@@ -36,7 +36,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "book")
-@Include
+@Include(description = "A GraphQL Book")
 @Audit(action = Audit.Action.CREATE,
         operation = 10,
         logStatement = "{0}",

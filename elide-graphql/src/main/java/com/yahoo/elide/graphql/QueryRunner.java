@@ -280,6 +280,7 @@ public class QueryRunner {
                 }
                 requestScope.saveOrCreateObjects();
             }
+            requestScope.runQueuedPreFlushTriggers();
             tx.flush(requestScope);
 
             requestScope.runQueuedPreCommitTriggers();

@@ -106,6 +106,7 @@ public class EntityDictionary {
 
     public static final String ELIDE_PACKAGE_PREFIX = "com.yahoo.elide";
     public static final String NO_VERSION = "";
+    private static final Map<Class<?>, Type<?>> TYPE_MAP = new ConcurrentHashMap<>();
 
     protected final ConcurrentHashMap<Pair<String, String>, Type<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Type<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
@@ -2000,10 +2001,29 @@ public class EntityDictionary {
         return entityPrefix + entity.name();
     }
 
+    /**
+     * Looks up the model description for a given class.
+     * @param modelClass The model class to lookup.
+     * @return the description for the model class.
+     */
+    public static String getEntityDescription(Type<?> modelClass) {
+        Include include = (Include) getFirstAnnotation(modelClass, Arrays.asList(Include.class));
+        if (include == null || include.description().isEmpty()) {
+            return null;
+        }
+
+        return include.description();
+    }
+
     public static <T> Type<T> getType(T object) {
-        return object instanceof Dynamic
-                ? ((Dynamic) object).getType()
-                : new ClassType(object.getClass());
+        if (object instanceof Dynamic) {
+            return ((Dynamic) object).getType();
+        } else {
+            ClassType<T> classType = (ClassType<T>) TYPE_MAP.computeIfAbsent(
+                    object.getClass(),
+                    ClassType::new);
+            return classType;
+        }
     }
 
     public void bindLegacyHooks(EntityBinding binding) {
