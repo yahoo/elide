@@ -153,7 +153,14 @@ public class JsonApiModelResolver extends ModelResolver {
     private String getModelDescription(Type<?> clazz) {
         ApiModel model = getApiModel(clazz);
         if (model == null) {
-            return null;
+
+            String description = EntityDictionary.getEntityDescription(clazz);
+
+            if (StringUtils.isEmpty(description)) {
+                return null;
+            }
+
+            return description;
         }
         return model.description();
     }
