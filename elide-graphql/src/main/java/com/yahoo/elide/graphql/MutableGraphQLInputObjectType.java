@@ -7,15 +7,17 @@
 package com.yahoo.elide.graphql;
 
 import static graphql.Assert.assertNotNull;
+import com.google.common.collect.ImmutableList;
 import graphql.AssertException;
 import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;
+import graphql.schema.GraphQLSchemaElement;
+import graphql.schema.SchemaElementChildrenContainer;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Basically the same class as GraphQLInputObjectType except fields can be added after the
@@ -49,7 +51,7 @@ public class MutableGraphQLInputObjectType extends GraphQLInputObjectType {
     private final String name;
 
     public MutableGraphQLInputObjectType(String name, String description, List<GraphQLInputObjectField> fields) {
-        super(name, description, fields);
+        super(name, description, fields, new ArrayList<>(), null, new ArrayList<>());
         this.name = name;
         buildMap(fields);
     }
@@ -74,12 +76,44 @@ public class MutableGraphQLInputObjectType extends GraphQLInputObjectType {
     }
 
     @Override
-    public List<GraphQLInputObjectField> getFields() {
-        return new ArrayList<>(fieldMap.values());
+    public List<GraphQLInputObjectField> getFieldDefinitions() {
+        return ImmutableList.copyOf(fieldMap.values());
     }
 
+    @Override
     public GraphQLInputObjectField getField(String name) {
+        return getFieldDefinition(name);
+    }
+
+    @Override
+    public GraphQLInputObjectField getFieldDefinition(String name) {
         return fieldMap.get(name);
+    }
+
+    @Override
+    public List<GraphQLSchemaElement> getChildren() {
+        List<GraphQLSchemaElement> children = new ArrayList<>(fieldMap.values());
+        children.addAll(getDirectives());
+        return children;
+    }
+
+    @Override
+    public SchemaElementChildrenContainer getChildrenWithTypeReferences() {
+        return SchemaElementChildrenContainer.newSchemaElementChildrenContainer()
+                .children(CHILD_FIELD_DEFINITIONS, fieldMap.values())
+                .children(CHILD_DIRECTIVES, getDirectives())
+                .build();
+    }
+
+    @Override
+    public String toString() {
+        return "GraphQLInputObjectType{"
+                + "name='" + name + '\''
+                + ", description='" + getDescription() + '\''
+                + ", fieldMap=" + fieldMap
+                + ", definition=" + getDefinition()
+                + ", directives=" + getDirectives()
+                + '}';
     }
 
     public static Builder newMutableInputObject() {
@@ -105,7 +139,7 @@ public class MutableGraphQLInputObjectType extends GraphQLInputObjectType {
         }
 
         public Builder field(GraphQLInputObjectField field) {
-            assertNotNull(field, "field can't be null");
+            assertNotNull(field, () -> "field can't be null");
             fields.add(field);
             return this;
         }
@@ -132,22 +166,5 @@ public class MutableGraphQLInputObjectType extends GraphQLInputObjectType {
         public MutableGraphQLInputObjectType build() {
             return new MutableGraphQLInputObjectType(name, description, fields);
         }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        MutableGraphQLInputObjectType that = (MutableGraphQLInputObjectType) o;
-        return Objects.equals(name, that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name);
     }
 }

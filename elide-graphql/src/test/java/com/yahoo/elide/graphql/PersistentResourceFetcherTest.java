@@ -32,9 +32,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
+import graphql.execution.AsyncSerialExecutionStrategy;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -90,7 +92,9 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         ModelBuilder builder = new ModelBuilder(dictionary, nonEntityDictionary,
                 new PersistentResourceFetcher(nonEntityDictionary), NO_VERSION);
 
-        api = new GraphQL(builder.build());
+        api = GraphQL.newGraphQL(builder.build())
+                .queryExecutionStrategy(new AsyncSerialExecutionStrategy())
+                .build();
 
         initTestData();
     }
@@ -191,7 +195,13 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
                 new GraphQLEntityProjectionMaker(settings, variables, NO_VERSION).make(graphQLRequest);
         GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, NO_VERSION, settings, projectionInfo, UUID.randomUUID(), null);
 
-        ExecutionResult result = api.execute(graphQLRequest, requestScope, variables);
+        ExecutionInput executionInput = ExecutionInput.newExecutionInput()
+                .query(graphQLRequest)
+                .context(requestScope)
+                .variables(variables)
+                .build();
+
+        ExecutionResult result = api.execute(executionInput);
         // NOTE: We're forcing commit even in case of failures. GraphQLEndpoint tests should ensure we do not commit on
         //       failure.
         if (isMutation) {

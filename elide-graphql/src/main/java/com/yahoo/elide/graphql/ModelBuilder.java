@@ -19,6 +19,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
@@ -194,10 +195,14 @@ public class ModelBuilder {
         GraphQLSchema schema = GraphQLSchema.newSchema()
                 .query(queryRoot)
                 .mutation(mutationRoot)
+                .codeRegistry(GraphQLCodeRegistry.newCodeRegistry()
+                        .defaultDataFetcher((noop) -> dataFetcher)
+                        .build())
                 .build(new HashSet<>(CollectionUtils.union(
                         connectionObjectRegistry.values(),
                         inputObjectRegistry.values()
                 )));
+
 
         return schema;
     }
