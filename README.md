@@ -4,7 +4,7 @@
 
 ![Elide Logo](elide-logo.svg)
 
-[![Discord](https://img.shields.io/discord/869678398241398854)](https://discord.com/invite/CkPgRyK4?utm_source=Discord%20Widget&utm_medium=Connect)
+[![Discord](https://img.shields.io/discord/869678398241398854)](https://discord.com/widget?id=869678398241398854&theme=dark)
 [![Build Status](https://cd.screwdriver.cd/pipelines/6103/badge)](https://cd.screwdriver.cd/pipelines/6103)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core)
 [![Coverage Status](https://coveralls.io/repos/github/yahoo/elide/badge.svg?branch=master)](https://coveralls.io/github/yahoo/elide?branch=master)
