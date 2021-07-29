@@ -156,7 +156,7 @@ public class JsonApiModelResolver extends ModelResolver {
 
             String description = EntityDictionary.getEntityDescription(clazz);
 
-            if (description == null || description.isEmpty()) {
+            if (StringUtils.isEmpty(description)) {
                 return null;
             }
 
