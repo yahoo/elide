@@ -342,6 +342,39 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     }
 
     /**
+     * Run queued pre-flush lifecycle triggers.
+     */
+    public void runQueuedPreFlushTriggers() {
+        this.queuedLifecycleEvents
+                .filter(CRUDEvent::isCreateEvent)
+                .subscribeWith(new LifecycleHookInvoker(dictionary,
+                        LifeCycleHookBinding.Operation.CREATE,
+                        LifeCycleHookBinding.TransactionPhase.PREFLUSH, false))
+                .throwOnError();
+
+        this.queuedLifecycleEvents
+                .filter(CRUDEvent::isUpdateEvent)
+                .subscribeWith(new LifecycleHookInvoker(dictionary,
+                        LifeCycleHookBinding.Operation.UPDATE,
+                        LifeCycleHookBinding.TransactionPhase.PREFLUSH, false))
+                .throwOnError();
+
+        this.queuedLifecycleEvents
+                .filter(CRUDEvent::isDeleteEvent)
+                .subscribeWith(new LifecycleHookInvoker(dictionary,
+                        LifeCycleHookBinding.Operation.DELETE,
+                        LifeCycleHookBinding.TransactionPhase.PREFLUSH, false))
+                .throwOnError();
+
+        this.queuedLifecycleEvents
+                .filter(CRUDEvent::isReadEvent)
+                .subscribeWith(new LifecycleHookInvoker(dictionary,
+                        LifeCycleHookBinding.Operation.READ,
+                        LifeCycleHookBinding.TransactionPhase.PREFLUSH, false))
+                .throwOnError();
+    }
+
+    /**
      * Run queued pre-commit lifecycle triggers.
      */
     public void runQueuedPreCommitTriggers() {

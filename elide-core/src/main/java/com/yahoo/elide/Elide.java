@@ -463,6 +463,7 @@ public class Elide {
             if (!isReadOnly) {
                 requestScope.saveOrCreateObjects();
             }
+            requestScope.runQueuedPreFlushTriggers();
             tx.flush(requestScope);
 
             requestScope.runQueuedPreCommitTriggers();
