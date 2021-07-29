@@ -30,6 +30,7 @@ public @interface LifeCycleHookBinding {
 
     enum TransactionPhase {
         PRESECURITY,
+        PREFLUSH,
         PRECOMMIT,
         POSTCOMMIT
     }
