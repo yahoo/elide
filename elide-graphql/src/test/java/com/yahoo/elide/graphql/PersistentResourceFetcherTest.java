@@ -227,7 +227,12 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(settings).make(graphQLRequest);
         GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, NO_VERSION, settings, projectionInfo, UUID.randomUUID(), null);
 
-        ExecutionResult result = api.execute(graphQLRequest, requestScope);
+        ExecutionInput executionInput = ExecutionInput.newExecutionInput()
+                .query(graphQLRequest)
+                .context(requestScope)
+                .build();
+
+        ExecutionResult result = api.execute(executionInput);
         if (isMutation) {
             requestScope.saveOrCreateObjects();
         }
