@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.graphql;
 
+import static graphql.introspection.Introspection.__Type;
 import static graphql.schema.GraphQLArgument.newArgument;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
@@ -22,11 +23,13 @@ import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
+import graphql.schema.PropertyDataFetcher;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
@@ -195,8 +198,20 @@ public class ModelBuilder {
         GraphQLSchema schema = GraphQLSchema.newSchema()
                 .query(queryRoot)
                 .mutation(mutationRoot)
+
+                //Workaround for bug in GraphQL java (https://github.com/graphql-java/graphql-java/issues/2493).
+                //Check if schema introspection is trying to user our default data fetcher.  If so, don't let it.
                 .codeRegistry(GraphQLCodeRegistry.newCodeRegistry()
-                        .defaultDataFetcher((noop) -> dataFetcher)
+                        .defaultDataFetcher((env) -> {
+                            GraphQLType type = env.getFieldDefinition().getType();
+                            if (type instanceof GraphQLNonNull) {
+                                type = ((GraphQLNonNull) type).getWrappedType();
+                            }
+                            if (type.equals(__Type) && env.getFieldDefinition().getName().equals("type")) {
+                                return PropertyDataFetcher.fetching("type");
+                            }
+                            return dataFetcher;
+                        })
                         .build())
                 .build(new HashSet<>(CollectionUtils.union(
                         connectionObjectRegistry.values(),
