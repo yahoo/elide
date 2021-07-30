@@ -92,7 +92,7 @@ public class GraphQLConversionUtils {
             return Scalars.GraphQLFloat;
         } else if (clazz.equals(ClassType.of(short.class)) || clazz.equals(ClassType.of(Short.class))) {
             return Scalars.GraphQLShort;
-        } else if (clazz.equals(ClassType.of(String.class))) {
+        } else if (clazz.equals(ClassType.of(String.class)) || clazz.equals(ClassType.of(Object.class))) {
             return Scalars.GraphQLString;
         } else if (clazz.equals(ClassType.of(BigDecimal.class))) {
             return Scalars.GraphQLBigDecimal;
@@ -273,7 +273,6 @@ public class GraphQLConversionUtils {
 
             // If this is a collection of a boxed type scalar, we want to unwrap it properly
             return new GraphQLList(fetchScalarOrObjectOutput(listType, fetcher));
-
         }
         return fetchScalarOrObjectOutput(attributeClass, fetcher);
     }

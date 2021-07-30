@@ -28,7 +28,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
-import graphql.ExceptionWhileDataFetching;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
@@ -265,11 +264,9 @@ public class QueryRunner {
             if (operationName != null) {
                 executionInput.operationName(operationName);
             }
-
             executionInput.variables(variables);
 
             ExecutionResult result = api.execute(executionInput);
-            unwrapThrowable(result);
 
             tx.preCommit(requestScope);
             requestScope.runQueuedPreSecurityTriggers();
@@ -398,19 +395,5 @@ public class QueryRunner {
                 .responseCode(error.getStatus())
                 .body(errorBody)
                 .build();
-    }
-
-    private void unwrapThrowable(ExecutionResult result) {
-        if (!result.getErrors().isEmpty()) {
-            GraphQLError error = result.getErrors().get(0);
-
-            if (error instanceof ExceptionWhileDataFetching) {
-                //This can be controlled by setting the DataFetcherExceptionHandler in the execution stratetgy
-                Throwable exception = ((ExceptionWhileDataFetching) error).getException();
-                if (exception instanceof RuntimeException) {
-                    throw (RuntimeException) exception;
-                }
-            }
-        }
     }
 }
