@@ -70,7 +70,12 @@ public class GraphQLConversionUtils {
             ElideTypeConverter elideTypeConverter = serde.getClass().getAnnotation(ElideTypeConverter.class);
             String name = elideTypeConverter != null ? elideTypeConverter.name() : type.getSimpleName();
             String description = elideTypeConverter != null ? elideTypeConverter.description() : type.getSimpleName();
-            scalarMap.put(ClassType.of(type), new GraphQLScalarType(name, description, serdeCoercing));
+            scalarMap.put(ClassType.of(type), GraphQLScalarType.newScalar()
+                            .name(name)
+                            .description(description)
+                            .coercing(serdeCoercing)
+                            .build());
+
         });
     }
 
@@ -158,11 +163,9 @@ public class GraphQLConversionUtils {
                 .name(mapName)
                 .field(newFieldDefinition()
                         .name(KEY)
-                        .dataFetcher(fetcher)
                         .type(keyType))
                 .field(newFieldDefinition()
                         .name(VALUE)
-                        .dataFetcher(fetcher)
                         .type(valueType))
                 .build()
         );
@@ -369,8 +372,7 @@ public class GraphQLConversionUtils {
             Type<?> attributeClass = nonEntityDictionary.getType(clazz, attribute);
 
             GraphQLFieldDefinition.Builder fieldBuilder = newFieldDefinition()
-                    .name(attribute)
-                    .dataFetcher(fetcher);
+                    .name(attribute);
 
             GraphQLOutputType attributeType =
                     attributeToQueryObject(clazz,

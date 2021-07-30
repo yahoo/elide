@@ -122,19 +122,15 @@ public class ModelBuilder {
                 .name(OBJECT_PAGE_INFO)
                 .field(newFieldDefinition()
                         .name("hasNextPage")
-                        .dataFetcher(dataFetcher)
                         .type(Scalars.GraphQLBoolean))
                 .field(newFieldDefinition()
                         .name("startCursor")
-                        .dataFetcher(dataFetcher)
                         .type(Scalars.GraphQLString))
                 .field(newFieldDefinition()
                         .name("endCursor")
-                        .dataFetcher(dataFetcher)
                         .type(Scalars.GraphQLString))
                 .field(newFieldDefinition()
                         .name("totalRecords")
-                        .dataFetcher(dataFetcher)
                         .type(Scalars.GraphQLLong))
                 .build();
 
@@ -174,7 +170,6 @@ public class ModelBuilder {
             root.field(newFieldDefinition()
                     .name(entityName)
                     .description(EntityDictionary.getEntityDescription(clazz))
-                    .dataFetcher(dataFetcher)
                     .argument(relationshipOpArg)
                     .argument(idArgument)
                     .argument(filterArgument)
@@ -182,7 +177,7 @@ public class ModelBuilder {
                     .argument(pageFirstArgument)
                     .argument(pageOffsetArgument)
                     .argument(buildInputObjectArgument(clazz, true))
-                    .argument(generator.entityArgumentToQueryObject(clazz, entityDictionary))
+                    .arguments(generator.entityArgumentToQueryObject(clazz, entityDictionary))
                     .type(buildConnectionObject(clazz)));
         }
 
@@ -213,11 +208,10 @@ public class ModelBuilder {
                             return dataFetcher;
                         })
                         .build())
-                .build(new HashSet<>(CollectionUtils.union(
-                        connectionObjectRegistry.values(),
-                        inputObjectRegistry.values()
-                )));
-
+                .additionalTypes(new HashSet<>(CollectionUtils.union(
+                                connectionObjectRegistry.values(),
+                                inputObjectRegistry.values())))
+                .build();
 
         return schema;
     }
@@ -239,11 +233,9 @@ public class ModelBuilder {
                 .name(entityName)
                 .field(newFieldDefinition()
                         .name("edges")
-                        .dataFetcher(dataFetcher)
                         .type(buildEdgesObject(entityClass, buildQueryObject(entityClass))))
                 .field(newFieldDefinition()
                         .name("pageInfo")
-                        .dataFetcher(dataFetcher)
                         .type(pageInfoObject))
                 .build();
 
@@ -273,7 +265,6 @@ public class ModelBuilder {
         /* our id types are DeferredId objects (not Scalars.GraphQLID) */
         builder.field(newFieldDefinition()
                 .name(id)
-                .dataFetcher(dataFetcher)
                 .type(GraphQLScalars.GRAPHQL_DEFERRED_ID));
 
         for (String attribute : entityDictionary.getAttributes(entityClass)) {
@@ -297,8 +288,7 @@ public class ModelBuilder {
 
             builder.field(newFieldDefinition()
                     .name(attribute)
-                    .argument(generator.attributeArgumentToQueryObject(entityClass, attribute, dataFetcher))
-                    .dataFetcher(dataFetcher)
+                    .arguments(generator.attributeArgumentToQueryObject(entityClass, attribute, dataFetcher))
                     .type((GraphQLOutputType) attributeType)
             );
         }
@@ -315,16 +305,14 @@ public class ModelBuilder {
             if (type.isToOne()) {
                 builder.field(newFieldDefinition()
                                 .name(relationship)
-                                .dataFetcher(dataFetcher)
                                 .argument(relationshipOpArg)
                                 .argument(buildInputObjectArgument(relationshipClass, false))
-                                .argument(generator.entityArgumentToQueryObject(relationshipClass, entityDictionary))
+                                .arguments(generator.entityArgumentToQueryObject(relationshipClass, entityDictionary))
                                 .type(new GraphQLTypeReference(relationshipEntityName))
                 );
             } else {
                 builder.field(newFieldDefinition()
                                 .name(relationship)
-                                .dataFetcher(dataFetcher)
                                 .argument(relationshipOpArg)
                                 .argument(filterArgument)
                                 .argument(sortArgument)
@@ -332,7 +320,7 @@ public class ModelBuilder {
                                 .argument(pageFirstArgument)
                                 .argument(idArgument)
                                 .argument(buildInputObjectArgument(relationshipClass, true))
-                                .argument(generator.entityArgumentToQueryObject(relationshipClass, entityDictionary))
+                                .arguments(generator.entityArgumentToQueryObject(relationshipClass, entityDictionary))
                                 .type(new GraphQLTypeReference(relationshipEntityName))
                 );
             }
@@ -348,7 +336,6 @@ public class ModelBuilder {
                 .name(nameUtils.toEdgesName(relationClass))
                 .field(newFieldDefinition()
                         .name("node")
-                        .dataFetcher(dataFetcher)
                         .type(entityType))
                 .build());
     }

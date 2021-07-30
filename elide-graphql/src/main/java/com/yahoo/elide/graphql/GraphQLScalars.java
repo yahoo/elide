@@ -26,10 +26,10 @@ public class GraphQLScalars {
     // TODO: Should we make this a class that can be configured? Should determine if there are other customizeable
     // TODO: scalar types.
     // NOTE: Non-final so it's overrideable if someone wants _different_ date representations.
-    public static GraphQLScalarType GRAPHQL_DATE_TYPE = new GraphQLScalarType(
-            "Date",
-            "Built-in date",
-            new Coercing<Date, Object>() {
+    public static GraphQLScalarType GRAPHQL_DATE_TYPE = GraphQLScalarType.newScalar()
+            .name("Date")
+            .description("Built-in date")
+            .coercing(new Coercing<Date, Object>() {
                 @Override
                 public Object serialize(Object o) {
                     Serde<Object, Date> dateSerde = CoerceUtil.lookup(Date.class);
@@ -56,13 +56,13 @@ public class GraphQLScalars {
                     }
                     return parseValue(input);
                 }
-            }
-    );
+            })
+            .build();
 
-    public static GraphQLScalarType GRAPHQL_DEFERRED_ID = new GraphQLScalarType(
-            "DeferredID",
-            "custom id type",
-            new Coercing() {
+    public static GraphQLScalarType GRAPHQL_DEFERRED_ID = GraphQLScalarType.newScalar()
+            .name("DeferredID")
+            .description("custom id type")
+            .coercing(new Coercing() {
                 @Override
                 public Object serialize(Object o) {
                     return o;
@@ -85,6 +85,6 @@ public class GraphQLScalars {
                     log.debug("Found unexpected object type: {}", o.getClass());
                     return o.toString();
                 }
-            }
-    );
+            })
+            .build();
 }

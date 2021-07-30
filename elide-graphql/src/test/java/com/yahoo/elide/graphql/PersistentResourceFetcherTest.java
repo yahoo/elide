@@ -266,7 +266,13 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, NO_VERSION, settings,
                 projectionInfo, UUID.randomUUID(), null);
 
-        return api.execute(graphQLRequest, requestScope, variables);
+        ExecutionInput executionInput = ExecutionInput.newExecutionInput()
+                .query(graphQLRequest)
+                .context(requestScope)
+                .variables(variables)
+                .build();
+
+        return api.execute(executionInput);
     }
 
     protected String errorsToString(List<GraphQLError> errors) {
