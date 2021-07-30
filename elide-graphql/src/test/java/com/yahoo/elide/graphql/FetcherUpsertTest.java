@@ -60,6 +60,7 @@ public class FetcherUpsertTest extends PersistentResourceFetcherTest {
     public void testRootSingleWithList() throws Exception {
         //book 1 and 2 already exist, should update
         runComparisonTest("rootSingleWithList");
+
     }
 
     @Test
