@@ -200,8 +200,15 @@ public class GraphQLEntityProjectionMaker {
         projectionBuilder.arguments(new HashSet<>(
                 getArguments(entityField, entityDictionary.getEntityArguments(entityType))
                 ));
-        entityField.getSelectionSet().getSelections().forEach(selection -> addSelection(selection, projectionBuilder));
-        entityField.getArguments().forEach(argument -> addArgument(argument, projectionBuilder));
+
+        if (entityField.getSelectionSet() != null) {
+            entityField.getSelectionSet().getSelections().forEach(
+                    selection -> addSelection(selection, projectionBuilder));
+        }
+
+        if (entityField.getArguments() != null) {
+            entityField.getArguments().forEach(argument -> addArgument(argument, projectionBuilder));
+        }
 
         return projectionBuilder.build();
     }
