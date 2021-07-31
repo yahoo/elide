@@ -22,6 +22,7 @@ import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLCodeRegistry;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
@@ -66,7 +67,7 @@ public class ModelBuilder {
     private GraphQLObjectType pageInfoObject;
     private final String apiVersion;
 
-    private Map<Type<?>, MutableGraphQLInputObjectType> inputObjectRegistry;
+    private Map<Type<?>, GraphQLInputObjectType> inputObjectRegistry;
     private Map<Type<?>, GraphQLObjectType> queryObjectRegistry;
     private Map<Type<?>, GraphQLObjectType> connectionObjectRegistry;
     private Set<Type<?>> excludedEntities;
@@ -165,7 +166,6 @@ public class ModelBuilder {
          * Walk the object graph (avoiding cycles) and construct the GraphQL input object types.
          */
         entityDictionary.walkEntityGraph(rootClasses, this::buildInputObjectStub);
-        resolveInputObjectRelationships();
 
         /* Construct root object */
         GraphQLObjectType.Builder root = newObject().name(OBJECT_QUERY);
@@ -383,7 +383,7 @@ public class ModelBuilder {
     private GraphQLInputType buildInputObjectStub(Type<?> clazz) {
         log.debug("Building input object for {}", clazz.getName());
 
-        MutableGraphQLInputObjectType.Builder builder = MutableGraphQLInputObjectType.newMutableInputObject();
+        GraphQLInputObjectType.Builder builder = GraphQLInputObjectType.newInputObject();
         builder.name(nameUtils.toInputTypeName(clazz));
 
         String id = entityDictionary.getIdFieldName(clazz);
@@ -412,40 +412,31 @@ public class ModelBuilder {
                 .type(attributeType)
             );
         }
+        for (String relationship : entityDictionary.getElideBoundRelationships(clazz)) {
+            log.debug("Resolving relationship {} for {}", relationship, clazz.getName());
+            Type<?> relationshipClass = entityDictionary.getParameterizedType(clazz, relationship);
+            if (excludedEntities.contains(relationshipClass)) {
+                continue;
+            }
 
-        MutableGraphQLInputObjectType constructed = builder.build();
+            RelationshipType type = entityDictionary.getRelationshipType(clazz, relationship);
+            String relationshipEntityName = nameUtils.toInputTypeName(relationshipClass);
+
+            if (type.isToOne()) {
+                builder.field(newInputObjectField()
+                        .name(relationship)
+                        .type(new GraphQLTypeReference(relationshipEntityName))
+                        .build());
+            } else {
+                builder.field(newInputObjectField()
+                        .name(relationship)
+                        .type(new GraphQLList(new GraphQLTypeReference(relationshipEntityName)))
+                        .build());
+            }
+        }
+
+        GraphQLInputObjectType constructed = builder.build();
         inputObjectRegistry.put(clazz, constructed);
         return constructed;
-    }
-
-    /**
-     * Constructs relationship links for input objects.
-     */
-    private void resolveInputObjectRelationships() {
-        inputObjectRegistry.forEach((clazz, inputObj) -> {
-            for (String relationship : entityDictionary.getElideBoundRelationships(clazz)) {
-                log.debug("Resolving relationship {} for {}", relationship, clazz.getName());
-                Type<?> relationshipClass = entityDictionary.getParameterizedType(clazz, relationship);
-                if (excludedEntities.contains(relationshipClass)) {
-                    continue;
-                }
-
-                RelationshipType type = entityDictionary.getRelationshipType(clazz, relationship);
-
-                if (type.isToOne()) {
-                    inputObj.setField(relationship, newInputObjectField()
-                        .name(relationship)
-                        .type(inputObjectRegistry.get(relationshipClass))
-                        .build()
-                    );
-                } else {
-                    inputObj.setField(relationship, newInputObjectField()
-                        .name(relationship)
-                        .type(new GraphQLList(inputObjectRegistry.get(relationshipClass)))
-                        .build()
-                    );
-                }
-            }
-        });
     }
 }
