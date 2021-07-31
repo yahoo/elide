@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.graphql;
 
-import static graphql.introspection.Introspection.__Type;
 import static graphql.schema.GraphQLArgument.newArgument;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
@@ -19,17 +18,17 @@ import com.yahoo.elide.core.type.Type;
 import org.apache.commons.collections4.CollectionUtils;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
+import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLCodeRegistry;
+import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLList;
-import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
-import graphql.schema.PropertyDataFetcher;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
@@ -71,6 +70,7 @@ public class ModelBuilder {
     private Map<Type<?>, GraphQLObjectType> queryObjectRegistry;
     private Map<Type<?>, GraphQLObjectType> connectionObjectRegistry;
     private Set<Type<?>> excludedEntities;
+    private Set<GraphQLObjectType> objectTypes;
 
     /**
      * Class constructor, constructs the custom arguments to handle mutations.
@@ -81,7 +81,9 @@ public class ModelBuilder {
     public ModelBuilder(EntityDictionary entityDictionary,
                         NonEntityDictionary nonEntityDictionary,
                         DataFetcher dataFetcher, String apiVersion) {
-        this.generator = new GraphQLConversionUtils(entityDictionary, nonEntityDictionary);
+        objectTypes = new HashSet<>();
+        this.generator = new GraphQLConversionUtils(entityDictionary, nonEntityDictionary, objectTypes);
+
         this.entityDictionary = entityDictionary;
         this.nameUtils = new GraphQLNameUtils(entityDictionary);
         this.dataFetcher = dataFetcher;
@@ -134,6 +136,8 @@ public class ModelBuilder {
                         .type(Scalars.GraphQLLong))
                 .build();
 
+        objectTypes.add(pageInfoObject);
+
         inputObjectRegistry = new HashMap<>();
         queryObjectRegistry = new HashMap<>();
         connectionObjectRegistry = new HashMap<>();
@@ -181,33 +185,34 @@ public class ModelBuilder {
                     .type(buildConnectionObject(clazz)));
         }
 
+
         GraphQLObjectType queryRoot = root.build();
         GraphQLObjectType mutationRoot = root.name(OBJECT_MUTATION).build();
+
+        objectTypes.add(queryRoot);
+        objectTypes.add(mutationRoot);
 
         /*
          * Walk the object graph (avoiding cycles) and construct the GraphQL output object types.
          */
         entityDictionary.walkEntityGraph(rootClasses, this::buildConnectionObject);
 
+        GraphQLCodeRegistry.Builder codeRegistry = GraphQLCodeRegistry.newCodeRegistry();
+
+        for (GraphQLObjectType objectType : objectTypes) {
+            String objectName = objectType.getName();
+            for (GraphQLFieldDefinition fieldDefinition : objectType.getFieldDefinitions()) {
+                codeRegistry.dataFetcher(
+                        FieldCoordinates.coordinates(objectName, fieldDefinition.getName()),
+                        dataFetcher);
+            }
+        }
+
         /* Construct the schema */
         GraphQLSchema schema = GraphQLSchema.newSchema()
                 .query(queryRoot)
                 .mutation(mutationRoot)
-
-                //Workaround for bug in GraphQL java (https://github.com/graphql-java/graphql-java/issues/2493).
-                //Check if schema introspection is trying to user our default data fetcher.  If so, don't let it.
-                .codeRegistry(GraphQLCodeRegistry.newCodeRegistry()
-                        .defaultDataFetcher((env) -> {
-                            GraphQLType type = env.getFieldDefinition().getType();
-                            if (type instanceof GraphQLNonNull) {
-                                type = ((GraphQLNonNull) type).getWrappedType();
-                            }
-                            if (type.equals(__Type) && env.getFieldDefinition().getName().equals("type")) {
-                                return PropertyDataFetcher.fetching("type");
-                            }
-                            return dataFetcher;
-                        })
-                        .build())
+                .codeRegistry(codeRegistry.build())
                 .additionalTypes(new HashSet<>(CollectionUtils.union(
                                 connectionObjectRegistry.values(),
                                 inputObjectRegistry.values())))
@@ -238,6 +243,8 @@ public class ModelBuilder {
                         .name("pageInfo")
                         .type(pageInfoObject))
                 .build();
+
+        objectTypes.add(connectionObject);
 
         connectionObjectRegistry.put(entityClass, connectionObject);
 
@@ -327,17 +334,24 @@ public class ModelBuilder {
         }
 
         GraphQLObjectType queryObject = builder.build();
+
+        objectTypes.add(queryObject);
+
         queryObjectRegistry.put(entityClass, queryObject);
         return queryObject;
     }
 
     private GraphQLList buildEdgesObject(Type<?> relationClass, GraphQLOutputType entityType) {
-        return new GraphQLList(newObject()
+        GraphQLObjectType edgesObject = newObject()
                 .name(nameUtils.toEdgesName(relationClass))
                 .field(newFieldDefinition()
                         .name("node")
                         .type(entityType))
-                .build());
+                .build();
+
+        objectTypes.add(edgesObject);
+
+        return new GraphQLList(edgesObject);
     }
 
     /**
