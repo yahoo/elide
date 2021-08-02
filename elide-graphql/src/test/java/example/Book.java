@@ -7,6 +7,8 @@ package example;
 
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.graphql.subscriptions.SubscriptionField;
+import com.yahoo.elide.graphql.subscriptions.Subscription;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Singular;
@@ -41,6 +43,7 @@ import javax.persistence.Table;
         operation = 10,
         logStatement = "{0}",
         logExpressions = {"${book.title}"})
+@Subscription( operations = { Subscription.Operation.CREATE, Subscription.Operation.UPDATE})
 public class Book {
 
     private long id;
@@ -52,6 +55,7 @@ public class Book {
     @Singular private Collection<Author> authors = new ArrayList<>();
     private Publisher publisher = null;
     private Date publicationDate = null;
+
     private Date lastPurchasedDate = null;
     private Author.AuthorType authorTypeAtTimeOfPublication;
     private Set<PublicationFormat> publicationFormats = new HashSet<>();
@@ -70,6 +74,7 @@ public class Book {
         this.id = id;
     }
 
+    @SubscriptionField
     public String getTitle() {
         return title;
     }
@@ -78,6 +83,7 @@ public class Book {
         this.title = title;
     }
 
+    @SubscriptionField
     public String getGenre() {
         return genre;
     }
@@ -135,6 +141,7 @@ public class Book {
         return this.weightLbs;
     }
 
+    @SubscriptionField
     @ManyToMany
     public Collection<Author> getAuthors() {
         return authors;
@@ -144,6 +151,7 @@ public class Book {
         this.authors = authors;
     }
 
+    @SubscriptionField
     @OneToMany(mappedBy = "book")
     public Collection<Preview> getPreviews() {
         return previews;

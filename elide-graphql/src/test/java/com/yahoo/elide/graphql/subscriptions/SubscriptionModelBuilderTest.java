@@ -18,6 +18,7 @@ import com.yahoo.elide.graphql.NonEntityDictionary;
 import example.Address;
 import example.Author;
 import example.Book;
+import example.Preview;
 import example.Publisher;
 import org.junit.jupiter.api.Test;
 import graphql.Scalars;
@@ -54,6 +55,7 @@ public class SubscriptionModelBuilderTest {
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(Address.class);
+        dictionary.bindEntity(Preview.class);
     }
 
     @Test
@@ -67,13 +69,13 @@ public class SubscriptionModelBuilderTest {
 
         GraphQLObjectType bookType = (GraphQLObjectType) schema.getType(TYPE_BOOK);
         GraphQLObjectType authorType = (GraphQLObjectType) schema.getType(TYPE_AUTHOR);
-        subscriptionType.getFieldDefinition("bookAdded").getType().equals(bookType);
-        subscriptionType.getFieldDefinition("bookDeleted").getType().equals(bookType);
-        subscriptionType.getFieldDefinition("bookUpdated").getType().equals(bookType);
+        assertEquals(bookType, subscriptionType.getFieldDefinition("bookAdded").getType());
+        assertNull(subscriptionType.getFieldDefinition("bookDeleted"));
+        assertEquals(bookType, subscriptionType.getFieldDefinition("bookUpdated").getType());
 
-        subscriptionType.getFieldDefinition("authorAdded").getType().equals(authorType);
-        subscriptionType.getFieldDefinition("authorDeleted").getType().equals(authorType);
-        subscriptionType.getFieldDefinition("authorUpdated").getType().equals(authorType);
+        assertEquals(authorType, subscriptionType.getFieldDefinition("authorAdded").getType());
+        assertEquals(authorType, subscriptionType.getFieldDefinition("authorDeleted").getType());
+        assertEquals(authorType, subscriptionType.getFieldDefinition("authorUpdated").getType());
     }
 
     @Test

@@ -49,6 +49,7 @@ public class SubscriptionModelBuilder {
     private GraphQLArgument filterArgument;
     private Set<Type<?>> excludedEntities;
     private Set<GraphQLObjectType> objectTypes;
+    private Set<Type<?>> relationshipTypes;
 
     /**
      * Class constructor, constructs the custom arguments to handle mutations.
@@ -67,6 +68,7 @@ public class SubscriptionModelBuilder {
         this.apiVersion = apiVersion;
         excludedEntities = new HashSet<>();
         queryObjectRegistry = new HashMap<>();
+        relationshipTypes = new HashSet<>();
 
         filterArgument = newArgument()
                 .name("filter")
@@ -89,30 +91,34 @@ public class SubscriptionModelBuilder {
             throw new IllegalArgumentException("None of the provided classes are exported by Elide");
         }
 
-        Set<Type<?>> rootClasses =  allClasses.stream().filter(entityDictionary::isRoot).collect(Collectors.toSet());
+        Set<Type<?>> subscriptionClasses =  allClasses.stream()
+                .filter((cls) -> entityDictionary.getAnnotation(cls, Subscription.class) != null)
+                .collect(Collectors.toSet());
 
         /* Construct root object */
         GraphQLObjectType.Builder root = newObject().name("Subscription");
 
-        String [] subscriptionTypes = { "Added", "Updated", "Deleted"};
-
-        for (Type<?> clazz : rootClasses) {
-            for (String subscriptionType : subscriptionTypes) {
-                String subscriptionName = entityDictionary.getJsonAliasFor(clazz) + subscriptionType;
-                root.field(newFieldDefinition()
-                        .name(subscriptionName)
-                        .description(EntityDictionary.getEntityDescription(clazz))
-                        .argument(filterArgument)
-                        .type(buildQueryObject(clazz)));
+        for (Type<?> clazz : subscriptionClasses) {
+            Subscription include = entityDictionary.getAnnotation(clazz, Subscription.class);
+            if (include == null) {
+                continue;
             }
+            GraphQLObjectType subscriptionType = buildQueryObject(clazz);
+            for (Subscription.Operation op : include.operations()) {
+                String subscriptionName = nameUtils.toSubscriptionName(clazz, op);
+                root.field(newFieldDefinition()
+                            .name(subscriptionName)
+                            .description(EntityDictionary.getEntityDescription(clazz))
+                            .argument(filterArgument)
+                            .type(subscriptionType));
+                }
         }
 
         GraphQLObjectType queryRoot = root.build();
 
-        /*
-         * Walk the object graph (avoiding cycles) and construct the GraphQL output object types.
-         */
-        entityDictionary.walkEntityGraph(rootClasses, this::buildQueryObject);
+        for (Type<?> relationshipType : relationshipTypes) {
+            this.buildQueryObject(relationshipType);
+        }
 
         GraphQLCodeRegistry.Builder codeRegistry = GraphQLCodeRegistry.newCodeRegistry();
 
@@ -160,7 +166,9 @@ public class SubscriptionModelBuilder {
 
         for (String attribute : entityDictionary.getAttributes(entityClass)) {
             Type<?> attributeClass = entityDictionary.getType(entityClass, attribute);
-            if (excludedEntities.contains(attributeClass)) {
+            if (excludedEntities.contains(attributeClass)
+                    || entityDictionary.getAttributeOrRelationAnnotation(entityClass,
+                    SubscriptionField.class, attribute) == null) {
                 continue;
             }
 
@@ -187,9 +195,13 @@ public class SubscriptionModelBuilder {
         for (String relationship : entityDictionary.getElideBoundRelationships(entityClass)) {
             log.debug("Resolving relationship {} for {}", relationship, entityClass.getName());
             Type<?> relationshipClass = entityDictionary.getParameterizedType(entityClass, relationship);
-            if (excludedEntities.contains(relationshipClass)) {
+            if (excludedEntities.contains(relationshipClass)
+                    || entityDictionary.getAttributeOrRelationAnnotation(entityClass,
+                    SubscriptionField.class, relationship) == null) {
                 continue;
             }
+
+            relationshipTypes.add(relationshipClass);
 
             RelationshipType type = entityDictionary.getRelationshipType(entityClass, relationship);
             String relationshipEntityName = nameUtils.toOutputTypeName(relationshipClass);

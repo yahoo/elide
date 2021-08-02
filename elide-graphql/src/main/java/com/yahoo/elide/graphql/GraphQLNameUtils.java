@@ -8,6 +8,7 @@ package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.graphql.subscriptions.Subscription;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -61,6 +62,25 @@ public class GraphQLNameUtils {
 
     public String toConnectionName(Type<?> clazz) {
         return toOutputTypeName(clazz) + CONNECTION_SUFFIX;
+    }
+
+    public String toSubscriptionName(Type<?> clazz, Subscription.Operation operation) {
+        String suffix;
+        switch (operation) {
+            case CREATE: {
+                suffix = "Added";
+                break;
+            }
+            case DELETE: {
+                suffix = "Deleted";
+                break;
+            }
+            default : {
+                suffix = "Updated";
+                break;
+            }
+        }
+        return toOutputTypeName(clazz) + suffix;
     }
 
     public String toNonElideOutputTypeName(Type<?> clazz) {

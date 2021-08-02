@@ -5,15 +5,19 @@
  */
 package com.yahoo.elide.graphql.subscriptions;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
+import static com.yahoo.elide.graphql.subscriptions.Subscription.Operation.CREATE;
+import static com.yahoo.elide.graphql.subscriptions.Subscription.Operation.DELETE;
+import static com.yahoo.elide.graphql.subscriptions.Subscription.Operation.UPDATE;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-@Target({TYPE, METHOD, FIELD})
+/**
+ * Marks an Elide model as a root level subscription topic.
+ */
+@Target({TYPE})
 @Retention(RUNTIME)
 public @interface Subscription {
     enum Operation {
@@ -22,5 +26,9 @@ public @interface Subscription {
         DELETE
     };
 
-    Operation[] operations();
+    /**
+     * Notify subscribers whenever a model is manipulated by the given operations.
+     * @return
+     */
+    Operation[] operations() default { CREATE, UPDATE, DELETE };
 }
