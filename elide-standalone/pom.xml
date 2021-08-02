@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>5.0.6-SNAPSHOT</version>
+        <version>5.0.6</version>
     </parent>
 
     <licenses>
@@ -40,7 +40,7 @@
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
         <url>https://github.com/yahoo/elide.git</url>
-        <tag>HEAD</tag>
+        <tag>5.0.6</tag>
     </scm>
 
     <properties>
@@ -59,34 +59,34 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-aggregation</artifactId>
-            <version>5.0.6-SNAPSHOT</version>
+            <version>5.0.6</version>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>5.0.6-SNAPSHOT</version>
+            <version>5.0.6</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>5.0.6-SNAPSHOT</version>
+            <version>5.0.6</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-swagger</artifactId>
-            <version>5.0.6-SNAPSHOT</version>
+            <version>5.0.6</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-async</artifactId>
-            <version>5.0.6-SNAPSHOT</version>
+            <version>5.0.6</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-model-config</artifactId>
-            <version>5.0.6-SNAPSHOT</version>
+            <version>5.0.6</version>
         </dependency>
 
         <!-- JPA -->
@@ -199,7 +199,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>5.0.6-SNAPSHOT</version>
+            <version>5.0.6</version>
             <scope>test</scope>
         </dependency>
 
