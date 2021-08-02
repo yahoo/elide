@@ -35,15 +35,22 @@ public class SubscriptionModelBuilderTest {
 
     private static final String FILTER = "filter";
 
+    private static final String BOOK_ADDED = "bookAdded";
+    private static final String BOOK_DELETED = "bookDeleted";
+    private static final String BOOK_UPDATED = "bookUpdated";
+    private static final String AUTHOR_ADDED = "authorAdded";
+    private static final String AUTHOR_DELETED = "authorDeleted";
+    private static final String AUTHOR_UPDATED = "authorUpdated";
+
     private static final String SUBSCRIPTION = "Subscription";
     private static final String TYPE_BOOK = "Book";
     private static final String TYPE_AUTHOR = "Author";
-    private static final String FIELD_PUBLISHER = "publisher";
+    private static final String TYPE_PREVIEW = "Preview";
+    private static final String FIELD_ID = "id";
     private static final String FIELD_TITLE = "title";
     private static final String FIELD_GENRE = "genre";
     private static final String FIELD_LANGUAGE = "language";
     private static final String FIELD_PUBLISH_DATE = "publishDate";
-    private static final String FIELD_WEIGHT_LBS = "weightLbs";
     private static final String FIELD_AUTHORS = "authors";
     private static final String FIELD_NAME = "name";
     private static final String FIELD_TYPE = "type";
@@ -69,13 +76,25 @@ public class SubscriptionModelBuilderTest {
 
         GraphQLObjectType bookType = (GraphQLObjectType) schema.getType(TYPE_BOOK);
         GraphQLObjectType authorType = (GraphQLObjectType) schema.getType(TYPE_AUTHOR);
-        assertEquals(bookType, subscriptionType.getFieldDefinition("bookAdded").getType());
-        assertNull(subscriptionType.getFieldDefinition("bookDeleted"));
-        assertEquals(bookType, subscriptionType.getFieldDefinition("bookUpdated").getType());
 
-        assertEquals(authorType, subscriptionType.getFieldDefinition("authorAdded").getType());
-        assertEquals(authorType, subscriptionType.getFieldDefinition("authorDeleted").getType());
-        assertEquals(authorType, subscriptionType.getFieldDefinition("authorUpdated").getType());
+        assertEquals(bookType, subscriptionType.getFieldDefinition(BOOK_ADDED).getType());
+        assertNotNull(subscriptionType.getFieldDefinition(BOOK_ADDED).getArgument(FILTER));
+
+        assertNull(subscriptionType.getFieldDefinition(BOOK_DELETED));
+
+        assertEquals(bookType, subscriptionType.getFieldDefinition(BOOK_UPDATED).getType());
+        assertNotNull(subscriptionType.getFieldDefinition(BOOK_UPDATED).getArgument(FILTER));
+
+        assertEquals(authorType, subscriptionType.getFieldDefinition(AUTHOR_ADDED).getType());
+        assertNotNull(subscriptionType.getFieldDefinition(AUTHOR_ADDED).getArgument(FILTER));
+        assertEquals(authorType, subscriptionType.getFieldDefinition(AUTHOR_DELETED).getType());
+        assertNotNull(subscriptionType.getFieldDefinition(AUTHOR_DELETED).getArgument(FILTER));
+        assertEquals(authorType, subscriptionType.getFieldDefinition(AUTHOR_UPDATED).getType());
+        assertNotNull(subscriptionType.getFieldDefinition(AUTHOR_UPDATED).getArgument(FILTER));
+
+        assertNull(subscriptionType.getFieldDefinition("publisherAdded"));
+        assertNull(subscriptionType.getFieldDefinition("publisherDeleted"));
+        assertNull(subscriptionType.getFieldDefinition("publisherUpdated"));
     }
 
     @Test
@@ -88,36 +107,50 @@ public class SubscriptionModelBuilderTest {
 
         GraphQLObjectType bookType = (GraphQLObjectType) schema.getType(TYPE_BOOK);
         GraphQLObjectType authorType = (GraphQLObjectType) schema.getType(TYPE_AUTHOR);
-
-        GraphQLObjectType publisherType = (GraphQLObjectType) bookType.getFieldDefinition(FIELD_PUBLISHER).getType();
+        GraphQLObjectType previewType = (GraphQLObjectType) schema.getType(TYPE_PREVIEW);
+        GraphQLObjectType publisherType = (GraphQLObjectType) schema.getType("publisher");
 
         assertNotNull(bookType);
         assertNotNull(authorType);
+        assertNotNull(previewType);
+        assertNull(publisherType);
         assertNotNull(schema.getType(SUBSCRIPTION));
 
         //Test root type description fields.
         assertEquals("A GraphQL Book", bookType.getDescription());
         assertNull(authorType.getDescription());
 
-        //Test non-root type description fields.
-        assertEquals("A book publisher", publisherType.getDescription());
-
+        //Verify Book Fields
         assertEquals(Scalars.GraphQLString, bookType.getFieldDefinition(FIELD_TITLE).getType());
         assertEquals(Scalars.GraphQLString, bookType.getFieldDefinition(FIELD_GENRE).getType());
-        assertEquals(Scalars.GraphQLString, bookType.getFieldDefinition(FIELD_LANGUAGE).getType());
-        assertEquals(Scalars.GraphQLLong, bookType.getFieldDefinition(FIELD_PUBLISH_DATE).getType());
-        assertEquals(Scalars.GraphQLBigDecimal, bookType.getFieldDefinition(FIELD_WEIGHT_LBS).getType());
+        assertEquals(Scalars.GraphQLID, previewType.getFieldDefinition(FIELD_ID).getType());
+        assertEquals(previewType,
+                ((GraphQLList) bookType.getFieldDefinition("previews").getType()).getWrappedType());
+        assertEquals(authorType,
+                ((GraphQLList) bookType.getFieldDefinition(FIELD_AUTHORS).getType()).getWrappedType());
+        assertEquals(5, bookType.getFieldDefinitions().size());
 
+        //Verify fields without SubscriptionField are missing.
+        assertNull(bookType.getFieldDefinition(FIELD_LANGUAGE));
+        assertNull(bookType.getFieldDefinition(FIELD_PUBLISH_DATE));
+        assertNull(bookType.getFieldDefinition("publisher"));
+
+        //Verify Author Fields
+        assertEquals(Scalars.GraphQLID, authorType.getFieldDefinition(FIELD_ID).getType());
         GraphQLObjectType addressType = (GraphQLObjectType) authorType.getFieldDefinition("homeAddress").getType();
         assertEquals(Scalars.GraphQLString, addressType.getFieldDefinition("street1").getType());
         assertEquals(Scalars.GraphQLString, addressType.getFieldDefinition("street2").getType());
-
-        GraphQLObjectType authorsType = (GraphQLObjectType)
-                ((GraphQLList) bookType.getFieldDefinition(FIELD_AUTHORS).getType()).getWrappedType();
-
-        assertEquals(Scalars.GraphQLString, authorsType.getFieldDefinition(FIELD_NAME).getType());
+        assertEquals(Scalars.GraphQLString, authorType.getFieldDefinition(FIELD_NAME).getType());
         assertTrue(validateEnum(Author.AuthorType.class,
-                (GraphQLEnumType) authorsType.getFieldDefinition(FIELD_TYPE).getType()));
+                (GraphQLEnumType) authorType.getFieldDefinition(FIELD_TYPE).getType()));
+        assertEquals(4, authorType.getFieldDefinitions().size());
+
+        //Verify fields without SubscriptionField are missing.
+        assertNull(bookType.getFieldDefinition("books"));
+
+        //Verify Preview Fields
+        assertEquals(Scalars.GraphQLID, previewType.getFieldDefinition(FIELD_ID).getType());
+        assertEquals(1, previewType.getFieldDefinitions().size());
 
     }
 }

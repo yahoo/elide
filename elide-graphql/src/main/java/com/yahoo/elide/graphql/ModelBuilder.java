@@ -83,7 +83,7 @@ public class ModelBuilder {
                         NonEntityDictionary nonEntityDictionary,
                         DataFetcher dataFetcher, String apiVersion) {
         objectTypes = new HashSet<>();
-        this.generator = new GraphQLConversionUtils(entityDictionary, nonEntityDictionary, objectTypes);
+        this.generator = new GraphQLConversionUtils(entityDictionary, nonEntityDictionary);
 
         this.entityDictionary = entityDictionary;
         this.nameUtils = new GraphQLNameUtils(entityDictionary);
@@ -199,6 +199,7 @@ public class ModelBuilder {
 
         GraphQLCodeRegistry.Builder codeRegistry = GraphQLCodeRegistry.newCodeRegistry();
 
+        objectTypes.addAll(generator.getObjectTypes());
         for (GraphQLObjectType objectType : objectTypes) {
             String objectName = objectType.getName();
             for (GraphQLFieldDefinition fieldDefinition : objectType.getFieldDefinitions()) {

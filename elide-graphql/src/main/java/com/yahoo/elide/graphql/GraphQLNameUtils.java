@@ -80,7 +80,7 @@ public class GraphQLNameUtils {
                 break;
             }
         }
-        return toOutputTypeName(clazz) + suffix;
+        return StringUtils.uncapitalize(toOutputTypeName(clazz) + suffix);
     }
 
     public String toNonElideOutputTypeName(Type<?> clazz) {

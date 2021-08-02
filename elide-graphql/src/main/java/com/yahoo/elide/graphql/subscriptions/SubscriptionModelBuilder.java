@@ -40,16 +40,15 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class SubscriptionModelBuilder {
-    private Map<Type<?>, GraphQLObjectType> queryObjectRegistry;
-    private final String apiVersion;
-    private GraphQLConversionUtils generator;
-    private GraphQLNameUtils nameUtils;
-    private EntityDictionary entityDictionary;
-    private DataFetcher dataFetcher;
+    private Map<Type<?>, GraphQLObjectType> queryObjectRegistry;  //Cache of models we've already processed.
+    private final String apiVersion;            //apiVersion we are generating a schema for.
+    private GraphQLConversionUtils generator;   //Converts attributes (non Elide models) to GraphQL types.
+    private GraphQLNameUtils nameUtils;         //Generates type names
+    private EntityDictionary entityDictionary;  //Client provided model dictionary
+    private DataFetcher dataFetcher;        //Client provided data fetcher
     private GraphQLArgument filterArgument;
-    private Set<Type<?>> excludedEntities;
-    private Set<GraphQLObjectType> objectTypes;
-    private Set<Type<?>> relationshipTypes;
+    private Set<Type<?>> excludedEntities;  //Client controlled models to skip.
+    private Set<Type<?>> relationshipTypes; //Keeps track of which relationship models need to be built.
 
     /**
      * Class constructor, constructs the custom arguments to handle mutations.
@@ -60,8 +59,7 @@ public class SubscriptionModelBuilder {
     public SubscriptionModelBuilder(EntityDictionary entityDictionary,
                         NonEntityDictionary nonEntityDictionary,
                         DataFetcher dataFetcher, String apiVersion) {
-        objectTypes = new HashSet<>();
-        this.generator = new GraphQLConversionUtils(entityDictionary, nonEntityDictionary, objectTypes);
+        this.generator = new GraphQLConversionUtils(entityDictionary, nonEntityDictionary);
         this.entityDictionary = entityDictionary;
         this.nameUtils = new GraphQLNameUtils(entityDictionary);
         this.dataFetcher = dataFetcher;
@@ -120,9 +118,14 @@ public class SubscriptionModelBuilder {
             this.buildQueryObject(relationshipType);
         }
 
+        // Attach the client provided dataFetcher to all of the GraphQL subscription objects.
         GraphQLCodeRegistry.Builder codeRegistry = GraphQLCodeRegistry.newCodeRegistry();
 
-        for (GraphQLObjectType objectType : objectTypes) {
+        Set<GraphQLObjectType> objectsThatNeedAFetcher = new HashSet<>(queryObjectRegistry.values());
+        objectsThatNeedAFetcher.addAll(generator.getObjectTypes());
+        objectsThatNeedAFetcher.add(queryRoot);
+
+        for (GraphQLObjectType objectType : objectsThatNeedAFetcher) {
             String objectName = objectType.getName();
             for (GraphQLFieldDefinition fieldDefinition : objectType.getFieldDefinitions()) {
                 codeRegistry.dataFetcher(

@@ -48,7 +48,6 @@ public class GraphQLConversionUtils {
     protected static final String ERROR_MESSAGE = "Value should either be integer, String or float";
 
     private final Map<Type<?>, GraphQLScalarType> scalarMap = new HashMap<>();
-    private Set<GraphQLObjectType> objectTypes;
 
     protected NonEntityDictionary nonEntityDictionary;
     protected EntityDictionary entityDictionary;
@@ -61,13 +60,11 @@ public class GraphQLConversionUtils {
 
     public GraphQLConversionUtils(
             EntityDictionary entityDictionary,
-            NonEntityDictionary nonEntityDictionary,
-            Set<GraphQLObjectType> objectTypes
+            NonEntityDictionary nonEntityDictionary
     ) {
         this.entityDictionary = entityDictionary;
         this.nonEntityDictionary = nonEntityDictionary;
         this.nameUtils = new GraphQLNameUtils(entityDictionary);
-        this.objectTypes = objectTypes;
         registerCustomScalars();
     }
 
@@ -177,7 +174,6 @@ public class GraphQLConversionUtils {
 
         GraphQLList outputMap = new GraphQLList(mapType);
 
-        objectTypes.add(mapType);
         mapConversions.put(mapName, outputMap);
 
         return mapConversions.get(mapName);
@@ -395,7 +391,6 @@ public class GraphQLConversionUtils {
         }
 
         GraphQLObjectType object = objectBuilder.build();
-        objectTypes.add(object);
         outputConversions.put(clazz, object);
 
         return object;
@@ -531,5 +526,16 @@ public class GraphQLConversionUtils {
             inputType = classToInputObject(conversionClass);
         }
         return inputType;
+    }
+
+    public Set<GraphQLObjectType> getObjectTypes() {
+        Set<GraphQLObjectType> allObjects = mapConversions.values().stream()
+                .map(GraphQLList::getWrappedType)
+                .filter(type -> type instanceof GraphQLObjectType)
+                .map(GraphQLObjectType.class::cast)
+                .collect(Collectors.toSet());
+
+        allObjects.addAll(outputConversions.values());
+        return allObjects;
     }
 }
