@@ -1123,6 +1123,28 @@ public class EntityDictionary {
     }
 
     /**
+     * Returns whether a class (including superclasses) or any of its
+     * fields (attributes/relationships) has a given annotation.
+     * @param recordClass The elide model to check.
+     * @param annotationClass The annotation to search for.
+     * @param <A> The annotation type.
+     * @return True if the model is decorated with the annotation.  False otherwise.
+     */
+    public <A extends Annotation> boolean hasAnnotation(Type<?> recordClass, Class<A> annotationClass) {
+        if (this.getAnnotation(recordClass, annotationClass) != null) {
+            return true;
+        }
+
+        for (String fieldName : getEntityBinding(recordClass).fieldsToValues.keySet()) {
+            if (this.getAttributeOrRelationAnnotation(recordClass, annotationClass, fieldName) != null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Return annotation from class for provided method.
      * @param recordClass the record class
      * @param method the method

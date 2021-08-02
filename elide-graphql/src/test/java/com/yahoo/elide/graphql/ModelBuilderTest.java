@@ -295,7 +295,7 @@ public class ModelBuilderTest {
         return getConnectedType((GraphQLObjectType) rootType.getFieldDefinition(connectionName).getType(), null);
     }
 
-    private boolean validateEnum(Class<?> expected, GraphQLEnumType actual) {
+    public static boolean validateEnum(Class<?> expected, GraphQLEnumType actual) {
         Enum [] values = (Enum []) expected.getEnumConstants();
         Set<String> enumNames = actual.getValues().stream()
                 .map(GraphQLEnumValueDefinition::getName)
