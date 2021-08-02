@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>5.0.5-SNAPSHOT</version>
+        <version>5.0.5</version>
     </parent>
 
     <licenses>
@@ -40,14 +40,14 @@
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
         <url>https://github.com/yahoo/elide.git</url>
-        <tag>HEAD</tag>
+        <tag>5.0.5</tag>
     </scm>
 
     <dependencies>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>5.0.5-SNAPSHOT</version>
+            <version>5.0.5</version>
         </dependency>
 
         <!-- JPA -->
