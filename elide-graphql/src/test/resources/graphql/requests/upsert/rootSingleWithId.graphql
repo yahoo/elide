@@ -1,9 +1,10 @@
 mutation {
-  author(op:UPSERT, data: {id: "1", name: "abc" }) {
+  author(op:UPSERT, data: {id: "1", name: "abc", obj: "bar" }) {
     edges {
       node {
         id
         name
+        obj
       }
     }
   }

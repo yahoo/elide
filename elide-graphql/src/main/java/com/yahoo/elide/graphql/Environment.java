@@ -67,7 +67,7 @@ public class Environment {
             parentResource = null;
         }
 
-        field = environment.getFields().get(0);
+        field = environment.getMergedField().getFields().get(0);
 
         this.ids = Optional.ofNullable((List<String>) args.get(ModelBuilder.ARGUMENT_IDS));
 

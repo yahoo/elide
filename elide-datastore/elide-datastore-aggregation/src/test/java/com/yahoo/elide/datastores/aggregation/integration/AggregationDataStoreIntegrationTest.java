@@ -220,6 +220,56 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     }
 
     @Test
+    public void testGraphQLMetdata() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "table",
+                                arguments(
+                                        argument("ids", Arrays.asList("playerStatsView"))
+                                ),
+                                selections(
+                                        field("name"),
+                                        field("arguments",
+                                                selections(
+                                                    field("name"),
+                                                    field("type"),
+                                                    field("defaultValue")
+                                                )
+
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "table",
+                                selections(
+                                        field("name", "playerStatsView"),
+                                        field("arguments",
+                                                selections(
+                                                    field("name", "rating"),
+                                                    field("type", "TEXT"),
+                                                    field("defaultValue", "")
+                                                ),
+                                                selections(
+                                                    field("name", "minScore"),
+                                                    field("type", "INTEGER"),
+                                                    field("defaultValue", "0")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
     public void basicAggregationTest() throws Exception {
         String graphQLRequest = document(
                 selection(

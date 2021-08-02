@@ -61,6 +61,7 @@ public class Author {
     private Set<PublicationFormat> publicationFormats = new HashSet<>();
     private Map<Book, PublicationFormat> publishedBookFormats = new HashMap<>();
     private Map<Book, PublicationFormat> favoriteBookFormats = new HashMap<>();
+    private Object obj = "foo";
     private Map<PublicationFormat, Integer> booksPublishedByFormat = new HashMap<>();
 
     public String getName() {
@@ -71,6 +72,13 @@ public class Author {
         this.name = name;
     }
 
+    public void setObj(Object obj) {
+        this.obj = obj;
+    }
+
+    public Object getObj() {
+        return obj;
+    }
     public AuthorType getType() {
         return type;
     }

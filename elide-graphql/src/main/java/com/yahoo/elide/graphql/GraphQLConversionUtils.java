@@ -35,6 +35,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -47,6 +48,7 @@ public class GraphQLConversionUtils {
     protected static final String ERROR_MESSAGE = "Value should either be integer, String or float";
 
     private final Map<Type<?>, GraphQLScalarType> scalarMap = new HashMap<>();
+    private Set<GraphQLObjectType> objectTypes;
 
     protected NonEntityDictionary nonEntityDictionary;
     protected EntityDictionary entityDictionary;
@@ -57,10 +59,15 @@ public class GraphQLConversionUtils {
     private final Map<String, GraphQLList> mapConversions = new HashMap<>();
     private final GraphQLNameUtils nameUtils;
 
-    public GraphQLConversionUtils(EntityDictionary entityDictionary, NonEntityDictionary nonEntityDictionary) {
+    public GraphQLConversionUtils(
+            EntityDictionary entityDictionary,
+            NonEntityDictionary nonEntityDictionary,
+            Set<GraphQLObjectType> objectTypes
+    ) {
         this.entityDictionary = entityDictionary;
         this.nonEntityDictionary = nonEntityDictionary;
         this.nameUtils = new GraphQLNameUtils(entityDictionary);
+        this.objectTypes = objectTypes;
         registerCustomScalars();
     }
 
@@ -70,7 +77,12 @@ public class GraphQLConversionUtils {
             ElideTypeConverter elideTypeConverter = serde.getClass().getAnnotation(ElideTypeConverter.class);
             String name = elideTypeConverter != null ? elideTypeConverter.name() : type.getSimpleName();
             String description = elideTypeConverter != null ? elideTypeConverter.description() : type.getSimpleName();
-            scalarMap.put(ClassType.of(type), new GraphQLScalarType(name, description, serdeCoercing));
+            scalarMap.put(ClassType.of(type), GraphQLScalarType.newScalar()
+                            .name(name)
+                            .description(description)
+                            .coercing(serdeCoercing)
+                            .build());
+
         });
     }
 
@@ -92,7 +104,7 @@ public class GraphQLConversionUtils {
             return Scalars.GraphQLFloat;
         } else if (clazz.equals(ClassType.of(short.class)) || clazz.equals(ClassType.of(Short.class))) {
             return Scalars.GraphQLShort;
-        } else if (clazz.equals(ClassType.of(String.class))) {
+        } else if (clazz.equals(ClassType.of(String.class)) || clazz.equals(ClassType.of(Object.class))) {
             return Scalars.GraphQLString;
         } else if (clazz.equals(ClassType.of(BigDecimal.class))) {
             return Scalars.GraphQLBigDecimal;
@@ -153,20 +165,19 @@ public class GraphQLConversionUtils {
         GraphQLOutputType keyType = fetchScalarOrObjectOutput(keyClazz, fetcher);
         GraphQLOutputType valueType = fetchScalarOrObjectOutput(valueClazz, fetcher);
 
-        GraphQLList outputMap = new GraphQLList(
-            newObject()
+        GraphQLObjectType mapType = newObject()
                 .name(mapName)
                 .field(newFieldDefinition()
                         .name(KEY)
-                        .dataFetcher(fetcher)
                         .type(keyType))
                 .field(newFieldDefinition()
                         .name(VALUE)
-                        .dataFetcher(fetcher)
                         .type(valueType))
-                .build()
-        );
+                .build();
 
+        GraphQLList outputMap = new GraphQLList(mapType);
+
+        objectTypes.add(mapType);
         mapConversions.put(mapName, outputMap);
 
         return mapConversions.get(mapName);
@@ -273,7 +284,6 @@ public class GraphQLConversionUtils {
 
             // If this is a collection of a boxed type scalar, we want to unwrap it properly
             return new GraphQLList(fetchScalarOrObjectOutput(listType, fetcher));
-
         }
         return fetchScalarOrObjectOutput(attributeClass, fetcher);
     }
@@ -370,8 +380,7 @@ public class GraphQLConversionUtils {
             Type<?> attributeClass = nonEntityDictionary.getType(clazz, attribute);
 
             GraphQLFieldDefinition.Builder fieldBuilder = newFieldDefinition()
-                    .name(attribute)
-                    .dataFetcher(fetcher);
+                    .name(attribute);
 
             GraphQLOutputType attributeType =
                     attributeToQueryObject(clazz,
@@ -386,7 +395,7 @@ public class GraphQLConversionUtils {
         }
 
         GraphQLObjectType object = objectBuilder.build();
-
+        objectTypes.add(object);
         outputConversions.put(clazz, object);
 
         return object;

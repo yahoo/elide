@@ -4,7 +4,8 @@
       {
         "node": {
           "id": "1",
-          "name": "abc"
+          "name": "abc",
+          "obj" : "bar"
         }
       }
     ]
