@@ -193,6 +193,7 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
             + "   name"
             + "   fields {"
             + "     name"
+            + "     type { name }"
             + "   }"
             + "}"
             + "}";

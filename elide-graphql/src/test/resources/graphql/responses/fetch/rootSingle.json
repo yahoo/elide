@@ -10,7 +10,8 @@
               {
                 "node": {
                   "id": "1",
-                  "name": "Mark Twain"
+                  "name": "Mark Twain",
+                  "obj": "foo"
                 }
               }
             ]

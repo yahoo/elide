@@ -30,6 +30,7 @@ import graphql.language.Field;
 import graphql.language.FragmentSpread;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLType;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -154,8 +155,11 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
 
         GraphQLType parent = environment.parentType;
         if (log.isDebugEnabled()) {
-            log.debug("{} {} fields with parent {}<{}>",
-                    operation, requestedFields, EntityDictionary.getSimpleName(parent.getClass()), parent.getName());
+            String typeName = (parent instanceof GraphQLNamedType)
+                    ? ((GraphQLNamedType) parent).getName()
+                    : parent.toString();
+            log.debug("{} {} fields with parent {}<{}>", operation, requestedFields,
+                    EntityDictionary.getSimpleName(parent.getClass()), typeName);
         }
     }
 

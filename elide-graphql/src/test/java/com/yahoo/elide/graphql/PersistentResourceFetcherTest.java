@@ -31,12 +31,16 @@ import org.apache.tools.ant.util.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
+import graphql.execution.AsyncSerialExecutionStrategy;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -93,7 +97,9 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         ModelBuilder builder = new ModelBuilder(dictionary, nonEntityDictionary,
                 new PersistentResourceFetcher(settings, nonEntityDictionary));
 
-        api = new GraphQL(builder.build());
+        api = GraphQL.newGraphQL(builder.build())
+                .queryExecutionStrategy(new AsyncSerialExecutionStrategy())
+                .build();
 
         initTestData();
     }
@@ -192,7 +198,13 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
         RequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, settings);
 
-        ExecutionResult result = api.execute(graphQLRequest, requestScope, variables);
+        ExecutionInput executionInput = ExecutionInput.newExecutionInput()
+                .query(graphQLRequest)
+                .context(requestScope)
+                .variables(variables)
+                .build();
+
+        ExecutionResult result = api.execute(executionInput);
         // NOTE: We're forcing commit even in case of failures. GraphQLEndpoint tests should ensure we do not commit on
         //       failure.
         if (isMutation) {
@@ -201,10 +213,12 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         requestScope.getTransaction().commit(requestScope);
         assertEquals(0, result.getErrors().size(), "Errors [" + errorsToString(result.getErrors()) + "]:");
         try {
+            LOG.info(expectedResponse);
             LOG.info(mapper.writeValueAsString(result.getData()));
-            assertEquals(
-                    mapper.readTree(expectedResponse),
-                    mapper.readTree(mapper.writeValueAsString(result.getData()))
+            JSONAssert.assertEquals(
+                    expectedResponse,
+                    mapper.writeValueAsString(result.getData()),
+                    JSONCompareMode.STRICT
             );
         } catch (JsonProcessingException e) {
             fail("JSON parsing exception", e);
@@ -217,7 +231,12 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         DataStoreTransaction tx = inMemoryDataStore.beginTransaction();
         RequestScope requestScope = new GraphQLRequestScope(baseUrl, tx, null, settings);
 
-        ExecutionResult result = api.execute(graphQLRequest, requestScope);
+        ExecutionInput executionInput = ExecutionInput.newExecutionInput()
+                .query(graphQLRequest)
+                .context(requestScope)
+                .build();
+
+        ExecutionResult result = api.execute(executionInput);
         if (isMutation) {
             requestScope.saveOrCreateObjects();
         }

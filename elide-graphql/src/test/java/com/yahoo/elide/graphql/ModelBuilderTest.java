@@ -7,6 +7,7 @@
 package com.yahoo.elide.graphql;
 
 import static graphql.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -147,23 +148,23 @@ public class ModelBuilderTest {
         GraphQLObjectType bookType = getConnectedType((GraphQLObjectType) schema.getType(BOOK), null);
         GraphQLObjectType authorType = getConnectedType((GraphQLObjectType) schema.getType(AUTHOR), null);
 
-        assertTrue(bookType.getFieldDefinition(TITLE).getType().equals(Scalars.GraphQLString));
-        assertTrue(bookType.getFieldDefinition(GENRE).getType().equals(Scalars.GraphQLString));
-        assertTrue(bookType.getFieldDefinition(LANGUAGE).getType().equals(Scalars.GraphQLString));
-        assertTrue(bookType.getFieldDefinition(PUBLISH_DATE).getType().equals(Scalars.GraphQLLong));
-        assertTrue(bookType.getFieldDefinition(WEIGHT_LBS).getType().equals(Scalars.GraphQLBigDecimal));
+        assertEquals(Scalars.GraphQLString, bookType.getFieldDefinition(TITLE).getType());
+        assertEquals(Scalars.GraphQLString, bookType.getFieldDefinition(GENRE).getType());
+        assertEquals(Scalars.GraphQLString, bookType.getFieldDefinition(LANGUAGE).getType());
+        assertEquals(Scalars.GraphQLLong, bookType.getFieldDefinition(PUBLISH_DATE).getType());
+        assertEquals(Scalars.GraphQLBigDecimal, bookType.getFieldDefinition(WEIGHT_LBS).getType());
 
         GraphQLObjectType addressType = (GraphQLObjectType) authorType.getFieldDefinition("homeAddress").getType();
-        assertTrue(addressType.getFieldDefinition("street1").getType().equals(Scalars.GraphQLString));
-        assertTrue(addressType.getFieldDefinition("street2").getType().equals(Scalars.GraphQLString));
+        assertEquals(Scalars.GraphQLString, addressType.getFieldDefinition("street1").getType());
+        assertEquals(Scalars.GraphQLString, addressType.getFieldDefinition("street2").getType());
 
 
         GraphQLObjectType authorsType = (GraphQLObjectType) bookType.getFieldDefinition(AUTHORS).getType();
         GraphQLObjectType authorsNodeType = getConnectedType(authorsType, null);
 
-        assertTrue(authorsNodeType.equals(authorType));
+        assertEquals(authorType, authorsNodeType);
 
-        assertTrue(authorType.getFieldDefinition(NAME).getType().equals(Scalars.GraphQLString));
+        assertEquals(Scalars.GraphQLString, authorType.getFieldDefinition(NAME).getType());
 
         assertTrue(validateEnum(Author.AuthorType.class,
                 (GraphQLEnumType) authorType.getFieldDefinition(TYPE).getType()));
@@ -175,18 +176,18 @@ public class ModelBuilderTest {
         GraphQLInputObjectType bookInputType = (GraphQLInputObjectType) schema.getType(BOOK_INPUT);
         GraphQLInputObjectType authorInputType = (GraphQLInputObjectType) schema.getType(AUTHOR_INPUT);
 
-        assertTrue(bookInputType.getField(TITLE).getType().equals(Scalars.GraphQLString));
-        assertTrue(bookInputType.getField(GENRE).getType().equals(Scalars.GraphQLString));
-        assertTrue(bookInputType.getField(LANGUAGE).getType().equals(Scalars.GraphQLString));
-        assertTrue(bookInputType.getField(PUBLISH_DATE).getType().equals(Scalars.GraphQLLong));
+        assertEquals(Scalars.GraphQLString, bookInputType.getField(TITLE).getType());
+        assertEquals(Scalars.GraphQLString, bookInputType.getField(GENRE).getType());
+        assertEquals(Scalars.GraphQLString, bookInputType.getField(LANGUAGE).getType());
+        assertEquals(Scalars.GraphQLLong, bookInputType.getField(PUBLISH_DATE).getType());
 
         GraphQLList authorsInputType = (GraphQLList) bookInputType.getField(AUTHORS).getType();
-        assertTrue(authorsInputType.getWrappedType().equals(authorInputType));
+        assertEquals(authorInputType, authorsInputType.getWrappedType());
 
-        assertTrue(authorInputType.getField(NAME).getType().equals(Scalars.GraphQLString));
+        assertEquals(Scalars.GraphQLString, authorInputType.getField(NAME).getType());
 
         GraphQLList booksInputType = (GraphQLList) authorInputType.getField(BOOKS).getType();
-        assertTrue(booksInputType.getWrappedType().equals(bookInputType));
+        assertEquals(bookInputType, booksInputType.getWrappedType());
     }
 
     private GraphQLObjectType getConnectedType(GraphQLObjectType root, String connectionName) {
