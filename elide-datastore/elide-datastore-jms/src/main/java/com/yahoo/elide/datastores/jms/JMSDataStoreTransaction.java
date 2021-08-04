@@ -11,9 +11,17 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.EntityProjection;
 
+import javax.jms.JMSContext;
+
 import java.io.IOException;
 
 public class JMSDataStoreTransaction implements DataStoreTransaction {
+    private JMSContext context;
+
+    public JMSDataStoreTransaction(JMSContext context) {
+        this.context = context;
+    }
+
     @Override
     public <T> void save(T entity, RequestScope scope) {
         throw new BadRequestException("Unsupported operation");
@@ -41,6 +49,7 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
 
     @Override
     public <T> Iterable<T> loadObjects(EntityProjection entityProjection, RequestScope scope) {
+        context.createQueue()
         return null;
     }
 

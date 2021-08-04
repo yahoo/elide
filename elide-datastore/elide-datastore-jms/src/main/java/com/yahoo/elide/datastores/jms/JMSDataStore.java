@@ -12,12 +12,16 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
 
 import java.util.Set;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSContext;
 
 public class JMSDataStore implements DataStore {
     Set<Type<?>> models;
+    ConnectionFactory connectionFactory;
 
-    public JMSDataStore(Set<Type<?>> models) {
+    public JMSDataStore(Set<Type<?>> models, ConnectionFactory connectionFactory) {
         this.models = models;
+        this.connectionFactory = connectionFactory;
     }
 
     @Override
@@ -29,11 +33,13 @@ public class JMSDataStore implements DataStore {
 
     @Override
     public DataStoreTransaction beginTransaction() {
-        return new JMSDataStoreTransaction();
+        JMSContext context = connectionFactory.createContext()
+        return new JMSDataStoreTransaction(context);
     }
 
     @Override
     public DataStoreTransaction beginReadTransaction() {
-        return new JMSDataStoreTransaction();
+        JMSContext context = connectionFactory.createContext()
+        return new JMSDataStoreTransaction(context);
     }
 }
