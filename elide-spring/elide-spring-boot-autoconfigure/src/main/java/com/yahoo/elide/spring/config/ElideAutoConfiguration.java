@@ -146,6 +146,10 @@ public class ElideAutoConfiguration {
                 .withJsonApiPath(settings.getJsonApi().getPath())
                 .withGraphQLApiPath(settings.getGraphql().getPath());
 
+        if (settings.isVerboseErrors()) {
+            builder.withVerboseErrors();
+        }
+
         if (settings.getAsync() != null
                 && settings.getAsync().getExport() != null
                 && settings.getAsync().getExport().isEnabled()) {
