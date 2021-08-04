@@ -399,7 +399,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
             // custom processing
             return "Book".equals(pathElement.getType().getSimpleName())
                     && filterPredicate.toString().matches("book.genre IN \\[\\w+\\]")
-                    && reason.getLoggedMessage().matches(".*Message=ReadPermission Denied.*")
+                    && reason.getLoggedMessage().matches(".*Message=ReadPermission Denied.*\\n.*")
                             ? ExpressionResult.DEFERRED
                             : ExpressionResult.FAIL;
         });
