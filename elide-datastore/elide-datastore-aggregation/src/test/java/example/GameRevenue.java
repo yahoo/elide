@@ -4,11 +4,11 @@
  * See LICENSE file in project root for terms.
  */
 
-package com.yahoo.elide.datastores.aggregation.example;
+package example;
 
-import static com.yahoo.elide.datastores.aggregation.example.TimeGrainDefinitions.DATE_FORMAT;
-import static com.yahoo.elide.datastores.aggregation.example.TimeGrainDefinitions.MONTH_FORMAT;
-import static com.yahoo.elide.datastores.aggregation.example.TimeGrainDefinitions.QUARTER_FORMAT;
+import static example.TimeGrainDefinitions.DATE_FORMAT;
+import static example.TimeGrainDefinitions.MONTH_FORMAT;
+import static example.TimeGrainDefinitions.QUARTER_FORMAT;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
@@ -18,11 +18,11 @@ import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
-import com.yahoo.elide.datastores.aggregation.example.dimensions.Country;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import com.yahoo.elide.datastores.aggregation.timegrains.Day;
+import example.dimensions.Country;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 

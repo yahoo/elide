@@ -34,10 +34,8 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLMetricProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Subselect;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 

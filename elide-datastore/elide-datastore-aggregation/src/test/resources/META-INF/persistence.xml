@@ -10,10 +10,10 @@
              xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
              version="2.0">
     <persistence-unit name="aggregationStore">
-        <class>com.yahoo.elide.datastores.aggregation.example.dimensions.Country</class>
-        <class>com.yahoo.elide.datastores.aggregation.example.dimensions.SubCountry</class>
-        <class>com.yahoo.elide.datastores.aggregation.example.Player</class>
-        <class>com.yahoo.elide.datastores.aggregation.example.dimensions.Continent</class>
+        <class>example.dimensions.Country</class>
+        <class>example.dimensions.SubCountry</class>
+        <class>example.Player</class>
+        <class>example.dimensions.Continent</class>
 
 
         <properties>

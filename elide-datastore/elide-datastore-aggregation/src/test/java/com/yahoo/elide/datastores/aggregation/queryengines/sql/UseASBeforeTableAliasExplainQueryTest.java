@@ -36,22 +36,22 @@ public class UseASBeforeTableAliasExplainQueryTest extends SQLUnitTest {
     @Test
     public void testExplainPagination() {
         String expectedQueryStr1 = "SELECT COUNT(*) FROM "
-                        + "(SELECT `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
-                        + "FROM `playerStats` `com_yahoo_elide_datastores_aggregation_example_PlayerStats` "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ) `pagination_subquery`";
+                        + "(SELECT `example_PlayerStats`.`overallRating`, "
+                        + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
+                        + "FROM `playerStats` `example_PlayerStats` "
+                        + "GROUP BY `example_PlayerStats`.`overallRating`, "
+                        + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ) `pagination_subquery`";
 
         String expectedQueryStr2 =
-                "SELECT MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) AS "
-                        + "`lowScore`,`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS "
+                "SELECT MIN(`example_PlayerStats`.`lowScore`) AS "
+                        + "`lowScore`,`example_PlayerStats`.`overallRating` AS "
                         + "`overallRating`,PARSEDATETIME(FORMATDATETIME("
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), "
+                        + "`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), "
                         + "'yyyy-MM-dd') AS `recordedDate` FROM `playerStats` "
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`   "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
+                        + "`example_PlayerStats`   "
+                        + "GROUP BY `example_PlayerStats`.`overallRating`, "
                         + "PARSEDATETIME(FORMATDATETIME("
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), "
+                        + "`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), "
                         + "'yyyy-MM-dd') OFFSET 0 LIMIT 1";
         List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(expectedQueryStr1);
@@ -64,9 +64,9 @@ public class UseASBeforeTableAliasExplainQueryTest extends SQLUnitTest {
         Query query = TestQuery.INNER_JOIN.getQuery();
 
         String expectedQueryStr =
-                        "SELECT DISTINCT `com_yahoo_elide_datastores_aggregation_example_VideoGame_playerInnerJoin_XXX`.`name` AS `playerNameInnerJoin` FROM `videoGames` `com_yahoo_elide_datastores_aggregation_example_VideoGame`"
-                                        + " INNER JOIN `players` `com_yahoo_elide_datastores_aggregation_example_VideoGame_playerInnerJoin_XXX` ON `com_yahoo_elide_datastores_aggregation_example_VideoGame`.`player_id`"
-                                        + " = `com_yahoo_elide_datastores_aggregation_example_VideoGame_playerInnerJoin_XXX`.`id`";
+                        "SELECT DISTINCT `example_VideoGame_playerInnerJoin_XXX`.`name` AS `playerNameInnerJoin` FROM `videoGames` `example_VideoGame`"
+                                        + " INNER JOIN `players` `example_VideoGame_playerInnerJoin_XXX` ON `example_VideoGame`.`player_id`"
+                                        + " = `example_VideoGame_playerInnerJoin_XXX`.`id`";
 
         compareQueryLists(expectedQueryStr, engine.explain(query));
     }

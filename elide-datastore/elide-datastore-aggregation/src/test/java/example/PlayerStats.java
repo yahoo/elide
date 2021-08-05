@@ -3,10 +3,13 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.example;
+package example;
 
-import static com.yahoo.elide.datastores.aggregation.example.TimeGrainDefinitions.DATE_FORMAT;
+import static example.TimeGrainDefinitions.DATE_FORMAT;
+import static example.TimeGrainDefinitions.MONTH_FORMAT;
+import static example.TimeGrainDefinitions.QUARTER_FORMAT;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.core.type.ParameterizedModel;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
 import com.yahoo.elide.datastores.aggregation.annotation.ColumnMeta;
 import com.yahoo.elide.datastores.aggregation.annotation.DimensionFormula;
@@ -14,37 +17,39 @@ import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
+import com.yahoo.elide.datastores.aggregation.annotation.TableSource;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
-import com.yahoo.elide.datastores.aggregation.example.dimensions.Country;
-import com.yahoo.elide.datastores.aggregation.example.dimensions.SubCountry;
+import com.yahoo.elide.datastores.aggregation.custom.DailyAverageScorePerPeriodMaker;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
+import com.yahoo.elide.datastores.aggregation.timegrains.Day;
+import com.yahoo.elide.datastores.aggregation.timegrains.Time;
+import example.dimensions.Country;
+import example.dimensions.SubCountry;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Id;
-
 /**
  * A root level entity for testing AggregationDataStore.
  */
-@Include(name = "playerStatsFiltered")
+@Include
 @VersionQuery(sql = "SELECT COUNT(*) from playerStats")
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = false)
 @ToString
 @FromTable(name = "playerStats")
 @TableMeta(
         description = "Player Statistics",
         category = "Sports Category",
-        filterTemplate = PlayerStatsWithRequiredFilter.FILTER_TEMPLATE,
+        tags = {"Game", "Statistics"},
+        hints = {"AggregateBeforeJoin", "NoJoinBeforeAggregate"},
         size = CardinalitySize.LARGE
 )
-public class PlayerStatsWithRequiredFilter {
-    public static final String FILTER_TEMPLATE = "recordedDate>={{start}};recordedDate<{{end}}";
+public class PlayerStats extends ParameterizedModel {
 
     /**
      * PK.
@@ -60,6 +65,11 @@ public class PlayerStatsWithRequiredFilter {
      * A metric.
      */
     private long lowScore;
+
+    /**
+     * A metric.
+     */
+    private float dailyAverageScorePerPeriod;
 
     /**
      * A degenerate dimension.
@@ -103,13 +113,20 @@ public class PlayerStatsWithRequiredFilter {
      */
     private Player player2;
 
+    /**
+     * A table dimension.
+     */
+    private PlayerRanking playerRanking;
+
+    private Integer playerRank;
+
     private String playerName;
 
     private String player2Name;
 
-    private Date recordedDate;
+    private Time recordedDate;
 
-    private Date updatedDate;
+    private Day updatedDate;
 
     @Setter
     private int playerLevel;
@@ -126,39 +143,39 @@ public class PlayerStatsWithRequiredFilter {
         this.id = id;
     }
 
-    @MetricFormula("MAX(highScore)")
+    @MetricFormula("MAX({{$highScore}})")
     @ColumnMeta(description = "very awesome score", category = "Score Category")
     public long getHighScore() {
-        return highScore;
+        return fetch("highScore", highScore);
     }
 
     public void setHighScore(final long highScore) {
         this.highScore = highScore;
     }
 
-    @MetricFormula(value = "{{$highScore}}")
-    @ColumnMeta(description = "highScore with no aggregation")
-    public long getHighScoreNoAgg() {
-        return highScore;
-    }
-    public void setHighScoreNoAgg(final long highScore) {
-        this.highScore = highScore;
-    }
-
     @MetricFormula("MIN({{$lowScore}})")
-    @ColumnMeta(description = "very low score", category = "Score Category")
+    @ColumnMeta(description = "very low score", category = "Score Category", tags = {"PRIVATE"})
     public long getLowScore() {
-        return lowScore;
+        return fetch("lowScore", lowScore);
     }
 
     public void setLowScore(final long lowScore) {
         this.lowScore = lowScore;
     }
 
+    @MetricFormula(maker = DailyAverageScorePerPeriodMaker.class)
+    public float getDailyAverageScorePerPeriod() {
+        return fetch("dailyAverageScorePerPeriod", dailyAverageScorePerPeriod);
+    }
+
+    public void setDailyAverageScorePerPeriod(final float dailyAverageScorePerPeriod) {
+        this.dailyAverageScorePerPeriod = dailyAverageScorePerPeriod;
+    }
+
     @FriendlyName
-    @ColumnMeta(size = CardinalitySize.MEDIUM)
+    @ColumnMeta(values = {"Good", "OK", "Terrible"}, tags = {"PUBLIC"}, size = CardinalitySize.MEDIUM)
     public String getOverallRating() {
-        return overallRating;
+        return fetch("overallRating", overallRating);
     }
 
     public void setOverallRating(final String overallRating) {
@@ -167,7 +184,7 @@ public class PlayerStatsWithRequiredFilter {
 
     @Join("{{$country_id}} = {{country.$id}}")
     public Country getCountry() {
-        return country;
+        return fetch("country", country);
     }
 
     public void setCountry(final Country country) {
@@ -175,8 +192,12 @@ public class PlayerStatsWithRequiredFilter {
     }
 
     @DimensionFormula("{{country.nickName}}")
+    @ColumnMeta(
+            description = "SubCountry NickName",
+            tableSource = @TableSource(table = "subCountry", column = "name", suggestionColumns = { "id", "isoCode" })
+    )
     public String getCountryNickName() {
-        return countryNickName;
+        return fetch("countryNickName", countryNickName);
     }
 
     public void setCountryNickName(String nickName) {
@@ -185,7 +206,7 @@ public class PlayerStatsWithRequiredFilter {
 
     @DimensionFormula("{{country.unSeats}}")
     public int getCountryUnSeats() {
-        return countryUnSeats;
+        return fetch ("countryUnSeats", countryUnSeats);
     }
 
     public void setCountryUnSeats(int seats) {
@@ -193,8 +214,9 @@ public class PlayerStatsWithRequiredFilter {
     }
 
     @DimensionFormula("{{country.isoCode}}")
+    @ColumnMeta(values = {"HK", "USA"})
     public String getCountryIsoCode() {
-        return countryIsoCode;
+        return fetch("countryIsoCode", countryIsoCode);
     }
 
     public void setCountryIsoCode(String isoCode) {
@@ -203,7 +225,7 @@ public class PlayerStatsWithRequiredFilter {
 
     @Join("{{$sub_country_id}} = {{subCountry.$id}}")
     public SubCountry getSubCountry() {
-        return subCountry;
+        return fetch("subCountry", subCountry);
     }
 
     public void setSubCountry(final SubCountry subCountry) {
@@ -213,11 +235,20 @@ public class PlayerStatsWithRequiredFilter {
     @DimensionFormula("{{subCountry.isoCode}}")
     @Column(updatable = false, insertable = false) // subselect field should be read-only
     public String getSubCountryIsoCode() {
-        return subCountryIsoCode;
+        return fetch("subCountryIsoCode", subCountryIsoCode);
     }
 
     public void setSubCountryIsoCode(String isoCode) {
         this.subCountryIsoCode = isoCode;
+    }
+
+    @Join("{{$player_id}} = {{playerRanking.$id}}")
+    public PlayerRanking getPlayerRanking() {
+        return fetch("playerRanking", playerRanking);
+    }
+
+    public void setPlayerRanking(final PlayerRanking playerRanking) {
+        this.playerRanking = playerRanking;
     }
 
     @Join("{{$player_id}} = {{player.$id}}")
@@ -238,9 +269,18 @@ public class PlayerStatsWithRequiredFilter {
         this.player2 = player2;
     }
 
+    @DimensionFormula("{{playerRanking.ranking}}")
+    public Integer getPlayerRank() {
+        return fetch("playerRank", playerRank);
+    }
+
+    public void setPlayerRank(Integer playerRank) {
+        this.playerRank = playerRank;
+    }
+
     @DimensionFormula("{{player.name}}")
     public String getPlayerName() {
-        return playerName;
+        return fetch("playerName", playerName);
     }
 
     public void setPlayerName(String playerName) {
@@ -249,7 +289,7 @@ public class PlayerStatsWithRequiredFilter {
 
     @DimensionFormula("{{player2.name}}")
     public String getPlayer2Name() {
-        return player2Name;
+        return fetch("player2Name", player2Name);
     }
 
     public void setPlayer2Name(String player2Name) {
@@ -258,7 +298,7 @@ public class PlayerStatsWithRequiredFilter {
 
     @DimensionFormula("CASE WHEN {{overallRating}} = 'Good' THEN 1 ELSE 2 END")
     public int getPlayerLevel() {
-        return playerLevel;
+        return fetch("playerLevel", playerLevel);
     }
 
     /**
@@ -266,31 +306,35 @@ public class PlayerStatsWithRequiredFilter {
      *
      * @return the date of the player session.
      */
-    @Temporal(grains = { @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DATE_FORMAT)}, timeZone = "UTC")
-    public Date getRecordedDate() {
-        return recordedDate;
+    @Temporal(grains = {
+            @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DATE_FORMAT),
+            @TimeGrainDefinition(grain = TimeGrain.MONTH, expression = MONTH_FORMAT),
+            @TimeGrainDefinition(grain = TimeGrain.QUARTER, expression = QUARTER_FORMAT)
+    }, timeZone = "UTC")
+    @DimensionFormula("{{$recordedDate}}")
+    public Time getRecordedDate() {
+        return fetch("recordedDate", recordedDate);
     }
 
-    public void setRecordedDate(final Date recordedDate) {
+    public void setRecordedDate(final Time recordedDate) {
         this.recordedDate = recordedDate;
     }
-
     /**
      * <b>DO NOT put {@link Cardinality} annotation on this field</b>. See
      *
      * @return the date of the player session.
      */
-    @Temporal(grains = { @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DATE_FORMAT)}, timeZone = "UTC")
-    public Date getUpdatedDate() {
-        return updatedDate;
+    @Temporal(grains = { @TimeGrainDefinition(grain = TimeGrain.DAY, expression = DATE_FORMAT) }, timeZone = "UTC")
+    public Day getUpdatedDate() {
+        return fetch("updatedDate", updatedDate);
     }
 
-    public void setUpdatedDate(final Date updatedDate) {
+    public void setUpdatedDate(final Day updatedDate) {
         this.updatedDate = updatedDate;
     }
 
     @DimensionFormula("CASE WHEN {{country.inUsa}} THEN 'true' ELSE 'false' END")
     public String getCountryIsInUsa() {
-        return countryIsInUsa;
+        return fetch("countryIsInUsa", countryIsInUsa);
     }
 }

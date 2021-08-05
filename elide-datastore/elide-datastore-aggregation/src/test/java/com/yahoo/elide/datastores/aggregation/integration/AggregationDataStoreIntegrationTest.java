@@ -32,7 +32,6 @@ import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.checks.OperatorCheck;
 import com.yahoo.elide.datastores.aggregation.checks.VideoGameFilterCheck;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
@@ -47,6 +46,7 @@ import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import example.PlayerStats;
 import example.TestCheckMappings;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -194,7 +194,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     @Test
     public void testGraphQLSchema() throws IOException {
         String graphQLRequest = "{"
-                + "__type(name: \"ElidePlayerStatsWithViewEdge\") {"
+                + "__type(name: \"PlayerStatsWithViewEdge\") {"
                 + "   name "
                 + "     fields {"
                 + "         name "
