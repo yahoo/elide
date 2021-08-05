@@ -12,7 +12,7 @@ import com.yahoo.elide.core.filter.predicates.PostfixPredicate;
 import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.datastores.aggregation.example.VideoGame;
+import example.VideoGame;
 
 /**
  * Filter Expression Check for video game

@@ -10,9 +10,7 @@ package com.yahoo.elide.datastores.aggregation.metadata;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
-
 import com.github.jknack.handlebars.HandlebarsException;
-
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;

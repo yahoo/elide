@@ -5,6 +5,6 @@
  */
 
 @Include(friendlyName = "Dimensions", description = "Dimensions")
-package com.yahoo.elide.datastores.aggregation.example.dimensions;
+package example.dimensions;
 
 import com.yahoo.elide.annotation.Include;

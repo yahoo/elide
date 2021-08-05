@@ -3,23 +3,26 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.example.dimensions;
+package example.dimensions;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import org.hibernate.annotations.Subselect;
 import lombok.Data;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.persistence.Id;
 
 /**
- * A nested view for testing.
+ * A root level entity for testing AggregationDataStore with @Subselect annotation.
  */
 @Data
-@Include(rootLevel = false)
-@FromTable(name = "countries")
-public class CountryViewNested {
+@Entity
+@Include
+@Subselect(value = "select * from countries")
+public class SubCountry {
+
     private String id;
 
     private String isoCode;

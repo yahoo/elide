@@ -32,6 +32,7 @@ import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
+import graphql.schema.GraphQLType;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -89,11 +90,33 @@ public class ModelBuilderTest {
     public ModelBuilderTest() {
         dictionary = new EntityDictionary(Collections.emptyMap());
 
+        dictionary.bindEntity(com.yahoo.elide.models.Book.class);
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Publisher.class);
         dictionary.bindEntity(Address.class);
     }
+
+    @Test
+    public void testInternalModelConflict() {
+        DataFetcher fetcher = mock(DataFetcher.class);
+        ModelBuilder builder = new ModelBuilder(dictionary, new NonEntityDictionary(), fetcher, NO_VERSION);
+
+        GraphQLSchema schema = builder.build();
+
+        GraphQLType internalBookConnection = schema.getType("ElideInternalBookConnection");
+        assertNotNull(internalBookConnection);
+
+        GraphQLType internalBook = schema.getType("ElideInternalBook");
+        assertNotNull(internalBook);
+
+        GraphQLType internalBookEdge = schema.getType("ElideInternalBookEdge");
+        assertNotNull(internalBookEdge);
+
+        GraphQLType internalBookInput = schema.getType("ElideInternalBookInput");
+        assertNotNull(internalBookInput);
+    }
+
 
     @Test
     public void testPageInfoObject() {

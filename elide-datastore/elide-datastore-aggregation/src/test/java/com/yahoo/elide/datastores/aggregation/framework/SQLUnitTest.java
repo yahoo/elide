@@ -31,16 +31,6 @@ import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
-import com.yahoo.elide.datastores.aggregation.example.GameRevenue;
-import com.yahoo.elide.datastores.aggregation.example.Player;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
-import com.yahoo.elide.datastores.aggregation.example.dimensions.Continent;
-import com.yahoo.elide.datastores.aggregation.example.dimensions.Country;
-import com.yahoo.elide.datastores.aggregation.example.dimensions.CountryView;
-import com.yahoo.elide.datastores.aggregation.example.dimensions.CountryViewNested;
-import com.yahoo.elide.datastores.aggregation.example.dimensions.SubCountry;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
@@ -64,6 +54,16 @@ import com.yahoo.elide.datastores.aggregation.timegrains.Week;
 import com.yahoo.elide.datastores.aggregation.timegrains.Year;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import example.GameRevenue;
+import example.Player;
+import example.PlayerStats;
+import example.PlayerStatsView;
+import example.PlayerStatsWithView;
+import example.dimensions.Continent;
+import example.dimensions.Country;
+import example.dimensions.CountryView;
+import example.dimensions.CountryViewNested;
+import example.dimensions.SubCountry;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -537,7 +537,7 @@ public abstract class SQLUnitTest {
 
     public static void init(SQLDialect dialect) {
         MetaDataStore metaDataStore = new MetaDataStore(
-                getClassType(ClassScanner.getAnnotatedClasses("com.yahoo.elide.datastores.aggregation.example",
+                getClassType(ClassScanner.getAnnotatedClasses("example",
                         Include.class)),
                 false);
         init(dialect, new HashSet<>(), metaDataStore);
@@ -627,89 +627,89 @@ public abstract class SQLUnitTest {
     }
 
     protected String getExpectedNestedMetricWithSortingQuery(boolean useAliasForOrderByClause) {
-        String expected = "SELECT AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) "
-                + "AS `dailyAverageScorePerPeriod`,`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` AS `recordedDate` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
-                + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` GROUP BY "
-                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX` GROUP BY "
-                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` ";
+        String expected = "SELECT AVG(`example_PlayerStats_XXX`.`highScore`) "
+                + "AS `dailyAverageScorePerPeriod`,`example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
+                + "`example_PlayerStats_XXX`.`recordedDate` AS `recordedDate` "
+                + "FROM (SELECT MAX(`example_PlayerStats`.`highScore`) AS `highScore`,"
+                + "`example_PlayerStats`.`overallRating` AS `overallRating`,"
+                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
+                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
+                + "FROM `playerStats` AS `example_PlayerStats` GROUP BY "
+                + "`example_PlayerStats`.`overallRating`, "
+                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
+                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
+                + "AS `example_PlayerStats_XXX` GROUP BY "
+                + "`example_PlayerStats_XXX`.`overallRating`, "
+                + "`example_PlayerStats_XXX`.`recordedDate` ";
 
         if (useAliasForOrderByClause) {
             expected = expected + "ORDER BY `dailyAverageScorePerPeriod` DESC,`overallRating` DESC";
 
         } else {
             expected = expected
-                    + "ORDER BY AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) DESC,"
-                    + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` DESC";
+                    + "ORDER BY AVG(`example_PlayerStats_XXX`.`highScore`) DESC,"
+                    + "`example_PlayerStats_XXX`.`overallRating` DESC";
         }
         return expected;
     }
 
     protected String getExpectedNestedMetricWithHavingQuery() {
-        return "SELECT AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) "
-                + "AS `dailyAverageScorePerPeriod`,`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` AS `recordedDate` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
-                + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` GROUP BY "
-                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX` GROUP BY "
-                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` "
-                + "HAVING AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) "
+        return "SELECT AVG(`example_PlayerStats_XXX`.`highScore`) "
+                + "AS `dailyAverageScorePerPeriod`,`example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
+                + "`example_PlayerStats_XXX`.`recordedDate` AS `recordedDate` "
+                + "FROM (SELECT MAX(`example_PlayerStats`.`highScore`) AS `highScore`,"
+                + "`example_PlayerStats`.`overallRating` AS `overallRating`,"
+                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
+                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
+                + "FROM `playerStats` AS `example_PlayerStats` GROUP BY "
+                + "`example_PlayerStats`.`overallRating`, "
+                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
+                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
+                + "AS `example_PlayerStats_XXX` GROUP BY "
+                + "`example_PlayerStats_XXX`.`overallRating`, "
+                + "`example_PlayerStats_XXX`.`recordedDate` "
+                + "HAVING AVG(`example_PlayerStats_XXX`.`highScore`) "
                 + "> :XXX\n";
     }
 
     protected String getExpectedNestedMetricWithWhereQuery() {
-        return "SELECT AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) "
-                + "AS `dailyAverageScorePerPeriod`,`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` AS `recordedDate` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
-                + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX` ON `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX`.`id` "
-                + "WHERE `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX`.`iso_code` IN (:XXX) "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX` GROUP BY "
-                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`\n";
+        return "SELECT AVG(`example_PlayerStats_XXX`.`highScore`) "
+                + "AS `dailyAverageScorePerPeriod`,`example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
+                + "`example_PlayerStats_XXX`.`recordedDate` AS `recordedDate` "
+                + "FROM (SELECT MAX(`example_PlayerStats`.`highScore`) AS `highScore`,"
+                + "`example_PlayerStats`.`overallRating` AS `overallRating`,"
+                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
+                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
+                + "FROM `playerStats` AS `example_PlayerStats` "
+                + "LEFT OUTER JOIN `countries` AS `example_PlayerStats_country_XXX` ON `example_PlayerStats`.`country_id` = `example_PlayerStats_country_XXX`.`id` "
+                + "WHERE `example_PlayerStats_country_XXX`.`iso_code` IN (:XXX) "
+                + "GROUP BY `example_PlayerStats`.`overallRating`, "
+                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
+                + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
+                + "AS `example_PlayerStats_XXX` GROUP BY "
+                + "`example_PlayerStats_XXX`.`overallRating`, "
+                + "`example_PlayerStats_XXX`.`recordedDate`\n";
     }
 
     protected String getExpectedNestedMetricQuery() {
-        return "SELECT AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) AS `dailyAverageScorePerPeriod`,"
-                        + "MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) AS `highScore`,"
-                        + "MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) AS `lowScore`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` AS `recordedDate` "
-                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,"
-                        + "MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `INNER_AGG_XXX`,"
-                        + "MIN(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`lowScore`) AS `INNER_AGG_XXX`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
-                        + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` GROUP BY "
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
-                        + "AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX` GROUP BY "
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate`\n";
+        return "SELECT AVG(`example_PlayerStats_XXX`.`highScore`) AS `dailyAverageScorePerPeriod`,"
+                        + "MAX(`example_PlayerStats_XXX`.`INNER_AGG_XXX`) AS `highScore`,"
+                        + "MIN(`example_PlayerStats_XXX`.`INNER_AGG_XXX`) AS `lowScore`,"
+                        + "`example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
+                        + "`example_PlayerStats_XXX`.`recordedDate` AS `recordedDate` "
+                        + "FROM (SELECT MAX(`example_PlayerStats`.`highScore`) AS `highScore`,"
+                        + "MAX(`example_PlayerStats`.`highScore`) AS `INNER_AGG_XXX`,"
+                        + "MIN(`example_PlayerStats`.`lowScore`) AS `INNER_AGG_XXX`,"
+                        + "`example_PlayerStats`.`overallRating` AS `overallRating`,"
+                        + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_XXX`,"
+                        + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` "
+                        + "FROM `playerStats` AS `example_PlayerStats` GROUP BY "
+                        + "`example_PlayerStats`.`overallRating`, "
+                        + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), "
+                        + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ) "
+                        + "AS `example_PlayerStats_XXX` GROUP BY "
+                        + "`example_PlayerStats_XXX`.`overallRating`, "
+                        + "`example_PlayerStats_XXX`.`recordedDate`\n";
 
     }
 
@@ -717,47 +717,47 @@ public abstract class SQLUnitTest {
 
         String expectedSQL =
                           "SELECT \n"
-                        + "    AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) AS `dailyAverageScorePerPeriod_165126357`,\n"
-                        + "    AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) AS `dailyAverageScorePerPeriod_165126481`,\n"
-                        + "    `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating_207658499` AS `overallRating_207658499`,\n"
-                        + "    `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`playerLevel_96024484` AS `playerLevel_96024484`,\n"
-                        + "    `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate_155839778` AS `recordedDate_155839778` \n"
+                        + "    AVG(`example_PlayerStats_XXX`.`highScore`) AS `dailyAverageScorePerPeriod_165126357`,\n"
+                        + "    AVG(`example_PlayerStats_XXX`.`highScore`) AS `dailyAverageScorePerPeriod_165126481`,\n"
+                        + "    `example_PlayerStats_XXX`.`overallRating_207658499` AS `overallRating_207658499`,\n"
+                        + "    `example_PlayerStats_XXX`.`playerLevel_96024484` AS `playerLevel_96024484`,\n"
+                        + "    `example_PlayerStats_XXX`.`recordedDate_155839778` AS `recordedDate_155839778` \n"
                         + "FROM \n"
                         + "    (\n"
                         + "        SELECT \n"
-                        + "            MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,\n"
-                        + "            `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating_207658499`,\n"
-                        + "            CASE WHEN `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` = 'Good' THEN 1 ELSE 2 END AS `playerLevel_96024484`,\n"
-                        + "            PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_55557339`,\n"
-                        + "            PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate_155839778` \n"
+                        + "            MAX(`example_PlayerStats`.`highScore`) AS `highScore`,\n"
+                        + "            `example_PlayerStats`.`overallRating` AS `overallRating_207658499`,\n"
+                        + "            CASE WHEN `example_PlayerStats`.`overallRating` = 'Good' THEN 1 ELSE 2 END AS `playerLevel_96024484`,\n"
+                        + "            PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate_55557339`,\n"
+                        + "            PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate_155839778` \n"
                         + "        FROM \n"
-                        + "            `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` \n"
+                        + "            `playerStats` AS `example_PlayerStats` \n"
                         + "            LEFT OUTER JOIN \n"
-                        + "            `countries` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX` \n"
+                        + "            `countries` AS `example_PlayerStats_country_XXX` \n"
                         + "            ON \n"
-                        + "            `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX`.`id` \n"
+                        + "            `example_PlayerStats`.`country_id` = `example_PlayerStats_country_XXX`.`id` \n"
                         + "        WHERE \n"
                         + "            (\n"
-                        + "                (CASE WHEN `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` = 'Good' THEN 1 ELSE 2 END IN (:XXX, :XXX) \n"
+                        + "                (CASE WHEN `example_PlayerStats`.`overallRating` = 'Good' THEN 1 ELSE 2 END IN (:XXX, :XXX) \n"
                         + "                AND \n"
-                        + "                `com_yahoo_elide_datastores_aggregation_example_PlayerStats_country_XXX`.`iso_code` IN (:XXX)) \n"
+                        + "                `example_PlayerStats_country_XXX`.`iso_code` IN (:XXX)) \n"
                         + "                AND \n"
-                        + "                PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IS NOT NULL\n"
+                        + "                PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IS NOT NULL\n"
                         + "            ) \n"
                         + "        GROUP BY \n"
-                        + "            `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, \n"
-                        + "            CASE WHEN `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` = 'Good' THEN 1 ELSE 2 END, \n"
-                        + "            PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), \n"
-                        + "            PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') \n"
-                        + "    ) AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX` \n"
+                        + "            `example_PlayerStats`.`overallRating`, \n"
+                        + "            CASE WHEN `example_PlayerStats`.`overallRating` = 'Good' THEN 1 ELSE 2 END, \n"
+                        + "            PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd'), \n"
+                        + "            PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') \n"
+                        + "    ) AS `example_PlayerStats_XXX` \n"
                         + "GROUP BY \n"
-                        + "    `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating_207658499`, \n"
-                        + "    `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`playerLevel_96024484`, \n"
-                        + "    `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate_155839778` \n"
+                        + "    `example_PlayerStats_XXX`.`overallRating_207658499`, \n"
+                        + "    `example_PlayerStats_XXX`.`playerLevel_96024484`, \n"
+                        + "    `example_PlayerStats_XXX`.`recordedDate_155839778` \n"
                         + "HAVING \n"
-                        + "    AVG(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`highScore`) > :XXX \n"
+                        + "    AVG(`example_PlayerStats_XXX`.`highScore`) > :XXX \n"
                         + "ORDER BY \n"
-                        + "    `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating_207658499` DESC ";
+                        + "    `example_PlayerStats_XXX`.`overallRating_207658499` DESC ";
 
         if (useAliasForOrderByClause) {
             // Changing last line to have alias only.
@@ -772,14 +772,14 @@ public abstract class SQLUnitTest {
 
         String expectedSQL =
                           "SELECT \n"
-                        + "    MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `highScore`,\n"
-                        + "    PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` \n"
+                        + "    MAX(`example_PlayerStats`.`highScore`) AS `highScore`,\n"
+                        + "    PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `recordedDate` \n"
                         + "FROM \n"
-                        + "    `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` \n"
+                        + "    `playerStats` AS `example_PlayerStats` \n"
                         + "WHERE \n"
-                        + "     PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IS NOT NULL \n"
+                        + "     PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IS NOT NULL \n"
                         + "GROUP BY \n"
-                        + "     PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ";
+                        + "     PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') ";
 
         return formatInSingleLine(expectedSQL);
     }

@@ -9,7 +9,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.expression;
 import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
-
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.Argument;
@@ -28,9 +27,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTa
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.H2Dialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
-
 import org.junit.jupiter.api.Test;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -40,7 +37,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-
 import javax.persistence.Id;
 import javax.sql.DataSource;
 

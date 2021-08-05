@@ -19,13 +19,13 @@ import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.type.ClassType;
-import com.yahoo.elide.datastores.aggregation.example.Player;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
-import com.yahoo.elide.datastores.aggregation.example.dimensions.Country;
-import com.yahoo.elide.datastores.aggregation.example.dimensions.SubCountry;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+import example.Player;
+import example.PlayerStats;
+import example.dimensions.Country;
+import example.dimensions.SubCountry;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

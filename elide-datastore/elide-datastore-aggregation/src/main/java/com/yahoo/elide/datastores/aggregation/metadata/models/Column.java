@@ -22,7 +22,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueSourceType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.modelconfig.model.Named;
-
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

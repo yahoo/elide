@@ -14,12 +14,12 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.ClassType;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+import example.PlayerStats;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -50,7 +50,7 @@ public class QueryKeyExtractorTest {
                 .metricProjection(playerStatsTable.getMetricProjection("highScore"))
                 .build();
         assertEquals(
-                "com_yahoo_elide_datastores_aggregation_example_PlayerStats;{highScore;{}}{}{};;;;",
+                "example_PlayerStats;{highScore;{}}{}{};;;;",
                 QueryKeyExtractor.extractKey(query));
     }
 
@@ -71,13 +71,13 @@ public class QueryKeyExtractorTest {
                 .sorting(new SortingImpl(sortMap, PlayerStats.class, dictionary))
                 .pagination(new ImmutablePagination(0, 2, false, true))
                 .build();
-        assertEquals("com_yahoo_elide_datastores_aggregation_example_PlayerStats;" // table name
+        assertEquals("example_PlayerStats;" // table name
                         + "{highScore;{}}" // columns
                         + "{overallRating;{}}" // group by
                         + "{recordedDate;{}}" // time dimensions
-                        + "{P;{{com.yahoo.elide.datastores.aggregation.example.PlayerStats;java.lang.String;countryNickName;}}IN;9;Uncle Sam;}" // where
-                        + "{P;{{com.yahoo.elide.datastores.aggregation.example.PlayerStats;long;highScore;}}GT;3;300;}" // having
-                        + "{com.yahoo.elide.datastores.aggregation.example.PlayerStats;{{com.yahoo.elide.datastores.aggregation.example.PlayerStats;java.lang.String;playerName;}}asc;}" // sort
+                        + "{P;{{example.PlayerStats;java.lang.String;countryNickName;}}IN;9;Uncle Sam;}" // where
+                        + "{P;{{example.PlayerStats;long;highScore;}}GT;3;300;}" // having
+                        + "{example.PlayerStats;{{example.PlayerStats;java.lang.String;playerName;}}asc;}" // sort
                         + "{0;2;1;}", // pagination
                 QueryKeyExtractor.extractKey(query));
     }
