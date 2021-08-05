@@ -49,7 +49,6 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
 
     @Override
     public <T> Iterable<T> loadObjects(EntityProjection entityProjection, RequestScope scope) {
-        context.createQueue()
         return null;
     }
 
