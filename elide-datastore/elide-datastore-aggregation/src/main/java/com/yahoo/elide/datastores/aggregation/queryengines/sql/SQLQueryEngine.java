@@ -452,7 +452,7 @@ public class SQLQueryEngine extends QueryEngine {
         }
 
         for (FilterPredicate filterPredicate : predicates) {
-            boolean isTimeFilter = filterPredicate.getFieldType().equals(ClassType.of(Time.class));
+            boolean isTimeFilter = ClassType.of(Time.class).isAssignableFrom(filterPredicate.getFieldType());
             if (filterPredicate.getOperator().isParameterized()) {
                 boolean shouldEscape = filterPredicate.isMatchingOperator();
                 filterPredicate.getParameters().forEach(param -> {
