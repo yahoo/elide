@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.example;
+package example;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
@@ -14,11 +14,11 @@ import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
 import com.yahoo.elide.datastores.aggregation.annotation.Temporal;
 import com.yahoo.elide.datastores.aggregation.annotation.TimeGrainDefinition;
-import com.yahoo.elide.datastores.aggregation.example.dimensions.Country;
-import com.yahoo.elide.datastores.aggregation.example.dimensions.CountryView;
-import com.yahoo.elide.datastores.aggregation.example.dimensions.SubCountry;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import example.dimensions.Country;
+import example.dimensions.CountryView;
+import example.dimensions.SubCountry;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;

@@ -10,7 +10,6 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueSourceType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.modelconfig.model.Named;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;

@@ -9,7 +9,6 @@ package com.yahoo.elide.datastores.aggregation.validator;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.QueryValidator;
@@ -25,7 +24,6 @@ import com.yahoo.elide.modelconfig.model.NamespaceConfig;
 import com.yahoo.elide.modelconfig.model.Table;
 import com.yahoo.elide.modelconfig.model.Type;
 import com.zaxxer.hikari.HikariDataSource;
-
 import org.junit.jupiter.api.Test;
 
 import java.util.Collection;

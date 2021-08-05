@@ -3,28 +3,27 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.example;
+package example;
 
 import com.yahoo.elide.annotation.Include;
-import com.yahoo.elide.datastores.aggregation.annotation.FriendlyName;
+import com.yahoo.elide.datastores.aggregation.annotation.CardinalitySize;
+import com.yahoo.elide.datastores.aggregation.annotation.TableMeta;
 import lombok.Data;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Table;
 
 /**
  * A root level entity for testing AggregationDataStore.
  */
 @Entity
 @Include
-@Table(name = "players")
 @Data
-public class Player {
+@TableMeta(size = CardinalitySize.MEDIUM)
+public class PlayerRanking {
 
     @Id
     private long id;
 
-    @FriendlyName
-    private String name;
+    private Integer ranking;
 }

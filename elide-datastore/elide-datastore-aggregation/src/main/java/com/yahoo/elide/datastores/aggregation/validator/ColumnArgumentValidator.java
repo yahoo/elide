@@ -9,7 +9,6 @@ package com.yahoo.elide.datastores.aggregation.validator;
 import static com.yahoo.elide.datastores.aggregation.validator.TableArgumentValidator.verifyDefaultValue;
 import static com.yahoo.elide.datastores.aggregation.validator.TableArgumentValidator.verifyValue;
 import static com.yahoo.elide.datastores.aggregation.validator.TableArgumentValidator.verifyValues;
-
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.ArgumentDefinition;
@@ -21,7 +20,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Logica
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ReferenceExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
-
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;

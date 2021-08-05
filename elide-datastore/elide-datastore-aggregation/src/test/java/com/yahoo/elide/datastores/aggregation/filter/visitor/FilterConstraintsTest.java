@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
+import example.PlayerStats;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
