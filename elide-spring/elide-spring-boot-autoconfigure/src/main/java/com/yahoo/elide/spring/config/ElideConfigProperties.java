@@ -65,4 +65,9 @@ public class ElideConfigProperties {
      * in any callback URLs returned by the service.  If not set, Elide uses the API request to derive the base URL.
      */
     private String baseUrl = "";
+
+    /**
+     * Turns on/off verbose error responses.
+     */
+    private boolean verboseErrors = false;
 }
