@@ -24,10 +24,19 @@ public class GraphQLNameUtils {
     }
 
     public String toOutputTypeName(Type<?> clazz) {
+        String typeName;
         if (dictionary.hasBinding(clazz)) {
-            return StringUtils.capitalize(dictionary.getJsonAliasFor(clazz));
+            typeName = StringUtils.capitalize(dictionary.getJsonAliasFor(clazz));
+        } else {
+            typeName = clazz.getSimpleName();
         }
-        return clazz.getSimpleName();
+
+        //Namespace internal types so they don't conflict with client models.
+        if (clazz.getPackage().getName().startsWith("com.yahoo.elide")) {
+            typeName = "Elide" + typeName;
+        }
+
+        return typeName;
     }
 
     public String toInputTypeName(Type<?> clazz) {

@@ -194,7 +194,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     @Test
     public void testGraphQLSchema() throws IOException {
         String graphQLRequest = "{"
-                + "__type(name: \"PlayerStatsWithViewEdge\") {"
+                + "__type(name: \"ElidePlayerStatsWithViewEdge\") {"
                 + "   name "
                 + "     fields {"
                 + "         name "
