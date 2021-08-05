@@ -24,10 +24,12 @@ import javax.jms.Session;
 public class JMSDataStore implements DataStore {
     Set<Type<?>> models;
     ConnectionFactory connectionFactory;
+    EntityDictionary dictionary;
 
-    public JMSDataStore(Set<Type<?>> models, ConnectionFactory connectionFactory) {
+    public JMSDataStore(Set<Type<?>> models, ConnectionFactory connectionFactory, EntityDictionary dictionary) {
         this.models = models;
         this.connectionFactory = connectionFactory;
+        this.dictionary = dictionary;
     }
 
     @Override
@@ -40,23 +42,12 @@ public class JMSDataStore implements DataStore {
     @Override
     public DataStoreTransaction beginTransaction() {
         JMSContext context = connectionFactory.createContext();
-        try {
-            Connection connection = connectionFactory.createConnection();
-            Session session = connection.createSession();
-            Destination destination = session.createTopic("foo");
-            MessageConsumer consumer = session.createConsumer(destination);
-
-
-
-        } catch (JMSException e) {
-
-        }
-        return new JMSDataStoreTransaction(context);
+        return new JMSDataStoreTransaction(context, dictionary);
     }
 
     @Override
     public DataStoreTransaction beginReadTransaction() {
         JMSContext context = connectionFactory.createContext();
-        return new JMSDataStoreTransaction(context);
+        return new JMSDataStoreTransaction(context, dictionary);
     }
 }
