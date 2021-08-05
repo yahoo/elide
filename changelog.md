@@ -1,5 +1,11 @@
 # Change Log
 
+## 5.0.6
+Fixes bug in 5.0.5
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/846755e07bc2a7092a8393c698205323cd333a2c) Fixed mismatching graphQL versions in pom (#2234) 
+
 ## 5.0.5
 A major change for this release is a large upgrade of the graphql-java package to the latest version.
 
