@@ -620,6 +620,7 @@
                 <configuration>
                     <failBuildOnCVSS>7</failBuildOnCVSS>
                     <skipSystemScope>true</skipSystemScope>
+                    <skipTestScope>true</skipTestScope>
                     <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
                     <suppressionFile>suppressions.xml</suppressionFile>
                     <retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>

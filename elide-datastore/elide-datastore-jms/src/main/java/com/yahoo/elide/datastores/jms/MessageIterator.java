@@ -69,8 +69,7 @@ public class MessageIterator<T> implements Iterable<T> {
                         return messageConverter.apply(message);
                     }
                     return null;
-                }
-                catch (JMSRuntimeException e)  {
+                } catch (JMSRuntimeException e)  {
                     return null;
                 }
             }

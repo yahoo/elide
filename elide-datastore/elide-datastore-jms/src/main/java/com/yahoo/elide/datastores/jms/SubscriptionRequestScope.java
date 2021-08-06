@@ -10,7 +10,6 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.security.User;
-
 import lombok.Getter;
 
 import java.util.List;

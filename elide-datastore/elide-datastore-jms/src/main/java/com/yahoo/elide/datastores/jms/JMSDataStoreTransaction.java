@@ -12,14 +12,12 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.EntityProjection;
-
 import com.google.common.base.Preconditions;
 
+import java.io.IOException;
 import javax.jms.Destination;
 import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
-
-import java.io.IOException;
 
 /**
  * Data store transaction for reading Elide models from JMS topics.
