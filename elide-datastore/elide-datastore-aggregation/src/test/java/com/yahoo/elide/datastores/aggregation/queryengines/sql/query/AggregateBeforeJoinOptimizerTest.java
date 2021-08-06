@@ -27,6 +27,7 @@ import com.yahoo.elide.datastores.aggregation.query.Optimizer;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.H2Dialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+import com.yahoo.elide.datastores.aggregation.timegrains.Day;
 import example.GameRevenue;
 import example.PlayerStats;
 import org.junit.jupiter.api.BeforeAll;
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -602,7 +604,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "saleDate"),
                         Operator.IN,
-                        Arrays.asList("foo")
+                        Arrays.asList(new Day(new Date()))
                 )
         );
 
@@ -654,7 +656,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "saleDate", "saleDate", arguments),
                         Operator.IN,
-                        Arrays.asList("foo")
+                        Arrays.asList(new Day(new Date()))
                 )
         );
 
@@ -701,7 +703,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "sessionDate"),
                         Operator.IN,
-                        Arrays.asList("foo")
+                        Arrays.asList(new Day(new Date()))
                 )
         );
 
@@ -747,7 +749,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "sessionDate", "sessionDate", arguments),
                         Operator.IN,
-                        Arrays.asList("foo")
+                        Arrays.asList(new Day(new Date()))
                 )
         );
 
@@ -787,7 +789,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
         FilterExpression where = new FilterPredicate(
                 new Path(GameRevenue.class, dictionary, "saleDate"),
                 Operator.IN,
-                Arrays.asList("foo"));
+                Arrays.asList(new Day(new Date())));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -837,7 +839,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
         FilterExpression where = new FilterPredicate(
                 new Path(GameRevenue.class, dictionary, "saleDate", "saleDate", arguments),
                 Operator.IN,
-                Arrays.asList("foo"));
+                Arrays.asList(new Day(new Date())));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -887,7 +889,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
         FilterExpression where = new FilterPredicate(
                 new Path(GameRevenue.class, dictionary, "saleDate", "saleDate", arguments),
                 Operator.IN,
-                Arrays.asList("foo"));
+                Arrays.asList(new Day(new Date())));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -937,7 +939,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
         FilterExpression where = new FilterPredicate(
                 new Path(GameRevenue.class, dictionary, "saleDate", "saleDate", arguments),
                 Operator.IN,
-                Arrays.asList("foo"));
+                Arrays.asList(new Day(new Date())));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -982,7 +984,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "saleDate"),
                         Operator.IN,
-                        Arrays.asList("foo")));
+                        Arrays.asList(new Day(new Date()))));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -1023,7 +1025,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "saleDate", "saleDate", arguments),
                         Operator.IN,
-                        Arrays.asList("foo")));
+                        Arrays.asList(new Day(new Date()))));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -1055,7 +1057,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "sessionDate"),
                         Operator.IN,
-                        Arrays.asList("foo")
+                        Arrays.asList(new Day(new Date()))
                         );
 
         Query query = Query.builder()
@@ -1092,7 +1094,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "sessionDate", "sessionDate", arguments),
                         Operator.IN,
-                        Arrays.asList("foo")
+                        Arrays.asList(new Day(new Date()))
                 );
 
         Query query = Query.builder()
@@ -1124,7 +1126,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "sessionDate"),
                         Operator.IN,
-                        Arrays.asList("foo"));
+                        Arrays.asList(new Day(new Date())));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -1164,7 +1166,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "sessionDate", "sessionDate", arguments),
                         Operator.IN,
-                        Arrays.asList("foo"));
+                        Arrays.asList(new Day(new Date())));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -1204,7 +1206,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "sessionDate", "sessionDate", arguments),
                         Operator.IN,
-                        Arrays.asList("foo"));
+                        Arrays.asList(new Day(new Date())));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -1244,7 +1246,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "sessionDate", "sessionDate", arguments),
                         Operator.IN,
-                        Arrays.asList("foo"));
+                        Arrays.asList(new Day(new Date())));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -1281,7 +1283,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
             new FilterPredicate(
                     new Path(GameRevenue.class, dictionary, "lastDate"),
                     Operator.IN,
-                    Arrays.asList("foo")));
+                    Arrays.asList(new Day(new Date()))));
 
             Query query = Query.builder()
             .source(gameRevenueTable)
@@ -1325,7 +1327,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "lastDate"),
                         Operator.IN,
-                        Arrays.asList("foo")));
+                        Arrays.asList(new Day(new Date()))));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -1400,7 +1402,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "lastDate"),
                         Operator.IN,
-                        Arrays.asList("foo")));
+                        Arrays.asList(new Day(new Date()))));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
