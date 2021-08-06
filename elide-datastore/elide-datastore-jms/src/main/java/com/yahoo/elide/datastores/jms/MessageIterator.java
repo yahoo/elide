@@ -35,11 +35,11 @@ public class MessageIterator<T> implements Iterable<T> {
     @Override
     public Iterator<T> iterator() {
         return new Iterator() {
-            Message next;
+            T next;
 
             @Override
             public boolean hasNext() {
-                next = (Message) next();
+                next = next();
                 if (next == null) {
                     return false;
                 }
@@ -49,6 +49,12 @@ public class MessageIterator<T> implements Iterable<T> {
 
             @Override
             public T next() {
+                if (next != null) {
+                    T result = next;
+                    next = null;
+                    return result;
+                }
+
                 try {
                     Message message = consumer.receive(timeout);
                     if (message != null) {
