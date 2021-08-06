@@ -56,7 +56,15 @@ public class MessageIterator<T> implements Iterable<T> {
                 }
 
                 try {
-                    Message message = consumer.receive(timeout);
+                    Message message;
+                    if (timeout == 0) {
+                        message = consumer.receiveNoWait();
+                    } else if (timeout > 0) {
+                        message = consumer.receive(timeout);
+                    } else {
+                        message = consumer.receive();
+                    }
+
                     if (message != null) {
                         return messageConverter.apply(message);
                     }

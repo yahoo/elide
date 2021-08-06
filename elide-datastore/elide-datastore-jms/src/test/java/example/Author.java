@@ -9,18 +9,13 @@ package example;
 import com.yahoo.elide.annotation.Include;
 import lombok.Data;
 
-import java.util.Set;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
 
 @Include
 @Data
-public class Book {
+public class Author {
     @Id
     private long id;
 
-    private String title;
-
-    @ManyToMany
-    private Set<Author> authors;
+    private String name;
 }

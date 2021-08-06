@@ -10,7 +10,10 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.EntityProjection;
+
+import com.google.common.base.Preconditions;
 
 import javax.jms.Destination;
 import javax.jms.JMSConsumer;
@@ -18,6 +21,9 @@ import javax.jms.JMSContext;
 
 import java.io.IOException;
 
+/**
+ * Data store transaction for reading Elide models from JMS topics.
+ */
 public class JMSDataStoreTransaction implements DataStoreTransaction {
     private JMSContext context;
     private EntityDictionary dictionary;
@@ -54,16 +60,21 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
 
     @Override
     public <T> Iterable<T> loadObjects(EntityProjection entityProjection, RequestScope scope) {
-        //TODO - extract topic type (added, updated, deleted) from SubscriptionRequestScope
-        String topicName = dictionary.getJsonAliasFor(entityProjection.getType()) + "Added";
+        Preconditions.checkState(entityProjection.getArguments().size() == 1);
+
+        Argument argument = entityProjection.getArguments().iterator().next();
+        TopicType topicType = (TopicType) argument.getValue();
+
+        String topicName = topicType.toTopicName(entityProjection.getType(), dictionary);
 
         Destination destination = context.createTopic(topicName);
-
         JMSConsumer consumer = context.createConsumer(destination);
 
-        context.start();
-
-        return new MessageIterator<>(consumer, 2000, new MessageDeserializer<>(entityProjection.getType()));
+        return new MessageIterator<>(
+                consumer,
+                ((SubscriptionRequestScope) scope).getTimeoutInMs(),
+                new MessageDeserializer<>(entityProjection.getType())
+        );
     }
 
     @Override

@@ -12,21 +12,27 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
 
 import java.util.Set;
-import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
-import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
-import javax.jms.JMSException;
-import javax.jms.MessageConsumer;
-import javax.jms.Session;
 
+/**
+ * Elide datastore that reads models from JMS message topics.
+ */
 public class JMSDataStore implements DataStore {
-    Set<Type<?>> models;
-    ConnectionFactory connectionFactory;
-    EntityDictionary dictionary;
+    private Set<Type<?>> models;
+    private ConnectionFactory connectionFactory;
+    private EntityDictionary dictionary;
 
-    public JMSDataStore(Set<Type<?>> models, ConnectionFactory connectionFactory, EntityDictionary dictionary) {
+    /**
+     * Constructor.
+     * @param models The set of models to manage.
+     * @param connectionFactory The JMS connection factory.
+     * @param dictionary The entity dictionary.
+     */
+    public JMSDataStore(
+            Set<Type<?>> models,
+            ConnectionFactory connectionFactory,
+            EntityDictionary dictionary) {
         this.models = models;
         this.connectionFactory = connectionFactory;
         this.dictionary = dictionary;

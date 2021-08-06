@@ -1,14 +1,25 @@
+/*
+ * Copyright 2021, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+
 package com.yahoo.elide.datastores.jms;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.type.ClassType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
+import example.Author;
 import example.Book;
 import org.apache.activemq.artemis.core.config.Configuration;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
@@ -19,6 +30,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
 import javax.jms.Destination;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
@@ -40,28 +52,49 @@ public class JMSDataStoreTest {
         ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("vm://0");
 
         EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
-        dictionary.bindEntity(Book.class);
+
+        Author author1 = new Author();
+        author1.setId(1);
+        author1.setName("Jon Doe");
 
         Book book1 = new Book();
         book1.setTitle("Enders Game");
         book1.setId(1);
+        book1.setAuthors(Sets.newHashSet(author1));
 
         Book book2 = new Book();
         book2.setTitle("Grapes of Wrath");
         book2.setId(2);
 
-        JMSDataStore store = new JMSDataStore(Sets.newHashSet(ClassType.of(Book.class)), cf, dictionary);
+        JMSDataStore store = new JMSDataStore(Sets.newHashSet(
+                ClassType.of(Book.class), ClassType.of(Author.class)), cf, dictionary);
         store.populateEntityDictionary(dictionary);
 
         try (DataStoreTransaction tx = store.beginReadTransaction()) {
 
+            RequestScope scope = new SubscriptionRequestScope(
+                    "/json",
+                    tx,
+                    null,
+                    "1.0",
+                    new ElideSettingsBuilder(store)
+                            .withEntityDictionary(dictionary)
+                            .build(),
+                    null,
+                    null,
+                    2000);
+
             Iterable<Book> books = tx.loadObjects(
-                    EntityProjection.builder().type(Book.class).build(),
-                    null
+                    EntityProjection.builder()
+                            .argument(Argument.builder()
+                                    .name("topic")
+                                    .value(TopicType.ADDED)
+                                    .build())
+                            .type(Book.class).build(),
+                    scope
             );
 
             JMSContext context = cf.createContext();
-            context.start();
             Destination destination = context.createTopic("bookAdded");
 
             JMSProducer producer = context.createProducer();
@@ -72,14 +105,24 @@ public class JMSDataStoreTest {
             Iterator<Book> booksIterator = books.iterator();
 
             assertTrue(booksIterator.hasNext());
-            Book received = booksIterator.next();
-            assertEquals("Enders Game", received.getTitle());
-            assertEquals(1, received.getId());
+            Book receivedBook = booksIterator.next();
+            assertEquals("Enders Game", receivedBook.getTitle());
+            assertEquals(1, receivedBook.getId());
+
+            Set<Author> receivedAuthors = tx.getRelation(tx, receivedBook,
+                    Relationship.builder()
+                            .name("authors")
+                            .projection(EntityProjection.builder()
+                                    .type(Author.class)
+                                    .build())
+                            .build(), scope);
+
+            assertTrue(receivedAuthors.contains(author1));
 
             assertTrue(booksIterator.hasNext());
-            received = booksIterator.next();
-            assertEquals("Grapes of Wrath", received.getTitle());
-            assertEquals(2, received.getId());
+            receivedBook = booksIterator.next();
+            assertEquals("Grapes of Wrath", receivedBook.getTitle());
+            assertEquals(2, receivedBook.getId());
 
             assertFalse(booksIterator.hasNext());
         }
