@@ -16,11 +16,19 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.TextMessage;
 
+/**
+ * Converts JMS messages to elide model instances via Jackson.
+ * @param <T> elide model type.
+ */
 public class MessageDeserializer<T> implements Function<Message, T> {
 
     private ObjectMapper mapper;
     Type<?> type;
 
+    /**
+     * Constructor.
+     * @param type The type to deserialize to.
+     */
     public MessageDeserializer(Type<?> type) {
         this.type = type;
         this.mapper = new ObjectMapper();

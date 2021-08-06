@@ -22,6 +22,12 @@ public class MessageIterator<T> implements Iterable<T> {
     private long timeout;
     private Function<Message, T> messageConverter;
 
+    /**
+     * Constructor.
+     * @param consumer The JMS message consumer to convert to an interator.
+     * @param timeout The timeout to wait on message topics.  0 means no wait.  Less than 0 means wait forever.
+     * @param messageConverter Converts JMS messages into some other thing.
+     */
     public MessageIterator(
             JMSConsumer consumer,
             long timeout,

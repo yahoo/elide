@@ -15,6 +15,7 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
+import java.util.Optional;
 import javax.jms.Destination;
 import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
@@ -26,6 +27,11 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
     private JMSContext context;
     private EntityDictionary dictionary;
 
+    /**
+     * Constructor.
+     * @param context JMS Context
+     * @param dictionary Elide Entity Dictionary
+     */
     public JMSDataStoreTransaction(JMSContext context, EntityDictionary dictionary) {
         this.context = context;
         this.dictionary = dictionary;
@@ -84,5 +90,23 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
     public void close() throws IOException {
         context.stop();
         context.close();
+    }
+
+    @Override
+    public <T> FeatureSupport supportsFiltering(RequestScope scope, Optional<T> parent, EntityProjection projection) {
+        //Delegate to in-memory filtering
+        return FeatureSupport.NONE;
+    }
+
+    @Override
+    public <T> boolean supportsSorting(RequestScope scope, Optional<T> parent, EntityProjection projection) {
+        //Delegate to in-memory sorting
+        return false;
+    }
+
+    @Override
+    public <T> boolean supportsPagination(RequestScope scope, Optional<T> parent, EntityProjection projection) {
+        //Delegate to in-memory pagination
+        return false;
     }
 }
