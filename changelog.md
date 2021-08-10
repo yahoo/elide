@@ -1,5 +1,15 @@
 # Change Log
 
+## 5.0.7
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/981125df2571d5a7ec2c0bde76a7c897b4a803c9) Bump ant from 1.10.10 to 1.10.11 in /elide-graphql (#2233) 
+   * [view commit](https://github.com/yahoo/elide/commit/9e4f2929f727a5042607d066a8b9d5a8b1f316b5) Bump maven-enforcer-plugin from 1.4.1 to 3.0.0 (#2232) 
+   * [view commit](https://github.com/yahoo/elide/commit/a51cc2f178d36002ade4905c0179cc3510f5db0d) Bump classgraph from 4.8.108 to 4.8.110 (#2230) 
+   * [view commit](https://github.com/yahoo/elide/commit/c55eca8c6cc828610faf39d0ea62d2a0a897696b) Add simple configuration to enable verbose errors. (#2236) 
+   * [view commit](https://github.com/yahoo/elide/commit/101f842daa06095652f898bda0f96fead4bb373e) GraphQL schema now namespaces internal types to avoid conflicts (#2237) 
+   * [view commit](https://github.com/yahoo/elide/commit/a874733a5c2ac3777e5946f6eddfade651d80c7a) Fix bug where dialect time conversion is skipped (#2238) 
+   * [view commit](https://github.com/yahoo/elide/commit/f0f455bee3d51e2333ad20005068f48ab563a7a9) Issue2239 (#2245) 
+
 ## 5.0.6
 Fixes bug in 5.0.5
 
