@@ -28,7 +28,10 @@ import com.google.common.annotations.VisibleForTesting;
 import lombok.ToString;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Transaction handler for {@link AggregationDataStore}.
@@ -81,7 +84,16 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
         QueryResponse response = null;
         String cacheKey = null;
         try {
-            queryLogger.acceptQuery(scope.getRequestId(), scope.getUser(), scope.getHeaders(),
+
+            //Convert multivalued map to map.
+            Map<String, String> headers = scope.getRequestHeaders().entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            (entry) -> entry.getValue().stream().collect(Collectors.joining(" "))
+                    ));
+
+            queryLogger.acceptQuery(scope.getRequestId(), scope.getUser(), headers,
                     scope.getApiVersion(), scope.getQueryParams(), scope.getPath());
             Query query = buildQuery(entityProjection, scope);
             Table table = (Table) query.getSource();
