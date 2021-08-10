@@ -17,7 +17,6 @@ import graphql.schema.GraphQLScalarType;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.TimeZone;
 
 public class GraphQLConversionUtilsTest {
@@ -26,7 +25,7 @@ public class GraphQLConversionUtilsTest {
     public void testGraphQLConversionUtilsOffsetDateTimeToScalarType() {
         CoerceUtil.register(OffsetDateTime.class, new OffsetDateTimeSerde());
         GraphQLConversionUtils graphQLConversionUtils =
-                new GraphQLConversionUtils(new EntityDictionary(new HashMap<>()), new NonEntityDictionary(), new HashSet<>());
+                new GraphQLConversionUtils(new EntityDictionary(new HashMap<>()), new NonEntityDictionary());
         GraphQLScalarType offsetDateTimeType = graphQLConversionUtils.classToScalarType(ClassType.of(OffsetDateTime.class));
         assertNotNull(offsetDateTimeType);
         String expected = "OffsetDateTime";
@@ -36,7 +35,7 @@ public class GraphQLConversionUtilsTest {
     public void testGraphQLConversionUtilsTimeZoneToScalarType() {
         CoerceUtil.register(TimeZone.class, new TimeZoneSerde());
         GraphQLConversionUtils graphQLConversionUtils =
-                new GraphQLConversionUtils(new EntityDictionary(new HashMap<>()), new NonEntityDictionary(), new HashSet<>());
+                new GraphQLConversionUtils(new EntityDictionary(new HashMap<>()), new NonEntityDictionary());
         GraphQLScalarType timeZoneType = graphQLConversionUtils.classToScalarType(ClassType.of(TimeZone.class));
         assertNotNull(timeZoneType);
         String expectedTimezone = "TimeZone";

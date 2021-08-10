@@ -252,6 +252,13 @@ public class EntityDictionaryTest extends EntityDictionary {
     }
 
     @Test
+    public void testHasAnnotation() {
+        assertTrue(hasAnnotation(ClassType.of(Book.class), Include.class));
+        assertTrue(hasAnnotation(ClassType.of(Book.class), Transient.class));
+        assertFalse(hasAnnotation(ClassType.of(Book.class), Exclude.class));
+    }
+
+    @Test
     public void testBindingTriggerPriorToBindingEntityClass1() {
         @Entity
         @Include(rootLevel = false)
