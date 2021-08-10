@@ -71,7 +71,6 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
     @Getter private final int updateStatusCode;
     @Getter private final MultipleFilterDialect filterDialect;
     @Getter private final String apiVersion;
-    @Getter @Setter private Map<String, String> headers;
 
     //TODO - this ought to be read only and set in the constructor.
     @Getter @Setter private EntityProjection entityProjection;
@@ -134,7 +133,6 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.dirtyResources = new LinkedHashSet<>();
         this.deletedResources = new LinkedHashSet<>();
         this.requestId = requestId;
-        this.headers = new HashMap<>();
         this.queryParams = queryParams == null ? new MultivaluedHashMap<>() : queryParams;
 
         this.requestHeaders = MapUtils.isEmpty(requestHeaders)
@@ -211,7 +209,8 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.mapper = outerRequestScope.mapper;
         this.auditLogger = outerRequestScope.auditLogger;
         this.queryParams = new MultivaluedHashMap<>();
-        this.requestHeaders = Collections.emptyMap();
+        this.requestHeaders = new MultivaluedHashMap<>();
+        this.requestHeaders.putAll(outerRequestScope.requestHeaders);
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.newPersistentResources = outerRequestScope.newPersistentResources;
         this.permissionExecutor = outerRequestScope.getPermissionExecutor();
@@ -225,7 +224,6 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.updateStatusCode = outerRequestScope.updateStatusCode;
         this.queuedLifecycleEvents = outerRequestScope.queuedLifecycleEvents;
         this.requestId = outerRequestScope.requestId;
-        this.headers = outerRequestScope.headers;
         this.sparseFields = outerRequestScope.sparseFields;
     }
 
