@@ -211,7 +211,7 @@ public class RequestScope implements com.yahoo.elide.core.security.RequestScope 
         this.mapper = outerRequestScope.mapper;
         this.auditLogger = outerRequestScope.auditLogger;
         this.queryParams = new MultivaluedHashMap<>();
-        this.requestHeaders = Collections.emptyMap();
+        this.requestHeaders = new MultivaluedHashMap<>(outerRequestScope.headers);
         this.objectEntityCache = outerRequestScope.objectEntityCache;
         this.newPersistentResources = outerRequestScope.newPersistentResources;
         this.permissionExecutor = outerRequestScope.getPermissionExecutor();
