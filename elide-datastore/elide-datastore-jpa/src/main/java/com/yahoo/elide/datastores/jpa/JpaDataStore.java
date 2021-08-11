@@ -25,7 +25,7 @@ import javax.persistence.metamodel.EntityType;
  */
 @Slf4j
 public class JpaDataStore implements JPQLDataStore {
-    public static final QueryLogger DEFAULT_LOGGER = (query) -> log.debug("HQL Query: {}", query);
+    public static final QueryLogger DEFAULT_LOGGER = (query) -> log.debug("{}", query);
 
     protected final EntityManagerSupplier entityManagerSupplier;
     protected final JpaTransactionSupplier readTransactionSupplier;

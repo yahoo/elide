@@ -25,6 +25,7 @@ import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.TimedFunction;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -102,7 +103,8 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
         Query query =
                 new RootCollectionFetchQueryBuilder(projection, dictionary, sessionWrapper).build();
 
-        return addSingleElement(query.uniqueResult());
+        T loaded = new TimedFunction<T>(() -> query.uniqueResult(), "Query Hash: " + query.hashCode()).get();
+        return addSingleElement(loaded);
     }
 
     @Override
@@ -116,7 +118,10 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
                 new RootCollectionFetchQueryBuilder(projection, scope.getDictionary(), sessionWrapper)
                         .build();
 
-        Iterable<T> results = isScrollEnabled ? query.scroll() : query.list();
+        Iterable<T> results = new TimedFunction<Iterable<T>>(() -> {
+            return isScrollEnabled ? query.scroll() : query.list();
+        }, "Query Hash: " + query.hashCode()).get();
+
         final boolean hasResults;
         if (results instanceof Collection) {
             hasResults = !((Collection) results).isEmpty();
@@ -189,7 +194,6 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
      *
      * @param entityProjection The entity projection to count
      * @param dictionary the entity dictionary
-     * @param <T> The type of entity
      * @return The total row count.
      */
     private Long getTotalRecords(EntityProjection entityProjection, EntityDictionary dictionary) {
@@ -199,7 +203,7 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
                 new RootCollectionPageTotalsQueryBuilder(entityProjection, dictionary, sessionWrapper)
                         .build();
 
-        return query.uniqueResult();
+        return new TimedFunction<Long>(() -> query.uniqueResult(), "Query Hash: " + query.hashCode()).get();
     }
 
     /**
@@ -207,7 +211,6 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
      *
      * @param relationship The relationship
      * @param dictionary the entity dictionary
-     * @param <T> The type of entity
      * @return The total row count.
      */
     private Long getTotalRecords(AbstractHQLQueryBuilder.Relationship relationship,
@@ -217,7 +220,7 @@ public abstract class JPQLTransaction implements DataStoreTransaction {
                 new SubCollectionPageTotalsQueryBuilder(relationship, dictionary, sessionWrapper)
                         .build();
 
-        return query.uniqueResult();
+        return new TimedFunction<Long>(() -> query.uniqueResult(), "Query Hash: " + query.hashCode()).get();
     }
 
     private <R> R addSingleElement(R results) {

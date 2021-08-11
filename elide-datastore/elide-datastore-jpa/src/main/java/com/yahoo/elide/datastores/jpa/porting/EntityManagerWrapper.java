@@ -32,7 +32,8 @@ public class EntityManagerWrapper implements Session {
 
     @Override
     public Query createQuery(String queryText) {
-        logger.log(queryText);
-        return new QueryWrapper(entityManager.createQuery(queryText));
+        Query query = new QueryWrapper(entityManager.createQuery(queryText));
+        logger.log(String.format("Query Hash: %d\tHQL Query: %s", query.hashCode(), queryText));
+        return query;
     }
 }
