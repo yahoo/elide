@@ -53,6 +53,7 @@
         <module>elide-datastore-multiplex</module>
         <module>elide-datastore-noop</module>
         <module>elide-datastore-search</module>
+        <module>elide-datastore-jms</module>
     </modules>
 
     <dependencyManagement>
