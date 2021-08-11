@@ -11,9 +11,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import com.yahoo.elide.datastores.jpa.porting.QueryLogger;
+import com.yahoo.elide.core.hibernate.QueryLogger;
 import com.yahoo.elide.initialization.IntegrationTest;
-
 import org.mockito.ArgumentCaptor;
 
 import java.util.List;

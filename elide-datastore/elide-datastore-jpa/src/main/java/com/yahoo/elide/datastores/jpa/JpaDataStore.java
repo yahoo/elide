@@ -8,11 +8,11 @@ package com.yahoo.elide.datastores.jpa;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.JPQLDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.hibernate.QueryLogger;
+import com.yahoo.elide.core.hibernate.hql.DefaultQueryLogger;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.datastores.jpa.porting.QueryLogger;
 import com.yahoo.elide.datastores.jpa.transaction.JpaTransaction;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
@@ -25,7 +25,7 @@ import javax.persistence.metamodel.EntityType;
  */
 @Slf4j
 public class JpaDataStore implements JPQLDataStore {
-    public static final QueryLogger DEFAULT_LOGGER = (query) -> log.debug("{}", query);
+    public static final QueryLogger DEFAULT_LOGGER = new DefaultQueryLogger();
 
     protected final EntityManagerSupplier entityManagerSupplier;
     protected final JpaTransactionSupplier readTransactionSupplier;
