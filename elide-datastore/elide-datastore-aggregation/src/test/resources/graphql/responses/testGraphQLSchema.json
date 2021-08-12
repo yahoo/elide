@@ -39,14 +39,14 @@
               {
                 "name": "highScore",
                 "type": {
-                  "name": "Long",
+                  "name": "Int",
                   "fields": null
                 }
               },
               {
                 "name": "lowScore",
                 "type": {
-                  "name": "Long",
+                  "name": "Int",
                   "fields": null
                 }
               },
