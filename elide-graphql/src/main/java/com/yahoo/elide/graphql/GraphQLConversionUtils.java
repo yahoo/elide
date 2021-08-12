@@ -94,17 +94,17 @@ public class GraphQLConversionUtils {
         } else if (clazz.equals(ClassType.of(boolean.class)) || clazz.equals(ClassType.of(Boolean.class))) {
             return Scalars.GraphQLBoolean;
         } else if (clazz.equals(ClassType.of(long.class)) || clazz.equals(ClassType.of(Long.class))) {
-            return Scalars.GraphQLLong;
+            return Scalars.GraphQLInt;
         } else if (clazz.equals(ClassType.of(float.class)) || clazz.equals(ClassType.of(Float.class))) {
             return Scalars.GraphQLFloat;
         } else if (clazz.equals(ClassType.of(double.class)) || clazz.equals(ClassType.of(Double.class))) {
             return Scalars.GraphQLFloat;
         } else if (clazz.equals(ClassType.of(short.class)) || clazz.equals(ClassType.of(Short.class))) {
-            return Scalars.GraphQLShort;
+            return Scalars.GraphQLInt;
         } else if (clazz.equals(ClassType.of(String.class)) || clazz.equals(ClassType.of(Object.class))) {
             return Scalars.GraphQLString;
         } else if (clazz.equals(ClassType.of(BigDecimal.class))) {
-            return Scalars.GraphQLBigDecimal;
+            return Scalars.GraphQLFloat;
         }
         return otherClassToScalarType(clazz);
     }
