@@ -7,6 +7,7 @@ package com.yahoo.elide.datastores.jpa.porting;
 
 import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 import com.yahoo.elide.core.hibernate.Query;
+import com.yahoo.elide.core.hibernate.QueryLogger;
 import com.yahoo.elide.core.hibernate.Session;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,7 +33,8 @@ public class EntityManagerWrapper implements Session {
 
     @Override
     public Query createQuery(String queryText) {
-        logger.log(queryText);
-        return new QueryWrapper(entityManager.createQuery(queryText));
+        Query query = new QueryWrapper(entityManager.createQuery(queryText));
+        logger.log(String.format("Query Hash: %d\tHQL Query: %s", query.hashCode(), queryText));
+        return query;
     }
 }
