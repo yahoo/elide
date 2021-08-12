@@ -199,8 +199,8 @@ public class ModelBuilderTest {
         assertEquals(Scalars.GraphQLString, bookType.getFieldDefinition(FIELD_TITLE).getType());
         assertEquals(Scalars.GraphQLString, bookType.getFieldDefinition(FIELD_GENRE).getType());
         assertEquals(Scalars.GraphQLString, bookType.getFieldDefinition(FIELD_LANGUAGE).getType());
-        assertEquals(Scalars.GraphQLLong, bookType.getFieldDefinition(FIELD_PUBLISH_DATE).getType());
-        assertEquals(Scalars.GraphQLBigDecimal, bookType.getFieldDefinition(FIELD_WEIGHT_LBS).getType());
+        assertEquals(Scalars.GraphQLInt, bookType.getFieldDefinition(FIELD_PUBLISH_DATE).getType());
+        assertEquals(Scalars.GraphQLFloat, bookType.getFieldDefinition(FIELD_WEIGHT_LBS).getType());
 
         GraphQLObjectType addressType = (GraphQLObjectType) authorType.getFieldDefinition("homeAddress").getType();
         assertEquals(Scalars.GraphQLString, addressType.getFieldDefinition("street1").getType());
@@ -226,7 +226,7 @@ public class ModelBuilderTest {
         assertEquals(Scalars.GraphQLString, bookInputType.getField(FIELD_TITLE).getType());
         assertEquals(Scalars.GraphQLString, bookInputType.getField(FIELD_GENRE).getType());
         assertEquals(Scalars.GraphQLString, bookInputType.getField(FIELD_LANGUAGE).getType());
-        assertEquals(Scalars.GraphQLLong, bookInputType.getField(FIELD_PUBLISH_DATE).getType());
+        assertEquals(Scalars.GraphQLInt, bookInputType.getField(FIELD_PUBLISH_DATE).getType());
 
         GraphQLList authorsInputType = (GraphQLList) bookInputType.getField(FIELD_AUTHORS).getType();
         assertEquals(authorInputType, authorsInputType.getWrappedType());

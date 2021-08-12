@@ -6,7 +6,7 @@
           "title": "Book Numero Tres",
           "publicationDate": "1984-12-25T00:00Z",
           "price" : {
-            "units" : 123,
+            "units" : 123.1,
             "currency" : {
               "currencyCode" : "USD"
             }

@@ -6,11 +6,11 @@
           "id": "1",
           "priceHistory": [
             {
-              "units": 125,
+              "units": 125.0,
               "currency": null
             },
             {
-              "units": 126,
+              "units": 126.0,
               "currency": {
                 "currencyCode" : "USD"
               }

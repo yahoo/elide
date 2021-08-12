@@ -134,7 +134,7 @@ public class ModelBuilder {
                         .type(Scalars.GraphQLString))
                 .field(newFieldDefinition()
                         .name("totalRecords")
-                        .type(Scalars.GraphQLLong))
+                        .type(Scalars.GraphQLInt))
                 .build();
 
         objectTypes.add(pageInfoObject);

@@ -49,12 +49,12 @@ public class Price {
             JsonNode currencyNode = node.get("currency");
 
             if (currencyNode == null) {
-                return new Price(new BigDecimal(unitNode.asInt()), null);
+                return new Price(new BigDecimal(unitNode.asDouble()), null);
             }
 
             Currency currency = Currency.getInstance(node.get("currency").get("currencyCode").asText(""));
 
-            return new Price(new BigDecimal(unitNode.asInt()), currency);
+            return new Price(new BigDecimal(unitNode.asDouble()), currency);
         }
     }
 }
