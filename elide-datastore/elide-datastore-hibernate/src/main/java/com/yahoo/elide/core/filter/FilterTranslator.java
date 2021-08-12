@@ -126,13 +126,13 @@ public class FilterTranslator implements FilterOperation<String> {
         );
 
         globalOperatorGenerators.put(INFIX, new CaseAwareJPQLGenerator(
-                "%s LIKE CONCAT('%%', %s, '%%')",
+                "%s LIKE CONCAT('%%', CONCAT(%s, '%%'))",
                 CaseAwareJPQLGenerator.Case.NONE,
                 CaseAwareJPQLGenerator.ArgumentCount.ONE)
         );
 
         globalOperatorGenerators.put(INFIX_CASE_INSENSITIVE, new CaseAwareJPQLGenerator(
-                "%s LIKE CONCAT('%%', %s, '%%')",
+                "%s LIKE CONCAT('%%', CONCAT(%s, '%%'))",
                 CaseAwareJPQLGenerator.Case.LOWER,
                 CaseAwareJPQLGenerator.ArgumentCount.ONE)
         );

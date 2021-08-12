@@ -210,7 +210,7 @@ public class FilterTranslatorTest {
     public void testCustomLocalOperator() throws Exception {
 
         JPQLPredicateGenerator generator = new CaseAwareJPQLGenerator(
-                "%s LIKE CONCAT('%%', CONCAT(%s, '%%'))",
+                "%s LIKE CONCAT('%%', %s, '%%')",
                 CaseAwareJPQLGenerator.Case.NONE,
                 CaseAwareJPQLGenerator.ArgumentCount.ONE
         );
@@ -225,6 +225,6 @@ public class FilterTranslatorTest {
                 .apply(pred)
                 .replaceAll(":\\w+", ":XXX");
 
-        assertEquals("name LIKE CONCAT('%', CONCAT(:XXX, '%'))", actual);
+        assertEquals("name LIKE CONCAT('%', :XXX, '%')", actual);
     }
 }
