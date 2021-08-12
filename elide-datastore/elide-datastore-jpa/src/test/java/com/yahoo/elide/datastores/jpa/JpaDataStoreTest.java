@@ -18,7 +18,6 @@ import com.yahoo.elide.core.filter.JPQLPredicateGenerator;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.type.ClassType;
-
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 

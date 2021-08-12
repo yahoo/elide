@@ -11,9 +11,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import com.yahoo.elide.datastores.jpa.porting.QueryLogger;
+import com.yahoo.elide.core.hibernate.QueryLogger;
 import com.yahoo.elide.initialization.IntegrationTest;
-
 import org.mockito.ArgumentCaptor;
 
 import java.util.List;
@@ -58,7 +57,8 @@ public abstract class JPQLIntegrationTest extends IntegrationTest {
     }
 
     private static String normalizeQuery(String query) {
-        String normalized = query.replaceAll(":\\w+", ":XXX");
+        String normalized = query.replaceAll("Query Hash: \\d+\tHQL Query: ", "");
+        normalized = normalized.replaceAll(":\\w+", ":XXX");
         normalized = normalized.trim();
         normalized = normalized.replaceAll("\\s+", " ");
         return normalized;

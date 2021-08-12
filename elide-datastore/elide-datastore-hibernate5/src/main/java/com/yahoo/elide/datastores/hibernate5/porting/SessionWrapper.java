@@ -26,11 +26,12 @@ public class SessionWrapper implements Session {
 
     @Override
     public Query createQuery(String queryText) {
-        logQuery(queryText);
-        return new QueryWrapper(session.createQuery(queryText));
+        Query query = new QueryWrapper(session.createQuery(queryText));
+        logQuery(String.format("Query Hash: %d\tHQL Query: %s", query.hashCode(), queryText));
+        return query;
     }
 
     private static void logQuery(String queryText) {
-        log.debug("HQL Query: {}", queryText);
+        log.debug("{}", queryText);
     }
 }
