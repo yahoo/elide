@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -187,7 +188,7 @@ public class FilterTranslatorTest {
     }
 
     @Test
-    public void testCustomOperator() throws Exception {
+    public void testCustomGlobalOperator() throws Exception {
 
         JPQLPredicateGenerator generator = (predicate, aliasGenerator) -> "FOO";
 
@@ -203,5 +204,27 @@ public class FilterTranslatorTest {
         } finally {
             FilterTranslator.registerJPQLGenerator(Operator.INFIX_CASE_INSENSITIVE, old);
         }
+    }
+
+    @Test
+    public void testCustomLocalOperator() throws Exception {
+
+        JPQLPredicateGenerator generator = new CaseAwareJPQLGenerator(
+                "%s LIKE CONCAT('%%', %s, '%%')",
+                CaseAwareJPQLGenerator.Case.NONE,
+                CaseAwareJPQLGenerator.ArgumentCount.ONE
+        );
+
+        FilterPredicate pred = new FilterPredicate(new Path.PathElement(Author.class, String.class, "name"),
+                    Operator.INFIX, Arrays.asList("value"));
+
+        Map<Operator, JPQLPredicateGenerator> overrides = new HashMap<>();
+        overrides.put(Operator.INFIX, generator);
+
+        String actual = new FilterTranslator(dictionary, overrides)
+                .apply(pred)
+                .replaceAll(":\\w+", ":XXX");
+
+        assertEquals("name LIKE CONCAT('%', :XXX, '%')", actual);
     }
 }
