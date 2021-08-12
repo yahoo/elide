@@ -14,7 +14,7 @@
     <parent>
         <artifactId>elide-parent-pom</artifactId>
         <groupId>com.yahoo.elide</groupId>
-        <version>5.0.8</version>
+        <version>5.0.9-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -35,7 +35,7 @@
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
         <url>https://github.com/yahoo/elide.git</url>
-        <tag>5.0.8</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <properties>
