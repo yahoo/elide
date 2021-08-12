@@ -32,7 +32,6 @@ import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.checks.OperatorCheck;
 import com.yahoo.elide.datastores.aggregation.checks.VideoGameFilterCheck;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.framework.AggregationDataStoreTestHarness;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
@@ -47,6 +46,7 @@ import com.yahoo.elide.modelconfig.model.DBConfig;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import example.PlayerStats;
 import example.TestCheckMappings;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -215,6 +215,56 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 + "}";
 
         String expected = loadGraphQLResponse("testGraphQLSchema.json");
+
+        runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testGraphQLMetdata() throws Exception {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "table",
+                                arguments(
+                                        argument("ids", Arrays.asList("playerStatsView"))
+                                ),
+                                selections(
+                                        field("name"),
+                                        field("arguments",
+                                                selections(
+                                                    field("name"),
+                                                    field("type"),
+                                                    field("defaultValue")
+                                                )
+
+                                        )
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expected = document(
+                selections(
+                        field(
+                                "table",
+                                selections(
+                                        field("name", "playerStatsView"),
+                                        field("arguments",
+                                                selections(
+                                                    field("name", "rating"),
+                                                    field("type", "TEXT"),
+                                                    field("defaultValue", "")
+                                                ),
+                                                selections(
+                                                    field("name", "minScore"),
+                                                    field("type", "INTEGER"),
+                                                    field("defaultValue", "0")
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ).toResponse();
 
         runQueryWithExpectedResult(graphQLRequest, expected);
     }

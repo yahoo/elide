@@ -20,8 +20,6 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.utils.ClassScanner;
-import com.yahoo.elide.datastores.aggregation.example.GameRevenue;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
@@ -29,11 +27,15 @@ import com.yahoo.elide.datastores.aggregation.query.Optimizer;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.impl.H2Dialect;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+import com.yahoo.elide.datastores.aggregation.timegrains.Day;
+import example.GameRevenue;
+import example.PlayerStats;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +47,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
     @BeforeAll
     public static void init() {
         MetaDataStore metaDataStore = new MetaDataStore(
-                getClassType(ClassScanner.getAnnotatedClasses("com.yahoo.elide.datastores.aggregation.example",
+                getClassType(ClassScanner.getAnnotatedClasses("example",
                         Include.class)),
                 false);
         Set<Optimizer> optimizers = new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore)));
@@ -56,19 +58,19 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
     public void testWhereAnd() {
         Query query = TestQuery.WHERE_AND.getQuery();
         String expectedQueryStr =
-                "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) AS `highScore`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` AS `overallRating` "
-                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `INNER_AGG_XXX`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` AS `country_id` "
-                        + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` "
-                        + "WHERE `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` IS NOT NULL "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` ) AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX` "
-                        + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX_country_XXX` "
-                        + "ON `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX_country_XXX`.`id` "
-                        + "WHERE `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX_country_XXX`.`iso_code` IN (:XXX) "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`";
+                "SELECT MAX(`example_PlayerStats_XXX`.`INNER_AGG_XXX`) AS `highScore`,"
+                        + "`example_PlayerStats_XXX`.`overallRating` AS `overallRating` "
+                        + "FROM (SELECT MAX(`example_PlayerStats`.`highScore`) AS `INNER_AGG_XXX`,"
+                        + "`example_PlayerStats`.`overallRating` AS `overallRating`,"
+                        + "`example_PlayerStats`.`country_id` AS `country_id` "
+                        + "FROM `playerStats` AS `example_PlayerStats` "
+                        + "WHERE `example_PlayerStats`.`overallRating` IS NOT NULL "
+                        + "GROUP BY `example_PlayerStats`.`overallRating`, "
+                        + "`example_PlayerStats`.`country_id` ) AS `example_PlayerStats_XXX` "
+                        + "LEFT OUTER JOIN `countries` AS `example_PlayerStats_XXX_country_XXX` "
+                        + "ON `example_PlayerStats_XXX`.`country_id` = `example_PlayerStats_XXX_country_XXX`.`id` "
+                        + "WHERE `example_PlayerStats_XXX_country_XXX`.`iso_code` IN (:XXX) "
+                        + "GROUP BY `example_PlayerStats_XXX`.`overallRating`";
 
         compareQueryLists(expectedQueryStr, engine.explain(query));
 
@@ -98,44 +100,44 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
 
         String expectedQueryStr1 =
                 "SELECT COUNT(*) FROM "
-                + "(SELECT `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` "
-                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `INNER_AGG_XXX`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` AS `country_id`,"
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate` "
-                        + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id`, "
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ) "
-                        + "AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX` "
-                        + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX_country_XXX` "
-                        + "ON `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX_country_XXX`.`id` "
-                        + "WHERE `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX_country_XXX`.`iso_code` IN (:XXX) "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` "
-                        + "HAVING MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) > :XXX ) AS `pagination_subquery`\n";
+                + "(SELECT `example_PlayerStats_XXX`.`overallRating`, "
+                        + "`example_PlayerStats_XXX`.`recordedDate` "
+                        + "FROM (SELECT MAX(`example_PlayerStats`.`highScore`) AS `INNER_AGG_XXX`,"
+                        + "`example_PlayerStats`.`overallRating` AS `overallRating`,"
+                        + "`example_PlayerStats`.`country_id` AS `country_id`,"
+                        + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate` "
+                        + "FROM `playerStats` AS `example_PlayerStats` "
+                        + "GROUP BY `example_PlayerStats`.`overallRating`, "
+                        + "`example_PlayerStats`.`country_id`, "
+                        + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ) "
+                        + "AS `example_PlayerStats_XXX` "
+                        + "LEFT OUTER JOIN `countries` AS `example_PlayerStats_XXX_country_XXX` "
+                        + "ON `example_PlayerStats_XXX`.`country_id` = `example_PlayerStats_XXX_country_XXX`.`id` "
+                        + "WHERE `example_PlayerStats_XXX_country_XXX`.`iso_code` IN (:XXX) "
+                        + "GROUP BY `example_PlayerStats_XXX`.`overallRating`, "
+                        + "`example_PlayerStats_XXX`.`recordedDate` "
+                        + "HAVING MAX(`example_PlayerStats_XXX`.`INNER_AGG_XXX`) > :XXX ) AS `pagination_subquery`\n";
 
         String expectedQueryStr2 =
-                "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) AS `highScore`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` AS `recordedDate` "
-                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`highScore`) AS `INNER_AGG_XXX`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating` AS `overallRating`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id` AS `country_id`,"
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate` "
-                        + "FROM `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats` "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`overallRating`, "
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`country_id`, "
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ) "
-                        + "AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX` "
-                        + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX_country_XXX` "
-                        + "ON `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX_country_XXX`.`id` "
-                        + "WHERE `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX_country_XXX`.`iso_code` IN (:XXX) "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`overallRating`, "
-                        + "`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`recordedDate` "
-                        + "HAVING MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) > :XXX "
-                        + "ORDER BY MAX(`com_yahoo_elide_datastores_aggregation_example_PlayerStats_XXX`.`INNER_AGG_XXX`) "
+                "SELECT MAX(`example_PlayerStats_XXX`.`INNER_AGG_XXX`) AS `highScore`,"
+                        + "`example_PlayerStats_XXX`.`overallRating` AS `overallRating`,"
+                        + "`example_PlayerStats_XXX`.`recordedDate` AS `recordedDate` "
+                        + "FROM (SELECT MAX(`example_PlayerStats`.`highScore`) AS `INNER_AGG_XXX`,"
+                        + "`example_PlayerStats`.`overallRating` AS `overallRating`,"
+                        + "`example_PlayerStats`.`country_id` AS `country_id`,"
+                        + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `recordedDate` "
+                        + "FROM `playerStats` AS `example_PlayerStats` "
+                        + "GROUP BY `example_PlayerStats`.`overallRating`, "
+                        + "`example_PlayerStats`.`country_id`, "
+                        + "PARSEDATETIME(FORMATDATETIME(`example_PlayerStats`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ) "
+                        + "AS `example_PlayerStats_XXX` "
+                        + "LEFT OUTER JOIN `countries` AS `example_PlayerStats_XXX_country_XXX` "
+                        + "ON `example_PlayerStats_XXX`.`country_id` = `example_PlayerStats_XXX_country_XXX`.`id` "
+                        + "WHERE `example_PlayerStats_XXX_country_XXX`.`iso_code` IN (:XXX) "
+                        + "GROUP BY `example_PlayerStats_XXX`.`overallRating`, "
+                        + "`example_PlayerStats_XXX`.`recordedDate` "
+                        + "HAVING MAX(`example_PlayerStats_XXX`.`INNER_AGG_XXX`) > :XXX "
+                        + "ORDER BY MAX(`example_PlayerStats_XXX`.`INNER_AGG_XXX`) "
                         + "DESC LIMIT 5 OFFSET 10\n";
         List<String> expectedQueryList = new ArrayList<>();
         expectedQueryList.add(expectedQueryStr1);
@@ -184,14 +186,14 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, GameRevenue.class, dictionary))
                 .build();
 
-        compareQueryLists("SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode` "
-                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id` FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` ) AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                        + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` "
-                        + "ORDER BY MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) DESC\n",
+        compareQueryLists("SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                        + "`example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode` "
+                        + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                        + "`example_GameRevenue`.`country_id` AS `country_id` FROM `gameRevenue` AS `example_GameRevenue` "
+                        + "GROUP BY `example_GameRevenue`.`country_id` ) AS `example_GameRevenue_XXX` "
+                        + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                        + "GROUP BY `example_GameRevenue_XXX_country_XXX`.`iso_code` "
+                        + "ORDER BY MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) DESC\n",
                 engine.explain(query));
 
         testQueryExecution(query);
@@ -212,14 +214,14 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .havingFilter(predicate)
                 .build();
 
-        compareQueryLists("SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode` "
-                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id` FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` ) AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                        + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` "
-                        + "HAVING MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX\n",
+        compareQueryLists("SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                        + "`example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode` "
+                        + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                        + "`example_GameRevenue`.`country_id` AS `country_id` FROM `gameRevenue` AS `example_GameRevenue` "
+                        + "GROUP BY `example_GameRevenue`.`country_id` ) AS `example_GameRevenue_XXX` "
+                        + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                        + "GROUP BY `example_GameRevenue_XXX_country_XXX`.`iso_code` "
+                        + "HAVING MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX\n",
                 engine.explain(query));
 
         testQueryExecution(query);
@@ -250,22 +252,22 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .havingFilter(expression)
                 .build();
 
-        compareQueryLists("SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` AS `category` "
-                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` AS `category` "
-                        + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id`, "
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` ) "
-                        + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                        + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                        + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code`, "
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` "
-                        + "HAVING (MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX "
-                        + "OR `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` IN (:XXX))\n",
+        compareQueryLists("SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                        + "`example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
+                        + "`example_GameRevenue_XXX`.`category` AS `category` "
+                        + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                        + "`example_GameRevenue`.`country_id` AS `country_id`,"
+                        + "`example_GameRevenue`.`category` AS `category` "
+                        + "FROM `gameRevenue` AS `example_GameRevenue` "
+                        + "GROUP BY `example_GameRevenue`.`country_id`, "
+                        + "`example_GameRevenue`.`category` ) "
+                        + "AS `example_GameRevenue_XXX` "
+                        + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                        + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                        + "GROUP BY `example_GameRevenue_XXX_country_XXX`.`iso_code`, "
+                        + "`example_GameRevenue_XXX`.`category` "
+                        + "HAVING (MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX "
+                        + "OR `example_GameRevenue_XXX`.`category` IN (:XXX))\n",
                 engine.explain(query));
 
         testQueryExecution(query);
@@ -295,18 +297,18 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .havingFilter(expression)
                 .build();
 
-        compareQueryLists("SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode` "
-                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id` "
-                        + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` ) "
-                        + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                        + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                        + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` "
-                        + "HAVING (MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX "
-                        + "OR `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX))\n",
+        compareQueryLists("SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                        + "`example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode` "
+                        + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                        + "`example_GameRevenue`.`country_id` AS `country_id` "
+                        + "FROM `gameRevenue` AS `example_GameRevenue` "
+                        + "GROUP BY `example_GameRevenue`.`country_id` ) "
+                        + "AS `example_GameRevenue_XXX` "
+                        + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                        + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                        + "GROUP BY `example_GameRevenue_XXX_country_XXX`.`iso_code` "
+                        + "HAVING (MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX "
+                        + "OR `example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX))\n",
                 engine.explain(query));
 
         testQueryExecution(query);
@@ -335,22 +337,22 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` AS `category` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` AS `category` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "WHERE `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` IN (:XXX) "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` "
-                + "HAVING MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "`example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
+                + "`example_GameRevenue_XXX`.`category` AS `category` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`country_id` AS `country_id`,"
+                + "`example_GameRevenue`.`category` AS `category` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "WHERE `example_GameRevenue`.`category` IN (:XXX) "
+                + "GROUP BY `example_GameRevenue`.`country_id`, "
+                + "`example_GameRevenue`.`category` ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                + "GROUP BY `example_GameRevenue_XXX_country_XXX`.`iso_code`, "
+                + "`example_GameRevenue_XXX`.`category` "
+                + "HAVING MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -377,16 +379,16 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "WHERE `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` IN (:XXX) "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                + "WHERE `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX)\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`country_id` AS `country_id` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "WHERE `example_GameRevenue`.`category` IN (:XXX) "
+                + "GROUP BY `example_GameRevenue`.`country_id` ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                + "WHERE `example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX)\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -409,15 +411,15 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                + "WHERE `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX)\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`country_id` AS `country_id` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "GROUP BY `example_GameRevenue`.`country_id` ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                + "WHERE `example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX)\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -441,17 +443,17 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                + "WHERE `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX) "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code`\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "`example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`country_id` AS `country_id` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "GROUP BY `example_GameRevenue`.`country_id` ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                + "WHERE `example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX) "
+                + "GROUP BY `example_GameRevenue_XXX_country_XXX`.`iso_code`\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -472,17 +474,17 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, GameRevenue.class, dictionary))
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` "
-                + "ORDER BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` DESC\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "`example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`country_id` AS `country_id` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "GROUP BY `example_GameRevenue`.`country_id` ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                + "GROUP BY `example_GameRevenue_XXX_country_XXX`.`iso_code` "
+                + "ORDER BY `example_GameRevenue_XXX_country_XXX`.`iso_code` DESC\n";
 
                 compareQueryLists(expected, engine.explain(query));
 
@@ -504,21 +506,21 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, GameRevenue.class, dictionary))
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` AS `category` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` AS `category` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` "
-                + "ORDER BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` DESC\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "`example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
+                + "`example_GameRevenue_XXX`.`category` AS `category` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`country_id` AS `country_id`,"
+                + "`example_GameRevenue`.`category` AS `category` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "GROUP BY `example_GameRevenue`.`country_id`, "
+                + "`example_GameRevenue`.`category` ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                + "GROUP BY `example_GameRevenue_XXX_country_XXX`.`iso_code`, "
+                + "`example_GameRevenue_XXX`.`category` "
+                + "ORDER BY `example_GameRevenue_XXX`.`category` DESC\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -538,16 +540,16 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, GameRevenue.class, dictionary))
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `sessionDate` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`player_stats_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`id` "
-                + "GROUP BY PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ORDER BY PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') DESC\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `sessionDate` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "GROUP BY `example_GameRevenue`.`player_stats_id` ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `playerStats` AS `example_GameRevenue_XXX_playerStats_XXX` "
+                + "ON `example_GameRevenue_XXX`.`player_stats_id` = `example_GameRevenue_XXX_playerStats_XXX`.`id` "
+                + "GROUP BY PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ORDER BY PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') DESC\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -569,20 +571,20 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, GameRevenue.class, dictionary))
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` AS `saleDate` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id`,"
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `saleDate` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id`, "
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` "
-                + "ORDER BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` DESC\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "`example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
+                + "`example_GameRevenue_XXX`.`saleDate` AS `saleDate` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`country_id` AS `country_id`,"
+                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `saleDate` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "GROUP BY `example_GameRevenue`.`country_id`, "
+                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                + "GROUP BY `example_GameRevenue_XXX_country_XXX`.`iso_code`, "
+                + "`example_GameRevenue_XXX`.`saleDate` "
+                + "ORDER BY `example_GameRevenue_XXX`.`saleDate` DESC\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -602,7 +604,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "saleDate"),
                         Operator.IN,
-                        Arrays.asList("foo")
+                        Arrays.asList(new Day(new Date()))
                 )
         );
 
@@ -614,22 +616,22 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .havingFilter(expression)
                 .build();
 
-        compareQueryLists("SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` AS `saleDate` "
-                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id`,"
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `saleDate` "
-                        + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id`, "
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ) "
-                        + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                        + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                        + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code`, "
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` "
-                        + "HAVING (MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX "
-                        + "OR `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` IN (:XXX))\n",
+        compareQueryLists("SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                        + "`example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
+                        + "`example_GameRevenue_XXX`.`saleDate` AS `saleDate` "
+                        + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                        + "`example_GameRevenue`.`country_id` AS `country_id`,"
+                        + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `saleDate` "
+                        + "FROM `gameRevenue` AS `example_GameRevenue` "
+                        + "GROUP BY `example_GameRevenue`.`country_id`, "
+                        + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ) "
+                        + "AS `example_GameRevenue_XXX` "
+                        + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                        + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                        + "GROUP BY `example_GameRevenue_XXX_country_XXX`.`iso_code`, "
+                        + "`example_GameRevenue_XXX`.`saleDate` "
+                        + "HAVING (MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX "
+                        + "OR `example_GameRevenue_XXX`.`saleDate` IN (:XXX))\n",
 
                 engine.explain(query));
 
@@ -654,7 +656,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "saleDate", "saleDate", arguments),
                         Operator.IN,
-                        Arrays.asList("foo")
+                        Arrays.asList(new Day(new Date()))
                 )
         );
 
@@ -666,22 +668,22 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .havingFilter(expression)
                 .build();
 
-        compareQueryLists("SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` AS `saleDate` "
-                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id`,"
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') AS `saleDate` "
-                        + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id`, "
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') ) "
-                        + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                        + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                        + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code`, "
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` "
-                        + "HAVING (MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX "
-                        + "OR `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` IN (:XXX))\n",
+        compareQueryLists("SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                        + "`example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
+                        + "`example_GameRevenue_XXX`.`saleDate` AS `saleDate` "
+                        + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                        + "`example_GameRevenue`.`country_id` AS `country_id`,"
+                        + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') AS `saleDate` "
+                        + "FROM `gameRevenue` AS `example_GameRevenue` "
+                        + "GROUP BY `example_GameRevenue`.`country_id`, "
+                        + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') ) "
+                        + "AS `example_GameRevenue_XXX` "
+                        + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                        + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                        + "GROUP BY `example_GameRevenue_XXX_country_XXX`.`iso_code`, "
+                        + "`example_GameRevenue_XXX`.`saleDate` "
+                        + "HAVING (MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX "
+                        + "OR `example_GameRevenue_XXX`.`saleDate` IN (:XXX))\n",
 
                 engine.explain(query));
 
@@ -701,7 +703,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "sessionDate"),
                         Operator.IN,
-                        Arrays.asList("foo")
+                        Arrays.asList(new Day(new Date()))
                 )
         );
 
@@ -712,18 +714,18 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .havingFilter(expression)
                 .build();
 
-        compareQueryLists("SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `sessionDate` "
-                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
-                        + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` ) "
-                        + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                        + "LEFT OUTER JOIN `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX` "
-                        + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`player_stats_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`id` "
-                        + "GROUP BY PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
-                        + "HAVING (MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX "
-                        + "OR PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX))\n",
+        compareQueryLists("SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                        + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `sessionDate` "
+                        + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                        + "`example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
+                        + "FROM `gameRevenue` AS `example_GameRevenue` "
+                        + "GROUP BY `example_GameRevenue`.`player_stats_id` ) "
+                        + "AS `example_GameRevenue_XXX` "
+                        + "LEFT OUTER JOIN `playerStats` AS `example_GameRevenue_XXX_playerStats_XXX` "
+                        + "ON `example_GameRevenue_XXX`.`player_stats_id` = `example_GameRevenue_XXX_playerStats_XXX`.`id` "
+                        + "GROUP BY PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
+                        + "HAVING (MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX "
+                        + "OR PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX))\n",
                 engine.explain(query));
 
         testQueryExecution(query);
@@ -747,7 +749,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "sessionDate", "sessionDate", arguments),
                         Operator.IN,
-                        Arrays.asList("foo")
+                        Arrays.asList(new Day(new Date()))
                 )
         );
 
@@ -758,18 +760,18 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .havingFilter(expression)
                 .build();
 
-        compareQueryLists("SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                        + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `sessionDate` "
-                        + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                        + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
-                        + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                        + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` ) "
-                        + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                        + "LEFT OUTER JOIN `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX` "
-                        + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`player_stats_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`id` "
-                        + "GROUP BY PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') "
-                        + "HAVING (MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX "
-                        + "OR PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX))\n",
+        compareQueryLists("SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                        + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `sessionDate` "
+                        + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                        + "`example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
+                        + "FROM `gameRevenue` AS `example_GameRevenue` "
+                        + "GROUP BY `example_GameRevenue`.`player_stats_id` ) "
+                        + "AS `example_GameRevenue_XXX` "
+                        + "LEFT OUTER JOIN `playerStats` AS `example_GameRevenue_XXX_playerStats_XXX` "
+                        + "ON `example_GameRevenue_XXX`.`player_stats_id` = `example_GameRevenue_XXX_playerStats_XXX`.`id` "
+                        + "GROUP BY PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') "
+                        + "HAVING (MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX "
+                        + "OR PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX))\n",
                 engine.explain(query));
 
         testQueryExecution(query);
@@ -787,7 +789,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
         FilterExpression where = new FilterPredicate(
                 new Path(GameRevenue.class, dictionary, "saleDate"),
                 Operator.IN,
-                Arrays.asList("foo"));
+                Arrays.asList(new Day(new Date())));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -798,22 +800,22 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` AS `saleDate` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id`,"
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `saleDate` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "WHERE PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX) "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id`, "
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` "
-                + "HAVING MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "`example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
+                + "`example_GameRevenue_XXX`.`saleDate` AS `saleDate` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`country_id` AS `country_id`,"
+                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `saleDate` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX) "
+                + "GROUP BY `example_GameRevenue`.`country_id`, "
+                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                + "GROUP BY `example_GameRevenue_XXX_country_XXX`.`iso_code`, "
+                + "`example_GameRevenue_XXX`.`saleDate` "
+                + "HAVING MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -837,7 +839,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
         FilterExpression where = new FilterPredicate(
                 new Path(GameRevenue.class, dictionary, "saleDate", "saleDate", arguments),
                 Operator.IN,
-                Arrays.asList("foo"));
+                Arrays.asList(new Day(new Date())));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -848,22 +850,22 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` AS `saleDate` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id`,"
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') AS `saleDate` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "WHERE PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX) "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id`, "
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` "
-                + "HAVING MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "`example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
+                + "`example_GameRevenue_XXX`.`saleDate` AS `saleDate` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`country_id` AS `country_id`,"
+                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') AS `saleDate` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX) "
+                + "GROUP BY `example_GameRevenue`.`country_id`, "
+                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                + "GROUP BY `example_GameRevenue_XXX_country_XXX`.`iso_code`, "
+                + "`example_GameRevenue_XXX`.`saleDate` "
+                + "HAVING MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -887,7 +889,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
         FilterExpression where = new FilterPredicate(
                 new Path(GameRevenue.class, dictionary, "saleDate", "saleDate", arguments),
                 Operator.IN,
-                Arrays.asList("foo"));
+                Arrays.asList(new Day(new Date())));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -898,22 +900,22 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` AS `saleDate` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id`,"
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `saleDate` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "WHERE PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX) "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id`, "
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` "
-                + "HAVING MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "`example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
+                + "`example_GameRevenue_XXX`.`saleDate` AS `saleDate` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`country_id` AS `country_id`,"
+                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `saleDate` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX) "
+                + "GROUP BY `example_GameRevenue`.`country_id`, "
+                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                + "GROUP BY `example_GameRevenue_XXX_country_XXX`.`iso_code`, "
+                + "`example_GameRevenue_XXX`.`saleDate` "
+                + "HAVING MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -937,7 +939,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
         FilterExpression where = new FilterPredicate(
                 new Path(GameRevenue.class, dictionary, "saleDate", "saleDate", arguments),
                 Operator.IN,
-                Arrays.asList("foo"));
+                Arrays.asList(new Day(new Date())));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -948,22 +950,22 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` AS `saleDate` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id`,"
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `saleDate` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "WHERE PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX) "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id`, "
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` "
-                + "HAVING MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "`example_GameRevenue_XXX_country_XXX`.`iso_code` AS `countryIsoCode`,"
+                + "`example_GameRevenue_XXX`.`saleDate` AS `saleDate` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`country_id` AS `country_id`,"
+                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `saleDate` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX) "
+                + "GROUP BY `example_GameRevenue`.`country_id`, "
+                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                + "GROUP BY `example_GameRevenue_XXX_country_XXX`.`iso_code`, "
+                + "`example_GameRevenue_XXX`.`saleDate` "
+                + "HAVING MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -982,7 +984,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "saleDate"),
                         Operator.IN,
-                        Arrays.asList("foo")));
+                        Arrays.asList(new Day(new Date()))));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -990,16 +992,16 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "WHERE PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX) "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                + "WHERE `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX)\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`country_id` AS `country_id` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX) "
+                + "GROUP BY `example_GameRevenue`.`country_id` ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                + "WHERE `example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX)\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -1023,7 +1025,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "saleDate", "saleDate", arguments),
                         Operator.IN,
-                        Arrays.asList("foo")));
+                        Arrays.asList(new Day(new Date()))));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -1031,16 +1033,16 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "WHERE PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX) "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                + "WHERE `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX)\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`country_id` AS `country_id` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue`.`saleDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX) "
+                + "GROUP BY `example_GameRevenue`.`country_id` ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                + "WHERE `example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX)\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -1055,7 +1057,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "sessionDate"),
                         Operator.IN,
-                        Arrays.asList("foo")
+                        Arrays.asList(new Day(new Date()))
                         );
 
         Query query = Query.builder()
@@ -1064,15 +1066,15 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`player_stats_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`id` "
-                + "WHERE PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX)\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "GROUP BY `example_GameRevenue`.`player_stats_id` ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `playerStats` AS `example_GameRevenue_XXX_playerStats_XXX` "
+                + "ON `example_GameRevenue_XXX`.`player_stats_id` = `example_GameRevenue_XXX_playerStats_XXX`.`id` "
+                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX)\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -1092,7 +1094,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "sessionDate", "sessionDate", arguments),
                         Operator.IN,
-                        Arrays.asList("foo")
+                        Arrays.asList(new Day(new Date()))
                 );
 
         Query query = Query.builder()
@@ -1101,15 +1103,15 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`player_stats_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`id` "
-                + "WHERE PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX)\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "GROUP BY `example_GameRevenue`.`player_stats_id` ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `playerStats` AS `example_GameRevenue_XXX_playerStats_XXX` "
+                + "ON `example_GameRevenue_XXX`.`player_stats_id` = `example_GameRevenue_XXX_playerStats_XXX`.`id` "
+                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX)\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -1124,7 +1126,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "sessionDate"),
                         Operator.IN,
-                        Arrays.asList("foo"));
+                        Arrays.asList(new Day(new Date())));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -1133,16 +1135,16 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `sessionDate` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` ) AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`player_stats_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`id` "
-                + "WHERE PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX) "
-                + "GROUP BY PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd')\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `sessionDate` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "GROUP BY `example_GameRevenue`.`player_stats_id` ) AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `playerStats` AS `example_GameRevenue_XXX_playerStats_XXX` "
+                + "ON `example_GameRevenue_XXX`.`player_stats_id` = `example_GameRevenue_XXX_playerStats_XXX`.`id` "
+                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX) "
+                + "GROUP BY PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd')\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -1164,7 +1166,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "sessionDate", "sessionDate", arguments),
                         Operator.IN,
-                        Arrays.asList("foo"));
+                        Arrays.asList(new Day(new Date())));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -1173,16 +1175,16 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `sessionDate` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` ) AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`player_stats_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`id` "
-                + "WHERE PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX) "
-                + "GROUP BY PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd')\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `sessionDate` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "GROUP BY `example_GameRevenue`.`player_stats_id` ) AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `playerStats` AS `example_GameRevenue_XXX_playerStats_XXX` "
+                + "ON `example_GameRevenue_XXX`.`player_stats_id` = `example_GameRevenue_XXX_playerStats_XXX`.`id` "
+                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX) "
+                + "GROUP BY PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd')\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -1204,7 +1206,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "sessionDate", "sessionDate", arguments),
                         Operator.IN,
-                        Arrays.asList("foo"));
+                        Arrays.asList(new Day(new Date())));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -1213,16 +1215,16 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `sessionDate` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` ) AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`player_stats_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`id` "
-                + "WHERE PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX) "
-                + "GROUP BY PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM')\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') AS `sessionDate` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "GROUP BY `example_GameRevenue`.`player_stats_id` ) AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `playerStats` AS `example_GameRevenue_XXX_playerStats_XXX` "
+                + "ON `example_GameRevenue_XXX`.`player_stats_id` = `example_GameRevenue_XXX_playerStats_XXX`.`id` "
+                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM') IN (:XXX) "
+                + "GROUP BY PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM'), 'yyyy-MM')\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -1244,7 +1246,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "sessionDate", "sessionDate", arguments),
                         Operator.IN,
-                        Arrays.asList("foo"));
+                        Arrays.asList(new Day(new Date())));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -1253,16 +1255,16 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `sessionDate` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` ) AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`player_stats_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`id` "
-                + "WHERE PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX) "
-                + "GROUP BY PARSEDATETIME(FORMATDATETIME(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd')\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `sessionDate` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`player_stats_id` AS `player_stats_id` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "GROUP BY `example_GameRevenue`.`player_stats_id` ) AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `playerStats` AS `example_GameRevenue_XXX_playerStats_XXX` "
+                + "ON `example_GameRevenue_XXX`.`player_stats_id` = `example_GameRevenue_XXX_playerStats_XXX`.`id` "
+                + "WHERE PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX) "
+                + "GROUP BY PARSEDATETIME(FORMATDATETIME(`example_GameRevenue_XXX_playerStats_XXX`.`recordedDate`, 'yyyy-MM-dd'), 'yyyy-MM-dd')\n";
 
         compareQueryLists(expected, engine.explain(query));
 
@@ -1281,7 +1283,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
             new FilterPredicate(
                     new Path(GameRevenue.class, dictionary, "lastDate"),
                     Operator.IN,
-                    Arrays.asList("foo")));
+                    Arrays.asList(new Day(new Date()))));
 
             Query query = Query.builder()
             .source(gameRevenueTable)
@@ -1290,24 +1292,24 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
             .build();
 
             String expected = "SELECT "
-                    + "MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue` "
+                    + "MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue` "
                     + "FROM (SELECT "
-                    + "MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                    + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` AS `player_stats_id`,"
-                    + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate` AS `saleDate`,"
-                    + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id` "
-                    + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
+                    + "MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                    + "`example_GameRevenue`.`player_stats_id` AS `player_stats_id`,"
+                    + "`example_GameRevenue`.`saleDate` AS `saleDate`,"
+                    + "`example_GameRevenue`.`country_id` AS `country_id` "
+                    + "FROM `gameRevenue` AS `example_GameRevenue` "
                     + "GROUP BY "
-                    + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id`, "
-                    + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, "
-                    + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` ) "
-                    + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                    + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                    + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                    + "LEFT OUTER JOIN `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX` "
-                    + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`player_stats_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`id` "
-                    + "WHERE (`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX) "
-                    + "AND PARSEDATETIME(FORMATDATETIME(CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX))";
+                    + "`example_GameRevenue`.`player_stats_id`, "
+                    + "`example_GameRevenue`.`saleDate`, "
+                    + "`example_GameRevenue`.`country_id` ) "
+                    + "AS `example_GameRevenue_XXX` "
+                    + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                    + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                    + "LEFT OUTER JOIN `playerStats` AS `example_GameRevenue_XXX_playerStats_XXX` "
+                    + "ON `example_GameRevenue_XXX`.`player_stats_id` = `example_GameRevenue_XXX_playerStats_XXX`.`id` "
+                    + "WHERE (`example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX) "
+                    + "AND PARSEDATETIME(FORMATDATETIME(CASE WHEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `example_GameRevenue_XXX`.`saleDate` THEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX))";
 
             compareQueryLists(expected, engine.explain(query));
             testQueryExecution(query);
@@ -1325,7 +1327,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "lastDate"),
                         Operator.IN,
-                        Arrays.asList("foo")));
+                        Arrays.asList(new Day(new Date()))));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -1334,24 +1336,24 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "PARSEDATETIME(FORMATDATETIME(CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `lastDate` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` AS `player_stats_id`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate` AS `saleDate`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`player_stats_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`id` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                + "WHERE (`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX) "
-                + "AND PARSEDATETIME(FORMATDATETIME(CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX)) "
-                + "GROUP BY PARSEDATETIME(FORMATDATETIME(CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "PARSEDATETIME(FORMATDATETIME(CASE WHEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `example_GameRevenue_XXX`.`saleDate` THEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `lastDate` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`player_stats_id` AS `player_stats_id`,"
+                + "`example_GameRevenue`.`saleDate` AS `saleDate`,"
+                + "`example_GameRevenue`.`country_id` AS `country_id` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "GROUP BY `example_GameRevenue`.`player_stats_id`, "
+                + "`example_GameRevenue`.`saleDate`, "
+                + "`example_GameRevenue`.`country_id` ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `playerStats` AS `example_GameRevenue_XXX_playerStats_XXX` "
+                + "ON `example_GameRevenue_XXX`.`player_stats_id` = `example_GameRevenue_XXX_playerStats_XXX`.`id` "
+                + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                + "WHERE (`example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX) "
+                + "AND PARSEDATETIME(FORMATDATETIME(CASE WHEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `example_GameRevenue_XXX`.`saleDate` THEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX)) "
+                + "GROUP BY PARSEDATETIME(FORMATDATETIME(CASE WHEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `example_GameRevenue_XXX`.`saleDate` THEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd')";
 
         compareQueryLists(expected, engine.explain(query));
         testQueryExecution(query);
@@ -1371,18 +1373,18 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, GameRevenue.class, dictionary))
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "PARSEDATETIME(FORMATDATETIME(CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `lastDate` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` AS `player_stats_id`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate` AS `saleDate` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate` ) AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`player_stats_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`id` "
-                + "GROUP BY PARSEDATETIME(FORMATDATETIME(CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
-                + "ORDER BY PARSEDATETIME(FORMATDATETIME(CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') DESC\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "PARSEDATETIME(FORMATDATETIME(CASE WHEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `example_GameRevenue_XXX`.`saleDate` THEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `lastDate` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`player_stats_id` AS `player_stats_id`,"
+                + "`example_GameRevenue`.`saleDate` AS `saleDate` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "GROUP BY `example_GameRevenue`.`player_stats_id`, "
+                + "`example_GameRevenue`.`saleDate` ) AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `playerStats` AS `example_GameRevenue_XXX_playerStats_XXX` "
+                + "ON `example_GameRevenue_XXX`.`player_stats_id` = `example_GameRevenue_XXX_playerStats_XXX`.`id` "
+                + "GROUP BY PARSEDATETIME(FORMATDATETIME(CASE WHEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `example_GameRevenue_XXX`.`saleDate` THEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
+                + "ORDER BY PARSEDATETIME(FORMATDATETIME(CASE WHEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `example_GameRevenue_XXX`.`saleDate` THEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') DESC\n";
 
         compareQueryLists(expected, engine.explain(query));
         testQueryExecution(query);
@@ -1400,7 +1402,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 new FilterPredicate(
                         new Path(GameRevenue.class, dictionary, "lastDate"),
                         Operator.IN,
-                        Arrays.asList("foo")));
+                        Arrays.asList(new Day(new Date()))));
 
         Query query = Query.builder()
                 .source(gameRevenueTable)
@@ -1409,20 +1411,20 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .havingFilter(having)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "PARSEDATETIME(FORMATDATETIME(CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `lastDate` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id` AS `player_stats_id`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate` AS `saleDate` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`player_stats_id`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`saleDate` ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `playerStats` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`player_stats_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`id` "
-                + "GROUP BY PARSEDATETIME(FORMATDATETIME(CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
-                + "HAVING (MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX "
-                + "OR PARSEDATETIME(FORMATDATETIME(CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX))\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "PARSEDATETIME(FORMATDATETIME(CASE WHEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `example_GameRevenue_XXX`.`saleDate` THEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') AS `lastDate` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`player_stats_id` AS `player_stats_id`,"
+                + "`example_GameRevenue`.`saleDate` AS `saleDate` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "GROUP BY `example_GameRevenue`.`player_stats_id`, "
+                + "`example_GameRevenue`.`saleDate` ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `playerStats` AS `example_GameRevenue_XXX_playerStats_XXX` "
+                + "ON `example_GameRevenue_XXX`.`player_stats_id` = `example_GameRevenue_XXX_playerStats_XXX`.`id` "
+                + "GROUP BY PARSEDATETIME(FORMATDATETIME(CASE WHEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `example_GameRevenue_XXX`.`saleDate` THEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') "
+                + "HAVING (MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX "
+                + "OR PARSEDATETIME(FORMATDATETIME(CASE WHEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` > `example_GameRevenue_XXX`.`saleDate` THEN `example_GameRevenue_XXX_playerStats_XXX`.`recordedDate` ELSE `example_GameRevenue_XXX`.`saleDate` END, 'yyyy-MM-dd'), 'yyyy-MM-dd') IN (:XXX))\n";
 
         compareQueryLists(expected, engine.explain(query));
         testQueryExecution(query);
@@ -1448,18 +1450,18 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` AS `category` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                + "WHERE (`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX) "
-                + "AND CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END IN (:XXX))\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`country_id` AS `country_id`,"
+                + "`example_GameRevenue`.`category` AS `category` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "GROUP BY `example_GameRevenue`.`country_id`, "
+                + "`example_GameRevenue`.`category` ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                + "WHERE (`example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX) "
+                + "AND CASE WHEN `example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END IN (:XXX))\n";
 
         compareQueryLists(expected, engine.explain(query));
         testQueryExecution(query);
@@ -1486,20 +1488,20 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .whereFilter(where)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END AS `countryCategory` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` AS `category` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` ) "
-                + "AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                + "WHERE (`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX) "
-                + "AND CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END IN (:XXX)) "
-                + "GROUP BY CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "CASE WHEN `example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END AS `countryCategory` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`country_id` AS `country_id`,"
+                + "`example_GameRevenue`.`category` AS `category` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "GROUP BY `example_GameRevenue`.`country_id`, "
+                + "`example_GameRevenue`.`category` ) "
+                + "AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                + "WHERE (`example_GameRevenue_XXX_country_XXX`.`iso_code` IN (:XXX) "
+                + "AND CASE WHEN `example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END IN (:XXX)) "
+                + "GROUP BY CASE WHEN `example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END\n";
 
         compareQueryLists(expected, engine.explain(query));
         testQueryExecution(query);
@@ -1519,18 +1521,18 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .sorting(new SortingImpl(sortMap, GameRevenue.class, dictionary))
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END AS `countryCategory` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` AS `category` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` ) AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                + "GROUP BY CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END "
-                + "ORDER BY CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END DESC\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "CASE WHEN `example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END AS `countryCategory` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`country_id` AS `country_id`,"
+                + "`example_GameRevenue`.`category` AS `category` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "GROUP BY `example_GameRevenue`.`country_id`, "
+                + "`example_GameRevenue`.`category` ) AS `example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                + "GROUP BY CASE WHEN `example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END "
+                + "ORDER BY CASE WHEN `example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END DESC\n";
 
         compareQueryLists(expected, engine.explain(query));
         testQueryExecution(query);
@@ -1557,19 +1559,19 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
                 .havingFilter(having)
                 .build();
 
-        String expected = "SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
-                + "CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END AS `countryCategory` "
-                + "FROM (SELECT MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id` AS `country_id`,"
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` AS `category` "
-                + "FROM `gameRevenue` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue` "
-                + "GROUP BY `com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`country_id`, "
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue`.`category` ) AS "
-                + "`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX` "
-                + "LEFT OUTER JOIN `countries` AS `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX` "
-                + "ON `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`country_id` = `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`id` "
-                + "GROUP BY CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END "
-                + "HAVING (MAX(`com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX OR CASE WHEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `com_yahoo_elide_datastores_aggregation_example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END IN (:XXX))\n";
+        String expected = "SELECT MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) AS `revenue`,"
+                + "CASE WHEN `example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END AS `countryCategory` "
+                + "FROM (SELECT MAX(`example_GameRevenue`.`revenue`) AS `INNER_AGG_XXX`,"
+                + "`example_GameRevenue`.`country_id` AS `country_id`,"
+                + "`example_GameRevenue`.`category` AS `category` "
+                + "FROM `gameRevenue` AS `example_GameRevenue` "
+                + "GROUP BY `example_GameRevenue`.`country_id`, "
+                + "`example_GameRevenue`.`category` ) AS "
+                + "`example_GameRevenue_XXX` "
+                + "LEFT OUTER JOIN `countries` AS `example_GameRevenue_XXX_country_XXX` "
+                + "ON `example_GameRevenue_XXX`.`country_id` = `example_GameRevenue_XXX_country_XXX`.`id` "
+                + "GROUP BY CASE WHEN `example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END "
+                + "HAVING (MAX(`example_GameRevenue_XXX`.`INNER_AGG_XXX`) > :XXX OR CASE WHEN `example_GameRevenue_XXX_country_XXX`.`iso_code` = 'US' THEN `example_GameRevenue_XXX`.`category` ELSE 'UNKNONWN' END IN (:XXX))\n";
 
         compareQueryLists(expected, engine.explain(query));
         testQueryExecution(query);

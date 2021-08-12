@@ -30,9 +30,7 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.modelconfig.validator.PermissionExpressionVisitor;
-
 import org.antlr.v4.runtime.tree.ParseTree;
-
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.ToString;

@@ -39,6 +39,7 @@ public class ElideStandaloneTestSettings implements ElideStandaloneSettings {
                 .withJSONApiLinks(new DefaultJSONApiLinks(jsonApiBaseUrl))
                 .withBaseUrl("https://elide.io")
                 .withAuditLogger(getAuditLogger())
+                .withVerboseErrors()
                 .withJsonApiPath(getJsonApiPathSpec().replaceAll("/\\*", ""))
                 .withGraphQLApiPath(getGraphQLApiPathSpec().replaceAll("/\\*", ""))
                 .withExportApiPath(getAsyncProperties().getExportApiPathSpec().replaceAll("/\\*", ""));

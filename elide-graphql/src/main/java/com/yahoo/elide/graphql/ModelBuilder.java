@@ -18,7 +18,11 @@ import com.yahoo.elide.core.type.Type;
 import org.apache.commons.collections4.CollectionUtils;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
+import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLCodeRegistry;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
@@ -63,10 +67,11 @@ public class ModelBuilder {
     private GraphQLObjectType pageInfoObject;
     private final String apiVersion;
 
-    private Map<Type<?>, MutableGraphQLInputObjectType> inputObjectRegistry;
+    private Map<Type<?>, GraphQLInputObjectType> inputObjectRegistry;
     private Map<Type<?>, GraphQLObjectType> queryObjectRegistry;
     private Map<Type<?>, GraphQLObjectType> connectionObjectRegistry;
     private Set<Type<?>> excludedEntities;
+    private Set<GraphQLObjectType> objectTypes;
 
     /**
      * Class constructor, constructs the custom arguments to handle mutations.
@@ -77,7 +82,9 @@ public class ModelBuilder {
     public ModelBuilder(EntityDictionary entityDictionary,
                         NonEntityDictionary nonEntityDictionary,
                         DataFetcher dataFetcher, String apiVersion) {
+        objectTypes = new HashSet<>();
         this.generator = new GraphQLConversionUtils(entityDictionary, nonEntityDictionary);
+
         this.entityDictionary = entityDictionary;
         this.nameUtils = new GraphQLNameUtils(entityDictionary);
         this.dataFetcher = dataFetcher;
@@ -118,21 +125,19 @@ public class ModelBuilder {
                 .name(OBJECT_PAGE_INFO)
                 .field(newFieldDefinition()
                         .name("hasNextPage")
-                        .dataFetcher(dataFetcher)
                         .type(Scalars.GraphQLBoolean))
                 .field(newFieldDefinition()
                         .name("startCursor")
-                        .dataFetcher(dataFetcher)
                         .type(Scalars.GraphQLString))
                 .field(newFieldDefinition()
                         .name("endCursor")
-                        .dataFetcher(dataFetcher)
                         .type(Scalars.GraphQLString))
                 .field(newFieldDefinition()
                         .name("totalRecords")
-                        .dataFetcher(dataFetcher)
                         .type(Scalars.GraphQLLong))
                 .build();
+
+        objectTypes.add(pageInfoObject);
 
         inputObjectRegistry = new HashMap<>();
         queryObjectRegistry = new HashMap<>();
@@ -161,7 +166,6 @@ public class ModelBuilder {
          * Walk the object graph (avoiding cycles) and construct the GraphQL input object types.
          */
         entityDictionary.walkEntityGraph(rootClasses, this::buildInputObjectStub);
-        resolveInputObjectRelationships();
 
         /* Construct root object */
         GraphQLObjectType.Builder root = newObject().name(OBJECT_QUERY);
@@ -170,7 +174,6 @@ public class ModelBuilder {
             root.field(newFieldDefinition()
                     .name(entityName)
                     .description(EntityDictionary.getEntityDescription(clazz))
-                    .dataFetcher(dataFetcher)
                     .argument(relationshipOpArg)
                     .argument(idArgument)
                     .argument(filterArgument)
@@ -178,26 +181,43 @@ public class ModelBuilder {
                     .argument(pageFirstArgument)
                     .argument(pageOffsetArgument)
                     .argument(buildInputObjectArgument(clazz, true))
-                    .argument(generator.entityArgumentToQueryObject(clazz, entityDictionary))
+                    .arguments(generator.entityArgumentToQueryObject(clazz, entityDictionary))
                     .type(buildConnectionObject(clazz)));
         }
 
+
         GraphQLObjectType queryRoot = root.build();
         GraphQLObjectType mutationRoot = root.name(OBJECT_MUTATION).build();
+
+        objectTypes.add(queryRoot);
+        objectTypes.add(mutationRoot);
 
         /*
          * Walk the object graph (avoiding cycles) and construct the GraphQL output object types.
          */
         entityDictionary.walkEntityGraph(rootClasses, this::buildConnectionObject);
 
+        GraphQLCodeRegistry.Builder codeRegistry = GraphQLCodeRegistry.newCodeRegistry();
+
+        objectTypes.addAll(generator.getObjectTypes());
+        for (GraphQLObjectType objectType : objectTypes) {
+            String objectName = objectType.getName();
+            for (GraphQLFieldDefinition fieldDefinition : objectType.getFieldDefinitions()) {
+                codeRegistry.dataFetcher(
+                        FieldCoordinates.coordinates(objectName, fieldDefinition.getName()),
+                        dataFetcher);
+            }
+        }
+
         /* Construct the schema */
         GraphQLSchema schema = GraphQLSchema.newSchema()
                 .query(queryRoot)
                 .mutation(mutationRoot)
-                .build(new HashSet<>(CollectionUtils.union(
-                        connectionObjectRegistry.values(),
-                        inputObjectRegistry.values()
-                )));
+                .codeRegistry(codeRegistry.build())
+                .additionalTypes(new HashSet<>(CollectionUtils.union(
+                                connectionObjectRegistry.values(),
+                                inputObjectRegistry.values())))
+                .build();
 
         return schema;
     }
@@ -219,13 +239,13 @@ public class ModelBuilder {
                 .name(entityName)
                 .field(newFieldDefinition()
                         .name("edges")
-                        .dataFetcher(dataFetcher)
                         .type(buildEdgesObject(entityClass, buildQueryObject(entityClass))))
                 .field(newFieldDefinition()
                         .name("pageInfo")
-                        .dataFetcher(dataFetcher)
                         .type(pageInfoObject))
                 .build();
+
+        objectTypes.add(connectionObject);
 
         connectionObjectRegistry.put(entityClass, connectionObject);
 
@@ -253,7 +273,6 @@ public class ModelBuilder {
         /* our id types are DeferredId objects (not Scalars.GraphQLID) */
         builder.field(newFieldDefinition()
                 .name(id)
-                .dataFetcher(dataFetcher)
                 .type(GraphQLScalars.GRAPHQL_DEFERRED_ID));
 
         for (String attribute : entityDictionary.getAttributes(entityClass)) {
@@ -277,8 +296,7 @@ public class ModelBuilder {
 
             builder.field(newFieldDefinition()
                     .name(attribute)
-                    .argument(generator.attributeArgumentToQueryObject(entityClass, attribute, dataFetcher))
-                    .dataFetcher(dataFetcher)
+                    .arguments(generator.attributeArgumentToQueryObject(entityClass, attribute, dataFetcher))
                     .type((GraphQLOutputType) attributeType)
             );
         }
@@ -295,16 +313,14 @@ public class ModelBuilder {
             if (type.isToOne()) {
                 builder.field(newFieldDefinition()
                                 .name(relationship)
-                                .dataFetcher(dataFetcher)
                                 .argument(relationshipOpArg)
                                 .argument(buildInputObjectArgument(relationshipClass, false))
-                                .argument(generator.entityArgumentToQueryObject(relationshipClass, entityDictionary))
+                                .arguments(generator.entityArgumentToQueryObject(relationshipClass, entityDictionary))
                                 .type(new GraphQLTypeReference(relationshipEntityName))
                 );
             } else {
                 builder.field(newFieldDefinition()
                                 .name(relationship)
-                                .dataFetcher(dataFetcher)
                                 .argument(relationshipOpArg)
                                 .argument(filterArgument)
                                 .argument(sortArgument)
@@ -312,25 +328,31 @@ public class ModelBuilder {
                                 .argument(pageFirstArgument)
                                 .argument(idArgument)
                                 .argument(buildInputObjectArgument(relationshipClass, true))
-                                .argument(generator.entityArgumentToQueryObject(relationshipClass, entityDictionary))
+                                .arguments(generator.entityArgumentToQueryObject(relationshipClass, entityDictionary))
                                 .type(new GraphQLTypeReference(relationshipEntityName))
                 );
             }
         }
 
         GraphQLObjectType queryObject = builder.build();
+
+        objectTypes.add(queryObject);
+
         queryObjectRegistry.put(entityClass, queryObject);
         return queryObject;
     }
 
     private GraphQLList buildEdgesObject(Type<?> relationClass, GraphQLOutputType entityType) {
-        return new GraphQLList(newObject()
+        GraphQLObjectType edgesObject = newObject()
                 .name(nameUtils.toEdgesName(relationClass))
                 .field(newFieldDefinition()
                         .name("node")
-                        .dataFetcher(dataFetcher)
                         .type(entityType))
-                .build());
+                .build();
+
+        objectTypes.add(edgesObject);
+
+        return new GraphQLList(edgesObject);
     }
 
     /**
@@ -362,7 +384,7 @@ public class ModelBuilder {
     private GraphQLInputType buildInputObjectStub(Type<?> clazz) {
         log.debug("Building input object for {}", clazz.getName());
 
-        MutableGraphQLInputObjectType.Builder builder = MutableGraphQLInputObjectType.newMutableInputObject();
+        GraphQLInputObjectType.Builder builder = GraphQLInputObjectType.newInputObject();
         builder.name(nameUtils.toInputTypeName(clazz));
 
         String id = entityDictionary.getIdFieldName(clazz);
@@ -391,40 +413,31 @@ public class ModelBuilder {
                 .type(attributeType)
             );
         }
+        for (String relationship : entityDictionary.getElideBoundRelationships(clazz)) {
+            log.debug("Resolving relationship {} for {}", relationship, clazz.getName());
+            Type<?> relationshipClass = entityDictionary.getParameterizedType(clazz, relationship);
+            if (excludedEntities.contains(relationshipClass)) {
+                continue;
+            }
 
-        MutableGraphQLInputObjectType constructed = builder.build();
+            RelationshipType type = entityDictionary.getRelationshipType(clazz, relationship);
+            String relationshipEntityName = nameUtils.toInputTypeName(relationshipClass);
+
+            if (type.isToOne()) {
+                builder.field(newInputObjectField()
+                        .name(relationship)
+                        .type(new GraphQLTypeReference(relationshipEntityName))
+                        .build());
+            } else {
+                builder.field(newInputObjectField()
+                        .name(relationship)
+                        .type(new GraphQLList(new GraphQLTypeReference(relationshipEntityName)))
+                        .build());
+            }
+        }
+
+        GraphQLInputObjectType constructed = builder.build();
         inputObjectRegistry.put(clazz, constructed);
         return constructed;
-    }
-
-    /**
-     * Constructs relationship links for input objects.
-     */
-    private void resolveInputObjectRelationships() {
-        inputObjectRegistry.forEach((clazz, inputObj) -> {
-            for (String relationship : entityDictionary.getElideBoundRelationships(clazz)) {
-                log.debug("Resolving relationship {} for {}", relationship, clazz.getName());
-                Type<?> relationshipClass = entityDictionary.getParameterizedType(clazz, relationship);
-                if (excludedEntities.contains(relationshipClass)) {
-                    continue;
-                }
-
-                RelationshipType type = entityDictionary.getRelationshipType(clazz, relationship);
-
-                if (type.isToOne()) {
-                    inputObj.setField(relationship, newInputObjectField()
-                        .name(relationship)
-                        .type(inputObjectRegistry.get(relationshipClass))
-                        .build()
-                    );
-                } else {
-                    inputObj.setField(relationship, newInputObjectField()
-                        .name(relationship)
-                        .type(new GraphQLList(inputObjectRegistry.get(relationshipClass)))
-                        .build()
-                    );
-                }
-            }
-        });
     }
 }

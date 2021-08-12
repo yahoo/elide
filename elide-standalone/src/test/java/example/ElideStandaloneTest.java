@@ -291,4 +291,27 @@ public class ElideStandaloneTest {
                 .body("data.attributes.name", equalTo("default"))
                 .body("data.attributes.friendlyName", equalTo("default"));
     }
+
+    @Test
+    public void testVerboseErrors() {
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("post"),
+                                        id("1"),
+                                        attributes(
+                                                attr("content", "This is my first post. woot."),
+                                                attr("date", "Invalid")
+                                        )
+                                )
+                        )
+                )
+                .post("/api/v1/post")
+                .then()
+                .body("errors.detail[0]", equalTo("Invalid value: Invalid\nDate strings must be formatted as yyyy-MM-dd&#39;T&#39;HH:mm&#39;Z&#39;"))
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
 }

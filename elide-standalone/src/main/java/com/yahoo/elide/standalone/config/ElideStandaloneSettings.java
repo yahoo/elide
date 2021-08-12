@@ -126,6 +126,10 @@ public interface ElideStandaloneSettings {
                 .withGraphQLApiPath(getGraphQLApiPathSpec().replaceAll("/\\*", ""))
                 .withAuditLogger(getAuditLogger());
 
+        if (verboseErrors()) {
+            builder.withVerboseErrors();
+        }
+
         if (getAsyncProperties().enableExport()) {
             builder.withExportApiPath(getAsyncProperties().getExportApiPathSpec().replaceAll("/\\*", ""));
         }
@@ -207,6 +211,14 @@ public interface ElideStandaloneSettings {
      */
     default boolean enableGraphQL() {
         return true;
+    }
+
+    /**
+     * Enable/disable verbose error responses.
+     * @return Default: False
+     */
+    default boolean verboseErrors() {
+        return false;
     }
 
     /**

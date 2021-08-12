@@ -7,11 +7,8 @@
 package com.yahoo.elide.datastores.aggregation.metadata;
 
 import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.ARGS_KEY;
-
 import com.yahoo.elide.core.request.Argument;
-
 import com.github.jknack.handlebars.HandlebarsException;
-
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;

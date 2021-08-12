@@ -168,6 +168,10 @@ public class CollectionTerminalState extends BaseState {
         JsonApiDocument doc = requestScope.getJsonApiDocument();
         JsonApiMapper mapper = requestScope.getMapper();
 
+        if (doc.getData() == null) {
+            throw new InvalidEntityBodyException("Invalid JSON-API document: " + doc);
+        }
+
         Data<Resource> data = doc.getData();
         Collection<Resource> resources = data.get();
 
