@@ -288,8 +288,7 @@ public class FilterTranslator implements FilterOperation<String> {
      */
     public FilterTranslator(
             EntityDictionary dictionary,
-            Map<Operator, JPQLPredicateGenerator> operationOverrides)
-    {
+            Map<Operator, JPQLPredicateGenerator> operationOverrides) {
         this(dictionary);
         this.operatorGenerators.putAll(operationOverrides);
     }
