@@ -56,7 +56,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
         this.metaDataStore = metaDataStore;
         this.dictionary = metaDataStore.getMetadataDictionary();
         this.dialect = sqlDialect;
-        this.filterTranslator = new FilterTranslator(dictionary);
+        this.filterTranslator = new FilterTranslator(dictionary, sqlDialect.getPredicateGeneratorOverrides());
         this.parser = new ExpressionParser(metaDataStore);
         this.clientQuery = clientQuery;
     }
