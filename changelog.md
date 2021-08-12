@@ -1,5 +1,18 @@
 # Change Log
 
+## 5.0.8
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/5e8b945b8bd641c8120c8601126564e02eab8f5c) GraphQL Subscriptions PR1: Subscription model builder (#2243) 
+   * [view commit](https://github.com/yahoo/elide/commit/3d2873533534452f09e5c19ddd52395cd8ff6777) GraphQL Subscriptions PR2: Jms data store (#2244) 
+   * [view commit](https://github.com/yahoo/elide/commit/76fff8684b7ea31d3ee1483aa4078d7949e5442f) Added enhanced logging around JPQL queries (#2249) 
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/1520be9927ee83d836c5fbe869ca365e002a1464) Bump checkstyle from 8.44 to 8.45.1 (#2241) 
+   * [view commit](https://github.com/yahoo/elide/commit/bef2526fe2512f8c18653825fddfc89e18aec8cc) Bump classgraph from 4.8.110 to 4.8.113 (#2247) 
+   * [view commit](https://github.com/yahoo/elide/commit/648499b6a5996dd09716bbcdf9b12b11f095b48c) Add ability for a SQLDialect to override the system default SQL filte… (#2250) 
+   * [view commit](https://github.com/yahoo/elide/commit/49aae8b0b47b17c79db6c0f136d4be86991e0023) Bump graphql-java from 16.2 to 17.1 (#2246) 
+   * [view commit](https://github.com/yahoo/elide/commit/4d5cf76acf92afb3c14608cbfbbc3d996e230d57) Removing references to Verizon & Verizon Media from Elide project (#2229) 
+
 ## 5.0.7
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/981125df2571d5a7ec2c0bde76a7c897b4a803c9) Bump ant from 1.10.10 to 1.10.11 in /elide-graphql (#2233) 
