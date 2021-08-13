@@ -28,10 +28,14 @@ import com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage;
 import com.yahoo.elide.datastores.aggregation.dynamic.TableType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.ArgumentDefinition;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TableSource;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimensionGrain;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Versioned;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import org.apache.commons.lang3.tuple.Pair;
@@ -179,7 +183,21 @@ public class MetaDataStore implements DataStore {
      * @param enableMetaDataStore If Enable MetaDataStore
      */
     public MetaDataStore(Set<Type<?>> modelsToBind, boolean enableMetaDataStore) {
-        this.metadataModelClasses = ClassScanner.getAllClasses(META_DATA_PACKAGE.getName());
+
+        //Hardcoded to avoid ClassGraph scan.
+        this.metadataModelClasses = new HashSet<>(Arrays.asList(
+                Column.class,
+                Metric.class,
+                ArgumentDefinition.class,
+                TableSource.class,
+                Dimension.class,
+                TimeDimension.class,
+                TimeDimensionGrain.class,
+                Table.class,
+                Versioned.class,
+                Namespace.class
+        ));
+
         this.enableMetaDataStore = enableMetaDataStore;
 
         modelsToBind.forEach(cls -> {
@@ -223,7 +241,7 @@ public class MetaDataStore implements DataStore {
 
     private final Function<String, HashMapDataStore> getHashMapDataStoreInitializer() {
         return key -> {
-            HashMapDataStore hashMapDataStore = new HashMapDataStore(META_DATA_PACKAGE);
+            HashMapDataStore hashMapDataStore = new HashMapDataStore(metadataModelClasses);
             EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
             metadataModelClasses.forEach(dictionary::bindEntity);
             hashMapDataStore.populateEntityDictionary(dictionary);

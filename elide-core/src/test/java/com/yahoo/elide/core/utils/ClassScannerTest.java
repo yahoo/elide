@@ -7,11 +7,11 @@ package com.yahoo.elide.core.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import com.yahoo.elide.annotation.ReadPermission;
-import com.yahoo.elide.annotation.UpdatePermission;
+import com.yahoo.elide.annotation.Include;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
+import javax.persistence.Entity;
 
 public class ClassScannerTest {
 
@@ -24,25 +24,25 @@ public class ClassScannerTest {
 
     @Test
     public void testGetAnnotatedClasses() {
-        Set<Class<?>> classes = ClassScanner.getAnnotatedClasses("example", ReadPermission.class);
-        assertEquals(6, classes.size(), "Actual: " + classes);
-        classes.forEach(cls -> assertTrue(cls.isAnnotationPresent(ReadPermission.class)));
+        Set<Class<?>> classes = ClassScanner.getAnnotatedClasses("example", Include.class);
+        assertEquals(30, classes.size(), "Actual: " + classes);
+        classes.forEach(cls -> assertTrue(cls.isAnnotationPresent(Include.class)));
     }
 
     @Test
     public void testGetAllAnnotatedClasses() {
-        Set<Class<?>> classes = ClassScanner.getAnnotatedClasses(ReadPermission.class);
-        assertEquals(12, classes.size(), "Actual: " + classes);
-        classes.forEach(cls -> assertTrue(cls.isAnnotationPresent(ReadPermission.class)));
+        Set<Class<?>> classes = ClassScanner.getAnnotatedClasses(Include.class);
+        assertEquals(41, classes.size(), "Actual: " + classes);
+        classes.forEach(cls -> assertTrue(cls.isAnnotationPresent(Include.class)));
     }
 
     @Test
     public void testGetAnyAnnotatedClasses() {
-        Set<Class<?>> classes = ClassScanner.getAnnotatedClasses(ReadPermission.class, UpdatePermission.class);
-        assertEquals(17, classes.size());
+        Set<Class<?>> classes = ClassScanner.getAnnotatedClasses(Include.class, Entity.class);
+        assertEquals(52, classes.size());
         for (Class<?> cls : classes) {
-            assertTrue(cls.isAnnotationPresent(ReadPermission.class)
-                    || cls.isAnnotationPresent(UpdatePermission.class));
+            assertTrue(cls.isAnnotationPresent(Include.class)
+                    || cls.isAnnotationPresent(Entity.class));
         }
     }
 }
