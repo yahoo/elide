@@ -18,6 +18,7 @@ import com.google.common.collect.Sets;
 import lombok.Getter;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -32,7 +33,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class HashMapDataStore implements DataStore, DataStoreTestHarness {
     protected final Map<Type<?>, Map<String, Object>> dataStore = Collections.synchronizedMap(new HashMap<>());
     @Getter protected EntityDictionary dictionary;
-    @Getter private final Set<Package> beanPackages;
     @Getter private final ConcurrentHashMap<Type<?>, AtomicLong> typeIds = new ConcurrentHashMap<>();
 
     public HashMapDataStore(Package beanPackage) {
@@ -40,8 +40,6 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
     }
 
     public HashMapDataStore(Set<Package> beanPackages) {
-        this.beanPackages = beanPackages;
-
         for (Package beanPackage : beanPackages) {
             ClassScanner.getAllClasses(beanPackage.getName()).stream()
                 .map(ClassType::new)
@@ -50,6 +48,15 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
                 .forEach(modelType -> dataStore.put(modelType,
                         Collections.synchronizedMap(new LinkedHashMap<>())));
         }
+    }
+
+    public HashMapDataStore(Collection<Class<?>> beanClasses) {
+        beanClasses.stream()
+                .map(ClassType::new)
+                .filter(modelType -> dictionary.getFirstAnnotation(modelType,
+                        Arrays.asList(Include.class, Exclude.class)) instanceof Include)
+                .forEach(modelType -> dataStore.put(modelType,
+                        Collections.synchronizedMap(new LinkedHashMap<>())));
     }
 
     @Override
