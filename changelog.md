@@ -1,5 +1,9 @@
 # Change Log
 
+## 5.0.9
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/8e15a2dccdb6d7d9107a5cc747355d5754371a83) Reduce boot startup time.  Reducing ClassGraph scans to a single scan (#2253) 
+
 ## 5.0.8
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/5e8b945b8bd641c8120c8601126564e02eab8f5c) GraphQL Subscriptions PR1: Subscription model builder (#2243) 
