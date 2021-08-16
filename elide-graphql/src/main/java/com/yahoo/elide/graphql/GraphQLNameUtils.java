@@ -8,6 +8,7 @@ package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.graphql.subscriptions.Subscription;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -24,10 +25,19 @@ public class GraphQLNameUtils {
     }
 
     public String toOutputTypeName(Type<?> clazz) {
+        String typeName;
         if (dictionary.hasBinding(clazz)) {
-            return StringUtils.capitalize(dictionary.getJsonAliasFor(clazz));
+            typeName = StringUtils.capitalize(dictionary.getJsonAliasFor(clazz));
+        } else {
+            typeName = clazz.getSimpleName();
         }
-        return clazz.getSimpleName();
+
+        //Namespace internal types so they don't conflict with client models.
+        if (clazz.getPackage().getName().startsWith("com.yahoo.elide")) {
+            typeName = "Elide" + typeName;
+        }
+
+        return typeName;
     }
 
     public String toInputTypeName(Type<?> clazz) {
@@ -52,6 +62,25 @@ public class GraphQLNameUtils {
 
     public String toConnectionName(Type<?> clazz) {
         return toOutputTypeName(clazz) + CONNECTION_SUFFIX;
+    }
+
+    public String toSubscriptionName(Type<?> clazz, Subscription.Operation operation) {
+        String suffix;
+        switch (operation) {
+            case CREATE: {
+                suffix = "Added";
+                break;
+            }
+            case DELETE: {
+                suffix = "Deleted";
+                break;
+            }
+            default : {
+                suffix = "Updated";
+                break;
+            }
+        }
+        return StringUtils.uncapitalize(toOutputTypeName(clazz) + suffix);
     }
 
     public String toNonElideOutputTypeName(Type<?> clazz) {

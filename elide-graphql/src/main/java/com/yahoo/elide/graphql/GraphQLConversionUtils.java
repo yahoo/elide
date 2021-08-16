@@ -17,7 +17,6 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
-import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLArgument;
@@ -36,6 +35,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -58,7 +58,10 @@ public class GraphQLConversionUtils {
     private final Map<String, GraphQLList> mapConversions = new HashMap<>();
     private final GraphQLNameUtils nameUtils;
 
-    public GraphQLConversionUtils(EntityDictionary entityDictionary, NonEntityDictionary nonEntityDictionary) {
+    public GraphQLConversionUtils(
+            EntityDictionary entityDictionary,
+            NonEntityDictionary nonEntityDictionary
+    ) {
         this.entityDictionary = entityDictionary;
         this.nonEntityDictionary = nonEntityDictionary;
         this.nameUtils = new GraphQLNameUtils(entityDictionary);
@@ -66,16 +69,18 @@ public class GraphQLConversionUtils {
     }
 
     private void registerCustomScalars() {
-        for (Class serdeType : CoerceUtil.getSerdes().keySet()) {
-            Serde serde = CoerceUtil.lookup(serdeType);
-            ElideTypeConverter elideTypeConverter = serde.getClass()
-                    .getAnnotation(ElideTypeConverter.class);
-            if (elideTypeConverter != null) {
-                SerdeCoercing serdeCoercing = new SerdeCoercing(ERROR_MESSAGE, serde);
-                scalarMap.put(ClassType.of(elideTypeConverter.type()), new GraphQLScalarType(elideTypeConverter.name(),
-                        elideTypeConverter.description(), serdeCoercing));
-            }
-        }
+        CoerceUtil.getSerdes().forEach((type, serde) -> {
+            SerdeCoercing<?, ?> serdeCoercing = new SerdeCoercing<>(ERROR_MESSAGE, serde);
+            ElideTypeConverter elideTypeConverter = serde.getClass().getAnnotation(ElideTypeConverter.class);
+            String name = elideTypeConverter != null ? elideTypeConverter.name() : type.getSimpleName();
+            String description = elideTypeConverter != null ? elideTypeConverter.description() : type.getSimpleName();
+            scalarMap.put(ClassType.of(type), GraphQLScalarType.newScalar()
+                            .name(name)
+                            .description(description)
+                            .coercing(serdeCoercing)
+                            .build());
+
+        });
     }
 
     /**
@@ -89,17 +94,17 @@ public class GraphQLConversionUtils {
         } else if (clazz.equals(ClassType.of(boolean.class)) || clazz.equals(ClassType.of(Boolean.class))) {
             return Scalars.GraphQLBoolean;
         } else if (clazz.equals(ClassType.of(long.class)) || clazz.equals(ClassType.of(Long.class))) {
-            return Scalars.GraphQLLong;
+            return Scalars.GraphQLInt;
         } else if (clazz.equals(ClassType.of(float.class)) || clazz.equals(ClassType.of(Float.class))) {
             return Scalars.GraphQLFloat;
         } else if (clazz.equals(ClassType.of(double.class)) || clazz.equals(ClassType.of(Double.class))) {
             return Scalars.GraphQLFloat;
         } else if (clazz.equals(ClassType.of(short.class)) || clazz.equals(ClassType.of(Short.class))) {
-            return Scalars.GraphQLShort;
-        } else if (clazz.equals(ClassType.of(String.class))) {
+            return Scalars.GraphQLInt;
+        } else if (clazz.equals(ClassType.of(String.class)) || clazz.equals(ClassType.of(Object.class))) {
             return Scalars.GraphQLString;
         } else if (clazz.equals(ClassType.of(BigDecimal.class))) {
-            return Scalars.GraphQLBigDecimal;
+            return Scalars.GraphQLFloat;
         }
         return otherClassToScalarType(clazz);
     }
@@ -157,19 +162,17 @@ public class GraphQLConversionUtils {
         GraphQLOutputType keyType = fetchScalarOrObjectOutput(keyClazz, fetcher);
         GraphQLOutputType valueType = fetchScalarOrObjectOutput(valueClazz, fetcher);
 
-        GraphQLList outputMap = new GraphQLList(
-            newObject()
+        GraphQLObjectType mapType = newObject()
                 .name(mapName)
                 .field(newFieldDefinition()
                         .name(KEY)
-                        .dataFetcher(fetcher)
                         .type(keyType))
                 .field(newFieldDefinition()
                         .name(VALUE)
-                        .dataFetcher(fetcher)
                         .type(valueType))
-                .build()
-        );
+                .build();
+
+        GraphQLList outputMap = new GraphQLList(mapType);
 
         mapConversions.put(mapName, outputMap);
 
@@ -277,7 +280,6 @@ public class GraphQLConversionUtils {
 
             // If this is a collection of a boxed type scalar, we want to unwrap it properly
             return new GraphQLList(fetchScalarOrObjectOutput(listType, fetcher));
-
         }
         return fetchScalarOrObjectOutput(attributeClass, fetcher);
     }
@@ -374,8 +376,7 @@ public class GraphQLConversionUtils {
             Type<?> attributeClass = nonEntityDictionary.getType(clazz, attribute);
 
             GraphQLFieldDefinition.Builder fieldBuilder = newFieldDefinition()
-                    .name(attribute)
-                    .dataFetcher(fetcher);
+                    .name(attribute);
 
             GraphQLOutputType attributeType =
                     attributeToQueryObject(clazz,
@@ -390,7 +391,6 @@ public class GraphQLConversionUtils {
         }
 
         GraphQLObjectType object = objectBuilder.build();
-
         outputConversions.put(clazz, object);
 
         return object;
@@ -526,5 +526,16 @@ public class GraphQLConversionUtils {
             inputType = classToInputObject(conversionClass);
         }
         return inputType;
+    }
+
+    public Set<GraphQLObjectType> getObjectTypes() {
+        Set<GraphQLObjectType> allObjects = mapConversions.values().stream()
+                .map(GraphQLList::getWrappedType)
+                .filter(type -> type instanceof GraphQLObjectType)
+                .map(GraphQLObjectType.class::cast)
+                .collect(Collectors.toSet());
+
+        allObjects.addAll(outputConversions.values());
+        return allObjects;
     }
 }

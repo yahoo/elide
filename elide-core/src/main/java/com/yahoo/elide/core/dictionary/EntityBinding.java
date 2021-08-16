@@ -51,6 +51,7 @@ import javax.inject.Inject;
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.EmbeddedId;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
@@ -63,7 +64,7 @@ import javax.persistence.Transient;
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
  *
- * @see com.yahoo.elide.annotation.Include#type
+ * @see com.yahoo.elide.annotation.Include#name
  */
 public class EntityBinding {
 
@@ -172,7 +173,7 @@ public class EntityBinding {
         List<AccessibleObject> fieldOrMethodList = getAllFields();
         injected = shouldInject();
 
-        if (fieldOrMethodList.stream().anyMatch(field -> field.isAnnotationPresent(Id.class))) {
+        if (fieldOrMethodList.stream().anyMatch(EntityBinding::isIdField)) {
             accessType = AccessType.FIELD;
 
             /* Add all public methods that are computed OR life cycle hooks */
@@ -273,7 +274,7 @@ public class EntityBinding {
         for (AccessibleObject fieldOrMethod : fieldOrMethodList) {
             bindTriggerIfPresent(fieldOrMethod);
 
-            if (fieldOrMethod.isAnnotationPresent(Id.class)) {
+            if (isIdField(fieldOrMethod)) {
                 bindEntityId(cls, type, fieldOrMethod);
             } else if (fieldOrMethod.isAnnotationPresent(Transient.class)
                     && !fieldOrMethod.isAnnotationPresent(ComputedAttribute.class)
@@ -706,5 +707,9 @@ public class EntityBinding {
      */
     public Set<ArgumentType> getEntityArguments() {
         return new HashSet<>(entityArguments.values());
+    }
+
+    private static boolean isIdField(AccessibleObject field) {
+        return (field.isAnnotationPresent(Id.class) || field.isAnnotationPresent(EmbeddedId.class));
     }
 }

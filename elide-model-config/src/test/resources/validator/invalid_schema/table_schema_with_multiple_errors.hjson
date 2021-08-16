@@ -28,7 +28,10 @@
           description: Aggregation
           type : TEXT
           values: ['SUM', 'MIN', 'MAX']
-          tableSource: abc.def
+          tableSource:  {
+              table: abc
+              column: def
+          }
           default: SUM
         }
       ]
@@ -54,7 +57,10 @@
           definition: "{{id}}"
           // unsupported: cardinality value
           cardinality: Extra small
-          tableSource: abc.def
+          tableSource: {
+             table: abc
+             column: def
+          }
         }
         {
           // unsupported: field name starts with '_'
@@ -67,7 +73,10 @@
             US
             HK
           ]
-          tableSource: abc.def
+          tableSource: {
+              table: abc
+              column: def
+          }
           // unsupported: tags should be array
           tags: PRIVATE
         }

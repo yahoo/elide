@@ -22,6 +22,7 @@ import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
+import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.cache.CaffeineCache;
@@ -125,6 +126,10 @@ public interface ElideStandaloneSettings {
                 .withGraphQLApiPath(getGraphQLApiPathSpec().replaceAll("/\\*", ""))
                 .withAuditLogger(getAuditLogger());
 
+        if (verboseErrors()) {
+            builder.withVerboseErrors();
+        }
+
         if (getAsyncProperties().enableExport()) {
             builder.withExportApiPath(getAsyncProperties().getExportApiPathSpec().replaceAll("/\\*", ""));
         }
@@ -206,6 +211,14 @@ public interface ElideStandaloneSettings {
      */
     default boolean enableGraphQL() {
         return true;
+    }
+
+    /**
+     * Enable/disable verbose error responses.
+     * @return Default: False
+     */
+    default boolean verboseErrors() {
+        return false;
     }
 
     /**
@@ -497,7 +510,8 @@ public interface ElideStandaloneSettings {
                                                 SQLDialectFactory.getDialect(dbConfig.getDialect())))
             );
             return new SQLQueryEngine(metaDataStore, defaultConnectionDetails, connectionDetailsMap,
-                    new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))));
+                    new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))),
+                    new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
         }
         return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
     }

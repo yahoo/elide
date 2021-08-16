@@ -45,6 +45,7 @@ public class GraphQLErrorSerializer extends StdSerializer<GraphQLError> {
         }
 
         if (errorSpec.containsKey("extensions")) {
+            gen.writeFieldName("extensions");
             gen.writeObject(errorSpec.get("extensions"));
         }
 

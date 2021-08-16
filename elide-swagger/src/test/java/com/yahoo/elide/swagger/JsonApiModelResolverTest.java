@@ -76,6 +76,18 @@ public class JsonApiModelResolverTest {
     }
 
     @Test
+    public void testModelDescriptions() {
+        Resource model = getModel(KEY_BOOK);
+        assertEquals("A book", model.getDescription());
+
+        model = getModel(KEY_AUTHOR);
+        assertEquals("The Author", model.getDescription());
+
+        model = getModel(KEY_PUBLISHER);
+        assertNull(model.getDescription());
+    }
+
+    @Test
     public void testModelResolution() {
         ObjectProperty attributes = getObjectProperty(KEY_PUBLISHER, "attributes");
         ObjectProperty relationships = getObjectProperty(KEY_PUBLISHER, "relationships");

@@ -10,7 +10,6 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-@ElideTypeConverter(type = URL.class, name = "URL")
 public class URLSerde implements Serde<String, URL> {
 
     @Override

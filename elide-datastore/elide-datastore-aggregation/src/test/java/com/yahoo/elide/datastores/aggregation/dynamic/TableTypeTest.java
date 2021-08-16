@@ -32,6 +32,7 @@ import com.yahoo.elide.modelconfig.model.Grain;
 import com.yahoo.elide.modelconfig.model.Join;
 import com.yahoo.elide.modelconfig.model.Measure;
 import com.yahoo.elide.modelconfig.model.Table;
+import com.yahoo.elide.modelconfig.model.TableSource;
 import com.yahoo.elide.modelconfig.model.Type;
 import org.junit.jupiter.api.Test;
 
@@ -87,7 +88,7 @@ public class TableTypeTest {
         TableType testType = new TableType(testTable);
 
         Include include = (Include) testType.getAnnotation(Include.class);
-        assertEquals("Table", include.type());
+        assertEquals("Table", include.name());
 
         FromTable fromTable = (FromTable) testType.getAnnotation(FromTable.class);
         assertEquals("db1.table1", fromTable.name());
@@ -231,7 +232,10 @@ public class TableTypeTest {
                         .description("A dimension")
                         .tags(tags)
                         .cardinality("small")
-                        .tableSource("region.id")
+                        .tableSource(TableSource.builder()
+                                .table("region")
+                                .column("id")
+                                .build())
                         .build())
                 .build();
 

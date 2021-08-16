@@ -35,7 +35,7 @@ public class SkipOptimizerTest extends SQLUnitTest {
     @BeforeAll
     public static void init() {
         MetaDataStore metaDataStore = new MetaDataStore(
-                getClassType(ClassScanner.getAnnotatedClasses("com.yahoo.elide.datastores.aggregation.example",
+                getClassType(ClassScanner.getAnnotatedClasses("example",
                         Include.class)),
                 false);
 
@@ -54,7 +54,7 @@ public class SkipOptimizerTest extends SQLUnitTest {
         Query query = TestQuery.WHERE_AND.getQuery();
         engine.explain(query);
 
-        verify(optimizer, never()).optimize(any(), any());
+        verify(optimizer, never()).optimize(any());
     }
 
     @Test
@@ -64,6 +64,6 @@ public class SkipOptimizerTest extends SQLUnitTest {
         Query query = TestQuery.WHERE_AND.getQuery();
         engine.explain(query);
 
-        verify(optimizer, never()).optimize(any(), any());
+        verify(optimizer, never()).optimize(any());
     }
 }

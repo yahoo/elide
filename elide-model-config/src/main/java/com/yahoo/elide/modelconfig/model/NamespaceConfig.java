@@ -35,6 +35,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class NamespaceConfig implements Named {
 
+    public static String DEFAULT = "default";
+
     @JsonProperty("name")
     private String name;
 

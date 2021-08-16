@@ -66,6 +66,7 @@ public class EntityHydrator {
         Map<String, String> projections = this.query.getMetricProjections().stream()
                 .map(SQLMetricProjection.class::cast)
                 .filter(SQLColumnProjection::isProjected)
+                .filter(projection -> ! projection.getValueType().equals(ValueType.ID))
                 .collect(Collectors.toMap(MetricProjection::getAlias, MetricProjection::getSafeAlias));
 
         projections.putAll(this.query.getAllDimensionProjections().stream()
@@ -125,16 +126,12 @@ public class EntityHydrator {
             Type<?> fieldType = getType(entityClass, dim);
             Attribute attribute = projectionToAttribute(dim, fieldType);
 
-            if (dim != null && dim.getValueType().equals(ValueType.RELATIONSHIP)) {
-                // We don't hydrate relationships here.
+            if (entityInstance instanceof ParameterizedModel) {
+                ((ParameterizedModel) entityInstance).addAttributeValue(
+                    attribute,
+                    CoerceUtil.coerce(value, fieldType));
             } else {
-                if (entityInstance instanceof ParameterizedModel) {
-                    ((ParameterizedModel) entityInstance).addAttributeValue(
-                            attribute,
-                            CoerceUtil.coerce(value, fieldType));
-                } else {
                     getEntityDictionary().setValue(entityInstance, fieldName, value);
-                }
             }
         });
 

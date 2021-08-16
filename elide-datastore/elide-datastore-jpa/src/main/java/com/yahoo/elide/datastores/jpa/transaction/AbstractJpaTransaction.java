@@ -8,13 +8,11 @@ package com.yahoo.elide.datastores.jpa.transaction;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.hibernate.JPQLTransaction;
+import com.yahoo.elide.core.hibernate.QueryLogger;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.datastores.jpa.porting.EntityManagerWrapper;
-import com.yahoo.elide.datastores.jpa.porting.QueryLogger;
 import com.yahoo.elide.datastores.jpa.transaction.checker.PersistentCollectionChecker;
-
 import org.apache.commons.collections4.CollectionUtils;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -23,7 +21,6 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-
 import javax.persistence.EntityManager;
 import javax.persistence.FlushModeType;
 import javax.persistence.NoResultException;

@@ -284,7 +284,8 @@ public class GraphQLIT extends GraphQLIntegrationTest {
 
         String expected = "{\"data\":{\"book\":null},\"errors\":[{\"message\":\"Exception while fetching data "
                 + "(/book) : FETCH must not include data\","
-                + "\"locations\":[{\"line\":1,\"column\":2}],\"path\":[\"book\"]}]}";
+                + "\"locations\":[{\"line\":1,\"column\":2}],\"path\":[\"book\"],"
+                + "\"extensions\":{\"classification\":\"DataFetchingException\"}}]}";
 
         runQueryWithExpectedResult(graphQLRequest, expected);
     }

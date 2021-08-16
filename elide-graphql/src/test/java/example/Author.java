@@ -8,6 +8,8 @@ package example;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.graphql.subscriptions.Subscription;
+import com.yahoo.elide.graphql.subscriptions.SubscriptionField;
 import lombok.Builder;
 
 import java.util.ArrayList;
@@ -42,6 +44,7 @@ import javax.persistence.Transient;
         operation = 10,
         logStatement = "{0}",
         logExpressions = {"${author.name}"})
+@Subscription
 public class Author {
     public enum AuthorType {
         EXCLUSIVE,
@@ -61,8 +64,10 @@ public class Author {
     private Set<PublicationFormat> publicationFormats = new HashSet<>();
     private Map<Book, PublicationFormat> publishedBookFormats = new HashMap<>();
     private Map<Book, PublicationFormat> favoriteBookFormats = new HashMap<>();
+    private Object obj = "foo";
     private Map<PublicationFormat, Integer> booksPublishedByFormat = new HashMap<>();
 
+    @SubscriptionField
     public String getName() {
         return name;
     }
@@ -71,6 +76,15 @@ public class Author {
         this.name = name;
     }
 
+    public void setObj(Object obj) {
+        this.obj = obj;
+    }
+
+    public Object getObj() {
+        return obj;
+    }
+
+    @SubscriptionField
     public AuthorType getType() {
         return type;
     }
@@ -87,6 +101,7 @@ public class Author {
         this.secondaryType = secondaryType;
     }
 
+    @SubscriptionField
     public Address getHomeAddress() {
         return homeAddress;
     }

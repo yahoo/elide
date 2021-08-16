@@ -3,6 +3,7 @@
   [
     {
       name: PlayerStatsChild
+      namespace: PlayerNamespace
       extend: PlayerStats
       description: PlayerStats Child
       cardinality: large
@@ -32,7 +33,7 @@
             [{
              type : MONTH
              sql :  '''
-             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyy-MM')
+             PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd'), 'yyyy-MM')
              '''
             }]
          },
@@ -56,7 +57,7 @@
             [{
              type : isoWEEK
              sql :  '''
-             PARSEDATETIME(FORMATDATETIME({{}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
+             PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd'), 'yyyy-MM-dd')
              '''
             }]
          },
@@ -68,7 +69,7 @@
             [{
              type : mOnth
              sql :  '''
-             PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-dd'), 'yyyyMM')
+             PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy-MM-dd'), 'yyyyMM')
              '''
             }]
          }

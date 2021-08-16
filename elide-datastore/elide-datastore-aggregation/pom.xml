@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>5.0.0-pr35-SNAPSHOT</version>
+        <version>5.0.10-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -39,38 +39,38 @@
     </scm>
 
     <properties>
-        <hikari.version>4.0.2</hikari.version>
+        <hikari.version>4.0.3</hikari.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>5.0.0-pr35-SNAPSHOT</version>
+            <version>5.0.10-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>5.0.0-pr35-SNAPSHOT</version>
+            <version>5.0.10-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>5.0.0-pr35-SNAPSHOT</version>
+            <version>5.0.10-SNAPSHOT</version>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-multiplex</artifactId>
-            <version>5.0.0-pr35-SNAPSHOT</version>
+            <version>5.0.10-SNAPSHOT</version>
         </dependency>
         
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-model-config</artifactId>
-            <version>5.0.0-pr35-SNAPSHOT</version>
+            <version>5.0.10-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -89,12 +89,17 @@
         <dependency>
             <groupId>org.apache.calcite</groupId>
             <artifactId>calcite-core</artifactId>
-            <version>1.26.0</version>
+            <version>1.27.0</version>
             <exclusions>
                 <!-- Excluded for CVE errors -->
                 <exclusion>
                     <groupId>log4j</groupId>
                     <artifactId>log4j</artifactId>
+                </exclusion>
+                <!-- Excluded for conflict with elide-async's version -->
+                <exclusion>
+                    <groupId>com.jayway.jsonpath</groupId>
+                    <artifactId>json-path</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -110,6 +115,12 @@
             <artifactId>httpcore</artifactId>
             <version>4.4.14</version>
             <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+            <version>${jsonpath.version}</version>
         </dependency>
 
         <!-- Hibernate Entity Manager -->
@@ -175,7 +186,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>3.9.0</version>
+            <version>3.11.2</version>
             <scope>test</scope>
         </dependency>
 
@@ -183,7 +194,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-            <version>5.0.0-pr35-SNAPSHOT</version>
+            <version>5.0.10-SNAPSHOT</version>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>

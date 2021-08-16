@@ -98,7 +98,7 @@ import javax.ws.rs.WebApplicationException;
 /**
  * Entity Dictionary maps JSON API Entity beans to/from Entity type names.
  *
- * @see Include#type
+ * @see Include#name
  */
 @Slf4j
 @SuppressWarnings("static-method")
@@ -106,9 +106,11 @@ public class EntityDictionary {
 
     public static final String ELIDE_PACKAGE_PREFIX = "com.yahoo.elide";
     public static final String NO_VERSION = "";
+    private static final Map<Class<?>, Type<?>> TYPE_MAP = new ConcurrentHashMap<>();
 
     protected final ConcurrentHashMap<Pair<String, String>, Type<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Type<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
+    @Getter
     protected final ConcurrentHashMap<Type<?>, Function<RequestScope, PermissionExecutor>> entityPermissionExecutor =
             new ConcurrentHashMap<>();
     protected final CopyOnWriteArrayList<Type<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
@@ -177,7 +179,7 @@ public class EntityDictionary {
 
     /**
      * Instantiate a new EntityDictionary with the provided set of checks and an injection function.
-     * In addition all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
+     * In addition, all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
      * to {@code Prefab.CONTAINER.CHECK} * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
      * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
      * @param checks a map that links the identifiers used in the permission expression strings
@@ -191,7 +193,24 @@ public class EntityDictionary {
 
     /**
      * Instantiate a new EntityDictionary with the provided set of checks and an injection function.
-     * In addition all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
+     * In addition, all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
+     * to {@code Prefab.CONTAINER.CHECK} * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
+     * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
+     * @param checks a map that links the identifiers used in the permission expression strings
+     *               to their implementing classes
+     * @param roleChecks a map that links the user check identifiers used in the permission expression strings
+     *                   to their User Check object
+     * @param injector a function typically associated with a dependency injection framework that will
+     *                 initialize Elide models.
+     */
+    public EntityDictionary(Map<String, Class<? extends Check>> checks,
+                            Map<String, UserCheck> roleChecks, Injector injector) {
+        this(checks, roleChecks, injector, CoerceUtil::lookup, Collections.emptySet());
+    }
+
+    /**
+     * Instantiate a new EntityDictionary with the provided set of checks and an injection function.
+     * In addition, all of the checks * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped
      * to {@code Prefab.CONTAINER.CHECK} * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
      * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
      * @param checks a map that links the identifiers used in the permission expression strings
@@ -215,9 +234,17 @@ public class EntityDictionary {
             Injector injector,
             Function<Class, Serde> serdeLookup,
             Set<Type<?>> entitiesToExclude) {
+        this(checks, null, injector, serdeLookup, entitiesToExclude);
+    }
+
+    public EntityDictionary(Map<String, Class<? extends Check>> checks,
+                            Map<String, UserCheck> roleChecks,
+                            Injector injector,
+                            Function<Class, Serde> serdeLookup,
+                            Set<Type<?>> entitiesToExclude) {
         this.serdeLookup = serdeLookup;
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
-        this.roleChecks = new HashMap<>();
+        this.roleChecks = roleChecks == null ? new HashMap<>() : roleChecks;
         this.apiVersions = new HashSet<>();
         initializeChecks();
         this.injector = injector;
@@ -266,6 +293,14 @@ public class EntityDictionary {
      */
     public UserCheck getRoleCheck(String role) {
         return roleChecks.get(role);
+    }
+
+    /**
+     * Returns the map of role to their user role check object.
+     * @return
+     */
+    public Map<String, UserCheck> getRoleChecks() {
+        return roleChecks;
     }
 
     /**
@@ -1055,7 +1090,7 @@ public class EntityDictionary {
      * @param scope - request scope to generate permission executor.
      * @return Map of bound model type to its permission executor object.
      */
-    public Map<Type<?>, PermissionExecutor> getPermissionExecutors(RequestScope scope) {
+    public Map<Type<?>, PermissionExecutor> buildPermissionExecutors(RequestScope scope) {
         return entityPermissionExecutor.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
@@ -1085,6 +1120,28 @@ public class EntityDictionary {
      */
     public <A extends Annotation> A getAnnotation(Type<?> recordClass, Class<A> annotationClass) {
         return getEntityBinding(recordClass).getAnnotation(annotationClass);
+    }
+
+    /**
+     * Returns whether a class (including superclasses) or any of its
+     * fields (attributes/relationships) has a given annotation.
+     * @param recordClass The elide model to check.
+     * @param annotationClass The annotation to search for.
+     * @param <A> The annotation type.
+     * @return True if the model is decorated with the annotation.  False otherwise.
+     */
+    public <A extends Annotation> boolean hasAnnotation(Type<?> recordClass, Class<A> annotationClass) {
+        if (this.getAnnotation(recordClass, annotationClass) != null) {
+            return true;
+        }
+
+        for (String fieldName : getEntityBinding(recordClass).fieldsToValues.keySet()) {
+            if (this.getAttributeOrRelationAnnotation(recordClass, annotationClass, fieldName) != null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -1928,6 +1985,17 @@ public class EntityDictionary {
         return (apiVersionAnnotation == null) ? NO_VERSION : apiVersionAnnotation.version();
     }
 
+    private static String getEntityPrefix(Type<?> modelClass) {
+        Include include =
+                (Include) getFirstPackageAnnotation(modelClass, Arrays.asList(Include.class));
+
+        if (include == null || include.name() == null || include.name().isEmpty()) {
+            return "";
+        }
+
+        return include.name() + "_";
+    }
+
     /**
      * Looks up the API model name for a given class.
      * @param modelClass The model class to lookup.
@@ -1939,24 +2007,45 @@ public class EntityDictionary {
             declaringClass = lookupAnnotationDeclarationClass(modelClass, Entity.class);
         }
 
+        String entityPrefix = getEntityPrefix(modelClass);
+
         Preconditions.checkNotNull(declaringClass);
         Include include = declaringClass.getAnnotation(Include.class);
 
-        if (include != null && ! "".equals(include.type())) {
-            return include.type();
+        if (include != null && ! "".equals(include.name())) {
+            return entityPrefix + include.name();
         }
 
         Entity entity = (Entity) getFirstAnnotation(declaringClass, Arrays.asList(Entity.class));
         if (entity == null || "".equals(entity.name())) {
-            return StringUtils.uncapitalize(declaringClass.getSimpleName());
+            return entityPrefix + StringUtils.uncapitalize(declaringClass.getSimpleName());
         }
-        return entity.name();
+        return entityPrefix + entity.name();
+    }
+
+    /**
+     * Looks up the model description for a given class.
+     * @param modelClass The model class to lookup.
+     * @return the description for the model class.
+     */
+    public static String getEntityDescription(Type<?> modelClass) {
+        Include include = (Include) getFirstAnnotation(modelClass, Arrays.asList(Include.class));
+        if (include == null || include.description().isEmpty()) {
+            return null;
+        }
+
+        return include.description();
     }
 
     public static <T> Type<T> getType(T object) {
-        return object instanceof Dynamic
-                ? ((Dynamic) object).getType()
-                : new ClassType(object.getClass());
+        if (object instanceof Dynamic) {
+            return ((Dynamic) object).getType();
+        } else {
+            ClassType<T> classType = (ClassType<T>) TYPE_MAP.computeIfAbsent(
+                    object.getClass(),
+                    ClassType::new);
+            return classType;
+        }
     }
 
     public void bindLegacyHooks(EntityBinding binding) {

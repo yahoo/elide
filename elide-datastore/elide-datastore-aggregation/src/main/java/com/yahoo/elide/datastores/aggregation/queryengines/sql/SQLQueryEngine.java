@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql;
 
+import static com.yahoo.elide.datastores.aggregation.metadata.ColumnContext.applyQuotes;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
@@ -14,7 +15,11 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.TimedFunction;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
+import com.yahoo.elide.datastores.aggregation.QueryValidator;
+import com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage;
+import com.yahoo.elide.datastores.aggregation.metadata.FormulaValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
@@ -32,8 +37,6 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSu
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.VersionQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.DynamicSQLReferenceTable;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.NativeQuery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.QueryPlanTranslator;
@@ -42,6 +45,8 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLColumnPr
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.query.SQLTimeDimensionProjection;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
+import com.yahoo.elide.datastores.aggregation.validator.ColumnArgumentValidator;
+import com.yahoo.elide.datastores.aggregation.validator.TableArgumentValidator;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 import lombok.Getter;
@@ -71,14 +76,15 @@ import javax.sql.DataSource;
 public class SQLQueryEngine extends QueryEngine {
 
     @Getter
-    private final SQLReferenceTable referenceTable;
     private final ConnectionDetails defaultConnectionDetails;
     private final Map<String, ConnectionDetails> connectionDetailsMap;
     private final Set<Optimizer> optimizers;
+    private final QueryValidator validator;
+    private final FormulaValidator formulaValidator;
 
     public SQLQueryEngine(MetaDataStore metaDataStore, ConnectionDetails defaultConnectionDetails) {
-        this(metaDataStore, defaultConnectionDetails, Collections.emptyMap(),
-                new HashSet<>());
+        this(metaDataStore, defaultConnectionDetails, Collections.emptyMap(), new HashSet<>(),
+                new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
     }
 
     /**
@@ -86,9 +92,16 @@ public class SQLQueryEngine extends QueryEngine {
      * @param metaDataStore : MetaDataStore.
      * @param defaultConnectionDetails : default DataSource Object and SQLDialect Object.
      * @param connectionDetailsMap : Connection Name to DataSource Object and SQL Dialect Object mapping.
+     * @param optimizers The set of enabled optimizers.
+     * @param validator Validates each incoming client query.
      */
-    public SQLQueryEngine(MetaDataStore metaDataStore, ConnectionDetails defaultConnectionDetails,
-                    Map<String, ConnectionDetails> connectionDetailsMap, Set<Optimizer> optimizers) {
+    public SQLQueryEngine(
+            MetaDataStore metaDataStore,
+            ConnectionDetails defaultConnectionDetails,
+            Map<String, ConnectionDetails> connectionDetailsMap,
+            Set<Optimizer> optimizers,
+            QueryValidator validator
+    ) {
 
         Preconditions.checkNotNull(defaultConnectionDetails);
         Preconditions.checkNotNull(connectionDetailsMap);
@@ -96,9 +109,10 @@ public class SQLQueryEngine extends QueryEngine {
         this.defaultConnectionDetails = defaultConnectionDetails;
         this.connectionDetailsMap = connectionDetailsMap;
         this.metaDataStore = metaDataStore;
+        this.validator = validator;
+        this.formulaValidator = new FormulaValidator(metaDataStore);
         this.metadataDictionary = metaDataStore.getMetadataDictionary();
         populateMetaData(metaDataStore);
-        this.referenceTable = new SQLReferenceTable(metaDataStore);
         this.optimizers = optimizers;
     }
 
@@ -114,13 +128,12 @@ public class SQLQueryEngine extends QueryEngine {
     };
 
     @Override
-    protected Namespace constructNamespace(com.yahoo.elide.core.type.Package namespacePackage) {
+    protected Namespace constructNamespace(NamespacePackage namespacePackage) {
         return new Namespace(namespacePackage);
     }
 
     @Override
-    protected Table constructTable(Type<?> entityClass, EntityDictionary metaDataDictionary) {
-
+    protected Table constructTable(Namespace namespace, Type<?> entityClass, EntityDictionary metaDataDictionary) {
         String dbConnectionName = null;
         Annotation annotation = EntityDictionary.getFirstAnnotation(entityClass,
                         Arrays.asList(FromTable.class, FromSubquery.class));
@@ -139,7 +152,7 @@ public class SQLQueryEngine extends QueryEngine {
                                             + metaDataDictionary.getJsonAliasFor(entityClass)));
         }
 
-        return new SQLTable(entityClass, metaDataDictionary, connectionDetails);
+        return new SQLTable(namespace, entityClass, metaDataDictionary, connectionDetails);
     }
 
     @Override
@@ -160,8 +173,32 @@ public class SQLQueryEngine extends QueryEngine {
     public MetricProjection constructMetricProjection(Metric metric,
                                                       String alias,
                                                       Map<String, Argument> arguments) {
-
         return metric.getMetricProjectionMaker().make(metric, alias, arguments);
+    }
+
+    @Override
+    protected void verifyMetaData(MetaDataStore metaDataStore) {
+        metaDataStore.getTables().forEach(table -> {
+            SQLTable sqlTable = (SQLTable) table;
+
+            checkForCycles(sqlTable);
+
+            TableArgumentValidator tableArgValidator = new TableArgumentValidator(metaDataStore, sqlTable);
+            tableArgValidator.validate();
+
+            sqlTable.getColumns().forEach(column -> {
+                ColumnArgumentValidator colArgValidator = new ColumnArgumentValidator(metaDataStore, sqlTable, column);
+                colArgValidator.validate();
+            });
+        });
+    }
+
+    /**
+     * Verify that there is no reference loop for given {@link SQLTable}.
+     * @param sqlTable Queryable to validate.
+     */
+    private void checkForCycles(SQLTable sqlTable) {
+        sqlTable.getColumnProjections().forEach(column -> formulaValidator.parse(sqlTable, column));
     }
 
     /**
@@ -328,6 +365,11 @@ public class SQLQueryEngine extends QueryEngine {
         return explain(query, query.getConnectionDetails().getDialect());
     }
 
+    @Override
+    public QueryValidator getValidator() {
+        return validator;
+    }
+
     /**
      * Translates the client query into SQL.
      *
@@ -336,9 +378,7 @@ public class SQLQueryEngine extends QueryEngine {
      * @return the SQL query.
      */
     private NativeQuery toSQL(Query query, SQLDialect sqlDialect) {
-        SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, query);
-
-        QueryTranslator translator = new QueryTranslator(queryReferenceTable, sqlDialect);
+        QueryTranslator translator = new QueryTranslator(metaDataStore, sqlDialect, query);
 
         return query.accept(translator).build();
     }
@@ -365,14 +405,13 @@ public class SQLQueryEngine extends QueryEngine {
             }
         }
 
-        QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query, referenceTable);
+        QueryPlanTranslator queryPlanTranslator = new QueryPlanTranslator(query, metaDataStore);
 
         Query merged = (mergedPlan == null)
-                ? query
+                ? QueryPlanTranslator.addHiddenProjections(metaDataStore, query).build()
                 : queryPlanTranslator.translate(mergedPlan);
 
         for (Optimizer optimizer : optimizers) {
-            SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, merged);
             SQLTable table = (SQLTable) query.getSource();
 
             //TODO - support hints in table joins & query header.  Query Header hints override join hints which
@@ -385,8 +424,8 @@ public class SQLQueryEngine extends QueryEngine {
                 continue;
             }
 
-            if (optimizer.canOptimize(merged, queryReferenceTable)) {
-                merged = optimizer.optimize(merged, queryReferenceTable);
+            if (optimizer.canOptimize(merged)) {
+                merged = optimizer.optimize(merged);
             }
         }
 
@@ -412,7 +451,7 @@ public class SQLQueryEngine extends QueryEngine {
         }
 
         for (FilterPredicate filterPredicate : predicates) {
-            boolean isTimeFilter = filterPredicate.getFieldType().equals(ClassType.of(Time.class));
+            boolean isTimeFilter = ClassType.of(Time.class).isAssignableFrom(filterPredicate.getFieldType());
             if (filterPredicate.getOperator().isParameterized()) {
                 boolean shouldEscape = filterPredicate.isMatchingOperator();
                 filterPredicate.getParameters().forEach(param -> {
@@ -441,7 +480,6 @@ public class SQLQueryEngine extends QueryEngine {
      */
     private NativeQuery toPageTotalSQL(Query query, NativeQuery sql, SQLDialect sqlDialect) {
 
-        SQLReferenceTable queryReferenceTable = new DynamicSQLReferenceTable(referenceTable, query);
         // TODO: refactor this method
         String groupByDimensions =
                 query.getAllDimensionProjections()
@@ -468,8 +506,9 @@ public class SQLQueryEngine extends QueryEngine {
 
         return NativeQuery.builder()
                 .projectionClause("COUNT(*)")
-                .fromClause(String.format("(%s) AS %spagination_subquery%s",
-                        innerQuery.toString(), sqlDialect.getBeginQuote(), sqlDialect.getEndQuote()))
+                .fromClause(QueryTranslator.getFromClause("(" + innerQuery + ")",
+                                                          applyQuotes("pagination_subquery", sqlDialect),
+                                                          sqlDialect))
                 .build();
     }
 

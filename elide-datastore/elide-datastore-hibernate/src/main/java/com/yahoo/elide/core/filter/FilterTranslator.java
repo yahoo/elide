@@ -58,8 +58,11 @@ import java.util.stream.Collectors;
 public class FilterTranslator implements FilterOperation<String> {
     private static final String COMMA = ", ";
 
-    private static Map<Operator, JPQLPredicateGenerator> operatorGenerators;
-    private static Map<Triple<Operator, Type<?>, String>, JPQLPredicateGenerator> predicateOverrides;
+    private static Map<Operator, JPQLPredicateGenerator> globalOperatorGenerators;
+    private static Map<Triple<Operator, Type<?>, String>, JPQLPredicateGenerator> globalPredicateOverrides;
+
+    private Map<Operator, JPQLPredicateGenerator> operatorGenerators;
+    private Map<Triple<Operator, Type<?>, String>, JPQLPredicateGenerator> predicateOverrides;
 
     public static final Function<Path, String> GENERATE_HQL_COLUMN_NO_ALIAS = (path) -> path.getPathElements().stream()
             .map(Path.PathElement::getFieldName)
@@ -70,71 +73,71 @@ public class FilterTranslator implements FilterOperation<String> {
                     path.lastElement().map(Path.PathElement::getFieldName).orElse(null));
 
     static {
-        predicateOverrides = new HashMap<>();
+        globalPredicateOverrides = new HashMap<>();
 
-        operatorGenerators = new EnumMap<>(Operator.class);
+        globalOperatorGenerators = new EnumMap<>(Operator.class);
 
-        operatorGenerators.put(IN, new CaseAwareJPQLGenerator(
+        globalOperatorGenerators.put(IN, new CaseAwareJPQLGenerator(
                 "%s IN (%s)",
                 CaseAwareJPQLGenerator.Case.NONE,
                 CaseAwareJPQLGenerator.ArgumentCount.MANY)
         );
 
-        operatorGenerators.put(IN_INSENSITIVE, new CaseAwareJPQLGenerator(
+        globalOperatorGenerators.put(IN_INSENSITIVE, new CaseAwareJPQLGenerator(
                 "%s IN (%s)",
                 CaseAwareJPQLGenerator.Case.LOWER,
                 CaseAwareJPQLGenerator.ArgumentCount.MANY)
         );
 
-        operatorGenerators.put(NOT, new CaseAwareJPQLGenerator(
+        globalOperatorGenerators.put(NOT, new CaseAwareJPQLGenerator(
                 "%s NOT IN (%s)",
                 CaseAwareJPQLGenerator.Case.NONE,
                 CaseAwareJPQLGenerator.ArgumentCount.MANY)
         );
 
-        operatorGenerators.put(NOT_INSENSITIVE, new CaseAwareJPQLGenerator(
+        globalOperatorGenerators.put(NOT_INSENSITIVE, new CaseAwareJPQLGenerator(
                 "%s NOT IN (%s)",
                 CaseAwareJPQLGenerator.Case.LOWER,
                 CaseAwareJPQLGenerator.ArgumentCount.MANY)
         );
 
-        operatorGenerators.put(PREFIX, new CaseAwareJPQLGenerator(
+        globalOperatorGenerators.put(PREFIX, new CaseAwareJPQLGenerator(
                 "%s LIKE CONCAT(%s, '%%')",
                 CaseAwareJPQLGenerator.Case.NONE,
                 CaseAwareJPQLGenerator.ArgumentCount.ONE)
         );
 
-        operatorGenerators.put(PREFIX_CASE_INSENSITIVE, new CaseAwareJPQLGenerator(
+        globalOperatorGenerators.put(PREFIX_CASE_INSENSITIVE, new CaseAwareJPQLGenerator(
                 "%s LIKE CONCAT(%s, '%%')",
                 CaseAwareJPQLGenerator.Case.LOWER,
                 CaseAwareJPQLGenerator.ArgumentCount.ONE)
         );
 
-        operatorGenerators.put(POSTFIX, new CaseAwareJPQLGenerator(
+        globalOperatorGenerators.put(POSTFIX, new CaseAwareJPQLGenerator(
                 "%s LIKE CONCAT('%%', %s)",
                 CaseAwareJPQLGenerator.Case.NONE,
                 CaseAwareJPQLGenerator.ArgumentCount.ONE)
         );
 
-        operatorGenerators.put(POSTFIX_CASE_INSENSITIVE,  new CaseAwareJPQLGenerator(
+        globalOperatorGenerators.put(POSTFIX_CASE_INSENSITIVE,  new CaseAwareJPQLGenerator(
                 "%s LIKE CONCAT('%%', %s)",
                 CaseAwareJPQLGenerator.Case.LOWER,
                 CaseAwareJPQLGenerator.ArgumentCount.ONE)
         );
 
-        operatorGenerators.put(INFIX, new CaseAwareJPQLGenerator(
-                "%s LIKE CONCAT('%%', %s, '%%')",
+        globalOperatorGenerators.put(INFIX, new CaseAwareJPQLGenerator(
+                "%s LIKE CONCAT('%%', CONCAT(%s, '%%'))",
                 CaseAwareJPQLGenerator.Case.NONE,
                 CaseAwareJPQLGenerator.ArgumentCount.ONE)
         );
 
-        operatorGenerators.put(INFIX_CASE_INSENSITIVE, new CaseAwareJPQLGenerator(
-                "%s LIKE CONCAT('%%', %s, '%%')",
+        globalOperatorGenerators.put(INFIX_CASE_INSENSITIVE, new CaseAwareJPQLGenerator(
+                "%s LIKE CONCAT('%%', CONCAT(%s, '%%'))",
                 CaseAwareJPQLGenerator.Case.LOWER,
                 CaseAwareJPQLGenerator.ArgumentCount.ONE)
         );
 
-        operatorGenerators.put(LT, (predicate, aliasGenerator) -> {
+        globalOperatorGenerators.put(LT, (predicate, aliasGenerator) -> {
             Preconditions.checkState(!predicate.getParameters().isEmpty());
             return String.format("%s < %s", aliasGenerator.apply(predicate.getPath()),
                     predicate.getParameters().size() == 1
@@ -142,7 +145,7 @@ public class FilterTranslator implements FilterOperation<String> {
                     : leastClause(predicate.getParameters()));
         });
 
-        operatorGenerators.put(LE, (predicate, aliasGenerator) -> {
+        globalOperatorGenerators.put(LE, (predicate, aliasGenerator) -> {
             Preconditions.checkState(!predicate.getParameters().isEmpty());
             return String.format("%s <= %s", aliasGenerator.apply(predicate.getPath()),
                     predicate.getParameters().size() == 1
@@ -150,7 +153,7 @@ public class FilterTranslator implements FilterOperation<String> {
                     : leastClause(predicate.getParameters()));
         });
 
-        operatorGenerators.put(GT, (predicate, aliasGenerator) -> {
+        globalOperatorGenerators.put(GT, (predicate, aliasGenerator) -> {
             Preconditions.checkState(!predicate.getParameters().isEmpty());
             return String.format("%s > %s", aliasGenerator.apply(predicate.getPath()),
                     predicate.getParameters().size() == 1
@@ -159,7 +162,7 @@ public class FilterTranslator implements FilterOperation<String> {
 
         });
 
-        operatorGenerators.put(GE, (predicate, aliasGenerator) -> {
+        globalOperatorGenerators.put(GE, (predicate, aliasGenerator) -> {
             Preconditions.checkState(!predicate.getParameters().isEmpty());
             return String.format("%s >= %s", aliasGenerator.apply(predicate.getPath()),
                     predicate.getParameters().size() == 1
@@ -167,31 +170,31 @@ public class FilterTranslator implements FilterOperation<String> {
                     : greatestClause(predicate.getParameters()));
         });
 
-        operatorGenerators.put(ISNULL, (predicate, aliasGenerator) -> {
+        globalOperatorGenerators.put(ISNULL, (predicate, aliasGenerator) -> {
             return String.format("%s IS NULL", aliasGenerator.apply(predicate.getPath()));
         });
 
-        operatorGenerators.put(NOTNULL, (predicate, aliasGenerator) -> {
+        globalOperatorGenerators.put(NOTNULL, (predicate, aliasGenerator) -> {
             return String.format("%s IS NOT NULL", aliasGenerator.apply(predicate.getPath()));
         });
 
-        operatorGenerators.put(TRUE, (predicate, aliasGenerator) -> {
+        globalOperatorGenerators.put(TRUE, (predicate, aliasGenerator) -> {
             return "(1 = 1)";
         });
 
-        operatorGenerators.put(FALSE, (predicate, aliasGenerator) -> {
+        globalOperatorGenerators.put(FALSE, (predicate, aliasGenerator) -> {
             return "(1 = 0)";
         });
 
-        operatorGenerators.put(ISEMPTY, (predicate, aliasGenerator) -> {
+        globalOperatorGenerators.put(ISEMPTY, (predicate, aliasGenerator) -> {
             return String.format("%s IS EMPTY", aliasGenerator.apply(predicate.getPath()));
         });
 
-        operatorGenerators.put(NOTEMPTY, (predicate, aliasGenerator) -> {
+        globalOperatorGenerators.put(NOTEMPTY, (predicate, aliasGenerator) -> {
             return String.format("%s IS NOT EMPTY", aliasGenerator.apply(predicate.getPath()));
         });
 
-        operatorGenerators.put(BETWEEN, (predicate, aliasGenerator) -> {
+        globalOperatorGenerators.put(BETWEEN, (predicate, aliasGenerator) -> {
             List<FilterPredicate.FilterParameter> parameters = predicate.getParameters();
             Preconditions.checkState(!parameters.isEmpty());
             Preconditions.checkArgument(parameters.size() == 2);
@@ -201,7 +204,7 @@ public class FilterTranslator implements FilterOperation<String> {
                     parameters.get(1).getPlaceholder());
         });
 
-        operatorGenerators.put(NOTBETWEEN, (predicate, aliasGenerator) -> {
+        globalOperatorGenerators.put(NOTBETWEEN, (predicate, aliasGenerator) -> {
             List<FilterPredicate.FilterParameter> parameters = predicate.getParameters();
             Preconditions.checkState(!parameters.isEmpty());
             Preconditions.checkArgument(parameters.size() == 2);
@@ -219,7 +222,7 @@ public class FilterTranslator implements FilterOperation<String> {
      */
     public static void registerJPQLGenerator(Operator op,
                                              JPQLPredicateGenerator generator) {
-        operatorGenerators.put(op, generator);
+        globalOperatorGenerators.put(op, generator);
     }
 
     /**
@@ -233,7 +236,7 @@ public class FilterTranslator implements FilterOperation<String> {
                                              Type<?> entityClass,
                                              String fieldName,
                                              JPQLPredicateGenerator generator) {
-        predicateOverrides.put(Triple.of(op, entityClass, fieldName), generator);
+        globalPredicateOverrides.put(Triple.of(op, entityClass, fieldName), generator);
     }
 
     /**
@@ -246,29 +249,48 @@ public class FilterTranslator implements FilterOperation<String> {
     public static JPQLPredicateGenerator lookupJPQLGenerator(Operator op,
                                                              Type<?> entityClass,
                                                              String fieldName) {
-        return predicateOverrides.get(Triple.of(op, entityClass, fieldName));
+        return globalPredicateOverrides.get(Triple.of(op, entityClass, fieldName));
     }
 
     /**
      * Returns the registered JPQL generator for the given operator.
+     * This operation should only be performed at service startup.
      * @param op The filter predicate operator
      * @return Returns null if no generator is registered.
      */
     public static JPQLPredicateGenerator lookupJPQLGenerator(Operator op) {
-        return operatorGenerators.get(op);
+        return globalOperatorGenerators.get(op);
     }
 
     private final EntityDictionary dictionary;
 
+    /**
+     * Constructor.
+     * @param dictionary Model dictionary
+     */
     public FilterTranslator(EntityDictionary dictionary) {
         this.dictionary = dictionary;
-        if (! operatorGenerators.containsKey(HASMEMBER)) {
-            operatorGenerators.put(HASMEMBER, new HasMemberJPQLGenerator(dictionary));
+        if (! globalOperatorGenerators.containsKey(HASMEMBER)) {
+            globalOperatorGenerators.put(HASMEMBER, new HasMemberJPQLGenerator(dictionary));
         }
 
-        if (! operatorGenerators.containsKey(HASNOMEMBER)) {
-            operatorGenerators.put(HASNOMEMBER, new HasMemberJPQLGenerator(dictionary, true));
+        if (! globalOperatorGenerators.containsKey(HASNOMEMBER)) {
+            globalOperatorGenerators.put(HASNOMEMBER, new HasMemberJPQLGenerator(dictionary, true));
         }
+        this.operatorGenerators = new HashMap<>(globalOperatorGenerators);
+        this.predicateOverrides = new HashMap<>(globalPredicateOverrides);
+    }
+
+    /**
+     * Constructor.
+     * @param dictionary Model dictionary.
+     * @param operationOverrides Contains JPQL generators that override the system defaults.
+     */
+    public FilterTranslator(
+            EntityDictionary dictionary,
+            Map<Operator, JPQLPredicateGenerator> operationOverrides) {
+        this(dictionary);
+        this.operatorGenerators.putAll(operationOverrides);
     }
 
     /**
@@ -299,10 +321,11 @@ public class FilterTranslator implements FilterOperation<String> {
         Path.PathElement last = filterPredicate.getPath().lastElement().get();
 
         Operator op = filterPredicate.getOperator();
-        JPQLPredicateGenerator generator = lookupJPQLGenerator(op, last.getType(), last.getFieldName());
+
+        JPQLPredicateGenerator generator = predicateOverrides.get(Triple.of(op, last.getType(), last.getFieldName()));
 
         if (generator == null) {
-            generator = lookupJPQLGenerator(op);
+            generator = operatorGenerators.get(op);
         }
 
         if (generator == null) {

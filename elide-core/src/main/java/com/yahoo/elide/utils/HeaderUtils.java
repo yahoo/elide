@@ -8,11 +8,10 @@ package com.yahoo.elide.utils;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-
-import javax.ws.rs.core.HttpHeaders;
+import java.util.stream.Collectors;
 
 
 /**
@@ -38,13 +37,16 @@ public class HeaderUtils {
      * @param headers HttpHeaders
      * @return requestHeaders
      */
-     public static Map<String, List<String>> removeAuthHeaders(Map<String, List<String>> headers) {
-         Map<String, List<String>> requestHeaders = new HashMap<>(headers);
-         if (requestHeaders.get(HttpHeaders.AUTHORIZATION) != null) {
-             requestHeaders.remove(HttpHeaders.AUTHORIZATION);
+     public static Map<String, List<String>> lowercaseAndRemoveAuthHeaders(Map<String, List<String>> headers) {
+         // HTTP headers should be treated lowercase, but maybe not all libraries consider this
+         Map<String, List<String>> requestHeaders = headers.entrySet().stream()
+                 .collect(Collectors.toMap(entry -> entry.getKey().toLowerCase(Locale.ENGLISH), Map.Entry::getValue));
+
+         if (requestHeaders.get("authorization") != null) {
+             requestHeaders.remove("authorization");
          }
-         if (requestHeaders.get("Proxy-Authorization") != null) {
-             requestHeaders.remove("Proxy-Authorization");
+         if (requestHeaders.get("proxy-authorization") != null) {
+             requestHeaders.remove("proxy-authorization");
          }
          return requestHeaders;
      }

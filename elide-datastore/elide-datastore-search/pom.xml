@@ -12,7 +12,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>5.0.0-pr35-SNAPSHOT</version>
+        <version>5.0.10-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -45,7 +45,7 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-search-orm</artifactId>
-            <version>5.11.8.Final</version>
+            <version>5.11.9.Final</version>
             <exclusions>
                 <exclusion>
                     <groupId>dom4j</groupId>
@@ -67,7 +67,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-            <version>5.0.0-pr35-SNAPSHOT</version>
+            <version>5.0.10-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -75,7 +75,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-jpa</artifactId>
-            <version>5.0.0-pr35-SNAPSHOT</version>
+            <version>5.0.10-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 

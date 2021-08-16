@@ -249,6 +249,11 @@ public abstract class AbstractSqlDialect implements SQLDialect {
     }
 
     @Override
+    public boolean useASBeforeTableAlias() {
+        return true;
+    }
+
+    @Override
     public String generateOffsetLimitClause(int offset, int limit) {
         return OFFSET + offset + SPACE + LIMIT + limit;
     }

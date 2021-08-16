@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Yahoo Inc.
+ * Copyright 2021, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 
 import org.apache.commons.lang3.StringUtils;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.converter.ModelConverter;
 import io.swagger.converter.ModelConverterContext;
@@ -76,6 +77,7 @@ public class JsonApiModelResolver extends ModelResolver {
         }
 
         Resource entitySchema = new Resource();
+        entitySchema.description(getModelDescription(clazzType));
         entitySchema.setSecurityDescription(getClassPermissions(clazzType));
 
         /* Populate the attributes */
@@ -142,6 +144,25 @@ public class JsonApiModelResolver extends ModelResolver {
         relationship.setRequired(getFieldRequired(clazz, relationshipName));
 
         return relationship;
+    }
+
+    private ApiModel getApiModel(Type<?> clazz) {
+        return dictionary.getAnnotation(clazz, ApiModel.class);
+    }
+
+    private String getModelDescription(Type<?> clazz) {
+        ApiModel model = getApiModel(clazz);
+        if (model == null) {
+
+            String description = EntityDictionary.getEntityDescription(clazz);
+
+            if (StringUtils.isEmpty(description)) {
+                return null;
+            }
+
+            return description;
+        }
+        return model.description();
     }
 
     private ApiModelProperty getApiModelProperty(Type<?> clazz, String fieldName) {

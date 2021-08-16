@@ -12,17 +12,17 @@ import static org.mockito.Mockito.mock;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.datastores.aggregation.example.Country;
-import com.yahoo.elide.datastores.aggregation.example.Player;
-import com.yahoo.elide.datastores.aggregation.example.PlayerRanking;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
-import com.yahoo.elide.datastores.aggregation.example.SubCountry;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+import example.Player;
+import example.PlayerRanking;
+import example.PlayerStats;
+import example.dimensions.Country;
+import example.dimensions.SubCountry;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -69,7 +69,9 @@ public class PhysicalReferenceExtractorTest {
 
         assertTrue(references.size() == 1);
 
-        PhysicalReferenceExtractor extractor = new PhysicalReferenceExtractor(metaDataStore);
+        ReferenceExtractor<PhysicalReference> extractor =
+                new ReferenceExtractor(PhysicalReference.class, metaDataStore, ReferenceExtractor.Mode.SAME_QUERY);
+
         Set<PhysicalReference> physicalReferences = references.get(0).accept(extractor);
 
         assertTrue(physicalReferences.size() == 1);
@@ -89,7 +91,9 @@ public class PhysicalReferenceExtractorTest {
 
         assertTrue(references.size() == 1);
 
-        PhysicalReferenceExtractor extractor = new PhysicalReferenceExtractor(metaDataStore);
+        ReferenceExtractor<PhysicalReference> extractor =
+                new ReferenceExtractor(PhysicalReference.class, metaDataStore, ReferenceExtractor.Mode.SAME_QUERY);
+
         Set<PhysicalReference> physicalReferences = references.get(0).accept(extractor);
 
         assertEquals(1, physicalReferences.size());
@@ -109,7 +113,8 @@ public class PhysicalReferenceExtractorTest {
 
         assertTrue(references.size() == 1);
 
-        PhysicalReferenceExtractor extractor = new PhysicalReferenceExtractor(metaDataStore);
+        ReferenceExtractor<PhysicalReference> extractor =
+                new ReferenceExtractor(PhysicalReference.class, metaDataStore, ReferenceExtractor.Mode.SAME_QUERY);
         Set<PhysicalReference> physicalReferences = references.get(0).accept(extractor);
 
         assertEquals(1, physicalReferences.size());

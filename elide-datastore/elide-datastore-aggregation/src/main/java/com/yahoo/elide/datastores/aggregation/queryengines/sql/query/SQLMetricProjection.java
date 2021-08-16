@@ -182,7 +182,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
     @Override
     public SQLMetricProjection withProjected(boolean projected) {
-        return withExpression(expression, projected);
+        return new SQLMetricProjection(name, valueType, columnType, expression, alias, arguments, projected);
     }
 
     @Override
@@ -192,15 +192,7 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
     @Override
     public SQLMetricProjection withExpression(String expression, boolean projected) {
-        return SQLMetricProjection.builder()
-                .expression(expression)
-                .projected(projected)
-                .name(name)
-                .alias(alias)
-                .valueType(valueType)
-                .columnType(columnType)
-                .arguments(arguments)
-                .build();
+        return new SQLMetricProjection(name, valueType, columnType, expression, alias, arguments, projected);
     }
 
     private static String getAggregationLabelPrefix(SqlDialect dialect) {
@@ -212,5 +204,10 @@ public class SQLMetricProjection implements MetricProjection, SQLColumnProjectio
 
     private static String getAggregationLabel(SqlDialect dialect, String expression) {
         return getAggregationLabelPrefix(dialect) + (expression.hashCode() & 0xfffffff);
+    }
+
+    @Override
+    public SQLMetricProjection withArguments(Map<String, Argument> arguments) {
+        return new SQLMetricProjection(name, valueType, columnType, expression, alias, arguments, projected);
     }
 }

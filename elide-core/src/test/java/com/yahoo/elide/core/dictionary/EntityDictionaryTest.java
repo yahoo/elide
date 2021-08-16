@@ -46,6 +46,7 @@ import example.FunWithPermissions;
 import example.Job;
 import example.Left;
 import example.Parent;
+import example.Publisher;
 import example.Right;
 import example.StringId;
 import example.User;
@@ -83,7 +84,7 @@ import javax.persistence.Transient;
 public class EntityDictionaryTest extends EntityDictionary {
 
     //Test class to validate inheritance logic
-    @Include(type = "friend")
+    @Include(name = "friend")
     private class Friend extends Child {
     }
 
@@ -96,6 +97,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         bindEntity(FunWithPermissions.class);
         bindEntity(Parent.class);
         bindEntity(Child.class);
+        bindEntity(Publisher.class);
         bindEntity(User.class);
         bindEntity(Left.class);
         bindEntity(Right.class);
@@ -228,7 +230,9 @@ public class EntityDictionaryTest extends EntityDictionary {
         EntityDictionary testDictionary = new EntityDictionary(
                 new HashMap<>(),
                 null,
-                unused -> new ISO8601DateSerde());
+                null,
+                unused -> new ISO8601DateSerde(),
+                Collections.emptySet());
 
         testDictionary.bindEntity(EntityWithDateId.class);
 
@@ -245,6 +249,13 @@ public class EntityDictionaryTest extends EntityDictionary {
             annotation = getAttributeOrRelationAnnotation(ClassType.of(FunWithPermissions.class), ReadPermission.class, field);
             assertTrue(annotation instanceof ReadPermission, "Every field should return a ReadPermission annotation");
         }
+    }
+
+    @Test
+    public void testHasAnnotation() {
+        assertTrue(hasAnnotation(ClassType.of(Book.class), Include.class));
+        assertTrue(hasAnnotation(ClassType.of(Book.class), Transient.class));
+        assertFalse(hasAnnotation(ClassType.of(Book.class), Exclude.class));
     }
 
     @Test
@@ -975,7 +986,8 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertTrue(isRelation(ClassType.of(Book.class), "editor"));
         assertTrue(isAttribute(ClassType.of(Book.class), "title"));
         assertEquals(
-                Arrays.asList(ClassType.of(Book.class), ClassType.of(Author.class), ClassType.of(Editor.class)),
+                Arrays.asList(ClassType.of(Book.class), ClassType.of(Author.class),
+                        ClassType.of(Editor.class), ClassType.of(Publisher.class)),
                 walkEntityGraph(ImmutableSet.of(ClassType.of(Book.class)), x -> x));
 
         assertTrue(hasBinding(ClassType.of(Book.class)));
@@ -1038,7 +1050,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertTrue(models.contains(ClassType.of(BookV2.class)));
 
         models = getBoundClassesByVersion(NO_VERSION);
-        assertEquals(18, models.size());
+        assertEquals(19, models.size());
     }
 
     @Test
@@ -1078,5 +1090,17 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertFalse(hasBinding(ClassType.of((ExcludedPackageLevel.class))));
         assertFalse(hasBinding(ClassType.of((ExcludedSubPackage.class))));
         assertFalse(hasBinding(ClassType.of((ExcludedBySuperClass.class))));
+    }
+
+    @Test
+    public void testEntityPrefix() {
+        assertEquals("example_includedPackageLevel",
+                getJsonAliasFor(ClassType.of(IncludedPackageLevel.class)));
+    }
+
+    @Test
+    public void testEntityDescription() {
+        assertEquals("A book publisher", EntityDictionary.getEntityDescription(ClassType.of(Publisher.class)));
+        assertNull(EntityDictionary.getEntityDescription(ClassType.of(Book.class)));
     }
 }

@@ -9,7 +9,6 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
-
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.Serializable;
@@ -123,6 +122,13 @@ public interface ColumnProjection extends Serializable {
      * @return The cloned column.
      */
     <T extends ColumnProjection> T withProjected(boolean projected);
+
+    /**
+     * Clones the projection with provided arguments.
+     * @param arguments A map of String and {@link Argument}
+     * @return The cloned column.
+     */
+    ColumnProjection withArguments(Map<String, Argument> arguments);
 
     /**
      * Returns whether or not this column is projected in the output (included in SELECT) or

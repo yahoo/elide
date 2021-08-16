@@ -200,8 +200,15 @@ public class GraphQLEntityProjectionMaker {
         projectionBuilder.arguments(new HashSet<>(
                 getArguments(entityField, entityDictionary.getEntityArguments(entityType))
                 ));
-        entityField.getSelectionSet().getSelections().forEach(selection -> addSelection(selection, projectionBuilder));
-        entityField.getArguments().forEach(argument -> addArgument(argument, projectionBuilder));
+
+        if (entityField.getSelectionSet() != null) {
+            entityField.getSelectionSet().getSelections().forEach(
+                    selection -> addSelection(selection, projectionBuilder));
+        }
+
+        if (entityField.getArguments() != null) {
+            entityField.getArguments().forEach(argument -> addArgument(argument, projectionBuilder));
+        }
 
         return projectionBuilder.build();
     }
@@ -419,7 +426,7 @@ public class GraphQLEntityProjectionMaker {
                     pagination.getOffset(),
                     value,
                     elideSettings.getDefaultPageSize(),
-                    elideSettings.getDefaultPageSize(),
+                    elideSettings.getDefaultMaxPageSize(),
                     pagination.returnPageTotals(),
                     false);
         } else if (ModelBuilder.ARGUMENT_AFTER.equals(argument.getName())) {
@@ -428,7 +435,7 @@ public class GraphQLEntityProjectionMaker {
                     value,
                     pagination.getLimit(),
                     elideSettings.getDefaultPageSize(),
-                    elideSettings.getDefaultPageSize(),
+                    elideSettings.getDefaultMaxPageSize(),
                     pagination.returnPageTotals(),
                     false);
         }

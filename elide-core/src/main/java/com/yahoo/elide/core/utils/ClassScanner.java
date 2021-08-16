@@ -11,8 +11,10 @@ import io.github.classgraph.ScanResult;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -20,6 +22,39 @@ import java.util.stream.Collectors;
  * Scans a package for classes by looking at files in the classpath.
  */
 public class ClassScanner {
+
+    /**
+     * Class Scanning is terribly costly for service boot, so we do all the scanning up front once to
+     * save on startup costs.  All Annotations Elide scans for must be listed here:
+     */
+    private static final String [] CACHE_ANNOTATIONS  = {
+            //Elide Core Annotations
+            "com.yahoo.elide.annotation.Include",
+            "com.yahoo.elide.annotation.SecurityCheck",
+            "com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter",
+
+            //Aggregation Store Annotations
+            "com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable",
+            "com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery",
+            "org.hibernate.annotations.Subselect",
+            "javax.persistence.Entity",
+            "javax.persistence.Table"
+    };
+
+    private static final Map<String, Set<Class<?>>> STARTUP_CACHE = new HashMap<>();
+
+    static {
+        try (ScanResult scanResult = new ClassGraph().enableClassInfo().enableAnnotationInfo().scan()) {
+            for (String annotationName : CACHE_ANNOTATIONS) {
+                STARTUP_CACHE.put(annotationName, scanResult.getClassesWithAnnotation(annotationName)
+                        .stream()
+                        .map(ClassInfo::loadClass)
+                        .collect(Collectors.toSet()));
+
+            }
+        }
+    }
+
     /**
      * Scans all classes accessible from the context class loader which belong to the given package and subpackages.
      *
@@ -39,12 +74,11 @@ public class ClassScanner {
      * @return The classes
      */
     static public Set<Class<?>> getAnnotatedClasses(String packageName, Class<? extends Annotation> annotation) {
-        try (ScanResult scanResult = new ClassGraph()
-                .enableClassInfo().enableAnnotationInfo().whitelistPackages(packageName).scan()) {
-            return scanResult.getClassesWithAnnotation(annotation.getCanonicalName()).stream()
-                    .map((ClassInfo::loadClass))
-                    .collect(Collectors.toSet());
-        }
+        return STARTUP_CACHE.get(annotation.getCanonicalName()).stream()
+                .filter(clazz ->
+                        clazz.getPackage().getName().equals(packageName)
+                                || clazz.getPackage().getName().startsWith(packageName + "."))
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -57,14 +91,13 @@ public class ClassScanner {
     static public Set<Class<?>> getAnnotatedClasses(List<Class<? extends Annotation>> annotations,
             FilterExpression filter) {
         Set<Class<?>> result = new HashSet<>();
-        try (ScanResult scanResult = new ClassGraph().enableClassInfo().enableAnnotationInfo().scan()) {
-            for (Class<? extends Annotation> annotation : annotations) {
-                result.addAll(scanResult.getClassesWithAnnotation(annotation.getCanonicalName()).stream()
-                        .map(ClassInfo::loadClass)
-                        .filter(filter::include)
-                        .collect(Collectors.toSet()));
-            }
+
+        for (Class<? extends Annotation> annotation : annotations) {
+            result.addAll(STARTUP_CACHE.get(annotation.getCanonicalName()).stream()
+                    .filter(filter::include)
+                    .collect(Collectors.toSet()));
         }
+
         return result;
     }
 

@@ -7,14 +7,12 @@ package com.yahoo.elide.datastores.aggregation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
-
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.FilterConstraints;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.SplitFilterExpressionVisitor;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
@@ -23,7 +21,7 @@ import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.TimeDimensionProjection;
-
+import example.PlayerStats;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,7 +92,7 @@ public class EntityProjectionTranslatorTest extends SQLUnitTest {
 
     @Test
     public void testWherePromotion() throws ParseException {
-        FilterExpression originalFilter = filterParser.parseFilterExpression("overallRating==Good,lowScore<45",
+        FilterExpression originalFilter = filterParser.parseFilterExpression("overallRating==Good,lowScore[foo:bar]<45",
                 playerStatsType, false);
 
         EntityProjection projection = basicProjection.copyOf()

@@ -15,7 +15,7 @@ import javax.persistence.Table;
  * No Delete test bean.
  */
 @DeletePermission(expression = "Prefab.Role.None")
-@Include(type = "nodelete") // optional here because class has this name
+@Include(name = "nodelete") // optional here because class has this name
 // Hibernate
 @Entity
 @Table(name = "nodelete")

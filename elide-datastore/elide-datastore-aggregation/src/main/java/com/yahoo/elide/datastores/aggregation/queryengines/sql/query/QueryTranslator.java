@@ -16,9 +16,10 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.datastores.aggregation.metadata.Context;
+import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
-import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.metadata.TableContext;
+import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryVisitor;
@@ -26,9 +27,9 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.JoinExpressionExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLReferenceTable;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -44,18 +45,20 @@ import java.util.stream.Stream;
  */
 public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuilder> {
 
-    private final SQLReferenceTable referenceTable;
     private final MetaDataStore metaDataStore;
     private final EntityDictionary dictionary;
     private final SQLDialect dialect;
     private FilterTranslator filterTranslator;
+    private final ExpressionParser parser;
+    private final Query clientQuery;
 
-    public QueryTranslator(SQLReferenceTable referenceTable, SQLDialect sqlDialect) {
-        this.referenceTable = referenceTable;
-        this.metaDataStore = referenceTable.getMetaDataStore();
-        this.dictionary = referenceTable.getDictionary();
+    public QueryTranslator(MetaDataStore metaDataStore, SQLDialect sqlDialect, Query clientQuery) {
+        this.metaDataStore = metaDataStore;
+        this.dictionary = metaDataStore.getMetadataDictionary();
         this.dialect = sqlDialect;
-        this.filterTranslator = new FilterTranslator(dictionary);
+        this.filterTranslator = new FilterTranslator(dictionary, sqlDialect.getPredicateGeneratorOverrides());
+        this.parser = new ExpressionParser(metaDataStore);
+        this.clientQuery = clientQuery;
     }
 
     @Override
@@ -65,8 +68,9 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
         if (query.isNested()) {
             NativeQuery innerQuery = builder.build();
 
-            builder = NativeQuery.builder().fromClause("(" + innerQuery + ") AS "
-                    + applyQuotes(query.getSource().getAlias()));
+            builder = NativeQuery.builder().fromClause(getFromClause("(" + innerQuery + ")",
+                                                                     applyQuotes(query.getSource().getAlias()),
+                                                                     dialect));
         }
 
         Set<String> joinExpressions = new LinkedHashSet<>();
@@ -128,13 +132,15 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
         Type<?> tableCls = dictionary.getEntityClass(table.getName(), table.getVersion());
         String tableAlias = applyQuotes(table.getAlias());
 
+        TableContext context = TableContext.builder().tableArguments(clientQuery.getArguments()).build();
+
         String tableStatement = tableCls.isAnnotationPresent(FromSubquery.class)
-                ? "(" + tableCls.getAnnotation(FromSubquery.class).sql() + ")"
+                ? "(" + context.resolve(tableCls.getAnnotation(FromSubquery.class).sql()) + ")"
                 : tableCls.isAnnotationPresent(FromTable.class)
                 ? applyQuotes(tableCls.getAnnotation(FromTable.class).name())
                 : applyQuotes(table.getName());
 
-        return builder.fromClause(String.format("%s AS %s", tableStatement, tableAlias));
+        return builder.fromClause(getFromClause(tableStatement, tableAlias, dialect));
     }
 
     /**
@@ -177,6 +183,7 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
         List<String> metricProjections = query.getMetricProjections().stream()
                 .map(SQLMetricProjection.class::cast)
                 .filter(SQLColumnProjection::isProjected)
+                .filter(projection -> ! projection.getValueType().equals(ValueType.ID))
                 .map(invocation -> invocation.toSQL(query, metaDataStore) + " AS "
                                 + applyQuotes(invocation.getSafeAlias()))
                 .collect(Collectors.toList());
@@ -269,33 +276,37 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
     }
 
     /**
-     * Given the set of group by dimensions or projection metrics,
-     * extract any entity relationship traversals that require joins.
-     * This method takes in a {@link Table} because the sql join path meta data is stored in it.
-     *
-     * @param columnProjections The list of dimensions we are grouping on.
-     * @param source queried table
+     * Get required join expressions for all the projected columns in given Query.
+     * @param query Expanded Query.
      * @return A set of Join expressions that capture a relationship traversal.
      */
     private Set<String> extractJoinExpressions(Query query) {
         return query.getColumnProjections().stream()
+                .filter(column -> column.isProjected())
                 .map(column -> extractJoinExpressions(column, query))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
+    /**
+     * Get required join expressions for given column in given Query.
+     * @param column {@link ColumnProjection}
+     * @param query Expanded Query.
+     * @return A set of Join expressions that capture a relationship traversal.
+     */
     private Set<String> extractJoinExpressions(ColumnProjection column, Query query) {
         Set<String> joinExpressions = new LinkedHashSet<>();
 
-        Context context = Context.builder()
+        ColumnContext context = ColumnContext.builder()
                         .queryable(query)
                         .alias(query.getSource().getAlias())
-                        .metaDataStore(referenceTable.getMetaDataStore())
-                        .queriedColArgs(column.getArguments())
+                        .metaDataStore(metaDataStore)
+                        .column(column)
+                        .tableArguments(query.getArguments())
                         .build();
 
-        JoinExpressionExtractor visitor = new JoinExpressionExtractor(context, column);
-        List<Reference> references = referenceTable.getReferenceTree(query.getSource(), column.getName());
+        JoinExpressionExtractor visitor = new JoinExpressionExtractor(context);
+        List<Reference> references = parser.parse(query.getSource(), column);
         references.forEach(ref -> joinExpressions.addAll(ref.accept(visitor)));
         return joinExpressions;
     }
@@ -360,6 +371,21 @@ public class QueryTranslator implements QueryVisitor<NativeQuery.NativeQueryBuil
      * @return quoted alias
      */
     private String applyQuotes(String str) {
-        return SQLReferenceTable.applyQuotes(str, dialect);
+        return ColumnContext.applyQuotes(str, dialect);
+    }
+
+    /**
+     * Generates from clause with provided statement and alias.
+     * @param fromStatement table name / subquery.
+     * @param fromAlias alias for table name / subquery.
+     * @param sqlDialect SQLDialect.
+     * @return Generated from clause with or without "AS" before alias.
+     */
+    public static String getFromClause(String fromStatement, String fromAlias, SQLDialect sqlDialect) {
+
+        if (sqlDialect.useASBeforeTableAlias()) {
+            return String.format("%s AS %s", fromStatement, fromAlias);
+        }
+        return String.format("%s %s", fromStatement, fromAlias);
     }
 }

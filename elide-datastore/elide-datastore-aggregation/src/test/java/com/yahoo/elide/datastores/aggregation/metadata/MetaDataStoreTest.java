@@ -9,14 +9,14 @@ import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.utils.ClassScanner;
-import com.yahoo.elide.datastores.aggregation.example.Country;
-import com.yahoo.elide.datastores.aggregation.example.CountryView;
-import com.yahoo.elide.datastores.aggregation.example.CountryViewNested;
-import com.yahoo.elide.datastores.aggregation.example.Player;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStatsView;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStatsWithView;
-import com.yahoo.elide.datastores.aggregation.example.SubCountry;
+import example.Player;
+import example.PlayerStats;
+import example.PlayerStatsView;
+import example.PlayerStatsWithView;
+import example.dimensions.Country;
+import example.dimensions.CountryView;
+import example.dimensions.CountryViewNested;
+import example.dimensions.SubCountry;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -24,7 +24,7 @@ import java.util.HashMap;
 
 public class MetaDataStoreTest {
     private static MetaDataStore dataStore = new MetaDataStore(
-                    getClassType(ClassScanner.getAllClasses("com.yahoo.elide.datastores.aggregation.example")), true);
+                    getClassType(ClassScanner.getAllClasses("example")), true);
 
     @BeforeAll
     public static void setup() {

@@ -32,6 +32,7 @@ import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
+import graphql.execution.AsyncSerialExecutionStrategy;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -43,6 +44,8 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
@@ -73,7 +76,9 @@ public class QueryRunner {
         ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(),
                 nonEntityDictionary, fetcher, apiVersion);
 
-        this.api = new GraphQL(builder.build());
+        api = GraphQL.newGraphQL(builder.build())
+                .queryExecutionStrategy(new AsyncSerialExecutionStrategy())
+                .build();
 
         // TODO - add serializers to allow for custom handling of ExecutionResult and GraphQLError objects
         GraphQLErrorSerializer errorSerializer = new GraphQLErrorSerializer();
@@ -259,7 +264,6 @@ public class QueryRunner {
             if (operationName != null) {
                 executionInput.operationName(operationName);
             }
-
             executionInput.variables(variables);
 
             ExecutionResult result = api.execute(executionInput);
@@ -278,6 +282,7 @@ public class QueryRunner {
                 }
                 requestScope.saveOrCreateObjects();
             }
+            requestScope.runQueuedPreFlushTriggers();
             tx.flush(requestScope);
 
             requestScope.runQueuedPreCommitTriggers();
@@ -335,6 +340,24 @@ public class QueryRunner {
                     return e.toString();
                 }
             }, isVerbose);
+        } catch (ConstraintViolationException e) {
+            log.debug("Constraint violation exception caught", e);
+            String message = "Constraint violation";
+            final ErrorObjects.ErrorObjectsBuilder errorObjectsBuilder = ErrorObjects.builder();
+            for (ConstraintViolation<?> constraintViolation : e.getConstraintViolations()) {
+                errorObjectsBuilder.addError()
+                        .withDetail(constraintViolation.getMessage());
+                final String propertyPathString = constraintViolation.getPropertyPath().toString();
+                if (!propertyPathString.isEmpty()) {
+                    Map<String, Object> source = new HashMap<>(1);
+                    source.put("property", propertyPathString);
+                    errorObjectsBuilder.with("source", source);
+                }
+            }
+            return buildErrorResponse(elide,
+                    new CustomErrorException(HttpStatus.SC_BAD_REQUEST, message, errorObjectsBuilder.build()),
+                    isVerbose
+            );
         } catch (Exception | Error e) {
             if (e instanceof InterruptedException) {
                 log.debug("Request Thread interrupted.", e);

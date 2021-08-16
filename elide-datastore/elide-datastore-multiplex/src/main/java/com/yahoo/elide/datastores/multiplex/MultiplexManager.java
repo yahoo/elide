@@ -5,10 +5,12 @@
  */
 package com.yahoo.elide.datastores.multiplex;
 
+import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.type.Type;
 
 import lombok.AccessLevel;
@@ -16,7 +18,9 @@ import lombok.Setter;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
  * Allows multiple database handlers to each process their own beans while keeping the main
@@ -56,6 +60,7 @@ public final class MultiplexManager implements DataStore {
         for (DataStore dataStore : dataStores) {
             EntityDictionary subordinateDictionary = new EntityDictionary(
                 dictionary.getCheckMappings(),
+                dictionary.getRoleChecks(),
                 dictionary.getInjector()
             );
 
@@ -66,6 +71,12 @@ public final class MultiplexManager implements DataStore {
 
                 // bind to multiplex dictionary
                 dictionary.bindEntity(binding);
+            }
+
+            for (Map.Entry<Type<?>, Function<RequestScope, PermissionExecutor>> entry
+                    : subordinateDictionary.getEntityPermissionExecutor().entrySet()) {
+                dictionary.bindPermissionExecutor(entry.getKey(), entry.getValue());
+
             }
         }
     }

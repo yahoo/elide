@@ -5,12 +5,17 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects;
 
+import com.yahoo.elide.core.filter.JPQLPredicateGenerator;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SupportedAggregation;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SupportedOperation;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import org.apache.calcite.avatica.util.Casing;
 import org.apache.calcite.sql.SqlDialect;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Interface for SQL Dialects used to customize SQL queries for specific persistent storage.
@@ -28,6 +33,12 @@ public interface SQLDialect {
      * @return boolean.
      */
     boolean useAliasForOrderByClause();
+
+    /**
+     * Add "AS" before table/subquery aliases in generated SQL.
+     * @return boolean.
+     */
+    boolean useASBeforeTableAlias();
 
     /**
      * Generates required offset and limit clause.
@@ -96,4 +107,13 @@ public interface SQLDialect {
      * @return The supported operation or NULL if not supported.
      */
     SupportedOperation getSupportedOperation(String name);
+
+    /**
+     * Returns a map of filter predicate operators to SQL/JPQL expression generators that
+     * will override the system defaults.
+     * @return SQL/JPQL expression generator overrides.
+     */
+    default Map<Operator, JPQLPredicateGenerator> getPredicateGeneratorOverrides() {
+        return new HashMap<>();
+    }
 }

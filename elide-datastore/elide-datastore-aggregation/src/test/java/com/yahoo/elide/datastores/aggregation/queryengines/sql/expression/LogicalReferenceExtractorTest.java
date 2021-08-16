@@ -12,17 +12,17 @@ import static org.mockito.Mockito.mock;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.datastores.aggregation.example.Country;
-import com.yahoo.elide.datastores.aggregation.example.Player;
-import com.yahoo.elide.datastores.aggregation.example.PlayerRanking;
-import com.yahoo.elide.datastores.aggregation.example.PlayerStats;
-import com.yahoo.elide.datastores.aggregation.example.SubCountry;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.ConnectionDetails;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.SQLQueryEngine;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialectFactory;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.metadata.SQLTable;
+import example.Player;
+import example.PlayerRanking;
+import example.PlayerStats;
+import example.dimensions.Country;
+import example.dimensions.SubCountry;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -68,8 +68,8 @@ public class LogicalReferenceExtractorTest {
         List<Reference> references = parser.parse(playerStats, recordedDate.getExpression());
 
         assertTrue(references.size() == 1);
-
-        LogicalReferenceExtractor extractor = new LogicalReferenceExtractor(metaDataStore);
+        ReferenceExtractor<LogicalReference> extractor =
+                new ReferenceExtractor(LogicalReference.class, metaDataStore, ReferenceExtractor.Mode.SAME_QUERY);
         Set<LogicalReference> logicalReferences = references.get(0).accept(extractor);
 
         assertTrue(logicalReferences.size() == 0);
@@ -83,7 +83,9 @@ public class LogicalReferenceExtractorTest {
 
         assertTrue(references.size() == 1);
 
-        LogicalReferenceExtractor extractor = new LogicalReferenceExtractor(metaDataStore);
+        ReferenceExtractor<LogicalReference> extractor =
+                new ReferenceExtractor(LogicalReference.class, metaDataStore, ReferenceExtractor.Mode.SAME_QUERY);
+
         Set<LogicalReference> logicalReferences = references.get(0).accept(extractor);
 
         assertEquals(0, logicalReferences.size());
@@ -96,8 +98,8 @@ public class LogicalReferenceExtractorTest {
         List<Reference> references = parser.parse(playerStats, playerLevel.getExpression());
 
         assertTrue(references.size() == 1);
-
-        LogicalReferenceExtractor extractor = new LogicalReferenceExtractor(metaDataStore);
+        ReferenceExtractor<LogicalReference> extractor =
+                new ReferenceExtractor(LogicalReference.class, metaDataStore, ReferenceExtractor.Mode.SAME_QUERY);
         Set<LogicalReference> logicalReferences = references.get(0).accept(extractor);
 
         assertEquals(1, logicalReferences.size());

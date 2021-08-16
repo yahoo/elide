@@ -33,9 +33,7 @@
                     }
                 },
                 "tableSource": {
-                    "title": "Table stores argument values",
-                    "description": "Table and column name where to find the values : tableName.columnName",
-                    "type": "string"
+                    "$ref": "#/definitions/tableSource"
                 },
                 "default": {
                     "title": "Default argument value",
@@ -102,6 +100,47 @@
             ],
             "additionalProperties": false
         },
+        "tableSource": {
+            "title": "Table Source",
+            "description": "Provides information about where a column or argument values can be found.",
+            "type": "object",
+            "properties": {
+                "table": {
+                    "title": "Source table",
+                    "description": "The source table that contains the colum or argument values.",
+                    "type": "string",
+                    "format": "elideName"
+                },
+                "namespace": {
+                    "title": "Source table namespace",
+                    "description": "Namespace for the source table.",
+                    "type": "string",
+                    "format": "elideNamespaceName",
+                    "default": "default"
+                },
+                "column": {
+                    "title": "Primary source table column name",
+                    "description": "The column that provides a unique list of values for the given column or argument",
+                    "type": "string",
+                    "format": "elideFieldName"
+                },
+                "suggestionColumns": {
+                    "title": "Secondary search columns",
+                    "description": "Secondary columns that can be searched to locate the primary column(s)",
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                        "type": "string",
+                        "format": "elideFieldName"
+                    }
+                }
+            },
+            "required": [
+                "table",
+                "column"
+            ],
+            "additionalProperties": false
+        },
         "measure": {
             "title": "Measure",
             "description": "Metric definitions are extensible objects that contain a type field and one or more additional attributes. Each type is tied to logic in Elide that generates a metric function.",
@@ -160,15 +199,6 @@
                 "tags": {
                     "title": "Measure tags",
                     "description": "An array of string based tags for measures",
-                    "type": "array",
-                    "uniqueItems": true,
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "hints": {
-                    "title": "Optimizer Hints",
-                    "description": "An array of hint names to control the optimizer",
                     "type": "array",
                     "uniqueItems": true,
                     "items": {
@@ -285,9 +315,7 @@
                             }
                         },
                         "tableSource": {
-                            "title": "Table stores dimension values",
-                            "description": "Table and column name where to find the values : tableName.columnName",
-                            "type": "string"
+                            "$ref": "#/definitions/tableSource"
                         }
                     }
                 }
@@ -418,6 +446,15 @@
                         "type": "string",
                         "format": "elideNamespaceName",
                         "default": "default"
+                    },
+                    "hints": {
+                        "title": "Optimizer Hints",
+                        "description": "An array of hint names to control the optimizer",
+                        "type": "array",
+                        "uniqueItems": true,
+                        "items": {
+                            "type": "string"
+                        }
                     },
                     "joins": {
                         "title": "Table joins",

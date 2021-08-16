@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Verizon Media.
+ * Copyright 2021, Yahoo Inc.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -13,7 +13,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
-@Include(rootLevel = true, type = "group")
+@Include(rootLevel = true, name = "group")
 @Entity
 public class ArtifactGroup {
     @Id

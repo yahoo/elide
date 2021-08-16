@@ -30,19 +30,35 @@ import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.spring.controllers.JsonApiController;
 import com.yahoo.elide.test.graphql.GraphQLDSL;
+
+import com.google.common.collect.ImmutableList;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Example functional test.
@@ -52,7 +68,7 @@ import javax.ws.rs.core.MediaType;
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
         scripts = "classpath:db/test_init.sql",
         statements = "INSERT INTO ArtifactGroup (name, commonName, description, deprecated) VALUES\n"
-            + "\t\t('com.example.repository','Example Repository','The code for this project', false);"
+                + "\t\t('com.example.repository','Example Repository','The code for this project', false);"
 )
 @Import(IntegrationTestSetup.class)
 @TestPropertySource(
@@ -63,7 +79,11 @@ import javax.ws.rs.core.MediaType;
 )
 @ActiveProfiles("default")
 public class ControllerTest extends IntegrationTest {
+    public static final String SORT_PARAM = "sort";
     private String baseUrl;
+
+    @SpyBean
+    private Elide elide;
 
     @BeforeAll
     @Override
@@ -135,21 +155,21 @@ public class ControllerTest extends IntegrationTest {
     @Test
     public void jsonApiPatchTest() {
         given()
-            .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
-            .body(
-                datum(
-                    resource(
-                        type("group"),
-                        id("com.example.repository"),
-                        attributes(
-                            attr("commonName", "Changed It.")
+                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("group"),
+                                        id("com.example.repository"),
+                                        attributes(
+                                                attr("commonName", "Changed It.")
+                                        )
+                                )
                         )
-                    )
                 )
-            )
-            .when()
+                .when()
                 .patch("/json/group/com.example.repository")
-            .then()
+                .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
 
 
@@ -172,17 +192,17 @@ public class ControllerTest extends IntegrationTest {
                                         relationships(
                                                 relation(
                                                         "products",
-                                                            links(
-                                                                    attr("self", baseUrl + "group/com.example.repository/relationships/products"),
-                                                                    attr("related", baseUrl + "group/com.example.repository/products")
-                                                            )
+                                                        links(
+                                                                attr("self", baseUrl + "group/com.example.repository/relationships/products"),
+                                                                attr("related", baseUrl + "group/com.example.repository/products")
+                                                        )
 
                                                 )
                                         )
                                 )
                         ).toJSON())
                 )
-                        .statusCode(HttpStatus.SC_OK);
+                .statusCode(HttpStatus.SC_OK);
     }
 
     @Test
@@ -219,7 +239,7 @@ public class ControllerTest extends IntegrationTest {
                                                 type("group"),
                                                 id("com.example.repository.foo"),
                                                 attributes(
-                                                    attr("commonName", "Foo")
+                                                        attr("commonName", "Foo")
                                                 )
                                         )
                                 )
@@ -278,9 +298,9 @@ public class ControllerTest extends IntegrationTest {
     @Test
     public void jsonApiDeleteTest() {
         when()
-            .delete("/json/group/com.example.repository")
-        .then()
-            .statusCode(HttpStatus.SC_NO_CONTENT);
+                .delete("/json/group/com.example.repository")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
     }
 
     @Test
@@ -290,11 +310,11 @@ public class ControllerTest extends IntegrationTest {
     })
     public void jsonApiDeleteRelationshipTest() {
         given()
-            .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
-            .body(datum(
-                linkage(type("product"), id("foo"))
-            ))
-        .when()
+                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .body(datum(
+                        linkage(type("product"), id("foo"))
+                ))
+                .when()
                 .delete("/json/group/com.example.repository")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
@@ -306,38 +326,38 @@ public class ControllerTest extends IntegrationTest {
     @Test
     public void graphqlTest() {
         given()
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .body("{ \"query\" : \"" + GraphQLDSL.document(
-                query(
-                    selection(
-                        field("group",
-                            selections(
-                                field("name"),
-                                field("commonName"),
-                                field("description")
-                            )
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body("{ \"query\" : \"" + GraphQLDSL.document(
+                        query(
+                                selection(
+                                        field("group",
+                                                selections(
+                                                        field("name"),
+                                                        field("commonName"),
+                                                        field("description")
+                                                )
+                                        )
+                                )
                         )
-                    )
+                        ).toQuery() + "\" }"
                 )
-            ).toQuery() + "\" }"
-        )
-        .when()
-            .post("/graphql")
-            .then()
-            .body(equalTo(GraphQLDSL.document(
-                selection(
-                    field(
-                        "group",
-                        selections(
-                            field("name", "com.example.repository"),
-                            field("commonName", "Example Repository"),
-                            field("description", "The code for this project")
+                .when()
+                .post("/graphql")
+                .then()
+                .body(equalTo(GraphQLDSL.document(
+                        selection(
+                                field(
+                                        "group",
+                                        selections(
+                                                field("name", "com.example.repository"),
+                                                field("commonName", "Example Repository"),
+                                                field("description", "The code for this project")
+                                        )
+                                )
                         )
-                    )
-                )
-            ).toResponse()))
-            .statusCode(HttpStatus.SC_OK);
+                ).toResponse()))
+                .statusCode(HttpStatus.SC_OK);
     }
 
     @Test
@@ -415,14 +435,14 @@ public class ControllerTest extends IntegrationTest {
                 .body("tags.name", containsInAnyOrder("group", "argument", "metric",
                         "dimension", "column", "table", "asyncQuery",
                         "timeDimensionGrain", "timeDimension", "product", "playerCountry", "version", "playerStats",
-                        "stats", "namespace"));
+                        "stats", "namespace", "tableSource"));
     }
 
     @Test
     public void versionedSwaggerDocumentTest() {
         given()
                 .header("ApiVersion", "1.0")
-        .when()
+                .when()
                 .get("/doc")
                 .then()
                 .statusCode(HttpStatus.SC_OK)
@@ -478,5 +498,167 @@ public class ControllerTest extends IntegrationTest {
                 .then()
                 .body("error", equalTo("Not Found"))
                 .statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
+    @Test
+    public void jsonVerifyParamsAndHeadersGetTest() {
+        given()
+                .header(HttpHeaders.AUTHORIZATION, "willBeRemoved")
+                .header(HttpHeaders.PROXY_AUTHORIZATION, "willBeRemoved")
+                .header(HttpHeaders.ACCEPT_LANGUAGE, "en-US")
+                .queryParam(SORT_PARAM, "name", "description")
+                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("group"),
+                                        id("com.example.repository2"),
+                                        attributes(
+                                                attr("commonName", "New group.")
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .post("/json/group")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
+        ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(elide).post(any(), any(), any(), requestParamsCaptor.capture(), requestHeadersCleanedCaptor.capture(), any(), any(), any());
+
+        MultivaluedHashMap<String, String> expectedRequestParams = new MultivaluedHashMap<>();
+        expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
+        assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
+
+        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("authorization"));
+        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("proxy-authorization"));
+    }
+
+    @Test
+    public void jsonVerifyParamsAndHeadersPostTest() {
+        given()
+                .header(HttpHeaders.AUTHORIZATION, "willBeRemoved")
+                .header(HttpHeaders.PROXY_AUTHORIZATION, "willBeRemoved")
+                .queryParam(SORT_PARAM, "name", "description")
+                .when()
+                .get("/json/group")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+
+        ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
+        ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(elide).get(any(), any(), requestParamsCaptor.capture(), requestHeadersCleanedCaptor.capture(), any(), any(), any());
+
+        MultivaluedHashMap<String, String> expectedRequestParams = new MultivaluedHashMap<>();
+        expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
+        assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
+
+        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("authorization"));
+        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("proxy-authorization"));
+    }
+
+    @Test
+    public void jsonVerifyParamsAndHeadersPatchTest() {
+        given()
+                .header(HttpHeaders.AUTHORIZATION, "willBeRemoved")
+                .header(HttpHeaders.PROXY_AUTHORIZATION, "willBeRemoved")
+                .queryParam(SORT_PARAM, "name", "description")
+                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("group"),
+                                        id("com.example.repository"),
+                                        attributes(
+                                                attr("commonName", "Changed It.")
+                                        )
+                                )
+                        )
+                )
+                .when()
+                .patch("/json/group/com.example.repository")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+
+        ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
+        ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(elide).patch(any(), any(), any(), any(), any(), requestParamsCaptor.capture(), requestHeadersCleanedCaptor.capture(), any(), any(), any());
+
+        MultivaluedHashMap<String, String> expectedRequestParams = new MultivaluedHashMap<>();
+        expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
+        assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
+
+        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("authorization"));
+        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("proxy-authorization"));
+    }
+
+    @Test
+    public void jsonVerifyParamsAndHeadersDeleteTest() {
+        given()
+                .header(HttpHeaders.AUTHORIZATION, "willBeRemoved")
+                .header(HttpHeaders.PROXY_AUTHORIZATION, "willBeRemoved")
+                .queryParam(SORT_PARAM, "name", "description")
+                .when()
+                .delete("/json/group/com.example.repository")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+
+        ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
+        ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(elide).delete(
+                any(),
+                any(),
+                any(),
+                requestParamsCaptor.capture(),
+                requestHeadersCleanedCaptor.capture(),
+                any(),
+                any(),
+                any()
+        );
+
+        MultivaluedHashMap<String, String> expectedRequestParams = new MultivaluedHashMap<>();
+        expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
+        assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
+
+        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("authorization"));
+        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("proxy-authorization"));
+    }
+
+    @Test
+    public void jsonVerifyParamsAndHeadersDeleteRelationshipTest() {
+        given()
+                .header(HttpHeaders.AUTHORIZATION, "willBeRemoved")
+                .header(HttpHeaders.PROXY_AUTHORIZATION, "willBeRemoved")
+                .queryParam(SORT_PARAM, "name", "description")
+                .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
+                .body(datum(
+                        linkage(type("product"), id("foo"))
+                ))
+                .when()
+                .delete("/json/group/com.example.repository")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+
+        ArgumentCaptor<MultivaluedMap<String, String>> requestParamsCaptor = ArgumentCaptor.forClass(MultivaluedMap.class);
+        ArgumentCaptor<Map<String, List<String>>> requestHeadersCleanedCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(elide).delete(
+                any(),
+                any(),
+                any(),
+                requestParamsCaptor.capture(),
+                requestHeadersCleanedCaptor.capture(),
+                any(),
+                any(),
+                any()
+        );
+
+        MultivaluedHashMap<String, String> expectedRequestParams = new MultivaluedHashMap<>();
+        expectedRequestParams.put(SORT_PARAM, ImmutableList.of("name", "description"));
+        assertEquals(expectedRequestParams, requestParamsCaptor.getValue());
+
+        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("authorization"));
+        assertFalse(requestHeadersCleanedCaptor.getValue().containsKey("proxy-authorization"));
     }
 }

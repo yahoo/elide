@@ -4,7 +4,7 @@
 
 ![Elide Logo](elide-logo.svg)
 
-[![Spectrum](https://withspectrum.github.io/badge/badge.svg)](https://spectrum.chat/elide)
+[![Discord](https://img.shields.io/discord/869678398241398854)](https://discord.com/widget?id=869678398241398854&theme=dark)
 [![Build Status](https://cd.screwdriver.cd/pipelines/6103/badge)](https://cd.screwdriver.cd/pipelines/6103)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.yahoo.elide/elide-core)
 [![Coverage Status](https://coveralls.io/repos/github/yahoo/elide/badge.svg?branch=master)](https://coveralls.io/github/yahoo/elide?branch=master)
@@ -69,17 +69,11 @@ More information about Elide can be found at [elide.io](https://elide.io/).
 
 ## Install
 
-To try out an Elide example service (with a Postgres database), you can deploy via Heroku.
-
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/yahoo/elide-spring-boot-example)
-
-The code that generates this example can be found [here](https://github.com/yahoo/elide-spring-boot-example).
+To try out an Elide example service, check out this [Spring boot example project](https://github.com/yahoo/elide-spring-boot-example).
 
 Alternatively, use [elide-standalone](https://github.com/yahoo/elide/tree/master/elide-standalone) which allows you to quickly setup a local instance of Elide running inside an embedded Jetty application.
 
 ## Usage 
-
-The following examples leverage elide 5 (now in pre-release).  For documentation on prior/stable versions, visit [here](https://elide.io/pages/guide/v4/01-start.html).
 
 ### For CRUD APIs
 
@@ -178,7 +172,7 @@ For example API calls, look at:
 
 ### For Analytic APIs
 
-Analytic models including tables, measures, dimensions, and joins can be created with a friendly HJSON configuration language:
+Analytic models including tables, measures, dimensions, and joins can be created either as POJOs or with a friendly HJSON configuration language:
 
 ```hjson
 {
@@ -190,14 +184,14 @@ Analytic models including tables, measures, dimensions, and joins can be created
         {
           name: orderTotal
           type: DECIMAL
-          definition: 'SUM({{order_total}})'
+          definition: 'SUM({{$order_total}})'
         }
       ]
       dimensions: [
         {
           name: orderId
           type: TEXT
-          definition: '{{order_id}}'
+          definition: '{{$order_id}}'
         }
       ]
     }
@@ -216,7 +210,8 @@ Please refer to [the contributing.md file](CONTRIBUTING.md) for information abou
 
 If you are contributing to Elide using an IDE, such as IntelliJ, make sure to install the [Lombok](https://projectlombok.org/) plugin.
 
-Discussion is on [spectrum](https://spectrum.chat/elide) or through filing issues.
+Community chat is now on [discord](https://discord.com/widget?id=869678398241398854&theme=dark).
+Legacy discussion is archived on [spectrum](https://spectrum.chat/elide).
 
 ## License
 This project is licensed under the terms of the [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0.html) open source license.

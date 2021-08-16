@@ -95,7 +95,7 @@ public class Elide {
         this.mapper = elideSettings.getMapper();
         this.transactionRegistry = new TransactionRegistry();
 
-        elideSettings.getSerdes().forEach(CoerceUtil::register);
+        elideSettings.getSerdes().forEach((type, serde) -> registerCustomSerde(type, serde, type.getSimpleName()));
 
         registerCustomSerde();
     }
@@ -463,6 +463,7 @@ public class Elide {
             if (!isReadOnly) {
                 requestScope.saveOrCreateObjects();
             }
+            requestScope.runQueuedPreFlushTriggers();
             tx.flush(requestScope);
 
             requestScope.runQueuedPreCommitTriggers();

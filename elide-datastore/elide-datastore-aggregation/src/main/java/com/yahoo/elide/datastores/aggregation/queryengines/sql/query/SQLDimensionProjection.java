@@ -10,6 +10,7 @@ import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ValueType;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
+import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -46,16 +47,8 @@ public class SQLDimensionProjection implements SQLColumnProjection, DimensionPro
     }
 
     @Override
-    public SQLDimensionProjection withExpression(String expression, boolean project) {
-        return SQLDimensionProjection.builder()
-                .name(name)
-                .alias(alias)
-                .valueType(valueType)
-                .columnType(columnType)
-                .expression(expression)
-                .arguments(arguments)
-                .projected(project)
-                .build();
+    public SQLDimensionProjection withExpression(String expression, boolean projected) {
+        return new SQLDimensionProjection(name, valueType, columnType, expression, alias, arguments, projected);
     }
 
     @Override
@@ -65,6 +58,11 @@ public class SQLDimensionProjection implements SQLColumnProjection, DimensionPro
 
     @Override
     public SQLDimensionProjection withProjected(boolean projected) {
-        return withExpression(expression, projected);
+        return new SQLDimensionProjection(name, valueType, columnType, expression, alias, arguments, projected);
+    }
+
+    @Override
+    public ColumnProjection withArguments(Map<String, Argument> arguments) {
+        return new SQLDimensionProjection(name, valueType, columnType, expression, alias, arguments, projected);
     }
 }

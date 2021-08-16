@@ -11,11 +11,13 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.datastores.aggregation.dynamic.NamespacePackage;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Dimension;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Metric;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Namespace;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
+import com.yahoo.elide.datastores.aggregation.metadata.models.TableSource;
 import com.yahoo.elide.datastores.aggregation.metadata.models.TimeDimension;
 import com.yahoo.elide.datastores.aggregation.query.DimensionProjection;
 import com.yahoo.elide.datastores.aggregation.query.MetricProjection;
@@ -92,16 +94,22 @@ public abstract class QueryEngine {
      * @param namespacePackage NamespacePackage Type
      * @return constructed Namespace
      */
-    protected abstract Namespace constructNamespace(com.yahoo.elide.core.type.Package namespacePackage);
+    protected abstract Namespace constructNamespace(NamespacePackage namespacePackage);
 
     /**
+     *
      * Construct Table metadata for an entity.
      *
+     * @param namespace The table namespace
      * @param entityClass entity class
      * @param metaDataDictionary metadata dictionary
      * @return constructed Table
      */
-    protected abstract Table constructTable(Type<?> entityClass, EntityDictionary metaDataDictionary);
+    protected abstract Table constructTable (
+            Namespace namespace,
+            Type<?> entityClass,
+            EntityDictionary metaDataDictionary
+    );
 
     /**
      * Construct a parameterized instance of a Column.
@@ -154,11 +162,49 @@ public abstract class QueryEngine {
                     }
                 });
 
-
         metaDataStore.getModelsToBind().stream()
-                .map(model -> constructTable(model, metadataDictionary))
+                .map(model -> constructTable(metaDataStore.getNamespace(model), model, metadataDictionary))
                 .forEach(metaDataStore::addTable);
+
+        //Populate table sources.
+        metaDataStore.getTables().forEach(table -> {
+            table.getArgumentDefinitions().forEach(argument -> {
+                argument.setTableSource(TableSource.fromDefinition(
+                        argument.getTableSourceDefinition(),
+                        table.getVersion(),
+                        metaDataStore
+                ));
+            });
+
+            table.getColumns().forEach(column -> {
+
+                //Populate column sources.
+                column.setTableSource(TableSource.fromDefinition(
+                        column.getTableSourceDefinition(),
+                        table.getVersion(),
+                        metaDataStore
+                ));
+
+                //Populate column argument sources.
+                column.getArgumentDefinitions().forEach(argument -> {
+                    argument.setTableSource(TableSource.fromDefinition(
+                            argument.getTableSourceDefinition(),
+                            table.getVersion(),
+                            metaDataStore
+                    ));
+                });
+            });
+        });
+
+        // Verify populated tables in metadata store.
+        verifyMetaData(metaDataStore);
     }
+
+    /**
+     * Verifies all tables in metadata store after they are constructed by {@link #populateMetaData(MetaDataStore)}.
+     * @param metaDataStore metadata store to verify.
+     */
+    protected abstract void verifyMetaData(MetaDataStore metaDataStore);
 
     /**
      * Contains state necessary for query execution.
@@ -203,4 +249,5 @@ public abstract class QueryEngine {
      */
     public abstract List<String> explain(Query query);
 
+    public abstract QueryValidator getValidator();
 }

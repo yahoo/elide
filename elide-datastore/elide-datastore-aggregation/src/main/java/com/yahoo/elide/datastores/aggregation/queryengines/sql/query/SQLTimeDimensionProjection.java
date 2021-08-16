@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
 import com.yahoo.elide.core.exceptions.InvalidParameterizedAttributeException;
 import com.yahoo.elide.core.request.Argument;
+import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.ColumnType;
 import com.yahoo.elide.datastores.aggregation.metadata.enums.TimeGrain;
@@ -39,8 +40,6 @@ import java.util.TimeZone;
 @Builder
 @AllArgsConstructor
 public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDimensionProjection {
-
-    private static final String TIME_DIMENSION_REPLACEMENT_REGEX = "\\{\\{(\\s*)}}";
 
     private String alias;
     private String name;
@@ -80,10 +79,15 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     @Override
     public String toSQL(Queryable query, MetaDataStore metaDataStore) {
 
-        String resolvedExpr = SQLColumnProjection.super.toSQL(query, metaDataStore);
+        ColumnContext context = ColumnContext.builder()
+                        .queryable(query)
+                        .alias(query.getSource().getAlias())
+                        .metaDataStore(metaDataStore)
+                        .column(this)
+                        .tableArguments(query.getArguments())
+                        .build();
 
-        // TODO - We will likely migrate to a templating language when we support parameterized metrics.
-        return grain.getExpression().replaceAll(TIME_DIMENSION_REPLACEMENT_REGEX, resolvedExpr);
+        return context.resolve(grain.getExpression());
     }
 
     @Override
@@ -106,10 +110,10 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
         Set<ColumnProjection> innerProjections;
 
         if (requiresJoin && joinInOuter) {
-            outerProjection = withExpression(getExpression(), inProjection);
+            String outerProjectionExpression = toPhysicalReferences(source, store);
+            outerProjection = withExpression(outerProjectionExpression, inProjection);
 
-            //TODO - the expression needs to be rewritten to leverage the inner column physical projections.
-            innerProjections = SQLColumnProjection.extractPhysicalReferences(references, store);
+            innerProjections = SQLColumnProjection.extractPhysicalReferences(source, references, store);
         } else {
             outerProjection = SQLTimeDimensionProjection.builder()
                     .name(name)
@@ -134,22 +138,14 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
 
     @Override
     public SQLTimeDimensionProjection withProjected(boolean projected) {
-        return withExpression(expression, projected);
+        return new SQLTimeDimensionProjection(alias, name, expression, valueType, columnType, grain, timeZone,
+                        arguments, projected);
     }
 
     @Override
     public SQLTimeDimensionProjection withExpression(String expression, boolean projected) {
-        return SQLTimeDimensionProjection.builder()
-                .name(name)
-                .alias(alias)
-                .valueType(valueType)
-                .columnType(columnType)
-                .expression(expression)
-                .arguments(arguments)
-                .projected(projected)
-                .grain(grain)
-                .timeZone(timeZone)
-                .build();
+        return new SQLTimeDimensionProjection(alias, name, expression, valueType, columnType, grain, timeZone,
+                        arguments, projected);
     }
 
     private TimeDimensionGrain getGrainFromArguments(Map<String, Argument> arguments, TimeDimension column) {
@@ -170,5 +166,11 @@ public class SQLTimeDimensionProjection implements SQLColumnProjection, TimeDime
     @Override
     public boolean isProjected() {
         return projected;
+    }
+
+    @Override
+    public ColumnProjection withArguments(Map<String, Argument> arguments) {
+        return new SQLTimeDimensionProjection(alias, name, expression, valueType, columnType, grain, timeZone,
+                        arguments, projected);
     }
 }

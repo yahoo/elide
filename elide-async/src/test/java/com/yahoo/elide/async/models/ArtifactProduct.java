@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Verizon Media.
+ * Copyright 2021, Yahoo.
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
@@ -11,7 +11,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
-@Include(type = "product")
+@Include(name = "product")
 @Entity
 public class ArtifactProduct {
     @Id

@@ -5,22 +5,14 @@
  */
 package com.yahoo.elide.jsonapi;
 
-import com.yahoo.elide.core.utils.coerce.CoerceUtil;
-import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.models.Patch;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -34,23 +26,6 @@ public class JsonApiMapper {
      */
     public JsonApiMapper() {
         this.mapper = new ObjectMapper();
-
-        mapper.registerModule(
-                new SimpleModule("isoDate", Version.unknownVersion())
-                        .addSerializer(Date.class, new JsonSerializer<Date>() {
-                            @Override
-                            public void serialize(Date date,
-                                                  JsonGenerator jsonGenerator,
-                                                  SerializerProvider serializerProvider)
-                                    throws IOException, JsonProcessingException {
-                                Serde<?, Date> serde = CoerceUtil.lookup(Date.class);
-
-                                jsonGenerator.writeObject(serde.serialize(date));
-                            }
-                        }
-                )
-        );
-
         mapper.registerModule(JsonApiSerializer.getModule());
     }
 

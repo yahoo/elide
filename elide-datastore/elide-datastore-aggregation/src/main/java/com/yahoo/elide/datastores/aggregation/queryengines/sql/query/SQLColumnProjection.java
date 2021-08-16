@@ -6,17 +6,20 @@
 
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 
-import com.yahoo.elide.datastores.aggregation.metadata.Context;
+import com.yahoo.elide.datastores.aggregation.metadata.ColumnContext;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.PhysicalRefColumnContext;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SyntaxVerifier;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDialect;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ColumnArgReference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.HasJoinVisitor;
-import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.PhysicalReferenceExtractor;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.JoinReference;
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.PhysicalReference;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
-
+import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ReferenceExtractor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,14 +44,35 @@ public interface SQLColumnProjection extends ColumnProjection {
      */
     default String toSQL(Queryable query, MetaDataStore metaDataStore) {
 
-        Context context = Context.builder()
+        ColumnContext context = ColumnContext.builder()
                         .queryable(query)
                         .alias(query.getSource().getAlias())
                         .metaDataStore(metaDataStore)
-                        .queriedColArgs(getArguments())
+                        .column(this)
+                        .tableArguments(query.getArguments())
                         .build();
 
-        return context.resolveHandlebars(this);
+        return context.resolve(getExpression());
+    }
+
+    /**
+     * Generate a partially resolved string for current column's expression. Fully resolves arguments and logical
+     * references but keeps physical and join references as is.
+     * @param query current Queryable.
+     * @param metaDataStore MetaDataStore.
+     * @return A String with all arguments and logical references resolved.
+     */
+    default String toPhysicalReferences(Queryable query, MetaDataStore metaDataStore) {
+
+        PhysicalRefColumnContext context = PhysicalRefColumnContext.physicalRefContextBuilder()
+                        .queryable(query)
+                        .metaDataStore(metaDataStore)
+                        .alias("")
+                        .column(this)
+                        .tableArguments(query.getArguments())
+                        .build();
+
+        return context.resolve(getExpression());
     }
 
     @Override
@@ -60,9 +84,23 @@ public interface SQLColumnProjection extends ColumnProjection {
         boolean canNest = verifier.verify(sql);
         if (! canNest) {
             LOGGER.debug("Unable to nest {} because {}", this.getName(), verifier.getLastError());
+
+            return false;
         }
 
-        return canNest;
+        List<Reference> references = new ExpressionParser(metaDataStore).parse(source, this);
+
+        //Search for any join expression that contains $$column.  If found, we cannot nest
+        //because rewriting the SQL in the outer expression will lose the context of the calling $$column.
+        return references.stream()
+                .map(reference -> reference.accept(new ReferenceExtractor<JoinReference>(
+                                JoinReference.class, metaDataStore, ReferenceExtractor.Mode.SAME_QUERY)))
+                .flatMap(Set::stream)
+                .map(reference -> reference.accept(
+                        new ReferenceExtractor<ColumnArgReference>(ColumnArgReference.class, metaDataStore)))
+                .flatMap(Set::stream)
+                .collect(Collectors.toSet())
+                .isEmpty();
     }
 
     @Override
@@ -79,11 +117,10 @@ public interface SQLColumnProjection extends ColumnProjection {
         Set<ColumnProjection> innerProjections;
 
         if (requiresJoin && joinInOuter) {
+            String outerProjectionExpression = toPhysicalReferences(source, store);
+            outerProjection = withExpression(outerProjectionExpression, inProjection);
 
-            //TODO - the expression needs to be rewritten to leverage the inner column physical projections.
-            outerProjection = withExpression(getExpression(), inProjection);
-
-            innerProjections = extractPhysicalReferences(references, store);
+            innerProjections = extractPhysicalReferences(source, references, store);
         } else {
             outerProjection = withExpression("{{$" + this.getSafeAlias() + "}}", isProjected());
             innerProjections = new LinkedHashSet<>(Arrays.asList(this));
@@ -117,13 +154,18 @@ public interface SQLColumnProjection extends ColumnProjection {
 
     /**
      * Extracts all of the physical column projections that are referenced in a list of references.
+     * @param source The calling query.
      * @param references The list of references.
      * @param store The MetaDataStore.
      * @return A set of physical column projections.
      */
-    static Set<ColumnProjection> extractPhysicalReferences(List<Reference> references, MetaDataStore store) {
+    static Set<ColumnProjection> extractPhysicalReferences(
+            Queryable source,
+            List<Reference> references,
+            MetaDataStore store) {
         return references.stream()
-                .map(ref -> ref.accept(new PhysicalReferenceExtractor(store)))
+                .map(ref -> ref.accept(new ReferenceExtractor<PhysicalReference>(
+                                PhysicalReference.class, store, ReferenceExtractor.Mode.SAME_QUERY)))
                 .flatMap(Set::stream)
                 .map(ref -> SQLPhysicalColumnProjection.builder()
                         .name(ref.getName())

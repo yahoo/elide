@@ -20,7 +20,7 @@ import javax.persistence.Entity;
 @ReadPermission(expression = "Prefab.Role.All")
 @UpdatePermission(expression = "Prefab.Role.All OR Prefab.Role.None")
 @DeletePermission(expression = "Prefab.Role.All OR Prefab.Role.None")
-@Include(type = "post") // optional here because class has this name
+@Include(name = "post") // optional here because class has this name
 // Hibernate
 @Entity
 public class Post extends BaseId {
