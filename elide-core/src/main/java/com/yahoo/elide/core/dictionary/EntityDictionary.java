@@ -110,6 +110,8 @@ public class EntityDictionary {
 
     protected final ConcurrentHashMap<Pair<String, String>, Type<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Type<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
+    protected final ConcurrentHashMap<Type<?>, EntityBinding> unmanagedBindings = new ConcurrentHashMap<>();
+
     @Getter
     protected final ConcurrentHashMap<Type<?>, Function<RequestScope, PermissionExecutor>> entityPermissionExecutor =
             new ConcurrentHashMap<>();
