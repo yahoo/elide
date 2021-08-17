@@ -90,7 +90,7 @@ public class EntityBinding {
     @Getter
     private final boolean injected;
 
-    private EntityDictionary dictionary;
+    private Injector injector;
 
     @Getter
     private String apiVersion;
@@ -134,36 +134,36 @@ public class EntityBinding {
         entityClass = null;
         entityPermissions = EntityPermissions.EMPTY_PERMISSIONS;
         idGenerated = false;
-        dictionary = null;
+        injector = null;
     }
 
     /**
      * Constructor
      *
-     * @param dictionary Dictionary to use
+     * @param injector Instantiates and injects new entities
      * @param cls Entity class
      * @param type Declared Elide type name
      */
-    public EntityBinding(EntityDictionary dictionary,
+    public EntityBinding(Injector injector,
                          Type<?> cls,
                          String type) {
-        this(dictionary, cls, type, NO_VERSION, new HashSet<>());
+        this(injector, cls, type, NO_VERSION, new HashSet<>());
     }
 
     /**
      * Constructor
      *
-     * @param dictionary Dictionary to use
+     * @param injector Instantiates and injects new entities.
      * @param cls Entity class
      * @param type Declared Elide type name
      * @param hiddenAnnotations Annotations for hiding a field in API
      */
-    public EntityBinding(EntityDictionary dictionary,
+    public EntityBinding(Injector injector,
                          Type<?> cls,
                          String type,
                          String apiVersion,
                          Set<Class<? extends Annotation>> hiddenAnnotations) {
-        this.dictionary = dictionary;
+        this.injector = injector;
         entityClass = cls;
         jsonApiType = type;
         this.apiVersion = apiVersion;
@@ -205,7 +205,7 @@ public class EntityBinding {
 
         apiAttributes = dequeToList(attributesDeque);
         apiRelationships = dequeToList(relationshipsDeque);
-        entityPermissions = new EntityPermissions(dictionary, cls, fieldOrMethodList);
+        entityPermissions = new EntityPermissions(cls, fieldOrMethodList);
     }
 
     /**
@@ -545,7 +545,6 @@ public class EntityBinding {
 
     private void bindTrigger(LifeCycleHookBinding binding,
                             String fieldOrMethodName) {
-        Injector injector = dictionary.getInjector();
         LifeCycleHook hook = injector.instantiate(binding.hook());
         injector.inject(hook);
         bindTrigger(binding.operation(), binding.phase(), fieldOrMethodName, hook);
@@ -566,8 +565,7 @@ public class EntityBinding {
             return;
         }
 
-        Injector injector = dictionary.getInjector();
-        LifeCycleHook hook = dictionary.getInjector().instantiate(binding.hook());
+        LifeCycleHook hook = injector.instantiate(binding.hook());
         injector.inject(hook);
         bindTrigger(binding.operation(), binding.phase(), hook);
     }

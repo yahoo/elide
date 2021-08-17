@@ -12,7 +12,6 @@ import com.yahoo.elide.core.type.AccessibleObject;
 import com.yahoo.elide.core.type.ClassType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,13 +23,10 @@ import javax.persistence.OneToOne;
 public class EntityBindingTest {
     private static EntityBinding entityBinding;
 
-    @Mock
-    static
-    EntityDictionary entityDictionary;
-
     @BeforeAll
     public static void init() {
-        entityBinding = new EntityBinding(entityDictionary, ClassType.of(ChildClass.class), "childBinding");
+        entityBinding = new EntityBinding(
+                null, ClassType.of(ChildClass.class), "childBinding");
     }
 
     @Test
@@ -57,21 +53,21 @@ public class EntityBindingTest {
 
     @Test
     public void testIdGeneratedTrueWhenGenerateValue() throws Exception {
-        final EntityBinding eb = new EntityBinding(entityDictionary,
+        final EntityBinding eb = new EntityBinding(null,
                 ClassType.of(GeneratedValueClass.class), "testBinding");
         assertTrue(eb.isIdGenerated());
     }
 
     @Test
     public void testIdGeneratedTrueWhenMapsId() throws Exception {
-        final EntityBinding eb = new EntityBinding(entityDictionary,
+        final EntityBinding eb = new EntityBinding(null,
                 ClassType.of(MapsIdClass.class), "testBinding");
         assertTrue(eb.isIdGenerated());
     }
 
     @Test
     public void testIdGeneratedFalseWhenBadMapsId() throws Exception {
-        final EntityBinding eb = new EntityBinding(entityDictionary,
+        final EntityBinding eb = new EntityBinding(null,
                 ClassType.of(BadMapsIdClass.class), "testBinding");
         assertFalse(eb.isIdGenerated());
     }

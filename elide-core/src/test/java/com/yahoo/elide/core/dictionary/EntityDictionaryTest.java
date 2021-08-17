@@ -177,7 +177,8 @@ public class EntityDictionaryTest extends EntityDictionary {
         entitiesToExclude.add(ClassType.of(Employee.class));
 
         EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), entitiesToExclude);
-        testDictionary.bindEntity(new EntityBinding(testDictionary, ClassType.of(Employee.class), "employee"));
+        testDictionary.bindEntity(new EntityBinding(testDictionary.getInjector(),
+                ClassType.of(Employee.class), "employee"));
         // Does not find the Binding
         assertNull(testDictionary.entityBindings.get(ClassType.of(Employee.class)));
     }

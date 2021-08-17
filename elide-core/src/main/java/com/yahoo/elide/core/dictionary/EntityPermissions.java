@@ -68,12 +68,10 @@ public class EntityPermissions implements CheckInstantiator {
 
     /**
      * Create bindings for entity class to its permission checks.
-     * @param dictionary the entity dictionary to look up permissions from
      * @param cls entity class
      * @param fieldOrMethodList list of fields/methods
      */
-    public EntityPermissions(EntityDictionary dictionary,
-                             Type<?> cls,
+    public EntityPermissions(Type<?> cls,
                              Collection<AccessibleObject> fieldOrMethodList)  {
         for (Class<? extends Annotation> annotationClass : PERMISSION_ANNOTATIONS) {
             final Map<String, ParseTree> fieldPermissions = new HashMap<>();

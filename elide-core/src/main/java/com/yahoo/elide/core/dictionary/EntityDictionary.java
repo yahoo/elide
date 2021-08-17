@@ -1025,7 +1025,7 @@ public class EntityDictionary {
 
         bindJsonApiToEntity.put(Pair.of(type, version), declaredClass);
         apiVersions.add(version);
-        EntityBinding binding = new EntityBinding(this, declaredClass, type, version, hiddenAnnotations);
+        EntityBinding binding = new EntityBinding(injector, declaredClass, type, version, hiddenAnnotations);
         entityBindings.put(declaredClass, binding);
 
         Include include = (Include) getFirstAnnotation(declaredClass, Arrays.asList(Include.class));
