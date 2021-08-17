@@ -9,6 +9,7 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.predicates.InPredicate;
@@ -143,10 +144,13 @@ public interface DataStoreTransaction extends Closeable {
 
         Iterator<T> it = results == null ? null : results.iterator();
         if (it != null && it.hasNext()) {
-            Object obj = it.next();
+            T obj = it.next();
             if (!it.hasNext()) {
               return obj;
             }
+
+            //Multiple objects with the same ID.
+            throw new InvalidObjectIdentifierException(id.toString(), dictionary.getJsonAliasFor(entityClass));
         }
         return null;
     }
