@@ -90,7 +90,7 @@ public abstract class AsyncQueryOperation implements Callable<AsyncAPIResult> {
      * @param path The json path expression that represents an array.
      * @return The size of the array.
      */
-    protected static Integer safeJsonPathLength(String json, String path) {
+    public static Integer safeJsonPathLength(String json, String path) {
         Object result = JsonPath.read(json, path);
 
         if (Integer.class.isAssignableFrom(result.getClass())) {
