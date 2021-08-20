@@ -1,4 +1,16 @@
 # Change Log
+## 5.0.10
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/debf5ca4d4a53dde274642cfbc4bc04060cbd949) httpclient 4.5.13 (#2074) 
+   * [view commit](https://github.com/yahoo/elide/commit/10697e7f97790b41bfa63b0d8d007bcb95547cac) Bump classgraph from 4.8.113 to 4.8.114 (#2255) 
+   * [view commit](https://github.com/yahoo/elide/commit/b24fbce881aebcfbc58aac83592a335f2bc894f9) Bump micrometer-core from 1.7.2 to 1.7.3 (#2256) 
+   * [view commit](https://github.com/yahoo/elide/commit/0592714a73377945c205f4faf7bc4f23122e519b) loadObject should return unique result (#784) 
+   * [view commit](https://github.com/yahoo/elide/commit/a6d77b362ae629732912e6d6085d1f1ecd5e0b05) Bump maven-scm-provider-gitexe from 1.11.2 to 1.11.3 (#2258) 
+   * [view commit](https://github.com/yahoo/elide/commit/c25d63ee4504107bdadf3523c7321c632d2ca890) Bump maven-scm-api from 1.11.2 to 1.11.3 (#2254) 
+   * [view commit](https://github.com/yahoo/elide/commit/97c7b01538a4c8715f75b9586e8dff3f479053b3) Bump classgraph from 4.8.114 to 4.8.115 (#2261) 
+   * [view commit](https://github.com/yahoo/elide/commit/6a92b433ac59bd39c555a8b3e5dbd3ec9b1df965) Bump artemis-server from 2.17.0 to 2.18.0 (#2259) 
+   * [view commit](https://github.com/yahoo/elide/commit/1926ea9adb14b981aa4e9f7247906a4f5567e16b) Bump artemis-jms-client-all from 2.17.0 to 2.18.0 (#2257) 
+   * [view commit](https://github.com/yahoo/elide/commit/6df21a4cf84be5bbdefb2a725d1c0dba853d8fb8) Makes Elide JSONPath version proof (#2262) 
 
 ## 5.0.9
 **Fixes**
