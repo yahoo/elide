@@ -7,6 +7,7 @@ package com.yahoo.elide.core.dictionary;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.REGULAR_ID_NAME;
+import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 import static com.yahoo.elide.core.type.ClassType.OBJ_METHODS;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
@@ -40,6 +41,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -67,11 +69,11 @@ import javax.persistence.Transient;
  * @see com.yahoo.elide.annotation.Include#name
  */
 public class EntityBinding {
-
     private static final List<Class<? extends Annotation>> RELATIONSHIP_TYPES =
             Arrays.asList(ManyToMany.class, ManyToOne.class, OneToMany.class, OneToOne.class,
                     ToOne.class, ToMany.class);
 
+    private final boolean isElideModel;
     @Getter
     public final Type<?> entityClass;
     @Getter
@@ -94,6 +96,9 @@ public class EntityBinding {
 
     @Getter
     private String apiVersion;
+
+    @Getter
+    private Map<Type<?>, EntityBinding> complexAttributeBindings;
 
     public final EntityPermissions entityPermissions;
     public final List<String> apiAttributes;
@@ -123,6 +128,7 @@ public class EntityBinding {
 
     /* empty binding constructor */
     private EntityBinding() {
+        isElideModel = false;
         injected = false;
         jsonApiType = null;
         apiVersion = NO_VERSION;
@@ -156,6 +162,7 @@ public class EntityBinding {
      * @param injector Instantiates and injects new entities.
      * @param cls Entity class
      * @param type Declared Elide type name
+     * @param apiVersion API version
      * @param hiddenAnnotations Annotations for hiding a field in API
      */
     public EntityBinding(Injector injector,
@@ -163,6 +170,26 @@ public class EntityBinding {
                          String type,
                          String apiVersion,
                          Set<Class<? extends Annotation>> hiddenAnnotations) {
+        this(injector, cls, type, apiVersion, true, hiddenAnnotations);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param injector Instantiates and injects new entities.
+     * @param cls Entity class
+     * @param type Declared Elide type name
+     * @param apiVersion API version
+     * @param isElideModel Whether or not this type is an Elide model or not.
+     * @param hiddenAnnotations Annotations for hiding a field in API
+     */
+    public EntityBinding(Injector injector,
+                         Type<?> cls,
+                         String type,
+                         String apiVersion,
+                         boolean isElideModel,
+                         Set<Class<? extends Annotation>> hiddenAnnotations) {
+        this.isElideModel = isElideModel;
         this.injector = injector;
         entityClass = cls;
         jsonApiType = type;
@@ -367,6 +394,11 @@ public class EntityBinding {
             bindRelation(fieldOrMethod, fieldName, fieldType, isHidden);
         } else {
             bindAttr(fieldOrMethod, fieldName, fieldType, isHidden);
+        }
+
+        if (isComplexAttribute(fieldType)) {
+            complexAttributeBindings.put(fieldType,
+                    new EntityBinding(injector, fieldType, fieldType.getName(), apiVersion, false, new HashSet<>()));
         }
     }
 
@@ -709,5 +741,13 @@ public class EntityBinding {
 
     private static boolean isIdField(AccessibleObject field) {
         return (field.isAnnotationPresent(Id.class) || field.isAnnotationPresent(EmbeddedId.class));
+    }
+
+    private static boolean isComplexAttribute(Type<?> clazz) {
+        if (clazz.isPrimitive() || clazz.equals(String.class) || COLLECTION_TYPE.isAssignableFrom(clazz)) {
+            return false;
+        }
+
+        return true;
     }
 }

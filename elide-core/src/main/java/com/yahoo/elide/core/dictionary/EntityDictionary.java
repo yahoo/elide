@@ -110,7 +110,7 @@ public class EntityDictionary {
 
     protected final ConcurrentHashMap<Pair<String, String>, Type<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Type<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
-    protected final ConcurrentHashMap<Type<?>, EntityBinding> unmanagedBindings = new ConcurrentHashMap<>();
+    protected final ConcurrentHashMap<Type<?>, EntityBinding> embeddedTypeBindings = new ConcurrentHashMap<>();
 
     @Getter
     protected final ConcurrentHashMap<Type<?>, Function<RequestScope, PermissionExecutor>> entityPermissionExecutor =
@@ -1029,6 +1029,7 @@ public class EntityDictionary {
         apiVersions.add(version);
         EntityBinding binding = new EntityBinding(injector, declaredClass, type, version, hiddenAnnotations);
         entityBindings.put(declaredClass, binding);
+        embeddedTypeBindings.putAll(binding.getComplexAttributeBindings());
 
         Include include = (Include) getFirstAnnotation(declaredClass, Arrays.asList(Include.class));
         if (include != null && include.rootLevel()) {
