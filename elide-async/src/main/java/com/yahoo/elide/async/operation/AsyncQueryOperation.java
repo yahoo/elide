@@ -13,11 +13,13 @@ import com.yahoo.elide.async.models.AsyncQueryResult;
 import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
 
+import com.jayway.jsonpath.JsonPath;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -80,4 +82,28 @@ public abstract class AsyncQueryOperation implements Callable<AsyncAPIResult> {
      * @throws URISyntaxException URISyntaxException Exception.
      */
     public abstract ElideResponse execute(AsyncAPI queryObj, RequestScope scope)  throws URISyntaxException;
+
+    /**
+     * Safe method of extracting 'foo.bar.length()' expressions from com.jayway.jsonpath.  This protects
+     * against breaking API changes between 2.4 and beyond.
+     * @param json The json body to extract from.
+     * @param path The json path expression that represents an array.
+     * @return The size of the array.
+     */
+    public static Integer safeJsonPathLength(String json, String path) {
+        Object result = JsonPath.read(json, path);
+
+        if (Integer.class.isAssignableFrom(result.getClass())) {
+            return (Integer) result;
+        }
+
+        if (List.class.isAssignableFrom(result.getClass())) {
+            result = ((List) result).get(0);
+            if (Integer.class.isAssignableFrom(result.getClass())) {
+                return (Integer) result;
+            }
+        }
+
+        throw new IllegalStateException("Incompatible version of JSONPath");
+    }
 }

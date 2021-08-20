@@ -14,8 +14,6 @@ import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.QueryRunner;
 
-import com.jayway.jsonpath.JsonPath;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URISyntaxException;
@@ -51,7 +49,7 @@ public class GraphQLAsyncQueryOperation extends AsyncQueryOperation {
     public Integer calculateRecordCount(AsyncQuery queryObj, ElideResponse response) {
         Integer count = 0;
         if (response.getResponseCode() == 200) {
-            count = JsonPath.read(response.getBody(), "$..edges.length()");
+            count = safeJsonPathLength(response.getBody(), "$..edges.length()");
         }
         return count;
     }

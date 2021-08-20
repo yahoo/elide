@@ -13,8 +13,6 @@ import com.yahoo.elide.async.service.AsyncExecutorService;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.security.User;
 
-import com.jayway.jsonpath.JsonPath;
-
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 
@@ -83,7 +81,7 @@ public class JSONAPIAsyncQueryOperation extends AsyncQueryOperation {
     public Integer calculateRecordCount(AsyncQuery queryObj, ElideResponse response) {
         Integer count = null;
         if (response.getResponseCode() == 200) {
-            count = JsonPath.read(response.getBody(), "$.data.length()");
+            count = safeJsonPathLength(response.getBody(), "$.data.length()");
         }
         return count;
     }
