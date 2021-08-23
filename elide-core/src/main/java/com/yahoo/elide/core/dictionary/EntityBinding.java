@@ -7,7 +7,6 @@ package com.yahoo.elide.core.dictionary;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.REGULAR_ID_NAME;
-import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 import static com.yahoo.elide.core.type.ClassType.OBJ_METHODS;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
@@ -41,7 +40,6 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -73,6 +71,7 @@ public class EntityBinding {
             Arrays.asList(ManyToMany.class, ManyToOne.class, OneToMany.class, OneToOne.class,
                     ToOne.class, ToMany.class);
 
+    @Getter
     private final boolean isElideModel;
     @Getter
     public final Type<?> entityClass;
@@ -96,9 +95,6 @@ public class EntityBinding {
 
     @Getter
     private String apiVersion;
-
-    @Getter
-    private Map<Type<?>, EntityBinding> complexAttributeBindings;
 
     public final EntityPermissions entityPermissions;
     public final List<String> apiAttributes;
@@ -394,11 +390,6 @@ public class EntityBinding {
             bindRelation(fieldOrMethod, fieldName, fieldType, isHidden);
         } else {
             bindAttr(fieldOrMethod, fieldName, fieldType, isHidden);
-        }
-
-        if (isComplexAttribute(fieldType)) {
-            complexAttributeBindings.put(fieldType,
-                    new EntityBinding(injector, fieldType, fieldType.getName(), apiVersion, false, new HashSet<>()));
         }
     }
 
@@ -731,6 +722,13 @@ public class EntityBinding {
         }
     }
 
+    public Set<Type<?>> getAttributes() {
+        return apiAttributes
+                .stream()
+                .map((attributeName) -> fieldsToTypes.get(attributeName))
+                .collect(Collectors.toSet());
+    }
+
     /**
      * Returns the Collection of all attributes of an Entity.
      * @return A Set of ArgumentType for the given entity.
@@ -741,13 +739,5 @@ public class EntityBinding {
 
     private static boolean isIdField(AccessibleObject field) {
         return (field.isAnnotationPresent(Id.class) || field.isAnnotationPresent(EmbeddedId.class));
-    }
-
-    private static boolean isComplexAttribute(Type<?> clazz) {
-        if (clazz.isPrimitive() || clazz.equals(String.class) || COLLECTION_TYPE.isAssignableFrom(clazz)) {
-            return false;
-        }
-
-        return true;
     }
 }

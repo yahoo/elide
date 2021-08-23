@@ -1029,7 +1029,6 @@ public class EntityDictionary {
         apiVersions.add(version);
         EntityBinding binding = new EntityBinding(injector, declaredClass, type, version, hiddenAnnotations);
         entityBindings.put(declaredClass, binding);
-        embeddedTypeBindings.putAll(binding.getComplexAttributeBindings());
 
         Include include = (Include) getFirstAnnotation(declaredClass, Arrays.asList(Include.class));
         if (include != null && include.rootLevel()) {
@@ -1903,6 +1902,8 @@ public class EntityDictionary {
 
         if (! isClassBound(entityClass)) {
             bindEntity(entityClass);
+
+            discoverEmbeddedTypeBindings(entityClass);
         }
     }
 
@@ -1974,6 +1975,46 @@ public class EntityDictionary {
             return joinColumn[0].name();
         }
         return column[0].name();
+    }
+
+    /**
+     * BFS Walks the Elide model (root of tree) and registers all complex attribute types and their sub-types.
+     * @param elideModel The elide model to scan.
+     */
+    protected void discoverEmbeddedTypeBindings(Type<?> elideModel) {
+        Queue<Type<?>> toVisit = new ArrayDeque<>();
+        Set<Type<?>> visited = new HashSet<>();
+
+        EntityBinding binding = getEntityBinding(elideModel);
+
+        toVisit.addAll(binding.getAttributes()
+                .stream()
+                .filter(EntityDictionary::isComplexAttribute)
+                .collect(Collectors.toSet()));
+
+        while (! toVisit.isEmpty()) {
+            Type<?> next = toVisit.remove();
+
+            if (visited.contains(next) || embeddedTypeBindings.containsKey(next)) {
+                continue;
+            }
+
+            visited.add(next);
+
+            EntityBinding nextBinding = new EntityBinding(injector,
+                    next,
+                    next.getName(),
+                    binding.getApiVersion(),
+                    false,
+                    new HashSet<>());
+
+            embeddedTypeBindings.put(next, nextBinding);
+
+            toVisit.addAll(binding.getAttributes()
+                    .stream()
+                    .filter(EntityDictionary::isComplexAttribute)
+                    .collect(Collectors.toSet()));
+        }
     }
 
     /**
@@ -2141,5 +2182,13 @@ public class EntityDictionary {
                 throw new IllegalArgumentException(e);
             }
         };
+    }
+
+    private static boolean isComplexAttribute(Type<?> clazz) {
+        if (clazz.isPrimitive() || clazz.equals(String.class) || COLLECTION_TYPE.isAssignableFrom(clazz)) {
+            return false;
+        }
+
+        return true;
     }
 }
