@@ -10,19 +10,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.dialect.jsonapi.DefaultFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
-import com.yahoo.elide.core.type.ClassType;
-import com.yahoo.elide.core.type.Type;
 
 import example.Author;
 import example.Book;
@@ -47,22 +42,10 @@ public class FilterPredicateTest {
 
     @BeforeAll
     static void setup() {
-        EntityDictionary entityDictionary = mock(EntityDictionary.class);
-        Type<?> bookClassType = ClassType.of(Book.class);
-        Type<?> authorClassType = ClassType.of(Author.class);
-        when(entityDictionary.getJsonAliasFor(ClassType.STRING_TYPE)).thenReturn("string");
-        when(entityDictionary.getJsonAliasFor(bookClassType)).thenReturn("book");
-        when(entityDictionary.getJsonAliasFor(authorClassType)).thenReturn("author");
+        EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
 
-        doReturn(bookClassType).when(entityDictionary).getEntityClass("book", NO_VERSION);
-        doReturn(authorClassType).when(entityDictionary).getEntityClass("author", NO_VERSION);
-        doReturn(ClassType.STRING_TYPE).when(entityDictionary).getParameterizedType(bookClassType, "title");
-        doReturn(ClassType.STRING_TYPE).when(entityDictionary).getParameterizedType(bookClassType, "genre");
-        doReturn(ClassType.INTEGER_TYPE).when(entityDictionary).getIdType(bookClassType);
-
-        when(entityDictionary.getRelationshipType(bookClassType, "title")).thenReturn(RelationshipType.NONE);
-        when(entityDictionary.getRelationshipType(bookClassType, "genre")).thenReturn(RelationshipType.NONE);
-        when(entityDictionary.getRelationshipType(bookClassType, "id")).thenReturn(RelationshipType.NONE);
+        entityDictionary.bindEntity(Book.class);
+        entityDictionary.bindEntity(Author.class);
 
         strategy = new DefaultFilterDialect(entityDictionary);
     }
@@ -233,7 +216,25 @@ public class FilterPredicateTest {
         FilterPredicate predicate = predicates.get("book").iterator().next();
         assertEquals("id", predicate.getField());
         assertEquals(Operator.IN, predicate.getOperator());
-        assertEquals(Collections.singletonList(1), predicate.getValues());
+        assertEquals(Collections.singletonList(1L), predicate.getValues());
+    }
+
+    @Test
+    void testComplexAttributeFieldType() {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.add("filter[author.homeAddress.street1]", "foo");
+
+        Map<String, Set<FilterPredicate>> predicates = parse(queryParams);
+        assertTrue(predicates.containsKey("author"));
+
+        FilterPredicate predicate = predicates.get("author").iterator().next();
+        assertEquals("street1", predicate.getField());
+        assertEquals(Operator.IN, predicate.getOperator());
+
+        Path path = predicate.getPath();
+        assertEquals(path.getPathElements().get(0).getFieldName(), "homeAddress");
+        assertEquals(path.getPathElements().get(1).getFieldName(), "street1");
+        assertEquals(Collections.singletonList("foo"), predicate.getValues());
     }
 
     @Test
@@ -247,6 +248,6 @@ public class FilterPredicateTest {
         FilterPredicate predicate = predicates.get("book").iterator().next();
         assertEquals("id", predicate.getField());
         assertEquals(Operator.IN, predicate.getOperator());
-        assertEquals(Arrays.asList(1, 2, 3), predicate.getValues());
+        assertEquals(Arrays.asList(1L, 2L, 3L), predicate.getValues());
     }
 }

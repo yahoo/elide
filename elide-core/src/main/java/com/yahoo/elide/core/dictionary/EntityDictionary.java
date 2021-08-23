@@ -367,6 +367,11 @@ public class EntityDictionary {
             return entityBindings.get(declaredClass);
         }
 
+        binding = embeddedTypeBindings.getOrDefault(entityClass, null);
+        if (binding != null) {
+            return binding;
+        }
+
         //Will throw an exception if entityClass is not an entity.
         lookupEntityClass(entityClass);
         return EMPTY_BINDING;
@@ -1036,6 +1041,7 @@ public class EntityDictionary {
         }
 
         bindLegacyHooks(binding);
+        discoverEmbeddedTypeBindings(declaredClass);
     }
 
     /**
@@ -1902,8 +1908,6 @@ public class EntityDictionary {
 
         if (! isClassBound(entityClass)) {
             bindEntity(entityClass);
-
-            discoverEmbeddedTypeBindings(entityClass);
         }
     }
 
@@ -1978,7 +1982,7 @@ public class EntityDictionary {
     }
 
     /**
-     * BFS Walks the Elide model (root of tree) and registers all complex attribute types and their sub-types.
+     * BFS Walks the Elide model attribute tree and registers all complex attribute types and their sub-types.
      * @param elideModel The elide model to scan.
      */
     protected void discoverEmbeddedTypeBindings(Type<?> elideModel) {
