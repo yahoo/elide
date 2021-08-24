@@ -2007,7 +2007,7 @@ public class EntityDictionary {
 
             EntityBinding nextBinding = new EntityBinding(injector,
                     next,
-                    next.getName(),
+                    next.getSimpleName(),
                     binding.getApiVersion(),
                     false,
                     new HashSet<>());
