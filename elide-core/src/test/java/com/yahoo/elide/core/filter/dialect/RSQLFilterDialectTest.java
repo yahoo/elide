@@ -11,7 +11,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
@@ -59,6 +61,24 @@ public class RSQLFilterDialectTest {
     }
 
     @Test
+    public void testTypedExpressionParsingWithComplexAttribute() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter[author]",
+                "homeAddress.street1==*State*"
+        );
+
+        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams, NO_VERSION);
+
+        assertEquals(1, expressionMap.size());
+        assertEquals(
+                "author.homeAddress.street1 INFIX [State]",
+                expressionMap.get("author").toString()
+        );
+    }
+
+    @Test
     public void testTypedExpressionParsing() throws Exception {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
 
@@ -100,6 +120,19 @@ public class RSQLFilterDialectTest {
                 "author.books.title IN_INSENSITIVE [foo, bar, baz]",
                 expressionMap.get("author").toString()
         );
+    }
+
+    @Test
+    public void testGlobalExpressionParsingWithComplexAttribute() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter", "homeAddress.street1==*State*"
+        );
+
+        FilterExpression expression = dialect.parseGlobalExpression("/author", queryParams, NO_VERSION);
+
+        assertEquals("author.homeAddress.street1 INFIX [State]", expression.toString());
     }
 
     @Test
@@ -602,5 +635,18 @@ public class RSQLFilterDialectTest {
         FilterPredicate right = (FilterPredicate) ((OrFilterExpression) expr).getRight();
         Set<Argument> rightArgs = right.getPath().getPathElements().get(0).getArguments();
         assertTrue(rightArgs.equals(inputArgs));
+    }
+
+    @Test
+    public void testGraphQLFilterDialectWithComplexAttribute() throws Exception {
+        Type<Author> authorType = ClassType.of(Author.class);
+        FilterPredicate predicate = (FilterPredicate)
+                dialect.parse(authorType, Collections.emptySet(), "homeAddress.street1=in=(foo)", NO_VERSION);
+
+        assertEquals(Operator.IN, predicate.getOperator());
+        Path path = predicate.getPath();
+        assertEquals(2, path.getPathElements().size());
+        assertEquals("homeAddress", path.getPathElements().get(0).getFieldName());
+        assertEquals("street1", path.getPathElements().get(1).getFieldName());
     }
 }

@@ -38,6 +38,19 @@ public class DefaultFilterDialectTest {
     }
 
     @Test
+    public void testGlobalExpressionParsingWithComplexAttribute() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter[author.homeAddress.street1][infix]", "State"
+        );
+
+        FilterExpression expression = dialect.parseGlobalExpression("/author", queryParams, NO_VERSION);
+
+        assertEquals("author.homeAddress.street1 INFIX [State]", expression.toString());
+    }
+
+    @Test
     public void testGlobalExpressionParsing() throws Exception {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
 
@@ -56,6 +69,24 @@ public class DefaultFilterDialectTest {
         assertEquals(
                 "(author.books.title IN [foo, bar, baz] AND author.name INFIX [Hemingway])",
                 filterExpression.toString()
+        );
+    }
+
+    @Test
+    public void testTypedExpressionParsingWithComplexAttribute() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter[author.homeAddress.street1][infix]",
+                "State"
+        );
+
+        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams, NO_VERSION);
+
+        assertEquals(1, expressionMap.size());
+        assertEquals(
+                "author.homeAddress.street1 INFIX [State]",
+                expressionMap.get("author").toString()
         );
     }
 
