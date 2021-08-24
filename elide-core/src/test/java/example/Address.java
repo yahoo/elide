@@ -16,4 +16,6 @@ public class Address {
     @Getter @Setter
     private String street2;
 
+    @Getter @Setter
+    private GeoLocation geo;
 }

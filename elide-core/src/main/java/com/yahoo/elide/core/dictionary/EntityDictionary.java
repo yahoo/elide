@@ -9,7 +9,6 @@ package com.yahoo.elide.core.dictionary;
 import static com.yahoo.elide.core.dictionary.EntityBinding.EMPTY_BINDING;
 import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 import static com.yahoo.elide.core.type.ClassType.MAP_TYPE;
-import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import com.yahoo.elide.annotation.ApiVersion;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
@@ -62,6 +61,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.Getter;
@@ -1692,8 +1692,14 @@ public class EntityDictionary {
      * @return true if the class is bound.  False otherwise.
      */
     public boolean hasBinding(Type<?> cls) {
-        return entityBindings.values().stream()
+        boolean hasModelBinding = entityBindings.values().stream()
                 .anyMatch(binding -> binding.entityClass.equals(cls));
+
+        if (hasModelBinding) {
+            return true;
+        }
+
+        return embeddedTypeBindings.values().stream().anyMatch(binding -> binding.entityClass.equals(cls));
     }
 
     /**
@@ -1994,7 +2000,7 @@ public class EntityDictionary {
 
         toVisit.addAll(binding.getAttributes()
                 .stream()
-                .filter(EntityDictionary::isComplexAttribute)
+                .filter(EntityDictionary::canBind)
                 .collect(Collectors.toSet()));
 
         while (! toVisit.isEmpty()) {
@@ -2015,9 +2021,9 @@ public class EntityDictionary {
 
             embeddedTypeBindings.put(next, nextBinding);
 
-            toVisit.addAll(binding.getAttributes()
+            toVisit.addAll(nextBinding.getAttributes()
                     .stream()
-                    .filter(EntityDictionary::isComplexAttribute)
+                    .filter(EntityDictionary::canBind)
                     .collect(Collectors.toSet()));
         }
     }
@@ -2164,7 +2170,7 @@ public class EntityDictionary {
 
         Type<?> attributeType = getParameterizedType(clazz, fieldName);
 
-        return isComplexAttribute(attributeType);
+        return canBind(attributeType);
     }
 
     private void bindHookMethod(
@@ -2207,8 +2213,17 @@ public class EntityDictionary {
         };
     }
 
-    private static boolean isComplexAttribute(Type<?> clazz) {
-        if (clazz.isPrimitive() || clazz.equals(STRING_TYPE) || COLLECTION_TYPE.isAssignableFrom(clazz)) {
+    private static boolean canBind(Type<?> clazz) {
+        if (! clazz.getUnderlyingClass().isPresent()) {
+            return false;
+        }
+
+        Class<?> type = clazz.getUnderlyingClass().get();
+
+        if (ClassUtils.isPrimitiveOrWrapper(type)
+                || type.equals(String.class)
+                || type.isEnum()
+                || Collection.class.isAssignableFrom(type)) {
             return false;
         }
 

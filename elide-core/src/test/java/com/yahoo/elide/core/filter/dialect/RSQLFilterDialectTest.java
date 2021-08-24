@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.Operator;
@@ -20,7 +19,6 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-
 import example.Author;
 import example.Book;
 import example.Job;
@@ -37,7 +35,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 

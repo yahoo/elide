@@ -7,7 +7,6 @@
 package com.yahoo.elide;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.utils.coerce.converters.InstantSerde;
 import com.yahoo.elide.core.utils.coerce.converters.OffsetDateTimeSerde;

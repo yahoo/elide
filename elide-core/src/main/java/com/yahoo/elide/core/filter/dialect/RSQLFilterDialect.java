@@ -38,7 +38,6 @@ import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections4.CollectionUtils;
-
 import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.RSQLParserException;
 import cz.jirutka.rsql.parser.ast.AndNode;

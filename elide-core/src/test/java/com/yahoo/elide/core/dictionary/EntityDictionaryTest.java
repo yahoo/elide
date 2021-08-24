@@ -36,6 +36,7 @@ import com.yahoo.elide.core.utils.coerce.converters.ISO8601DateSerde;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import example.Address;
 import example.Author;
 import example.Book;
 import example.Child;
@@ -43,6 +44,7 @@ import example.CoerceBean;
 import example.Editor;
 import example.FieldAnnotations;
 import example.FunWithPermissions;
+import example.GeoLocation;
 import example.Job;
 import example.Left;
 import example.Parent;
@@ -60,7 +62,6 @@ import example.models.packageinfo.included.IncludedSubPackage;
 import example.models.versioned.BookV2;
 import example.nontransferable.NoTransferBiDirectional;
 import example.nontransferable.StrictNoTransfer;
-
 import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Annotation;
@@ -1071,14 +1072,20 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testIsComplexAttribute() {
         //Test complex attribute
         assertTrue(isComplexAttribute(ClassType.of(Author.class), "homeAddress"));
+        //Test nested complex attribute
+        assertTrue(isComplexAttribute(ClassType.of(Address.class), "geo"));
         //Test String
         assertFalse(isComplexAttribute(ClassType.of(Book.class), "title"));
         //Test primitive
         assertFalse(isComplexAttribute(ClassType.of(Book.class), "publishDate"));
+        //Test primitive wrapper
+        assertFalse(isComplexAttribute(ClassType.of(FieldAnnotations.class), "privateField"));
         //Test collection
         assertFalse(isComplexAttribute(ClassType.of(Book.class), "awards"));
         //Test relationship
         assertFalse(isComplexAttribute(ClassType.of(Book.class), "authors"));
+        //Test enum
+        assertFalse(isComplexAttribute(ClassType.of(Author.class), "authorType"));
     }
 
     @Test
@@ -1103,6 +1110,13 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertFalse(hasBinding(ClassType.of((ExcludedPackageLevel.class))));
         assertFalse(hasBinding(ClassType.of((ExcludedSubPackage.class))));
         assertFalse(hasBinding(ClassType.of((ExcludedBySuperClass.class))));
+
+        //Test bindings for complex attribute types
+        assertTrue(hasBinding(ClassType.of(Address.class)));
+        assertTrue(hasBinding(ClassType.of(GeoLocation.class)));
+        assertFalse(hasBinding(ClassType.of(String.class)));
+        assertFalse(hasBinding(ClassType.of(Author.AuthorType.class)));
+        assertFalse(hasBinding(ClassType.of(Boolean.class)));
     }
 
     @Test
