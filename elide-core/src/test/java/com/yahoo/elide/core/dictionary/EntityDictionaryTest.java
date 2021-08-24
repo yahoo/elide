@@ -110,6 +110,8 @@ public class EntityDictionaryTest extends EntityDictionary {
         bindEntity(NoId.class);
         bindEntity(BookV2.class);
         bindEntity(Book.class);
+        bindEntity(Author.class);
+        bindEntity(Editor.class);
         bindEntity(IncludedPackageLevel.class);
         bindEntity(IncludedSubPackage.class);
         bindEntity(ExcludedPackageLevel.class);
@@ -937,10 +939,6 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testFieldLookup() throws Exception {
-        bindEntity(Book.class);
-        bindEntity(Editor.class);
-        bindEntity(Author.class);
-
         Book book = new Book() {
             @Override
             public String toString() {
@@ -1051,7 +1049,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertTrue(models.contains(ClassType.of(BookV2.class)));
 
         models = getBoundClassesByVersion(NO_VERSION);
-        assertEquals(19, models.size());
+        assertEquals(21, models.size());
     }
 
     @Test
@@ -1067,6 +1065,20 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testGetModelVersion() {
         assertEquals("1.0", getModelVersion(ClassType.of(BookV2.class)));
         assertEquals(NO_VERSION, getModelVersion(ClassType.of(Book.class)));
+    }
+
+    @Test
+    public void testIsComplexAttribute() {
+        //Test complex attribute
+        assertTrue(isComplexAttribute(ClassType.of(Author.class), "homeAddress"));
+        //Test String
+        assertFalse(isComplexAttribute(ClassType.of(Book.class), "title"));
+        //Test primitive
+        assertFalse(isComplexAttribute(ClassType.of(Book.class), "publishDate"));
+        //Test collection
+        assertFalse(isComplexAttribute(ClassType.of(Book.class), "awards"));
+        //Test relationship
+        assertFalse(isComplexAttribute(ClassType.of(Book.class), "authors"));
     }
 
     @Test

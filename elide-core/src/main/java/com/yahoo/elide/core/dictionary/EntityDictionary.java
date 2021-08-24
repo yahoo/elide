@@ -9,6 +9,7 @@ package com.yahoo.elide.core.dictionary;
 import static com.yahoo.elide.core.dictionary.EntityBinding.EMPTY_BINDING;
 import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
 import static com.yahoo.elide.core.type.ClassType.MAP_TYPE;
+import static com.yahoo.elide.core.type.ClassType.STRING_TYPE;
 import com.yahoo.elide.annotation.ApiVersion;
 import com.yahoo.elide.annotation.ComputedAttribute;
 import com.yahoo.elide.annotation.ComputedRelationship;
@@ -2161,7 +2162,9 @@ public class EntityDictionary {
             return false;
         }
 
-        return isComplexAttribute(binding.entityClass);
+        Type<?> attributeType = getParameterizedType(clazz, fieldName);
+
+        return isComplexAttribute(attributeType);
     }
 
     private void bindHookMethod(
@@ -2205,7 +2208,7 @@ public class EntityDictionary {
     }
 
     private static boolean isComplexAttribute(Type<?> clazz) {
-        if (clazz.isPrimitive() || clazz.equals(String.class) || COLLECTION_TYPE.isAssignableFrom(clazz)) {
+        if (clazz.isPrimitive() || clazz.equals(STRING_TYPE) || COLLECTION_TYPE.isAssignableFrom(clazz)) {
             return false;
         }
 
