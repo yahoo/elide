@@ -149,7 +149,7 @@ public class Path {
      * @return True if the field requires navigation.
      */
     protected boolean needNavigation(Type<?> entityClass, String fieldName, EntityDictionary dictionary) {
-        return dictionary.isRelation(entityClass, fieldName);
+        return dictionary.isRelation(entityClass, fieldName) || dictionary.isComplexAttribute(entityClass, fieldName);
     }
 
     public Optional<PathElement> lastElement() {

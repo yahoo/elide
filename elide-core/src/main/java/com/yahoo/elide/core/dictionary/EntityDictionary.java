@@ -2148,6 +2148,22 @@ public class EntityDictionary {
                 });
     }
 
+    /**
+     * Returns whether or not a given model attribute is a complex (not primitive or String) type.
+     * @param clazz The elide model type.
+     * @param fieldName The attribute name.
+     * @return true if the attribute is 'complex'.
+     */
+    public boolean isComplexAttribute(Type<?> clazz, String fieldName) {
+        EntityBinding binding = getEntityBinding(clazz);
+
+        if (! binding.apiAttributes.contains(fieldName)) {
+            return false;
+        }
+
+        return isComplexAttribute(binding.entityClass);
+    }
+
     private void bindHookMethod(
             EntityBinding binding,
             Method method,
