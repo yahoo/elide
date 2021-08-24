@@ -17,6 +17,7 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import example.Address;
 import example.Author;
 import example.Book;
 import org.junit.jupiter.api.Test;
@@ -136,6 +137,21 @@ public class OperatorTest {
         fn = Operator.ISNULL.contextualize(constructPath(Author.class, "name"), null, requestScope);
         assertTrue(fn.test(author));
         fn = Operator.NOTNULL.contextualize(constructPath(Author.class, "name"), null, requestScope);
+        assertFalse(fn.test(author));
+    }
+
+    @Test
+    public void complexAttributeTest() throws Exception {
+        author = new Author();
+        author.setId(1L);
+        Address address1 = new Address();
+        address1.setStreet1("Foo");
+        author.setHomeAddress(address1);
+
+        fn = Operator.IN.contextualize(constructPath(Author.class, "homeAddress.street1"), Arrays.asList("Foo", "Bar"), requestScope);
+        assertTrue(fn.test(author));
+
+        fn = Operator.IN.contextualize(constructPath(Author.class, "homeAddress.street1"), Arrays.asList("Baz"), requestScope);
         assertFalse(fn.test(author));
     }
 
