@@ -8,6 +8,7 @@ package com.yahoo.elide.core.utils;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Dynamic;
 import com.yahoo.elide.core.type.Type;
@@ -58,14 +59,20 @@ public class TypeHelper {
      *
      * @param alias type alias to be extended, e.g. <code>a_b</code>
      * @param extension path extension from aliased type, e.g. <code>[b.c]/[c.d]</code>
+     * @param dictionary The entity dictionary
      * @return extended type alias, e.g. <code>a_b_c</code>
      */
-    public static String extendTypeAlias(String alias, Path extension) {
+    public static String extendTypeAlias(String alias, Path extension, EntityDictionary dictionary) {
         String result = alias;
         List<Path.PathElement> elements = extension.getPathElements();
 
         for (int i = 0; i < elements.size() - 1; i++) {
-            result = appendAlias(result, elements.get(i).getFieldName());
+            Path.PathElement next = elements.get(i);
+            if (dictionary.isComplexAttribute(next.getType(), next.getFieldName())) {
+                result = result + "." + next.getFieldName();
+            } else {
+                result = appendAlias(result, elements.get(i).getFieldName());
+            }
         }
 
         return result;
@@ -78,10 +85,11 @@ public class TypeHelper {
      * The last field would not be included as that's not a part of the relationship path.
      *
      * @param path path that represents a relationship chain
+     * @param dictionary The entity dictionary
      * @return relationship path alias, i.e. <code>foo.bar.baz</code> would be <code>foo_bar</code>
      */
-    public static String getPathAlias(Path path) {
-        return extendTypeAlias(getTypeAlias(path.getPathElements().get(0).getType()), path);
+    public static String getPathAlias(Path path, EntityDictionary dictionary) {
+        return extendTypeAlias(getTypeAlias(path.getPathElements().get(0).getType()), path, dictionary);
     }
 
     /**
@@ -114,10 +122,11 @@ public class TypeHelper {
      *
      * @param path path to the field
      * @param fieldName physical field name
+     * @param dictionary the entity dictionary
      * @return combined alias
      */
-    public static String getFieldAlias(Path path, String fieldName) {
-        return getFieldAlias(getPathAlias(path), fieldName);
+    public static String getFieldAlias(Path path, String fieldName, EntityDictionary dictionary) {
+        return getFieldAlias(getPathAlias(path, dictionary), fieldName);
     }
 
     /**

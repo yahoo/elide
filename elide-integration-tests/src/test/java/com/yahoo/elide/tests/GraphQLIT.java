@@ -569,7 +569,7 @@ public class GraphQLIT extends GraphQLIntegrationTest {
             .then()
             .statusCode(HttpStatus.SC_OK)
             .body("data.__type.fields.name", containsInAnyOrder("id", "awards", "chapterCount",
-                    "editorName", "genre", "language", "publishDate", "title", "authors", "chapters",
+                    "editorName", "genre", "language", "publishDate", "title", "authors", "chapters", "price",
                     "editor", "publisher"));
     }
 
