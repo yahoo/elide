@@ -722,6 +722,10 @@ public class EntityBinding {
         }
     }
 
+    /**
+     * Returns all the bound model attribute types.
+     * @return model attribute types.
+     */
     public Set<Type<?>> getAttributes() {
         return apiAttributes
                 .stream()

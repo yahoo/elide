@@ -2027,7 +2027,7 @@ public class EntityDictionary {
 
         toVisit.addAll(binding.getAttributes()
                 .stream()
-                .filter(EntityDictionary::canBind)
+                .filter(this::canBind)
                 .collect(Collectors.toSet()));
 
         while (! toVisit.isEmpty()) {
@@ -2050,7 +2050,7 @@ public class EntityDictionary {
 
             toVisit.addAll(nextBinding.getAttributes()
                     .stream()
-                    .filter(EntityDictionary::canBind)
+                    .filter(this::canBind)
                     .collect(Collectors.toSet()));
         }
     }
@@ -2240,17 +2240,19 @@ public class EntityDictionary {
         };
     }
 
-    private static boolean canBind(Type<?> clazz) {
-        if (! clazz.getUnderlyingClass().isPresent()) {
+    private boolean canBind(Type<?> type) {
+        if (! type.getUnderlyingClass().isPresent()) {
             return false;
         }
 
-        Class<?> type = clazz.getUnderlyingClass().get();
+        Class<?> clazz = type.getUnderlyingClass().get();
 
-        if (ClassUtils.isPrimitiveOrWrapper(type)
-                || type.equals(String.class)
-                || type.isEnum()
-                || Collection.class.isAssignableFrom(type)) {
+        if (ClassUtils.isPrimitiveOrWrapper(clazz)
+                || clazz.equals(String.class)
+                || clazz.isEnum()
+                || Collection.class.isAssignableFrom(clazz)
+                || Map.class.isAssignableFrom(clazz)
+                || serdeLookup.apply(clazz) != null) {
             return false;
         }
 
