@@ -229,6 +229,17 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    void testRootComplexAttribute() throws Exception {
+        JsonNode priceyBooks = getAsNode("/book?filter[book]=price.total>=10");
+
+        assertEquals(2, priceyBooks.get("data").size());
+
+        priceyBooks = getAsNode("/book?filter[book]=price.total<5");
+
+        assertEquals(0, priceyBooks.get("data").size());
+    }
+
+    @Test
     void testRootFilterImplicitSingle() throws JsonProcessingException {
         int scienceFictionBookCount = 0;
         for (JsonNode node : books.get("data")) {
