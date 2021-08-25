@@ -156,6 +156,28 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
     }
 
     @Test
+    public void testSortClauseWithComplexAttribute() {
+        Map<String, Sorting.SortOrder> sorting = new LinkedHashMap<>();
+        sorting.put("price.total", Sorting.SortOrder.asc);
+
+        String actual = getSortClause(new SortingImpl(sorting, Book.class, dictionary));
+
+        String expected = " order by example_Book.price.total asc";
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testSortClauseWithNestedComplexAttribute() {
+        Map<String, Sorting.SortOrder> sorting = new LinkedHashMap<>();
+        sorting.put("price.currency.isoCode", Sorting.SortOrder.asc);
+
+        String actual = getSortClause(new SortingImpl(sorting, Book.class, dictionary));
+
+        String expected = " order by example_Book.price.currency.isoCode asc";
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void testSortClauseWithJoin() {
         Map<String, Sorting.SortOrder> sorting = new LinkedHashMap<>();
         sorting.put(PUBLISHER + PERIOD + NAME, Sorting.SortOrder.asc);

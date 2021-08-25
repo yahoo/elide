@@ -277,18 +277,13 @@ public abstract class AbstractHQLQueryBuilder {
                     for (Path.PathElement pathElement : path.getPathElements()) {
                         String fieldName = pathElement.getFieldName();
 
-                        if (dictionary.isComplexAttribute(pathElement.getType(), fieldName)) {
+                        if (dictionary.isComplexAttribute(pathElement.getType(), fieldName)
+                                || !dictionary.isRelation(pathElement.getType(), fieldName)) {
                             aliasedFieldName = aliasedFieldName + PERIOD + fieldName;
-                            continue;
+                        } else {
+                            aliasedFieldName = previousAlias + PERIOD + fieldName;
+                            previousAlias = appendAlias(previousAlias, fieldName);
                         }
-
-                        aliasedFieldName = previousAlias + PERIOD + fieldName;
-
-                        if (!dictionary.isRelation(pathElement.getType(), fieldName)) {
-                            break;
-                        }
-
-                        previousAlias = appendAlias(previousAlias, fieldName);
                     }
                     ordering.add(aliasedFieldName + SPACE
                             + (order.equals(Sorting.SortOrder.desc) ? "desc" : "asc"));
