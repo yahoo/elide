@@ -7,6 +7,11 @@ package example;
 
 import com.yahoo.elide.annotation.Include;
 
+import lombok.Data;
+
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.Map;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -15,25 +20,12 @@ import javax.persistence.OneToMany;
 
 @Entity(name = "invoice")
 @Include
+@Data
 public class Invoice {
-    private long id;
-    private Set<LineItem> items;
-
     @Id
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
+    private long id;
     @OneToMany(cascade = { CascadeType.ALL} , mappedBy = "invoice", targetEntity = LineItem.class)
-    public Set<LineItem> getItems() {
-        return items;
-    }
-
-    public void setItems(Set<LineItem> items) {
-        this.items = items;
-    }
+    private Set<LineItem> items;
+    private Map<String, BigDecimal> taxes;
+    private Date creationDate;
 }

@@ -65,6 +65,7 @@ import example.nontransferable.StrictNoTransfer;
 import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Annotation;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -72,6 +73,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -1117,6 +1119,9 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertFalse(hasBinding(ClassType.of(String.class)));
         assertFalse(hasBinding(ClassType.of(Author.AuthorType.class)));
         assertFalse(hasBinding(ClassType.of(Boolean.class)));
+        assertFalse(hasBinding(ClassType.of(Date.class)));
+        assertFalse(hasBinding(ClassType.of(Map.class)));
+        assertFalse(hasBinding(ClassType.of(BigDecimal.class)));
     }
 
     @Test
