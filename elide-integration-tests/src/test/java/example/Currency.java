@@ -10,17 +10,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import javax.persistence.Embeddable;
-import javax.persistence.Embedded;
 
 @Embeddable
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Price {
-    BigDecimal total;
-
-    @Embedded
-    Currency currency;
+public class Currency {
+    String isoCode;
 }

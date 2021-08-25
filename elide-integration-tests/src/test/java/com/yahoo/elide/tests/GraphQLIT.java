@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import example.Currency;
 import example.Price;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -86,6 +87,7 @@ public class GraphQLIT extends GraphQLIntegrationTest {
         book.setTitle("1984");
         Price price = new Price();
         price.setTotal(BigDecimal.valueOf(10.0));
+        price.setCurrency(new Currency("USD"));
         book.setPrice(price);
 
         Author author = new Author();
@@ -308,6 +310,57 @@ public class GraphQLIT extends GraphQLIntegrationTest {
                                 "book",
                                 arguments(
                                         argument("filter", "\"price.total<=5\"")
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("title")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        expectedResponse = "{\"data\": {\"book\": {\"edges\": []}}}";
+
+        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
+    }
+
+    @Test
+    public void testFilterByNestedComplexAttribute() throws IOException {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "book",
+                                arguments(
+                                        argument("filter", "\"price.currency.isoCode==USD\"")
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("title")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expectedResponse = document(
+                selection(
+                        field(
+                                "book",
+                                selections(
+                                        field("id", "1"),
+                                        field("title", "1984")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
+
+        graphQLRequest = document(
+                selection(
+                        field(
+                                "book",
+                                arguments(
+                                        argument("filter", "\"price.currency.isoCode==ABC\"")
                                 ),
                                 selections(
                                         field("id"),

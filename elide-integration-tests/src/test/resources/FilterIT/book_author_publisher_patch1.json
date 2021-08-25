@@ -37,7 +37,10 @@
         "language": "English",
         "awards": ["National Book Award", "Booker Prize"],
         "price" : {
-          "total" : 10.0
+          "total" : 10.0,
+          "currency" : {
+            "isoCode" : "USD"
+          }
         }
       },
       "relationships": {
@@ -61,7 +64,10 @@
         "genre": "Literary Fiction",
         "language": "English",
         "price" : {
-          "total" : 12.0
+          "total" : 12.0,
+          "currency" : {
+            "isoCode" : "AED"
+          }
         }
       }
     }

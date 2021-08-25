@@ -37,7 +37,10 @@
         "genre": "Literary Fiction",
         "language": "English",
         "price": {
-          "total": 10.0
+          "total": 10.0,
+          "currency" : {
+            "isoCode" : "USD"
+          }
         }
       },
       "relationships": {
@@ -61,7 +64,10 @@
         "genre": "Literary Fiction",
         "language": "English",
         "price": {
-          "total": 9.0
+          "total": 9.0,
+          "currency" : {
+            "isoCode" : "AED"
+          }
         }
       },
       "relationships": {

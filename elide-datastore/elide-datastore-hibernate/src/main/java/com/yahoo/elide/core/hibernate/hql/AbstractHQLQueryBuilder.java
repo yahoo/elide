@@ -269,15 +269,19 @@ public abstract class AbstractHQLQueryBuilder {
                 final List<String> ordering = new ArrayList<>();
                 // pass over the sorting rules
                 validSortingRules.forEach((path, order) -> {
-                    String previousAlias = null;
-                    String aliasedFieldName = null;
+
+                    Type<?> typeClass = dictionary.lookupEntityClass(path.getPathElements().get(0).getType());
+                    String previousAlias = getTypeAlias(typeClass);
+                    String aliasedFieldName = previousAlias;
 
                     for (Path.PathElement pathElement : path.getPathElements()) {
                         String fieldName = pathElement.getFieldName();
-                        Type<?> typeClass = dictionary.lookupEntityClass(pathElement.getType());
-                        previousAlias = previousAlias == null
-                                ? getTypeAlias(typeClass)
-                                : previousAlias;
+
+                        if (dictionary.isComplexAttribute(pathElement.getType(), fieldName)) {
+                            aliasedFieldName = aliasedFieldName + PERIOD + fieldName;
+                            continue;
+                        }
+
                         aliasedFieldName = previousAlias + PERIOD + fieldName;
 
                         if (!dictionary.isRelation(pathElement.getType(), fieldName)) {

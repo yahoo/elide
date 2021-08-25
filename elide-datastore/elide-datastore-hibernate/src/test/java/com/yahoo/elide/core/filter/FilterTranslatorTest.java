@@ -10,7 +10,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
+import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.AndFilterExpression;
+import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
@@ -34,11 +36,40 @@ import java.util.stream.Collectors;
 public class FilterTranslatorTest {
 
     private EntityDictionary dictionary;
+    private RSQLFilterDialect dialect;
 
     public FilterTranslatorTest() {
         dictionary = new EntityDictionary(new HashMap<>());
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
+
+        dialect = new RSQLFilterDialect(dictionary);
+    }
+
+    @Test
+    public void testComplexAttributeAlias() throws Exception {
+        FilterExpression expression =
+                dialect.parseFilterExpression("price.total>=10", ClassType.of(Book.class), true);
+
+        FilterTranslator filterOp = new FilterTranslator(dictionary);
+
+        String actual = filterOp.apply(expression, true);
+        actual = actual.replaceAll(":\\w+", ":XXX");
+
+        assertEquals("example_Book.price.total >= :XXX", actual);
+    }
+
+    @Test
+    public void testNestedComplexAttributeAlias() throws Exception {
+        FilterExpression expression =
+                dialect.parseFilterExpression("price.currency.isoCode==10", ClassType.of(Book.class), true);
+
+        FilterTranslator filterOp = new FilterTranslator(dictionary);
+
+        String actual = filterOp.apply(expression, true);
+        actual = actual.replaceAll(":\\w+", ":XXX");
+
+        assertEquals("example_Book.price.currency.isoCode IN (:XXX)", actual);
     }
 
     @Test
