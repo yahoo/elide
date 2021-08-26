@@ -10,15 +10,15 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-
 import example.Author;
 import example.Book;
 import example.Job;
@@ -35,7 +35,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -56,6 +55,24 @@ public class RSQLFilterDialectTest {
         dictionary.bindEntity(Job.class);
         dictionary.bindEntity(PrimitiveId.class);
         dialect = new RSQLFilterDialect(dictionary);
+    }
+
+    @Test
+    public void testTypedExpressionParsingWithComplexAttribute() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter[author]",
+                "homeAddress.street1==*State*"
+        );
+
+        Map<String, FilterExpression> expressionMap = dialect.parseTypedExpression("/author", queryParams, NO_VERSION);
+
+        assertEquals(1, expressionMap.size());
+        assertEquals(
+                "author.homeAddress.street1 INFIX [State]",
+                expressionMap.get("author").toString()
+        );
     }
 
     @Test
@@ -100,6 +117,19 @@ public class RSQLFilterDialectTest {
                 "author.books.title IN_INSENSITIVE [foo, bar, baz]",
                 expressionMap.get("author").toString()
         );
+    }
+
+    @Test
+    public void testGlobalExpressionParsingWithComplexAttribute() throws Exception {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+
+        queryParams.add(
+                "filter", "homeAddress.street1==*State*"
+        );
+
+        FilterExpression expression = dialect.parseGlobalExpression("/author", queryParams, NO_VERSION);
+
+        assertEquals("author.homeAddress.street1 INFIX [State]", expression.toString());
     }
 
     @Test
@@ -602,5 +632,18 @@ public class RSQLFilterDialectTest {
         FilterPredicate right = (FilterPredicate) ((OrFilterExpression) expr).getRight();
         Set<Argument> rightArgs = right.getPath().getPathElements().get(0).getArguments();
         assertTrue(rightArgs.equals(inputArgs));
+    }
+
+    @Test
+    public void testGraphQLFilterDialectWithComplexAttribute() throws Exception {
+        Type<Author> authorType = ClassType.of(Author.class);
+        FilterPredicate predicate = (FilterPredicate)
+                dialect.parse(authorType, Collections.emptySet(), "homeAddress.street1=in=(foo)", NO_VERSION);
+
+        assertEquals(Operator.IN, predicate.getOperator());
+        Path path = predicate.getPath();
+        assertEquals(2, path.getPathElements().size());
+        assertEquals("homeAddress", path.getPathElements().get(0).getFieldName());
+        assertEquals("street1", path.getPathElements().get(1).getFieldName());
     }
 }

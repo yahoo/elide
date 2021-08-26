@@ -140,7 +140,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                 .accept("application/vnd.api+json")
                 .get("/table/book/dimensions")
                 .then()
-                .body("data.id", containsInAnyOrder("book.language", "book.id", "book.awards",
+                .body("data.id", containsInAnyOrder("book.language", "book.id", "book.awards", "book.price",
                         "book.chapterCount", "book.publishDate", "book.editorName", "book.title", "book.genre"))
                 .statusCode(HttpStatus.SC_OK);
     }

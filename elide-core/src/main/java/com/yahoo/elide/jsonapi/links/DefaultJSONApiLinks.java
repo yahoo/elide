@@ -8,7 +8,6 @@ package com.yahoo.elide.jsonapi.links;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.ResourceLineage;
 import com.google.common.collect.ImmutableMap;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 

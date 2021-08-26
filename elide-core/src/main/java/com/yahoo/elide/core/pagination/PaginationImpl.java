@@ -11,9 +11,7 @@ import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-
 import com.google.common.collect.ImmutableMap;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;

@@ -7,7 +7,6 @@
 package com.yahoo.elide.core.request;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;

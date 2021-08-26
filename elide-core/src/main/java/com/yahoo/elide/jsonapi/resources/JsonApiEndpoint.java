@@ -6,14 +6,12 @@
 package com.yahoo.elide.jsonapi.resources;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.annotation.PATCH;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.utils.HeaderUtils;
 import com.yahoo.elide.utils.ResourceUtils;
-
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;

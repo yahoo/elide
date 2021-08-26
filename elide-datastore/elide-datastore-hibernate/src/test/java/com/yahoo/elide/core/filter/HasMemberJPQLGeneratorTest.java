@@ -36,7 +36,7 @@ public class HasMemberJPQLGeneratorTest {
 
         dialect = new RSQLFilterDialect(dictionary);
 
-        aliasGenerator = (path) -> getFieldAlias(getPathAlias(path),
+        aliasGenerator = (path) -> getFieldAlias(getPathAlias(path, dictionary),
                 path.lastElement().map(Path.PathElement::getFieldName).orElse(null));
     }
 
