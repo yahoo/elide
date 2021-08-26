@@ -229,6 +229,28 @@ public class FilterIT extends IntegrationTest {
     }
 
     @Test
+    void testRootComplexAttribute() throws Exception {
+        JsonNode priceyBooks = getAsNode("/book?filter[book]=price.total>=10");
+
+        assertEquals(2, priceyBooks.get("data").size());
+
+        priceyBooks = getAsNode("/book?filter[book]=price.total<5");
+
+        assertEquals(0, priceyBooks.get("data").size());
+    }
+
+    @Test
+    void testRootNestedComplexAttribute() throws Exception {
+        JsonNode priceyBooks = getAsNode("/book?filter[book]=price.currency.isoCode==AED");
+
+        assertEquals(1, priceyBooks.get("data").size());
+
+        priceyBooks = getAsNode("/book?filter[book]=price.currency.isoCode==ABC");
+
+        assertEquals(0, priceyBooks.get("data").size());
+    }
+
+    @Test
     void testRootFilterImplicitSingle() throws JsonProcessingException {
         int scienceFictionBookCount = 0;
         for (JsonNode node : books.get("data")) {
@@ -1992,6 +2014,28 @@ public class FilterIT extends IntegrationTest {
                 .body("data.relationships.authors", hasSize(2))
                 .body("data.relationships.authors[0].data.id[0]", equalTo("1"))
                 .body("data.relationships.authors[1].data.id[0]", equalTo("1"));
+    }
+
+    @Test
+    void testSubcollectionComplexAttribute() throws Exception {
+        JsonNode priceyBooks = getAsNode("/author/1/books?filter[book]=price.total>=10");
+
+        assertEquals(2, priceyBooks.get("data").size());
+
+        priceyBooks = getAsNode("/book?filter[book]=price.total<5");
+
+        assertEquals(0, priceyBooks.get("data").size());
+    }
+
+    @Test
+    void testSubcollectionNestedComplexAttribute() throws Exception {
+        JsonNode priceyBooks = getAsNode("/author/1/books?filter[book]=price.currency.isoCode==AED");
+
+        assertEquals(1, priceyBooks.get("data").size());
+
+        priceyBooks = getAsNode("/author/1/books?filter[book]=price.currency.isoCode==ABC");
+
+        assertEquals(0, priceyBooks.get("data").size());
     }
 
     @Test

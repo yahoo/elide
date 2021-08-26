@@ -11,6 +11,7 @@ import static com.yahoo.elide.test.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.arguments;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.document;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.field;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.mutation;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
@@ -396,19 +397,21 @@ public class EmbeddedIdIT extends GraphQLIntegrationTest {
         building.name = "Altgeld Hall";
 
         String graphQLRequest = document(
-                selection(
-                        field(
-                                "building",
-                                arguments(
-                                        argument("op", "UPSERT"),
-                                        argument("data", building)
-                                ),
-                                selections(
-                                        field("address"),
-                                        field("name")
-                                )
-                        )
-                )
+            mutation(
+                    selection(
+                            field(
+                                    "building",
+                                    arguments(
+                                            argument("op", "UPSERT"),
+                                            argument("data", building)
+                                    ),
+                                    selections(
+                                            field("address"),
+                                            field("name")
+                                    )
+                            )
+                    )
+            )
         ).toQuery();
 
         String expected = document(

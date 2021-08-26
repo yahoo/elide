@@ -27,6 +27,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import example.Currency;
+import example.Price;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -36,6 +38,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -58,6 +61,10 @@ public class GraphQLIT extends GraphQLIntegrationTest {
         @JsonSerialize(using = VariableFieldSerializer.class, as = String.class)
         private String title;
 
+        @Getter
+        @Setter
+        private Price price;
+
         private Collection<example.Author> authors = new ArrayList<>();
     }
 
@@ -78,6 +85,10 @@ public class GraphQLIT extends GraphQLIntegrationTest {
         Book book = new Book();
         book.setId(1);
         book.setTitle("1984");
+        Price price = new Price();
+        price.setTotal(BigDecimal.valueOf(10.0));
+        price.setCurrency(new Currency("USD"));
+        book.setPrice(price);
 
         Author author = new Author();
         author.setId(1L);
@@ -260,6 +271,108 @@ public class GraphQLIT extends GraphQLIntegrationTest {
         ).toResponse();
 
         runQueryWithExpectedResult(graphQLRequest, expected);
+    }
+
+    @Test
+    public void testFilterByComplexAttribute() throws IOException {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "book",
+                                arguments(
+                                        argument("filter", "\"price.total>=5\"")
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("title")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expectedResponse = document(
+                selection(
+                        field(
+                                "book",
+                                selections(
+                                        field("id", "1"),
+                                        field("title", "1984")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
+
+        graphQLRequest = document(
+                selection(
+                        field(
+                                "book",
+                                arguments(
+                                        argument("filter", "\"price.total<=5\"")
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("title")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        expectedResponse = "{\"data\": {\"book\": {\"edges\": []}}}";
+
+        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
+    }
+
+    @Test
+    public void testFilterByNestedComplexAttribute() throws IOException {
+        String graphQLRequest = document(
+                selection(
+                        field(
+                                "book",
+                                arguments(
+                                        argument("filter", "\"price.currency.isoCode==USD\"")
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("title")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String expectedResponse = document(
+                selection(
+                        field(
+                                "book",
+                                selections(
+                                        field("id", "1"),
+                                        field("title", "1984")
+                                )
+                        )
+                )
+        ).toResponse();
+
+        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
+
+        graphQLRequest = document(
+                selection(
+                        field(
+                                "book",
+                                arguments(
+                                        argument("filter", "\"price.currency.isoCode==ABC\"")
+                                ),
+                                selections(
+                                        field("id"),
+                                        field("title")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        expectedResponse = "{\"data\": {\"book\": {\"edges\": []}}}";
+
+        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
     }
 
     @Test
@@ -509,7 +622,7 @@ public class GraphQLIT extends GraphQLIntegrationTest {
             .then()
             .statusCode(HttpStatus.SC_OK)
             .body("data.__type.fields.name", containsInAnyOrder("id", "awards", "chapterCount",
-                    "editorName", "genre", "language", "publishDate", "title", "authors", "chapters",
+                    "editorName", "genre", "language", "publishDate", "title", "authors", "chapters", "price",
                     "editor", "publisher"));
     }
 

@@ -34,6 +34,7 @@ import com.yahoo.elide.core.type.ClassType;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import example.Address;
 import example.Author;
 import example.Book;
 import example.Editor;
@@ -62,7 +63,8 @@ public class InMemoryStoreTransactionTest {
     private Book book1;
     private Book book2;
     private Book book3;
-    private Author author;
+    private Author author1;
+    private Author author2;
     private ElideSettings elideSettings;
 
     public InMemoryStoreTransactionTest() {
@@ -74,7 +76,15 @@ public class InMemoryStoreTransactionTest {
 
         elideSettings = new ElideSettingsBuilder(null).build();
 
-        author = new Author();
+        author1 = new Author();
+        Address address1 = new Address();
+        address1.setStreet1("Foo");
+        author1.setHomeAddress(address1);
+
+        author2 = new Author();
+        Address address2 = new Address();
+        address2.setStreet1("Bar");
+        author2.setHomeAddress(address2);
 
         Editor editor1 = new Editor();
         editor1.setFirstName("Jon");
@@ -95,7 +105,7 @@ public class InMemoryStoreTransactionTest {
                 "Literary Fiction",
                 "English",
                 System.currentTimeMillis(),
-                Sets.newHashSet(author),
+                Sets.newHashSet(author1),
                 publisher1,
                 Arrays.asList("Prize1"));
 
@@ -104,7 +114,7 @@ public class InMemoryStoreTransactionTest {
                 "Science Fiction",
                 "English",
                 System.currentTimeMillis(),
-                Sets.newHashSet(author),
+                Sets.newHashSet(author1),
                 publisher1,
                 Arrays.asList("Prize1", "Prize2"));
 
@@ -113,7 +123,7 @@ public class InMemoryStoreTransactionTest {
                 "Literary Fiction",
                 "English",
                 System.currentTimeMillis(),
-                Sets.newHashSet(author),
+                Sets.newHashSet(author1),
                 publisher2,
                 Arrays.asList());
 
@@ -121,7 +131,7 @@ public class InMemoryStoreTransactionTest {
         books.add(book2);
         books.add(book3);
 
-        author.setBooks(new ArrayList<>(books));
+        author1.setBooks(new ArrayList<>(books));
 
         when(scope.getDictionary()).thenReturn(dictionary);
     }
@@ -155,6 +165,49 @@ public class InMemoryStoreTransactionTest {
     }
 
     @Test
+    public void testFilterPredicateOnComplexAttribute() {
+        FilterExpression expression =
+                new InPredicate(new Path(Author.class, dictionary, "homeAddress.street1"), "Foo");
+
+        EntityProjection projection = EntityProjection.builder()
+                .type(Author.class)
+                .filterExpression(expression)
+                .build();
+
+        when(wrappedTransaction.supportsFiltering(eq(scope), any(), eq(projection))).thenReturn(DataStoreTransaction.FeatureSupport.NONE);
+        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(Arrays.asList(author1, author2));
+
+        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(projection, scope);
+
+        assertEquals(1, loaded.size());
+        assertTrue(loaded.contains(author1));
+    }
+
+    @Test
+    public void testSortOnComplexAttribute() {
+        Map<String, Sorting.SortOrder> sortOrder = new HashMap<>();
+        sortOrder.put("homeAddress.street1", Sorting.SortOrder.asc);
+
+        Sorting sorting = new SortingImpl(sortOrder, Author.class, dictionary);
+
+        EntityProjection projection = EntityProjection.builder()
+                .type(Author.class)
+                .sorting(sorting)
+                .build();
+
+        when(wrappedTransaction.supportsSorting(eq(scope), any(), eq(projection))).thenReturn(false);
+        when(wrappedTransaction.loadObjects(any(), eq(scope))).thenReturn(Arrays.asList(author1, author2));
+
+        Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.loadObjects(projection, scope);
+
+        assertEquals(2, loaded.size());
+
+        Object[] sorted = loaded.toArray();
+        assertEquals(author2, sorted[0]);
+        assertEquals(author1, sorted[1]);
+    }
+
+    @Test
     public void testTransactionRequiresInMemoryFilterDuringGetRelation() {
         FilterExpression expression =
                 new InPredicate(new Path(Book.class, dictionary, "genre"), "Literary Fiction");
@@ -172,14 +225,14 @@ public class InMemoryStoreTransactionTest {
 
         when(scope.getNewPersistentResources()).thenReturn(Sets.newHashSet(mock(PersistentResource.class)));
         when(wrappedTransaction.supportsFiltering(eq(scope), any(), eq(relationship.getProjection()))).thenReturn(DataStoreTransaction.FeatureSupport.FULL);
-        when(wrappedTransaction.getRelation(eq(inMemoryStoreTransaction), eq(author), any(), eq(scope))).thenReturn(books);
+        when(wrappedTransaction.getRelation(eq(inMemoryStoreTransaction), eq(author1), any(), eq(scope))).thenReturn(books);
 
         Collection<Object> loaded = (Collection<Object>) inMemoryStoreTransaction.getRelation(
-                inMemoryStoreTransaction, author, relationship, scope);
+                inMemoryStoreTransaction, author1, relationship, scope);
 
         verify(wrappedTransaction, times(1)).getRelation(
                 eq(inMemoryStoreTransaction),
-                eq(author),
+                eq(author1),
                 relationshipArgument.capture(),
                 eq(scope));
 

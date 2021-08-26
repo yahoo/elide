@@ -7,7 +7,6 @@ package com.yahoo.elide.core;
 
 import org.apache.commons.collections4.map.LinkedMap;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import lombok.Value;
 
 import java.util.ArrayList;

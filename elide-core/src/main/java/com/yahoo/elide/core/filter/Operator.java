@@ -13,9 +13,7 @@ import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidOperatorNegationException;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
-
 import org.apache.commons.collections4.CollectionUtils;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

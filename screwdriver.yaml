@@ -1,6 +1,9 @@
 cache:
    pipeline: ["~/.m2"]
 
+annotations:
+   screwdriver.cd/restrictPR: fork
+
 shared:
    annotations:
        screwdriver.cd/cpu: TURBO

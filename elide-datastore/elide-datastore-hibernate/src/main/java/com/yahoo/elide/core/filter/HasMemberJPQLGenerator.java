@@ -96,14 +96,14 @@ public class HasMemberJPQLGenerator implements JPQLPredicateGenerator {
         Type<?> modelType = firstElement.getType();
         String idField = dictionary.getIdFieldName(modelType);
 
-        return INNER + getPathAlias(firstElementPath) + "." + idField;
+        return INNER + getPathAlias(firstElementPath, dictionary) + "." + idField;
     }
 
     private String getInnerFilterFieldReference(Path path) {
         Path.PathElement lastElement = path.lastElement().get();
         String fieldName = lastElement.getFieldName();
 
-        return INNER + getPathAlias(path) + "." + fieldName;
+        return INNER + getPathAlias(path, dictionary) + "." + fieldName;
     }
 
     private String getFromClause(Path path) {

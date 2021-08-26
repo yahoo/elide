@@ -64,14 +64,6 @@ public class FilterTranslator implements FilterOperation<String> {
     private Map<Operator, JPQLPredicateGenerator> operatorGenerators;
     private Map<Triple<Operator, Type<?>, String>, JPQLPredicateGenerator> predicateOverrides;
 
-    public static final Function<Path, String> GENERATE_HQL_COLUMN_NO_ALIAS = (path) -> path.getPathElements().stream()
-            .map(Path.PathElement::getFieldName)
-            .collect(Collectors.joining("."));
-
-    public static final Function<Path, String> GENERATE_HQL_COLUMN_WITH_ALIAS =
-            (path) -> getFieldAlias(getPathAlias(path),
-                    path.lastElement().map(Path.PathElement::getFieldName).orElse(null));
-
     static {
         globalPredicateOverrides = new HashMap<>();
 
@@ -300,7 +292,7 @@ public class FilterTranslator implements FilterOperation<String> {
      */
     @Override
     public String apply(FilterPredicate filterPredicate) {
-        return apply(filterPredicate, GENERATE_HQL_COLUMN_NO_ALIAS);
+        return apply(filterPredicate, this::expandPathNoAlias);
     }
 
     /**
@@ -355,12 +347,23 @@ public class FilterTranslator implements FilterOperation<String> {
      * @return A JPQL filter fragment.
      */
     public String apply(FilterExpression filterExpression, boolean prefixWithAlias) {
-        Function<Path, String> aliasGenerator = GENERATE_HQL_COLUMN_NO_ALIAS;
+        Function<Path, String> aliasGenerator = this::expandPathNoAlias;
         if (prefixWithAlias) {
-            aliasGenerator = GENERATE_HQL_COLUMN_WITH_ALIAS;
+            aliasGenerator = this::expandPathWithAlias;
         }
 
         return apply(filterExpression, aliasGenerator);
+    }
+
+    public String expandPathNoAlias(Path path) {
+        return path.getPathElements().stream()
+                .map(Path.PathElement::getFieldName)
+                .collect(Collectors.joining("."));
+    }
+
+    public String expandPathWithAlias(Path path) {
+        return getFieldAlias(getPathAlias(path, dictionary),
+                        path.lastElement().map(Path.PathElement::getFieldName).orElse(null));
     }
 
     /**

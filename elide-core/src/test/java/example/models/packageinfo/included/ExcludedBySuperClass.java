@@ -7,6 +7,7 @@
 package example.models.packageinfo.included;
 
 import example.ExcludedEntity;
+
 import javax.persistence.Entity;
 
 /**

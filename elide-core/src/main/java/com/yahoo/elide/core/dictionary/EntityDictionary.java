@@ -61,6 +61,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.Getter;
@@ -110,6 +111,7 @@ public class EntityDictionary {
 
     protected final ConcurrentHashMap<Pair<String, String>, Type<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<Type<?>, EntityBinding> entityBindings = new ConcurrentHashMap<>();
+
     @Getter
     protected final ConcurrentHashMap<Type<?>, Function<RequestScope, PermissionExecutor>> entityPermissionExecutor =
             new ConcurrentHashMap<>();
@@ -541,21 +543,37 @@ public class EntityDictionary {
     }
 
     /**
-     * Get all bound classes.
+     * Get all bound model classes.
      *
      * @return the bound classes
      */
     public Set<Type<?>> getBoundClasses() {
-        return entityBindings.keySet();
+        return getBoundClasses(true);
+    }
+
+    /**
+     * Get all bound classes.
+     * @param elideModelsOnly Restrict to only Elide models (skip complex embedded types).
+     *
+     * @return the bound classes
+     */
+    public Set<Type<?>> getBoundClasses(boolean elideModelsOnly) {
+        return entityBindings.values().stream()
+                .filter(binding -> elideModelsOnly ? binding.isElideModel() : true)
+                .map(EntityBinding::getEntityClass)
+                .collect(Collectors.toSet());
     }
 
     /**
      * Get all bound classes for a particular API version.
+     * @param apiVersion The API version
+     * @param elideModelsOnly Restrict to only Elide models (skip complex embedded types).
      *
      * @return the bound classes
      */
-    public Set<Type<?>> getBoundClassesByVersion(String apiVersion) {
+    public Set<Type<?>> getBoundClassesByVersion(String apiVersion, boolean elideModelsOnly) {
         return entityBindings.values().stream()
+                .filter(binding -> elideModelsOnly ? binding.isElideModel() : true)
                 .filter(binding ->
                         binding.getApiVersion().equals(apiVersion)
                                 || binding.entityClass.getName().startsWith(ELIDE_PACKAGE_PREFIX)
@@ -565,12 +583,35 @@ public class EntityDictionary {
     }
 
     /**
-     * Get all bindings.
+     * Get all bound classes for a particular API version.
+     * @param apiVersion The API version
+     *
+     * @return the bound classes
+     */
+    public Set<Type<?>> getBoundClassesByVersion(String apiVersion) {
+        return getBoundClassesByVersion(apiVersion, true);
+    }
+
+    /**
+     * Get all model bindings.
      *
      * @return the bindings
      */
     public Set<EntityBinding> getBindings() {
-        return new HashSet<>(entityBindings.values());
+        return getBindings(true);
+    }
+
+    /**
+     * Get all bindings.
+     * @param elideModelsOnly Restrict to only Elide models (skip complex embedded types).
+     *
+     * @return the bindings
+     */
+    public Set<EntityBinding> getBindings(boolean elideModelsOnly) {
+        return entityBindings.values()
+                .stream()
+                .filter(binding -> elideModelsOnly ? binding.isElideModel() : true)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -1025,7 +1066,7 @@ public class EntityDictionary {
 
         bindJsonApiToEntity.put(Pair.of(type, version), declaredClass);
         apiVersions.add(version);
-        EntityBinding binding = new EntityBinding(this, declaredClass, type, version, hiddenAnnotations);
+        EntityBinding binding = new EntityBinding(injector, declaredClass, type, version, hiddenAnnotations);
         entityBindings.put(declaredClass, binding);
 
         Include include = (Include) getFirstAnnotation(declaredClass, Arrays.asList(Include.class));
@@ -1034,6 +1075,7 @@ public class EntityDictionary {
         }
 
         bindLegacyHooks(binding);
+        discoverEmbeddedTypeBindings(declaredClass);
     }
 
     /**
@@ -1393,7 +1435,7 @@ public class EntityDictionary {
      * @param objClass provided class
      * @return Bound class.
      */
-    public  Type<?> lookupBoundClass(Type<?> objClass) {
+    public Type<?> lookupBoundClass(Type<?> objClass) {
         //Common case - we can avoid reflection by checking the map ...
         EntityBinding binding = entityBindings.getOrDefault(objClass, EMPTY_BINDING);
         if (binding != EMPTY_BINDING) {
@@ -1974,6 +2016,46 @@ public class EntityDictionary {
     }
 
     /**
+     * BFS Walks the Elide model attribute tree and registers all complex attribute types and their sub-types.
+     * @param elideModel The elide model to scan.
+     */
+    protected void discoverEmbeddedTypeBindings(Type<?> elideModel) {
+        Queue<Type<?>> toVisit = new ArrayDeque<>();
+        Set<Type<?>> visited = new HashSet<>();
+
+        EntityBinding binding = getEntityBinding(elideModel);
+
+        toVisit.addAll(binding.getAttributes()
+                .stream()
+                .filter(this::canBind)
+                .collect(Collectors.toSet()));
+
+        while (! toVisit.isEmpty()) {
+            Type<?> next = toVisit.remove();
+
+            if (visited.contains(next) || entityBindings.containsKey(next)) {
+                continue;
+            }
+
+            visited.add(next);
+
+            EntityBinding nextBinding = new EntityBinding(injector,
+                    next,
+                    next.getSimpleName(),
+                    binding.getApiVersion(),
+                    false,
+                    new HashSet<>());
+
+            entityBindings.put(next, nextBinding);
+
+            toVisit.addAll(nextBinding.getAttributes()
+                    .stream()
+                    .filter(this::canBind)
+                    .collect(Collectors.toSet()));
+        }
+    }
+
+    /**
      * Returns the api version bound to a particular model class.
      * @param modelClass The model class to lookup.
      * @return The api version associated with the model or empty string if there is no association.
@@ -2100,6 +2182,24 @@ public class EntityDictionary {
                 });
     }
 
+    /**
+     * Returns whether or not a given model attribute is a complex (not primitive or String) type.
+     * @param clazz The elide model type.
+     * @param fieldName The attribute name.
+     * @return true if the attribute is 'complex'.
+     */
+    public boolean isComplexAttribute(Type<?> clazz, String fieldName) {
+        EntityBinding binding = getEntityBinding(clazz);
+
+        if (! binding.apiAttributes.contains(fieldName)) {
+            return false;
+        }
+
+        Type<?> attributeType = getParameterizedType(clazz, fieldName);
+
+        return canBind(attributeType);
+    }
+
     private void bindHookMethod(
             EntityBinding binding,
             Method method,
@@ -2138,5 +2238,24 @@ public class EntityDictionary {
                 throw new IllegalArgumentException(e);
             }
         };
+    }
+
+    private boolean canBind(Type<?> type) {
+        if (! type.getUnderlyingClass().isPresent()) {
+            return false;
+        }
+
+        Class<?> clazz = type.getUnderlyingClass().get();
+
+        if (ClassUtils.isPrimitiveOrWrapper(clazz)
+                || clazz.equals(String.class)
+                || clazz.isEnum()
+                || Collection.class.isAssignableFrom(clazz)
+                || Map.class.isAssignableFrom(clazz)
+                || serdeLookup.apply(clazz) != null) {
+            return false;
+        }
+
+        return true;
     }
 }

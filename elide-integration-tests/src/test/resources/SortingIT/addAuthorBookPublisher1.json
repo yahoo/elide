@@ -35,7 +35,13 @@
       "attributes": {
         "title": "The Old Man and the Sea",
         "genre": "Literary Fiction",
-        "language": "English"
+        "language": "English",
+        "price": {
+          "total": 10.0,
+          "currency" : {
+            "isoCode" : "USD"
+          }
+        }
       },
       "relationships": {
         "publisher": {
@@ -56,7 +62,13 @@
       "attributes": {
         "title": "For Whom the Bell Tolls",
         "genre": "Literary Fiction",
-        "language": "English"
+        "language": "English",
+        "price": {
+          "total": 9.0,
+          "currency" : {
+            "isoCode" : "AED"
+          }
+        }
       },
       "relationships": {
         "publisher": {

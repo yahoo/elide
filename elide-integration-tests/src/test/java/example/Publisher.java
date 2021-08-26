@@ -51,7 +51,6 @@ public class Publisher extends BaseId {
         return editor;
     }
 
-
     @ElementCollection(targetClass = String.class)
     public Set<String> getPhoneNumbers() {
         return phoneNumbers;

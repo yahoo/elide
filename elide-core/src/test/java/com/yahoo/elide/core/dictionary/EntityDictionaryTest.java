@@ -36,6 +36,7 @@ import com.yahoo.elide.core.utils.coerce.converters.ISO8601DateSerde;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import example.Address;
 import example.Author;
 import example.Book;
 import example.Child;
@@ -43,6 +44,7 @@ import example.CoerceBean;
 import example.Editor;
 import example.FieldAnnotations;
 import example.FunWithPermissions;
+import example.GeoLocation;
 import example.Job;
 import example.Left;
 import example.Parent;
@@ -60,10 +62,10 @@ import example.models.packageinfo.included.IncludedSubPackage;
 import example.models.versioned.BookV2;
 import example.nontransferable.NoTransferBiDirectional;
 import example.nontransferable.StrictNoTransfer;
-
 import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Annotation;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -71,6 +73,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -110,6 +113,8 @@ public class EntityDictionaryTest extends EntityDictionary {
         bindEntity(NoId.class);
         bindEntity(BookV2.class);
         bindEntity(Book.class);
+        bindEntity(Author.class);
+        bindEntity(Editor.class);
         bindEntity(IncludedPackageLevel.class);
         bindEntity(IncludedSubPackage.class);
         bindEntity(ExcludedPackageLevel.class);
@@ -177,7 +182,8 @@ public class EntityDictionaryTest extends EntityDictionary {
         entitiesToExclude.add(ClassType.of(Employee.class));
 
         EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), entitiesToExclude);
-        testDictionary.bindEntity(new EntityBinding(testDictionary, ClassType.of(Employee.class), "employee"));
+        testDictionary.bindEntity(new EntityBinding(testDictionary.getInjector(),
+                ClassType.of(Employee.class), "employee"));
         // Does not find the Binding
         assertNull(testDictionary.entityBindings.get(ClassType.of(Employee.class)));
     }
@@ -936,10 +942,6 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testFieldLookup() throws Exception {
-        bindEntity(Book.class);
-        bindEntity(Editor.class);
-        bindEntity(Author.class);
-
         Book book = new Book() {
             @Override
             public String toString() {
@@ -1050,7 +1052,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertTrue(models.contains(ClassType.of(BookV2.class)));
 
         models = getBoundClassesByVersion(NO_VERSION);
-        assertEquals(19, models.size());
+        assertEquals(21, models.size());
     }
 
     @Test
@@ -1066,6 +1068,26 @@ public class EntityDictionaryTest extends EntityDictionary {
     public void testGetModelVersion() {
         assertEquals("1.0", getModelVersion(ClassType.of(BookV2.class)));
         assertEquals(NO_VERSION, getModelVersion(ClassType.of(Book.class)));
+    }
+
+    @Test
+    public void testIsComplexAttribute() {
+        //Test complex attribute
+        assertTrue(isComplexAttribute(ClassType.of(Author.class), "homeAddress"));
+        //Test nested complex attribute
+        assertTrue(isComplexAttribute(ClassType.of(Address.class), "geo"));
+        //Test String
+        assertFalse(isComplexAttribute(ClassType.of(Book.class), "title"));
+        //Test primitive
+        assertFalse(isComplexAttribute(ClassType.of(Book.class), "publishDate"));
+        //Test primitive wrapper
+        assertFalse(isComplexAttribute(ClassType.of(FieldAnnotations.class), "privateField"));
+        //Test collection
+        assertFalse(isComplexAttribute(ClassType.of(Book.class), "awards"));
+        //Test relationship
+        assertFalse(isComplexAttribute(ClassType.of(Book.class), "authors"));
+        //Test enum
+        assertFalse(isComplexAttribute(ClassType.of(Author.class), "authorType"));
     }
 
     @Test
@@ -1090,6 +1112,16 @@ public class EntityDictionaryTest extends EntityDictionary {
         assertFalse(hasBinding(ClassType.of((ExcludedPackageLevel.class))));
         assertFalse(hasBinding(ClassType.of((ExcludedSubPackage.class))));
         assertFalse(hasBinding(ClassType.of((ExcludedBySuperClass.class))));
+
+        //Test bindings for complex attribute types
+        assertTrue(hasBinding(ClassType.of(Address.class)));
+        assertTrue(hasBinding(ClassType.of(GeoLocation.class)));
+        assertFalse(hasBinding(ClassType.of(String.class)));
+        assertFalse(hasBinding(ClassType.of(Author.AuthorType.class)));
+        assertFalse(hasBinding(ClassType.of(Boolean.class)));
+        assertFalse(hasBinding(ClassType.of(Date.class)));
+        assertFalse(hasBinding(ClassType.of(Map.class)));
+        assertFalse(hasBinding(ClassType.of(BigDecimal.class)));
     }
 
     @Test
