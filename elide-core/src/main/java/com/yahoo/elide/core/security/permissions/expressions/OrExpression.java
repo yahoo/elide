@@ -9,7 +9,6 @@ import static com.yahoo.elide.core.security.permissions.ExpressionResult.DEFERRE
 import static com.yahoo.elide.core.security.permissions.ExpressionResult.FAIL;
 import static com.yahoo.elide.core.security.permissions.ExpressionResult.PASS;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
-
 import lombok.Getter;
 
 /**

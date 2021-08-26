@@ -7,6 +7,7 @@
 package example.models.packageinfo;
 
 import example.models.BaseId;
+
 import javax.persistence.Entity;
 
 /**

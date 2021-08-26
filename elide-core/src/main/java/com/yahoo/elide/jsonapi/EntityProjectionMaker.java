@@ -24,7 +24,6 @@ import com.yahoo.elide.generated.parsers.CoreBaseVisitor;
 import com.yahoo.elide.generated.parsers.CoreParser;
 import com.yahoo.elide.jsonapi.parser.JsonApiParser;
 import com.google.common.collect.Sets;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.Builder;

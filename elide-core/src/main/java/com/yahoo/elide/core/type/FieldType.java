@@ -6,7 +6,6 @@
 package com.yahoo.elide.core.type;
 
 import org.apache.commons.lang3.reflect.TypeUtils;
-
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 

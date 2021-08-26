@@ -24,9 +24,7 @@ import com.yahoo.elide.core.security.permissions.ExpressionResultCache;
 import com.yahoo.elide.core.security.permissions.PermissionExpressionBuilder;
 import com.yahoo.elide.core.security.permissions.expressions.Expression;
 import com.yahoo.elide.core.type.Type;
-
 import com.google.common.collect.ImmutableSet;
-
 import org.apache.commons.lang3.tuple.Triple;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

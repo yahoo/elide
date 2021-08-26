@@ -18,7 +18,6 @@ import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import com.yahoo.elide.core.security.permissions.ExpressionResultCache;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

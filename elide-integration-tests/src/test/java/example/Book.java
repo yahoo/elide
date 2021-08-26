@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
@@ -48,6 +49,7 @@ public class Book extends BaseId {
     private String editorName;
     private Publisher publisher;
     private Collection<String> awards = new ArrayList<>();
+    private Price price;
 
     public String getTitle() {
         return title;
@@ -81,7 +83,6 @@ public class Book extends BaseId {
         return this.publishDate;
     }
 
-
     @ElementCollection(targetClass = String.class)
     public Collection<String> getAwards() {
         return awards;
@@ -91,6 +92,14 @@ public class Book extends BaseId {
         this.awards = awards;
     }
 
+    @Embedded
+    public Price getPrice() {
+        return price;
+    }
+
+    public void setPrice(Price price) {
+        this.price = price;
+    }
 
     /**
      * Demonstrates a more complex ranking use case.

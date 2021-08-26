@@ -7,7 +7,6 @@
 package com.yahoo.elide.parsers.expression;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
-
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.RequestScope;
@@ -18,7 +17,6 @@ import com.yahoo.elide.core.security.permissions.expressions.CheckExpression;
 import com.yahoo.elide.core.security.permissions.expressions.Expression;
 import com.yahoo.elide.core.security.visitors.PermissionExpressionNormalizationVisitor;
 import com.yahoo.elide.core.security.visitors.PermissionExpressionVisitor;
-
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;

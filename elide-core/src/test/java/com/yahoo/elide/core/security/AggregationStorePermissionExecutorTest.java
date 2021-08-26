@@ -7,7 +7,6 @@
 package com.yahoo.elide.core.security;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
-
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Include;
@@ -26,12 +25,10 @@ import com.yahoo.elide.core.security.executors.AggregationStorePermissionExecuto
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-
 import lombok.Value;
 
 import java.util.Arrays;
@@ -39,7 +36,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
-
 import javax.persistence.Entity;
 
 /**

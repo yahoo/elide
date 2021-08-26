@@ -348,19 +348,21 @@ public class GraphQLEndpointTest {
         Incident incident = new Incident();
 
         String graphQLRequest = document(
-                selection(
-                        field(
-                                "incidents",
-                                arguments(
-                                        argument("op", "UPSERT"),
-                                        argument("data", incident)
-                                ),
-                                selections(
-                                        field("id"),
-                                        field("name")
-                                )
-                        )
-                )
+           mutation(
+               selection(
+                   field(
+                       "incidents",
+                       arguments(
+                           argument("op", "UPSERT"),
+                           argument("data", incident)
+                       ),
+                       selections(
+                           field("id"),
+                           field("name")
+                       )
+                   )
+               )
+           )
         ).toQuery();
 
         Response response = endpoint.post(uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));

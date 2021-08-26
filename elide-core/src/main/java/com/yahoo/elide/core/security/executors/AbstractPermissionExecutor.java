@@ -9,7 +9,6 @@ package com.yahoo.elide.core.security.executors;
 import static com.yahoo.elide.core.security.permissions.ExpressionResult.DEFERRED;
 import static com.yahoo.elide.core.security.permissions.ExpressionResult.FAIL;
 import static com.yahoo.elide.core.security.permissions.ExpressionResult.PASS;
-
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.RequestScope;
@@ -20,12 +19,9 @@ import com.yahoo.elide.core.security.permissions.ExpressionResultCache;
 import com.yahoo.elide.core.security.permissions.PermissionExpressionBuilder;
 import com.yahoo.elide.core.security.permissions.expressions.Expression;
 import com.yahoo.elide.core.type.Type;
-
 import com.google.common.collect.ImmutableSet;
-
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

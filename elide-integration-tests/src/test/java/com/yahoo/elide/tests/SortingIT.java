@@ -140,6 +140,51 @@ public class SortingIT extends IntegrationTest {
     }
 
     @Test
+    public void testSortingByComplexAttribute() throws IOException {
+        List<Double> bookPrices = Arrays.asList(10.0, 9.0);
+
+        JsonNode result = getAsNode("/book?filter[book]=price=isnull=false&sort=-price.total");
+        assertEquals(2, result.get("data").size());
+
+        JsonNode books = result.get("data");
+        for (int idx = 0; idx < bookPrices.size(); idx++) {
+            Double expectedPrice = bookPrices.get(idx);
+            Double actualPrice = books.get(idx).get("attributes").get("price").get("total").asDouble();
+            assertEquals(expectedPrice, actualPrice);
+        }
+    }
+
+    @Test
+    public void testSortingByNestedComplexAttribute() throws IOException {
+        List<String> isoCodes = Arrays.asList("AED", "USD");
+
+        JsonNode result = getAsNode("/book?filter[book]=price=isnull=false&sort=price.currency.isoCode");
+        assertEquals(2, result.get("data").size());
+
+        JsonNode books = result.get("data");
+        for (int idx = 0; idx < isoCodes.size(); idx++) {
+            String expectedCode = isoCodes.get(idx);
+            String actualCode = books.get(idx).get("attributes").get("price").get("currency").get("isoCode").asText();
+            assertEquals(expectedCode, actualCode);
+        }
+    }
+
+    @Test
+    public void testSortingSubcollectionByNestedComplexAttribute() throws IOException {
+        List<String> isoCodes = Arrays.asList("AED", "USD");
+
+        JsonNode result = getAsNode("/author/1/books?filter[book]=price=isnull=false&sort=price.currency.isoCode");
+        assertEquals(2, result.get("data").size());
+
+        JsonNode books = result.get("data");
+        for (int idx = 0; idx < isoCodes.size(); idx++) {
+            String expectedCode = isoCodes.get(idx);
+            String actualCode = books.get(idx).get("attributes").get("price").get("currency").get("isoCode").asText();
+            assertEquals(expectedCode, actualCode);
+        }
+    }
+
+    @Test
     public void testSortingById() throws IOException {
         List<String> bookTitles = Arrays.asList(
                 "Life with Null Ned 2",

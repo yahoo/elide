@@ -60,10 +60,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
-
 import java.util.stream.Collectors;
 import javax.validation.ConstraintViolation;
-
 import javax.validation.ConstraintViolationException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedMap;

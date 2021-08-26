@@ -6,7 +6,6 @@
 package com.yahoo.elide.core.utils.coerce.converters;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
