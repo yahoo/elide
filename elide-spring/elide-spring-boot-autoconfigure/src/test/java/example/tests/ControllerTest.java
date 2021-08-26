@@ -8,6 +8,7 @@ package example.tests;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.argument;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.arguments;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.field;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.mutation;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.query;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
@@ -464,7 +465,7 @@ public class ControllerTest extends IntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body("{ \"query\" : \"" + GraphQLDSL.document(
-                        query(
+                        mutation(
                                 selection(
                                         field("group",
                                                 arguments(
