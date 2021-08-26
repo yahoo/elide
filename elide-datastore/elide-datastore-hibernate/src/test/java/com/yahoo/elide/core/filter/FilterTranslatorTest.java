@@ -62,7 +62,7 @@ public class FilterTranslatorTest {
     @Test
     public void testNestedComplexAttributeAlias() throws Exception {
         FilterExpression expression =
-                dialect.parseFilterExpression("price.currency.isoCode==10", ClassType.of(Book.class), true);
+                dialect.parseFilterExpression("price.currency.isoCode==USD", ClassType.of(Book.class), true);
 
         FilterTranslator filterOp = new FilterTranslator(dictionary);
 
