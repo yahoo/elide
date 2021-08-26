@@ -25,6 +25,7 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import graphql.language.Field;
 import graphql.language.FragmentSpread;
+import graphql.language.OperationDefinition;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLNamedType;
@@ -80,8 +81,12 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
             logContext(operation, context);
         }
 
-        /* sanity check for pagination/filtering/sorting arguments w any operation other than FETCH */
         if (operation != RelationshipOp.FETCH) {
+            /* Don't allow write operations in a non-mutation request. */
+            if (environment.getOperationDefinition().getOperation() != OperationDefinition.Operation.MUTATION) {
+                throw new BadRequestException("Data model writes are only allowed in mutations");
+            }
+            /* sanity check for pagination/filtering/sorting arguments w any operation other than FETCH */
             filterSortPaginateSanityCheck(context);
         }
 

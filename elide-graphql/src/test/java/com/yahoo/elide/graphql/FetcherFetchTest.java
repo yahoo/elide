@@ -23,6 +23,22 @@ public class FetcherFetchTest extends PersistentResourceFetcherTest {
     private final String baseUrl = "http://localhost:8080/graphql";
 
     @Test
+    public void testMutationInQueryThrowsError() throws Exception {
+        String query = "query {\n"
+                + "  book(op: UPSERT, data: {title: \"Book Numero Dos\", publicationDate: \"1984-12-25T00:00Z\"} ) {\n"
+                + "    edges {\n"
+                + "      node {\n"
+                + "        title\n"
+                + "        publicationDate\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "}";
+
+        assertQueryFailsWith(query, "Exception while fetching data (/book) : Data model writes are only allowed in mutations");
+    }
+
+    @Test
     public void testRootSingle() throws Exception {
         runComparisonTest("rootSingle");
     }
