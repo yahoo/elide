@@ -1,4 +1,16 @@
 # Change Log
+## 5.0.11
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/798c66204779a03bb4e34554ae243f9c4ea25bc7) Added support for filtering & sorting on complex model attributes. (#2273) 
+   
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/a01da5016669203413a2adb3b866290e95997a7c) Disable PR build from forked repo (#2269) 
+   * [view commit](https://github.com/yahoo/elide/commit/ccbb190dd03cb66325abc33820cc14ea252a5cb0) Return error to client when performing model edits in a GraphQL query… (#2274) 
+   * [view commit](https://github.com/yahoo/elide/commit/dadcdcde922ddd1f6fe9ee7a24f7508d2901c6d1) Bump mockito-junit-jupiter from 3.11.2 to 3.12.1 (#2268) 
+   * [view commit](https://github.com/yahoo/elide/commit/22f28238f387513f06537f252a8106fc04975567) Bump mockito-core from 3.11.2 to 3.12.4 (#2276) 
+   * [view commit](https://github.com/yahoo/elide/commit/b14b36dcf051c734e3143e0db67d7266d0b2066e) Bump spring.boot.version from 2.5.3 to 2.5.4 (#2265) 
+   * [view commit](https://github.com/yahoo/elide/commit/344d4e4e1783101a2bff47d79143a19fb3c3c9bb) Bump gson from 2.8.7 to 2.8.8 (#2266) 
+
 ## 5.0.10
 **Fixes**
    * [view commit](https://github.com/yahoo/elide/commit/debf5ca4d4a53dde274642cfbc4bc04060cbd949) httpclient 4.5.13 (#2074) 
