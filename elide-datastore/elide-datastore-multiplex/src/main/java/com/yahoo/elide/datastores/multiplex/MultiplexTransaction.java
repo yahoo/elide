@@ -253,9 +253,20 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
 
     @Override
     public <T> T getProperty(String propertyName) {
-        return (T) transactions.values().stream().map(tx -> tx.getProperty(propertyName))
-                .filter(property -> property != null)
-                .findFirst()
-                .orElse(null);
+        DataStore matchingStore = multiplexManager.dataStores.stream()
+                .filter(store -> propertyName.startsWith(store.getClass().getPackage().getName()))
+                .findFirst().orElse(null);
+
+        //Data store transaction properties must be prefixed with their package name.
+        if (matchingStore == null) {
+            return null;
+        }
+
+        if (! transactions.containsKey(matchingStore)) {
+            DataStoreTransaction tx = beginTransaction(matchingStore);
+            transactions.put(matchingStore, tx);
+        }
+
+        return transactions.get(matchingStore).getProperty(propertyName);
     }
 }

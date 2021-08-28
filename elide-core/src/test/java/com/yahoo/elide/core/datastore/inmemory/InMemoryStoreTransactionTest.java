@@ -554,6 +554,17 @@ public class InMemoryStoreTransactionTest {
     }
 
     @Test
+    public void testGetProperty() {
+        when(wrappedTransaction.getProperty(any())).thenReturn(1);
+
+        Integer result = inMemoryStoreTransaction.getProperty("foo");
+
+        verify(wrappedTransaction, times(1)).getProperty(eq("foo"));
+
+        assertEquals(1, result);
+    }
+
+    @Test
     public void testInMemoryDataStore() {
         HashMapDataStore wrapped = new HashMapDataStore(Book.class.getPackage());
         InMemoryDataStore store = new InMemoryDataStore(wrapped);

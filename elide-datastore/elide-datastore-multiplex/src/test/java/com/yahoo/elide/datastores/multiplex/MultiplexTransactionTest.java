@@ -7,12 +7,15 @@ package com.yahoo.elide.datastores.multiplex;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.datastores.hibernate5.HibernateEntityManagerStore;
+import com.yahoo.elide.datastores.hibernate5.HibernateTransaction;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -50,5 +53,29 @@ public class MultiplexTransactionTest {
 
         assertEquals(0, countInitializedTransaction);
 
+    }
+
+    @Test
+    public void testGetProperty() throws Exception {
+        DataStore store1 =  mock(HibernateEntityManagerStore.class);
+        DataStore store2 =  mock(DataStore.class);
+        DataStoreTransaction tx1 = mock(HibernateTransaction.class);
+        DataStoreTransaction tx2 = mock(DataStoreTransaction.class);
+
+        when(store1.beginReadTransaction()).thenReturn(tx1);
+        when(store2.beginReadTransaction()).thenReturn(tx2);
+        when(tx1.getProperty(any())).thenReturn(null);
+        when(tx2.getProperty(any())).thenReturn("Foo");
+
+        MultiplexManager store = new MultiplexManager(store1, store2);
+        DataStoreTransaction multiplexTx = store.beginReadTransaction();
+        String propertyName = "com.yahoo.elide.core.datastore.Bar";
+
+        String result = multiplexTx.getProperty(propertyName);
+
+        verify(tx1, Mockito.never()).getProperty(eq(propertyName));
+        verify(tx2, Mockito.times(1)).getProperty(eq(propertyName));
+
+        assertEquals("Foo", result);
     }
 }

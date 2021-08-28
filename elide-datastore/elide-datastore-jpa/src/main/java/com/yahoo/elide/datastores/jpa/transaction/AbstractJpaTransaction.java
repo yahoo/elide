@@ -32,8 +32,9 @@ import javax.validation.ConstraintViolationException;
 @Slf4j
 public abstract class AbstractJpaTransaction extends JPQLTransaction implements JpaTransaction {
 
-    public static final String ENTITY_MANAGER_PROPERTY =
-            "com.yahoo.elide.datastores.jpa.transaction.entitymanager";
+    //Data store transaction properties must be prefixed with their package name.
+    public static final String ENTITY_MANAGER_PROPERTY = AbstractJpaTransaction.class.getPackage().getName()
+            + ".entityManager";
 
     private static final Predicate<Collection<?>> IS_PERSISTENT_COLLECTION =
             new PersistentCollectionChecker();
