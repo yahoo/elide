@@ -250,4 +250,12 @@ public abstract class MultiplexTransaction implements DataStoreTransaction {
     public void cancel(RequestScope scope) {
         transactions.values().forEach(dataStoreTransaction -> dataStoreTransaction.cancel(scope));
     }
+
+    @Override
+    public <T> T getProperty(String propertyName) {
+        return (T) transactions.values().stream().map(tx -> tx.getProperty(propertyName))
+                .filter(property -> property != null)
+                .findFirst()
+                .orElse(null);
+    }
 }
