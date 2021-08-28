@@ -311,4 +311,14 @@ public interface DataStoreTransaction extends Closeable {
      * @param scope contains request level metadata.
      */
     void cancel(RequestScope scope);
+
+    /**
+     * Returns a data store transaction property.
+     * @param propertyName The property name.
+     * @param <T> The type of the property.
+     * @return The property.
+     */
+    default <T> T getProperty(String propertyName) {
+        return null;
+    }
 }
