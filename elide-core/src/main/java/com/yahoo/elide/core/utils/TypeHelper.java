@@ -6,17 +6,19 @@
 
 package com.yahoo.elide.core.utils;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
+import com.google.common.collect.Sets;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Dynamic;
+import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.Type;
-import com.google.common.collect.Sets;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * Utilities for handling types and aliases.
@@ -155,5 +157,24 @@ public class TypeHelper {
         return cls.stream()
                         .map(ClassType::of)
                         .collect(Collectors.toSet());
+    }
+
+    public static <T> T merge(T original, T update) {
+        final ClassType<?> origClz = ClassType.of(original.getClass());
+        Object returnObject = null;
+        try {
+            returnObject = origClz.newInstance();
+            final Field[] fields = origClz.getDeclaredFields();
+            for (Field field : fields) {
+                field.setAccessible(true);
+                final Object origValue = field.get(original);
+                final Object updateValue = field.get(update);
+                Object value = (updateValue != null && updateValue != origValue) ? updateValue : origValue;
+                field.set(returnObject, value);
+            }
+        } catch (InstantiationException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return (T) returnObject;
     }
 }
