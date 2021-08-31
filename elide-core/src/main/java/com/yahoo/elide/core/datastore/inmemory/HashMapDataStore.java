@@ -41,7 +41,7 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
 
     public HashMapDataStore(Set<Package> beanPackages) {
         for (Package beanPackage : beanPackages) {
-            ClassScanner.getAllClasses(beanPackage.getName()).stream()
+            scanner.getAllClasses(beanPackage.getName()).stream()
                 .map(ClassType::new)
                 .filter(modelType -> dictionary.getFirstAnnotation(modelType,
                         Arrays.asList(Include.class, Exclude.class)) instanceof Include)

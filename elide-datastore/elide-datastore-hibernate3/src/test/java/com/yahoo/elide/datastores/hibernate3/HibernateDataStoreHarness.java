@@ -8,7 +8,7 @@ package com.yahoo.elide.datastores.hibernate3;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import example.Parent;
 import example.models.generics.Manager;
 import example.models.triggers.Invoice;
@@ -34,15 +34,15 @@ public class HibernateDataStoreHarness implements DataStoreTestHarness {
         // method to force class initialization
         configuration = new Configuration();
         try {
-            ClassScanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class)
+            DefaultClassScanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class)
                     .forEach(configuration::addAnnotatedClass);
-            ClassScanner.getAnnotatedClasses(Manager.class.getPackage(), Entity.class)
+            DefaultClassScanner.getAnnotatedClasses(Manager.class.getPackage(), Entity.class)
                     .forEach(configuration::addAnnotatedClass);
-            ClassScanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class)
+            DefaultClassScanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class)
                     .forEach(configuration::addAnnotatedClass);
-            ClassScanner.getAnnotatedClasses(BookV2.class.getPackage(), Entity.class)
+            DefaultClassScanner.getAnnotatedClasses(BookV2.class.getPackage(), Entity.class)
                     .forEach(configuration::addAnnotatedClass);
-            ClassScanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class)
+            DefaultClassScanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class)
             .forEach(configuration::addAnnotatedClass);
         } catch (MappingException e) {
             throw new IllegalStateException(e);

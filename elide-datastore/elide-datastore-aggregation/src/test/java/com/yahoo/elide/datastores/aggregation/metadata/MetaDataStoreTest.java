@@ -9,6 +9,7 @@ import static com.yahoo.elide.core.utils.TypeHelper.getClassType;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import example.Player;
 import example.PlayerStats;
 import example.PlayerStatsView;
@@ -21,14 +22,16 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class MetaDataStoreTest {
+    private static ClassScanner scanner = new DefaultClassScanner();
     private static MetaDataStore dataStore = new MetaDataStore(
-                    getClassType(ClassScanner.getAllClasses("example")), true);
+                    getClassType(scanner.getAllClasses("example")), true);
 
     @BeforeAll
     public static void setup() {
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = new EntityDictionary(scanner, new HashMap<>(), new HashSet<>());
         dictionary.bindEntity(PlayerStatsWithView.class);
         dictionary.bindEntity(PlayerStatsView.class);
         dictionary.bindEntity(PlayerStats.class);

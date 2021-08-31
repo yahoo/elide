@@ -29,6 +29,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.checks.OperatorCheck;
 import com.yahoo.elide.datastores.aggregation.checks.VideoGameFilterCheck;
@@ -90,7 +91,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     public static DynamicConfigValidator VALIDATOR;
 
     static {
-        VALIDATOR = new DynamicConfigValidator("src/test/resources/configs");
+        VALIDATOR = new DynamicConfigValidator(new DefaultClassScanner(), "src/test/resources/configs");
 
         try {
             VALIDATOR.readAndValidateConfigs();

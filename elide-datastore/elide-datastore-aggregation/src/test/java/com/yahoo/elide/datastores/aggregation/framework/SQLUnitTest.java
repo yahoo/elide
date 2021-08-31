@@ -27,7 +27,7 @@ import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -537,7 +537,7 @@ public abstract class SQLUnitTest {
 
     public static void init(SQLDialect dialect) {
         MetaDataStore metaDataStore = new MetaDataStore(
-                getClassType(ClassScanner.getAnnotatedClasses("example",
+                getClassType(dictionary.getScanner().getAnnotatedClasses("example",
                         Include.class)),
                 false);
         init(dialect, new HashSet<>(), metaDataStore);

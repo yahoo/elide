@@ -21,6 +21,8 @@ import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -376,15 +378,16 @@ public interface ElideStandaloneSettings {
 
     /**
      * Gets the dynamic configuration for models, security roles, and database connection.
+     * @param scanner Class scanner
      * @return Optional DynamicConfiguration
      * @throws IOException thrown when validator fails to read configuration.
      */
-    default Optional<DynamicConfiguration> getDynamicConfiguration() throws IOException {
+    default Optional<DynamicConfiguration> getDynamicConfiguration(ClassScanner scanner) throws IOException {
         DynamicConfigValidator validator = null;
 
         if (getAnalyticProperties().enableAggregationDataStore()
                         && getAnalyticProperties().enableDynamicModelConfig()) {
-            validator = new DynamicConfigValidator(getAnalyticProperties().getDynamicConfigPath());
+            validator = new DynamicConfigValidator(scanner, getAnalyticProperties().getDynamicConfigPath());
             validator.readAndValidateConfigs();
         }
 
@@ -514,5 +517,13 @@ public interface ElideStandaloneSettings {
                     new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
         }
         return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
+    }
+
+    /**
+     * Get the class scanner for this Elide instance.
+     * @return class scanner implementation.
+     */
+    default ClassScanner getClassScanner() {
+        return new DefaultClassScanner();
     }
 }

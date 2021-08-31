@@ -18,6 +18,8 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -93,8 +95,10 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnExpression("${elide.aggregation-store.enabled:false} and ${elide.dynamic-config.enabled:false}")
-    public DynamicConfiguration buildDynamicConfiguration(ElideConfigProperties settings) throws IOException {
-        DynamicConfigValidator validator = new DynamicConfigValidator(settings.getDynamicConfig().getPath());
+    public DynamicConfiguration buildDynamicConfiguration(ClassScanner scanner,
+                                                          ElideConfigProperties settings) throws IOException {
+        DynamicConfigValidator validator = new DynamicConfigValidator(scanner,
+                settings.getDynamicConfig().getPath());
         validator.readAndValidateConfigs();
         return validator;
     }
@@ -369,6 +373,12 @@ public class ElideAutoConfiguration {
         SwaggerBuilder builder = new SwaggerBuilder(dictionary, info).withLegacyFilterDialect(false);
 
         return builder.build().basePath(settings.getJsonApi().getPath());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ClassScanner getClassScanner() {
+        return new DefaultClassScanner();
     }
 
     private boolean isDynamicConfigEnabled(ElideConfigProperties settings) {

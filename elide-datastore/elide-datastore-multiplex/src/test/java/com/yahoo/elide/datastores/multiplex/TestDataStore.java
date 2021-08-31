@@ -11,7 +11,6 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.request.EntityProjection;
-import com.yahoo.elide.core.utils.ClassScanner;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -27,7 +26,7 @@ class TestDataStore implements DataStore, DataStoreTransaction {
 
     @Override
     public void populateEntityDictionary(EntityDictionary dictionary) {
-        ClassScanner.getAnnotatedClasses(beanPackage, Entity.class).stream().forEach(dictionary::bindEntity);
+        dictionary.getScanner().getAnnotatedClasses(beanPackage, Entity.class).stream().forEach(dictionary::bindEntity);
     }
 
     @Override

@@ -20,7 +20,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.annotation.MetricFormula;
@@ -166,7 +166,7 @@ public class MetaDataStore implements DataStore {
      * @return Set of Class with specific annotations.
      */
     private static Set<Class<?>> getAllAnnotatedClasses() {
-        return ClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS,
+        return DefaultClassScanner.getAnnotatedClasses(METADATA_STORE_ANNOTATIONS,
                 clazz -> clazz.getAnnotation(Entity.class) == null || clazz.getAnnotation(Include.class) != null);
     }
 

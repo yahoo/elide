@@ -51,6 +51,7 @@ import com.yahoo.elide.core.type.Method;
 import com.yahoo.elide.core.type.Package;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.google.common.base.Preconditions;
@@ -127,6 +128,9 @@ public class EntityDictionary {
     protected final Injector injector;
 
     @Getter
+    protected final ClassScanner scanner;
+
+    @Getter
     protected final Function<Class, Serde> serdeLookup ;
 
     private final Set<Type<?>> entitiesToExclude;
@@ -152,11 +156,17 @@ public class EntityDictionary {
      * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped to {@code Prefab.CONTAINER.CHECK}
      * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
      * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
+     * @param scanner Scans classes for Elide annotations.
      * @param checks a map that links the identifiers used in the permission expression strings
      *               to their implementing classes.
      * @param entitiesToExclude Set of Models to exclude from Binding.
      */
-    public EntityDictionary(Map<String, Class<? extends Check>> checks, Set<Type<?>> entitiesToExclude) {
+    public EntityDictionary(
+            ClassScanner scanner,
+            Map<String, Class<? extends Check>> checks,
+            Set<Type<?>> entitiesToExclude
+    ) {
+        this.scanner = scanner;
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
         this.roleChecks = new HashMap<>();
         this.apiVersions = new HashSet<>();
@@ -177,6 +187,19 @@ public class EntityDictionary {
                 }
             }
         };
+    }
+
+    /**
+     * Instantiate a new EntityDictionary with the provided set of checks. In addition all of the checks
+     * in {@link com.yahoo.elide.core.security.checks.prefab} are mapped to {@code Prefab.CONTAINER.CHECK}
+     * (e.g. {@code @ReadPermission(expression="Prefab.Role.All")}
+     * or {@code @ReadPermission(expression="Prefab.Common.UpdateOnCreate")})
+     * @param checks a map that links the identifiers used in the permission expression strings
+     *               to their implementing classes.
+     * @param entitiesToExclude Set of Models to exclude from Binding.
+     */
+    public EntityDictionary(Map<String, Class<? extends Check>> checks, Set<Type<?>> entitiesToExclude) {
+        this(new DefaultClassScanner(), checks, entitiesToExclude);
     }
 
     /**
@@ -1551,7 +1574,7 @@ public class EntityDictionary {
         // /elide-spring-boot-autoconfigure/src/main/java/org/illyasviel/elide
         // /spring/boot/autoconfigure/ElideAutoConfiguration.java
 
-        Set<Class<?>> classes = ClassScanner.getAnnotatedClasses(SecurityCheck.class);
+        Set<Class<?>> classes = scanner.getAnnotatedClasses(SecurityCheck.class);
 
         addSecurityChecks(classes);
     }

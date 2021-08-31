@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.modelconfig.model.Argument;
 import com.yahoo.elide.modelconfig.model.Table;
 import com.yahoo.elide.modelconfig.model.Type;
@@ -22,7 +23,9 @@ public class DynamicConfigValidatorTest {
 
     @Test
     public void testValidInheritanceConfig() throws Exception {
-        DynamicConfigValidator testClass = new DynamicConfigValidator("src/test/resources/validator/valid");
+        DynamicConfigValidator testClass = new DynamicConfigValidator(new DefaultClassScanner(),
+                "src/test/resources/validator/valid");
+
         testClass.readConfigs();
         Table parent = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStats");
         Table child = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStatsChild");
@@ -50,7 +53,8 @@ public class DynamicConfigValidatorTest {
 
     @Test
     public void testValidNamespace() throws Exception {
-        DynamicConfigValidator testClass = new DynamicConfigValidator("src/test/resources/validator/valid");
+        DynamicConfigValidator testClass = new DynamicConfigValidator(new DefaultClassScanner(),
+                "src/test/resources/validator/valid");
         testClass.readConfigs();
         Table parent = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStats");
         Table child = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStatsChild");
@@ -408,7 +412,8 @@ public class DynamicConfigValidatorTest {
 
     @Test
     public void testDuplicateArgumentName() throws Exception {
-        DynamicConfigValidator testClass = new DynamicConfigValidator("src/test/resources/validator/valid");
+        DynamicConfigValidator testClass = new DynamicConfigValidator(new DefaultClassScanner(),
+                "src/test/resources/validator/valid");
         testClass.readConfigs();
         Table playerStatsTable = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStats");
 

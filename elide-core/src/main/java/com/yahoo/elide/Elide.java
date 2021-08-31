@@ -25,6 +25,7 @@ import com.yahoo.elide.core.exceptions.TimeoutException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
@@ -80,13 +81,26 @@ public class Elide {
     @Getter private final DataStore dataStore;
     @Getter private final JsonApiMapper mapper;
     @Getter private final TransactionRegistry transactionRegistry;
+    @Getter private final ClassScanner scanner;
+
     /**
      * Instantiates a new Elide instance.
      *
-     * @param elideSettings Elide settings object
+     * @param elideSettings Elide settings object.
      */
     public Elide(ElideSettings elideSettings) {
+        this(elideSettings, elideSettings.getDictionary().getScanner());
+    }
+
+    /**
+     * Instantiates a new Elide instance.
+     *
+     * @param elideSettings Elide settings object.
+     * @param scanner Scans classes for Elide annotations.
+     */
+    public Elide(ElideSettings elideSettings, ClassScanner scanner) {
         this.elideSettings = elideSettings;
+        this.scanner = scanner;
         this.auditLogger = elideSettings.getAuditLogger();
         this.dataStore = new InMemoryDataStore(elideSettings.getDataStore());
         this.dataStore.populateEntityDictionary(elideSettings.getDictionary());
@@ -144,7 +158,7 @@ public class Elide {
     }
 
     protected Set<Class<?>> registerCustomSerdeScan() {
-        return ClassScanner.getAnnotatedClasses(ElideTypeConverter.class);
+        return scanner.getAnnotatedClasses(ElideTypeConverter.class);
     }
 
     /**
