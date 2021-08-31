@@ -14,7 +14,9 @@ import com.yahoo.elide.core.type.Dynamic;
 import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.Type;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -176,5 +178,20 @@ public class TypeHelper {
             e.printStackTrace();
         }
         return (T) returnObject;
+    }
+
+    public static Map<String, Object> toMap(Object request) {
+        final Map<String, Object> map = new HashMap<>();
+        final ClassType<?> clz = ClassType.of(request.getClass());
+        final Field[] fields = clz.getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            try {
+                map.put(field.getName(), field.get(request));
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        return map;
     }
 }
