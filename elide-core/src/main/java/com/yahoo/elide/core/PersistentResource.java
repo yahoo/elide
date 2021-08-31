@@ -40,6 +40,7 @@ import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import com.yahoo.elide.core.security.visitors.CanPaginateVisitor;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.TypeHelper;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
@@ -426,7 +427,11 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         Object val = getValueUnchecked(fieldName);
         checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newVal, val);
         if (!Objects.equals(val, newVal)) {
-            this.setValueChecked(fieldName, newVal);
+            if (dictionary.isComplexAttribute(EntityDictionary.getType(obj), fieldName)) {
+                this.updateComplexAttribute(dictionary, fieldName, newVal, val, requestScope);
+            } else {
+                this.setValueChecked(fieldName, newVal);
+            }
             this.markDirty();
             //Hooks for customize logic for setAttribute/Relation
             if (dictionary.isAttribute(EntityDictionary.getType(obj), fieldName)) {
@@ -441,6 +446,27 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             return true;
         }
         return false;
+    }
+
+    private void updateComplexAttribute(EntityDictionary dictionary,
+                                        String fieldName,
+                                        Object update,
+                                        Object original,
+                                        RequestScope scope) {
+        final Map<String, Object> updateToMap = TypeHelper.toMap(update);
+        for (String field : updateToMap.keySet()) {
+            final Object newValue = updateToMap.get(field);
+            if (original != null) {
+                if (dictionary.isComplexAttribute(ClassType.of(original.getClass()), field)) {
+                    final Object newOriginal = dictionary.getValue(original, field, scope);
+                    updateComplexAttribute(dictionary, field, newValue, newOriginal, scope);
+                } else {
+                    dictionary.setValue(original, field, newValue);
+                }
+            } else {
+                this.setValueChecked(fieldName, update);
+            }
+        }
     }
 
     /**
@@ -1495,14 +1521,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         // should be explicitly encapsulated here, not there.
         checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newValue, existingValue);
 
-        final Object mergedValue;
-        if (existingValue != null) {
-            mergedValue = TypeHelper.merge(existingValue, newValue);
-        } else {
-            mergedValue = newValue;
-        }
-
-        setValue(fieldName, mergedValue);
+        setValue(fieldName, newValue);
     }
 
     /**
