@@ -285,6 +285,22 @@ public class EntityDictionary {
         );
     }
 
+    @Deprecated
+    public EntityDictionary(Map<String, Class<? extends Check>> checks,
+                            Map<String, UserCheck> roleChecks,
+                            Injector injector,
+                            Function<Class, Serde> serdeLookup,
+                            Set<Type<?>> entitiesToExclude) {
+        this(
+                checks,
+                roleChecks,
+                injector,
+                serdeLookup,
+                entitiesToExclude,
+                DefaultClassScanner.getInstance()
+        );
+    }
+
     @Builder
     public EntityDictionary(Map<String, Class<? extends Check>> checks,
                             Map<String, UserCheck> roleChecks,
