@@ -44,7 +44,6 @@ import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
-
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -65,7 +64,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
-
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
@@ -487,15 +485,18 @@ public interface ElideStandaloneSettings {
 
     /**
      * Gets the metadatastore for elide.
+     * @param scanner Class scanner.
      * @param dynamicConfiguration optional dynamic config object.
      * @return MetaDataStore object initialized.
      */
-    default MetaDataStore getMetaDataStore(Optional<DynamicConfiguration> dynamicConfiguration) {
+    default MetaDataStore getMetaDataStore(ClassScanner scanner,
+            Optional<DynamicConfiguration> dynamicConfiguration) {
         boolean enableMetaDataStore = getAnalyticProperties().enableMetaDataStore();
 
         return dynamicConfiguration
-                .map(dc -> new MetaDataStore(dc.getTables(), dc.getNamespaceConfigurations(), enableMetaDataStore))
-                .orElseGet(() -> new MetaDataStore(enableMetaDataStore));
+                .map(dc -> new MetaDataStore(scanner, dc.getTables(),
+                        dc.getNamespaceConfigurations(), enableMetaDataStore))
+                .orElseGet(() -> new MetaDataStore(scanner, enableMetaDataStore));
     }
 
     /**

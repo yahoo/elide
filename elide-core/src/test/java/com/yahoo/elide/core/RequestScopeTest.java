@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Id;

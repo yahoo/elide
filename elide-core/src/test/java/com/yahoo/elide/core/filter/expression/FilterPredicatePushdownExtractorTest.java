@@ -22,7 +22,6 @@ import example.Publisher;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.Optional;
 
 public class FilterPredicatePushdownExtractorTest {

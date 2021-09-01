@@ -6,10 +6,9 @@
 package example.models;
 
 import com.yahoo.elide.annotation.Include;
-
 import io.swagger.annotations.ApiModelProperty;
-import java.util.Set;
 
+import java.util.Set;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 

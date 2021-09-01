@@ -10,13 +10,11 @@ import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.hibernate.JPQLTransaction;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.datastores.hibernate5.porting.SessionWrapper;
-
 import org.hibernate.FlushMode;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.collection.internal.AbstractPersistentCollection;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -24,7 +22,6 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.function.Predicate;
-
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceException;
 

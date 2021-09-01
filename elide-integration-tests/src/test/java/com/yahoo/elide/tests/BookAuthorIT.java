@@ -24,8 +24,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-
 public class BookAuthorIT extends IntegrationTest {
 
     private static final String ATTRIBUTES = "attributes";

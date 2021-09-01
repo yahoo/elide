@@ -27,7 +27,6 @@ import example.dimensions.Country;
 import example.dimensions.SubCountry;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import javax.sql.DataSource;
@@ -51,7 +50,7 @@ public class SubqueryFilterSplitterTest {
 
         models.stream().forEach(dictionary::bindEntity);
 
-        metaDataStore = new MetaDataStore(models, true);
+        metaDataStore = new MetaDataStore(dictionary.getScanner(), models, true);
         metaDataStore.populateEntityDictionary(dictionary);
 
         DataSource mockDataSource = mock(DataSource.class);

@@ -6,10 +6,8 @@
 package com.yahoo.elide.test.graphql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
-
 import org.junit.jupiter.api.Test;
 
 public class GraphQLDSLTest {

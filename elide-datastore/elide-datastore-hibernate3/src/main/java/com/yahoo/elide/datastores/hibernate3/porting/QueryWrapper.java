@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.hibernate3.porting;
 
 import com.yahoo.elide.core.hibernate.Query;
 import com.yahoo.elide.datastores.hibernate3.ScrollableIterator;
-
 import lombok.Getter;
 
 import java.util.Collection;

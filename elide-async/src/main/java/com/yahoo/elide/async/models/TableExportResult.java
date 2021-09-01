@@ -9,7 +9,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.net.URL;
-
 import javax.persistence.Embeddable;
 import javax.persistence.Lob;
 

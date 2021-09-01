@@ -75,7 +75,9 @@ public class InMemoryStoreTransactionTest {
         dictionary.bindEntity(Editor.class);
         dictionary.bindEntity(Publisher.class);
 
-        elideSettings = new ElideSettingsBuilder(null).build();
+        elideSettings = new ElideSettingsBuilder(null)
+                .withEntityDictionary(EntityDictionary.builder().build())
+                .build();
 
         author1 = new Author();
         Address address1 = new Address();

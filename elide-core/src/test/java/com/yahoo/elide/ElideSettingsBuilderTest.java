@@ -8,6 +8,7 @@ package com.yahoo.elide;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.utils.coerce.converters.InstantSerde;
 import com.yahoo.elide.core.utils.coerce.converters.OffsetDateTimeSerde;
 import com.yahoo.elide.core.utils.coerce.converters.Serde;
@@ -33,7 +34,7 @@ class ElideSettingsBuilderTest {
 
     @BeforeEach
     public void setUp() {
-        testInstance = new ElideSettingsBuilder(dataStore);
+        testInstance = new ElideSettingsBuilder(dataStore).withEntityDictionary(EntityDictionary.builder().build());
     }
 
     @Test

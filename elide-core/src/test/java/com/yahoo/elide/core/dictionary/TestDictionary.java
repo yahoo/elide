@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.core.dictionary;
 
-import static org.mockito.Mockito.mock;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.DefaultClassScanner;

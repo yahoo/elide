@@ -20,7 +20,6 @@ import example.Book;
 import example.Chapter;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.function.Function;
 
 public class HasMemberJPQLGeneratorTest {

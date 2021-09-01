@@ -46,7 +46,7 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
 
     @BeforeAll
     public static void init() {
-        MetaDataStore metaDataStore = new MetaDataStore(
+        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(),
                 getClassType(dictionary.getScanner().getAnnotatedClasses("example",
                         Include.class)),
                 false);

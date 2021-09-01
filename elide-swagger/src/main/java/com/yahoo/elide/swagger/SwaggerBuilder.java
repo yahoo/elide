@@ -6,7 +6,6 @@
 package com.yahoo.elide.swagger;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
-
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.filter.Operator;
@@ -16,7 +15,6 @@ import com.yahoo.elide.swagger.model.Data;
 import com.yahoo.elide.swagger.model.Datum;
 import com.yahoo.elide.swagger.property.Relationship;
 import com.google.common.collect.Sets;
-
 import io.swagger.converter.ModelConverter;
 import io.swagger.converter.ModelConverterContextImpl;
 import io.swagger.converter.ModelConverters;

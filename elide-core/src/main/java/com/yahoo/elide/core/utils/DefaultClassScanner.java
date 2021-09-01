@@ -41,17 +41,29 @@ public class DefaultClassScanner implements ClassScanner {
             "javax.persistence.Table"
     };
 
-    private final Map<String, Set<Class<?>>> STARTUP_CACHE = new HashMap<>();
+    private final Map<String, Set<Class<?>>> startupCache;
 
     /**
      * Primarily for tests so builds don't take forever.
      */
     private static DefaultClassScanner _instance;
 
+    /**
+     * For use within a container where class scanning happens at compile time.
+     * @param startupCache Maps annotations (in CACHE_ANNOTATIONS) to classes.
+     */
+    public DefaultClassScanner(Map<String, Set<Class<?>>> startupCache) {
+        this.startupCache = startupCache;
+    }
+
+    /**
+     * For use within a container where class scanning happens at boot time.
+     */
     public DefaultClassScanner() {
+        this.startupCache = new HashMap<>();
         try (ScanResult scanResult = new ClassGraph().enableClassInfo().enableAnnotationInfo().scan()) {
             for (String annotationName : CACHE_ANNOTATIONS) {
-                STARTUP_CACHE.put(annotationName, scanResult.getClassesWithAnnotation(annotationName)
+                startupCache.put(annotationName, scanResult.getClassesWithAnnotation(annotationName)
                         .stream()
                         .map(ClassInfo::loadClass)
                         .collect(Collectors.toSet()));
@@ -67,7 +79,7 @@ public class DefaultClassScanner implements ClassScanner {
 
     @Override
     public Set<Class<?>> getAnnotatedClasses(String packageName, Class<? extends Annotation> annotation) {
-        return STARTUP_CACHE.get(annotation.getCanonicalName()).stream()
+        return startupCache.get(annotation.getCanonicalName()).stream()
                 .filter(clazz ->
                         clazz.getPackage().getName().equals(packageName)
                                 || clazz.getPackage().getName().startsWith(packageName + "."))
@@ -80,7 +92,7 @@ public class DefaultClassScanner implements ClassScanner {
         Set<Class<?>> result = new HashSet<>();
 
         for (Class<? extends Annotation> annotation : annotations) {
-            result.addAll(STARTUP_CACHE.get(annotation.getCanonicalName()).stream()
+            result.addAll(startupCache.get(annotation.getCanonicalName()).stream()
                     .filter(filter::include)
                     .collect(Collectors.toSet()));
         }

@@ -21,7 +21,6 @@ import com.yahoo.elide.core.type.ClassType;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.function.Function;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;

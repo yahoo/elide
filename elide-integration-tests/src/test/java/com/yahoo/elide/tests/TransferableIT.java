@@ -29,8 +29,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import io.restassured.response.Response;
 
-import java.util.HashMap;
-
 /**
  * @NonTransferable annotation integration tests
  */

@@ -7,7 +7,6 @@
 package com.yahoo.elide.test.jsonapi.elements;
 
 import com.google.gson.annotations.Expose;
-
 import lombok.Getter;
 
 /**

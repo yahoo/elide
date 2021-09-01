@@ -21,7 +21,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.hibernate.Session;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 import javax.persistence.EntityManager;

@@ -11,22 +11,18 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.swagger.model.Resource;
 import com.yahoo.elide.swagger.property.Data;
 import com.yahoo.elide.swagger.property.Datum;
 import com.yahoo.elide.swagger.property.Relationship;
-
 import example.models.Author;
 import example.models.Book;
 import example.models.Publisher;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-
 import io.swagger.models.Info;
 import io.swagger.models.Model;
 import io.swagger.models.Operation;
@@ -50,7 +46,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 

@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import graphql.schema.GraphQLScalarType;
 
 import java.time.OffsetDateTime;
-import java.util.HashMap;
 import java.util.TimeZone;
 
 public class GraphQLConversionUtilsTest {

@@ -92,8 +92,7 @@ public class MetaDataStore implements DataStore {
     public MetaDataStore(
             ClassScanner scanner,
             Collection<com.yahoo.elide.modelconfig.model.Table> tables,
-            boolean enableMetaDataStore)
-    {
+            boolean enableMetaDataStore) {
         this(scanner, tables, new HashSet<>(), enableMetaDataStore);
     }
 
@@ -211,7 +210,7 @@ public class MetaDataStore implements DataStore {
         modelsToBind.forEach(cls -> {
             String version = EntityDictionary.getModelVersion(cls);
             HashMapDataStore hashMapDataStore = hashMapDataStores.computeIfAbsent(version,
-                    getHashMapDataStoreInitializer());
+                    getHashMapDataStoreInitializer(scanner));
             hashMapDataStore.getDictionary().bindEntity(cls, Collections.singleton(Join.class));
             this.metadataDictionary.bindEntity(cls, Collections.singleton(Join.class));
             this.hashMapDataStores.putIfAbsent(version, hashMapDataStore);

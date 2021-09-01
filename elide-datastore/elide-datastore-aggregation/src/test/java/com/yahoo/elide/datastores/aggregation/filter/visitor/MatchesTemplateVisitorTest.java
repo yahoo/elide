@@ -18,8 +18,6 @@ import example.PlayerStats;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-
 public class MatchesTemplateVisitorTest {
     private RSQLFilterDialect dialect;
     private Type<?> playerStatsType = ClassType.of(PlayerStats.class);

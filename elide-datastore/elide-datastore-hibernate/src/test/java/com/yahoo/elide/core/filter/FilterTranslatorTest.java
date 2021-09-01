@@ -19,7 +19,6 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.filter.predicates.NotEmptyPredicate;
 import com.yahoo.elide.core.type.ClassType;
-
 import example.Author;
 import example.Book;
 import org.junit.jupiter.api.Test;

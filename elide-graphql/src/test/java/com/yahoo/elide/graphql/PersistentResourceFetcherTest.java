@@ -85,7 +85,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         hashMapDataStore = new HashMapDataStore(DefaultClassScanner.getInstance(), Author.class.getPackage());
 
         inMemoryDataStore = new InMemoryDataStore(
-                new HashMapDataStore(Author.class.getPackage())
+                new HashMapDataStore(DefaultClassScanner.getInstance(), Author.class.getPackage())
         );
 
         inMemoryDataStore.populateEntityDictionary(dictionary);

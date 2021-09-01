@@ -7,17 +7,14 @@ package com.yahoo.elide.swagger;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
-
 import example.models.Author;
 import example.models.Book;
 import example.models.Publisher;
 import example.models.versioned.BookV2;
-
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
-
 import io.swagger.models.Info;
 import io.swagger.models.Swagger;
 

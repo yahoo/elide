@@ -21,9 +21,6 @@ import example.dimensions.SubCountry;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-import java.util.HashSet;
-
 public class MetaDataStoreTest {
     private static ClassScanner scanner = DefaultClassScanner.getInstance();
     private static MetaDataStore dataStore = new MetaDataStore(scanner,

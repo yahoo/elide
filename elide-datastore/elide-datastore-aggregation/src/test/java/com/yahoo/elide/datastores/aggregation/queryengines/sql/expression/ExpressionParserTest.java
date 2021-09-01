@@ -26,7 +26,6 @@ import example.dimensions.Country;
 import example.dimensions.SubCountry;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -52,7 +51,7 @@ public class ExpressionParserTest {
 
         models.stream().forEach(dictionary::bindEntity);
 
-        metaDataStore = new MetaDataStore(models, true);
+        metaDataStore = new MetaDataStore(dictionary.getScanner(), models, true);
         metaDataStore.populateEntityDictionary(dictionary);
 
         DataSource mockDataSource = mock(DataSource.class);

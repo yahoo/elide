@@ -42,7 +42,6 @@ import lombok.Data;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 
 public class EmbeddedIdIT extends GraphQLIntegrationTest {
 

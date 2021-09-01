@@ -18,8 +18,6 @@ import example.Publisher;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-
 public class InMemoryExecutionVerifierTest {
 
     private static EntityDictionary dictionary;

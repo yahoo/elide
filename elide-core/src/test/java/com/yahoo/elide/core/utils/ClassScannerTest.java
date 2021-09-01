@@ -8,7 +8,6 @@ package com.yahoo.elide.core.utils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.annotation.Include;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -25,7 +24,7 @@ public class ClassScannerTest {
     @Test
     public void testGetAllClasses() {
         Set<Class<?>> classes = scanner.getAllClasses("com.yahoo.elide.core.utils");
-        assertEquals(31, classes.size());
+        assertEquals(32, classes.size());
         assertTrue(classes.contains(ClassScannerTest.class));
     }
 

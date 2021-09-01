@@ -38,7 +38,6 @@ import com.yahoo.elide.core.exceptions.InvalidAttributeException;
 import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.security.checks.Check;
-import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.checks.prefab.Collections.AppendOnly;
 import com.yahoo.elide.core.security.checks.prefab.Collections.RemoveOnly;
@@ -67,7 +66,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
@@ -111,7 +109,9 @@ public class EntityDictionary {
     public static final String ELIDE_PACKAGE_PREFIX = "com.yahoo.elide";
     public static final String NO_VERSION = "";
 
-    public static final Injector DEFAULT_INJECTOR = (noop) -> {};
+    public static final Injector DEFAULT_INJECTOR = (noop) -> {
+        //NOOP
+    };
     private static final Map<Class<?>, Type<?>> TYPE_MAP = new ConcurrentHashMap<>();
 
     protected final ConcurrentHashMap<Pair<String, String>, Type<?>> bindJsonApiToEntity = new ConcurrentHashMap<>();
@@ -295,11 +295,11 @@ public class EntityDictionary {
         this.scanner = scanner;
         this.serdeLookup = serdeLookup;
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
-        this.roleChecks = roleChecks == null ? new HashMap<>() : roleChecks;
+        this.roleChecks = roleChecks == null ? new HashMap<>() : new HashMap<>(roleChecks);
         this.apiVersions = new HashSet<>();
         initializeChecks();
         this.injector = injector;
-        this.entitiesToExclude = entitiesToExclude;
+        this.entitiesToExclude = new HashSet<>(entitiesToExclude);
     }
 
     private void initializeChecks() {

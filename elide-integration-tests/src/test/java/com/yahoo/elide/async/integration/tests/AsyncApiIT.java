@@ -25,15 +25,12 @@ import com.yahoo.elide.test.jsonapi.elements.Resource;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import org.junit.jupiter.api.BeforeEach;
-
 import io.restassured.response.Response;
 import lombok.Getter;
 
 import java.util.Map;
 import java.util.concurrent.Executors;
-
 import javax.ws.rs.core.MediaType;
 
 /**

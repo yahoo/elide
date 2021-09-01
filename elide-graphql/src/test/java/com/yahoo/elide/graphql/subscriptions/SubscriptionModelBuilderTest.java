@@ -28,8 +28,6 @@ import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 
-import java.util.Collections;
-
 public class SubscriptionModelBuilderTest {
     private EntityDictionary dictionary;
 

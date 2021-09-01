@@ -6,7 +6,6 @@
 package example;
 
 import com.yahoo.elide.annotation.Include;
-
 import lombok.Data;
 
 import java.math.BigDecimal;

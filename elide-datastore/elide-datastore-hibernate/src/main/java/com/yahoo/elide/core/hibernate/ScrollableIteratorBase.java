@@ -7,7 +7,6 @@ package com.yahoo.elide.core.hibernate;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
-
 import lombok.NonNull;
 
 import java.util.ConcurrentModificationException;

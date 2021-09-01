@@ -56,7 +56,7 @@ public class ColumnContextTest {
 
         models.stream().forEach(dictionary::bindEntity);
 
-        metaDataStore = new MetaDataStore(models, true);
+        metaDataStore = new MetaDataStore(dictionary.getScanner(), models, true);
         metaDataStore.populateEntityDictionary(dictionary);
 
         DataSource mockDataSource = mock(DataSource.class);
