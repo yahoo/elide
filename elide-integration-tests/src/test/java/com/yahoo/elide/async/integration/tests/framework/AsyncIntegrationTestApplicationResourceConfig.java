@@ -82,7 +82,8 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
         register(new AbstractBinder() {
             @Override
             protected void configure() {
-                EntityDictionary dictionary = new EntityDictionary(MAPPINGS, injector::inject);
+                EntityDictionary dictionary = EntityDictionary.builder()
+                        .injector(injector::inject).checks(MAPPINGS).build();
 
                 bind(dictionary).to(EntityDictionary.class);
 

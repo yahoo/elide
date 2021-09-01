@@ -33,6 +33,7 @@ import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.core.utils.coerce.converters.ISO8601DateSerde;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -93,7 +94,14 @@ public class EntityDictionaryTest extends EntityDictionary {
     }
 
     public EntityDictionaryTest() {
-        super(Collections.emptyMap(), mock(Injector.class));
+        super(
+                Collections.emptyMap(), //checks
+                Collections.emptyMap(), //role Checks
+                mock(Injector.class),
+                CoerceUtil::lookup,
+                Collections.emptySet(),
+                DefaultClassScanner.getInstance()
+        );
         init();
     }
 
@@ -159,7 +167,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testBindingNoExcludeSet() {
 
-        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), Collections.emptySet());
+        EntityDictionary testDictionary = EntityDictionary.builder().build();
         testDictionary.bindEntity(Employee.class);
         // Finds the Binding
         assertNotNull(testDictionary.entityBindings.get(ClassType.of(Employee.class)));
@@ -170,7 +178,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         Set<Type<?>> entitiesToExclude = new HashSet<>();
         entitiesToExclude.add(ClassType.of(Employee.class));
 
-        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), entitiesToExclude);
+        EntityDictionary testDictionary = EntityDictionary.builder().entitiesToExclude(entitiesToExclude).build();
         testDictionary.bindEntity(Employee.class);
         // Does not find the Binding
         assertNull(testDictionary.entityBindings.get(ClassType.of(Employee.class)));
@@ -182,7 +190,7 @@ public class EntityDictionaryTest extends EntityDictionary {
         Set<Type<?>> entitiesToExclude = new HashSet<>();
         entitiesToExclude.add(ClassType.of(Employee.class));
 
-        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), entitiesToExclude);
+        EntityDictionary testDictionary = EntityDictionary.builder().entitiesToExclude(entitiesToExclude).build();
         testDictionary.bindEntity(new EntityBinding(testDictionary.getInjector(),
                 ClassType.of(Employee.class), "employee"));
         // Does not find the Binding
@@ -214,12 +222,14 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testCheckInjection() {
-        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>(), new Injector() {
-            @Override
-            public void inject(Object entity) {
-                ((Foo) entity).testLong = 123L;
-            }
-        });
+        EntityDictionary testDictionary = EntityDictionary.builder()
+                .injector(new Injector() {
+                    @Override
+                    public void inject(Object entity) {
+                        ((Foo) entity).testLong = 123L;
+                    }
+                })
+                .build();
         testDictionary.scanForSecurityChecks();
 
         assertEquals("Filter Expression Injection Test", testDictionary.getCheckIdentifier(Foo.class));

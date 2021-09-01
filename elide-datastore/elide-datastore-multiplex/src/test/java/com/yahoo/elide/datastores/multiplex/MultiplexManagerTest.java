@@ -149,10 +149,7 @@ public class MultiplexManagerTest {
         final QueryDictionaryDataStore ds1 = new QueryDictionaryDataStore();
         final MultiplexManager multiplexManager = new MultiplexManager(ds1);
         multiplexManager.populateEntityDictionary(
-            new EntityDictionary(
-                new HashMap<>(),
-                injector
-            )
+                EntityDictionary.builder().injector(injector).build()
         );
         assertEquals(
             ds1.getDictionary().getInjector(),

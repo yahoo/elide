@@ -2440,7 +2440,7 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void elideSecurityEnabled() {
         Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
-                .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
+                .withEntityDictionary(EntityDictionary.builder().checks(TestCheckMappings.MAPPINGS).build())
                 .withAuditLogger(new TestAuditLogger())
                 .build());
 

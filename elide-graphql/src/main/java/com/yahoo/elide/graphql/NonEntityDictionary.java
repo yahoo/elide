@@ -39,7 +39,7 @@ public class NonEntityDictionary extends EntityDictionary {
         super(
                 Collections.emptyMap(), //Checks
                 Collections.emptyMap(), //Role checks
-                null, //Injector - unused
+                DEFAULT_INJECTOR,
                 serdeLookup,
                 Collections.emptySet(), //Entity excludes
                 scanner);

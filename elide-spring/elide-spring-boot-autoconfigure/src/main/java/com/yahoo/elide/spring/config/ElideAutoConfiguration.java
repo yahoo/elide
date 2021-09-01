@@ -269,6 +269,7 @@ public class ElideAutoConfiguration {
     public QueryEngine buildQueryEngine(DataSource defaultDataSource,
                                         @Autowired(required = false) DynamicConfiguration dynamicConfig,
                                         ElideConfigProperties settings,
+                                        ClassScanner scanner,
                                         DataSourceConfiguration dataSourceConfiguration,
                                         DBPasswordExtractor dbPasswordExtractor) throws ClassNotFoundException {
 
@@ -276,7 +277,7 @@ public class ElideAutoConfiguration {
         ConnectionDetails defaultConnectionDetails = new ConnectionDetails(defaultDataSource,
                         SQLDialectFactory.getDialect(settings.getAggregationStore().getDefaultDialect()));
         if (isDynamicConfigEnabled(settings)) {
-            MetaDataStore metaDataStore = new MetaDataStore(dynamicConfig.getTables(),
+            MetaDataStore metaDataStore = new MetaDataStore(scanner, dynamicConfig.getTables(),
                     dynamicConfig.getNamespaceConfigurations(), enableMetaDataStore);
             Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
 
@@ -291,7 +292,7 @@ public class ElideAutoConfiguration {
                     new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore))),
                     new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
         }
-        MetaDataStore metaDataStore = new MetaDataStore(enableMetaDataStore);
+        MetaDataStore metaDataStore = new MetaDataStore(scanner, enableMetaDataStore);
         return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
     }
 
