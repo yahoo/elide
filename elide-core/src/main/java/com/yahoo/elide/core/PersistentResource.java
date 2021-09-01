@@ -42,7 +42,6 @@ import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import com.yahoo.elide.core.security.visitors.CanPaginateVisitor;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.core.utils.TypeHelper;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
@@ -428,7 +427,11 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newVal, val);
         if (!Objects.equals(val, newVal)) {
             if (dictionary.isComplexAttribute(EntityDictionary.getType(obj), fieldName)) {
-                this.updateComplexAttribute(dictionary, fieldName, newVal, val, requestScope);
+                if (newVal instanceof Map) {
+                    this.updateComplexAttribute(dictionary, fieldName, newVal, val, requestScope);
+                } else {
+                    this.setValueChecked(fieldName, newVal);
+                }
             } else {
                 this.setValueChecked(fieldName, newVal);
             }
@@ -453,9 +456,9 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                                         Object update,
                                         Object original,
                                         RequestScope scope) {
-        final Map<String, Object> updateToMap = TypeHelper.toMap(update);
-        for (String field : updateToMap.keySet()) {
-            final Object newValue = updateToMap.get(field);
+        final Map<String, Object> updateMap = (Map<String, Object>) update;
+        for (String field : updateMap.keySet()) {
+            final Object newValue = updateMap.get(field);
             if (original != null) {
                 if (dictionary.isComplexAttribute(ClassType.of(original.getClass()), field)) {
                     final Object newOriginal = dictionary.getValue(original, field, scope);
