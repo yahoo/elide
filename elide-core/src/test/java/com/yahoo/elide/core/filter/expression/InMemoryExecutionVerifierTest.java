@@ -26,7 +26,7 @@ public class InMemoryExecutionVerifierTest {
 
     @BeforeAll
     public static void init() {
-        dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Editor.class);

@@ -58,7 +58,7 @@ public class JoinExpressionExtractorTest {
         models.add(ClassType.of(JoinTable.class));
         models.add(ClassType.of(JoinJoinTable.class));
 
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
 
         models.stream().forEach(dictionary::bindEntity);
 

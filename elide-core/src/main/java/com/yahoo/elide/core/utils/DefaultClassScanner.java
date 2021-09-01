@@ -43,6 +43,11 @@ public class DefaultClassScanner implements ClassScanner {
 
     private final Map<String, Set<Class<?>>> STARTUP_CACHE = new HashMap<>();
 
+    /**
+     * Primarily for tests so builds don't take forever.
+     */
+    private static DefaultClassScanner _instance;
+
     public DefaultClassScanner() {
         try (ScanResult scanResult = new ClassGraph().enableClassInfo().enableAnnotationInfo().scan()) {
             for (String annotationName : CACHE_ANNOTATIONS) {
@@ -101,5 +106,17 @@ public class DefaultClassScanner implements ClassScanner {
                     .map((ClassInfo::loadClass))
                     .collect(Collectors.toSet());
         }
+    }
+
+    /**
+     * Primarily for tests to only create a single instance of this to reduce build times.  Production code
+     * will use DI to accomplish the same.
+     * @return The single instance.
+     */
+    public static synchronized DefaultClassScanner getInstance() {
+        if (_instance == null) {
+            _instance = new DefaultClassScanner();
+        }
+        return _instance;
     }
 }

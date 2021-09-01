@@ -12,11 +12,17 @@ import static org.mockito.Mockito.when;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import example.Address;
 import example.Author;
 import example.Book;
@@ -40,7 +46,14 @@ public class OperatorTest {
 
     public static class TestEntityDictionary extends EntityDictionary {
         public TestEntityDictionary(Map<String, Class<? extends Check>> checks) {
-            super(checks);
+            super(
+                    checks,
+                    Collections.emptyMap(),  //role checks
+                    EntityDictionary.DEFAULT_INJECTOR,
+                    CoerceUtil::lookup,
+                    Collections.emptySet(),  //excluded entities
+                    DefaultClassScanner.getInstance()
+            );
         }
 
         @Override

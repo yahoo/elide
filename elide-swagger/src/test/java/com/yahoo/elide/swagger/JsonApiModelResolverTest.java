@@ -14,7 +14,6 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.swagger.model.Resource;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import example.models.Author;
 import example.models.Book;
 import example.models.Publisher;
@@ -46,7 +45,7 @@ public class JsonApiModelResolverTest {
 
     @BeforeAll
     public void setup() {
-        EntityDictionary dictionary = new EntityDictionary(Maps.newHashMap());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
 
         dictionary.bindEntity(ENTITIES.get(KEY_BOOK));
         dictionary.bindEntity(ENTITIES.get(KEY_PUBLISHER));

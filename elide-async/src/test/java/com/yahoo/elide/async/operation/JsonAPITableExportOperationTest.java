@@ -30,6 +30,7 @@ import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +58,7 @@ public class JsonAPITableExportOperationTest {
 
     @BeforeEach
     public void setupMocks(@TempDir Path tempDir) {
-        dataStore = new HashMapDataStore(
+        dataStore = new HashMapDataStore(DefaultClassScanner.getInstance(),
                         new HashSet<>(Arrays.asList(TableExport.class.getPackage(), ArtifactGroup.class.getPackage())));
         Map<String, Class<? extends Check>> map = new HashMap<>();
         map.put(AsyncAPIInlineChecks.AsyncAPIOwner.PRINCIPAL_IS_OWNER,
@@ -71,7 +72,7 @@ public class JsonAPITableExportOperationTest {
 
         elide = new Elide(
                     new ElideSettingsBuilder(dataStore)
-                        .withEntityDictionary(new EntityDictionary(map))
+                        .withEntityDictionary(EntityDictionary.builder().checks(map).build())
                         .withAuditLogger(new Slf4jLogger())
                         .withExportApiPath("/export")
                         .build());

@@ -69,7 +69,7 @@ public class SQLColumnProjectionTest {
         models.add(ClassType.of(TableA.class));
         models.add(ClassType.of(TableB.class));
 
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
 
         models.stream().forEach(dictionary::bindEntity);
 

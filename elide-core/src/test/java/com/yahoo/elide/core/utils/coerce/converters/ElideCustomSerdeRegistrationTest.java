@@ -11,6 +11,7 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +43,7 @@ public class ElideCustomSerdeRegistrationTest {
     public void testRegisterCustomSerde() {
 
         //Create a fake Elide.  Don't actually bind any entities.
-        HashMapDataStore wrapped = new HashMapDataStore(String.class.getPackage());
+        HashMapDataStore wrapped = new HashMapDataStore(DefaultClassScanner.getInstance(), String.class.getPackage());
         InMemoryDataStore store = new InMemoryDataStore(wrapped);
         ElideSettings elideSettings = new ElideSettingsBuilder(store).build();
         new Elide(elideSettings);

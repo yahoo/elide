@@ -19,7 +19,6 @@ import com.yahoo.elide.swagger.property.Data;
 import com.yahoo.elide.swagger.property.Datum;
 import com.yahoo.elide.swagger.property.Relationship;
 
-import com.google.common.collect.Maps;
 import example.models.Author;
 import example.models.Book;
 import example.models.Publisher;
@@ -62,7 +61,7 @@ public class SwaggerBuilderTest {
 
     @BeforeAll
     public void setup() {
-        dictionary = new EntityDictionary(Maps.newHashMap());
+        dictionary = EntityDictionary.builder().build();
 
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
@@ -576,7 +575,7 @@ public class SwaggerBuilderTest {
             @Id
             long name;
         }
-        EntityDictionary entityDictionary = new EntityDictionary(Maps.newHashMap());
+        EntityDictionary entityDictionary = EntityDictionary.builder().build();
 
         entityDictionary.bindEntity(NothingToSort.class);
         Info info = new Info().title("Test Service").version(NO_VERSION);

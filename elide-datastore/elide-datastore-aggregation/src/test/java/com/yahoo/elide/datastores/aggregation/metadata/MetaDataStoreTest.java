@@ -25,13 +25,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 public class MetaDataStoreTest {
-    private static ClassScanner scanner = new DefaultClassScanner();
+    private static ClassScanner scanner = DefaultClassScanner.getInstance();
     private static MetaDataStore dataStore = new MetaDataStore(
                     getClassType(scanner.getAllClasses("example")), true);
 
     @BeforeAll
     public static void setup() {
-        EntityDictionary dictionary = new EntityDictionary(scanner, new HashMap<>(), new HashSet<>());
+        EntityDictionary dictionary = new EntityDictionary(new HashMap<>(), new HashSet<>());
         dictionary.bindEntity(PlayerStatsWithView.class);
         dictionary.bindEntity(PlayerStatsView.class);
         dictionary.bindEntity(PlayerStats.class);

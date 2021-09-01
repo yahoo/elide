@@ -52,7 +52,7 @@ public class DependencyBinder extends ResourceConfig {
                         emf::createEntityManager,
                         em -> new NonJtaTransaction(em, txCancel));
 
-                EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+                EntityDictionary dictionary = EntityDictionary.builder().build();
 
                 DataStore searchStore = new SearchDataStore(jpaStore, emf, indexOnStartup, 3, 50);
                 jpaStore.populateEntityDictionary(dictionary);

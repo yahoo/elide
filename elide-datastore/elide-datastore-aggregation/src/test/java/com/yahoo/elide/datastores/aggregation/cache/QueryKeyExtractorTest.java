@@ -35,7 +35,7 @@ public class QueryKeyExtractorTest {
     @BeforeAll
     public static void init() {
         SQLUnitTest.init();
-        dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(PlayerStats.class);
 
         Namespace namespace = new Namespace(DEFAULT_NAMESPACE);

@@ -1132,7 +1132,8 @@ public class TableExportIT extends AsyncApiIT {
         queryObj.setQueryType(QueryType.JSONAPI_V1_0);
         queryObj.setPrincipalName("owner-user");
 
-        EntityDictionary dictionary = new EntityDictionary(AsyncIntegrationTestApplicationResourceConfig.MAPPINGS);
+        EntityDictionary dictionary = EntityDictionary.builder()
+                .checks(AsyncIntegrationTestApplicationResourceConfig.MAPPINGS).build();
         dataStore.populateEntityDictionary(dictionary);
         DataStoreTransaction tx = dataStore.beginTransaction();
         tx.createObject(queryObj, null);

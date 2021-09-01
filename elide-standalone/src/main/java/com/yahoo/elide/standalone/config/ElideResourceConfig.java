@@ -120,7 +120,7 @@ public class ElideResourceConfig extends ResourceConfig {
                         settings.getModelPackageName(),
                         asyncProperties.enabled(), settings.getDatabaseProperties());
 
-                EntityDictionary dictionary = settings.getEntityDictionary(injector, dynamicConfiguration,
+                EntityDictionary dictionary = settings.getEntityDictionary(injector, classScanner, dynamicConfiguration,
                         settings.getEntitiesToExclude());
 
                 DataStore dataStore;

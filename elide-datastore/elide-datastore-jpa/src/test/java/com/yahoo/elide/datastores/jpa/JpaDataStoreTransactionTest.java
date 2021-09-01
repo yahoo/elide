@@ -121,9 +121,9 @@ public class JpaDataStoreTransactionTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     public void testNoDelegationOnCollectionOfOneFetch(boolean delegateToInMemory) throws Exception {
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
 
-        JpaDataStoreHarness harness = new JpaDataStoreHarness(dictionary.getScanner(), DEFAULT_LOGGER, delegateToInMemory);
+        JpaDataStoreHarness harness = new JpaDataStoreHarness(DEFAULT_LOGGER, delegateToInMemory);
         DataStore store = harness.getDataStore();
         store.populateEntityDictionary(dictionary);
 

@@ -56,7 +56,7 @@ public class SubscriptionModelBuilderTest {
     private static final String FIELD_TYPE = "type";
 
     public SubscriptionModelBuilderTest() {
-        dictionary = new EntityDictionary(Collections.emptyMap());
+        dictionary = EntityDictionary.builder().build();
 
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);

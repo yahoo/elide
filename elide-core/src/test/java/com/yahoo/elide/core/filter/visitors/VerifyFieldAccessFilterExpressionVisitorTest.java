@@ -59,7 +59,7 @@ public class VerifyFieldAccessFilterExpressionVisitorTest {
         scope = mock(RequestScope.class);
         PermissionExecutor permissionExecutor = mock(PermissionExecutor.class);
         DataStoreTransaction transaction = mock(DataStoreTransaction.class);
-        EntityDictionary dictionary = new EntityDictionary(Collections.emptyMap());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
 

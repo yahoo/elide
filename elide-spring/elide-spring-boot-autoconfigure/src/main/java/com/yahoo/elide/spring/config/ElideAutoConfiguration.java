@@ -15,11 +15,15 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.core.utils.coerce.converters.Serde;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -214,11 +218,15 @@ public class ElideAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public EntityDictionary buildDictionary(AutowireCapableBeanFactory beanFactory,
+                                            ClassScanner scanner,
                                             @Autowired(required = false) DynamicConfiguration dynamicConfig,
                                             ElideConfigProperties settings,
                                             @Qualifier("entitiesToExclude") Set<Type<?>> entitiesToExclude)
             throws ClassNotFoundException {
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>(),
+
+        EntityDictionary dictionary = new EntityDictionary(
+                new HashMap<>(), //Checks
+                new HashMap<>(), //Role Checks
                 new Injector() {
                     @Override
                     public void inject(Object entity) {
@@ -229,7 +237,10 @@ public class ElideAutoConfiguration {
                     public <T> T instantiate(Class<T> cls) {
                         return beanFactory.createBean(cls);
                     }
-                }, entitiesToExclude);
+                },
+                CoerceUtil::lookup, //Serde Lookup
+                entitiesToExclude,
+                scanner);
 
         dictionary.scanForSecurityChecks();
 

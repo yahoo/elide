@@ -32,7 +32,7 @@ public class NoopTransactionTest {
 
     @BeforeAll
     public void setup() {
-        dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(NoopBean.class);
         requestScope = mock(RequestScope.class);
         JsonApiMapper mapper = mock(JsonApiMapper.class);

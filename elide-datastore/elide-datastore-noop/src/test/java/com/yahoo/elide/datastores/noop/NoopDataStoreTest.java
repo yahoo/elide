@@ -24,7 +24,7 @@ public class NoopDataStoreTest {
     @Test
     public void testPopulateEntityDictionary() throws Exception {
         DataStore store = new NoopDataStore(Arrays.asList(NoopBean.class));
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
         store.populateEntityDictionary(dictionary);
         assertEquals(ClassType.of(NoopBean.class), dictionary.getEntityClass("theNoopBean", EntityDictionary.NO_VERSION));
     }

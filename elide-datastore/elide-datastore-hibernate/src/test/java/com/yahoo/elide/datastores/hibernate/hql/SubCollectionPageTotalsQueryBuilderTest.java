@@ -43,7 +43,7 @@ public class SubCollectionPageTotalsQueryBuilderTest {
 
     @BeforeAll
     public void initialize() {
-        dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Publisher.class);

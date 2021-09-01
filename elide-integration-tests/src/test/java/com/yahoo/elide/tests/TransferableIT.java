@@ -39,7 +39,7 @@ class TransferableIT extends IntegrationTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        dataStore.populateEntityDictionary(new EntityDictionary(new HashMap<>()));
+        dataStore.populateEntityDictionary(EntityDictionary.builder().build());
         DataStoreTransaction tx = dataStore.beginTransaction();
         Left left = new Left();
         tx.createObject(left, null);

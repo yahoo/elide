@@ -32,6 +32,7 @@ import com.yahoo.elide.core.security.checks.prefab.Collections.RemoveOnly;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.converters.ISO8601DateSerde;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -191,7 +192,7 @@ public class EntityDictionaryTest extends EntityDictionary {
     @Test
     public void testCheckScan() {
 
-        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary testDictionary = EntityDictionary.builder().build();
         testDictionary.scanForSecurityChecks();
 
         assertEquals("User is Admin", testDictionary.getCheckIdentifier(Bar.class));
@@ -238,7 +239,8 @@ public class EntityDictionaryTest extends EntityDictionary {
                 null,
                 null,
                 unused -> new ISO8601DateSerde(),
-                Collections.emptySet());
+                Collections.emptySet(),
+                DefaultClassScanner.getInstance());
 
         testDictionary.bindEntity(EntityWithDateId.class);
 
@@ -855,7 +857,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testFieldIsInjected() {
-        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary testDictionary = EntityDictionary.builder().build();
 
         @Include(rootLevel = false)
         class FieldInject {
@@ -870,7 +872,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testInheritedFieldIsInjected() {
-        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary testDictionary = EntityDictionary.builder().build();
         class BaseClass {
             @Inject
             private String field;
@@ -888,7 +890,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testMethodIsInjected() {
-        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary testDictionary = EntityDictionary.builder().build();
 
         @Include(rootLevel = false)
         class MethodInject {
@@ -905,7 +907,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testInhertedMethodIsInjected() {
-        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary testDictionary = EntityDictionary.builder().build();
         class BaseClass {
             @Inject
             private void setField(String field) {
@@ -925,7 +927,7 @@ public class EntityDictionaryTest extends EntityDictionary {
 
     @Test
     public void testConstructorIsInjected() {
-        EntityDictionary testDictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary testDictionary = EntityDictionary.builder().build();
 
         @Include(rootLevel = false)
         class ConstructorInject {

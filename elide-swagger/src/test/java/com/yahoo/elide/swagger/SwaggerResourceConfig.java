@@ -8,8 +8,6 @@ package com.yahoo.elide.swagger;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
 
-import com.google.common.collect.Maps;
-
 import example.models.Author;
 import example.models.Book;
 import example.models.Publisher;
@@ -36,7 +34,7 @@ public class SwaggerResourceConfig extends ResourceConfig {
 
                     @Override
                     public List<DocEndpoint.SwaggerRegistration> provide() {
-                        EntityDictionary dictionary = new EntityDictionary(Maps.newHashMap());
+                        EntityDictionary dictionary = EntityDictionary.builder().build();
 
                         dictionary.bindEntity(Book.class);
                         dictionary.bindEntity(BookV2.class);

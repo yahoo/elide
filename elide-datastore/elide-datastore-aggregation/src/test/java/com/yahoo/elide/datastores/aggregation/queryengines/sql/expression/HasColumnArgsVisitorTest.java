@@ -108,7 +108,7 @@ public class HasColumnArgsVisitorTest {
         models.add(ClassType.of(TableB.class));
         models.add(ClassType.of(TableC.class));
 
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
 
         models.stream().forEach(dictionary::bindEntity);
 

@@ -38,7 +38,7 @@ public class TableArgumentValidatorTest {
     private final ConnectionDetails connection;
     private final Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
     private final Set<Optimizer> optimizers = new HashSet<>();
-    private final QueryValidator queryValidator = new DefaultQueryValidator(new EntityDictionary(new HashMap<>()));
+    private final QueryValidator queryValidator = new DefaultQueryValidator(EntityDictionary.builder().build());
 
     private Table.TableBuilder mainTableBuilder;
     private final Collection<NamespaceConfig> namespaceConfigs;

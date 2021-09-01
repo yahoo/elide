@@ -39,7 +39,7 @@ public class PhysicalRefColumnContextTest {
         models.add(ClassType.of(RevenueFact.class));
         models.add(ClassType.of(CurrencyRate.class));
 
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
 
         models.stream().forEach(dictionary::bindEntity);
 

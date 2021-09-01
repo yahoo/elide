@@ -35,15 +35,15 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
     @Getter protected EntityDictionary dictionary;
     @Getter private final ConcurrentHashMap<Type<?>, AtomicLong> typeIds = new ConcurrentHashMap<>();
 
-    public HashMapDataStore(Package beanPackage) {
-        this(Sets.newHashSet(beanPackage));
+    public HashMapDataStore(ClassScanner scanner, Package beanPackage) {
+        this(scanner, Sets.newHashSet(beanPackage));
     }
 
-    public HashMapDataStore(Set<Package> beanPackages) {
+    public HashMapDataStore(ClassScanner scanner, Set<Package> beanPackages) {
         for (Package beanPackage : beanPackages) {
             scanner.getAllClasses(beanPackage.getName()).stream()
                 .map(ClassType::new)
-                .filter(modelType -> dictionary.getFirstAnnotation(modelType,
+                .filter(modelType -> EntityDictionary.getFirstAnnotation(modelType,
                         Arrays.asList(Include.class, Exclude.class)) instanceof Include)
                 .forEach(modelType -> dataStore.put(modelType,
                         Collections.synchronizedMap(new LinkedHashMap<>())));
@@ -53,7 +53,7 @@ public class HashMapDataStore implements DataStore, DataStoreTestHarness {
     public HashMapDataStore(Collection<Class<?>> beanClasses) {
         beanClasses.stream()
                 .map(ClassType::new)
-                .filter(modelType -> dictionary.getFirstAnnotation(modelType,
+                .filter(modelType -> EntityDictionary.getFirstAnnotation(modelType,
                         Arrays.asList(Include.class, Exclude.class)) instanceof Include)
                 .forEach(modelType -> dataStore.put(modelType,
                         Collections.synchronizedMap(new LinkedHashMap<>())));

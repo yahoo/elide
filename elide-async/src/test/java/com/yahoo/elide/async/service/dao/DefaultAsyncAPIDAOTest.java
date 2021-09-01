@@ -52,7 +52,7 @@ public class DefaultAsyncAPIDAOTest {
 
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
 
-        EntityDictionary dictionary = new EntityDictionary(checkMappings);
+        EntityDictionary dictionary = EntityDictionary.builder().checks(checkMappings).build();
         dictionary.bindEntity(AsyncQuery.class);
         dictionary.bindEntity(AsyncQueryResult.class);
 

@@ -23,6 +23,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.jsonapi.models.Resource;
 
 import org.apache.commons.lang3.time.FastDateFormat;
@@ -47,11 +48,11 @@ public class JSONExportFormatterTest {
 
     @BeforeEach
     public void setupMocks(@TempDir Path tempDir) {
-        dataStore = new HashMapDataStore(TableExport.class.getPackage());
+        dataStore = new HashMapDataStore(DefaultClassScanner.getInstance(), TableExport.class.getPackage());
         Map<String, Class<? extends Check>> map = new HashMap<>();
         elide = new Elide(
                 new ElideSettingsBuilder(dataStore)
-                        .withEntityDictionary(new EntityDictionary(map))
+                        .withEntityDictionary(EntityDictionary.builder().checks(map).build())
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                         .build());
         scope = mock(RequestScope.class);

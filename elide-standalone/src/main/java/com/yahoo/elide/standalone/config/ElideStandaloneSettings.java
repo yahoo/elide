@@ -23,6 +23,7 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -455,9 +456,12 @@ public interface ElideStandaloneSettings {
      * @param entitiesToExclude set of Entities to exclude from binding.
      * @return EntityDictionary object initialized.
      */
-    default EntityDictionary getEntityDictionary(ServiceLocator injector,
+    default EntityDictionary getEntityDictionary(ServiceLocator injector, ClassScanner scanner,
             Optional<DynamicConfiguration> dynamicConfiguration, Set<Type<?>> entitiesToExclude) {
-        EntityDictionary dictionary = new EntityDictionary(getCheckMappings(),
+
+        EntityDictionary dictionary = new EntityDictionary(
+                new HashMap<>(), //Checks
+                new HashMap<>(), //Role Checks
                 new Injector() {
                     @Override
                     public void inject(Object entity) {
@@ -468,7 +472,10 @@ public interface ElideStandaloneSettings {
                     public <T> T instantiate(Class<T> cls) {
                         return injector.create(cls);
                     }
-                }, entitiesToExclude);
+                },
+                CoerceUtil::lookup, //Serde Lookup
+                entitiesToExclude,
+                scanner);
 
         dictionary.scanForSecurityChecks();
 

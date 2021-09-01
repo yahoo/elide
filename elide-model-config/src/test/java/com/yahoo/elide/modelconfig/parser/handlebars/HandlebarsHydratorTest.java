@@ -144,7 +144,7 @@ public class HandlebarsHydratorTest {
     @BeforeAll
     public void setup() throws IOException {
         hydrator = new HandlebarsHydrator();
-        testClass = new DynamicConfigValidator(new DefaultClassScanner(), CONFIG_PATH);
+        testClass = new DynamicConfigValidator(DefaultClassScanner.getInstance(), CONFIG_PATH);
         testClass.readConfigs();
     }
 

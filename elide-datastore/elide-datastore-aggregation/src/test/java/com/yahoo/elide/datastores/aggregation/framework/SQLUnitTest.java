@@ -483,7 +483,7 @@ public abstract class SQLUnitTest {
 
         SQLUnitTest.metaDataStore = metaDataStore;
 
-        dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(PlayerStatsWithView.class);
         dictionary.bindEntity(PlayerStatsView.class);
         dictionary.bindEntity(PlayerStats.class);

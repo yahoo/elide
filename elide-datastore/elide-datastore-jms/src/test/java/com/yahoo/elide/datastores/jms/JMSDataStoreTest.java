@@ -51,7 +51,7 @@ public class JMSDataStoreTest {
 
         ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("vm://0");
 
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
 
         Author author1 = new Author();
         author1.setId(1);

@@ -103,7 +103,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     private final EntityDictionary dictionary;
 
     public DynamicConfigValidator(ClassScanner scanner, String configDir) {
-        dictionary = new EntityDictionary(scanner, new HashMap<>(), new HashSet<>());
+        dictionary = new EntityDictionary(new HashMap<>(), new HashSet<>());
         resolver = new PathMatchingResourcePatternResolver(this.getClass().getClassLoader());
 
         String pattern = CLASSPATH_PATTERN + DynamicConfigHelpers.formatFilePath(formatClassPath(configDir));
@@ -160,7 +160,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
             String configDir = cli.getOptionValue("configDir");
 
             DynamicConfigValidator dynamicConfigValidator =
-                    new DynamicConfigValidator(new DefaultClassScanner(), configDir);
+                    new DynamicConfigValidator(DefaultClassScanner.getInstance(), configDir);
             dynamicConfigValidator.readAndValidateConfigs();
             System.out.println("Configs Validation Passed!");
             System.exit(0);

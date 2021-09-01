@@ -486,7 +486,9 @@ public class AsyncIT extends AsyncApiIT {
         queryObj.setPrincipalName("owner-user");
 
         dataStore.populateEntityDictionary(
-                        new EntityDictionary(AsyncIntegrationTestApplicationResourceConfig.MAPPINGS));
+                        EntityDictionary.builder()
+                                .checks(AsyncIntegrationTestApplicationResourceConfig.MAPPINGS)
+                                .build());
         DataStoreTransaction tx = dataStore.beginTransaction();
         tx.createObject(queryObj, null);
         tx.commit(null);
@@ -494,7 +496,9 @@ public class AsyncIT extends AsyncApiIT {
 
         Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
                         .withEntityDictionary(
-                                        new EntityDictionary(AsyncIntegrationTestApplicationResourceConfig.MAPPINGS))
+                                EntityDictionary.builder()
+                                        .checks(AsyncIntegrationTestApplicationResourceConfig.MAPPINGS)
+                                        .build())
                         .withAuditLogger(new TestAuditLogger()).build());
 
         User ownerUser = new User(() -> "owner-user");

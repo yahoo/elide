@@ -19,7 +19,7 @@ public class ClassScannerTest {
     private final ClassScanner scanner;
 
     public ClassScannerTest() {
-        scanner = new DefaultClassScanner();
+        scanner = DefaultClassScanner.getInstance();
     }
 
     @Test

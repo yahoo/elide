@@ -45,7 +45,7 @@ public class PhysicalReferenceExtractorTest {
         models.add(ClassType.of(Player.class));
         models.add(ClassType.of(PlayerRanking.class));
 
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
 
         models.stream().forEach(dictionary::bindEntity);
 

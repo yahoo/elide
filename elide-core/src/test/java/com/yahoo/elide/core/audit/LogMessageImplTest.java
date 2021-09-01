@@ -38,7 +38,7 @@ public class LogMessageImplTest {
 
     @BeforeAll
     public static void init() {
-        final EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        final EntityDictionary dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(Child.class);
         dictionary.bindEntity(Parent.class);
 

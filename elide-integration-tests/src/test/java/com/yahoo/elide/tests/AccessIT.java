@@ -23,7 +23,7 @@ public class AccessIT extends IntegrationTest {
 
     @BeforeAll
     public void setup() {
-        dataStore.populateEntityDictionary(new EntityDictionary(new HashMap<>()));
+        dataStore.populateEntityDictionary(EntityDictionary.builder().build());
     }
 
     @Test

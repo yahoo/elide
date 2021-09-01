@@ -60,7 +60,7 @@ public class JpaDataStoreTest {
         when(managerMock.getMetamodel()).thenReturn(mockModel);
 
         JpaDataStore store = new JpaDataStore(() -> managerMock, unused -> null);
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
 
 
         try {
@@ -91,7 +91,7 @@ public class JpaDataStoreTest {
         when(managerMock.getMetamodel()).thenReturn(mockModel);
 
         JpaDataStore store = new JpaDataStore(() -> managerMock, unused -> null, ClassType.of(Test.class));
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
         store.populateEntityDictionary(dictionary);
 
         assertNotNull(dictionary.lookupBoundClass(ClassType.of(Test.class)));

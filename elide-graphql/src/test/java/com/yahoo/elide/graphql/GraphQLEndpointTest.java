@@ -27,6 +27,7 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -116,7 +117,8 @@ public class GraphQLEndpointTest {
 
     @BeforeEach
     public void setupTest() throws Exception {
-        HashMapDataStore inMemoryStore = new HashMapDataStore(Book.class.getPackage());
+        HashMapDataStore inMemoryStore = new HashMapDataStore(DefaultClassScanner.getInstance(),
+                Book.class.getPackage());
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
 
         checkMappings.put(UserChecks.IS_USER_1, UserChecks.IsUserId.One.class);
@@ -125,7 +127,7 @@ public class GraphQLEndpointTest {
 
         Elide elide = new Elide(
                 new ElideSettingsBuilder(inMemoryStore)
-                        .withEntityDictionary(new EntityDictionary(checkMappings))
+                        .withEntityDictionary(EntityDictionary.builder().checks(checkMappings).build())
                         .withAuditLogger(audit)
                         .build());
         endpoint = new GraphQLEndpoint(elide);

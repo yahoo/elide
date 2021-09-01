@@ -26,7 +26,7 @@ public class MatchesTemplateVisitorTest {
 
     @BeforeEach
     public void setup() {
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(PlayerStats.class);
         dictionary.bindEntity(Player.class);
         dialect = new RSQLFilterDialect(dictionary);

@@ -16,6 +16,7 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
@@ -81,7 +82,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
         settings.getSerdes().forEach(CoerceUtil::register);
 
-        hashMapDataStore = new HashMapDataStore(Author.class.getPackage());
+        hashMapDataStore = new HashMapDataStore(DefaultClassScanner.getInstance(), Author.class.getPackage());
 
         inMemoryDataStore = new InMemoryDataStore(
                 new HashMapDataStore(Author.class.getPackage())

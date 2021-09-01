@@ -38,7 +38,7 @@ public abstract class JPQLIntegrationTest extends IntegrationTest {
     @Override
     protected DataStoreTestHarness createHarness() {
         initializeLogger();
-        return new JpaDataStoreHarness(new DefaultClassScanner(), logger, delegateToInMemoryStore());
+        return new JpaDataStoreHarness(logger, delegateToInMemoryStore());
     }
 
     protected boolean delegateToInMemoryStore() {

@@ -51,7 +51,7 @@ public class DataStoreSupportsFilteringTest {
     private RequestScope mockScope;
 
     public DataStoreSupportsFilteringTest() {
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(Item.class);
 
         filterParser = new RSQLFilterDialect(dictionary);

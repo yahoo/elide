@@ -39,7 +39,7 @@ public class EmbeddedIT extends IntegrationTest {
 
     @BeforeEach
     public void setup() throws IOException {
-        dataStore.populateEntityDictionary(new EntityDictionary(new HashMap<>()));
+        dataStore.populateEntityDictionary(EntityDictionary.builder().build());
         DataStoreTransaction tx = dataStore.beginTransaction();
         Embedded embedded = new Embedded(); // id 1
         embedded.setSegmentIds(ImmutableSet.of(3L, 4L, 5L));

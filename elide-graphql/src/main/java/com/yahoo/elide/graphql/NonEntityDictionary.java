@@ -8,22 +8,41 @@ package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.DuplicateMappingException;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.core.utils.coerce.converters.Serde;
 
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.function.Function;
 
 /**
  * A set of reflection utilities for non-Elide entities.
  */
 @Slf4j
 public class NonEntityDictionary extends EntityDictionary {
+
+    @Deprecated
     public NonEntityDictionary() {
-        super(new HashMap<>());
+        this (DefaultClassScanner.getInstance(), CoerceUtil::lookup);
+    }
+
+    public NonEntityDictionary(ClassScanner scanner, Function<Class, Serde > serdeLookup) {
+        super(
+                Collections.emptyMap(), //Checks
+                Collections.emptyMap(), //Role checks
+                null, //Injector - unused
+                serdeLookup,
+                Collections.emptySet(), //Entity excludes
+                scanner);
     }
 
     /**

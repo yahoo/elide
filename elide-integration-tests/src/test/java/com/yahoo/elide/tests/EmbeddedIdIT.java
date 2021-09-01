@@ -58,7 +58,7 @@ public class EmbeddedIdIT extends GraphQLIntegrationTest {
 
     @BeforeEach
     public void setup() throws IOException {
-        dataStore.populateEntityDictionary(new EntityDictionary(new HashMap<>()));
+        dataStore.populateEntityDictionary(EntityDictionary.builder().build());
         DataStoreTransaction tx = dataStore.beginTransaction();
 
         Building building1 = new Building();
