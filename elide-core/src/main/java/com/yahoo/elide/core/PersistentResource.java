@@ -427,11 +427,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newVal, val);
         if (!Objects.equals(val, newVal)) {
             if (dictionary.isComplexAttribute(EntityDictionary.getType(obj), fieldName)) {
-                if (newVal instanceof Map) {
-                    this.updateComplexAttribute(dictionary, fieldName, newVal, val, requestScope);
-                } else {
-                    this.setValueChecked(fieldName, newVal);
-                }
+                this.updateComplexAttribute(dictionary, fieldName, newVal, val, requestScope);
             } else {
                 this.setValueChecked(fieldName, newVal);
             }
@@ -453,22 +449,29 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     private void updateComplexAttribute(EntityDictionary dictionary,
                                         String fieldName,
-                                        Object update,
-                                        Object original,
+                                        Object updateValue,
+                                        Object currentValue,
                                         RequestScope scope) {
-        final Map<String, Object> updateMap = (Map<String, Object>) update;
-        for (String field : updateMap.keySet()) {
-            final Object newValue = updateMap.get(field);
-            if (original != null) {
-                if (dictionary.isComplexAttribute(ClassType.of(original.getClass()), field)) {
-                    final Object newOriginal = dictionary.getValue(original, field, scope);
-                    updateComplexAttribute(dictionary, field, newValue, newOriginal, scope);
+        if (updateValue instanceof Map) {
+            final Map<String, Object> updateValueMap = (Map<String, Object>) updateValue;
+            final Map<String, Object> currentValueMap = (Map<String, Object>) currentValue;
+            for (String field : updateValueMap.keySet()) {
+                final Object newValue = updateValueMap.get(field);
+                if (currentValue != null) {
+                    if (dictionary.isComplexAttribute(ClassType.of(currentValue.getClass()), field)) {
+                        final Object newOriginal = dictionary.getValue(currentValue, field, scope);
+                        updateComplexAttribute(dictionary, field, newValue, newOriginal, scope);
+                    } else {
+                        if (newValue != currentValueMap.get(field)) {
+                            dictionary.setValue(currentValue, field, newValue);
+                        }
+                    }
                 } else {
-                    dictionary.setValue(original, field, newValue);
+                    this.setValueChecked(fieldName, updateValue);
                 }
-            } else {
-                this.setValueChecked(fieldName, update);
             }
+        } else {
+            this.setValueChecked(fieldName, updateValue);
         }
     }
 
