@@ -11,23 +11,18 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.swagger.model.Resource;
 import com.yahoo.elide.swagger.property.Data;
 import com.yahoo.elide.swagger.property.Datum;
 import com.yahoo.elide.swagger.property.Relationship;
-
-import com.google.common.collect.Maps;
 import example.models.Author;
 import example.models.Book;
 import example.models.Publisher;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-
 import io.swagger.models.Info;
 import io.swagger.models.Model;
 import io.swagger.models.Operation;
@@ -51,7 +46,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
@@ -62,7 +56,7 @@ public class SwaggerBuilderTest {
 
     @BeforeAll
     public void setup() {
-        dictionary = new EntityDictionary(Maps.newHashMap());
+        dictionary = EntityDictionary.builder().build();
 
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
@@ -576,7 +570,7 @@ public class SwaggerBuilderTest {
             @Id
             long name;
         }
-        EntityDictionary entityDictionary = new EntityDictionary(Maps.newHashMap());
+        EntityDictionary entityDictionary = EntityDictionary.builder().build();
 
         entityDictionary.bindEntity(NothingToSort.class);
         Info info = new Info().title("Test Service").version(NO_VERSION);

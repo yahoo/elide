@@ -11,6 +11,7 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.datastore.inmemory.InMemoryDataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.google.common.collect.Sets;
 import example.Parent;
 import example.models.generics.Manager;
@@ -35,7 +36,7 @@ public class InMemoryDataStoreHarness implements DataStoreTestHarness {
                 AsyncQuery.class.getPackage()
         );
 
-        mapStore = new HashMapDataStore(beanPackages);
+        mapStore = new HashMapDataStore(DefaultClassScanner.getInstance(), beanPackages);
         memoryStore = new InMemoryDataStore(mapStore);
     }
 

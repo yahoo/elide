@@ -51,7 +51,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Context;
@@ -82,7 +81,8 @@ public class AsyncIntegrationTestApplicationResourceConfig extends ResourceConfi
         register(new AbstractBinder() {
             @Override
             protected void configure() {
-                EntityDictionary dictionary = new EntityDictionary(MAPPINGS, injector::inject);
+                EntityDictionary dictionary = EntityDictionary.builder()
+                        .injector(injector::inject).checks(MAPPINGS).build();
 
                 bind(dictionary).to(EntityDictionary.class);
 

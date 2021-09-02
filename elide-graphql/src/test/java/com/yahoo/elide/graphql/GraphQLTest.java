@@ -30,7 +30,7 @@ public abstract class GraphQLTest {
         Map<String, Class<? extends Check>> checks = new HashMap<>();
         checks.put("Prefab.Role.All", com.yahoo.elide.core.security.checks.prefab.Role.ALL.class);
 
-        dictionary = new EntityDictionary(checks);
+        dictionary = EntityDictionary.builder().checks(checks).build();
 
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);

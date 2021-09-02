@@ -34,6 +34,8 @@ import com.yahoo.elide.core.filter.predicates.PrefixInsensitivePredicate;
 import com.yahoo.elide.core.filter.predicates.PrefixPredicate;
 import com.yahoo.elide.core.filter.predicates.TruePredicate;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import example.Author;
 import example.Book;
 import org.junit.jupiter.api.Test;
@@ -68,7 +70,14 @@ public class InMemoryFilterExecutorTest {
     public static class TestEntityDictionary extends EntityDictionary {
 
         public TestEntityDictionary(Map checks) {
-            super(checks);
+            super(
+                    checks,
+                    Collections.emptyMap(),  //role checks
+                    EntityDictionary.DEFAULT_INJECTOR,
+                    CoerceUtil::lookup,
+                    Collections.emptySet(),  //excluded entities
+                    DefaultClassScanner.getInstance()
+            );
         }
         @Override
         public Type<?> lookupBoundClass(Type<?> objClass) {

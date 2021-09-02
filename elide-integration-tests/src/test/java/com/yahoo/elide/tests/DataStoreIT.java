@@ -74,7 +74,7 @@ public class DataStoreIT extends IntegrationTest {
 
         elide = new Elide(new ElideSettingsBuilder(dataStore)
                 .withAuditLogger(new TestAuditLogger())
-                .withEntityDictionary(new EntityDictionary(checks))
+                .withEntityDictionary(EntityDictionary.builder().checks(checks).build())
                 .build());
     }
 

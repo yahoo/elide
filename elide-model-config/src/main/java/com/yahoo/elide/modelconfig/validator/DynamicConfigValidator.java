@@ -9,7 +9,6 @@ import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -19,6 +18,7 @@ import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.modelconfig.Config;
 import com.yahoo.elide.modelconfig.DynamicConfigHelpers;
 import com.yahoo.elide.modelconfig.DynamicConfigSchemaValidator;
@@ -37,7 +37,6 @@ import com.yahoo.elide.modelconfig.model.Named;
 import com.yahoo.elide.modelconfig.model.NamespaceConfig;
 import com.yahoo.elide.modelconfig.model.Table;
 import com.yahoo.elide.modelconfig.model.TableSource;
-
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
@@ -48,7 +47,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -99,9 +97,10 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     private final DynamicConfigSchemaValidator schemaValidator = new DynamicConfigSchemaValidator();
     private final Map<String, Resource> resourceMap = new HashMap<>();
     private final PathMatchingResourcePatternResolver resolver;
-    private final EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+    private final EntityDictionary dictionary;
 
-    public DynamicConfigValidator(String configDir) {
+    public DynamicConfigValidator(ClassScanner scanner, String configDir) {
+        dictionary = EntityDictionary.builder().scanner(scanner).build();
         resolver = new PathMatchingResourcePatternResolver(this.getClass().getClassLoader());
 
         String pattern = CLASSPATH_PATTERN + DynamicConfigHelpers.formatFilePath(formatClassPath(configDir));
@@ -129,7 +128,7 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     private void initialize() {
 
         Set<Class<?>> annotatedClasses =
-                        ClassScanner.getAnnotatedClasses(Arrays.asList(Include.class, SecurityCheck.class));
+                        dictionary.getScanner().getAnnotatedClasses(Arrays.asList(Include.class, SecurityCheck.class));
 
         annotatedClasses.forEach(cls -> {
             if (cls.getAnnotation(Include.class) != null) {
@@ -157,7 +156,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
             }
             String configDir = cli.getOptionValue("configDir");
 
-            DynamicConfigValidator dynamicConfigValidator = new DynamicConfigValidator(configDir);
+            DynamicConfigValidator dynamicConfigValidator =
+                    new DynamicConfigValidator(DefaultClassScanner.getInstance(), configDir);
             dynamicConfigValidator.readAndValidateConfigs();
             System.out.println("Configs Validation Passed!");
             System.exit(0);

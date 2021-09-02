@@ -22,7 +22,6 @@ import example.Publisher;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.Optional;
 
 public class FilterPredicatePushdownExtractorTest {
@@ -31,7 +30,7 @@ public class FilterPredicatePushdownExtractorTest {
 
     @BeforeAll
     public static void init() {
-        dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Editor.class);

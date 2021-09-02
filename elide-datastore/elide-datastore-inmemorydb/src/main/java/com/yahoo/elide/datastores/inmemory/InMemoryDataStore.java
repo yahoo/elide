@@ -6,13 +6,14 @@
 package com.yahoo.elide.datastores.inmemory;
 
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
+import com.yahoo.elide.core.utils.ClassScanner;
 
 /**
  * Simple non-persistent in-memory database.
  */
 @Deprecated
 public class InMemoryDataStore extends HashMapDataStore {
-    public InMemoryDataStore(Package beanPackage) {
-        super(beanPackage);
+    public InMemoryDataStore(ClassScanner scanner, Package beanPackage) {
+        super(scanner, beanPackage);
     }
 }

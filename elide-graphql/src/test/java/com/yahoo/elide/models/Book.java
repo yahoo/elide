@@ -6,6 +6,7 @@
 package com.yahoo.elide.models;
 
 import com.yahoo.elide.annotation.Include;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;

@@ -19,7 +19,7 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
-import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.aggregation.framework.SQLUnitTest;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
 import com.yahoo.elide.datastores.aggregation.query.ImmutablePagination;
@@ -46,8 +46,8 @@ public class AggregateBeforeJoinOptimizerTest extends SQLUnitTest {
 
     @BeforeAll
     public static void init() {
-        MetaDataStore metaDataStore = new MetaDataStore(
-                getClassType(ClassScanner.getAnnotatedClasses("example",
+        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(),
+                getClassType(dictionary.getScanner().getAnnotatedClasses("example",
                         Include.class)),
                 false);
         Set<Optimizer> optimizers = new HashSet<>(Arrays.asList(new AggregateBeforeJoinOptimizer(metaDataStore)));

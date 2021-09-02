@@ -15,7 +15,6 @@ import com.yahoo.elide.jsonapi.links.DefaultJSONApiLinks;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneSettings;
-
 import example.models.Post;
 
 import java.util.Properties;

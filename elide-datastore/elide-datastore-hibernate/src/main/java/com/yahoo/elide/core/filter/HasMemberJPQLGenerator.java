@@ -13,7 +13,6 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.type.Type;
-
 import com.google.common.base.Preconditions;
 
 import java.util.Arrays;

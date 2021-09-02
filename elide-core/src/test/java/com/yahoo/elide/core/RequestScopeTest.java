@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -62,7 +61,7 @@ public class RequestScopeTest {
             public String myField;
         }
 
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
 
         dictionary.bindEntity(MyBaseClass.class);
         dictionary.bindEntity(MyInheritedClass.class);

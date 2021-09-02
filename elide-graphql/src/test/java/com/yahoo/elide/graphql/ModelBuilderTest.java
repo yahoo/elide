@@ -17,7 +17,6 @@ import com.yahoo.elide.core.dictionary.ArgumentType;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.ClassType;
-
 import example.Address;
 import example.Author;
 import example.Book;
@@ -35,7 +34,6 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -88,7 +86,7 @@ public class ModelBuilderTest {
     // This is all important for ensuring we don't duplicate typenames which is a requirement in the latest graphql-java
 
     public ModelBuilderTest() {
-        dictionary = new EntityDictionary(Collections.emptyMap());
+        dictionary = EntityDictionary.builder().build();
 
         dictionary.bindEntity(com.yahoo.elide.models.Book.class);
         dictionary.bindEntity(Book.class);

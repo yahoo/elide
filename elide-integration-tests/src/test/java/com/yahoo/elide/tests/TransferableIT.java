@@ -29,8 +29,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import io.restassured.response.Response;
 
-import java.util.HashMap;
-
 /**
  * @NonTransferable annotation integration tests
  */
@@ -39,7 +37,7 @@ class TransferableIT extends IntegrationTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        dataStore.populateEntityDictionary(new EntityDictionary(new HashMap<>()));
+        dataStore.populateEntityDictionary(EntityDictionary.builder().build());
         DataStoreTransaction tx = dataStore.beginTransaction();
         Left left = new Left();
         tx.createObject(left, null);

@@ -48,7 +48,7 @@ public class SplitFilterExpressionVisitorTest {
 
     @BeforeAll
     public static void setupEntityDictionary() {
-        EntityDictionary entityDictionary = new EntityDictionary(Collections.emptyMap());
+        EntityDictionary entityDictionary = EntityDictionary.builder().build();
         entityDictionary.bindEntity(PlayerStats.class);
         entityDictionary.bindEntity(Country.class);
         entityDictionary.bindEntity(SubCountry.class);

@@ -7,6 +7,8 @@ package com.yahoo.elide.datastores.aggregation.framework;
 
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
+import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.core.Slf4jQueryLogger;
@@ -50,14 +52,17 @@ public class AggregationDataStoreTestHarness implements DataStoreTestHarness {
 
         AggregationDataStore.AggregationDataStoreBuilder aggregationDataStoreBuilder = AggregationDataStore.builder();
 
+        ClassScanner scanner = DefaultClassScanner.getInstance();
+
         MetaDataStore metaDataStore;
         if (validator != null) {
-           metaDataStore = new MetaDataStore(validator.getElideTableConfig().getTables(),
+           metaDataStore = new MetaDataStore(scanner,
+                   validator.getElideTableConfig().getTables(),
                    validator.getElideNamespaceConfig().getNamespaceconfigs(), true);
 
            aggregationDataStoreBuilder.dynamicCompiledClasses(metaDataStore.getDynamicTypes());
         } else {
-            metaDataStore = new MetaDataStore(true);
+            metaDataStore = new MetaDataStore(scanner, true);
         }
 
         AggregationDataStore aggregationDataStore = aggregationDataStoreBuilder

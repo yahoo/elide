@@ -31,6 +31,7 @@ import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -68,13 +69,15 @@ public class InMemoryStoreTransactionTest {
     private ElideSettings elideSettings;
 
     public InMemoryStoreTransactionTest() {
-        dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Editor.class);
         dictionary.bindEntity(Publisher.class);
 
-        elideSettings = new ElideSettingsBuilder(null).build();
+        elideSettings = new ElideSettingsBuilder(null)
+                .withEntityDictionary(EntityDictionary.builder().build())
+                .build();
 
         author1 = new Author();
         Address address1 = new Address();
@@ -555,7 +558,7 @@ public class InMemoryStoreTransactionTest {
 
     @Test
     public void testInMemoryDataStore() {
-        HashMapDataStore wrapped = new HashMapDataStore(Book.class.getPackage());
+        HashMapDataStore wrapped = new HashMapDataStore(DefaultClassScanner.getInstance(), Book.class.getPackage());
         InMemoryDataStore store = new InMemoryDataStore(wrapped);
         DataStoreTransaction tx = store.beginReadTransaction();
         assertEquals(InMemoryStoreTransaction.class, tx.getClass());
