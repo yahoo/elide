@@ -455,13 +455,17 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                                         RequestScope scope) {
         for (String field : updateValue.keySet()) {
             final Object newValue = updateValue.get(field);
-            if (dictionary.isComplexAttribute(ClassType.of(currentValue.getClass()), field)) {
-                final Object newOriginal = dictionary.getValue(currentValue, field, scope);
-                this.updateComplexAttribute(dictionary, (Map<String, Object>) newValue, newOriginal, scope);
-            } else {
-                final Object coercedNewValue =
-                        dictionary.coerce(currentValue, newValue, field, dictionary.getType(currentValue, field));
-                dictionary.setValue(currentValue, field, coercedNewValue);
+            final Object coercedNewValue =
+                    dictionary.coerce(currentValue, newValue, field, dictionary.getType(currentValue, field));
+            final Object newOriginal = dictionary.getValue(currentValue, field, scope);
+            if (!Objects.equals(newOriginal, coercedNewValue)) {
+                if (newOriginal == null
+                        || coercedNewValue == null
+                        || !dictionary.isComplexAttribute(ClassType.of(currentValue.getClass()), field)) {
+                    dictionary.setValue(currentValue, field, coercedNewValue);
+                } else {
+                    this.updateComplexAttribute(dictionary, (Map<String, Object>) newValue, newOriginal, scope);
+                }
             }
         }
     }
