@@ -23,13 +23,11 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.standalone.ElideStandalone;
 import com.yahoo.elide.standalone.config.ElideStandaloneAnalyticSettings;
 import com.yahoo.elide.standalone.config.ElideStandaloneAsyncSettings;
-
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-
 import io.restassured.response.Response;
 
 import javax.ws.rs.core.MediaType;

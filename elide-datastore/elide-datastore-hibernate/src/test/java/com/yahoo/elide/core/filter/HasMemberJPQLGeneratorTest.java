@@ -20,7 +20,6 @@ import example.Book;
 import example.Chapter;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.function.Function;
 
 public class HasMemberJPQLGeneratorTest {
@@ -29,7 +28,7 @@ public class HasMemberJPQLGeneratorTest {
     private Function<Path, String> aliasGenerator;
 
     public HasMemberJPQLGeneratorTest() {
-        dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Chapter.class);

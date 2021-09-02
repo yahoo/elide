@@ -23,7 +23,6 @@ import example.PlayerStats;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -35,7 +34,7 @@ public class QueryKeyExtractorTest {
     @BeforeAll
     public static void init() {
         SQLUnitTest.init();
-        dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(PlayerStats.class);
 
         Namespace namespace = new Namespace(DEFAULT_NAMESPACE);

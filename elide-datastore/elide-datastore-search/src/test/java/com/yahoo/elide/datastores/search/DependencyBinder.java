@@ -21,7 +21,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.hibernate.Session;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 import javax.persistence.EntityManager;
@@ -52,7 +51,7 @@ public class DependencyBinder extends ResourceConfig {
                         emf::createEntityManager,
                         em -> new NonJtaTransaction(em, txCancel));
 
-                EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+                EntityDictionary dictionary = EntityDictionary.builder().build();
 
                 DataStore searchStore = new SearchDataStore(jpaStore, emf, indexOnStartup, 3, 50);
                 jpaStore.populateEntityDictionary(dictionary);

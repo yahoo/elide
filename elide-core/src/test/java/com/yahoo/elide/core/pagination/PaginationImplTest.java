@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.annotation.Paginate;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.type.ClassType;
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
@@ -24,7 +25,9 @@ import javax.ws.rs.core.MultivaluedMap;
  */
 public class PaginationImplTest {
     private final ElideSettings elideSettings =
-            new ElideSettingsBuilder(null).build();
+            new ElideSettingsBuilder(null)
+                    .withEntityDictionary(EntityDictionary.builder().build())
+                    .build();
 
     @Test
     public void shouldParseQueryParamsForCurrentPageAndPageSize() {
@@ -211,6 +214,7 @@ public class PaginationImplTest {
 
         pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationImplTest.class),
                 queryParams, new ElideSettingsBuilder(null)
+                    .withEntityDictionary(EntityDictionary.builder().build())
                     .withDefaultPageSize(10)
                     .withDefaultMaxPageSize(10)
                     .build());
@@ -227,6 +231,7 @@ public class PaginationImplTest {
         PaginationImpl pageData = PaginationImpl.parseQueryParams(ClassType.of(PaginationOverrideTest.class),
                 queryParams,
                 new ElideSettingsBuilder(null)
+                    .withEntityDictionary(EntityDictionary.builder().build())
                     .withDefaultPageSize(1)
                     .withDefaultMaxPageSize(1)
                     .build());

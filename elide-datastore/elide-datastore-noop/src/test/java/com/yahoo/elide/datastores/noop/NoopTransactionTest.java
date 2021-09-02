@@ -21,8 +21,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
-import java.util.HashMap;
-
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class NoopTransactionTest {
     private DataStoreTransaction tx = new NoopTransaction();
@@ -32,7 +30,7 @@ public class NoopTransactionTest {
 
     @BeforeAll
     public void setup() {
-        dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(NoopBean.class);
         requestScope = mock(RequestScope.class);
         JsonApiMapper mapper = mock(JsonApiMapper.class);

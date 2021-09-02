@@ -9,20 +9,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.swagger.model.Resource;
-
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import example.models.Author;
 import example.models.Book;
 import example.models.Publisher;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-
 import io.swagger.converter.ModelConverters;
 import io.swagger.models.Model;
 import io.swagger.models.properties.ObjectProperty;
@@ -46,7 +41,7 @@ public class JsonApiModelResolverTest {
 
     @BeforeAll
     public void setup() {
-        EntityDictionary dictionary = new EntityDictionary(Maps.newHashMap());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
 
         dictionary.bindEntity(ENTITIES.get(KEY_BOOK));
         dictionary.bindEntity(ENTITIES.get(KEY_PUBLISHER));

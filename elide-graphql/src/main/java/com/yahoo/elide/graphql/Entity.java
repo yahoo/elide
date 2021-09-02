@@ -11,7 +11,6 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.type.Type;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

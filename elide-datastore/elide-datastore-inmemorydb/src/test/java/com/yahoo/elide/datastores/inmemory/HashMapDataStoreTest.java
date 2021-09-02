@@ -14,6 +14,7 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.type.ClassType;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.example.beans.ExcludedBean;
 import com.yahoo.elide.example.beans.FirstBean;
 import com.yahoo.elide.example.beans.FirstChildBean;
@@ -25,7 +26,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -39,8 +39,8 @@ public class HashMapDataStoreTest {
 
     @BeforeEach
     public void setup() {
-        entityDictionary = new EntityDictionary(new HashMap<>());
-        inMemoryDataStore = new InMemoryDataStore(FirstBean.class.getPackage());
+        entityDictionary = EntityDictionary.builder().build();
+        inMemoryDataStore = new InMemoryDataStore(DefaultClassScanner.getInstance(), FirstBean.class.getPackage());
         inMemoryDataStore.populateEntityDictionary(entityDictionary);
     }
 

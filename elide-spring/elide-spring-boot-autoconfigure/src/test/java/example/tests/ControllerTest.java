@@ -35,12 +35,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.spring.controllers.JsonApiController;
 import com.yahoo.elide.test.graphql.GraphQLDSL;
-
 import com.google.common.collect.ImmutableList;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -56,7 +54,6 @@ import org.springframework.test.context.jdbc.SqlMergeMode;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;

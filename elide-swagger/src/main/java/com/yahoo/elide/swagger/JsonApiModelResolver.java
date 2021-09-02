@@ -14,12 +14,9 @@ import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.swagger.model.Resource;
 import com.yahoo.elide.swagger.property.Relationship;
-
 import com.fasterxml.jackson.databind.type.SimpleType;
 import com.google.common.base.Preconditions;
-
 import org.apache.commons.lang3.StringUtils;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.converter.ModelConverter;

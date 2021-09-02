@@ -28,7 +28,6 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.sort.SortingImpl;
 import com.yahoo.elide.core.type.ClassType;
-
 import example.Author;
 import example.Book;
 import example.Chapter;
@@ -38,7 +37,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -58,7 +56,7 @@ public class AbstractHQLQueryBuilderTest extends AbstractHQLQueryBuilder {
 
 
     public AbstractHQLQueryBuilderTest() {
-        super(getMockEntityProjection(), new EntityDictionary(new HashMap<>()), new TestSessionWrapper());
+        super(getMockEntityProjection(), EntityDictionary.builder().build(), new TestSessionWrapper());
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Chapter.class);

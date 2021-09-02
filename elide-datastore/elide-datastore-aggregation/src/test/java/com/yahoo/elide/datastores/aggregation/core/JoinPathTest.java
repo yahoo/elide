@@ -25,7 +25,6 @@ import example.dimensions.SubCountry;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import javax.sql.DataSource;
@@ -46,11 +45,11 @@ public class JoinPathTest {
         models.add(ClassType.of(CountryViewNested.class));
         models.add(ClassType.of(PlayerStatsWithView.class));
 
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
 
         models.stream().forEach(dictionary::bindEntity);
 
-        store = new MetaDataStore(models, true);
+        store = new MetaDataStore(dictionary.getScanner(), models, true);
         store.populateEntityDictionary(dictionary);
 
         DataSource mockDataSource = mock(DataSource.class);

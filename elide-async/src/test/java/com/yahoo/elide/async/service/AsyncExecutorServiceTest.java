@@ -28,6 +28,7 @@ import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import org.apache.http.NoHttpResponseException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -50,11 +51,14 @@ public class AsyncExecutorServiceTest {
 
     @BeforeAll
     public void setupMockElide() {
-        HashMapDataStore inMemoryStore = new HashMapDataStore(AsyncQuery.class.getPackage());
+        HashMapDataStore inMemoryStore = new HashMapDataStore(
+                DefaultClassScanner.getInstance(),
+                AsyncQuery.class.getPackage()
+        );
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
         elide = new Elide(
                 new ElideSettingsBuilder(inMemoryStore)
-                        .withEntityDictionary(new EntityDictionary(checkMappings))
+                        .withEntityDictionary(EntityDictionary.builder().checks(checkMappings).build())
                         .build());
         asyncAPIDao = mock(DefaultAsyncAPIDAO.class);
         testUser = mock(User.class);

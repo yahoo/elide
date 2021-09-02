@@ -27,8 +27,12 @@ import javax.sql.DataSource;
  */
 public class Util {
 
-    public static EntityManagerFactory getEntityManagerFactory(String modelPackageName, boolean includeAsyncModel,
-                                                               Properties options) {
+    public static EntityManagerFactory getEntityManagerFactory(
+            ClassScanner scanner,
+            String modelPackageName,
+            boolean includeAsyncModel,
+            Properties options
+    ) {
 
         // Configure default options for example service
         populateDefaultOptions(options);
@@ -36,7 +40,7 @@ public class Util {
         ClassLoader classLoader = null;
 
         PersistenceUnitInfo persistenceUnitInfo = new PersistenceUnitInfoImpl("elide-stand-alone",
-                combineModelEntities(modelPackageName, includeAsyncModel),
+                combineModelEntities(scanner, modelPackageName, includeAsyncModel),
                 options, classLoader);
 
         return new EntityManagerFactoryBuilderImpl(
@@ -102,16 +106,18 @@ public class Util {
     /**
      * Combine the model entities with Async and Dynamic models.
      *
+     * @param scanner Class scanner
      * @param modelPackageName Package name
      * @param includeAsyncModel Include Async model package Name
      * @return All entities combined from both package.
      */
-    public static List<String> combineModelEntities(String modelPackageName, boolean includeAsyncModel) {
+    public static List<String> combineModelEntities(ClassScanner scanner,
+                                                    String modelPackageName, boolean includeAsyncModel) {
 
-        List<String> modelEntities = getAllEntities(modelPackageName);
+        List<String> modelEntities = getAllEntities(scanner, modelPackageName);
 
         if (includeAsyncModel) {
-            modelEntities.addAll(getAllEntities(AsyncQuery.class.getPackage().getName()));
+            modelEntities.addAll(getAllEntities(scanner, AsyncQuery.class.getPackage().getName()));
         }
         return modelEntities;
     }
@@ -122,8 +128,8 @@ public class Util {
      * @param packageName Package name
      * @return All entities found in package.
      */
-    public static List<String> getAllEntities(String packageName) {
-        return ClassScanner.getAnnotatedClasses(packageName, Entity.class).stream()
+    public static List<String> getAllEntities(ClassScanner scanner, String packageName) {
+        return scanner.getAnnotatedClasses(packageName, Entity.class).stream()
                 .map(Class::getName)
                 .collect(Collectors.toList());
     }
