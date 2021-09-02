@@ -393,7 +393,9 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        assertTrue(error.contains("Multiple DB configs found with the same name: OracleConnection"));
+        //Java 11 introduces (and prints) the following deprecation warning:
+        //"Warning: Nashorn engine is planned to be removed from a future JDK release"
+        assertTrue(error.contains("Multiple DB configs found with the same name: OracleConnection\n"));
     }
 
     @Test
@@ -420,33 +422,6 @@ public class DynamicConfigValidatorTest {
         playerStatsTable.getArguments().add(Argument.builder().name("countryCode").type(Type.INTEGER).build());
         Exception e = assertThrows(IllegalStateException.class, () -> testClass.validateConfigs());
         assertEquals("Multiple Arguments found with the same name: countryCode", e.getMessage());
-    }
-
-    @Test
-    public void testDuplicateArgumentNameInFilter() throws Exception {
-        DynamicConfigValidator testClass = new DynamicConfigValidator(DefaultClassScanner.getInstance(),
-                "src/test/resources/validator/valid");
-        testClass.readConfigs();
-        Table playerStatsTable = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStats");
-
-        // PlayerStats table already has a filter argument 'code' with type 'TEXT'.
-        playerStatsTable.getArguments().add(Argument.builder().name("code").type(Type.TEXT).build());
-        Exception e = assertThrows(IllegalStateException.class, () -> testClass.validateConfigs());
-        assertEquals("Multiple Arguments found with the same name: code", e.getMessage());
-    }
-
-    @Test
-    public void testDuplicateArgumentNameInComplexFilter() throws Exception {
-        DynamicConfigValidator testClass = new DynamicConfigValidator(DefaultClassScanner.getInstance(),
-                "src/test/resources/validator/valid");
-        testClass.readConfigs();
-        Table playerStatsTable = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStats");
-
-        // PlayerStats table already has a filter argument 'code' with type 'TEXT'.
-        playerStatsTable.getArguments().add(Argument.builder().name("code").type(Type.TEXT).build());
-        playerStatsTable.setFilterTemplate("foo=={{bar}};blah=={{code}}");
-        Exception e = assertThrows(IllegalStateException.class, () -> testClass.validateConfigs());
-        assertEquals("Multiple Arguments found with the same name: code", e.getMessage());
     }
 
     @Test
