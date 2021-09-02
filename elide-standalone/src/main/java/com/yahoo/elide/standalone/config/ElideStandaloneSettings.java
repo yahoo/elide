@@ -21,6 +21,9 @@ import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.QueryEngine;
@@ -41,7 +44,6 @@ import com.yahoo.elide.modelconfig.DynamicConfiguration;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
-
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -62,7 +64,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
-
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
@@ -376,15 +377,16 @@ public interface ElideStandaloneSettings {
 
     /**
      * Gets the dynamic configuration for models, security roles, and database connection.
+     * @param scanner Class scanner
      * @return Optional DynamicConfiguration
      * @throws IOException thrown when validator fails to read configuration.
      */
-    default Optional<DynamicConfiguration> getDynamicConfiguration() throws IOException {
+    default Optional<DynamicConfiguration> getDynamicConfiguration(ClassScanner scanner) throws IOException {
         DynamicConfigValidator validator = null;
 
         if (getAnalyticProperties().enableAggregationDataStore()
                         && getAnalyticProperties().enableDynamicModelConfig()) {
-            validator = new DynamicConfigValidator(getAnalyticProperties().getDynamicConfigPath());
+            validator = new DynamicConfigValidator(scanner, getAnalyticProperties().getDynamicConfigPath());
             validator.readAndValidateConfigs();
         }
 
@@ -452,9 +454,12 @@ public interface ElideStandaloneSettings {
      * @param entitiesToExclude set of Entities to exclude from binding.
      * @return EntityDictionary object initialized.
      */
-    default EntityDictionary getEntityDictionary(ServiceLocator injector,
+    default EntityDictionary getEntityDictionary(ServiceLocator injector, ClassScanner scanner,
             Optional<DynamicConfiguration> dynamicConfiguration, Set<Type<?>> entitiesToExclude) {
-        EntityDictionary dictionary = new EntityDictionary(getCheckMappings(),
+
+        EntityDictionary dictionary = new EntityDictionary(
+                new HashMap<>(), //Checks
+                new HashMap<>(), //Role Checks
                 new Injector() {
                     @Override
                     public void inject(Object entity) {
@@ -465,7 +470,10 @@ public interface ElideStandaloneSettings {
                     public <T> T instantiate(Class<T> cls) {
                         return injector.create(cls);
                     }
-                }, entitiesToExclude);
+                },
+                CoerceUtil::lookup, //Serde Lookup
+                entitiesToExclude,
+                scanner);
 
         dictionary.scanForSecurityChecks();
 
@@ -477,15 +485,18 @@ public interface ElideStandaloneSettings {
 
     /**
      * Gets the metadatastore for elide.
+     * @param scanner Class scanner.
      * @param dynamicConfiguration optional dynamic config object.
      * @return MetaDataStore object initialized.
      */
-    default MetaDataStore getMetaDataStore(Optional<DynamicConfiguration> dynamicConfiguration) {
+    default MetaDataStore getMetaDataStore(ClassScanner scanner,
+            Optional<DynamicConfiguration> dynamicConfiguration) {
         boolean enableMetaDataStore = getAnalyticProperties().enableMetaDataStore();
 
         return dynamicConfiguration
-                .map(dc -> new MetaDataStore(dc.getTables(), dc.getNamespaceConfigurations(), enableMetaDataStore))
-                .orElseGet(() -> new MetaDataStore(enableMetaDataStore));
+                .map(dc -> new MetaDataStore(scanner, dc.getTables(),
+                        dc.getNamespaceConfigurations(), enableMetaDataStore))
+                .orElseGet(() -> new MetaDataStore(scanner, enableMetaDataStore));
     }
 
     /**
@@ -514,5 +525,13 @@ public interface ElideStandaloneSettings {
                     new DefaultQueryValidator(metaDataStore.getMetadataDictionary()));
         }
         return new SQLQueryEngine(metaDataStore, defaultConnectionDetails);
+    }
+
+    /**
+     * Get the class scanner for this Elide instance.
+     * @return class scanner implementation.
+     */
+    default ClassScanner getClassScanner() {
+        return new DefaultClassScanner();
     }
 }

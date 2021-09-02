@@ -12,7 +12,6 @@ import com.yahoo.elide.core.dictionary.EntityBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.PermissionExecutor;
 import com.yahoo.elide.core.type.Type;
-
 import lombok.AccessLevel;
 import lombok.Setter;
 
@@ -59,13 +58,15 @@ public final class MultiplexManager implements DataStore {
 
         for (DataStore dataStore : dataStores) {
             EntityDictionary subordinateDictionary = new EntityDictionary(
-                dictionary.getCheckMappings(),
-                dictionary.getRoleChecks(),
-                dictionary.getInjector()
-            );
+                    dictionary.getCheckMappings(),
+                    dictionary.getRoleChecks(),
+                    dictionary.getInjector(),
+                    dictionary.getSerdeLookup(),
+                    dictionary.getEntitiesToExclude(),
+                    dictionary.getScanner());
 
             dataStore.populateEntityDictionary(subordinateDictionary);
-            for (EntityBinding binding : subordinateDictionary.getBindings()) {
+            for (EntityBinding binding : subordinateDictionary.getBindings(false)) {
                 // route class to this database manager
                 this.dataStoreMap.put(binding.entityClass, dataStore);
 

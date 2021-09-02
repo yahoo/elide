@@ -67,7 +67,7 @@ public class MetaDataStoreIntegrationTest extends IntegrationTest {
                     Map<String, Class<? extends Check>> map = new HashMap<>(TestCheckMappings.MAPPINGS);
                     map.put(OperatorCheck.OPERTOR_CHECK, OperatorCheck.class);
                     map.put(VideoGameFilterCheck.NAME_FILTER, VideoGameFilterCheck.class);
-                    EntityDictionary dictionary = new EntityDictionary(map);
+                    EntityDictionary dictionary = EntityDictionary.builder().checks(map).build();
 
                     VALIDATOR.getElideSecurityConfig().getRoles().forEach(role ->
                             dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))

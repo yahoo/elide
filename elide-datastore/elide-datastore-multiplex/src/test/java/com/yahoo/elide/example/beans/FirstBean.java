@@ -7,6 +7,8 @@ package com.yahoo.elide.example.beans;
 
 import com.yahoo.elide.annotation.Include;
 
+import lombok.Data;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -16,18 +18,11 @@ import javax.persistence.Id;
  */
 @Entity
 @Include(rootLevel = false)
+@Data
 public class FirstBean {
-    public String id;
-
-    public String name;
-
     @Id
     @GeneratedValue
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
+    private String id;
+    private String name;
+    private ComplexAttribute complex;
 }

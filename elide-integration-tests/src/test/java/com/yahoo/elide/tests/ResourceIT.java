@@ -71,7 +71,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.owasp.encoder.Encode;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -218,7 +217,7 @@ public class ResourceIT extends IntegrationTest {
 
     @BeforeEach
     public void setup() throws IOException {
-        dataStore.populateEntityDictionary(new EntityDictionary(new HashMap<>()));
+        dataStore.populateEntityDictionary(EntityDictionary.builder().build());
         DataStoreTransaction tx = dataStore.beginTransaction();
 
         Parent parent = new Parent(); // id 1
@@ -2440,7 +2439,7 @@ public class ResourceIT extends IntegrationTest {
     @Test
     public void elideSecurityEnabled() {
         Elide elide = new Elide(new ElideSettingsBuilder(dataStore)
-                .withEntityDictionary(new EntityDictionary(TestCheckMappings.MAPPINGS))
+                .withEntityDictionary(EntityDictionary.builder().checks(TestCheckMappings.MAPPINGS).build())
                 .withAuditLogger(new TestAuditLogger())
                 .build());
 
@@ -2611,7 +2610,7 @@ public class ResourceIT extends IntegrationTest {
     public void testSpecialCharacterLikeQueryHQL(FilterPredicate filterPredicate, int noOfRecords) throws Exception {
         DataStoreTransaction tx = dataStore.beginReadTransaction();
         RequestScope scope = mock(RequestScope.class);
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(Book.class);
         when(scope.getDictionary()).thenReturn(dictionary);
         PaginationImpl pagination = mock(PaginationImpl.class);

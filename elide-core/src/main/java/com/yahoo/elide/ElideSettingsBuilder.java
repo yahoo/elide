@@ -48,7 +48,7 @@ public class ElideSettingsBuilder {
     private final DataStore dataStore;
     private AuditLogger auditLogger;
     private JsonApiMapper jsonApiMapper;
-    private EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
+    private EntityDictionary entityDictionary;
     private Function<RequestScope, PermissionExecutor> permissionExecutorFunction = ActivePermissionExecutor::new;
     private List<JoinFilterDialect> joinFilterDialects;
     private List<SubqueryFilterDialect> subqueryFilterDialects;
@@ -99,6 +99,10 @@ public class ElideSettingsBuilder {
 
         if (graphqlFilterDialect == null) {
             graphqlFilterDialect = new RSQLFilterDialect(entityDictionary);
+        }
+
+        if (entityDictionary == null) {
+            throw new IllegalStateException("EntityDictionary must be set in ElideSettings.");
         }
 
         return new ElideSettings(

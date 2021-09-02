@@ -25,6 +25,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.ParseException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -46,12 +47,13 @@ public class AsyncAPICancelRunnableTest {
 
     @BeforeEach
     public void setupMocks() {
-        HashMapDataStore inMemoryStore = new HashMapDataStore(AsyncQuery.class.getPackage());
+        HashMapDataStore inMemoryStore = new HashMapDataStore(DefaultClassScanner.getInstance(),
+                AsyncQuery.class.getPackage());
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
 
         elide = new Elide(
                 new ElideSettingsBuilder(inMemoryStore)
-                        .withEntityDictionary(new EntityDictionary(checkMappings))
+                        .withEntityDictionary(EntityDictionary.builder().checks(checkMappings).build())
                         .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                         .build());
 

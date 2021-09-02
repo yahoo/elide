@@ -36,7 +36,8 @@ public class LifeCycleIntegrationTestApplicationResourceConfig extends ResourceC
         register(new AbstractBinder() {
             @Override
             protected void configure() {
-                EntityDictionary dictionary = new EntityDictionary(TestCheckMappings.MAPPINGS, injector::inject);
+                EntityDictionary dictionary = EntityDictionary.builder()
+                        .injector(injector::inject).checks(TestCheckMappings.MAPPINGS).build();
 
                 bind(dictionary).to(EntityDictionary.class);
 

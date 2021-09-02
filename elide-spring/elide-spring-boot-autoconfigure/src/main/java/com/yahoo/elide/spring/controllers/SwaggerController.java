@@ -8,7 +8,6 @@ package com.yahoo.elide.spring.controllers;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import com.yahoo.elide.utils.HeaderUtils;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.owasp.encoder.Encode;
 import org.springframework.beans.factory.annotation.Autowired;

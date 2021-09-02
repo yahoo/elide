@@ -9,7 +9,6 @@ package com.yahoo.elide.graphql;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.subscriptions.Subscription;
-
 import org.apache.commons.lang3.StringUtils;
 
 public class GraphQLNameUtils {

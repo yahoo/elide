@@ -56,7 +56,7 @@ public class DataStoreLoadTest {
     private EntityDictionary dictionary;
 
     public DataStoreLoadTest() {
-        dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(Item.class);
 
         filterParser = new RSQLFilterDialect(dictionary);

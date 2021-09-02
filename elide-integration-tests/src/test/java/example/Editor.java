@@ -17,7 +17,6 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.predicates.NotNullPredicate;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.type.Type;
-
 import lombok.Getter;
 import lombok.Setter;
 

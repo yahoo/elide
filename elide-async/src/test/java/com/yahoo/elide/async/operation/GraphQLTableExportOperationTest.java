@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.async.export.formatter.JSONExportFormatter;
@@ -30,7 +29,7 @@ import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.core.security.checks.Check;
-
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,7 +56,7 @@ public class GraphQLTableExportOperationTest {
 
     @BeforeEach
     public void setupMocks(@TempDir Path tempDir) {
-        dataStore = new HashMapDataStore(
+        dataStore = new HashMapDataStore(DefaultClassScanner.getInstance(),
                         new HashSet<>(Arrays.asList(TableExport.class.getPackage(), ArtifactGroup.class.getPackage())));
         Map<String, Class<? extends Check>> map = new HashMap<>();
         map.put(AsyncAPIInlineChecks.AsyncAPIOwner.PRINCIPAL_IS_OWNER,
@@ -70,7 +69,7 @@ public class GraphQLTableExportOperationTest {
                 AsyncAPIInlineChecks.AsyncAPIStatusQueuedValue.class);
         elide = new Elide(
                     new ElideSettingsBuilder(dataStore)
-                        .withEntityDictionary(new EntityDictionary(map))
+                        .withEntityDictionary(EntityDictionary.builder().checks(map).build())
                         .withAuditLogger(new Slf4jLogger())
                         .withExportApiPath("/export")
                         .build());

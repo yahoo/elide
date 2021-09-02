@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.search;
 
 import static com.yahoo.elide.core.datastore.DataStoreTransaction.FeatureSupport.FULL;
 import static com.yahoo.elide.core.datastore.DataStoreTransaction.FeatureSupport.NONE;
-
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
@@ -26,7 +25,6 @@ import com.yahoo.elide.core.request.Pagination;
 import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-
 import com.google.common.base.Preconditions;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;

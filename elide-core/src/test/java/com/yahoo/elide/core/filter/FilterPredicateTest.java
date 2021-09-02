@@ -41,7 +41,7 @@ public class FilterPredicateTest {
 
     @BeforeAll
     static void setup() {
-        EntityDictionary entityDictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary entityDictionary = EntityDictionary.builder().build();
 
         entityDictionary.bindEntity(Book.class);
         entityDictionary.bindEntity(Author.class);

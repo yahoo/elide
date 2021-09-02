@@ -28,7 +28,6 @@ import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 import javax.jms.Destination;
@@ -51,7 +50,7 @@ public class JMSDataStoreTest {
 
         ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("vm://0");
 
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
 
         Author author1 = new Author();
         author1.setId(1);

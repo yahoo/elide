@@ -18,7 +18,6 @@ import com.yahoo.elide.core.security.checks.UserCheck;
 import com.yahoo.elide.core.security.executors.AggregationStorePermissionExecutor;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.aggregation.annotation.Join;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
 import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
@@ -79,7 +78,7 @@ public class AggregationDataStore implements DataStore {
             });
         }
 
-        ClassScanner.getAnnotatedClasses(AGGREGATION_STORE_CLASSES).forEach(cls -> {
+        dictionary.getScanner().getAnnotatedClasses(AGGREGATION_STORE_CLASSES).forEach(cls -> {
                     dictionary.bindEntity(cls, Collections.singleton(Join.class));
                     validateModelExpressionChecks(dictionary, ClassType.of(cls));
                     dictionary.bindPermissionExecutor(cls, aggPermissionExecutor);

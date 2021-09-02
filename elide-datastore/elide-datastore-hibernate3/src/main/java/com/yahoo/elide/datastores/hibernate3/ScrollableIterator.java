@@ -6,7 +6,6 @@
 package com.yahoo.elide.datastores.hibernate3;
 
 import com.yahoo.elide.core.hibernate.ScrollableIteratorBase;
-
 import org.hibernate.ScrollableResults;
 
 /**
