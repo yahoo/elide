@@ -10,7 +10,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-datastore-parent-pom</artifactId>
-        <version>5.0.12-SNAPSHOT</version>
+        <version>6.0.0-pr1</version>
     </parent>
 
     <licenses>
@@ -47,19 +47,19 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-inmemorydb</artifactId>
-            <version>5.0.12-SNAPSHOT</version>
+            <version>6.0.0-pr1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-datastore-hibernate5</artifactId>
-            <version>5.0.12-SNAPSHOT</version>
+            <version>6.0.0-pr1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-integration-tests</artifactId>
-            <version>5.0.12-SNAPSHOT</version>
+            <version>6.0.0-pr1</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
