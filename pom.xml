@@ -74,13 +74,14 @@
         <releaseRepoUrl>https://oss.sonatype.org/service/local/staging/deploy/maven2/</releaseRepoUrl>
         <snapshotRepoUrl>https://oss.sonatype.org/content/repositories/snapshots/</snapshotRepoUrl>
         <autoVersionSubmodules>true</autoVersionSubmodules>
-        <min.jdk.version>1.8</min.jdk.version>
-        <max.jdk.version>1.10</max.jdk.version>
+        <min.jdk.version>11</min.jdk.version>
+        <max.jdk.version>12</max.jdk.version>
         <source.jdk.version>${min.jdk.version}</source.jdk.version>
         <target.jdk.version>${min.jdk.version}</target.jdk.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+        <delombok.output>${project.basedir}/target/lombok</delombok.output>
 
         <!-- dependency versions -->
         <version.antlr4>4.9.2</version.antlr4>
@@ -91,6 +92,7 @@
         <version.jersey>2.32</version.jersey>
         <version.junit>5.7.2</version.junit>
         <version.junit.platform>1.7.2</version.junit.platform>
+        <version.lombok>1.18.20</version.lombok>
         <jsonpath.version>2.6.0</jsonpath.version>
         <hibernate3.version>3.6.10.Final</hibernate3.version>
         <hibernate5.version>5.5.5.Final</hibernate5.version>
@@ -114,7 +116,7 @@
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.20</version>
+                <version>${version.lombok}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -381,7 +383,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.22.2</version>
+                    <version>3.0.0-M5</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -471,6 +473,13 @@
                     <showWarnings>true</showWarnings>
                     <optimize>true</optimize>
                     <encoding>${project.build.sourceEncoding}</encoding>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${version.lombok}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <plugin>
@@ -482,6 +491,24 @@
                         <id>attach-sources</id>
                         <goals>
                             <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok-maven-plugin</artifactId>
+                <version>1.18.20.0</version>
+                <configuration>
+                    <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+                    <outputDirectory>${delombok.output}</outputDirectory>
+                    <addOutputDirectory>false</addOutputDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>delombok</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -501,6 +528,7 @@
                 <configuration>
                     <doclint>all,-missing</doclint>
                     <source>${source.jdk.version}</source>
+                    <sourcepath>${delombok.output}</sourcepath>
                 </configuration>
             </plugin>
             <plugin>

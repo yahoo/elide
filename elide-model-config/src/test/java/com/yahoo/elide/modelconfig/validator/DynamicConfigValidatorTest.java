@@ -393,7 +393,9 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        assertTrue(error.contains("Multiple DB configs found with the same name: OracleConnection"));
+        //Java 11 introduces (and prints) the following deprecation warning:
+        //"Warning: Nashorn engine is planned to be removed from a future JDK release"
+        assertTrue(error.contains("Multiple DB configs found with the same name: OracleConnection\n"));
     }
 
     @Test
