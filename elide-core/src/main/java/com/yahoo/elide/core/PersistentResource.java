@@ -429,7 +429,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             if (val == null
                     || coercedNewValue == null
                     || !dictionary.isComplexAttribute(EntityDictionary.getType(obj), fieldName)) {
-                this.setValueChecked(fieldName, newVal);
+                this.setValueChecked(fieldName, coercedNewValue);
             } else {
                 this.updateComplexAttribute(dictionary, (Map<String, Object>) newVal, val, requestScope);
             }
