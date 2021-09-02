@@ -11,7 +11,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>6.0.0-pr1</version>
+        <version>6.0.0-pr1-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -44,12 +44,12 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-core</artifactId>
-            <version>6.0.0-pr1</version>
+            <version>6.0.0-pr1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-test-helpers</artifactId>
-            <version>6.0.0-pr1</version>
+            <version>6.0.0-pr1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
