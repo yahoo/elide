@@ -422,14 +422,16 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      */
     public boolean updateAttribute(String fieldName, Object newVal) {
         Type<?> fieldClass = dictionary.getType(getResourceType(), fieldName);
-        newVal =  dictionary.coerce(obj, newVal, fieldName, fieldClass);
+        final Object coercedNewValue = dictionary.coerce(obj, newVal, fieldName, fieldClass);
         Object val = getValueUnchecked(fieldName);
-        checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newVal, val);
-        if (!Objects.equals(val, newVal)) {
-            if (dictionary.isComplexAttribute(EntityDictionary.getType(obj), fieldName)) {
-                this.updateComplexAttribute(dictionary, fieldName, newVal, val, requestScope);
-            } else {
+        checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, coercedNewValue, val);
+        if (!Objects.equals(val, coercedNewValue)) {
+            if (val == null
+                    || coercedNewValue == null
+                    || !dictionary.isComplexAttribute(EntityDictionary.getType(obj), fieldName)) {
                 this.setValueChecked(fieldName, newVal);
+            } else {
+                this.updateComplexAttribute(dictionary, (Map<String, Object>) newVal, val, requestScope);
             }
             this.markDirty();
             //Hooks for customize logic for setAttribute/Relation
@@ -448,30 +450,19 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     }
 
     private void updateComplexAttribute(EntityDictionary dictionary,
-                                        String fieldName,
-                                        Object updateValue,
+                                        Map<String, Object> updateValue,
                                         Object currentValue,
                                         RequestScope scope) {
-        if (updateValue instanceof Map) {
-            final Map<String, Object> updateValueMap = (Map<String, Object>) updateValue;
-            final Map<String, Object> currentValueMap = (Map<String, Object>) currentValue;
-            for (String field : updateValueMap.keySet()) {
-                final Object newValue = updateValueMap.get(field);
-                if (currentValue != null) {
-                    if (dictionary.isComplexAttribute(ClassType.of(currentValue.getClass()), field)) {
-                        final Object newOriginal = dictionary.getValue(currentValue, field, scope);
-                        updateComplexAttribute(dictionary, field, newValue, newOriginal, scope);
-                    } else {
-                        if (newValue != currentValueMap.get(field)) {
-                            dictionary.setValue(currentValue, field, newValue);
-                        }
-                    }
-                } else {
-                    this.setValueChecked(fieldName, updateValue);
-                }
+        for (String field : updateValue.keySet()) {
+            final Object newValue = updateValue.get(field);
+            if (dictionary.isComplexAttribute(ClassType.of(currentValue.getClass()), field)) {
+                final Object newOriginal = dictionary.getValue(currentValue, field, scope);
+                this.updateComplexAttribute(dictionary, (Map<String, Object>) newValue, newOriginal, scope);
+            } else {
+                final Object coercedNewValue =
+                        dictionary.coerce(currentValue, newValue, field, dictionary.getType(currentValue, field));
+                dictionary.setValue(currentValue, field, coercedNewValue);
             }
-        } else {
-            this.setValueChecked(fieldName, updateValue);
         }
     }
 
