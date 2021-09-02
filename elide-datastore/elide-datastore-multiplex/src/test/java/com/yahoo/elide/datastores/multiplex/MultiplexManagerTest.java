@@ -18,6 +18,7 @@ import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.datastores.inmemory.InMemoryDataStore;
+import com.yahoo.elide.example.beans.ComplexAttribute;
 import com.yahoo.elide.example.beans.FirstBean;
 import com.yahoo.elide.example.other.OtherBean;
 import com.google.common.collect.Lists;
@@ -54,13 +55,14 @@ public class MultiplexManagerTest {
         EntityDictionary entityDictionary = multiplexManager.getDictionary();
         assertNotNull(entityDictionary.getJsonAliasFor(ClassType.of(FirstBean.class)));
         assertNotNull(entityDictionary.getJsonAliasFor(ClassType.of(OtherBean.class)));
+        assertNotNull(entityDictionary.getJsonAliasFor(ClassType.of(ComplexAttribute.class)));
     }
 
     @Test
     public void testValidCommit() throws IOException {
         final FirstBean object = new FirstBean();
-        object.id = null;
-        object.name = "Test";
+        object.setId(null);
+        object.setName("Test");
         try (DataStoreTransaction t = multiplexManager.beginTransaction()) {
             assertFalse(t.loadObjects(EntityProjection.builder()
                     .type(FirstBean.class)
@@ -80,7 +82,7 @@ public class MultiplexManagerTest {
             assertNotNull(beans);
             assertTrue(beans.iterator().hasNext());
             FirstBean bean = (FirstBean) IterableUtils.first(beans);
-            assertTrue(bean.id != null && "Test".equals(bean.name));
+            assertTrue(bean.getId() != null && "Test".equals(bean.getName()));
         }
     }
 
@@ -101,7 +103,7 @@ public class MultiplexManagerTest {
                     .build(), null).iterator().hasNext());
 
             FirstBean firstBean = FirstBean.class.newInstance();
-            firstBean.name = "name";
+            firstBean.setName("name");
             t.createObject(firstBean, null);
             //t.save(firstBean);
             assertFalse(t.loadObjects(EntityProjection.builder()
@@ -115,7 +117,7 @@ public class MultiplexManagerTest {
             FirstBean firstBean = (FirstBean) t.loadObjects(EntityProjection.builder()
                     .type(FirstBean.class)
                     .build(), null).iterator().next();
-            firstBean.name = "update";
+            firstBean.setName("update");
             t.save(firstBean, null);
             OtherBean otherBean = OtherBean.class.newInstance();
             t.createObject(otherBean, null);
@@ -133,7 +135,7 @@ public class MultiplexManagerTest {
             assertNotNull(beans);
             ArrayList<Object> list = Lists.newArrayList(beans.iterator());
             assertEquals(list.size(), 1);
-            assertEquals(((FirstBean) list.get(0)).name, "name");
+            assertEquals(((FirstBean) list.get(0)).getName(), "name");
         }
     }
 
