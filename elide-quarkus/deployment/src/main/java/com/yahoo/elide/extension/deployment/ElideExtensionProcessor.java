@@ -5,6 +5,7 @@ import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.extension.runtime.ElideRecorder;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.DotName;
+import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -12,13 +13,11 @@ import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveHierarchyIgnoreWarningBuildItem;
 import io.quarkus.hibernate.orm.deployment.JpaModelIndexBuildItem;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Singleton;
 
-@Slf4j
 class ElideExtensionProcessor {
 
     private static final String FEATURE = "elide-extension";
@@ -28,12 +27,12 @@ class ElideExtensionProcessor {
         return new FeatureBuildItem(FEATURE);
     }
 
-
     @BuildStep
     @Record(STATIC_INIT)
     public List<ReflectiveHierarchyIgnoreWarningBuildItem> elideModels(
             JpaModelIndexBuildItem index,
             ElideRecorder elideRecorder,
+            BuildProducer<AdditionalBeanBuildItem> additionalBeans,
             BuildProducer<SyntheticBeanBuildItem> synthenticBean
     ) {
         List<ReflectiveHierarchyIgnoreWarningBuildItem> reflectionBuildItems = new ArrayList<>();
@@ -51,10 +50,12 @@ class ElideExtensionProcessor {
 
                     elideClasses.add(beanClass);
                 } catch (ClassNotFoundException e) {
-                    log.error("Elide model class not found: " + classInfo.name().toString());
+                    //TODO - logging
                 }
                 reflectionBuildItems.add(new ReflectiveHierarchyIgnoreWarningBuildItem(classInfo.name()));
             }
+
+            additionalBeans.produce(AdditionalBeanBuildItem.builder().addBeanClass(ClassScanner.class).build());
 
             synthenticBean.produce(SyntheticBeanBuildItem.configure(ClassScanner.class).scope(Singleton.class)
                     .runtimeValue(elideRecorder.createClassScanner(elideClasses))
