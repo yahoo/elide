@@ -5,6 +5,54 @@
  */
 package com.yahoo.elide.tests;
 
+import com.google.common.collect.Sets;
+import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideResponse;
+import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.audit.TestAuditLogger;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.filter.predicates.InfixPredicate;
+import com.yahoo.elide.core.filter.predicates.PostfixPredicate;
+import com.yahoo.elide.core.filter.predicates.PrefixPredicate;
+import com.yahoo.elide.core.pagination.PaginationImpl;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.utils.JsonParser;
+import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.test.jsonapi.elements.Data;
+import com.yahoo.elide.test.jsonapi.elements.Resource;
+import example.Address;
+import example.Book;
+import example.Child;
+import example.Company;
+import example.ExceptionThrowingBean;
+import example.FunWithPermissions;
+import example.Invoice;
+import example.LineItem;
+import example.Parent;
+import example.TestCheckMappings;
+import example.User;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.owasp.encoder.Encode;
+
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Stream;
+
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
@@ -31,51 +79,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.audit.TestAuditLogger;
-import com.yahoo.elide.core.datastore.DataStoreTransaction;
-import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.filter.predicates.FilterPredicate;
-import com.yahoo.elide.core.filter.predicates.InfixPredicate;
-import com.yahoo.elide.core.filter.predicates.PostfixPredicate;
-import com.yahoo.elide.core.filter.predicates.PrefixPredicate;
-import com.yahoo.elide.core.pagination.PaginationImpl;
-import com.yahoo.elide.core.request.EntityProjection;
-import com.yahoo.elide.core.utils.JsonParser;
-import com.yahoo.elide.initialization.IntegrationTest;
-import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.test.jsonapi.elements.Data;
-import com.yahoo.elide.test.jsonapi.elements.Resource;
-import com.google.common.collect.Sets;
-import example.Book;
-import example.Child;
-import example.ExceptionThrowingBean;
-import example.FunWithPermissions;
-import example.Invoice;
-import example.LineItem;
-import example.Parent;
-import example.TestCheckMappings;
-import example.User;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.owasp.encoder.Encode;
-
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Stream;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response.Status;
 
 /**
  * The type Config resource test.
@@ -84,6 +87,22 @@ public class ResourceIT extends IntegrationTest {
     private final JsonParser jsonParser = new JsonParser();
 
     private final String baseUrl = "http://localhost:8080/api";
+
+    private static Address buildAddress(String street1, String street2) {
+        final Address address = new Address();
+        address.setStreet1(street1);
+        address.setStreet2(street2);
+        return address;
+    }
+
+    private static final Resource COMPANY = resource(
+            type("company"),
+            id("abc"),
+            attributes(
+                    attr("address", buildAddress("street1", null)),
+                    attr("description", "ABC")
+            )
+    );
 
     private static final Resource PARENT1 = resource(
             type("parent"),
@@ -219,6 +238,12 @@ public class ResourceIT extends IntegrationTest {
     public void setup() throws IOException {
         dataStore.populateEntityDictionary(EntityDictionary.builder().build());
         DataStoreTransaction tx = dataStore.beginTransaction();
+
+        final Company company = new Company();
+        company.setId("abc");
+        company.setDescription("ABC");
+
+        tx.createObject(company, null);
 
         Parent parent = new Parent(); // id 1
         Child child = new Child(); // id 1
@@ -581,7 +606,6 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     public void testPatchAttrSingle() throws Exception {
-
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
@@ -625,6 +649,42 @@ public class ResourceIT extends IntegrationTest {
                                         )
                                 )
                         ).toJSON()
+                ));
+    }
+
+    @Test
+    public void testPatchComplexAttribute() {
+
+        final Address update = new Address();
+        update.setStreet1("street1");
+        // update company address
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("company"),
+                                        id("abc"),
+                                        attributes(
+                                                attr("address", update)
+                                        )
+                                )
+                        )
+                )
+                .patch("/company/abc")
+                .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT)
+                .header(HttpHeaders.CONTENT_LENGTH, nullValue());
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .get("/company/abc")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .body(equalTo(datum(COMPANY).toJSON()
                 ));
     }
 

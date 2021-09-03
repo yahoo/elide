@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.datastores.jpa;
 
-import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
@@ -14,6 +13,8 @@ import com.yahoo.elide.core.hibernate.QueryLogger;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
+import example.Address;
+import example.Company;
 import example.Parent;
 import example.models.generics.Manager;
 import example.models.triggers.Invoice;
@@ -28,15 +29,18 @@ import org.hibernate.jpa.AvailableSettings;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.schema.TargetType;
 
+import javax.persistence.Embeddable;
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
+
+import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 
 /**
  * IT Test Harness for the JpaDataStore.
@@ -65,6 +69,8 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
             bindClasses.addAll(scanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class));
             bindClasses.addAll(scanner.getAnnotatedClasses(BookV2.class.getPackage(), Entity.class));
             bindClasses.addAll(scanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class));
+            bindClasses.addAll(scanner.getAnnotatedClasses(Company.class.getPackage(), Entity.class));
+            bindClasses.addAll(scanner.getAnnotatedClasses(Address.class.getPackage(), Embeddable.class));
         } catch (MappingException e) {
             throw new IllegalStateException(e);
         }
@@ -97,6 +103,10 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
             scanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class)
                     .forEach(metadataSources::addAnnotatedClass);
             scanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class)
+                    .forEach(metadataSources::addAnnotatedClass);
+            scanner.getAnnotatedClasses(Company.class.getPackage(), Entity.class)
+                    .forEach(metadataSources::addAnnotatedClass);
+            scanner.getAnnotatedClasses(Address.class.getPackage(), Embeddable.class)
                     .forEach(metadataSources::addAnnotatedClass);
         } catch (MappingException e) {
             throw new IllegalStateException(e);
