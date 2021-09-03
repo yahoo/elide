@@ -15,8 +15,6 @@ import com.yahoo.elide.core.security.RequestScope;
 import com.yahoo.elide.core.security.checks.OperationCheck;
 import lombok.ToString;
 
-import java.util.Optional;
-import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -25,6 +23,8 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.PrePersist;
 import javax.validation.constraints.NotNull;
+import java.util.Optional;
+import java.util.Set;
 
 @CreatePermission(expression = "parentInitCheck OR Prefab.Role.All")
 @ReadPermission(expression = "parentInitCheck OR Prefab.Role.All")
@@ -38,6 +38,7 @@ public class Parent extends BaseId {
     private Set<Parent> spouses;
     private String firstName;
     private String specialAttribute;
+    private Address address;
     @ReadPermission(expression = "Prefab.Role.None") public transient boolean init = false;
 
     @PrePersist
@@ -95,6 +96,14 @@ public class Parent extends BaseId {
 
     public void setSpecialAttribute(String specialAttribute) {
         this.specialAttribute = specialAttribute;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
     }
 
     static public class InitCheck extends OperationCheck<Parent> {
