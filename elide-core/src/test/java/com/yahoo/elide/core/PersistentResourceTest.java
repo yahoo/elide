@@ -5,22 +5,10 @@
  */
 package com.yahoo.elide.core;
 
-import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.audit.LogMessage;
@@ -44,10 +32,7 @@ import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import example.Address;
 import example.Author;
 import example.Book;
 import example.Child;
@@ -72,15 +57,17 @@ import example.nontransferable.NoTransferBiDirectional;
 import example.nontransferable.ShareableWithPackageShare;
 import example.nontransferable.StrictNoTransfer;
 import example.nontransferable.Untransferable;
+import io.reactivex.Observable;
+import nocreate.NoCreateEntity;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentCaptor;
-import io.reactivex.Observable;
-import nocreate.NoCreateEntity;
 
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -96,8 +83,23 @@ import java.util.UUID;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
+
+import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test PersistentResource.
@@ -1578,6 +1580,23 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         parentResource.updateAttribute("firstName", "foobar");
 
         assertEquals("foobar", parent.getFirstName(), "The attribute was updated successfully");
+
+        goodScope.saveOrCreateObjects();
+        verify(tx, times(1)).save(parent, goodScope);
+    }
+
+    @Test
+    public void testUpdateComplexAttributeSuccess() {
+        Parent parent = newParent(1);
+
+        RequestScope goodScope = buildRequestScope(tx, goodUser);
+        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
+        final Address address1 = new Address();
+        address1.setStreet1("street1");
+        address1.setStreet2("street2");
+        parentResource.updateAttribute("address", address1);
+
+        assertEquals(address1, parent.getAddress(), "The attribute was updated successfully");
 
         goodScope.saveOrCreateObjects();
         verify(tx, times(1)).save(parent, goodScope);
