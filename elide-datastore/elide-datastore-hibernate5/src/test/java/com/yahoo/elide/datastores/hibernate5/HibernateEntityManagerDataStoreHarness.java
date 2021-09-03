@@ -10,6 +10,8 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+import example.Address;
+import example.Company;
 import example.Filtered;
 import example.Parent;
 import example.TestCheckMappings;
@@ -26,13 +28,14 @@ import org.hibernate.jpa.AvailableSettings;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.schema.TargetType;
 
+import javax.persistence.Embeddable;
+import javax.persistence.Entity;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
-import javax.persistence.Entity;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 
 /**
  * Supplier of Hibernate 5 Data Store.
@@ -61,6 +64,8 @@ public class HibernateEntityManagerDataStoreHarness implements DataStoreTestHarn
             bindClasses.addAll(scanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class));
             bindClasses.addAll(scanner.getAnnotatedClasses(BookV2.class.getPackage(), Entity.class));
             bindClasses.addAll(scanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class));
+            bindClasses.addAll(scanner.getAnnotatedClasses(Company.class.getPackage(), Entity.class));
+            bindClasses.addAll(scanner.getAnnotatedClasses(Address.class.getPackage(), Embeddable.class));
         } catch (MappingException e) {
             throw new IllegalStateException(e);
         }
@@ -87,6 +92,10 @@ public class HibernateEntityManagerDataStoreHarness implements DataStoreTestHarn
 
         try {
             scanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class)
+                    .forEach(metadataSources::addAnnotatedClass);
+            scanner.getAnnotatedClasses(Company.class.getPackage(), Entity.class)
+                    .forEach(metadataSources::addAnnotatedClass);
+            scanner.getAnnotatedClasses(Address.class.getPackage(), Embeddable.class)
                     .forEach(metadataSources::addAnnotatedClass);
         } catch (MappingException e) {
             throw new IllegalStateException(e);
