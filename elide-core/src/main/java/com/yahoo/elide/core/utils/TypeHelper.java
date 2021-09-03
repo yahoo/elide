@@ -11,12 +11,9 @@ import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Dynamic;
-import com.yahoo.elide.core.type.Field;
 import com.yahoo.elide.core.type.Type;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -161,37 +158,4 @@ public class TypeHelper {
                         .collect(Collectors.toSet());
     }
 
-    public static <T> T merge(T original, T update) {
-        final ClassType<?> origClz = ClassType.of(original.getClass());
-        Object returnObject = null;
-        try {
-            returnObject = origClz.newInstance();
-            final Field[] fields = origClz.getDeclaredFields();
-            for (Field field : fields) {
-                field.setAccessible(true);
-                final Object origValue = field.get(original);
-                final Object updateValue = field.get(update);
-                Object value = (updateValue != null && updateValue != origValue) ? updateValue : origValue;
-                field.set(returnObject, value);
-            }
-        } catch (InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        return (T) returnObject;
-    }
-
-    public static Map<String, Object> toMap(Object request) {
-        final Map<String, Object> map = new HashMap<>();
-        final ClassType<?> clz = ClassType.of(request.getClass());
-        final Field[] fields = clz.getDeclaredFields();
-        for (Field field : fields) {
-            field.setAccessible(true);
-            try {
-                map.put(field.getName(), field.get(request));
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-        return map;
-    }
 }
