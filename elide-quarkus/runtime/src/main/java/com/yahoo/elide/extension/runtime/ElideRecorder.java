@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 @Recorder
 public class ElideRecorder {
 
-    private static final Class[] ANNOTATIONS = {
+    public static final Class[] ANNOTATIONS = {
         com.yahoo.elide.annotation.Include.class,
         com.yahoo.elide.annotation.SecurityCheck.class,
         com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter.class
@@ -27,13 +27,13 @@ public class ElideRecorder {
             public ClassScanner get() {
                 Map<String, Set<Class<?>>> cache = new HashMap<>();
                 Arrays.stream(ANNOTATIONS).forEach(annotationClass -> {
+                    String key = annotationClass.getCanonicalName();
+                    cache.put(key, new HashSet<>());
+
                     classes.stream().forEach(cls -> {
                         if (cls.isAnnotationPresent(annotationClass)) {
-                            String key = annotationClass.getCanonicalName();
-
-                            Set<Class<?>> classSet = cache.getOrDefault(key, new HashSet<>());
+                            Set<Class<?>> classSet = cache.get(key);
                             classSet.add(cls);
-                            cache.put(key, classSet);
                         }
                     });
                 });

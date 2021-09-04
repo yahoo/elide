@@ -1,5 +1,6 @@
 package com.yahoo.elide.extension.test;
 
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.utils.ClassScanner;
@@ -27,7 +28,7 @@ public class ElideExtensionTest {
     EntityDictionary dictionary;
 
     @Inject
-    DataStore store;
+    Elide elide;
 
     @Test
     public void writeYourOwnUnitTest() {

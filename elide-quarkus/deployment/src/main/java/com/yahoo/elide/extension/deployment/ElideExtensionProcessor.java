@@ -3,8 +3,10 @@ package com.yahoo.elide.extension.deployment;
 import static io.quarkus.deployment.annotations.ExecutionTime.STATIC_INIT;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.extension.runtime.ElideRecorder;
+import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.DotName;
+import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -27,6 +29,11 @@ class ElideExtensionProcessor {
         return new FeatureBuildItem(FEATURE);
     }
 
+    //@BuildStep
+    public AdditionalBeanBuildItem elideEndpoints( ) {
+        return AdditionalBeanBuildItem.builder().addBeanClass(JsonApiEndpoint.class).build();
+    }
+
     @BuildStep
     @Record(STATIC_INIT)
     public List<ReflectiveHierarchyIgnoreWarningBuildItem> elideModels(
@@ -38,11 +45,19 @@ class ElideExtensionProcessor {
         List<Class<?>> elideClasses = new ArrayList<>();
 
         index.getIndex().getKnownClasses().forEach(classInfo -> {
-            AnnotationInstance instance =
-                    classInfo.classAnnotation(DotName.createSimple("com.yahoo.elide.annotation.Include"));
+            boolean found = false;
 
-            if (instance != null) {
+            for (Class annotationClass : ElideRecorder.ANNOTATIONS) {
+                AnnotationInstance instance =
+                        classInfo.classAnnotation(DotName.createSimple(annotationClass.getSimpleName()));
 
+                if (instance != null) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found) {
                 try {
                     Class<?> beanClass = Class.forName(classInfo.name().toString(), false,
                             Thread.currentThread().getContextClassLoader());
