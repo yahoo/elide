@@ -1,7 +1,9 @@
 package com.yahoo.elide.extension.test;
 
+import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.extension.test.models.Book;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Assertions;
@@ -17,11 +19,15 @@ public class ElideExtensionTest {
     // Start unit test with your extension loaded
     @RegisterExtension
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
-        .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class));
+        .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
+                .addAsResource("application.properties")
+                .addClass(Book.class));
 
     @Inject
-            //ClassScanner scanner;
     EntityDictionary dictionary;
+
+    @Inject
+    DataStore store;
 
     @Test
     public void writeYourOwnUnitTest() {
