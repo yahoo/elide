@@ -18,7 +18,10 @@
       <groupId>com.yahoo.elide</groupId>
       <artifactId>elide-core</artifactId>
     </dependency>
-  </dependencies>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-hibernate-orm</artifactId>
+    </dependency>  </dependencies>
   <build>
     <plugins>
       <plugin>

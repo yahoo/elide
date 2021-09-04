@@ -17,9 +17,10 @@ public class ElideExtensionTest {
     // Start unit test with your extension loaded
     @RegisterExtension
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
-        .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class).addClass(EntityDictionary.class));
+        .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class));
 
     @Inject
+            //ClassScanner scanner;
     EntityDictionary dictionary;
 
     @Test

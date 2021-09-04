@@ -5,7 +5,6 @@ import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.extension.runtime.ElideRecorder;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.DotName;
-import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -16,6 +15,7 @@ import io.quarkus.hibernate.orm.deployment.JpaModelIndexBuildItem;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.enterprise.inject.Default;
 import javax.inject.Singleton;
 
 class ElideExtensionProcessor {
@@ -32,7 +32,6 @@ class ElideExtensionProcessor {
     public List<ReflectiveHierarchyIgnoreWarningBuildItem> elideModels(
             JpaModelIndexBuildItem index,
             ElideRecorder elideRecorder,
-            BuildProducer<AdditionalBeanBuildItem> additionalBeans,
             BuildProducer<SyntheticBeanBuildItem> synthenticBean
     ) {
         List<ReflectiveHierarchyIgnoreWarningBuildItem> reflectionBuildItems = new ArrayList<>();
@@ -54,13 +53,13 @@ class ElideExtensionProcessor {
                 }
                 reflectionBuildItems.add(new ReflectiveHierarchyIgnoreWarningBuildItem(classInfo.name()));
             }
-
-            additionalBeans.produce(AdditionalBeanBuildItem.builder().addBeanClass(ClassScanner.class).build());
-
-            synthenticBean.produce(SyntheticBeanBuildItem.configure(ClassScanner.class).scope(Singleton.class)
-                    .runtimeValue(elideRecorder.createClassScanner(elideClasses))
-                    .done());
         });
+
+        synthenticBean.produce(SyntheticBeanBuildItem.configure(ClassScanner.class).scope(Singleton.class)
+                .supplier(elideRecorder.createClassScanner(elideClasses))
+                .unremovable()
+                .addQualifier(Default.class)
+                .done());
         return reflectionBuildItems;
     }
 }
