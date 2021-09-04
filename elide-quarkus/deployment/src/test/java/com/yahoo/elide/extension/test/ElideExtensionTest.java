@@ -1,9 +1,7 @@
 package com.yahoo.elide.extension.test;
 
 import com.yahoo.elide.Elide;
-import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.extension.test.models.Book;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
