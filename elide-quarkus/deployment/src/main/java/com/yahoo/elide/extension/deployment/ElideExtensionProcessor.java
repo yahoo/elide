@@ -11,6 +11,7 @@ import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.AdditionalApplicationArchiveBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveHierarchyIgnoreWarningBuildItem;
 import io.quarkus.hibernate.orm.deployment.JpaModelIndexBuildItem;
@@ -29,7 +30,7 @@ class ElideExtensionProcessor {
         return new FeatureBuildItem(FEATURE);
     }
 
-    //@BuildStep
+    @BuildStep
     public AdditionalBeanBuildItem elideEndpoints( ) {
         return AdditionalBeanBuildItem.builder().addBeanClass(JsonApiEndpoint.class).build();
     }

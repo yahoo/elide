@@ -17,12 +17,16 @@ import java.util.TimeZone;
 import java.util.function.Consumer;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 @ApplicationScoped
 public class ElideBeans {
     @Produces
+    @Named("elide")
+    @Singleton
     public Elide produceElide(DataStore store, EntityDictionary dictionary) {
         ElideSettingsBuilder builder = new ElideSettingsBuilder(store)
                 .withEntityDictionary(dictionary)
@@ -40,11 +44,13 @@ public class ElideBeans {
     }
 
     @Produces
+    @Singleton
     public EntityDictionary produceDictionary(ClassScanner scanner) {
         return EntityDictionary.builder().scanner(scanner).build();
     }
 
     @Produces
+    @Singleton
     public DataStore produceDataStore(
             EntityDictionary dictionary,
             EntityManagerFactory entityManagerFactory
