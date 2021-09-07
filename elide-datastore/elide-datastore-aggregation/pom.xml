@@ -39,7 +39,8 @@
     </scm>
 
     <properties>
-        <hikari.version>4.0.3</hikari.version>
+        <!-- Requires Java 11 -->
+        <hikari.version>5.0.0</hikari.version>
     </properties>
 
     <dependencies>
