@@ -9,6 +9,7 @@ import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import example.Filtered;
 import example.Parent;
 import example.TestCheckMappings;
@@ -44,6 +45,8 @@ public class HibernateEntityManagerDataStoreHarness implements DataStoreTestHarn
     private MetadataImplementor metadataImplementor;
 
     public HibernateEntityManagerDataStoreHarness() {
+
+        ClassScanner scanner = DefaultClassScanner.getInstance();
         // Add additional checks to our static check mappings map.
         // NOTE: This is a bit hacky. We need to do a major overhaul on our test architecture
         TestCheckMappings.MAPPINGS.put("filterCheck", Filtered.FilterCheck.class);
@@ -53,11 +56,11 @@ public class HibernateEntityManagerDataStoreHarness implements DataStoreTestHarn
         ArrayList<Class> bindClasses = new ArrayList<>();
 
         try {
-            bindClasses.addAll(ClassScanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class));
-            bindClasses.addAll(ClassScanner.getAnnotatedClasses(Manager.class.getPackage(), Entity.class));
-            bindClasses.addAll(ClassScanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class));
-            bindClasses.addAll(ClassScanner.getAnnotatedClasses(BookV2.class.getPackage(), Entity.class));
-            bindClasses.addAll(ClassScanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class));
+            bindClasses.addAll(scanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class));
+            bindClasses.addAll(scanner.getAnnotatedClasses(Manager.class.getPackage(), Entity.class));
+            bindClasses.addAll(scanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class));
+            bindClasses.addAll(scanner.getAnnotatedClasses(BookV2.class.getPackage(), Entity.class));
+            bindClasses.addAll(scanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class));
         } catch (MappingException e) {
             throw new IllegalStateException(e);
         }
@@ -83,7 +86,7 @@ public class HibernateEntityManagerDataStoreHarness implements DataStoreTestHarn
                         .build());
 
         try {
-            ClassScanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class)
+            scanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class)
                     .forEach(metadataSources::addAnnotatedClass);
         } catch (MappingException e) {
             throw new IllegalStateException(e);

@@ -9,7 +9,6 @@ import com.yahoo.elide.core.annotations.JPQLFilterFragment;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.type.Type;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

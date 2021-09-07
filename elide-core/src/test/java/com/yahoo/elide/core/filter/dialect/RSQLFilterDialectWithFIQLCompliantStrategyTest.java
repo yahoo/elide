@@ -14,7 +14,6 @@ import example.Book;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 import java.util.Map;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -27,7 +26,7 @@ public class RSQLFilterDialectWithFIQLCompliantStrategyTest {
 
     @BeforeAll
     public static void init() {
-        EntityDictionary dictionary = new EntityDictionary(Collections.emptyMap());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
 
         dictionary.bindEntity(Author.class);
         dictionary.bindEntity(Book.class);

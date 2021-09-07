@@ -17,7 +17,6 @@ import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.toJson;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.variableDefinitions;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.Elide;
@@ -27,6 +26,7 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.security.checks.Check;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -56,7 +56,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
@@ -116,7 +115,8 @@ public class GraphQLEndpointTest {
 
     @BeforeEach
     public void setupTest() throws Exception {
-        HashMapDataStore inMemoryStore = new HashMapDataStore(Book.class.getPackage());
+        HashMapDataStore inMemoryStore = new HashMapDataStore(DefaultClassScanner.getInstance(),
+                Book.class.getPackage());
         Map<String, Class<? extends Check>> checkMappings = new HashMap<>();
 
         checkMappings.put(UserChecks.IS_USER_1, UserChecks.IsUserId.One.class);
@@ -125,7 +125,7 @@ public class GraphQLEndpointTest {
 
         Elide elide = new Elide(
                 new ElideSettingsBuilder(inMemoryStore)
-                        .withEntityDictionary(new EntityDictionary(checkMappings))
+                        .withEntityDictionary(EntityDictionary.builder().checks(checkMappings).build())
                         .withAuditLogger(audit)
                         .build());
         endpoint = new GraphQLEndpoint(elide);

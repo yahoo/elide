@@ -13,7 +13,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
 
 /**
@@ -23,7 +22,7 @@ public class AccessIT extends IntegrationTest {
 
     @BeforeAll
     public void setup() {
-        dataStore.populateEntityDictionary(new EntityDictionary(new HashMap<>()));
+        dataStore.populateEntityDictionary(EntityDictionary.builder().build());
     }
 
     @Test

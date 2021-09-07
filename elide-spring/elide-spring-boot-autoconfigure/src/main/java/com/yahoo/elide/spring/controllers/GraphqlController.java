@@ -14,7 +14,6 @@ import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.spring.config.ElideConfigProperties;
 import com.yahoo.elide.spring.security.AuthenticationUser;
 import com.yahoo.elide.utils.HeaderUtils;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;

@@ -18,7 +18,6 @@ import com.yahoo.elide.test.graphql.elements.Selection;
 import com.yahoo.elide.test.graphql.elements.SelectionSet;
 import com.yahoo.elide.test.graphql.elements.VariableDefinition;
 import com.yahoo.elide.test.graphql.elements.VariableDefinitions;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;

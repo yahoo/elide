@@ -6,7 +6,7 @@
 package com.yahoo.elide.modelconfig.parser.handlebars;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.modelconfig.validator.DynamicConfigValidator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -143,7 +143,7 @@ public class HandlebarsHydratorTest {
     @BeforeAll
     public void setup() throws IOException {
         hydrator = new HandlebarsHydrator();
-        testClass = new DynamicConfigValidator(CONFIG_PATH);
+        testClass = new DynamicConfigValidator(DefaultClassScanner.getInstance(), CONFIG_PATH);
         testClass.readConfigs();
     }
 

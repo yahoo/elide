@@ -29,6 +29,7 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.prefab.Role;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
 import com.yahoo.elide.datastores.aggregation.checks.OperatorCheck;
 import com.yahoo.elide.datastores.aggregation.checks.VideoGameFilterCheck;
@@ -90,7 +91,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     public static DynamicConfigValidator VALIDATOR;
 
     static {
-        VALIDATOR = new DynamicConfigValidator("src/test/resources/configs");
+        VALIDATOR = new DynamicConfigValidator(DefaultClassScanner.getInstance(), "src/test/resources/configs");
 
         try {
             VALIDATOR.readAndValidateConfigs();
@@ -109,7 +110,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                     Map<String, Class<? extends Check>> map = new HashMap<>(TestCheckMappings.MAPPINGS);
                     map.put(OperatorCheck.OPERTOR_CHECK, OperatorCheck.class);
                     map.put(VideoGameFilterCheck.NAME_FILTER, VideoGameFilterCheck.class);
-                    EntityDictionary dictionary = new EntityDictionary(map);
+                    EntityDictionary dictionary = EntityDictionary.builder().checks(map).build();
 
                     VALIDATOR.getElideSecurityConfig().getRoles().forEach(role ->
                         dictionary.addRoleCheck(role, new Role.RoleMemberCheck(role))

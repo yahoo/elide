@@ -9,6 +9,7 @@ package com.yahoo.elide.datastores.aggregation.validator;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.aggregation.DefaultQueryValidator;
 import com.yahoo.elide.datastores.aggregation.QueryValidator;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
@@ -38,7 +39,7 @@ public class TableArgumentValidatorTest {
     private final ConnectionDetails connection;
     private final Map<String, ConnectionDetails> connectionDetailsMap = new HashMap<>();
     private final Set<Optimizer> optimizers = new HashSet<>();
-    private final QueryValidator queryValidator = new DefaultQueryValidator(new EntityDictionary(new HashMap<>()));
+    private final QueryValidator queryValidator = new DefaultQueryValidator(EntityDictionary.builder().build());
 
     private Table.TableBuilder mainTableBuilder;
     private final Collection<NamespaceConfig> namespaceConfigs;
@@ -76,7 +77,7 @@ public class TableArgumentValidatorTest {
 
         Set<Table> tables = new HashSet<>();
         tables.add(mainTable);
-        MetaDataStore metaDataStore = new MetaDataStore(tables, this.namespaceConfigs, true);
+        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
 
         assertEquals("Failed to verify table arguments for table: namespace_MainTable. Value: '2.5' for Argument 'testArg' with Type 'INTEGER' is invalid.",
@@ -97,7 +98,7 @@ public class TableArgumentValidatorTest {
 
         Set<Table> tables = new HashSet<>();
         tables.add(mainTable);
-        MetaDataStore metaDataStore = new MetaDataStore(tables, this.namespaceConfigs, true);
+        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
 
         assertEquals("Failed to verify table arguments for table: namespace_MainTable. Default Value: '5' for Argument 'testArg' with Type 'INTEGER' must match one of these values: [1, 2].",
@@ -118,7 +119,7 @@ public class TableArgumentValidatorTest {
 
         Set<Table> tables = new HashSet<>();
         tables.add(mainTable);
-        MetaDataStore metaDataStore = new MetaDataStore(tables, this.namespaceConfigs, true);
+        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
 
         assertEquals("Failed to verify table arguments for table: namespace_MainTable. Default Value: '2.5' for Argument 'testArg' with Type 'INTEGER' is invalid.",
@@ -134,7 +135,7 @@ public class TableArgumentValidatorTest {
 
         Set<Table> tables = new HashSet<>();
         tables.add(mainTable);
-        MetaDataStore metaDataStore = new MetaDataStore(tables, this.namespaceConfigs, true);
+        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
 
         assertEquals("Failed to verify table arguments for table: namespace_MainTable. Argument 'mainArg2' is not defined but found '{{$$table.args.mainArg2}}' in table's sql.",
@@ -155,7 +156,7 @@ public class TableArgumentValidatorTest {
 
         Set<Table> tables = new HashSet<>();
         tables.add(mainTable);
-        MetaDataStore metaDataStore = new MetaDataStore(tables, this.namespaceConfigs, true);
+        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
 
         assertEquals("Failed to verify table arguments for table: namespace_MainTable. Argument 'mainArg2' is not defined but found '{{$$table.args.mainArg2}}' in definition of column: 'dim1'.",
@@ -179,7 +180,7 @@ public class TableArgumentValidatorTest {
                         .name("JoinTable")
                         .namespace("namespace")
                         .build());
-        MetaDataStore metaDataStore = new MetaDataStore(tables, this.namespaceConfigs, true);
+        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
 
         assertEquals("Failed to verify table arguments for table: namespace_MainTable. Argument 'mainArg2' is not defined but found '{{$$table.args.mainArg2}}' in definition of join: 'join'.",
@@ -210,7 +211,7 @@ public class TableArgumentValidatorTest {
                                         .build())
                         .build());
 
-        MetaDataStore metaDataStore = new MetaDataStore(tables, this.namespaceConfigs, true);
+        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
 
         assertEquals("Failed to verify table arguments for table: namespace_MainTable. Argument 'joinArg1' with type 'INTEGER' is not defined but is required by join table: namespace_JoinTable.",
@@ -241,7 +242,7 @@ public class TableArgumentValidatorTest {
                                         .build())
                         .build());
 
-        MetaDataStore metaDataStore = new MetaDataStore(tables, this.namespaceConfigs, true);
+        MetaDataStore metaDataStore = new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
         Exception e = assertThrows(IllegalStateException.class, () -> new SQLQueryEngine(metaDataStore, connection, connectionDetailsMap, optimizers, queryValidator));
 
         assertEquals("Failed to verify table arguments for table: namespace_MainTable. Argument type mismatch. Join table: 'namespace_JoinTable' has same Argument: 'mainArg1' with type 'TEXT'.",

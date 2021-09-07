@@ -37,7 +37,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Optional;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -51,7 +50,7 @@ public class DataStoreSupportsFilteringTest {
     private RequestScope mockScope;
 
     public DataStoreSupportsFilteringTest() {
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(Item.class);
 
         filterParser = new RSQLFilterDialect(dictionary);

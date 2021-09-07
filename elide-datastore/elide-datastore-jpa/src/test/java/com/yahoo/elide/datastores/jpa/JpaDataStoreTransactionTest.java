@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.HashMap;
 import java.util.Optional;
 import javax.persistence.EntityManager;
 
@@ -121,7 +120,7 @@ public class JpaDataStoreTransactionTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     public void testNoDelegationOnCollectionOfOneFetch(boolean delegateToInMemory) throws Exception {
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
 
         JpaDataStoreHarness harness = new JpaDataStoreHarness(DEFAULT_LOGGER, delegateToInMemory);
         DataStore store = harness.getDataStore();

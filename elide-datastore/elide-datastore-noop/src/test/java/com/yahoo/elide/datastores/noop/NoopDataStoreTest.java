@@ -7,24 +7,21 @@ package com.yahoo.elide.datastores.noop;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.yahoo.elide.beans.NoopBean;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
-
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-import java.util.HashMap;
 
 public class NoopDataStoreTest {
 
     @Test
     public void testPopulateEntityDictionary() throws Exception {
         DataStore store = new NoopDataStore(Arrays.asList(NoopBean.class));
-        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+        EntityDictionary dictionary = EntityDictionary.builder().build();
         store.populateEntityDictionary(dictionary);
         assertEquals(ClassType.of(NoopBean.class), dictionary.getEntityClass("theNoopBean", EntityDictionary.NO_VERSION));
     }

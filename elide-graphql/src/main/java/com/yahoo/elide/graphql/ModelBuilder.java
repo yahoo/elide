@@ -14,7 +14,6 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.RelationshipType;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-
 import org.apache.commons.collections4.CollectionUtils;
 import graphql.Scalars;
 import graphql.schema.DataFetcher;
@@ -262,7 +261,7 @@ public class ModelBuilder {
             return queryObjectRegistry.get(entityClass);
         }
 
-        log.debug("Building query object for {}", entityClass.getName());
+        log.trace("Building query object for {}", entityClass.getName());
 
         GraphQLObjectType.Builder builder = newObject()
                 .name(nameUtils.toNodeName(entityClass))
@@ -281,7 +280,7 @@ public class ModelBuilder {
                 continue;
             }
 
-            log.debug("Building query attribute {} {} with arguments {} for entity {}",
+            log.trace("Building query attribute {} {} with arguments {} for entity {}",
                     attribute,
                     attributeClass.getName(),
                     entityDictionary.getAttributeArguments(attributeClass, attribute).toString(),
@@ -382,7 +381,7 @@ public class ModelBuilder {
      * @return The constructed input object stub.
      */
     private GraphQLInputType buildInputObjectStub(Type<?> clazz) {
-        log.debug("Building input object for {}", clazz.getName());
+        log.trace("Building input object for {}", clazz.getName());
 
         GraphQLInputObjectType.Builder builder = GraphQLInputObjectType.newInputObject();
         builder.name(nameUtils.toInputTypeName(clazz));
@@ -401,7 +400,7 @@ public class ModelBuilder {
                 continue;
             }
 
-            log.debug("Building input attribute {} {} for entity {}",
+            log.trace("Building input attribute {} {} for entity {}",
                     attribute,
                     attributeClass.getName(),
                     clazz.getName());
@@ -414,7 +413,7 @@ public class ModelBuilder {
             );
         }
         for (String relationship : entityDictionary.getElideBoundRelationships(clazz)) {
-            log.debug("Resolving relationship {} for {}", relationship, clazz.getName());
+            log.trace("Resolving relationship {} for {}", relationship, clazz.getName());
             Type<?> relationshipClass = entityDictionary.getParameterizedType(clazz, relationship);
             if (excludedEntities.contains(relationshipClass)) {
                 continue;

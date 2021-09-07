@@ -19,7 +19,6 @@ import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.predicates.InPredicate;
 import com.yahoo.elide.core.filter.predicates.NotEmptyPredicate;
 import com.yahoo.elide.core.type.ClassType;
-
 import example.Author;
 import example.Book;
 import org.junit.jupiter.api.Test;
@@ -39,7 +38,7 @@ public class FilterTranslatorTest {
     private RSQLFilterDialect dialect;
 
     public FilterTranslatorTest() {
-        dictionary = new EntityDictionary(new HashMap<>());
+        dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);
 

@@ -28,8 +28,6 @@ import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 
-import java.util.Collections;
-
 public class SubscriptionModelBuilderTest {
     private EntityDictionary dictionary;
 
@@ -56,7 +54,7 @@ public class SubscriptionModelBuilderTest {
     private static final String FIELD_TYPE = "type";
 
     public SubscriptionModelBuilderTest() {
-        dictionary = new EntityDictionary(Collections.emptyMap());
+        dictionary = EntityDictionary.builder().build();
 
         dictionary.bindEntity(Book.class);
         dictionary.bindEntity(Author.class);

@@ -8,6 +8,7 @@ package com.yahoo.elide.graphql;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.CustomErrorException;
 import com.yahoo.elide.core.exceptions.ErrorObjects;
 import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
@@ -71,7 +72,12 @@ public class QueryRunner {
         this.elide = elide;
         this.apiVersion = apiVersion;
 
-        NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
+        EntityDictionary dictionary = elide.getElideSettings().getDictionary();
+
+        NonEntityDictionary nonEntityDictionary = new NonEntityDictionary(
+                dictionary.getScanner(),
+                dictionary.getSerdeLookup());
+
         PersistentResourceFetcher fetcher = new PersistentResourceFetcher(nonEntityDictionary);
         ModelBuilder builder = new ModelBuilder(elide.getElideSettings().getDictionary(),
                 nonEntityDictionary, fetcher, apiVersion);
