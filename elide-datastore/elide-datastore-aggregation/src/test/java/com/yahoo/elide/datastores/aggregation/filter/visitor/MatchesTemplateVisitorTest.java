@@ -15,7 +15,6 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import example.Player;
 import example.PlayerStats;
 import org.junit.jupiter.api.BeforeEach;
