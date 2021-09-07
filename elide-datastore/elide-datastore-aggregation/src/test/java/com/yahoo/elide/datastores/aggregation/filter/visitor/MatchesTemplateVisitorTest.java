@@ -109,6 +109,32 @@ public class MatchesTemplateVisitorTest {
     }
 
     @Test
+    public void mulipleConjunctionOrderTest() throws Exception {
+        FilterExpression clientExpression = dialect.parseFilterExpression("lowScore>100;(highScore>=100;highScore<999)",
+                playerStatsType, true);
+
+        FilterExpression templateExpression = dialect.parseFilterExpression("highScore>={{low}};highScore<{{high}}",
+                playerStatsType, false, true);
+
+        Argument expected1 = Argument.builder()
+                .name("low")
+                .value(100L)
+                .build();
+
+        Argument expected2 = Argument.builder()
+                .name("high")
+                .value(999L)
+                .build();
+
+        Map<String, Argument> extractedArgs = new HashMap<>();
+
+        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+        assertEquals(2, extractedArgs.size());
+        assertEquals(extractedArgs.get("low"), expected1);
+        assertEquals(extractedArgs.get("high"), expected2);
+    }
+
+    @Test
     public void conjunctionDoesNotContainTest() throws Exception {
         FilterExpression clientExpression = dialect.parseFilterExpression("lowScore>100;player.name==Bob*",
                 playerStatsType, true);
