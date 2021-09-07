@@ -15,6 +15,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.datastores.aggregation.timegrains.Time;
 import example.Player;
 import example.PlayerStats;
 import org.junit.jupiter.api.BeforeEach;
@@ -158,6 +159,25 @@ public class MatchesTemplateVisitorTest {
         Map<String, Argument> extractedArgs = new HashMap<>();
         assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
         assertEquals(0, extractedArgs.size());
+    }
+
+    @Test
+    public void parameterizedFilterMatches() throws Exception {
+        FilterExpression clientExpression = dialect.parseFilterExpression("recordedDate[grain:day]=='2020-01-01'",
+                playerStatsType, true);
+
+        FilterExpression templateExpression = dialect.parseFilterExpression("recordedDate[grain:day]=={{day}}",
+                playerStatsType, false, true);
+
+        Argument expected = Argument.builder()
+                .name("day")
+                .value("2020-01-01")
+                .build();
+
+        Map<String, Argument> extractedArgs = new HashMap<>();
+        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+        assertEquals(1, extractedArgs.size());
+        assertEquals(extractedArgs.get("day"), expected);
     }
 
     @Test
