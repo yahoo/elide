@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>5.0.12-SNAPSHOT</version>
+        <version>6.0.0-pr1-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -47,7 +47,7 @@
         <dependency>
             <groupId>com.yahoo.elide</groupId>
             <artifactId>elide-graphql</artifactId>
-            <version>5.0.12-SNAPSHOT</version>
+            <version>6.0.0-pr1-SNAPSHOT</version>
         </dependency>
 
         <!-- JPA -->
