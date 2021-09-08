@@ -122,4 +122,9 @@ public abstract class TransactionWrapper implements DataStoreTransaction {
     public void cancel(RequestScope scope) {
         tx.cancel(scope);
     }
+
+    @Override
+    public <T> T getProperty(String propertyName) {
+        return tx.getProperty(propertyName);
+    }
 }

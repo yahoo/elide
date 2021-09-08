@@ -215,4 +215,17 @@ public class TransactionWrapperTest {
         verify(wrapped, times(1)).loadObject(any(), any(), any());
         assertEquals(1L, actual);
     }
+
+    @Test
+    public void testGetProperty() {
+        DataStoreTransaction wrapped = mock(DataStoreTransaction.class);
+        DataStoreTransaction wrapper = new TestTransactionWrapper(wrapped);
+
+        when(wrapped.getProperty(any())).thenReturn(1L);
+
+        Object actual = wrapper.getProperty("foo");
+
+        verify(wrapped, times(1)).getProperty(any());
+        assertEquals(1L, actual);
+    }
 }
