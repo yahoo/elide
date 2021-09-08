@@ -12,9 +12,12 @@ import com.yahoo.elide.core.filter.expression.NotFilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
 import com.yahoo.elide.core.filter.visitors.FilterExpressionNormalizationVisitor;
+import com.yahoo.elide.core.request.Argument;
 import com.google.common.base.Preconditions;
-import lombok.AllArgsConstructor;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -22,12 +25,19 @@ import java.util.regex.Pattern;
  * 1. Directly matches a template filter.
  * 2. Contains through conjunction (logical AND) a filter expression that matches a template filter.
  * This is used to enforce table filter constraints.
+ *
+ * Any matching template variables are extracted from the filter expression.
  */
-@AllArgsConstructor
 public class MatchesTemplateVisitor implements FilterExpressionVisitor<Boolean> {
-    private static final Pattern TEMPLATE_PATTERN = Pattern.compile("\\{\\{\\w*\\}\\}");
+    private static final Pattern TEMPLATE_PATTERN = Pattern.compile("\\{\\{(\\w+)\\}\\}");
 
     private FilterExpression expressionToMatch;
+    private Map<String, Argument> arguments;
+
+    public MatchesTemplateVisitor(FilterExpression expressionToMatch) {
+        this.expressionToMatch = expressionToMatch;
+        this.arguments = new HashMap<>();
+    }
 
     @Override
     public Boolean visitPredicate(FilterPredicate filterPredicate) {
@@ -51,7 +61,7 @@ public class MatchesTemplateVisitor implements FilterExpressionVisitor<Boolean> 
         return matches(expressionToMatch, expression);
     }
 
-    private static boolean matches(FilterExpression a, FilterExpression b) {
+    private boolean matches(FilterExpression a, FilterExpression b) {
         if (! a.getClass().equals(b.getClass())) {
             return false;
         }
@@ -78,21 +88,44 @@ public class MatchesTemplateVisitor implements FilterExpressionVisitor<Boolean> 
         FilterPredicate predicateB = (FilterPredicate) b;
 
         boolean valueMatches = predicateA.getValues().equals(predicateB.getValues());
-        boolean usingTemplate = predicateA.getValues().stream()
-                .anyMatch(value -> TEMPLATE_PATTERN.matcher(value.toString()).matches());
+        boolean operatorMatches = predicateA.getOperator().equals(predicateB.getOperator());
+        boolean pathMatches = predicateA.getPath().equals(predicateB.getPath());
 
-        return predicateA.getPath().equals(predicateB.getPath())
-                && predicateA.getOperator().equals(predicateB.getOperator())
-                && (usingTemplate || valueMatches);
+        boolean usingTemplate = false;
+
+        if (predicateA.getValues().size() == 1) {
+            String value = predicateA.getValues().get(0).toString();
+            Matcher matcher = TEMPLATE_PATTERN.matcher(value);
+
+            usingTemplate = matcher.matches();
+
+            if (usingTemplate && pathMatches & operatorMatches) {
+                String argumentName = matcher.group(1);
+
+                arguments.put(argumentName, Argument.builder()
+                        .name(argumentName)
+                        .value(predicateB.getValues().size() == 1
+                                ? predicateB.getValues().get(0)
+                                : predicateB.getValues())
+                        .build());
+            }
+        }
+
+        return (operatorMatches && pathMatches && (valueMatches || usingTemplate));
     }
 
     /**
      * Determines if a client filter matches or contains a subexpression that matches a template filter.
      * @param templateFilter A templated filter expression
      * @param clientFilter The client provided filter expression.
+     * @param arguments If the client filter matches, extract any table arguments.
      * @return True if the client filter matches.  False otherwise.
      */
-    public static boolean isValid(FilterExpression templateFilter, FilterExpression clientFilter) {
+    public static boolean isValid(
+            FilterExpression templateFilter,
+            FilterExpression clientFilter,
+            Map<String, Argument> arguments
+    ) {
         Preconditions.checkNotNull(templateFilter);
 
         if (clientFilter == null) {
@@ -104,6 +137,13 @@ public class MatchesTemplateVisitor implements FilterExpressionVisitor<Boolean> 
         FilterExpression normalizedTemplateFilter = templateFilter.accept(new FilterExpressionNormalizationVisitor());
         FilterExpression normalizedClientFilter = clientFilter.accept(new FilterExpressionNormalizationVisitor());
 
-        return normalizedClientFilter.accept(new MatchesTemplateVisitor(normalizedTemplateFilter));
+        MatchesTemplateVisitor templateVisitor = new MatchesTemplateVisitor(normalizedTemplateFilter);
+        boolean matches = normalizedClientFilter.accept(templateVisitor);
+
+        if (matches) {
+            arguments.putAll(templateVisitor.arguments);
+        }
+
+        return matches;
     }
 }

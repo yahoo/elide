@@ -89,5 +89,26 @@ public class Query implements Queryable {
 
             return this;
         }
+
+        /**
+         * Initializes the builder from another query (copy).
+         * @param query What to copy.
+         * @return A new query builder.
+         */
+        public QueryBuilder query(Query query) {
+            this.source(query.getSource());
+            this.metricProjections(query.getMetricProjections());
+            this.dimensionProjections(query.getDimensionProjections());
+            this.timeDimensionProjections(query.getTimeDimensionProjections());
+            this.arguments(query.getArguments());
+            this.sorting(query.getSorting());
+            this.pagination(query.getPagination());
+            this.whereFilter(query.getWhereFilter());
+            this.havingFilter(query.getHavingFilter());
+            this.bypassingCache(query.isBypassingCache());
+            this.scope(query.getScope());
+
+            return this;
+        }
     }
 }
