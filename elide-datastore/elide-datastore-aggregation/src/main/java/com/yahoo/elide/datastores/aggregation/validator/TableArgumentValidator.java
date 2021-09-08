@@ -85,12 +85,16 @@ public class TableArgumentValidator {
                         .map(TableArgReference.class::cast)
                         .map(TableArgReference::getArgName)
                         .forEach(argName -> {
-                            if (!table.hasArgumentDefinition(argName)) {
+                            if (!table.hasArgumentDefinition(argName) && !hasTemplateFilterArgument(argName)) {
                                 throw new IllegalStateException(String.format(errorMsgPrefix
                                                 + "Argument '%s' is not defined but found '{{$$table.args.%s}}' "
                                                 + errorMsgSuffix, argName, argName));
                             }
                         });
+    }
+
+    private boolean hasTemplateFilterArgument(String argName) {
+        return table.getRequiredFilter() != null && table.getRequiredFilter().contains("{{" + argName + "}}");
     }
 
     private void verifyRequiredTableArgsForJoinTables() {

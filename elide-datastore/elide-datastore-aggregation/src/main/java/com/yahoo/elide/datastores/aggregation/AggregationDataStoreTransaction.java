@@ -13,6 +13,7 @@ import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidOperationException;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.aggregation.cache.Cache;
@@ -28,9 +29,11 @@ import com.google.common.annotations.VisibleForTesting;
 import lombok.ToString;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Transaction handler for {@link AggregationDataStore}.
@@ -152,11 +155,29 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
         Query query = translator.getQuery();
 
         FilterExpression filterTemplate = table.getRequiredFilter(scope.getDictionary());
-        if (filterTemplate != null && ! MatchesTemplateVisitor.isValid(filterTemplate, query.getWhereFilter())) {
-            String message = String.format("Querying %s requires a mandatory filter: %s",
+        if (filterTemplate != null) {
+
+            Map<String, Argument> templateFilterArguments = new HashMap<>();
+            if (!MatchesTemplateVisitor.isValid(filterTemplate, query.getWhereFilter(), templateFilterArguments)
+                    && (!MatchesTemplateVisitor.isValid(filterTemplate, query.getHavingFilter(),
+                            templateFilterArguments))) {
+                String message = String.format("Querying %s requires a mandatory filter: %s",
                         table.getName(), table.getRequiredFilter());
 
-            throw new BadRequestException(message);
+                throw new BadRequestException(message);
+            }
+
+            if (! templateFilterArguments.isEmpty()) {
+                Map<String, Argument> tableArguments = Stream.concat(
+                        templateFilterArguments.entrySet().stream(),
+                                query.getArguments().entrySet().stream()
+                        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+                return Query.builder()
+                        .query(query)
+                        .arguments(tableArguments)
+                        .build();
+            }
         }
 
         return query;

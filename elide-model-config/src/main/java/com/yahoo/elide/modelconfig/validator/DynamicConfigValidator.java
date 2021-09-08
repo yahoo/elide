@@ -99,6 +99,8 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     private final PathMatchingResourcePatternResolver resolver;
     private final EntityDictionary dictionary;
 
+    private static final Pattern FILTER_VARIABLE_PATTERN = Pattern.compile(".*?\\{\\{(\\w+)\\}\\}");
+
     public DynamicConfigValidator(ClassScanner scanner, String configDir) {
         dictionary = EntityDictionary.builder().scanner(scanner).build();
         resolver = new PathMatchingResourcePatternResolver(this.getClass().getClassLoader());
@@ -608,7 +610,22 @@ public class DynamicConfigValidator implements DynamicConfiguration {
     }
 
     private void validateArguments(Table table, List<Argument> arguments) {
-        validateNameUniqueness(arguments, "Multiple Arguments found with the same name: ");
+
+        String template = table.getFilterTemplate();
+
+        List<Argument> allArguments = new ArrayList<>(arguments);
+
+        /* Check for table arguments added in the required filter template */
+        if (template != null) {
+            Matcher matcher = FILTER_VARIABLE_PATTERN.matcher(template);
+            while (matcher.find()) {
+                allArguments.add(Argument.builder()
+                        .name(matcher.group(1))
+                        .build());
+            }
+        }
+
+        validateNameUniqueness(allArguments, "Multiple Arguments found with the same name: ");
         arguments.forEach(arg -> validateTableSource(arg.getTableSource()));
     }
 

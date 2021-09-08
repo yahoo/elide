@@ -6,17 +6,22 @@
 
 package com.yahoo.elide.datastores.aggregation.filter.visitor;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
+import com.yahoo.elide.core.request.Argument;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import example.Player;
 import example.PlayerStats;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MatchesTemplateVisitorTest {
     private RSQLFilterDialect dialect;
@@ -35,10 +40,19 @@ public class MatchesTemplateVisitorTest {
         FilterExpression clientExpression = dialect.parseFilterExpression("highScore==123",
                 playerStatsType, true);
 
-        FilterExpression templateExpression = dialect.parseFilterExpression("highScore=={{}}",
+        FilterExpression templateExpression = dialect.parseFilterExpression("highScore=={{foo}}",
                 playerStatsType, false, true);
 
-        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
+        Map<String, Argument> extractedArgs = new HashMap<>();
+        Argument expected = Argument.builder()
+                .name("foo")
+                .value(123L)
+                .build();
+
+        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+
+        assertEquals(1, extractedArgs.size());
+        assertEquals(extractedArgs.get("foo"), expected);
     }
 
     @Test
@@ -49,7 +63,9 @@ public class MatchesTemplateVisitorTest {
         FilterExpression templateExpression = dialect.parseFilterExpression("highScore==123",
                 playerStatsType, false, true);
 
-        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
+        Map<String, Argument> extractedArgs = new HashMap<>();
+        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+        assertEquals(0, extractedArgs.size());
     }
 
     @Test
@@ -60,7 +76,16 @@ public class MatchesTemplateVisitorTest {
         FilterExpression templateExpression = dialect.parseFilterExpression("highScore=={{variable}}",
                 playerStatsType, false, true);
 
-        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
+        Map<String, Argument> extractedArgs = new HashMap<>();
+        Argument expected = Argument.builder()
+                .name("variable")
+                .value(123L)
+                .build();
+
+        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+
+        assertEquals(1, extractedArgs.size());
+        assertEquals(extractedArgs.get("variable"), expected);
     }
 
     @Test
@@ -71,7 +96,42 @@ public class MatchesTemplateVisitorTest {
         FilterExpression templateExpression = dialect.parseFilterExpression("lowScore>100;highScore=={{variable}}",
                 playerStatsType, false, true);
 
-        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
+        Map<String, Argument> extractedArgs = new HashMap<>();
+        Argument expected = Argument.builder()
+                .name("variable")
+                .value(123L)
+                .build();
+
+        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+
+        assertEquals(1, extractedArgs.size());
+        assertEquals(extractedArgs.get("variable"), expected);
+    }
+
+    @Test
+    public void mulipleConjunctionOrderTest() throws Exception {
+        FilterExpression clientExpression = dialect.parseFilterExpression("lowScore>100;(highScore>=100;highScore<999)",
+                playerStatsType, true);
+
+        FilterExpression templateExpression = dialect.parseFilterExpression("highScore>={{low}};highScore<{{high}}",
+                playerStatsType, false, true);
+
+        Argument expected1 = Argument.builder()
+                .name("low")
+                .value(100L)
+                .build();
+
+        Argument expected2 = Argument.builder()
+                .name("high")
+                .value(999L)
+                .build();
+
+        Map<String, Argument> extractedArgs = new HashMap<>();
+
+        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+        assertEquals(2, extractedArgs.size());
+        assertEquals(extractedArgs.get("low"), expected1);
+        assertEquals(extractedArgs.get("high"), expected2);
     }
 
     @Test
@@ -82,7 +142,35 @@ public class MatchesTemplateVisitorTest {
         FilterExpression templateExpression = dialect.parseFilterExpression("highScore=={{variable}}",
                 playerStatsType, false, true);
 
-        assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
+        Map<String, Argument> extractedArgs = new HashMap<>();
+        assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+        assertEquals(0, extractedArgs.size());
+    }
+
+    @Test
+    public void parameterizedFilterDoesNotMatch() throws Exception {
+        FilterExpression clientExpression = dialect.parseFilterExpression("recordedDate[grain:day]=='2020-01-01'",
+                playerStatsType, true);
+
+        FilterExpression templateExpression = dialect.parseFilterExpression("recordedDate=={{day}}",
+                playerStatsType, false, true);
+
+        Map<String, Argument> extractedArgs = new HashMap<>();
+        assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+        assertEquals(0, extractedArgs.size());
+    }
+
+    @Test
+    public void parameterizedFilterMatches() throws Exception {
+        FilterExpression clientExpression = dialect.parseFilterExpression("recordedDate[grain:day]=='2020-01-01'",
+                playerStatsType, true);
+
+        FilterExpression templateExpression = dialect.parseFilterExpression("recordedDate[grain:day]=={{day}}",
+                playerStatsType, false, true);
+
+        Map<String, Argument> extractedArgs = new HashMap<>();
+        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+        assertEquals(1, extractedArgs.size());
     }
 
     @Test
@@ -93,7 +181,9 @@ public class MatchesTemplateVisitorTest {
         FilterExpression templateExpression = dialect.parseFilterExpression("highScore=={{variable}}",
                 playerStatsType, false, true);
 
-        assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
+        Map<String, Argument> extractedArgs = new HashMap<>();
+        assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+        assertEquals(0, extractedArgs.size());
     }
 
     @Test
@@ -104,7 +194,16 @@ public class MatchesTemplateVisitorTest {
         FilterExpression templateExpression = dialect.parseFilterExpression("lowScore>100,highScore=={{variable}}",
                 playerStatsType, false, true);
 
-        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
+        Map<String, Argument> extractedArgs = new HashMap<>();
+        Argument expected = Argument.builder()
+                .name("variable")
+                .value(123L)
+                .build();
+
+        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+
+        assertEquals(1, extractedArgs.size());
+        assertEquals(extractedArgs.get("variable"), expected);
     }
 
     @Test
@@ -115,7 +214,9 @@ public class MatchesTemplateVisitorTest {
         FilterExpression templateExpression = dialect.parseFilterExpression("highScore=={{variable}}",
                 playerStatsType, false, true);
 
-        assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
+        Map<String, Argument> extractedArgs = new HashMap<>();
+        assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+        assertEquals(0, extractedArgs.size());
     }
 
     @Test
@@ -126,7 +227,9 @@ public class MatchesTemplateVisitorTest {
         FilterExpression templateExpression = dialect.parseFilterExpression("highScore=={{variable}}",
                 playerStatsType, false, true);
 
-        assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
+        Map<String, Argument> extractedArgs = new HashMap<>();
+        assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+        assertEquals(0, extractedArgs.size());
     }
 
     @Test
@@ -137,7 +240,9 @@ public class MatchesTemplateVisitorTest {
         FilterExpression templateExpression = dialect.parseFilterExpression("highScore==456",
                 playerStatsType, false, true);
 
-        assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
+        Map<String, Argument> extractedArgs = new HashMap<>();
+        assertFalse(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+        assertEquals(0, extractedArgs.size());
     }
 
     @Test
@@ -149,6 +254,15 @@ public class MatchesTemplateVisitorTest {
         FilterExpression templateExpression = dialect.parseFilterExpression("highScore=={{variable}}",
                 playerStatsType, false, true);
 
-        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression));
+        Map<String, Argument> extractedArgs = new HashMap<>();
+        Argument expected = Argument.builder()
+                .name("variable")
+                .value(123L)
+                .build();
+
+        assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
+
+        assertEquals(1, extractedArgs.size());
+        assertEquals(extractedArgs.get("variable"), expected);
     }
 }
