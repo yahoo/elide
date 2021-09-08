@@ -5,6 +5,8 @@
  */
 package com.yahoo.elide.core.security;
 
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+
 import java.util.List;
 import java.util.Map;
 
@@ -17,4 +19,5 @@ public interface RequestScope {
     String getRequestHeaderByName(String headerName);
     String getBaseUrlEndPoint();
     Map<String, List<String>> getQueryParams();
+    DataStoreTransaction getTransaction();
 }
