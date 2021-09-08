@@ -423,6 +423,33 @@ public class DynamicConfigValidatorTest {
     }
 
     @Test
+    public void testDuplicateArgumentNameInFilter() throws Exception {
+        DynamicConfigValidator testClass = new DynamicConfigValidator(DefaultClassScanner.getInstance(),
+                "src/test/resources/validator/valid");
+        testClass.readConfigs();
+        Table playerStatsTable = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStats");
+
+        // PlayerStats table already has a filter argument 'code' with type 'TEXT'.
+        playerStatsTable.getArguments().add(Argument.builder().name("code").type(Type.TEXT).build());
+        Exception e = assertThrows(IllegalStateException.class, () -> testClass.validateConfigs());
+        assertEquals("Multiple Arguments found with the same name: code", e.getMessage());
+    }
+
+    @Test
+    public void testDuplicateArgumentNameInComplexFilter() throws Exception {
+        DynamicConfigValidator testClass = new DynamicConfigValidator(DefaultClassScanner.getInstance(),
+                "src/test/resources/validator/valid");
+        testClass.readConfigs();
+        Table playerStatsTable = testClass.getElideTableConfig().getTable("PlayerNamespace_PlayerStats");
+
+        // PlayerStats table already has a filter argument 'code' with type 'TEXT'.
+        playerStatsTable.getArguments().add(Argument.builder().name("code").type(Type.TEXT).build());
+        playerStatsTable.setFilterTemplate("foo=={{bar}};blah=={{code}}");
+        Exception e = assertThrows(IllegalStateException.class, () -> testClass.validateConfigs());
+        assertEquals("Multiple Arguments found with the same name: code", e.getMessage());
+    }
+
+    @Test
     public void testFormatClassPath() {
         assertEquals("anydir", DynamicConfigValidator.formatClassPath("src/test/resources/anydir"));
         assertEquals("anydir/configs", DynamicConfigValidator.formatClassPath("src/test/resources/anydir/configs"));

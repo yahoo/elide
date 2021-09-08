@@ -965,6 +965,9 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                 selection(
                         field(
                                 "SalesNamespace_orderDetails",
+                                arguments(
+                                        argument("filter", "\"deliveryTime>='2020-01-01';deliveryTime<'2020-12-31'\"")
+                                ),
                                 selections(
                                         field("id"),
                                         field("orderTotal")
@@ -1006,7 +1009,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
     @Test
     public void testDynamicAggregationModel() {
         String getPath = "/SalesNamespace_orderDetails?sort=customerRegion,orderTime&page[totals]&"
-                        + "fields[SalesNamespace_orderDetails]=orderTotal,customerRegion,orderTime&filter=orderTime>=2020-08";
+                        + "fields[SalesNamespace_orderDetails]=orderTotal,customerRegion,orderTime&filter=deliveryTime>=2020-01-01;deliveryTime<2020-12-31;orderTime>=2020-08";
         given()
             .when()
             .get(getPath)
@@ -1039,10 +1042,10 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
     @Test
     public void missingClientFilterTest() {
-        String expectedError = "Querying SalesNamespace_deliveryDetails requires a mandatory filter:"
-                + " month&gt;={{start}};month&lt;{{end}}";
+        String expectedError = "Querying SalesNamespace_orderDetails requires a mandatory filter:"
+                + " deliveryTime&gt;={{start}};deliveryTime&lt;{{end}}";
         when()
-        .get("/SalesNamespace_deliveryDetails/")
+        .get("/SalesNamespace_orderDetails/")
         .then()
         .body("errors.detail", hasItems(expectedError))
         .statusCode(HttpStatus.SC_BAD_REQUEST);
@@ -1050,10 +1053,10 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
 
     @Test
     public void incompleteClientFilterTest() {
-        String expectedError = "Querying SalesNamespace_deliveryDetails requires a mandatory filter:"
-                + " month&gt;={{start}};month&lt;{{end}}";
+        String expectedError = "Querying SalesNamespace_orderDetails requires a mandatory filter:"
+                + " deliveryTime&gt;={{start}};deliveryTime&lt;{{end}}";
         when()
-        .get("/SalesNamespace_deliveryDetails?filter=month>=2020-08")
+        .get("/SalesNamespace_orderDetails?filter=deliveryTime>=2020-08")
         .then()
         .body("errors.detail", hasItems(expectedError))
         .statusCode(HttpStatus.SC_BAD_REQUEST);
@@ -1075,7 +1078,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "SalesNamespace_orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
-                                        argument("filter", "\"orderTime=='2020-08'\"")
+                                        argument("filter", "\"deliveryTime>='2020-01-01';deliveryTime<'2020-12-31';orderTime=='2020-08'\"")
                                 ),
                                 selections(
                                         field("orderTotal"),
@@ -1138,7 +1141,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "SalesNamespace_orderDetails",
                                 arguments(
                                         argument("sort", "\"courierName,deliveryDate,orderTotal\""),
-                                        argument("filter", "\"deliveryDate>='2020-09-01',orderTotal>50\"")
+                                        argument("filter", "\"(deliveryTime>='2020-08-01';deliveryTime<'2020-12-31');(deliveryDate>='2020-09-01',orderTotal>50)\"")
                                 ),
                                 selections(
                                         field("courierName"),
@@ -1254,7 +1257,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "SalesNamespace_orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
-                                        argument("filter", "\"bySecond=='2020-09-08T16:30:11'\"")
+                                        argument("filter", "\"bySecond=='2020-09-08T16:30:11';(deliveryTime>='2020-01-01';deliveryTime<'2020-12-31')\"")
                                 ),
                                 selections(
                                         field("orderTotal"),
@@ -1349,7 +1352,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "SalesNamespace_orderDetails",
                                 arguments(
                                         argument("sort", "\"orderTime\""),
-                                        argument("filter", "\"orderTime=='2020-08-01',orderTotal>50\"") //No Grain Arg passed, so works based on Alias's argument in Selection.
+                                        argument("filter", "\"(orderTime=='2020-08-01',orderTotal>50);(deliveryTime>='2020-01-01';deliveryTime<'2020-12-31')\"") //No Grain Arg passed, so works based on Alias's argument in Selection.
                                 ),
                                 selections(
                                         field("orderTotal"),
@@ -1397,7 +1400,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "SalesNamespace_orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
-                                        argument("filter", "\"orderTime=='2020-08'\"")
+                                        argument("filter", "\"deliveryTime>='2020-01-01';deliveryTime<'2020-12-31';orderTime=='2020-08'\"")
                                 ),
                                 selections(
                                         field("orderTotal"),
@@ -1442,7 +1445,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "SalesNamespace_orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
-                                        argument("filter", "\"orderTime=='2020-08'\"")
+                                        argument("filter", "\"deliveryTime>='2020-01-01';deliveryTime<'2020-12-31';orderTime=='2020-08'\"")
                                 ),
                                 selections(
                                         field("customerRegion"),
@@ -1485,7 +1488,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "SalesNamespace_orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
-                                        argument("filter", "\"orderTime=='2020-08'\"")
+                                        argument("filter", "\"deliveryTime>='2020-01-01';deliveryTime<'2020-12-31';orderTime=='2020-08'\"")
                                 ),
                                 selections(
                                         field("customerRegion"),
@@ -1561,7 +1564,7 @@ public class AggregationDataStoreIntegrationTest extends GraphQLIntegrationTest 
                                 "SalesNamespace_orderDetails",
                                 arguments(
                                         argument("sort", "\"customerRegion\""),
-                                        argument("filter", "\"orderTime[grain:day]=='2020-09-08'\"")
+                                        argument("filter", "\"deliveryTime>='2020-01-01';deliveryTime<'2020-12-31';orderTime[grain:day]=='2020-09-08'\"")
                                 ),
                                 selections(
                                         field("customerRegion"),

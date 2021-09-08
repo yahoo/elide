@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.datastores.aggregation.validator;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
@@ -216,6 +217,32 @@ public class TableArgumentValidatorTest {
 
         assertEquals("Failed to verify table arguments for table: namespace_MainTable. Argument 'joinArg1' with type 'INTEGER' is not defined but is required by join table: namespace_JoinTable.",
                         e.getMessage());
+    }
+
+    @Test
+    public void testRequiredTableArgsForJoinTableInFilterTemplate() {
+        Table mainTable = Table.builder()
+                .name("MainTable")
+                .namespace("namespace")
+                .filterTemplate("foo>{{filterArg1}}")
+                .join(Join.builder()
+                        .name("join")
+                        .namespace("namespace")
+                        .to("JoinTable")
+                        .definition("start {{$$table.args.filterArg1}} end")
+                        .build())
+                .build();
+
+        Set<Table> tables = new HashSet<>();
+        tables.add(mainTable);
+        tables.add(Table.builder()
+                .name("JoinTable")
+                .namespace("namespace")
+                .build());
+
+        assertDoesNotThrow(() -> {
+            new MetaDataStore(DefaultClassScanner.getInstance(), tables, this.namespaceConfigs, true);
+        });
     }
 
     @Test

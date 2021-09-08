@@ -57,6 +57,8 @@ public class SQLTable extends Table implements Queryable {
 
     private Map<String, SQLJoin> joins;
 
+    private Map<String, Argument> arguments;
+
     public SQLTable(Namespace namespace,
                     Type<?> cls,
                     EntityDictionary dictionary,
@@ -64,6 +66,7 @@ public class SQLTable extends Table implements Queryable {
         super(namespace, cls, dictionary);
         this.connectionDetails = connectionDetails;
         this.joins = new HashMap<>();
+        this.arguments = prepareArgMap(getArgumentDefinitions());
 
         EntityBinding binding = dictionary.getEntityBinding(cls);
         binding.fieldsToValues.forEach((name, field) -> {
@@ -303,7 +306,7 @@ public class SQLTable extends Table implements Queryable {
 
     @Override
     public Map<String, Argument> getArguments() {
-        return prepareArgMap(getArgumentDefinitions());
+        return arguments;
     }
 
     /**
