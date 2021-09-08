@@ -6,18 +6,19 @@
 
 package com.yahoo.elide.core.utils;
 
-import com.google.common.collect.Sets;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Dynamic;
 import com.yahoo.elide.core.type.Type;
 
+import com.google.common.collect.Sets;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * Utilities for handling types and aliases.
@@ -58,8 +59,8 @@ public class TypeHelper {
     /**
      * Extend an type alias to the final type of an extension path
      *
-     * @param alias type alias to be extended, e.g. <code>a_b</code>
-     * @param extension path extension from aliased type, e.g. <code>[b.c]/[c.d]</code>
+     * @param alias      type alias to be extended, e.g. <code>a_b</code>
+     * @param extension  path extension from aliased type, e.g. <code>[b.c]/[c.d]</code>
      * @param dictionary The entity dictionary
      * @return extended type alias, e.g. <code>a_b_c</code>
      */
@@ -85,7 +86,7 @@ public class TypeHelper {
      * the result.
      * The last field would not be included as that's not a part of the relationship path.
      *
-     * @param path path that represents a relationship chain
+     * @param path       path that represents a relationship chain
      * @param dictionary The entity dictionary
      * @return relationship path alias, i.e. <code>foo.bar.baz</code> would be <code>foo_bar</code>
      */
@@ -97,15 +98,15 @@ public class TypeHelper {
      * Append a new field to a parent alias to get new alias.
      *
      * @param parentAlias parent path alias
-     * @param fieldName field name
+     * @param fieldName   field name
      * @return alias for the field
      */
     public static String appendAlias(String parentAlias, String fieldName) {
         return isEmpty(parentAlias)
                 ? fieldName
                 : isEmpty(fieldName)
-                        ? parentAlias
-                        : parentAlias + UNDERSCORE + fieldName;
+                ? parentAlias
+                : parentAlias + UNDERSCORE + fieldName;
     }
 
     /**
@@ -121,8 +122,8 @@ public class TypeHelper {
     /**
      * Get alias for the final field of a path.
      *
-     * @param path path to the field
-     * @param fieldName physical field name
+     * @param path       path to the field
+     * @param fieldName  physical field name
      * @param dictionary the entity dictionary
      * @return combined alias
      */
@@ -134,7 +135,7 @@ public class TypeHelper {
      * Get alias for the final field of a path.
      *
      * @param tableAlias alias for table that contains the field
-     * @param fieldName physical field name
+     * @param fieldName  physical field name
      * @return combined alias
      */
     public static String getFieldAlias(String tableAlias, String fieldName) {
@@ -143,6 +144,7 @@ public class TypeHelper {
 
     /**
      * Construction helper.
+     *
      * @param cls
      * @return wrapped Type
      * @deprecated Use {@link ClassType#of(Class)}
@@ -154,8 +156,7 @@ public class TypeHelper {
 
     public static Set<Type<?>> getClassType(Set<Class<?>> cls) {
         return cls.stream()
-                        .map(ClassType::of)
-                        .collect(Collectors.toSet());
+                .map(ClassType::of)
+                .collect(Collectors.toSet());
     }
-
 }
