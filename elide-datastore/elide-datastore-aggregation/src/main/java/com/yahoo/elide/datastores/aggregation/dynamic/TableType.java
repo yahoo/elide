@@ -488,7 +488,11 @@ public class TableType implements Type<DynamicModelInstance> {
 
             @Override
             public String value() {
-                return trimColumnReferences(measure.getDefinition());
+                if (measure.getDefinition() != null) {
+                    return trimColumnReferences(measure.getDefinition());
+                } else {
+                    return "";
+                }
             }
 
             @Override
@@ -813,6 +817,7 @@ public class TableType implements Type<DynamicModelInstance> {
      */
     private static String trimColumnReferences(String str) {
         String expr = replaceNewlineWithSpace(str);
+
         Matcher matcher = REFERENCE_PARENTHESES.matcher(expr);
         while (matcher.find()) {
             String reference = matcher.group(1);
