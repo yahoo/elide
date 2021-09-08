@@ -5,54 +5,6 @@
  */
 package com.yahoo.elide.tests;
 
-import com.google.common.collect.Sets;
-import com.yahoo.elide.Elide;
-import com.yahoo.elide.ElideResponse;
-import com.yahoo.elide.ElideSettingsBuilder;
-import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.RequestScope;
-import com.yahoo.elide.core.audit.TestAuditLogger;
-import com.yahoo.elide.core.datastore.DataStoreTransaction;
-import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.filter.predicates.FilterPredicate;
-import com.yahoo.elide.core.filter.predicates.InfixPredicate;
-import com.yahoo.elide.core.filter.predicates.PostfixPredicate;
-import com.yahoo.elide.core.filter.predicates.PrefixPredicate;
-import com.yahoo.elide.core.pagination.PaginationImpl;
-import com.yahoo.elide.core.request.EntityProjection;
-import com.yahoo.elide.core.utils.JsonParser;
-import com.yahoo.elide.initialization.IntegrationTest;
-import com.yahoo.elide.jsonapi.models.JsonApiDocument;
-import com.yahoo.elide.test.jsonapi.elements.Data;
-import com.yahoo.elide.test.jsonapi.elements.Resource;
-import example.Address;
-import example.Book;
-import example.Child;
-import example.Company;
-import example.ExceptionThrowingBean;
-import example.FunWithPermissions;
-import example.Invoice;
-import example.LineItem;
-import example.Parent;
-import example.TestCheckMappings;
-import example.User;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.owasp.encoder.Encode;
-
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response.Status;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Stream;
-
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
@@ -80,21 +32,62 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideResponse;
+import com.yahoo.elide.ElideSettingsBuilder;
+import com.yahoo.elide.core.Path;
+import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.audit.TestAuditLogger;
+import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.filter.predicates.FilterPredicate;
+import com.yahoo.elide.core.filter.predicates.InfixPredicate;
+import com.yahoo.elide.core.filter.predicates.PostfixPredicate;
+import com.yahoo.elide.core.filter.predicates.PrefixPredicate;
+import com.yahoo.elide.core.pagination.PaginationImpl;
+import com.yahoo.elide.core.request.EntityProjection;
+import com.yahoo.elide.core.utils.JsonParser;
+import com.yahoo.elide.initialization.IntegrationTest;
+import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.test.jsonapi.elements.Data;
+import com.yahoo.elide.test.jsonapi.elements.Resource;
+
+import com.google.common.collect.Sets;
+
+import example.Address;
+import example.Book;
+import example.Child;
+import example.Company;
+import example.ExceptionThrowingBean;
+import example.FunWithPermissions;
+import example.Invoice;
+import example.LineItem;
+import example.Parent;
+import example.TestCheckMappings;
+import example.User;
+
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.owasp.encoder.Encode;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Stream;
+
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response.Status;
+
 /**
  * The type Config resource test.
  */
 public class ResourceIT extends IntegrationTest {
-    private final JsonParser jsonParser = new JsonParser();
-
-    private final String baseUrl = "http://localhost:8080/api";
-
-    private static Address buildAddress(String street1, String street2) {
-        final Address address = new Address();
-        address.setStreet1(street1);
-        address.setStreet2(street2);
-        return address;
-    }
-
     private static final Resource COMPANY = resource(
             type("company"),
             id("abc"),
@@ -103,7 +96,6 @@ public class ResourceIT extends IntegrationTest {
                     attr("description", "ABC")
             )
     );
-
     private static final Resource PARENT1 = resource(
             type("parent"),
             id("1"),
@@ -117,7 +109,6 @@ public class ResourceIT extends IntegrationTest {
                     relation("spouses")
             )
     );
-
     private static final Resource PARENT2 = resource(
             type("parent"),
             id("2"),
@@ -132,7 +123,6 @@ public class ResourceIT extends IntegrationTest {
                     relation("spouses")
             )
     );
-
     private static final Resource PARENT3 = resource(
             type("parent"),
             id("3"),
@@ -147,7 +137,6 @@ public class ResourceIT extends IntegrationTest {
                     relation("spouses")
             )
     );
-
     private static final Resource PARENT4 = resource(
             type("parent"),
             id("4"),
@@ -161,7 +150,6 @@ public class ResourceIT extends IntegrationTest {
                     )
             )
     );
-
     private static final Resource CHILD1 = resource(
             type("child"),
             id("1"),
@@ -175,7 +163,6 @@ public class ResourceIT extends IntegrationTest {
                     )
             )
     );
-
     private static final Resource CHILD2 = resource(
             type("child"),
             id("2"),
@@ -191,7 +178,6 @@ public class ResourceIT extends IntegrationTest {
                     )
             )
     );
-
     private static final Resource CHILD3 = resource(
             type("child"),
             id("3"),
@@ -205,7 +191,6 @@ public class ResourceIT extends IntegrationTest {
                     )
             )
     );
-
     private static final Resource CHILD4 = resource(
             type("child"),
             id("4"),
@@ -219,7 +204,6 @@ public class ResourceIT extends IntegrationTest {
                     )
             )
     );
-
     private static final Resource CHILD5 = resource(
             type("child"),
             id("5"),
@@ -233,6 +217,33 @@ public class ResourceIT extends IntegrationTest {
                     )
             )
     );
+    private final JsonParser jsonParser = new JsonParser();
+    private final String baseUrl = "http://localhost:8080/api";
+
+    private static Address buildAddress(String street1, String street2) {
+        final Address address = new Address();
+        address.setStreet1(street1);
+        address.setStreet2(street2);
+        return address;
+    }
+
+    private static Stream<Arguments> likeQueryProvider() {
+        return Stream.of(
+                Arguments.of("filter[book.title][infix]=with%perce", 1),
+                Arguments.of("filter[book.title][prefix]=titlewith%perce", 1),
+                Arguments.of("filter[book.title][postfix]=with%percentage", 1)
+        );
+    }
+
+    private static Stream<Arguments> queryProviderHQL() {
+        Path.PathElement pathToTitle = new Path.PathElement(Book.class, String.class, "title");
+
+        return Stream.of(
+                Arguments.of(new InfixPredicate(pathToTitle, "with%perce"), 1),
+                Arguments.of(new PrefixPredicate(pathToTitle, "titlewith%perce"), 1),
+                Arguments.of(new PostfixPredicate(pathToTitle, "with%percentage"), 1)
+        );
+    }
 
     @BeforeEach
     public void setup() throws IOException {
@@ -346,7 +357,6 @@ public class ResourceIT extends IntegrationTest {
         assertEquals(4, doc.getData().get().size());
     }
 
-
     @Test
     public void testRootCollectionWithNoOperatorFilter() throws Exception {
         String actual = given().when().get("/parent?filter[parent.id][isnull]").then().statusCode(HttpStatus.SC_OK)
@@ -357,11 +367,9 @@ public class ResourceIT extends IntegrationTest {
     }
 
     @Test
-    public void testReadPermissionWithFilterCheckCollectionId() {
-        //
+    public void testReadPermissionWithFilterExpressionCheckCollectionId() {
         // To see the detail of the FilterExpression check, go to the bean of filterExpressionCheckObj and see
         // CheckRestrictUser.
-        //
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
@@ -370,16 +378,12 @@ public class ResourceIT extends IntegrationTest {
                                 resource(
                                         type("filterExpressionCheckObj"),
                                         id(null),
-                                        attributes(
-                                                attr("name", "obj1")
-                                        )
+                                        attributes(attr("name", "obj1"))
                                 )
                         )
                 )
                 .post("/filterExpressionCheckObj")
-                .then()
-                .statusCode(HttpStatus.SC_CREATED)
-                .body("data.id", equalTo("1"));
+                .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("1"));
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -389,16 +393,12 @@ public class ResourceIT extends IntegrationTest {
                                 resource(
                                         type("filterExpressionCheckObj"),
                                         id("2"),
-                                        attributes(
-                                                attr("name", "obj2")
-                                        )
+                                        attributes(attr("name", "obj2"))
                                 )
                         )
                 )
                 .post("/filterExpressionCheckObj")
-                .then()
-                .statusCode(HttpStatus.SC_CREATED)
-                .body("data.id", equalTo("2"));
+                .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("2"));
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -408,16 +408,12 @@ public class ResourceIT extends IntegrationTest {
                                 resource(
                                         type("filterExpressionCheckObj"),
                                         id("3"),
-                                        attributes(
-                                                attr("name", "obj3")
-                                        )
+                                        attributes(attr("name", "obj3"))
                                 )
                         )
                 )
                 .post("/filterExpressionCheckObj")
-                .then()
-                .statusCode(HttpStatus.SC_CREATED)
-                .body("data.id", equalTo("3"));
+                .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("3"));
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -440,9 +436,7 @@ public class ResourceIT extends IntegrationTest {
                         )
                 )
                 .post("/anotherFilterExpressionCheckObj")
-                .then()
-                .statusCode(HttpStatus.SC_CREATED)
-                .body("data.id", equalTo("1"));
+                .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("1"));
 
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
@@ -459,42 +453,42 @@ public class ResourceIT extends IntegrationTest {
                         )
                 )
                 .post("/anotherFilterExpressionCheckObj")
-                .then()
-                .statusCode(HttpStatus.SC_CREATED)
-                .body("data.id", equalTo("2"));
+                .then().statusCode(HttpStatus.SC_CREATED).body("data.id", equalTo("2"));
 
         //The User ID is set to one so the following get request won't return record including
         // filterExpressionCheckObj.id != User'id.
-
         //test root object collection, should just receive 2 out of 3 records.
-        String expected1 = "{\"data\":[{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"name\":\"obj1\"},\"relationships\":{\"listOfAnotherObjs\":{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\"}]}}},{\"type\":\"filterExpressionCheckObj\",\"id\":\"2\",\"relationships\":{\"listOfAnotherObjs\":{\"data\":[]}}}]}";
+        String expected1 = "{\"data\":[{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\","
+                + "\"attributes\":{\"name\":\"obj1\"},"
+                + "\"relationships\":{\"listOfAnotherObjs\":{"
+                + "\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\"}]}}},{"
+                + "\"type\":\"filterExpressionCheckObj\",\"id\":\"2\",\"relationships\":{"
+                + "\"listOfAnotherObjs\":{\"data\":[]}}}]}";
+
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/filterExpressionCheckObj")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body(equalTo(expected1));
+                .then().statusCode(HttpStatus.SC_OK).body(equalTo(expected1));
 
         //test authentication pass querying with ID == 1
-        String expected2 = "{\"data\":{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"name\":\"obj1\"},\"relationships\":{\"listOfAnotherObjs\":{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\"}]}}}}";
+        String expected2 = "{\"data\":{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\","
+                + "\"attributes\":{\"name\":\"obj1\"},\"relationships\":{\"listOfAnotherObjs\":{\"data\":[{\"type"
+                + "\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\"}]}}}}";
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/filterExpressionCheckObj/1")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body(equalTo(expected2));
+                .then().statusCode(HttpStatus.SC_OK).body(equalTo(expected2));
 
         //test authentication pass querying with ID == 2, it shouldn't contain attribute "name".
-        String expected3 = "{\"data\":{\"type\":\"filterExpressionCheckObj\",\"id\":\"2\",\"relationships\":{\"listOfAnotherObjs\":{\"data\":[]}}}}";
+        String expected3 = "{\"data\":{\"type\":\"filterExpressionCheckObj\",\"id\":\"2\","
+                + "\"relationships\":{\"listOfAnotherObjs\":{\"data\":[]}}}}";
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/filterExpressionCheckObj/2")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body(equalTo(expected3));
+                .then().statusCode(HttpStatus.SC_OK).body(equalTo(expected3));
 
         //test authentication fail querying with ID == 3
         given()
@@ -506,23 +500,21 @@ public class ResourceIT extends IntegrationTest {
                 .body("errors[0].detail", equalTo("Unknown identifier 3 for filterExpressionCheckObj"));
 
         //test authentication pass query a relation of object
-        String expected5 = "{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\",\"attributes\":{\"anotherName\":\"anotherObj1\",\"createDate\":1999},\"relationships\":{\"linkToParent\":{\"data\":[{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\"}]}}}]}";
+        String expected5 = "{\"data\":[{\"type\":\"anotherFilterExpressionCheckObj\",\"id\":\"1\","
+                + "\"attributes\":{\"anotherName\":\"anotherObj1\",\"createDate\":1999},\"relationships\":{"
+                + "\"linkToParent\":{\"data\":[{\"type\":\"filterExpressionCheckObj\",\"id\":\"1\"}]}}}]}";
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/filterExpressionCheckObj/1/listOfAnotherObjs")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body(equalTo(expected5));
+                .then().statusCode(HttpStatus.SC_OK).body(equalTo(expected5));
 
         //test authentication pass query a relation of object
         given()
                 .contentType(JSONAPI_CONTENT_TYPE)
                 .accept(JSONAPI_CONTENT_TYPE)
                 .get("/anotherFilterExpressionCheckObj")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body(equalTo(expected5));
+                .then().statusCode(HttpStatus.SC_OK).body(equalTo(expected5));
     }
 
     @Test
@@ -984,7 +976,6 @@ public class ResourceIT extends IntegrationTest {
                 .body(equalTo(expected));
     }
 
-
     @Test
     public void testGetRelEmptyColl() {
         String expected = data(null).toJSON();
@@ -1091,7 +1082,6 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
-
     @Test
     public void createParentNoRels() throws Exception {
 
@@ -1118,7 +1108,6 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_CREATED)
                 .body(jsonEquals(parent, true));
     }
-
 
     @Test
     public void createParentWithRels() throws Exception {
@@ -1178,7 +1167,6 @@ public class ResourceIT extends IntegrationTest {
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body(startsWith(expected));
     }
-
 
     @Test
     public void createChild() throws Exception {
@@ -2509,7 +2497,6 @@ public class ResourceIT extends IntegrationTest {
         assertEquals(response.getBody(), "{\"data\":[]}");
     }
 
-
     @Test
     public void testComputedAttribute() throws Exception {
         Resource patched = resource(
@@ -2561,7 +2548,6 @@ public class ResourceIT extends IntegrationTest {
                 .then()
                 .statusCode(HttpStatus.SC_FORBIDDEN);
     }
-
 
     // Update checks should be _deferred_ (neither ignored nor aggressively applied) on newly created objects.
     @Test
@@ -2636,15 +2622,6 @@ public class ResourceIT extends IntegrationTest {
                 .body(equalTo(expected));
     }
 
-
-    private static Stream<Arguments> likeQueryProvider() {
-        return Stream.of(
-                Arguments.of("filter[book.title][infix]=with%perce", 1),
-                Arguments.of("filter[book.title][prefix]=titlewith%perce", 1),
-                Arguments.of("filter[book.title][postfix]=with%percentage", 1)
-        );
-    }
-
     @ParameterizedTest
     @MethodSource("likeQueryProvider")
     public void testSpecialCharacterLikeQuery(String filterParam, int noOfRecords) throws Exception {
@@ -2653,16 +2630,6 @@ public class ResourceIT extends IntegrationTest {
         JsonApiDocument doc = jsonApiMapper.readJsonApiDocument(actual);
         assertEquals(doc.getData().get().size(), noOfRecords);
 
-    }
-
-    private static Stream<Arguments> queryProviderHQL() {
-        Path.PathElement pathToTitle = new Path.PathElement(Book.class, String.class, "title");
-
-        return Stream.of(
-                Arguments.of(new InfixPredicate(pathToTitle, "with%perce"), 1),
-                Arguments.of(new PrefixPredicate(pathToTitle, "titlewith%perce"), 1),
-                Arguments.of(new PostfixPredicate(pathToTitle, "with%percentage"), 1)
-        );
     }
 
     @ParameterizedTest
@@ -2736,7 +2703,7 @@ public class ResourceIT extends IntegrationTest {
 
     @Test
     @Tag("skipInMemory") //Skipping because storage for in-memory store is
-                         //broken out by class instead of a common table.
+    //broken out by class instead of a common table.
     public void testVersionedBookFetch() throws Exception {
         given()
                 .header("ApiVersion", "1.0")

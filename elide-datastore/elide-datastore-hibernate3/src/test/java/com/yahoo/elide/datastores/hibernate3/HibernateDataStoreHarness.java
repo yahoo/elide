@@ -10,12 +10,14 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+
 import example.Address;
 import example.Company;
 import example.Parent;
 import example.models.generics.Manager;
 import example.models.triggers.Invoice;
 import example.models.versioned.BookV2;
+
 import org.hibernate.MappingException;
 import org.hibernate.ScrollMode;
 import org.hibernate.SessionFactory;
@@ -27,7 +29,7 @@ import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 
 /**
- *  IT Test Harness for the Hibernate 3 Data Store.
+ * IT Test Harness for the Hibernate 3 Data Store.
  */
 public class HibernateDataStoreHarness implements DataStoreTestHarness {
 
@@ -48,7 +50,7 @@ public class HibernateDataStoreHarness implements DataStoreTestHarness {
             scanner.getAnnotatedClasses(BookV2.class.getPackage(), Entity.class)
                     .forEach(configuration::addAnnotatedClass);
             scanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class)
-            .forEach(configuration::addAnnotatedClass);
+                    .forEach(configuration::addAnnotatedClass);
             scanner.getAnnotatedClasses(Company.class.getPackage(), Entity.class)
                     .forEach(configuration::addAnnotatedClass);
             scanner.getAnnotatedClasses(Address.class.getPackage(), Embeddable.class)
