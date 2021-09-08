@@ -25,9 +25,11 @@ import java.util.regex.Pattern;
  * 1. Directly matches a template filter.
  * 2. Contains through conjunction (logical AND) a filter expression that matches a template filter.
  * This is used to enforce table filter constraints.
+ *
+ * Any matching template variables are extracted from the filter expression.
  */
 public class MatchesTemplateVisitor implements FilterExpressionVisitor<Boolean> {
-    private static final Pattern TEMPLATE_PATTERN = Pattern.compile("\\{\\{(\\w*)\\}\\}");
+    private static final Pattern TEMPLATE_PATTERN = Pattern.compile("\\{\\{(\\w+)\\}\\}");
 
     private FilterExpression expressionToMatch;
     private Map<String, Argument> arguments;

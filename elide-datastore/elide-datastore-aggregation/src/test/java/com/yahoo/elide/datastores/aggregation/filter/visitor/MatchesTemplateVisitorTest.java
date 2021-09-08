@@ -168,15 +168,9 @@ public class MatchesTemplateVisitorTest {
         FilterExpression templateExpression = dialect.parseFilterExpression("recordedDate[grain:day]=={{day}}",
                 playerStatsType, false, true);
 
-        Argument expected = Argument.builder()
-                .name("day")
-                .value("2020-01-01")
-                .build();
-
         Map<String, Argument> extractedArgs = new HashMap<>();
         assertTrue(MatchesTemplateVisitor.isValid(templateExpression, clientExpression, extractedArgs));
         assertEquals(1, extractedArgs.size());
-        assertEquals(extractedArgs.get("day"), expected);
     }
 
     @Test
