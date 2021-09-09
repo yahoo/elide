@@ -583,7 +583,11 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                     || !dictionary.isComplexAttribute(EntityDictionary.getType(obj), fieldName)) {
                 this.setValueChecked(fieldName, coercedNewValue);
             } else {
-                this.updateComplexAttribute(dictionary, (Map<String, Object>) newVal, val, requestScope);
+                if (newVal instanceof Map) {
+                    this.updateComplexAttribute(dictionary, (Map<String, Object>) newVal, val, requestScope);
+                } else {
+                    this.setValueChecked(fieldName, coercedNewValue);
+                }
             }
             this.markDirty();
             //Hooks for customize logic for setAttribute/Relation
@@ -616,7 +620,11 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                         || !dictionary.isComplexAttribute(ClassType.of(currentValue.getClass()), field)) {
                     dictionary.setValue(currentValue, field, coercedNewValue);
                 } else {
-                    this.updateComplexAttribute(dictionary, (Map<String, Object>) newValue, newOriginal, scope);
+                    if (newValue instanceof Map) {
+                        this.updateComplexAttribute(dictionary, (Map<String, Object>) newValue, newOriginal, scope);
+                    } else {
+                        dictionary.setValue(currentValue, field, coercedNewValue);
+                    }
                 }
             }
         }
