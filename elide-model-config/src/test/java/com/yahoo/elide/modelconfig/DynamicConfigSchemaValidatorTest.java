@@ -136,7 +136,9 @@ public class DynamicConfigSchemaValidatorTest {
                         + "[ERROR]\n"
                         + "Instance[/tables/0/filterTemplate] failed to validate against schema[/properties/tables/items/properties/filterTemplate]. Input value[countryIsoCode={{code}};startTime=={{start}}] is not a valid RSQL filter expression. Please visit page https://elide.io/pages/guide/v5/11-graphql.html#operators for samples.\n"
                         + "[ERROR]\n"
-                        + "Instance[/tables/0/measures/0/maker] failed to validate against schema[/definitions/measure/properties/maker]. Input value[com.yahoo.elide.datastores.aggregation.query@DefaultMetricProjectionMaker.class] is not a valid Java class name with .class extension.\n"
+                        + "Instance[/tables/0/measures/0] failed to validate against schema[/definitions/measure]. instance failed to match exactly one schema (matched 2 out of 2)\n"
+                        + "[ERROR]\n"
+                        + "Instance[/tables/0/measures/0/maker] failed to validate against schema[/definitions/measure/properties/maker]. Input value[com.yahoo.elide.datastores.aggregation.query@DefaultMetricProjectionMaker.class] is not a valid Java class name.\n"
                         + "[ERROR]\n"
                         + "Instance[/tables/0/name] failed to validate against schema[/properties/tables/items/properties/name]. Name [Country@10] is not allowed. Name must start with an alphabetic character and can include alaphabets, numbers and '_' only.";
 

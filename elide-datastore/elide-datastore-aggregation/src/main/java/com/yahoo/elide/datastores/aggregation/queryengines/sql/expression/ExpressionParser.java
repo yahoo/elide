@@ -222,7 +222,7 @@ public class ExpressionParser {
         if (! isEmpty(expression)) {
             Matcher matcher = REFERENCE_PARENTHESES.matcher(expression);
             while (matcher.find()) {
-                references.add(matcher.group(1));
+                references.add(matcher.group(1).trim());
             }
         }
 
