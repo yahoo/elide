@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Transaction handler for {@link AggregationDataStore}.
@@ -162,22 +161,22 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
         return modifiedQuery;
     }
 
-    private Query addTableFilterArguments(Table table, Query query, EntityDictionary dictionary) {
+    @VisibleForTesting
+    Query addTableFilterArguments(Table table, Query query, EntityDictionary dictionary) {
         FilterExpression filterTemplate = table.getRequiredFilter(dictionary);
 
         Query modifiedQuery = query;
         if (filterTemplate != null) {
-            Map<String, Argument> templateFilterArguments = validateRequiredFilter(filterTemplate, query, table);
+            Map<String, Argument> allArguments = validateRequiredFilter(filterTemplate, query, table);
 
-            if (!templateFilterArguments.isEmpty()) {
-                Map<String, Argument> tableArguments = Stream.concat(
-                        templateFilterArguments.entrySet().stream(),
-                        query.getArguments().entrySet().stream()
-                ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            if (!allArguments.isEmpty()) {
+                if (query.getArguments() != null) {
+                    allArguments.putAll(query.getArguments());
+                }
 
                 modifiedQuery = Query.builder()
                         .query(query)
-                        .arguments(tableArguments)
+                        .arguments(allArguments)
                         .build();
             }
         }
@@ -185,7 +184,8 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
         return modifiedQuery;
     }
 
-    private Query addColumnFilterArguments(Table table, Query query, EntityDictionary dictionary) {
+    @VisibleForTesting
+    Query addColumnFilterArguments(Table table, Query query, EntityDictionary dictionary) {
 
         Query.QueryBuilder queryBuilder = Query.builder();
 
@@ -195,17 +195,11 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
             FilterExpression requiredFilter = column.getRequiredFilter(dictionary);
 
             if (requiredFilter != null) {
-                Map<String, Argument> templateFilterArguments = validateRequiredFilter(requiredFilter, query, column);
-
-                if (!templateFilterArguments.isEmpty()) {
-                    Map<String, Argument> columnArguments = Stream.concat(
-                            templateFilterArguments.entrySet().stream(), projection.getArguments().entrySet().stream()
-                    ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-                    queryBuilder.column(projection.withArguments(columnArguments));
-                } else {
-                    queryBuilder.column(projection);
+                Map<String, Argument> allArguments = validateRequiredFilter(requiredFilter, query, column);
+                if (projection.getArguments() != null) {
+                    allArguments.putAll(projection.getArguments());
                 }
+                queryBuilder.column(projection.withArguments(allArguments));
             } else {
                 queryBuilder.column(projection);
             }
