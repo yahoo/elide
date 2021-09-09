@@ -42,7 +42,6 @@ public class Parent extends BaseId {
     private Set<Parent> spouses;
     private String firstName;
     private String specialAttribute;
-    private Address address;
 
     @PrePersist
     public void doInit() {
@@ -99,14 +98,6 @@ public class Parent extends BaseId {
 
     public void setSpecialAttribute(String specialAttribute) {
         this.specialAttribute = specialAttribute;
-    }
-
-    public Address getAddress() {
-        return address;
-    }
-
-    public void setAddress(Address address) {
-        this.address = address;
     }
 
     static public class InitCheck extends OperationCheck<Parent> {

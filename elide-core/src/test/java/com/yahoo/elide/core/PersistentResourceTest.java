@@ -56,6 +56,7 @@ import example.Author;
 import example.Book;
 import example.Child;
 import example.Color;
+import example.Company;
 import example.ComputedBean;
 import example.FirstClassFields;
 import example.FunWithPermissions;
@@ -1619,61 +1620,60 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
     @Test
     public void testUpdateComplexAttributeSuccess() {
-        Parent parent = newParent(1);
-
+        Company company = newCompany("abc");
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
+        PersistentResource<Company> parentResource = new PersistentResource<>(company, "1", goodScope);
         final Address address = new Address();
         address.setStreet1("street1");
         address.setStreet2("street2");
         parentResource.updateAttribute("address", address);
 
-        assertEquals(address, parent.getAddress(), "The attribute was updated successfully");
+        assertEquals(address, company.getAddress(), "The attribute was updated successfully");
 
         goodScope.saveOrCreateObjects();
-        verify(tx, times(1)).save(parent, goodScope);
+        verify(tx, times(1)).save(company, goodScope);
     }
 
     @Test
     public void testUpdateComplexAttributeNullField() {
-        Parent parent = newParent(1);
+        Company company = newCompany("abc");
 
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
+        PersistentResource<Company> parentResource = new PersistentResource<>(company, "1", goodScope);
         final Address address = new Address();
         address.setStreet1("street1");
         address.setStreet2(null);
         parentResource.updateAttribute("address", address);
 
-        assertEquals(address, parent.getAddress(), "The attribute was updated successfully");
+        assertEquals(address, company.getAddress(), "The attribute was updated successfully");
 
         goodScope.saveOrCreateObjects();
-        verify(tx, times(1)).save(parent, goodScope);
+        verify(tx, times(1)).save(company, goodScope);
     }
 
     @Test
     public void testUpdateComplexAttributeAllNullFields() {
-        Parent parent = newParent(1);
+        Company company = newCompany("abc");
 
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
+        PersistentResource<Company> parentResource = new PersistentResource<>(company, "1", goodScope);
         final Address address = new Address();
         address.setStreet1(null);
         address.setStreet2(null);
         parentResource.updateAttribute("address", address);
 
-        assertEquals(address, parent.getAddress(), "The attribute was updated successfully");
+        assertEquals(address, company.getAddress(), "The attribute was updated successfully");
 
         goodScope.saveOrCreateObjects();
-        verify(tx, times(1)).save(parent, goodScope);
+        verify(tx, times(1)).save(company, goodScope);
     }
 
     @Test
     public void testUpdateComplexAttributeNested() {
-        Parent parent = newParent(1);
+        Company company = newCompany("abc");
 
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
+        PersistentResource<Company> parentResource = new PersistentResource<>(company, "1", goodScope);
         final Address address = new Address();
         address.setStreet1("street1");
         address.setStreet2("street2");
@@ -1683,18 +1683,18 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         address.setGeo(geo);
         parentResource.updateAttribute("address", address);
 
-        assertEquals(address, parent.getAddress(), "The attribute was updated successfully");
+        assertEquals(address, company.getAddress(), "The attribute was updated successfully");
 
         goodScope.saveOrCreateObjects();
-        verify(tx, times(1)).save(parent, goodScope);
+        verify(tx, times(1)).save(company, goodScope);
     }
 
     @Test
     public void testUpdateComplexAttributeNestedNullField() {
-        Parent parent = newParent(1);
+        Company company = newCompany("abc");
 
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
+        PersistentResource<Company> parentResource = new PersistentResource<>(company, "1", goodScope);
         final Address address = new Address();
         address.setStreet1("street1");
         address.setStreet2("street2");
@@ -1704,18 +1704,18 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         address.setGeo(geo);
         parentResource.updateAttribute("address", address);
 
-        assertEquals(address, parent.getAddress(), "The attribute was updated successfully");
+        assertEquals(address, company.getAddress(), "The attribute was updated successfully");
 
         goodScope.saveOrCreateObjects();
-        verify(tx, times(1)).save(parent, goodScope);
+        verify(tx, times(1)).save(company, goodScope);
     }
 
     @Test
     public void testUpdateComplexAttributeNestedAllNullFields() {
-        Parent parent = newParent(1);
+        Company company = newCompany("abc");
 
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
+        PersistentResource<Company> parentResource = new PersistentResource<>(company, "1", goodScope);
         final Address address = new Address();
         address.setStreet1("street1");
         address.setStreet2("street2");
@@ -1725,18 +1725,18 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         address.setGeo(geo);
         parentResource.updateAttribute("address", address);
 
-        assertEquals(address, parent.getAddress(), "The attribute was updated successfully");
+        assertEquals(address, company.getAddress(), "The attribute was updated successfully");
 
         goodScope.saveOrCreateObjects();
-        verify(tx, times(1)).save(parent, goodScope);
+        verify(tx, times(1)).save(company, goodScope);
     }
 
     @Test
     public void testUpdateComplexAttributeAllNullFieldsNestedAllNullFields() {
-        Parent parent = newParent(1);
+        Company company = newCompany("abc");
 
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
+        PersistentResource<Company> parentResource = new PersistentResource<>(company, "1", goodScope);
         final Address address = new Address();
         address.setStreet1(null);
         address.setStreet2(null);
@@ -1746,18 +1746,18 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         address.setGeo(geo);
         parentResource.updateAttribute("address", address);
 
-        assertEquals(address, parent.getAddress(), "The attribute was updated successfully");
+        assertEquals(address, company.getAddress(), "The attribute was updated successfully");
 
         goodScope.saveOrCreateObjects();
-        verify(tx, times(1)).save(parent, goodScope);
+        verify(tx, times(1)).save(company, goodScope);
     }
 
     @Test
     public void testUpdateComplexAttributeAllNullFieldsNested() {
-        Parent parent = newParent(1);
+        Company company = newCompany("abc");
 
         RequestScope goodScope = buildRequestScope(tx, goodUser);
-        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
+        PersistentResource<Company> parentResource = new PersistentResource<>(company, "1", goodScope);
         final Address address = new Address();
         address.setStreet1(null);
         address.setStreet2(null);
@@ -1767,10 +1767,10 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         address.setGeo(geo);
         parentResource.updateAttribute("address", address);
 
-        assertEquals(address, parent.getAddress(), "The attribute was updated successfully");
+        assertEquals(address, company.getAddress(), "The attribute was updated successfully");
 
         goodScope.saveOrCreateObjects();
-        verify(tx, times(1)).save(parent, goodScope);
+        verify(tx, times(1)).save(company, goodScope);
     }
 
     @Test
