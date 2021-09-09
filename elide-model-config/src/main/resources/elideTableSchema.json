@@ -188,7 +188,7 @@
                     "title": "Metric Projection Maker",
                     "description": "Registers a custom function to create a projection for this metric",
                     "type": "string",
-                    "format": "javaClassNameWithExt"
+                    "format": "javaClassName"
                 },
                 "type": {
                     "title": "Measure field type",
@@ -214,10 +214,21 @@
                     }
                 }
             },
-            "required": [
-                "name",
-                "type",
-                "definition"
+            "oneOf": [
+                {
+                    "required": [
+                        "name",
+                        "type",
+                        "definition"
+                    ]
+                },
+                {
+                    "required": [
+                        "name",
+                        "type",
+                        "maker"
+                    ]
+                }
             ],
             "additionalProperties": false
         },

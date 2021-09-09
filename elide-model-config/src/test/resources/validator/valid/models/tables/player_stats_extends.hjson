@@ -13,7 +13,6 @@
             type : Text
             description : very awesome score
             definition: 'MAX({{score}})'
-            maker: 'com.yahoo.elide.datastores.aggregation.query.DefaultMetricProjectionMaker.class'
             tags: ['PUBLIC']
           },
           {
