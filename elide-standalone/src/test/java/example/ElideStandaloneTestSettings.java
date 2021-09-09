@@ -94,7 +94,7 @@ public class ElideStandaloneTestSettings implements ElideStandaloneSettings {
 
     @Override
     public ElideStandaloneAsyncSettings getAsyncProperties() {
-        ElideStandaloneAsyncSettings asyncPropeties = new ElideStandaloneAsyncSettings() {
+        ElideStandaloneAsyncSettings asyncProperties = new ElideStandaloneAsyncSettings() {
             @Override
             public boolean enabled() {
                 return true;
@@ -125,12 +125,12 @@ public class ElideStandaloneTestSettings implements ElideStandaloneSettings {
                 return false;
             }
         };
-        return asyncPropeties;
+        return asyncProperties;
     }
 
     @Override
     public ElideStandaloneAnalyticSettings getAnalyticProperties() {
-        ElideStandaloneAnalyticSettings analyticPropeties = new ElideStandaloneAnalyticSettings() {
+        ElideStandaloneAnalyticSettings analyticProperties = new ElideStandaloneAnalyticSettings() {
             @Override
             public boolean enableDynamicModelConfig() {
                 return true;
@@ -156,6 +156,6 @@ public class ElideStandaloneTestSettings implements ElideStandaloneSettings {
                 return "src/test/resources/configs/";
             }
         };
-        return analyticPropeties;
+        return analyticProperties;
     }
 }

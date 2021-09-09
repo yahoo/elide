@@ -45,7 +45,7 @@ public class ElideStandaloneExportTest {
 
             @Override
             public ElideStandaloneAsyncSettings getAsyncProperties() {
-                ElideStandaloneAsyncSettings asyncPropeties = new ElideStandaloneAsyncSettings() {
+                ElideStandaloneAsyncSettings asyncProperties = new ElideStandaloneAsyncSettings() {
                     @Override
                     public boolean enabled() {
                         return true;
@@ -76,12 +76,12 @@ public class ElideStandaloneExportTest {
                         return true;
                     }
                 };
-                return asyncPropeties;
+                return asyncProperties;
             }
 
             @Override
             public ElideStandaloneAnalyticSettings getAnalyticProperties() {
-                ElideStandaloneAnalyticSettings analyticPropeties = new ElideStandaloneAnalyticSettings() {
+                ElideStandaloneAnalyticSettings analyticProperties = new ElideStandaloneAnalyticSettings() {
                     @Override
                     public boolean enableDynamicModelConfig() {
                         return true;
@@ -107,7 +107,7 @@ public class ElideStandaloneExportTest {
                         return "src/test/resources/configs/";
                     }
                 };
-                return analyticPropeties;
+                return analyticProperties;
             }
         });
         elide.start(false);
