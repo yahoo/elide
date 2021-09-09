@@ -59,6 +59,7 @@ import example.Color;
 import example.ComputedBean;
 import example.FirstClassFields;
 import example.FunWithPermissions;
+import example.GeoLocation;
 import example.Invoice;
 import example.Job;
 import example.Left;
@@ -1622,12 +1623,151 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         RequestScope goodScope = buildRequestScope(tx, goodUser);
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
-        final Address address1 = new Address();
-        address1.setStreet1("street1");
-        address1.setStreet2("street2");
-        parentResource.updateAttribute("address", address1);
+        final Address address = new Address();
+        address.setStreet1("street1");
+        address.setStreet2("street2");
+        parentResource.updateAttribute("address", address);
 
-        assertEquals(address1, parent.getAddress(), "The attribute was updated successfully");
+        assertEquals(address, parent.getAddress(), "The attribute was updated successfully");
+
+        goodScope.saveOrCreateObjects();
+        verify(tx, times(1)).save(parent, goodScope);
+    }
+
+    @Test
+    public void testUpdateComplexAttributeNullField() {
+        Parent parent = newParent(1);
+
+        RequestScope goodScope = buildRequestScope(tx, goodUser);
+        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
+        final Address address = new Address();
+        address.setStreet1("street1");
+        address.setStreet2(null);
+        parentResource.updateAttribute("address", address);
+
+        assertEquals(address, parent.getAddress(), "The attribute was updated successfully");
+
+        goodScope.saveOrCreateObjects();
+        verify(tx, times(1)).save(parent, goodScope);
+    }
+
+    @Test
+    public void testUpdateComplexAttributeAllNullFields() {
+        Parent parent = newParent(1);
+
+        RequestScope goodScope = buildRequestScope(tx, goodUser);
+        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
+        final Address address = new Address();
+        address.setStreet1(null);
+        address.setStreet2(null);
+        parentResource.updateAttribute("address", address);
+
+        assertEquals(address, parent.getAddress(), "The attribute was updated successfully");
+
+        goodScope.saveOrCreateObjects();
+        verify(tx, times(1)).save(parent, goodScope);
+    }
+
+    @Test
+    public void testUpdateComplexAttributeNested() {
+        Parent parent = newParent(1);
+
+        RequestScope goodScope = buildRequestScope(tx, goodUser);
+        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
+        final Address address = new Address();
+        address.setStreet1("street1");
+        address.setStreet2("street2");
+        final GeoLocation geo = new GeoLocation();
+        geo.setLatitude("lat");
+        geo.setLongitude("long");
+        address.setGeo(geo);
+        parentResource.updateAttribute("address", address);
+
+        assertEquals(address, parent.getAddress(), "The attribute was updated successfully");
+
+        goodScope.saveOrCreateObjects();
+        verify(tx, times(1)).save(parent, goodScope);
+    }
+
+    @Test
+    public void testUpdateComplexAttributeNestedNullField() {
+        Parent parent = newParent(1);
+
+        RequestScope goodScope = buildRequestScope(tx, goodUser);
+        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
+        final Address address = new Address();
+        address.setStreet1("street1");
+        address.setStreet2("street2");
+        final GeoLocation geo = new GeoLocation();
+        geo.setLatitude(null);
+        geo.setLongitude("long");
+        address.setGeo(geo);
+        parentResource.updateAttribute("address", address);
+
+        assertEquals(address, parent.getAddress(), "The attribute was updated successfully");
+
+        goodScope.saveOrCreateObjects();
+        verify(tx, times(1)).save(parent, goodScope);
+    }
+
+    @Test
+    public void testUpdateComplexAttributeNestedAllNullFields() {
+        Parent parent = newParent(1);
+
+        RequestScope goodScope = buildRequestScope(tx, goodUser);
+        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
+        final Address address = new Address();
+        address.setStreet1("street1");
+        address.setStreet2("street2");
+        final GeoLocation geo = new GeoLocation();
+        geo.setLatitude(null);
+        geo.setLongitude(null);
+        address.setGeo(geo);
+        parentResource.updateAttribute("address", address);
+
+        assertEquals(address, parent.getAddress(), "The attribute was updated successfully");
+
+        goodScope.saveOrCreateObjects();
+        verify(tx, times(1)).save(parent, goodScope);
+    }
+
+    @Test
+    public void testUpdateComplexAttributeAllNullFieldsNestedAllNullFields() {
+        Parent parent = newParent(1);
+
+        RequestScope goodScope = buildRequestScope(tx, goodUser);
+        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
+        final Address address = new Address();
+        address.setStreet1(null);
+        address.setStreet2(null);
+        final GeoLocation geo = new GeoLocation();
+        geo.setLatitude(null);
+        geo.setLongitude(null);
+        address.setGeo(geo);
+        parentResource.updateAttribute("address", address);
+
+        assertEquals(address, parent.getAddress(), "The attribute was updated successfully");
+
+        goodScope.saveOrCreateObjects();
+        verify(tx, times(1)).save(parent, goodScope);
+    }
+
+    @Test
+    public void testUpdateComplexAttributeAllNullFieldsNested() {
+        Parent parent = newParent(1);
+
+        RequestScope goodScope = buildRequestScope(tx, goodUser);
+        PersistentResource<Parent> parentResource = new PersistentResource<>(parent, "1", goodScope);
+        final Address address = new Address();
+        address.setStreet1(null);
+        address.setStreet2(null);
+        final GeoLocation geo = new GeoLocation();
+        geo.setLatitude("lat");
+        geo.setLongitude("long");
+        address.setGeo(geo);
+        parentResource.updateAttribute("address", address);
+
+        assertEquals(address, parent.getAddress(), "The attribute was updated successfully");
 
         goodScope.saveOrCreateObjects();
         verify(tx, times(1)).save(parent, goodScope);
