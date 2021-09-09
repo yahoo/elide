@@ -189,6 +189,7 @@
             type: YEAR
             sql: PARSEDATETIME(FORMATDATETIME({{$$column.expr}}, 'yyyy'), 'yyyy')
           }]
+          filterTemplate: 'deliveryYear=={{deliveryYear}}'
         }
         {
           name: deliveryDefault

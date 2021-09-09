@@ -195,7 +195,7 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
             FilterExpression requiredFilter = column.getRequiredFilter(dictionary);
 
             if (requiredFilter != null) {
-                Map<String, Argument> templateFilterArguments = validateRequiredFilter(requiredFilter, query, table);
+                Map<String, Argument> templateFilterArguments = validateRequiredFilter(requiredFilter, query, column);
 
                 if (!templateFilterArguments.isEmpty()) {
                     Map<String, Argument> columnArguments = Stream.concat(
