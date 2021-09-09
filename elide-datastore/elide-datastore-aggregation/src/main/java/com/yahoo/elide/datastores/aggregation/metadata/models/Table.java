@@ -49,7 +49,7 @@ import javax.persistence.OneToMany;
 @Getter
 @EqualsAndHashCode
 @ToString
-public abstract class Table implements Versioned, Named {
+public abstract class Table implements Versioned, Named, RequiresFilter {
 
     @Id
     private final String id;
@@ -321,18 +321,9 @@ public abstract class Table implements Versioned, Named {
         return getMetric(fieldName) != null;
     }
 
-    public FilterExpression getRequiredFilter(EntityDictionary dictionary) {
-        Type<?> cls = dictionary.getEntityClass(name, version);
-        RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
-
-        if (StringUtils.isNotEmpty(requiredFilter)) {
-            try {
-                return filterDialect.parseFilterExpression(requiredFilter, cls, false, true);
-            } catch (ParseException e) {
-                throw new IllegalStateException(e);
-            }
-        }
-        return null;
+    @Override
+    public Table getTable() {
+        return this;
     }
 
     public boolean hasArgumentDefinition(String argName) {

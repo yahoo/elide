@@ -40,7 +40,8 @@ import java.util.Set;
     "tags",
     "arguments",
     "values",
-    "tableSource"
+    "tableSource",
+    "filterTemplate"
 })
 @Data
 @EqualsAndHashCode()
@@ -94,6 +95,9 @@ public class Dimension implements Named {
 
     @JsonProperty("tableSource")
     private TableSource tableSource;
+
+    @JsonProperty("filterTemplate")
+    private String filterTemplate;
 
     /**
      * Returns description of the dimension.

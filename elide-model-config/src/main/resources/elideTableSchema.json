@@ -212,6 +212,12 @@
                     "items": {
                         "$ref": "#/definitions/argument"
                     }
+                },
+                "filterTemplate": {
+                    "title": "Required RSQL Filter Template",
+                    "description": "Client queries must include a filter conforming to this RSQL template.",
+                    "type": "string",
+                    "format": "elideRSQLFilter"
                 }
             },
             "oneOf": [
@@ -297,6 +303,12 @@
                     "items": {
                         "$ref": "#/definitions/argument"
                     }
+                },
+                "filterTemplate": {
+                    "title": "Required RSQL Filter Template",
+                    "description": "Client queries must include a filter conforming to this RSQL template.",
+                    "type": "string",
+                    "format": "elideRSQLFilter"
                 }
             }
         },
