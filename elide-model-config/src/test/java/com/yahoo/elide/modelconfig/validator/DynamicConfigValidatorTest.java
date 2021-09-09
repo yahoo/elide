@@ -393,7 +393,7 @@ public class DynamicConfigValidatorTest {
             assertEquals(2, exitStatus);
         });
 
-        assertEquals("Multiple DB configs found with the same name: OracleConnection\n", error);
+        assertTrue(error.contains("Multiple DB configs found with the same name: OracleConnection"));
     }
 
     @Test
