@@ -33,6 +33,7 @@ public class ElideStandaloneTestSettings implements ElideStandaloneSettings {
 
         ElideSettingsBuilder builder = new ElideSettingsBuilder(dataStore)
                 .withEntityDictionary(dictionary)
+                .withErrorMapper(getErrorMapper())
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
                 .withJSONApiLinks(new DefaultJSONApiLinks(jsonApiBaseUrl))
