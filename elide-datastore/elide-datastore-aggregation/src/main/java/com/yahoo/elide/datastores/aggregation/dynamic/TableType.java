@@ -470,6 +470,11 @@ public class TableType implements Type<DynamicModelInstance> {
             }
 
             @Override
+            public String filterTemplate() {
+                return measure.getFilterTemplate();
+            }
+
+            @Override
             public CardinalitySize size() {
                 return CardinalitySize.UNKNOWN;
             }
@@ -603,6 +608,11 @@ public class TableType implements Type<DynamicModelInstance> {
             @Override
             public String[] values() {
                 return dimension.getValues().toArray(new String[0]);
+            }
+
+            @Override
+            public String filterTemplate() {
+                return dimension.getFilterTemplate();
             }
 
             @Override
@@ -778,6 +788,11 @@ public class TableType implements Type<DynamicModelInstance> {
             @Override
             public String[] values() {
                 return new String[0];
+            }
+
+            @Override
+            public String filterTemplate() {
+                return "";
             }
 
             @Override

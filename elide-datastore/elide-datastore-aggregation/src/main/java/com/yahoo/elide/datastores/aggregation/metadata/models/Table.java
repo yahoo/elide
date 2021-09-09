@@ -10,9 +10,6 @@ import static com.yahoo.elide.datastores.aggregation.metadata.models.Column.getV
 import com.yahoo.elide.annotation.Exclude;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.filter.dialect.ParseException;
-import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
-import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.TypeHelper;
 import com.yahoo.elide.datastores.aggregation.AggregationDataStore;
@@ -25,7 +22,6 @@ import com.yahoo.elide.datastores.aggregation.query.Queryable;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
 import com.yahoo.elide.modelconfig.model.Named;
-import org.apache.commons.lang3.StringUtils;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
