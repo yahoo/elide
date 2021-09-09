@@ -29,6 +29,7 @@ import com.google.common.collect.Sets;
 import example.Author;
 import example.Book;
 import example.Child;
+import example.Company;
 import example.ComputedBean;
 import example.FirstClassFields;
 import example.FunWithPermissions;
@@ -105,6 +106,7 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         dictionary.bindEntity(NoTransferBiDirectional.class);
         dictionary.bindEntity(StrictNoTransfer.class);
         dictionary.bindEntity(Untransferable.class);
+        dictionary.bindEntity(Company.class);
         return dictionary;
     }
 
@@ -184,6 +186,13 @@ public class PersistenceResourceTestSetup extends PersistentResource {
         parent.setChildren(Sets.newHashSet(child));
         parent.setSpouses(new HashSet<>());
         return parent;
+    }
+
+    protected Company newCompany(String id) {
+        final Company company = new Company();
+        company.setId(id);
+        company.setDescription("company");
+        return company;
     }
 
     /* ChangeSpec-specific test elements */

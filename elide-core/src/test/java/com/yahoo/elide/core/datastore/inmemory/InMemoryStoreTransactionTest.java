@@ -612,6 +612,7 @@ public class InMemoryStoreTransactionTest {
             "example.StringId",
             "example.UpdateAndCreate",
             "example.User",
+            "example.Company",
             "example.models.generics.Employee",
             "example.models.generics.Manager",
             "example.models.generics.Overlord",
