@@ -16,7 +16,6 @@ import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 
-import example.Address;
 import example.Company;
 import example.Parent;
 import example.models.generics.Manager;
@@ -39,7 +38,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -73,7 +71,6 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
             bindClasses.addAll(scanner.getAnnotatedClasses(BookV2.class.getPackage(), Entity.class));
             bindClasses.addAll(scanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class));
             bindClasses.addAll(scanner.getAnnotatedClasses(Company.class.getPackage(), Entity.class));
-            bindClasses.addAll(scanner.getAnnotatedClasses(Address.class.getPackage(), Embeddable.class));
         } catch (MappingException e) {
             throw new IllegalStateException(e);
         }
@@ -108,8 +105,6 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
             scanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class)
                     .forEach(metadataSources::addAnnotatedClass);
             scanner.getAnnotatedClasses(Company.class.getPackage(), Entity.class)
-                    .forEach(metadataSources::addAnnotatedClass);
-            scanner.getAnnotatedClasses(Address.class.getPackage(), Embeddable.class)
                     .forEach(metadataSources::addAnnotatedClass);
         } catch (MappingException e) {
             throw new IllegalStateException(e);
