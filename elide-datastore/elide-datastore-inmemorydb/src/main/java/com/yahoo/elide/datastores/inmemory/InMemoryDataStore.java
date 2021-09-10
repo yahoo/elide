@@ -9,7 +9,7 @@ import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.utils.ClassScanner;
 
 /**
- * Simple non-persistent in-memory database.
+ * Simple non-persistent in-memory database.  Use HashMapDataStore instead.
  */
 @Deprecated
 public class InMemoryDataStore extends HashMapDataStore {

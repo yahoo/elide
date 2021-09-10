@@ -89,7 +89,8 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
         );
 
         inMemoryDataStore.populateEntityDictionary(dictionary);
-        NonEntityDictionary nonEntityDictionary = new NonEntityDictionary();
+        NonEntityDictionary nonEntityDictionary =
+                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup);
         ModelBuilder builder = new ModelBuilder(dictionary, nonEntityDictionary,
                 new PersistentResourceFetcher(nonEntityDictionary), NO_VERSION);
 
