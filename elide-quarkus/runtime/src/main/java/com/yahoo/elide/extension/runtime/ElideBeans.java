@@ -36,14 +36,20 @@ import javax.persistence.EntityManagerFactory;
 
 @ApplicationScoped
 public class ElideBeans {
+    private ElideConfig config;
+
+    public void setElideConfig(ElideConfig config) {
+        this.config = config;
+    }
+
     @Produces
     @Named("elide")
     @Singleton
     public Elide produceElide(DataStore store, EntityDictionary dictionary) {
         ElideSettingsBuilder builder = new ElideSettingsBuilder(store)
                 .withEntityDictionary(dictionary)
-                .withDefaultMaxPageSize(100)
-                .withDefaultPageSize(100)
+                .withDefaultMaxPageSize(config.defaultMaxPageSize)
+                .withDefaultPageSize(config.defaultPageSize)
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
                 .withAuditLogger(new Slf4jLogger())

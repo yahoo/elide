@@ -8,9 +8,7 @@ import io.smallrye.config.ConfigMapping;
 
 import javax.enterprise.context.ApplicationScoped;
 
-//@ApplicationScoped
-//@ConfigRoot(name = "elide", phase = ConfigPhase.BOOTSTRAP)
-@ConfigProperties(prefix = "elide")
+@ConfigRoot(name = "elide", phase = ConfigPhase.BUILD_TIME)
 public class ElideConfig {
     /*
                     .withEntityDictionary(dictionary)
@@ -28,12 +26,12 @@ public class ElideConfig {
     /**
      * Foo
      */
-    //@ConfigItem(defaultValue = "100")
+    @ConfigItem(defaultValue = "100")
     public int defaultPageSize;
 
     /**
      * Bar
      */
-    //@ConfigItem(defaultValue = "10000")
+    @ConfigItem(defaultValue = "10000")
     public int defaultMaxPageSize;
 }

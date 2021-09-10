@@ -2,6 +2,7 @@ package com.yahoo.elide.extension.runtime;
 
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+import io.quarkus.arc.runtime.BeanContainerListener;
 import io.quarkus.runtime.annotations.Recorder;
 
 import java.util.Arrays;
@@ -18,12 +19,20 @@ public class ElideRecorder {
     public static final Class[] ANNOTATIONS = {
         com.yahoo.elide.annotation.Include.class,
         com.yahoo.elide.annotation.SecurityCheck.class,
+        com.yahoo.elide.annotation.LifeCycleHookBinding.class,
         com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter.class,
         com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable.class,
         com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery.class,
         javax.persistence.Entity.class,
         javax.persistence.Table.class,
     };
+
+    public BeanContainerListener setLiquibaseConfig(ElideConfig config) {
+        return beanContainer -> {
+            ElideBeans elideBeans = beanContainer.instance(ElideBeans.class);
+            elideBeans.setElideConfig(config);
+        };
+    }
 
     public Supplier<ClassScanner> createClassScanner(List<Class<?>> classes) {
         return new Supplier<ClassScanner>() {

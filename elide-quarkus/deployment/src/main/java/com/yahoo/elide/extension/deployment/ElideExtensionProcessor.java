@@ -2,16 +2,22 @@ package com.yahoo.elide.extension.deployment;
 
 import static io.quarkus.deployment.annotations.ExecutionTime.STATIC_INIT;
 import com.yahoo.elide.annotation.Include;
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
+import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.utils.ClassScanner;
+import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
+import com.yahoo.elide.extension.runtime.ElideConfig;
 import com.yahoo.elide.extension.runtime.ElideRecorder;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.DotName;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
+import io.quarkus.arc.deployment.BeanContainerListenerBuildItem;
 import io.quarkus.arc.deployment.BeanDefiningAnnotationBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
+import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveHierarchyIgnoreWarningBuildItem;
@@ -36,9 +42,29 @@ class ElideExtensionProcessor {
         return AdditionalBeanBuildItem.builder().addBeanClass(JsonApiEndpoint.class).build();
     }
 
+    @Record(STATIC_INIT)
     @BuildStep
-    BeanDefiningAnnotationBuildItem additionalBeanDefiningAnnotation() {
-        return new BeanDefiningAnnotationBuildItem(DotName.createSimple(Include.class.getCanonicalName()));
+    void build(ElideConfig elideConfig,
+               ElideRecorder recorder,
+               BuildProducer<BeanContainerListenerBuildItem> containerListenerProducer) {
+
+        containerListenerProducer.produce(
+                new BeanContainerListenerBuildItem(recorder.setLiquibaseConfig(elideConfig)));
+    }
+
+    @BuildStep
+    List<BeanDefiningAnnotationBuildItem> additionalBeanDefiningAnnotation() {
+        List<BeanDefiningAnnotationBuildItem> additionalBeanAnnotations = new ArrayList<>();
+        additionalBeanAnnotations.add(
+                new BeanDefiningAnnotationBuildItem(DotName.createSimple(Include.class.getCanonicalName())));
+        additionalBeanAnnotations.add(
+                new BeanDefiningAnnotationBuildItem(DotName.createSimple(SecurityCheck.class.getCanonicalName())));
+        additionalBeanAnnotations.add(
+                new BeanDefiningAnnotationBuildItem(DotName.createSimple(LifeCycleHookBinding.class.getCanonicalName())));
+        additionalBeanAnnotations.add(
+                new BeanDefiningAnnotationBuildItem(DotName.createSimple(ElideTypeConverter.class.getCanonicalName())));
+
+        return additionalBeanAnnotations;
     }
 
     @BuildStep
