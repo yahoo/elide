@@ -10,7 +10,6 @@ import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.NonTransferable;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.annotation.UpdatePermission;
-import com.yahoo.elide.core.security.CheckInstantiator;
 import com.yahoo.elide.core.type.AccessibleObject;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.generated.parsers.ExpressionLexer;

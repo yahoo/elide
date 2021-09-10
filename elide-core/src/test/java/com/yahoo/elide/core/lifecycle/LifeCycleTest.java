@@ -88,7 +88,7 @@ public class LifeCycleTest {
         String body = "{\"data\": {\"type\":\"testModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.createNewObject(ClassType.of(FieldTestModel.class))).thenReturn(mockModel);
+        when(tx.createNewObject(eq(ClassType.of(FieldTestModel.class)), any())).thenReturn(mockModel);
 
         ElideResponse response = elide.post(baseUrl, "/testModel", body, null, NO_VERSION);
         assertEquals(HttpStatus.SC_CREATED, response.getResponseCode());
@@ -147,7 +147,7 @@ public class LifeCycleTest {
         String body = "{\"data\": {\"type\":\"legacyTestModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.createNewObject(ClassType.of(LegacyTestModel.class))).thenReturn(mockModel);
+        when(tx.createNewObject(eq(ClassType.of(LegacyTestModel.class)), any())).thenReturn(mockModel);
 
         ElideResponse response = elide.post(baseUrl, "/legacyTestModel", body, null, NO_VERSION);
         assertEquals(HttpStatus.SC_CREATED, response.getResponseCode());
@@ -197,7 +197,7 @@ public class LifeCycleTest {
         String body = "{\"data\": {\"type\":\"testModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.createNewObject(ClassType.of(FieldTestModel.class))).thenReturn(mockModel);
+        when(tx.createNewObject(eq(ClassType.of(FieldTestModel.class)), any())).thenReturn(mockModel);
 
         ElideResponse response = elide.post(baseUrl, "/testModel", body, null, NO_VERSION);
         assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getResponseCode());
@@ -629,8 +629,9 @@ public class LifeCycleTest {
         String body = "[{\"op\": \"add\",\"path\": \"/testModel\",\"value\":{"
                 + "\"type\":\"testModel\",\"id\": \"1\",\"attributes\": {\"field\":\"Foo\"}}}]";
 
+
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.createNewObject(ClassType.of(FieldTestModel.class))).thenReturn(mockModel);
+        when(tx.createNewObject(eq(ClassType.of(FieldTestModel.class)), any())).thenReturn(mockModel);
 
         String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
         ElideResponse response =
@@ -692,7 +693,7 @@ public class LifeCycleTest {
                 + "\"type\":\"legacyTestModel\",\"id\": \"1\",\"attributes\": {\"field\":\"Foo\"}}}]";
 
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.createNewObject(ClassType.of(LegacyTestModel.class))).thenReturn(mockModel);
+        when(tx.createNewObject(eq(ClassType.of(LegacyTestModel.class)), any())).thenReturn(mockModel);
 
         String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
         ElideResponse response =
@@ -743,8 +744,9 @@ public class LifeCycleTest {
       String body = "[{\"op\": \"add\",\"path\": \"/testModel\",\"value\":{"
               + "\"type\":\"testModel\",\"attributes\": {\"field\":\"Foo\"}}}]";
 
+      RequestScope scope = buildRequestScope(dictionary, tx);
       when(store.beginTransaction()).thenReturn(tx);
-      when(tx.createNewObject(ClassType.of(FieldTestModel.class))).thenReturn(mockModel);
+      when(tx.createNewObject(ClassType.of(FieldTestModel.class), scope)).thenReturn(mockModel);
 
       String contentType = JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION;
       ElideResponse response =
@@ -954,8 +956,8 @@ public class LifeCycleTest {
     public void testCreate() {
         FieldTestModel mockModel = mock(FieldTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.createNewObject(ClassType.of(FieldTestModel.class))).thenReturn(mockModel);
         RequestScope scope = buildRequestScope(dictionary, tx);
+        when(tx.createNewObject(ClassType.of(FieldTestModel.class), scope)).thenReturn(mockModel);
         PersistentResource resource = PersistentResource.createObject(ClassType.of(FieldTestModel.class), scope, Optional.of("1"));
         resource.updateAttribute("field", "should not affect calls since this is create!");
 
@@ -1014,8 +1016,8 @@ public class LifeCycleTest {
     public void testRead() {
         FieldTestModel mockModel = mock(FieldTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.createNewObject(ClassType.of(FieldTestModel.class))).thenReturn(mockModel);
         RequestScope scope = buildRequestScope(dictionary, tx);
+        when(tx.createNewObject(ClassType.of(FieldTestModel.class), scope)).thenReturn(mockModel);
         PersistentResource resource = new PersistentResource(mockModel, "1", scope);
 
         resource.getAttribute(Attribute.builder().type(String.class).name("field").build());
@@ -1070,8 +1072,8 @@ public class LifeCycleTest {
     public void testDelete() {
         FieldTestModel mockModel = mock(FieldTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.createNewObject(ClassType.of(FieldTestModel.class))).thenReturn(mockModel);
         RequestScope scope = buildRequestScope(dictionary, tx);
+        when(tx.createNewObject(ClassType.of(FieldTestModel.class), scope)).thenReturn(mockModel);
         PersistentResource resource = new PersistentResource(mockModel, "1", scope);
 
         resource.deleteResource();
@@ -1124,8 +1126,8 @@ public class LifeCycleTest {
     public void testAttributeUpdate() {
         FieldTestModel mockModel = mock(FieldTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.createNewObject(ClassType.of(FieldTestModel.class))).thenReturn(mockModel);
         RequestScope scope = buildRequestScope(dictionary, tx);
+        when(tx.createNewObject(ClassType.of(FieldTestModel.class), scope)).thenReturn(mockModel);
 
         PersistentResource resource = new PersistentResource(mockModel, scope.getUUIDFor(mockModel), scope);
         resource.updateAttribute("field", "new value");
@@ -1181,8 +1183,8 @@ public class LifeCycleTest {
     public void testRelationshipUpdate() {
         FieldTestModel mockModel = mock(FieldTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.createNewObject(ClassType.of(FieldTestModel.class))).thenReturn(mockModel);
         RequestScope scope = buildRequestScope(dictionary, tx);
+        when(tx.createNewObject(ClassType.of(FieldTestModel.class), scope)).thenReturn(mockModel);
 
         FieldTestModel modelToAdd = mock(FieldTestModel.class);
 
@@ -1248,8 +1250,8 @@ public class LifeCycleTest {
     public void testAddToCollectionTrigger() {
         PropertyTestModel mockModel = mock(PropertyTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.createNewObject(ClassType.of(PropertyTestModel.class))).thenReturn(mockModel);
         RequestScope scope = buildRequestScope(dictionary, tx);
+        when(tx.createNewObject(ClassType.of(PropertyTestModel.class), scope)).thenReturn(mockModel);
 
         PropertyTestModel modelToAdd = mock(PropertyTestModel.class);
 
@@ -1285,8 +1287,8 @@ public class LifeCycleTest {
     public void testRemoveFromCollectionTrigger() {
         PropertyTestModel mockModel = mock(PropertyTestModel.class);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-        when(tx.createNewObject(ClassType.of(PropertyTestModel.class))).thenReturn(mockModel);
         RequestScope scope = buildRequestScope(dictionary, tx);
+        when(tx.createNewObject(ClassType.of(PropertyTestModel.class), scope)).thenReturn(mockModel);
 
         PropertyTestModel childModel1 = mock(PropertyTestModel.class);
         PropertyTestModel childModel2 = mock(PropertyTestModel.class);

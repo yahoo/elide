@@ -6,14 +6,10 @@
 package example;
 
 import com.yahoo.elide.core.PersistentResourceTest;
-import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.PermissionExecutorTest;
 import com.yahoo.elide.core.security.checks.Check;
-import com.yahoo.elide.core.security.checks.OperationCheck;
 import com.yahoo.elide.core.security.checks.prefab.Role;
 import com.google.common.collect.ImmutableMap;
-
-import java.util.Optional;
 
 /**
  * Check mappings to be used by tests.
