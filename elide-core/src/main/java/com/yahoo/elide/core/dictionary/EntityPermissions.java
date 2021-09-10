@@ -38,7 +38,7 @@ import java.util.Map;
  * Extract permissions related annotation data for a model.
  */
 @Slf4j
-public class EntityPermissions implements CheckInstantiator {
+public class EntityPermissions {
     private static final List<Class<? extends Annotation>> PERMISSION_ANNOTATIONS = Arrays.asList(
             ReadPermission.class,
             CreatePermission.class,

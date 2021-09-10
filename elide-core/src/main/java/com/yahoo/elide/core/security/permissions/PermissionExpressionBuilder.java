@@ -16,7 +16,6 @@ import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.OrFilterExpression;
 import com.yahoo.elide.core.security.ChangeSpec;
-import com.yahoo.elide.core.security.CheckInstantiator;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.permissions.expressions.AndExpression;
 import com.yahoo.elide.core.security.permissions.expressions.AnyFieldExpression;
@@ -39,7 +38,7 @@ import java.util.stream.Collectors;
 /**
  * Expression builder to parse annotations and express the result as the Expression AST.
  */
-public class PermissionExpressionBuilder implements CheckInstantiator {
+public class PermissionExpressionBuilder {
     private final EntityDictionary entityDictionary;
     private final ExpressionResultCache cache;
 

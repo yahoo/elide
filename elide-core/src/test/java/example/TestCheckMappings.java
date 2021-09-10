@@ -29,7 +29,6 @@ public class TestCheckMappings {
                     .put("negativeIntegerUser", NegativeIntegerUserCheck.class)
                     .put("negativeChildId", NegativeChildIdCheck.class)
                     .put("FailOp", PermissionExecutorTest.FailingOperationCheck.class)
-                    .put("privatePermission", PrivatePermission.class)
                     .put("sampleOperation", PermissionExecutorTest.SampleOperationCheck.class)
                     .put("sampleOperationInverse", PermissionExecutorTest.SampleOperationCheckInverse.class)
                     .put("sampleCommit", PermissionExecutorTest.SampleCommitCheck.class)
@@ -43,11 +42,4 @@ public class TestCheckMappings {
                     .put("Book operation check", Book.BookOperationCheck.class)
                     .put("Field path editor check", Editor.FieldPathFilterExpression.class)
                     .build();
-
-    private static final class PrivatePermission extends OperationCheck<Object> {
-        @Override
-        public boolean ok(Object object, com.yahoo.elide.core.security.RequestScope requestScope, Optional<ChangeSpec> changeSpec) {
-            return false;
-        }
-    }
 }
