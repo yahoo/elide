@@ -603,6 +603,7 @@ public class RSQLFilterDialectTest {
         // Invalid encoded argument value
         exception = assertThrows(ParseException.class, () -> dialect.parse(bookType, Collections.emptySet(),
                         "title[a:b][x:Invalid%_Encoding]==Hemingway", NO_VERSION));
+      
         assertEquals("Filter expression is not in expected format at: title[a:b][x:Invalid%_Encoding]. "
                         + "URLDecoder: Illegal hex characters in escape (%) pattern - Error at index 0 in: \"_E\"",
                 exception.getMessage());
