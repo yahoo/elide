@@ -14,21 +14,11 @@ import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 
 import org.hibernate.Session;
 
-import io.quarkus.arc.runtime.BeanContainer;
-
-import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.Produces;
-import javax.enterprise.inject.spi.AnnotatedType;
-import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.CDI;
-import javax.enterprise.inject.spi.InjectionPoint;
-import javax.enterprise.inject.spi.InjectionTarget;
-import javax.enterprise.inject.spi.Unmanaged;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.persistence.EntityManager;
@@ -53,10 +43,14 @@ public class ElideBeans {
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
                 .withAuditLogger(new Slf4jLogger())
-                .withBaseUrl("/")
+                .withBaseUrl(config.basePath)
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
-                .withJsonApiPath("json")
-                .withGraphQLApiPath("graphql");
+                .withJsonApiPath(config.baseJsonApi)
+                .withGraphQLApiPath(config.baseGraphQL);
+
+        if (config.verboseErrors) {
+            builder = builder.withVerboseErrors();
+        }
 
         return new Elide(builder.build());
     }

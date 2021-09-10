@@ -17,7 +17,6 @@ import io.quarkus.arc.deployment.BeanDefiningAnnotationBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
-import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveHierarchyIgnoreWarningBuildItem;
@@ -72,7 +71,6 @@ class ElideExtensionProcessor {
     public List<ReflectiveHierarchyIgnoreWarningBuildItem> elideModels(
             JpaModelIndexBuildItem index,
             ElideRecorder elideRecorder,
-            BuildProducer<AdditionalBeanBuildItem> additionalBeans,
             BuildProducer<SyntheticBeanBuildItem> synthenticBean
     ) {
         List<ReflectiveHierarchyIgnoreWarningBuildItem> reflectionBuildItems = new ArrayList<>();
@@ -97,9 +95,6 @@ class ElideExtensionProcessor {
                             Thread.currentThread().getContextClassLoader());
 
                     elideClasses.add(beanClass);
-                    //additionalBeans.produce(AdditionalBeanBuildItem.builder()
-                    //        .addBeanClass(beanClass)
-                    //        .setUnremovable().build());
                 } catch (ClassNotFoundException e) {
                     //TODO - logging
                 }

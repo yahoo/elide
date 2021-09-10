@@ -1,37 +1,47 @@
 package com.yahoo.elide.extension.runtime;
 
-import io.quarkus.arc.config.ConfigProperties;
 import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
-import io.smallrye.config.ConfigMapping;
-
-import javax.enterprise.context.ApplicationScoped;
 
 @ConfigRoot(name = "elide", phase = ConfigPhase.BUILD_TIME)
 public class ElideConfig {
-    /*
-                    .withEntityDictionary(dictionary)
-                .withDefaultMaxPageSize(10000)
-                .withDefaultPageSize(100)
-                .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
-                .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
-                .withAuditLogger(new Slf4jLogger())
-                .withBaseUrl("/")
-                .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
-                .withJsonApiPath("json")
-                .withGraphQLApiPath("graphql");
-     */
 
     /**
-     * Foo
+     * Default page size if client doesn't request any.
      */
     @ConfigItem(defaultValue = "100")
     public int defaultPageSize;
 
     /**
-     * Bar
+     * Maximum page size that can be requested by a client.
      */
     @ConfigItem(defaultValue = "10000")
     public int defaultMaxPageSize;
+
+    /**
+     * Turns on verbose errors in HTTP responses.
+     */
+    @ConfigItem(defaultValue = "true")
+    public boolean verboseErrors;
+
+    /**
+     * The base URL path prefix for Elide service endpoints.
+     */
+    @ConfigItem(defaultValue = "/")
+    public String basePath;
+
+    /**
+     * The base URL path prefix for Elide JSON-API service endpoints.
+     * This is appended to the basePath.
+     */
+    @ConfigItem(defaultValue = "/")
+    public String baseJsonApi;
+
+    /**
+     * The base URL path prefix for Elide GraphQL service endpoints.
+     * This is appended to the basePath.
+     */
+    @ConfigItem(defaultValue = "/")
+    public String baseGraphQL;
 }
