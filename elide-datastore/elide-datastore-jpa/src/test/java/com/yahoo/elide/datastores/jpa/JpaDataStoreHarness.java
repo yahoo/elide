@@ -11,10 +11,10 @@ import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
-import com.yahoo.elide.core.hibernate.QueryLogger;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
+import com.yahoo.elide.datastores.jpql.porting.QueryLogger;
 
 import example.Company;
 import example.Parent;

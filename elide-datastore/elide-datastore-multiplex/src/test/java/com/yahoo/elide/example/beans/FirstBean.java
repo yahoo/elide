@@ -6,7 +6,6 @@
 package com.yahoo.elide.example.beans;
 
 import com.yahoo.elide.annotation.Include;
-
 import lombok.Data;
 
 import javax.persistence.Entity;

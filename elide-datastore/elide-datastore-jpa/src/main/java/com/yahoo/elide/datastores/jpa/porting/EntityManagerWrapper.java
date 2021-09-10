@@ -6,9 +6,9 @@
 package com.yahoo.elide.datastores.jpa.porting;
 
 import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
-import com.yahoo.elide.core.hibernate.Query;
-import com.yahoo.elide.core.hibernate.QueryLogger;
-import com.yahoo.elide.core.hibernate.Session;
+import com.yahoo.elide.datastores.jpql.porting.Query;
+import com.yahoo.elide.datastores.jpql.porting.QueryLogger;
+import com.yahoo.elide.datastores.jpql.porting.Session;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.EntityManager;

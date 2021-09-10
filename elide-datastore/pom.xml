@@ -45,7 +45,7 @@
 
     <modules>
         <module>elide-datastore-aggregation</module>
-        <module>elide-datastore-hibernate</module>
+        <module>elide-datastore-jpql</module>
         <module>elide-datastore-jpa</module>
         <module>elide-datastore-inmemorydb</module>
         <module>elide-datastore-multiplex</module>
