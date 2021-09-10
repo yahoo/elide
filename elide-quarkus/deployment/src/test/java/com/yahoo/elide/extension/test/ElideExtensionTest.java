@@ -1,7 +1,11 @@
 package com.yahoo.elide.extension.test;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.Injector;
+import com.yahoo.elide.extension.runtime.ElideConfig;
 import com.yahoo.elide.extension.test.models.Book;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -31,6 +35,9 @@ public class ElideExtensionTest {
     @Inject
     Elide elide;
 
+    @Inject
+    Injector injector;
+
     @Test
     public void writeYourOwnUnitTest() {
         // Write your unit tests here - see the testing extension guide https://quarkus.io/guides/writing-extensions#testing-extensions for more information
@@ -40,5 +47,20 @@ public class ElideExtensionTest {
     @Test
     public void testBookEndpoint() {
         RestAssured.when().get("/book").then().log().all().statusCode(200);
+    }
+
+    @Test
+    public void testInjection() {
+        @Include
+        class Test {
+            @Inject
+            EntityDictionary dictionary;
+        }
+
+        EntityDictionary dictionary = injector.instantiate(EntityDictionary.class);
+        assertNotNull(dictionary);
+
+        Book test = injector.instantiate(Book.class);
+        assertNotNull(test);
     }
 }

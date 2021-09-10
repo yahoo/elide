@@ -18,7 +18,11 @@ public class ElideRecorder {
     public static final Class[] ANNOTATIONS = {
         com.yahoo.elide.annotation.Include.class,
         com.yahoo.elide.annotation.SecurityCheck.class,
-        com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter.class
+        com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter.class,
+        com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable.class,
+        com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery.class,
+        javax.persistence.Entity.class,
+        javax.persistence.Table.class,
     };
 
     public Supplier<ClassScanner> createClassScanner(List<Class<?>> classes) {

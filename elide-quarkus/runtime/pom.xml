@@ -19,14 +19,16 @@
       <artifactId>elide-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-hibernate-orm</artifactId>
+      <groupId>com.yahoo.elide</groupId>
+      <artifactId>elide-datastore-aggregation</artifactId>
     </dependency>
     <dependency>
       <groupId>com.yahoo.elide</groupId>
       <artifactId>elide-datastore-jpa</artifactId>
-      <version>5.0.12-SNAPSHOT</version>
-      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-hibernate-orm</artifactId>
     </dependency>
   </dependencies>
   <build>

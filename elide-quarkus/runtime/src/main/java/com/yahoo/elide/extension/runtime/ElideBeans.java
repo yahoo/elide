@@ -6,6 +6,7 @@ import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.audit.Slf4jLogger;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
@@ -13,10 +14,21 @@ import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 
 import org.hibernate.Session;
 
+import io.quarkus.arc.runtime.BeanContainer;
+
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.Produces;
+import javax.enterprise.inject.spi.AnnotatedType;
+import javax.enterprise.inject.spi.Bean;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.CDI;
+import javax.enterprise.inject.spi.InjectionPoint;
+import javax.enterprise.inject.spi.InjectionTarget;
+import javax.enterprise.inject.spi.Unmanaged;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.persistence.EntityManager;
@@ -30,7 +42,7 @@ public class ElideBeans {
     public Elide produceElide(DataStore store, EntityDictionary dictionary) {
         ElideSettingsBuilder builder = new ElideSettingsBuilder(store)
                 .withEntityDictionary(dictionary)
-                .withDefaultMaxPageSize(10000)
+                .withDefaultMaxPageSize(100)
                 .withDefaultPageSize(100)
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
@@ -45,8 +57,27 @@ public class ElideBeans {
 
     @Produces
     @Singleton
-    public EntityDictionary produceDictionary(ClassScanner scanner) {
-        return EntityDictionary.builder().scanner(scanner).build();
+    public Injector produceInjector(BeanManager manager) {
+        return new Injector() {
+            @Override
+            public void inject(Object entity) {
+                //NOOP
+            }
+
+            @Override
+            public <T> T instantiate(Class<T> cls) {
+                return manager.createInstance().select(cls).get();
+            }
+        };
+    }
+
+    @Produces
+    @Singleton
+    public EntityDictionary produceDictionary(ClassScanner scanner, Injector injector) {
+        return EntityDictionary.builder()
+                .scanner(scanner)
+                .injector(injector)
+                .build();
     }
 
     @Produces
