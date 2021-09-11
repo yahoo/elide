@@ -10,12 +10,15 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+
+import example.Company;
 import example.Filtered;
 import example.Parent;
 import example.TestCheckMappings;
 import example.models.generics.Manager;
 import example.models.triggers.Invoice;
 import example.models.versioned.BookV2;
+
 import org.hibernate.MappingException;
 import org.hibernate.ScrollMode;
 import org.hibernate.boot.MetadataSources;
@@ -30,6 +33,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.persistence.Entity;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -61,6 +65,7 @@ public class HibernateEntityManagerDataStoreHarness implements DataStoreTestHarn
             bindClasses.addAll(scanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class));
             bindClasses.addAll(scanner.getAnnotatedClasses(BookV2.class.getPackage(), Entity.class));
             bindClasses.addAll(scanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class));
+            bindClasses.addAll(scanner.getAnnotatedClasses(Company.class.getPackage(), Entity.class));
         } catch (MappingException e) {
             throw new IllegalStateException(e);
         }
@@ -87,6 +92,8 @@ public class HibernateEntityManagerDataStoreHarness implements DataStoreTestHarn
 
         try {
             scanner.getAnnotatedClasses(Parent.class.getPackage(), Entity.class)
+                    .forEach(metadataSources::addAnnotatedClass);
+            scanner.getAnnotatedClasses(Company.class.getPackage(), Entity.class)
                     .forEach(metadataSources::addAnnotatedClass);
         } catch (MappingException e) {
             throw new IllegalStateException(e);

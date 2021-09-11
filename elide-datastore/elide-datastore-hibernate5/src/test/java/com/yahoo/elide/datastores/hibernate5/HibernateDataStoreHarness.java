@@ -10,6 +10,7 @@ import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+import example.Company;
 import example.Parent;
 import example.models.generics.Manager;
 import example.models.triggers.Invoice;
@@ -57,7 +58,9 @@ public class HibernateDataStoreHarness implements DataStoreTestHarness {
             scanner.getAnnotatedClasses(BookV2.class.getPackage(), Entity.class)
                     .forEach(metadataSources::addAnnotatedClass);
             scanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class)
-            .forEach(metadataSources::addAnnotatedClass);
+                    .forEach(metadataSources::addAnnotatedClass);
+            scanner.getAnnotatedClasses(Company.class.getPackage(), Entity.class)
+                    .forEach(metadataSources::addAnnotatedClass);
         } catch (MappingException e) {
             throw new IllegalStateException(e);
         }

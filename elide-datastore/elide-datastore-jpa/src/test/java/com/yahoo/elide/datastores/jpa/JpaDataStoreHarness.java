@@ -7,6 +7,7 @@
 package com.yahoo.elide.datastores.jpa;
 
 import static com.yahoo.elide.datastores.jpa.JpaDataStore.DEFAULT_LOGGER;
+
 import com.yahoo.elide.async.models.AsyncQuery;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.test.DataStoreTestHarness;
@@ -14,10 +15,13 @@ import com.yahoo.elide.core.hibernate.QueryLogger;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
+
+import example.Company;
 import example.Parent;
 import example.models.generics.Manager;
 import example.models.triggers.Invoice;
 import example.models.versioned.BookV2;
+
 import org.hibernate.MappingException;
 import org.hibernate.Session;
 import org.hibernate.boot.MetadataSources;
@@ -33,6 +37,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -65,6 +70,7 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
             bindClasses.addAll(scanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class));
             bindClasses.addAll(scanner.getAnnotatedClasses(BookV2.class.getPackage(), Entity.class));
             bindClasses.addAll(scanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class));
+            bindClasses.addAll(scanner.getAnnotatedClasses(Company.class.getPackage(), Entity.class));
         } catch (MappingException e) {
             throw new IllegalStateException(e);
         }
@@ -97,6 +103,8 @@ public class JpaDataStoreHarness implements DataStoreTestHarness {
             scanner.getAnnotatedClasses(Invoice.class.getPackage(), Entity.class)
                     .forEach(metadataSources::addAnnotatedClass);
             scanner.getAnnotatedClasses(AsyncQuery.class.getPackage(), Entity.class)
+                    .forEach(metadataSources::addAnnotatedClass);
+            scanner.getAnnotatedClasses(Company.class.getPackage(), Entity.class)
                     .forEach(metadataSources::addAnnotatedClass);
         } catch (MappingException e) {
             throw new IllegalStateException(e);
