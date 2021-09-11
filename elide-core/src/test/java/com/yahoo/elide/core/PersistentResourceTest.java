@@ -311,9 +311,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertNotNull(dictionary);
         NoCreateEntity noCreate = new NoCreateEntity();
 
-        when(tx.createNewObject(ClassType.of(NoCreateEntity.class))).thenReturn(noCreate);
-
         RequestScope goodScope = buildRequestScope(tx, goodUser);
+        when(tx.createNewObject(ClassType.of(NoCreateEntity.class), goodScope)).thenReturn(noCreate);
+
         assertThrows(
                 ForbiddenAccessException.class,
                 () -> PersistentResource.createObject(
@@ -1722,9 +1722,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test()
     public void testCreateObjectSuccess() {
         Parent parent = newParent(1);
-        when(tx.createNewObject(ClassType.of(Parent.class))).thenReturn(parent);
-
         RequestScope goodScope = buildRequestScope(tx, goodUser);
+        when(tx.createNewObject(ClassType.of(Parent.class), goodScope)).thenReturn(parent);
+
         PersistentResource<Parent> created = PersistentResource.createObject(ClassType.of(Parent.class), goodScope, Optional.of("uuid"));
         parent.setChildren(new HashSet<>());
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
@@ -1741,9 +1741,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         job.setTitle("day job");
         job.setParent(newParent(1));
 
-        when(tx.createNewObject(ClassType.of(Job.class))).thenReturn(job);
-
         final RequestScope goodScope = buildRequestScope(tx, new TestUser("1"));
+        when(tx.createNewObject(ClassType.of(Job.class), goodScope)).thenReturn(job);
+
         PersistentResource<Job> created = PersistentResource.createObject(ClassType.of(Job.class), goodScope, Optional.empty());
         created.getRequestScope().getPermissionExecutor().executeCommitChecks();
 
@@ -1766,9 +1766,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         NoCreateEntity noCreate = new NoCreateEntity();
         noCreate.setId(1);
 
-        when(tx.createNewObject(ClassType.of(NoCreateEntity.class))).thenReturn(noCreate);
-
         RequestScope goodScope = buildRequestScope(tx, goodUser);
+        when(tx.createNewObject(ClassType.of(NoCreateEntity.class), goodScope)).thenReturn(noCreate);
 
         assertThrows(
                 ForbiddenAccessException.class,

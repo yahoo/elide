@@ -145,7 +145,7 @@ public class MultiplexManagerTest {
     @Test
     public void subordinateEntityDictionaryInheritsInjector() {
         final Injector injector = entity -> {
-                    throw new UnsupportedOperationException();
+                    //NOOP
             };
         final QueryDictionaryDataStore ds1 = new QueryDictionaryDataStore();
         final MultiplexManager multiplexManager = new MultiplexManager(ds1);

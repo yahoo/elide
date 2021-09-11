@@ -241,7 +241,7 @@ public class BridgeableRedisStore implements DataStore {
         }
 
         @Override
-        public <T> T createNewObject(Type<T> entityClass) {
+        public <T> T createNewObject(Type<T> entityClass, RequestScope scope) {
             return null;
         }
 

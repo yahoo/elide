@@ -142,7 +142,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             RequestScope requestScope,
             Optional<String> uuid) {
 
-        T obj = requestScope.getTransaction().createNewObject(entityClass);
+        T obj = requestScope.getTransaction().createNewObject(entityClass, requestScope);
 
         String id = uuid.orElse(null);
 
