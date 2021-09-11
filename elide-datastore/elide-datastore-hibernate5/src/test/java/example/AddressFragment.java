@@ -14,7 +14,7 @@ public class AddressFragment {
    public String state;
    public ZipCode zip;
 
-   public class ZipCode {
+   public static class ZipCode {
        public String zip;
        public String plusFour;
    }
