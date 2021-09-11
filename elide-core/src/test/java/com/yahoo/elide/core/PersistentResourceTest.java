@@ -1635,6 +1635,23 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     @Test
+    public void testUpdateNullComplexAttributeSuccess() {
+        Company company = newCompany("abc");
+        company.setAddress(new Address());
+        RequestScope goodScope = buildRequestScope(tx, goodUser);
+        PersistentResource<Company> parentResource = new PersistentResource<>(company, "1", goodScope);
+        final Address address = null;
+
+        boolean updated = parentResource.updateAttribute("address", address);
+
+        assertTrue(updated);
+        assertNull(company.getAddress(), "The attribute was updated successfully");
+
+        goodScope.saveOrCreateObjects();
+        verify(tx, times(1)).save(company, goodScope);
+    }
+
+    @Test
     public void testUpdateComplexAttributeNullField() {
         Company company = newCompany("abc");
 
