@@ -12,6 +12,7 @@ import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.hibernate.Session;
 
 import java.util.TimeZone;
@@ -28,6 +29,9 @@ import javax.persistence.EntityManagerFactory;
 public class ElideBeans {
     private ElideConfig config;
 
+    @ConfigProperty(name = "quarkus.http.root-path")
+    String rootPath;
+
     public void setElideConfig(ElideConfig config) {
         this.config = config;
     }
@@ -43,7 +47,7 @@ public class ElideBeans {
                 .withJoinFilterDialect(new RSQLFilterDialect(dictionary))
                 .withSubqueryFilterDialect(new RSQLFilterDialect(dictionary))
                 .withAuditLogger(new Slf4jLogger())
-                .withBaseUrl(config.basePath)
+                .withBaseUrl(rootPath)
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                 .withJsonApiPath(config.baseJsonApi)
                 .withGraphQLApiPath(config.baseGraphQL);
