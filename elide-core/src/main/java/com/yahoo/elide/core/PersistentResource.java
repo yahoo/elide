@@ -10,6 +10,7 @@ import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.DELETE;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.READ;
 import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
 import static com.yahoo.elide.core.type.ClassType.COLLECTION_TYPE;
+
 import com.yahoo.elide.annotation.Audit;
 import com.yahoo.elide.annotation.CreatePermission;
 import com.yahoo.elide.annotation.DeletePermission;
@@ -41,19 +42,23 @@ import com.yahoo.elide.core.request.Sorting;
 import com.yahoo.elide.core.security.ChangeSpec;
 import com.yahoo.elide.core.security.permissions.ExpressionResult;
 import com.yahoo.elide.core.security.visitors.CanPaginateVisitor;
+import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.Relationship;
 import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.models.ResourceIdentifier;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Sets;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
+
 import io.reactivex.Observable;
 import lombok.NonNull;
 
@@ -82,40 +87,77 @@ import java.util.stream.Collectors;
  * @param <T> type of resource
  */
 public class PersistentResource<T> implements com.yahoo.elide.core.security.PersistentResource<T> {
-    protected T obj;
-
+    public static final Set<String> ALL_FIELDS = null;
+    public static final String CLASS_NO_FIELD = "";
+    /**
+     * The Dictionary.
+     */
+    protected final EntityDictionary dictionary;
     private final Type type;
     private final String typeName;
     private final ResourceLineage lineage;
     private final Optional<String> uuid;
     private final DataStoreTransaction transaction;
     private final RequestScope requestScope;
-    private int hashCode = 0;
-    public static final Set<String> ALL_FIELDS = null;
-    public static final String CLASS_NO_FIELD = "";
-
-    /**
-     * The Dictionary.
-     */
-    protected final EntityDictionary dictionary;
-
     /* Sort strings first by length then contents */
     private final Comparator<String> lengthFirstComparator = (string1, string2) -> {
         int diff = string1.length() - string2.length();
         return diff == 0 ? string1.compareTo(string2) : diff;
     };
+    protected T obj;
+    private int hashCode = 0;
 
-    @Override
-    public String toString() {
-        return String.format("PersistentResource{type=%s, id=%s}", typeName, uuid.orElseGet(this::getId));
+    /**
+     * Construct a new resource from the ID provided.
+     *
+     * @param obj                the obj
+     * @param parent             the parent
+     * @param id                 the id
+     * @param parentRelationship The parent relationship traversed to this resource.
+     * @param scope              the request scope
+     */
+    public PersistentResource(
+            @NonNull T obj,
+            PersistentResource parent,
+            String parentRelationship,
+            String id,
+            @NonNull RequestScope scope
+    ) {
+        this.obj = obj;
+        this.type = EntityDictionary.getType(obj);
+        this.uuid = Optional.ofNullable(id);
+        this.lineage = parent != null
+                ? new ResourceLineage(parent.lineage, parent, parentRelationship)
+                : new ResourceLineage();
+        this.dictionary = scope.getDictionary();
+        this.typeName = dictionary.getJsonAliasFor(type);
+        this.transaction = scope.getTransaction();
+        this.requestScope = scope;
+        dictionary.initializeEntity(obj);
+    }
+
+    /**
+     * Construct a new resource from the ID provided.
+     *
+     * @param obj   the obj
+     * @param id    the id
+     * @param scope the request scope
+     */
+    public PersistentResource(
+            @NonNull T obj,
+            String id,
+            @NonNull RequestScope scope
+    ) {
+        this(obj, null, null, id, scope);
     }
 
     /**
      * Create a resource in the database.
-     * @param entityClass the entity class
+     *
+     * @param entityClass  the entity class
      * @param requestScope the request scope
-     * @param uuid the (optional) uuid
-     * @param <T> object type
+     * @param uuid         the (optional) uuid
+     * @param <T>          object type
      * @return persistent resource
      */
     public static <T> PersistentResource<T> createObject(
@@ -127,12 +169,13 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     /**
      * Create a resource in the database.
-     * @param parent - The immediate ancestor in the lineage or null if this is a root.
+     *
+     * @param parent             - The immediate ancestor in the lineage or null if this is a root.
      * @param parentRelationship - The name of the parent relationship traversed to create this object.
-     * @param entityClass the entity class
-     * @param requestScope the request scope
-     * @param uuid the (optional) uuid
-     * @param <T> object type
+     * @param entityClass        the entity class
+     * @param requestScope       the request scope
+     * @param uuid               the (optional) uuid
+     * @param <T>                object type
      * @return persistent resource
      */
     public static <T> PersistentResource<T> createObject(
@@ -173,80 +216,18 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     }
 
     /**
-     * Construct a new resource from the ID provided.
-     *
-     * @param obj the obj
-     * @param parent the parent
-     * @param id the id
-     * @param parentRelationship The parent relationship traversed to this resource.
-     * @param scope the request scope
-     */
-    public PersistentResource(
-            @NonNull T obj,
-            PersistentResource parent,
-            String parentRelationship,
-            String id,
-            @NonNull RequestScope scope
-    ) {
-        this.obj = obj;
-        this.type = EntityDictionary.getType(obj);
-        this.uuid = Optional.ofNullable(id);
-        this.lineage = parent != null
-                ? new ResourceLineage(parent.lineage, parent, parentRelationship)
-                : new ResourceLineage();
-        this.dictionary = scope.getDictionary();
-        this.typeName = dictionary.getJsonAliasFor(type);
-        this.transaction = scope.getTransaction();
-        this.requestScope = scope;
-        dictionary.initializeEntity(obj);
-    }
-
-    /**
-     * Construct a new resource from the ID provided.
-     *
-     * @param obj the obj
-     * @param id the id
-     * @param scope the request scope
-     */
-    public PersistentResource(
-            @NonNull T obj,
-            String id,
-            @NonNull RequestScope scope
-    ) {
-        this(obj, null, null, id, scope);
-    }
-
-   /**
-     * Check whether an id matches for this persistent resource.
-     *
-     * @param checkId the check id
-     * @return True if matches false otherwise
-     */
-    @Override
-    public boolean matchesId(String checkId) {
-        if (checkId == null) {
-            return false;
-        }
-        return uuid
-                .map(checkId::equals)
-                .orElseGet(() -> {
-                    String id = getId();
-                    return !"0".equals(id) && !"null".equals(id) && checkId.equals(id);
-                });
-    }
-
-    /**
      * Load an single entity from the DB.
      *
-     * @param projection What to load from the DB.
-     * @param id the id
+     * @param projection   What to load from the DB.
+     * @param id           the id
      * @param requestScope the request scope
-     * @param <T> type of resource
+     * @param <T>          type of resource
      * @return resource persistent resource
      * @throws InvalidObjectIdentifierException the invalid object identifier exception
      */
     @SuppressWarnings("resource")
-    @NonNull public static <T> PersistentResource<T> loadRecord(
+    @NonNull
+    public static <T> PersistentResource<T> loadRecord(
             EntityProjection projection,
             String id,
             RequestScope requestScope
@@ -268,9 +249,9 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             Type<?> idType = dictionary.getIdType(loadClass);
 
             projection = projection
-                .copyOf()
-                .filterExpression(permissionFilter.orElse(null))
-                .build();
+                    .copyOf()
+                    .filterExpression(permissionFilter.orElse(null))
+                    .build();
 
             obj = tx.loadObject(projection, (Serializable) CoerceUtil.coerce(id, idType), requestScope);
             if (obj == null) {
@@ -294,14 +275,15 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     /**
      * Get a FilterExpression parsed from FilterExpressionCheck.
      *
-     * @param <T> the type parameter
-     * @param loadClass the load class
-     * @param requestScope the request scope
+     * @param <T>             the type parameter
+     * @param loadClass       the load class
+     * @param requestScope    the request scope
      * @param requestedFields The set of requested fields
      * @return a FilterExpression defined by FilterExpressionCheck.
      */
     private static <T> Optional<FilterExpression> getPermissionFilterExpression(Type<T> loadClass,
-            RequestScope requestScope, Set<String> requestedFields) {
+                                                                                RequestScope requestScope,
+                                                                                Set<String> requestedFields) {
         try {
             return requestScope.getPermissionExecutor().getReadPermissionFilter(loadClass, requestedFields);
         } catch (ForbiddenAccessException e) {
@@ -312,9 +294,9 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     /**
      * Load a collection from the datastore.
      *
-     * @param projection the projection to load
+     * @param projection   the projection to load
      * @param requestScope the request scope
-     * @param ids a list of object identifiers to optionally load.  Can be empty.
+     * @param ids          a list of object identifiers to optionally load.  Can be empty.
      * @return a filtered collection of resources loaded from the datastore.
      */
     public static Observable<PersistentResource> loadRecords(
@@ -352,9 +334,9 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         if (!ids.isEmpty()) {
             String typeAlias = dictionary.getJsonAliasFor(loadClass);
             newResources = requestScope.getNewPersistentResources().stream()
-                        .filter(resource -> typeAlias.equals(resource.getTypeName())
-                                && ids.contains(resource.getUUID().orElse("")))
-                        .collect(Collectors.toSet());
+                    .filter(resource -> typeAlias.equals(resource.getTypeName())
+                            && ids.contains(resource.getUUID().orElse("")))
+                    .collect(Collectors.toSet());
             FilterExpression idExpression = buildIdFilterExpression(ids, loadClass, dictionary, requestScope);
 
             // Combine filters if necessary
@@ -403,7 +385,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
         allResources = allResources.doOnComplete(() -> {
             Set<String> missedIds = Sets.difference(new HashSet<>(ids), foundIds);
-            if (! missedIds.isEmpty()) {
+            if (!missedIds.isEmpty()) {
                 throw new InvalidObjectIdentifierException(missedIds.toString(), dictionary.getJsonAliasFor(loadClass));
             }
         });
@@ -412,19 +394,201 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     }
 
     /**
+     * Build an id filter expression for a particular entity type.
+     *
+     * @param ids        Ids to include in the filter expression
+     * @param entityType Type of entity
+     * @return Filter expression for given ids and type.
+     */
+    private static FilterExpression buildIdFilterExpression(List<String> ids,
+                                                            Type<?> entityType,
+                                                            EntityDictionary dictionary,
+                                                            RequestScope scope) {
+        Type<?> idType = dictionary.getIdType(entityType);
+        String idField = dictionary.getIdFieldName(entityType);
+
+        List<Object> coercedIds = ids.stream()
+                .filter(id -> scope.getObjectById(entityType, id) == null) // these don't exist yet
+                .map(id -> CoerceUtil.coerce(id, idType))
+                .collect(Collectors.toList());
+
+        /* construct a new SQL like filter expression, eg: book.id IN [1,2] */
+        FilterExpression idFilter = new InPredicate(
+                new Path.PathElement(
+                        entityType,
+                        idType,
+                        idField),
+                coercedIds);
+
+        return idFilter;
+    }
+
+    /**
+     * Determine whether or not to skip loading a collection.
+     *
+     * @param resourceClass   Resource class
+     * @param annotationClass Annotation class
+     * @param requestedFields The set of requested fields
+     * @param requestScope    Request scope
+     * @return True if collection should be skipped (i.e. denied access), false otherwise
+     */
+    private static boolean shouldSkipCollection(Type<?> resourceClass, Class<? extends Annotation> annotationClass,
+                                                RequestScope requestScope, Set<String> requestedFields) {
+        try {
+            requestScope.getPermissionExecutor().checkUserPermissions(resourceClass, annotationClass, requestedFields);
+            return false;
+        } catch (ForbiddenAccessException e) {
+            return true;
+        }
+    }
+
+    /**
+     * Invoke the get[fieldName] method on the target object OR get the field with the corresponding name.
+     *
+     * @param target       the object to get
+     * @param fieldName    the field name to get or invoke equivalent get method
+     * @param requestScope the request scope
+     * @return the value
+     */
+    public static Object getValue(Object target, String fieldName, RequestScope requestScope) {
+        return requestScope.getDictionary().getValue(target, fieldName, requestScope);
+    }
+
+    /**
+     * Filter a set of PersistentResources.
+     * Verify fields have ReadPermission on filter join.
+     *
+     * @param permission the permission
+     * @param resources  the resources
+     * @return Filtered set of resources
+     */
+    protected static Observable<PersistentResource> filter(Class<? extends Annotation> permission,
+                                                           Optional<FilterExpression> filter,
+                                                           Set<String> requestedFields,
+                                                           Observable<PersistentResource> resources) {
+
+        return resources.filter(resource -> {
+            try {
+                // NOTE: This is for avoiding filtering on _newly created_ objects within this transaction.
+                // Namely-- in a JSONPATCH request or GraphQL request-- we need to read all newly created
+                // resources /regardless/ of whether or not we actually have permission to do so; this is to
+                // retrieve the object id to return to the caller. If no fields on the object are readable by the caller
+                // then they will be filtered out and only the id is returned. Similarly, all future requests to this
+                // object will behave as expected.
+                if (!resource.getRequestScope().getNewResources().contains(resource)) {
+                    resource.checkFieldAwarePermissions(permission, requestedFields);
+                    // Verify fields have ReadPermission on filter join
+                    return !filter.isPresent()
+                            || filter.get().accept(new VerifyFieldAccessFilterExpressionVisitor(resource));
+                }
+                return true;
+            } catch (ForbiddenAccessException e) {
+                return false;
+            }
+        });
+    }
+
+    private static <A extends Annotation> ExpressionResult checkPermission(
+            Class<A> annotationClass, PersistentResource resource) {
+        return resource.requestScope.getPermissionExecutor().checkPermission(annotationClass, resource);
+    }
+
+    private static <A extends Annotation> ExpressionResult checkUserPermission(
+            Class<A> annotationClass, Object obj, RequestScope requestScope, Set<String> requestedFields) {
+        return requestScope.getPermissionExecutor()
+                .checkUserPermissions(EntityDictionary.getType(obj), annotationClass, requestedFields);
+    }
+
+    protected static boolean checkIncludeSparseField(Map<String, Set<String>> sparseFields, String type,
+                                                     String fieldName) {
+        if (!sparseFields.isEmpty()) {
+            if (!sparseFields.containsKey(type)) {
+                return false;
+            }
+
+            return sparseFields.get(type).contains(fieldName);
+        }
+
+        return true;
+    }
+
+    /**
+     * Assign provided id if id field is not generated.
+     *
+     * @param persistentResource resource
+     * @param id                 resource id
+     */
+    private static void assignId(PersistentResource persistentResource, String id) {
+
+        //If id field is not a `@GeneratedValue` or mapped via a `@MapsId` attribute
+        //then persist the provided id
+        if (!persistentResource.isIdGenerated()) {
+            if (StringUtils.isNotEmpty(id)) {
+                persistentResource.setId(id);
+            } else {
+                //If expecting id to persist and id is not present, throw exception
+                throw new BadRequestException(
+                        "No id provided, cannot persist " + persistentResource.getTypeName());
+            }
+        }
+    }
+
+    private static <T> T firstOrNullIfEmpty(final Collection<T> coll) {
+        return CollectionUtils.isEmpty(coll) ? null : IterableUtils.first(coll);
+    }
+
+    public static <T> T firstOrNullIfEmpty(final Observable<T> coll) {
+        return firstOrNullIfEmpty(coll.toList().blockingGet());
+    }
+
+    @Override
+    public String toString() {
+        return String.format("PersistentResource{type=%s, id=%s}", typeName, uuid.orElseGet(this::getId));
+    }
+
+    /**
+     * Check whether an id matches for this persistent resource.
+     *
+     * @param checkId the check id
+     * @return True if matches false otherwise
+     */
+    @Override
+    public boolean matchesId(String checkId) {
+        if (checkId == null) {
+            return false;
+        }
+        return uuid
+                .map(checkId::equals)
+                .orElseGet(() -> {
+                    String id = getId();
+                    return !"0".equals(id) && !"null".equals(id) && checkId.equals(id);
+                });
+    }
+
+    /**
      * Update attribute in existing resource.
      *
      * @param fieldName the field name
-     * @param newVal the new val
+     * @param newVal    the new val
      * @return true if object updated, false otherwise
      */
     public boolean updateAttribute(String fieldName, Object newVal) {
         Type<?> fieldClass = dictionary.getType(getResourceType(), fieldName);
-        newVal =  dictionary.coerce(obj, newVal, fieldName, fieldClass);
+        final Object coercedNewValue = dictionary.coerce(obj, newVal, fieldName, fieldClass);
         Object val = getValueUnchecked(fieldName);
-        checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, newVal, val);
-        if (!Objects.equals(val, newVal)) {
-            this.setValueChecked(fieldName, newVal);
+        checkFieldAwareDeferPermissions(UpdatePermission.class, fieldName, coercedNewValue, val);
+        if (!Objects.equals(val, coercedNewValue)) {
+            if (val == null
+                    || coercedNewValue == null
+                    || !dictionary.isComplexAttribute(EntityDictionary.getType(obj), fieldName)) {
+                this.setValueChecked(fieldName, coercedNewValue);
+            } else {
+                if (newVal instanceof Map) {
+                    this.updateComplexAttribute(dictionary, (Map<String, Object>) newVal, val, requestScope);
+                } else {
+                    this.setValueChecked(fieldName, coercedNewValue);
+                }
+            }
             this.markDirty();
             //Hooks for customize logic for setAttribute/Relation
             if (dictionary.isAttribute(EntityDictionary.getType(obj), fieldName)) {
@@ -439,6 +603,31 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             return true;
         }
         return false;
+    }
+
+    private void updateComplexAttribute(EntityDictionary dictionary,
+                                        Map<String, Object> updateValue,
+                                        Object currentValue,
+                                        RequestScope scope) {
+        for (String field : updateValue.keySet()) {
+            final Object newValue = updateValue.get(field);
+            final Object coercedNewValue =
+                    dictionary.coerce(currentValue, newValue, field, dictionary.getType(currentValue, field));
+            final Object newOriginal = dictionary.getValue(currentValue, field, scope);
+            if (!Objects.equals(newOriginal, coercedNewValue)) {
+                if (newOriginal == null
+                        || coercedNewValue == null
+                        || !dictionary.isComplexAttribute(ClassType.of(currentValue.getClass()), field)) {
+                    dictionary.setValue(currentValue, field, coercedNewValue);
+                } else {
+                    if (newValue instanceof Map) {
+                        this.updateComplexAttribute(dictionary, (Map<String, Object>) newValue, newOriginal, scope);
+                    } else {
+                        dictionary.setValue(currentValue, field, coercedNewValue);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -457,7 +646,8 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      * updated = (requested UNION mine) - (requested INTERSECT mine)
      * deleted = (mine - requested)
      * final = (notMine) UNION requested
-     * @param fieldName the field name
+     *
+     * @param fieldName           the field name
      * @param resourceIdentifiers the resource identifiers
      * @return True if object updated, false otherwise
      */
@@ -495,14 +685,15 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     /**
      * Updates a to-many relationship.
-     * @param fieldName the field name
+     *
+     * @param fieldName           the field name
      * @param resourceIdentifiers the resource identifiers
-     * @param mine Existing, filtered relationships for field name
+     * @param mine                Existing, filtered relationships for field name
      * @return true if updated. false otherwise
      */
     protected boolean updateToManyRelation(String fieldName,
-            Set<PersistentResource> resourceIdentifiers,
-            Set<PersistentResource> mine) {
+                                           Set<PersistentResource> resourceIdentifiers,
+                                           Set<PersistentResource> mine) {
 
         Set<PersistentResource> requested;
         Set<PersistentResource> updated;
@@ -572,14 +763,14 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     /**
      * Update a 2-one relationship.
      *
-     * @param fieldName the field name
+     * @param fieldName           the field name
      * @param resourceIdentifiers the resource identifiers
-     * @param mine Existing, filtered relationships for field name
+     * @param mine                Existing, filtered relationships for field name
      * @return true if updated. false otherwise
      */
     protected boolean updateToOneRelation(String fieldName,
-            Set<PersistentResource> resourceIdentifiers,
-            Set<PersistentResource> mine) {
+                                          Set<PersistentResource> resourceIdentifiers,
+                                          Set<PersistentResource> mine) {
         Object newValue = null;
         PersistentResource newResource = null;
         if (CollectionUtils.isNotEmpty(resourceIdentifiers)) {
@@ -682,7 +873,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     /**
      * Remove a relationship.
      *
-     * @param fieldName the field name
+     * @param fieldName      the field name
      * @param removeResource the remove resource
      */
     public void removeRelation(String fieldName, PersistentResource removeResource) {
@@ -740,10 +931,11 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     /**
      * Checks whether the new entity is already a part of the relationship.
-     * @param fieldName which relation link
-     * @param toAdd the new relation
-     * @return boolean representing the result of the check
      *
+     * @param fieldName which relation link
+     * @param toAdd     the new relation
+     * @return boolean representing the result of the check
+     * <p>
      * This method does not handle the case where the toAdd entity is newly created,
      * since newly created entities have null id there is no easy way to check for identity
      */
@@ -762,7 +954,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     /**
      * Add relation link from a given parent resource to a child resource.
      *
-     * @param fieldName which relation link
+     * @param fieldName   which relation link
      * @param newRelation the new relation
      */
     public void addRelation(String fieldName, PersistentResource newRelation) {
@@ -812,9 +1004,9 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                     //update the relationship that links B & C.
 
                     //The object being added (C) is non-transferable
-                    || (! dictionary.isTransferable(getResourceType())
+                    || (!dictionary.isTransferable(getResourceType())
                     //The object being added to (B) is not strict
-                    && ! dictionary.isStrictNonTransferable(persistentResource.getResourceType())
+                    && !dictionary.isStrictNonTransferable(persistentResource.getResourceType())
                     //B is in C's lineage (/B/C).
                     && persistentResource.equals(lineage.getParent()))) {
                 continue;
@@ -890,9 +1082,9 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         return dictionary.getEntityBinding(type).isIdGenerated();
     }
 
-
     /**
      * Gets UUID.
+     *
      * @return the UUID
      */
     @Override
@@ -902,11 +1094,11 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     /**
      * Get relation looking for a _single_ id.
-     *
+     * <p>
      * NOTE: Filter expressions for this type are _not_ applied at this level.
      *
      * @param relationship The relationship
-     * @param id single id to lookup
+     * @param id           single id to lookup
      * @return The PersistentResource of the sought id or null if does not exist.
      */
     public PersistentResource getRelation(com.yahoo.elide.core.request.Relationship relationship, String id) {
@@ -930,7 +1122,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      * Load a relation from the PersistentResource.
      *
      * @param relationship the relation
-     * @param ids a list of object identifiers to optionally load.  Can be empty.
+     * @param ids          a list of object identifiers to optionally load.  Can be empty.
      * @return PersistentResource relation
      */
     public Observable<PersistentResource> getRelation(List<String> ids,
@@ -968,10 +1160,10 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
                 Optional.ofNullable(filterExpression),
                 relationship.getProjection().getRequestedFields(),
                 getRelation(relationship.copyOf()
-                    .projection(relationship.getProjection().copyOf()
+                        .projection(relationship.getProjection().copyOf()
                                 .filterExpression(filterExpression)
                                 .build())
-                            .build(), true));
+                        .build(), true));
 
         // TODO: Sort again in memory now that two sets are glommed together?
         Observable<PersistentResource> allResources =
@@ -988,42 +1180,12 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
         allResources = allResources.doOnComplete(() -> {
             Set<String> missedIds = Sets.difference(new HashSet<>(ids), foundIds);
-            if (! missedIds.isEmpty()) {
+            if (!missedIds.isEmpty()) {
                 throw new InvalidObjectIdentifierException(missedIds.toString(), relationship.getName());
             }
         });
 
         return allResources;
-    }
-
-    /**
-     * Build an id filter expression for a particular entity type.
-     *
-     * @param ids Ids to include in the filter expression
-     * @param entityType Type of entity
-     * @return Filter expression for given ids and type.
-     */
-    private static FilterExpression buildIdFilterExpression(List<String> ids,
-            Type<?> entityType,
-            EntityDictionary dictionary,
-            RequestScope scope) {
-        Type<?> idType = dictionary.getIdType(entityType);
-        String idField = dictionary.getIdFieldName(entityType);
-
-        List<Object> coercedIds = ids.stream()
-                .filter(id -> scope.getObjectById(entityType, id) == null) // these don't exist yet
-                .map(id -> CoerceUtil.coerce(id, idType))
-                .collect(Collectors.toList());
-
-        /* construct a new SQL like filter expression, eg: book.id IN [1,2] */
-        FilterExpression idFilter = new InPredicate(
-                new Path.PathElement(
-                        entityType,
-                        idType,
-                        idField),
-                coercedIds);
-
-        return idFilter;
     }
 
     /**
@@ -1076,10 +1238,10 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
         if (pagination.filter(Predicates.not(Pagination::isDefaultInstance)).isPresent()
                 && !CanPaginateVisitor.canPaginate(
-                        relationClass,
-                        dictionary,
-                        requestScope,
-                        relationship.getProjection().getRequestedFields())) {
+                relationClass,
+                dictionary,
+                requestScope,
+                relationship.getProjection().getRequestedFields())) {
 
             throw new BadRequestException(String.format("Cannot paginate %s",
                     dictionary.getJsonAliasFor(relationClass)));
@@ -1090,6 +1252,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     /**
      * Check the permissions of the relationship, and return true or false.
+     *
      * @param relationship The relationship to the entity
      * @return True if the relationship to the entity has valid permissions for the user
      */
@@ -1182,25 +1345,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     }
 
     /**
-     * Determine whether or not to skip loading a collection.
-     *
-     * @param resourceClass Resource class
-     * @param annotationClass Annotation class
-     * @param requestedFields The set of requested fields
-     * @param requestScope Request scope
-     * @return True if collection should be skipped (i.e. denied access), false otherwise
-     */
-    private static boolean shouldSkipCollection(Type<?> resourceClass, Class<? extends Annotation> annotationClass,
-            RequestScope requestScope, Set<String> requestedFields) {
-        try {
-            requestScope.getPermissionExecutor().checkUserPermissions(resourceClass, annotationClass, requestedFields);
-            return false;
-        } catch (ForbiddenAccessException e) {
-            return true;
-        }
-    }
-
-    /**
      * Get a relationship type.
      *
      * @param relation Name of relationship
@@ -1212,6 +1356,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     /**
      * Get the value for a particular attribute (i.e. non-relational field)
+     *
      * @param attr Attribute name
      * @return Object value for attribute
      */
@@ -1229,6 +1374,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     /**
      * Get the value for a particular attribute (i.e. non-relational field)
+     *
      * @param attr the Attribute
      * @return Object value for attribute
      */
@@ -1248,6 +1394,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     /**
      * Sets object.
+     *
      * @param obj the obj
      */
     public void setObject(T obj) {
@@ -1267,6 +1414,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     /**
      * Gets type.
+     *
      * @return the type
      */
     @Override
@@ -1311,16 +1459,18 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         return false;
     }
 
-   /**
-    * Returns whether or not this resource was created in this transaction.
-    * @return True if this resource is newly created.
-    */
+    /**
+     * Returns whether or not this resource was created in this transaction.
+     *
+     * @return True if this resource is newly created.
+     */
     public boolean isNewlyCreated() {
-       return requestScope.getNewResources().contains(this);
+        return requestScope.getNewResources().contains(this);
     }
 
     /**
      * Gets lineage.
+     *
      * @return the lineage
      */
     public ResourceLineage getLineage() {
@@ -1329,6 +1479,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     /**
      * Gets dictionary.
+     *
      * @return the dictionary
      */
     public EntityDictionary getDictionary() {
@@ -1337,6 +1488,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     /**
      * Gets request scope.
+     *
      * @return the request scope
      */
     @Override
@@ -1355,6 +1507,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     /**
      * Fetch a resource with support for lambda function for getting relationships and attributes.
+     *
      * @return The Resource
      */
     public Resource toResource(EntityProjection projection) {
@@ -1363,19 +1516,21 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     /**
      * Fetch a resource with support for lambda function for getting relationships and attributes.
+     *
      * @param relationshipSupplier The relationship supplier (getRelationships())
-     * @param attributeSupplier The attribute supplier
+     * @param attributeSupplier    The attribute supplier
      * @return The Resource
      */
     private Resource toResource(final Supplier<Map<String, Relationship>> relationshipSupplier,
-                               final Supplier<Map<String, Object>> attributeSupplier) {
+                                final Supplier<Map<String, Object>> attributeSupplier) {
         return toResource(relationshipSupplier.get(), attributeSupplier.get());
     }
 
     /**
      * Convert a persistent resource to a resource.
+     *
      * @param relationships The relationships
-     * @param attributes The attributes
+     * @param attributes    The attributes
      * @return The Resource
      */
     public Resource toResource(final Map<String, Relationship> relationships,
@@ -1422,14 +1577,14 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         return getRelationshipsWithRelationshipFunction(
                 (relationName) -> getRelationCheckedFiltered(projection.getRelationship(relationName)
                         .orElseThrow(IllegalStateException::new)
-        ));
+                ));
     }
 
     /**
      * Get relationship mappings.
      *
      * @param relationshipFunction a function to load the value of a relationship. Takes a string of the relationship
-     * name and returns the relationship's value.
+     *                             name and returns the relationship's value.
      * @return Relationship mapping
      */
     protected Map<String, Relationship> getRelationshipsWithRelationshipFunction(
@@ -1455,7 +1610,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
             }
             Map<String, String> links = null;
             if (requestScope.getElideSettings().isEnableJsonLinks()) {
-                 links = requestScope.getElideSettings()
+                links = requestScope.getElideSettings()
                         .getJsonApiLinks()
                         .getRelationshipLinks(this, field);
             }
@@ -1483,8 +1638,9 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     /**
      * Sets value.
+     *
      * @param fieldName the field name
-     * @param newValue the new value
+     * @param newValue  the new value
      */
     protected void setValueChecked(String fieldName, Object newValue) {
         Object existingValue = getValueUnchecked(fieldName);
@@ -1499,8 +1655,9 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     /**
      * Nulls the relationship or attribute and checks update permissions.
      * Invokes the set[fieldName] method on the target object OR set the field with the corresponding name.
+     *
      * @param fieldName the field name to set or invoke equivalent set method
-     * @param oldValue the old value
+     * @param oldValue  the old value
      */
     protected void nullValue(String fieldName, PersistentResource oldValue) {
         if (oldValue == null) {
@@ -1515,13 +1672,14 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     /**
      * Gets a value from an entity and checks read permissions.
+     *
      * @param attribute the attribute to fetch.
      * @return value value
      */
     protected Object getValueChecked(Attribute attribute) {
         requestScope.publishLifecycleEvent(this, READ);
         requestScope.publishLifecycleEvent(this, attribute.getName(), READ, Optional.empty());
-        checkFieldAwareDeferPermissions(ReadPermission.class, attribute.getName(), (Object) null, (Object) null);
+        checkFieldAwareDeferPermissions(ReadPermission.class, attribute.getName(), null, null);
         return transaction.getAttribute(getObject(), attribute, requestScope);
     }
 
@@ -1537,9 +1695,10 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     /**
      * Adds a new element to a collection and tests update permission.
-     * @param collection the collection
+     *
+     * @param collection     the collection
      * @param collectionName the collection name
-     * @param toAdd the to add
+     * @param toAdd          the to add
      * @return True if added to collection false otherwise (i.e. element already in collection)
      */
     protected boolean addToCollection(Collection collection, String collectionName, PersistentResource toAdd) {
@@ -1570,9 +1729,10 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     /**
      * Deletes an existing element in a collection and tests update and delete permissions.
-     * @param collection the collection
+     *
+     * @param collection     the collection
      * @param collectionName the collection name
-     * @param toDelete the to delete
+     * @param toDelete       the to delete
      * @param isInverseCheck Whether or not the deletion is already coming from cleaning up an inverse.
      *                       Without this parameter, we could find ourselves in a loop of checks.
      *                       TODO: This is a band-aid for a quick fix. This should certainly be refactored.
@@ -1625,8 +1785,9 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
 
     /**
      * Invoke the set[fieldName] method on the target object OR set the field with the corresponding name.
+     *
      * @param fieldName the field name to set or invoke equivalent set method
-     * @param value the value to set
+     * @param value     the value to set
      */
     protected void setValue(String fieldName, Object value) {
         final Object original = getValueUnchecked(fieldName);
@@ -1637,20 +1798,10 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     }
 
     /**
-     * Invoke the get[fieldName] method on the target object OR get the field with the corresponding name.
-     * @param target the object to get
-     * @param fieldName the field name to get or invoke equivalent get method
-     * @param requestScope the request scope
-     * @return the value
-     */
-    public static Object getValue(Object target, String fieldName, RequestScope requestScope) {
-        return requestScope.getDictionary().getValue(target, fieldName, requestScope);
-    }
-
-    /**
      * If a bidirectional relationship exists, attempts to delete itself from the inverse
      * relationship. Given A to B as the relationship, A corresponds to this and B is the inverse.
-     * @param relationName The name of the relationship on this (A) object.
+     *
+     * @param relationName  The name of the relationship on this (A) object.
      * @param inverseEntity The value (B) which has been deleted from this object.
      */
     protected void deleteInverseRelation(String relationName, Object inverseEntity) {
@@ -1702,8 +1853,9 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     /**
      * If a bidirectional relationship exists, attempts to add itself to the inverse
      * relationship. Given A to B as the relationship, A corresponds to this and B is the inverse.
+     *
      * @param relationName The name of the relationship on this (A) object.
-     * @param inverseObj The value (B) which has been added to this object.
+     * @param inverseObj   The value (B) which has been added to this object.
      */
     protected void addInverseRelation(String relationName, Object inverseObj) {
         String inverseName = dictionary.getRelationInverse(type, relationName);
@@ -1745,42 +1897,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     }
 
     /**
-     * Filter a set of PersistentResources.
-     * Verify fields have ReadPermission on filter join.
-     *
-     * @param permission the permission
-     * @param resources  the resources
-     * @return Filtered set of resources
-     */
-    protected static Observable<PersistentResource> filter(Class<? extends Annotation> permission,
-            Optional<FilterExpression> filter,
-            Set<String> requestedFields,
-            Observable<PersistentResource> resources) {
-
-        return resources.filter(resource -> {
-            try {
-                // NOTE: This is for avoiding filtering on _newly created_ objects within this transaction.
-                // Namely-- in a JSONPATCH request or GraphQL request-- we need to read all newly created
-                // resources /regardless/ of whether or not we actually have permission to do so; this is to
-                // retrieve the object id to return to the caller. If no fields on the object are readable by the caller
-                // then they will be filtered out and only the id is returned. Similarly, all future requests to this
-                // object will behave as expected.
-                if (!resource.getRequestScope().getNewResources().contains(resource)) {
-                    resource.checkFieldAwarePermissions(permission, requestedFields);
-                    // Verify fields have ReadPermission on filter join
-                    if (filter.isPresent()
-                            && !filter.get().accept(new VerifyFieldAccessFilterExpressionVisitor(resource))) {
-                        return false;
-                    }
-                }
-                return true;
-            } catch (ForbiddenAccessException e) {
-                return false;
-            }
-        });
-    }
-
-    /**
      * Filter a set of fields.
      *
      * @param fields the fields
@@ -1816,17 +1932,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         auditField(new ChangeSpec(this, fieldName, original, value));
     }
 
-    private static <A extends Annotation> ExpressionResult checkPermission(
-            Class<A> annotationClass, PersistentResource resource) {
-        return resource.requestScope.getPermissionExecutor().checkPermission(annotationClass, resource);
-    }
-
-    private static <A extends Annotation> ExpressionResult checkUserPermission(
-            Class<A> annotationClass, Object obj, RequestScope requestScope, Set<String> requestedFields) {
-        return requestScope.getPermissionExecutor()
-                .checkUserPermissions(EntityDictionary.getType(obj), annotationClass, requestedFields);
-    }
-
     private <A extends Annotation> ExpressionResult checkFieldAwarePermissions(
             Class<A> annotationClass,
             Set<String> requestedFields
@@ -1840,9 +1945,9 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     }
 
     private <A extends Annotation> ExpressionResult checkFieldAwareDeferPermissions(Class<A> annotationClass,
-            String fieldName,
-            Object modified,
-            Object original) {
+                                                                                    String fieldName,
+                                                                                    Object modified,
+                                                                                    Object original) {
         ChangeSpec changeSpec = (UpdatePermission.class.isAssignableFrom(annotationClass))
                 ? new ChangeSpec(this, fieldName, original, modified)
                 : null;
@@ -1850,21 +1955,6 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         return requestScope
                 .getPermissionExecutor()
                 .checkSpecificFieldPermissionsDeferred(this, changeSpec, annotationClass, fieldName);
-    }
-
-    protected static boolean checkIncludeSparseField(Map<String, Set<String>> sparseFields, String type,
-            String fieldName) {
-        if (!sparseFields.isEmpty()) {
-            if (!sparseFields.containsKey(type)) {
-                return false;
-            }
-
-            if (!sparseFields.get(type).contains(fieldName)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**
@@ -1897,7 +1987,7 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
     /**
      * Audit an action on an entity.
      *
-     * @param action the action
+     * @param action     the action
      * @param changeSpec the change that occurred
      */
     protected void auditClass(Audit.Action action, ChangeSpec changeSpec) {
@@ -1936,34 +2026,5 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
      */
     private void markDirty() {
         requestScope.getDirtyResources().add(this);
-    }
-
-    /**
-     * Assign provided id if id field is not generated.
-     *
-     * @param persistentResource resource
-     * @param id resource id
-     */
-    private static void assignId(PersistentResource persistentResource, String id) {
-
-       //If id field is not a `@GeneratedValue` or mapped via a `@MapsId` attribute
-       //then persist the provided id
-       if (!persistentResource.isIdGenerated()) {
-            if (StringUtils.isNotEmpty(id)) {
-                persistentResource.setId(id);
-            } else {
-                //If expecting id to persist and id is not present, throw exception
-                throw new BadRequestException(
-                        "No id provided, cannot persist " + persistentResource.getTypeName());
-            }
-        }
-    }
-
-    private static <T> T firstOrNullIfEmpty(final Collection<T> coll) {
-        return CollectionUtils.isEmpty(coll) ? null : IterableUtils.first(coll);
-    }
-
-    public static <T> T firstOrNullIfEmpty(final Observable<T> coll) {
-        return firstOrNullIfEmpty(coll.toList().blockingGet());
     }
 }
