@@ -47,6 +47,11 @@
         <artifactId>elide-datastore-jpa</artifactId>
         <version>${elide.version}</version>
       </dependency>
+      <dependency>
+        <groupId>com.yahoo.elide</groupId>
+        <artifactId>elide-swagger</artifactId>
+        <version>${elide.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <build>

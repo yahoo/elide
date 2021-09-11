@@ -35,13 +35,20 @@ public class ElideConfig {
      * The base URL path prefix for Elide JSON-API service endpoints.
      * This is appended to the basePath.
      */
-    @ConfigItem(defaultValue = "/")
-    public String baseJsonApi;
+    @ConfigItem
+    public String baseJsonapi;
 
     /**
      * The base URL path prefix for Elide GraphQL service endpoints.
      * This is appended to the basePath.
      */
-    @ConfigItem(defaultValue = "/")
-    public String baseGraphQL;
+    @ConfigItem
+    public String baseGraphql;
+
+    /**
+     * The base URL path prefix for the Elide Swagger document.
+     * This is appended to the basePath.
+     */
+    @ConfigItem
+    public String baseSwagger;
 }

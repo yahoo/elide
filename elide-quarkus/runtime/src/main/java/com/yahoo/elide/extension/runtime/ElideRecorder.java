@@ -27,7 +27,7 @@ public class ElideRecorder {
         javax.persistence.Table.class,
     };
 
-    public BeanContainerListener setLiquibaseConfig(ElideConfig config) {
+    public BeanContainerListener setElideConfig(ElideConfig config) {
         return beanContainer -> {
             ElideBeans elideBeans = beanContainer.instance(ElideBeans.class);
             elideBeans.setElideConfig(config);

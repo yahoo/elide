@@ -49,8 +49,8 @@ public class ElideBeans {
                 .withAuditLogger(new Slf4jLogger())
                 .withBaseUrl(rootPath)
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
-                .withJsonApiPath(config.baseJsonApi)
-                .withGraphQLApiPath(config.baseGraphQL);
+                .withJsonApiPath(config.baseJsonapi)
+                .withGraphQLApiPath(config.baseGraphql);
 
         if (config.verboseErrors) {
             builder = builder.withVerboseErrors();

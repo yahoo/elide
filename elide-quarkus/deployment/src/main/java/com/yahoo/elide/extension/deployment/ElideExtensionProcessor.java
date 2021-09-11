@@ -11,6 +11,7 @@ import com.yahoo.elide.extension.runtime.ElideRecorder;
 import com.yahoo.elide.extension.runtime.ElideResourceBuilder;
 import com.yahoo.elide.graphql.GraphQLEndpoint;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
+import com.yahoo.elide.swagger.resources.DocEndpoint;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.DotName;
 import org.jboss.resteasy.plugins.server.servlet.ResteasyContextParameters;
@@ -46,15 +47,26 @@ class ElideExtensionProcessor {
     }
 
     @BuildStep
-    public AdditionalBeanBuildItem elideEndpoints( ) {
-        return AdditionalBeanBuildItem.builder()
-                .addBeanClass(JsonApiEndpoint.class)
-                .addBeanClass(GraphQLEndpoint.class)
-                .build();
+    public AdditionalBeanBuildItem configureElideEndpoints(ElideConfig config) {
+        AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder();
+
+        if (config.baseJsonapi != null) {
+            builder = builder.addBeanClass(JsonApiEndpoint.class);
+        }
+
+        if (config.baseGraphql != null) {
+            builder = builder.addBeanClass(GraphQLEndpoint.class);
+        }
+
+        if (config.baseSwagger != null && config.baseJsonapi != null) {
+            builder = builder.addBeanClass(DocEndpoint.class);
+        }
+
+        return builder.build();
     }
 
     @BuildStep
-    public void processResources(
+    public void configureRestEasy(
             BuildProducer<ResteasyDeploymentCustomizerBuildItem> deploymentCustomizerProducer,
             BuildProducer<ReflectiveClassBuildItem> reflectiveClass,
             BuildProducer<ServletInitParamBuildItem> initParamProducer
@@ -62,15 +74,21 @@ class ElideExtensionProcessor {
         initParamProducer.produce(
                 new ServletInitParamBuildItem(
                         ResteasyContextParameters.RESTEASY_SCANNED_RESOURCE_CLASSES_WITH_BUILDER,
-                        ElideResourceBuilder.class.getName() + ":" + JsonApiEndpoint.class.getCanonicalName()));
+                        ElideResourceBuilder.class.getName() + ":"
+                                + JsonApiEndpoint.class.getCanonicalName() + ","
+                                + GraphQLEndpoint.class.getCanonicalName() + ","
+                                + DocEndpoint.class.getCanonicalName()
+                ));
 
         deploymentCustomizerProducer.produce(new ResteasyDeploymentCustomizerBuildItem(new Consumer<ResteasyDeployment>() {
             @Override
             public void accept(ResteasyDeployment resteasyDeployment) {
                 resteasyDeployment.getScannedResourceClassesWithBuilder().put(
                         ElideResourceBuilder.class.getCanonicalName(),
-                        Arrays.asList(JsonApiEndpoint.class.getCanonicalName()
-                                , GraphQLEndpoint.class.getCanonicalName()));
+                        Arrays.asList(
+                                JsonApiEndpoint.class.getCanonicalName(),
+                                GraphQLEndpoint.class.getCanonicalName(),
+                                DocEndpoint.class.getCanonicalName()));
             }
         }));
 
@@ -79,16 +97,16 @@ class ElideExtensionProcessor {
 
     @Record(STATIC_INIT)
     @BuildStep
-    void build(ElideConfig elideConfig,
+    void configureElideConfig(ElideConfig elideConfig,
                ElideRecorder recorder,
                BuildProducer<BeanContainerListenerBuildItem> containerListenerProducer) {
 
         containerListenerProducer.produce(
-                new BeanContainerListenerBuildItem(recorder.setLiquibaseConfig(elideConfig)));
+                new BeanContainerListenerBuildItem(recorder.setElideConfig(elideConfig)));
     }
 
     @BuildStep
-    List<BeanDefiningAnnotationBuildItem> additionalBeanDefiningAnnotation() {
+    List<BeanDefiningAnnotationBuildItem> configureBeanAnnotations() {
         List<BeanDefiningAnnotationBuildItem> additionalBeanAnnotations = new ArrayList<>();
         additionalBeanAnnotations.add(
                 new BeanDefiningAnnotationBuildItem(DotName.createSimple(Include.class.getCanonicalName())));
@@ -104,7 +122,7 @@ class ElideExtensionProcessor {
 
     @BuildStep
     @Record(STATIC_INIT)
-    public List<ReflectiveHierarchyIgnoreWarningBuildItem> elideModels(
+    public List<ReflectiveHierarchyIgnoreWarningBuildItem> configureElideModels(
             JpaModelIndexBuildItem index,
             ElideRecorder elideRecorder,
             BuildProducer<SyntheticBeanBuildItem> synthenticBean

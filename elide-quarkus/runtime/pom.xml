@@ -20,6 +20,10 @@
     </dependency>
     <dependency>
       <groupId>com.yahoo.elide</groupId>
+      <artifactId>elide-swagger</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.yahoo.elide</groupId>
       <artifactId>elide-datastore-aggregation</artifactId>
     </dependency>
     <dependency>
@@ -37,6 +41,11 @@
     <dependency>
       <groupId>org.jboss.resteasy</groupId>
       <artifactId>resteasy-core-spi</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.yahoo.elide</groupId>
+      <artifactId>elide-swagger</artifactId>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
   <build>
