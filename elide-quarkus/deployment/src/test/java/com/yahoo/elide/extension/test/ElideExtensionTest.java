@@ -23,7 +23,6 @@ public class ElideExtensionTest {
     static final QuarkusUnitTest unitTest = new QuarkusUnitTest()
         .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                 .addAsResource("application.properties")
-                .addClass(JsonApiEndpoint.class)
                 .addClass(Book.class));
 
     @Inject
@@ -37,7 +36,7 @@ public class ElideExtensionTest {
 
     @Test
     public void testBookEndpoint() {
-        RestAssured.when().get("/book").then().log().all().statusCode(200);
+        RestAssured.when().get("/foo/book").then().log().all().statusCode(200);
     }
 
     @Test

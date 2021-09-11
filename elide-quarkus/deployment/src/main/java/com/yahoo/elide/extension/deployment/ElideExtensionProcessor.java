@@ -8,9 +8,13 @@ import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.extension.runtime.ElideConfig;
 import com.yahoo.elide.extension.runtime.ElideRecorder;
+import com.yahoo.elide.extension.runtime.ElideResourceBuilder;
+import com.yahoo.elide.graphql.GraphQLEndpoint;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.DotName;
+import org.jboss.resteasy.plugins.server.servlet.ResteasyContextParameters;
+import org.jboss.resteasy.spi.ResteasyDeployment;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.BeanContainerListenerBuildItem;
 import io.quarkus.arc.deployment.BeanDefiningAnnotationBuildItem;
@@ -19,11 +23,16 @@ import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveHierarchyIgnoreWarningBuildItem;
 import io.quarkus.hibernate.orm.deployment.JpaModelIndexBuildItem;
+import io.quarkus.resteasy.server.common.deployment.ResteasyDeploymentCustomizerBuildItem;
+import io.quarkus.undertow.deployment.ServletInitParamBuildItem;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import javax.enterprise.inject.Default;
 import javax.inject.Singleton;
 
@@ -38,7 +47,34 @@ class ElideExtensionProcessor {
 
     @BuildStep
     public AdditionalBeanBuildItem elideEndpoints( ) {
-        return AdditionalBeanBuildItem.builder().addBeanClass(JsonApiEndpoint.class).build();
+        return AdditionalBeanBuildItem.builder()
+                .addBeanClass(JsonApiEndpoint.class)
+                .addBeanClass(GraphQLEndpoint.class)
+                .build();
+    }
+
+    @BuildStep
+    public void processResources(
+            BuildProducer<ResteasyDeploymentCustomizerBuildItem> deploymentCustomizerProducer,
+            BuildProducer<ReflectiveClassBuildItem> reflectiveClass,
+            BuildProducer<ServletInitParamBuildItem> initParamProducer
+    ) {
+        initParamProducer.produce(
+                new ServletInitParamBuildItem(
+                        ResteasyContextParameters.RESTEASY_SCANNED_RESOURCE_CLASSES_WITH_BUILDER,
+                        ElideResourceBuilder.class.getName() + ":" + JsonApiEndpoint.class.getCanonicalName()));
+
+        deploymentCustomizerProducer.produce(new ResteasyDeploymentCustomizerBuildItem(new Consumer<ResteasyDeployment>() {
+            @Override
+            public void accept(ResteasyDeployment resteasyDeployment) {
+                resteasyDeployment.getScannedResourceClassesWithBuilder().put(
+                        ElideResourceBuilder.class.getCanonicalName(),
+                        Arrays.asList(JsonApiEndpoint.class.getCanonicalName()
+                                , GraphQLEndpoint.class.getCanonicalName()));
+            }
+        }));
+
+        reflectiveClass.produce(new ReflectiveClassBuildItem(true, false, false, ElideResourceBuilder.class.getName()));
     }
 
     @Record(STATIC_INIT)

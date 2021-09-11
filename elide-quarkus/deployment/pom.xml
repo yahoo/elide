@@ -15,6 +15,10 @@
       <artifactId>quarkus-arc-deployment</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-resteasy-common-spi</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.yahoo.elide</groupId>
       <artifactId>elide-core</artifactId>
     </dependency>
@@ -47,6 +51,10 @@
           <artifactId>rest-assured</artifactId>
           <scope>test</scope>
       </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-resteasy-server-common-deployment</artifactId>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
