@@ -686,6 +686,31 @@ public class PersistentResource<T> implements com.yahoo.elide.core.security.Pers
         return copy;
     }
 
+    private void updateComplexAttribute(EntityDictionary dictionary,
+                                        Map<String, Object> updateValue,
+                                        Object currentValue,
+                                        RequestScope scope) {
+        for (String field : updateValue.keySet()) {
+            final Object newValue = updateValue.get(field);
+            final Object coercedNewValue =
+                    dictionary.coerce(currentValue, newValue, field, dictionary.getType(currentValue, field));
+            final Object newOriginal = dictionary.getValue(currentValue, field, scope);
+            if (!Objects.equals(newOriginal, coercedNewValue)) {
+                if (newOriginal == null
+                        || coercedNewValue == null
+                        || !dictionary.isComplexAttribute(ClassType.of(currentValue.getClass()), field)) {
+                    dictionary.setValue(currentValue, field, coercedNewValue);
+                } else {
+                    if (newValue instanceof Map) {
+                        this.updateComplexAttribute(dictionary, (Map<String, Object>) newValue, newOriginal, scope);
+                    } else {
+                        dictionary.setValue(currentValue, field, coercedNewValue);
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * Perform a full replacement on relationships.
      * Here is an example:
