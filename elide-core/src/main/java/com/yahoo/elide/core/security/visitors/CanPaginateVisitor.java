@@ -9,7 +9,6 @@ package com.yahoo.elide.core.security.visitors;
 import com.yahoo.elide.annotation.ReadPermission;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.security.CheckInstantiator;
 import com.yahoo.elide.core.security.checks.Check;
 import com.yahoo.elide.core.security.checks.FilterExpressionCheck;
 import com.yahoo.elide.core.security.checks.UserCheck;
@@ -128,8 +127,7 @@ import java.util.Set;
  *
  */
 public class CanPaginateVisitor
-        extends ExpressionBaseVisitor<CanPaginateVisitor.PaginationStatus>
-        implements CheckInstantiator {
+        extends ExpressionBaseVisitor<CanPaginateVisitor.PaginationStatus> {
 
     /**
      *  All states except for CANNOT_PAGINATE allow for pagination.
@@ -209,7 +207,7 @@ public class CanPaginateVisitor
 
     @Override
     public PaginationStatus visitPermissionClass(ExpressionParser.PermissionClassContext ctx) {
-        Check check = getCheck(dictionary, ctx.getText());
+        Check check = dictionary.getCheckInstance(ctx.getText());
 
         //Filter expression checks can always be pushed to the DataStore so pagination is possible
         if (check instanceof FilterExpressionCheck) {

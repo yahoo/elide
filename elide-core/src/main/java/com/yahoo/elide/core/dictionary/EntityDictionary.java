@@ -123,6 +123,7 @@ public class EntityDictionary {
     protected final CopyOnWriteArrayList<Type<?>> bindEntityRoots = new CopyOnWriteArrayList<>();
     protected final ConcurrentHashMap<Type<?>, List<Type<?>>> subclassingEntities = new ConcurrentHashMap<>();
     protected final BiMap<String, Class<? extends Check>> checkNames;
+    protected final Map<Class<? extends Check>, Check> checkInstances;
     protected final Map<String, UserCheck> roleChecks;
 
     @Getter
@@ -311,11 +312,17 @@ public class EntityDictionary {
         this.scanner = scanner;
         this.serdeLookup = serdeLookup;
         this.checkNames = Maps.synchronizedBiMap(HashBiMap.create(checks));
+        this.checkInstances = new ConcurrentHashMap<>();
         this.roleChecks = roleChecks == null ? new HashMap<>() : new HashMap<>(roleChecks);
         this.apiVersions = new HashSet<>();
         initializeChecks();
         this.injector = injector;
         this.entitiesToExclude = new HashSet<>(entitiesToExclude);
+
+        //Hydrate check instances at boot.
+        checkNames.keySet().forEach(checkName -> {
+            getCheckInstance(checkName);
+        });
     }
 
     private void initializeChecks() {
@@ -520,10 +527,10 @@ public class EntityDictionary {
     }
 
     /**
-     * Returns the check mapped to a particular identifier.
+     * Returns the check class mapped to a particular identifier.
      *
      * @param checkIdentifier the name from the expression string
-     * @return the {@link Check} mapped to the identifier or {@code null} if the given identifer is unmapped
+     * @return the {@link Check} class mapped to the identifier.
      */
     public Class<? extends Check> getCheck(String checkIdentifier) {
         return checkNames.computeIfAbsent(checkIdentifier, cls -> {
@@ -534,6 +541,32 @@ public class EntityDictionary {
                         "Could not instantiate specified check '" + checkIdentifier + "'.", e);
             }
         });
+    }
+
+    /**
+     * Returns the check mapped to a particular identifier.
+     *
+     * @param checkIdentifier the name from the expression string
+     * @return the {@link Check} mapped to the identifier.
+     */
+    public Check getCheckInstance(String checkIdentifier) {
+        //Role checks may contain the same class for different checks.
+        if (roleChecks.containsKey(checkIdentifier)) {
+            return roleChecks.get(checkIdentifier);
+        }
+
+        Class<? extends Check> checkClass = getCheck(checkIdentifier);
+
+        Check check;
+        if (checkInstances.containsKey(checkClass)) {
+            check = checkInstances.get(checkClass);
+        } else {
+            check = injector.instantiate(checkClass);
+            injector.inject(check);
+            checkInstances.put(checkClass, check);
+        }
+
+        return check;
     }
 
     /**
@@ -1644,6 +1677,9 @@ public class EntityDictionary {
             log.debug("Register Elide Check [{}] with expression [{}]",
                     cls.getCanonicalName(), securityCheckMeta.value());
             checkNames.put(securityCheckMeta.value(), cls.asSubclass(Check.class));
+
+            //Populate check instance.
+            getCheckInstance(securityCheckMeta.value());
         } else {
             throw new IllegalStateException("Class annotated with SecurityCheck is not a Check");
         }

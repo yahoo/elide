@@ -140,8 +140,8 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
     }
 
     @Override
-    public <T> T createNewObject(Type<T> entityClass) {
-        return tx.createNewObject(entityClass);
+    public <T> T createNewObject(Type<T> entityClass, RequestScope scope) {
+        return tx.createNewObject(entityClass, scope);
     }
 
     @Override
