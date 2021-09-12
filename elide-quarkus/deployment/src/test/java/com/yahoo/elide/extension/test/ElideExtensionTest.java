@@ -36,7 +36,17 @@ public class ElideExtensionTest {
 
     @Test
     public void testBookEndpoint() {
-        RestAssured.when().get("/api/book").then().log().all().statusCode(200);
+        RestAssured.when().get("/jsonapi/book").then().log().all().statusCode(200);
+    }
+
+    @Test
+    public void testSwaggerEndpoint() {
+        RestAssured.when().get("/doc").then().log().all().statusCode(200);
+    }
+
+    @Test
+    public void testSwaggerApiEndpoint() {
+        RestAssured.when().get("/doc/api").then().log().all().statusCode(200);
     }
 
     @Test

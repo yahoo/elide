@@ -11,10 +11,17 @@ import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.datastores.jpa.JpaDataStore;
 import com.yahoo.elide.datastores.jpa.transaction.NonJtaTransaction;
+import com.yahoo.elide.swagger.SwaggerBuilder;
+import com.yahoo.elide.swagger.resources.DocEndpoint;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.hibernate.Session;
 
+import io.swagger.models.Info;
+import io.swagger.models.Swagger;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 import javax.enterprise.context.ApplicationScoped;
@@ -98,5 +105,22 @@ public class ElideBeans {
 
         store.populateEntityDictionary(dictionary);
         return store;
+    }
+
+    @Produces
+    @Named("swagger")
+    public List<DocEndpoint.SwaggerRegistration> buildSwagger(EntityDictionary dictionary) {
+        List<DocEndpoint.SwaggerRegistration> registrations = new ArrayList<>();
+
+        Info info = new Info()
+                .title("Elide Service");
+
+        //TODO - configuration for title and version.
+
+        SwaggerBuilder builder = new SwaggerBuilder(dictionary, info).withLegacyFilterDialect(false);
+
+        registrations.add(new DocEndpoint.SwaggerRegistration("api", builder.build()));
+
+        return registrations;
     }
 }

@@ -29,12 +29,6 @@ public class ElideConfig {
     public boolean verboseErrors;
 
     /**
-     * The base URL path prefix for Elide service endpoints.
-     */
-    @ConfigItem(defaultValue = "/")
-    public String basePath;
-
-    /**
      * The base URL path prefix for Elide JSON-API service endpoints.
      * This is appended to the basePath.
      */
