@@ -1,20 +1,36 @@
 package com.yahoo.elide.extension.test;
 
+import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.document;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.field;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.selection;
+import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attr;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.data;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.id;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.resource;
+import static com.yahoo.elide.test.jsonapi.JsonApiDSL.type;
+import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.extension.test.models.Book;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
+import org.apache.http.HttpStatus;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkus.test.QuarkusUnitTest;
 import io.restassured.RestAssured;
 
 import javax.inject.Inject;
+import javax.ws.rs.core.MediaType;
 
 public class ElideExtensionTest {
 
@@ -35,12 +51,56 @@ public class ElideExtensionTest {
     Injector injector;
 
     @Test
-    public void testBookEndpoint() {
+    public void testBookJsonApiEndpoint() {
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        data(
+                                resource(
+                                        type("book"),
+                                        id(1),
+                                        attributes(
+                                                attr("title", "foo")
+                                        )
+                                )
+                        )
+                )
+                .post("/book")
+                .then()
+                .log().all()
+                .statusCode(HttpStatus.SC_CREATED);
         RestAssured.when().get("/jsonapi/book").then().log().all().statusCode(200);
     }
 
     @Test
-    public void testSwaggerEndpoint() {
+    public void testBookGraphqlEndpoint() {
+        String query = document(
+                selection(
+                        field(
+                                "book",
+                                selections(
+                                        field("id"),
+                                        field("title")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String wrapped = String.format("{ \"query\" : \"%s\" }", query);
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(wrapped)
+                .post("/graphql")
+                .then()
+                .log().all()
+                .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void testSwaggerCollectionEndpoint() {
         RestAssured.when().get("/doc").then().log().all().statusCode(200);
     }
 
@@ -51,7 +111,6 @@ public class ElideExtensionTest {
 
     @Test
     public void testInjection() {
-
         EntityDictionary dictionary = injector.instantiate(EntityDictionary.class);
         assertNotNull(dictionary);
 

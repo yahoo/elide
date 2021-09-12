@@ -31,6 +31,11 @@
       <artifactId>elide-datastore-jpa</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.yahoo.elide</groupId>
+      <artifactId>elide-test-helpers</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-hibernate-orm</artifactId>
     </dependency>
