@@ -15,6 +15,10 @@ public class ElideResourceBuilder extends ResourceBuilder {
 
     private static final String BASE_PATH = "/";
 
+    public static final String JSONAPI_BASE = "/jsonapi";
+    public static final String GRAPHQL_BASE = "/graphql";
+    public static final String SWAGGER_BASE = "/doc";
+
     @Override
     protected ResourceClassBuilder createResourceClassBuilder(Class<?> clazz) {
         Config config = ConfigProvider.getConfig();
@@ -24,17 +28,17 @@ public class ElideResourceBuilder extends ResourceBuilder {
         if (clazz.equals(JsonApiEndpoint.class)) {
             basePath = config.getConfigValue("elide.base-jsonapi").getValue();
             if (basePath == null) {
-                basePath = "/jsonapi";
+                basePath = JSONAPI_BASE;
             }
         } else if (clazz.equals(GraphQLEndpoint.class)) {
             basePath = config.getConfigValue("elide.base-graphql").getValue();
             if (basePath == null) {
-                basePath = "/graphql";
+                basePath = GRAPHQL_BASE;
             }
         } else if (clazz.equals(DocEndpoint.class)) {
             basePath = config.getConfigValue("elide.base-swagger").getValue();
             if (basePath == null) {
-                basePath = "/doc";
+                basePath = SWAGGER_BASE;
             }
         } else {
             super.createResourceClassBuilder(clazz);

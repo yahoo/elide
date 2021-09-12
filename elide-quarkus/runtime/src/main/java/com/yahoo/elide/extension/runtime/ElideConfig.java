@@ -1,5 +1,8 @@
 package com.yahoo.elide.extension.runtime;
 
+import static com.yahoo.elide.extension.runtime.ElideResourceBuilder.GRAPHQL_BASE;
+import static com.yahoo.elide.extension.runtime.ElideResourceBuilder.JSONAPI_BASE;
+import static com.yahoo.elide.extension.runtime.ElideResourceBuilder.SWAGGER_BASE;
 import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
@@ -35,20 +38,20 @@ public class ElideConfig {
      * The base URL path prefix for Elide JSON-API service endpoints.
      * This is appended to the basePath.
      */
-    @ConfigItem
+    @ConfigItem(defaultValue = JSONAPI_BASE)
     public String baseJsonapi;
 
     /**
      * The base URL path prefix for Elide GraphQL service endpoints.
      * This is appended to the basePath.
      */
-    @ConfigItem
+    @ConfigItem(defaultValue = GRAPHQL_BASE)
     public String baseGraphql;
 
     /**
      * The base URL path prefix for the Elide Swagger document.
      * This is appended to the basePath.
      */
-    @ConfigItem
+    @ConfigItem(defaultValue = SWAGGER_BASE)
     public String baseSwagger;
 }
