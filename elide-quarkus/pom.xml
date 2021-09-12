@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.yahoo.elide</groupId>
   <artifactId>elide-extension-parent</artifactId>
-  <version>5.0.12-SNAPSHOT</version>
+  <version>6.0.0-pr1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Elide Extension - Parent</name>
   <modules>
@@ -20,7 +20,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <quarkus.version>2.2.1.Final</quarkus.version>
-    <elide.version>5.0.12-SNAPSHOT</elide.version>
+    <elide.version>6.0.0-pr1-SNAPSHOT</elide.version>
     <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
   </properties>
   <dependencyManagement>

@@ -6,6 +6,7 @@
 package com.yahoo.elide.swagger.resources;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import com.yahoo.elide.Elide;
 import com.yahoo.elide.swagger.SwaggerBuilder;
 import org.apache.commons.lang3.tuple.Pair;
 import io.swagger.models.Swagger;
@@ -18,6 +19,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
@@ -31,6 +33,7 @@ import javax.ws.rs.core.Response;
 
 @Path("/doc")
 @Produces("application/json")
+@Singleton
 public class DocEndpoint {
     //Maps api version & path to a swagger document.
     protected Map<Pair<String, String>, String> documents;
@@ -48,7 +51,7 @@ public class DocEndpoint {
      * @param docs Map of path parameter name to swagger document.
      */
     @Inject
-    public DocEndpoint(@Named("swagger") List<SwaggerRegistration> docs) {
+    public DocEndpoint(@Named("swagger") List<SwaggerRegistration> docs, @Named("elide") Elide elide) {
         documents = new HashMap<>();
 
         docs.forEach((doc) -> {

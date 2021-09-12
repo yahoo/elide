@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.yahoo.elide</groupId>
     <artifactId>elide-extension-parent</artifactId>
-    <version>5.0.12-SNAPSHOT</version>
+    <version>6.0.0-pr1-SNAPSHOT</version>
   </parent>
   <artifactId>elide-extension-deployment</artifactId>
   <name>Elide Extension - Deployment</name>

@@ -57,14 +57,17 @@ class ElideExtensionProcessor {
         AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder();
 
         if (config.baseJsonapi != null) {
+            System.out.println("Adding JSON-API");
             builder = builder.addBeanClass(JsonApiEndpoint.class);
         }
 
         if (config.baseGraphql != null) {
+            System.out.println("Adding GraphQL API");
             builder = builder.addBeanClass(GraphQLEndpoint.class);
         }
 
         if (config.baseSwagger != null && config.baseJsonapi != null) {
+            System.out.println("Adding Swagger API");
             builder = builder.addBeanClass(DocEndpoint.class);
         }
 
