@@ -15,6 +15,7 @@ shared:
 
 jobs:
   master-commit:
+    image: maven:3.8.2-openjdk-11
     requires: [~pr, ~commit]
     secrets:
         - COVERALLS_REPO_TOKEN
