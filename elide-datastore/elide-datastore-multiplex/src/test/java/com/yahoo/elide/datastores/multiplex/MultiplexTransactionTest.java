@@ -14,8 +14,8 @@ import static org.mockito.Mockito.when;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
-import com.yahoo.elide.datastores.hibernate5.HibernateEntityManagerStore;
-import com.yahoo.elide.datastores.hibernate5.HibernateTransaction;
+import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
+import com.yahoo.elide.core.datastore.inmemory.HashMapStoreTransaction;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -57,9 +57,9 @@ public class MultiplexTransactionTest {
 
     @Test
     public void testGetProperty() throws Exception {
-        DataStore store1 =  mock(HibernateEntityManagerStore.class);
+        DataStore store1 =  mock(HashMapDataStore.class);
         DataStore store2 =  mock(DataStore.class);
-        DataStoreTransaction tx1 = mock(HibernateTransaction.class);
+        DataStoreTransaction tx1 = mock(HashMapStoreTransaction.class);
         DataStoreTransaction tx2 = mock(DataStoreTransaction.class);
 
         when(store1.beginReadTransaction()).thenReturn(tx1);

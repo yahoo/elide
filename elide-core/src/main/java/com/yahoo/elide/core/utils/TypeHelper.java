@@ -143,17 +143,10 @@ public class TypeHelper {
     }
 
     /**
-     * Construction helper.
-     *
-     * @param cls
-     * @return wrapped Type
-     * @deprecated Use {@link ClassType#of(Class)}
+     * Converts a Set of classes to a set of types.
+     * @param cls The set of classes.
+     * @return A new set of types.
      */
-    @Deprecated
-    public static Type<?> getClassType(Class<?> cls) {
-        return ClassType.of(cls);
-    }
-
     public static Set<Type<?>> getClassType(Set<Class<?>> cls) {
         return cls.stream()
                 .map(ClassType::of)

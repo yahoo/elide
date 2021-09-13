@@ -5,12 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects;
 
-import com.yahoo.elide.core.filter.JPQLPredicateGenerator;
 import com.yahoo.elide.core.filter.Operator;
 import com.yahoo.elide.datastores.aggregation.annotation.JoinType;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SupportedAggregation;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.calcite.SupportedOperation;
 import com.yahoo.elide.datastores.aggregation.timegrains.Time;
+import com.yahoo.elide.datastores.jpql.filter.JPQLPredicateGenerator;
 import org.apache.calcite.avatica.util.Casing;
 import org.apache.calcite.sql.SqlDialect;
 
