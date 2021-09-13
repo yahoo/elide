@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>5.0.13-SNAPSHOT</version>
+        <version>6.0.0-pr1-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -218,6 +218,25 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <doclint>all,-missing</doclint>
+                    <source>${source.jdk.version}</source>
+                    <sourcepath>${delombok.output}</sourcepath>
+                    <sourcepath>${project.basedir}/target/generated-sources/antlr4</sourcepath>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

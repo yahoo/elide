@@ -6,13 +6,13 @@
 package com.yahoo.elide.datastores.jpa;
 
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
-import com.yahoo.elide.core.datastore.JPQLDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
-import com.yahoo.elide.core.hibernate.QueryLogger;
-import com.yahoo.elide.core.hibernate.hql.DefaultQueryLogger;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.datastores.jpa.transaction.JpaTransaction;
+import com.yahoo.elide.datastores.jpql.JPQLDataStore;
+import com.yahoo.elide.datastores.jpql.porting.QueryLogger;
+import com.yahoo.elide.datastores.jpql.query.DefaultQueryLogger;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;

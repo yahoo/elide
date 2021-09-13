@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.datastore.inmemory.HashMapDataStore;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.dictionary.Injector;
 import com.yahoo.elide.core.exceptions.TransactionException;
@@ -19,7 +20,6 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
-import com.yahoo.elide.datastores.inmemory.InMemoryDataStore;
 import com.yahoo.elide.example.beans.ComplexAttribute;
 import com.yahoo.elide.example.beans.FirstBean;
 import com.yahoo.elide.example.other.OtherBean;
@@ -46,8 +46,8 @@ public class MultiplexManagerTest {
     public void setup() {
         ClassScanner scanner = DefaultClassScanner.getInstance();
         entityDictionary = EntityDictionary.builder().build();
-        final InMemoryDataStore inMemoryDataStore1 = new InMemoryDataStore(scanner, FirstBean.class.getPackage());
-        final InMemoryDataStore inMemoryDataStore2 = new InMemoryDataStore(scanner, OtherBean.class.getPackage());
+        final HashMapDataStore inMemoryDataStore1 = new HashMapDataStore(scanner, FirstBean.class.getPackage());
+        final HashMapDataStore inMemoryDataStore2 = new HashMapDataStore(scanner, OtherBean.class.getPackage());
         multiplexManager = new MultiplexManager(inMemoryDataStore1, inMemoryDataStore2);
         multiplexManager.populateEntityDictionary(entityDictionary);
     }
@@ -91,7 +91,7 @@ public class MultiplexManagerTest {
     @Test
     public void partialCommitFailure() throws IOException {
         final EntityDictionary entityDictionary = EntityDictionary.builder().build();
-        final InMemoryDataStore ds1 = new InMemoryDataStore(DefaultClassScanner.getInstance(),
+        final HashMapDataStore ds1 = new HashMapDataStore(DefaultClassScanner.getInstance(),
                 FirstBean.class.getPackage());
         final DataStore ds2 = new TestDataStore(OtherBean.class.getPackage());
         final MultiplexManager multiplexManager = new MultiplexManager(ds1, ds2);
@@ -145,7 +145,7 @@ public class MultiplexManagerTest {
     @Test
     public void subordinateEntityDictionaryInheritsInjector() {
         final Injector injector = entity -> {
-                    throw new UnsupportedOperationException();
+                    //NOOP
             };
         final QueryDictionaryDataStore ds1 = new QueryDictionaryDataStore();
         final MultiplexManager multiplexManager = new MultiplexManager(ds1);

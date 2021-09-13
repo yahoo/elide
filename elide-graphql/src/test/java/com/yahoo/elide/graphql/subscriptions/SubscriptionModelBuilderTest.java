@@ -14,6 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
+import com.yahoo.elide.core.utils.DefaultClassScanner;
+import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.graphql.NonEntityDictionary;
 import example.Address;
 import example.Author;
@@ -67,7 +69,7 @@ public class SubscriptionModelBuilderTest {
     public void testRootType() {
         DataFetcher fetcher = mock(DataFetcher.class);
         SubscriptionModelBuilder builder = new SubscriptionModelBuilder(dictionary,
-                new NonEntityDictionary(), fetcher, NO_VERSION);
+                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup), fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
         GraphQLObjectType subscriptionType = (GraphQLObjectType) schema.getType("Subscription");
@@ -99,7 +101,7 @@ public class SubscriptionModelBuilderTest {
     public void testModelTypes() {
         DataFetcher fetcher = mock(DataFetcher.class);
         SubscriptionModelBuilder builder = new SubscriptionModelBuilder(dictionary,
-                new NonEntityDictionary(), fetcher, NO_VERSION);
+                new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup), fetcher, NO_VERSION);
 
         GraphQLSchema schema = builder.build();
 

@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.yahoo.elide</groupId>
         <artifactId>elide-parent-pom</artifactId>
-        <version>5.0.13-SNAPSHOT</version>
+        <version>6.0.0-pr1-SNAPSHOT</version>
     </parent>
 
     <licenses>
@@ -45,9 +45,7 @@
 
     <modules>
         <module>elide-datastore-aggregation</module>
-        <module>elide-datastore-hibernate</module>
-        <module>elide-datastore-hibernate5</module>
-        <module>elide-datastore-hibernate3</module>
+        <module>elide-datastore-jpql</module>
         <module>elide-datastore-jpa</module>
         <module>elide-datastore-inmemorydb</module>
         <module>elide-datastore-multiplex</module>
@@ -61,7 +59,7 @@
             <dependency>
                 <groupId>com.yahoo.elide</groupId>
                 <artifactId>elide-core</artifactId>
-                <version>5.0.13-SNAPSHOT</version>
+                <version>6.0.0-pr1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.hibernate</groupId>

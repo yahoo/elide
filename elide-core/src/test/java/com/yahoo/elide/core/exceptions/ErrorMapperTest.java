@@ -9,6 +9,7 @@ import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -77,7 +78,7 @@ public class ErrorMapperTest {
         String body = "{\"data\": {\"type\":\"testModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.createNewObject(ClassType.of(FieldTestModel.class))).thenReturn(mockModel);
+        when(tx.createNewObject(eq(ClassType.of(FieldTestModel.class)), any())).thenReturn(mockModel);
         doThrow(EXPECTED_EXCEPTION).when(tx).preCommit(any());
 
         RuntimeException result = assertThrows(RuntimeException.class, () -> elide.post(baseUrl, "/testModel", body, null, NO_VERSION));
@@ -97,7 +98,7 @@ public class ErrorMapperTest {
         String body = "{\"data\": {\"type\":\"testModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.createNewObject(ClassType.of(FieldTestModel.class))).thenReturn(mockModel);
+        when(tx.createNewObject(eq(ClassType.of(FieldTestModel.class)), any())).thenReturn(mockModel);
         doThrow(EXPECTED_EXCEPTION).when(tx).preCommit(any());
 
         RuntimeException result = assertThrows(RuntimeException.class, () -> elide.post(baseUrl, "/testModel", body, null, NO_VERSION));
@@ -117,7 +118,7 @@ public class ErrorMapperTest {
         String body = "{\"data\": {\"type\":\"testModel\",\"id\":\"1\",\"attributes\": {\"field\":\"Foo\"}}}";
 
         when(store.beginTransaction()).thenReturn(tx);
-        when(tx.createNewObject(ClassType.of(FieldTestModel.class))).thenReturn(mockModel);
+        when(tx.createNewObject(eq(ClassType.of(FieldTestModel.class)), any())).thenReturn(mockModel);
         doThrow(EXPECTED_EXCEPTION).when(tx).preCommit(any());
         when(MOCK_ERROR_MAPPER.map(EXPECTED_EXCEPTION)).thenReturn(MAPPED_EXCEPTION);
 

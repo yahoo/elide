@@ -8,7 +8,6 @@ package com.yahoo.elide.datastores.aggregation.queryengines.sql.query;
 import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
-import com.yahoo.elide.core.filter.FilterTranslator;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.filter.predicates.FilterPredicate;
@@ -30,6 +29,7 @@ import com.yahoo.elide.datastores.aggregation.queryengines.sql.dialects.SQLDiale
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.ExpressionParser;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.JoinExpressionExtractor;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.expression.Reference;
+import com.yahoo.elide.datastores.jpql.filter.FilterTranslator;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
