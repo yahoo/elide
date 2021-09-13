@@ -1,0 +1,27 @@
+{
+    tables: [{
+        name: Player
+        table: player
+        schema: playerdb
+        description:
+        '''
+        A long description
+        '''
+        cardinality : large
+        measures : [
+        {
+            name : highScore
+            type : "INTEGER"
+            definition: 'MAX({{score}})'
+            //'foo' here conflicts with the argument 'foo' below.
+            filterTemplate: highScore>{{foo}}
+            arguments: [
+                {
+                    name: foo
+                    type: TEXT
+                }
+            ]
+        }]
+        dimensions: []
+    }]
+}

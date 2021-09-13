@@ -423,7 +423,17 @@ public class DynamicConfigValidatorTest {
     }
 
     @Test
-    public void testDuplicateArgumentNameInFilter() throws Exception {
+    public void testDuplicateArgumentNameInColumnFilter() throws Exception {
+        DynamicConfigValidator testClass = new DynamicConfigValidator(DefaultClassScanner.getInstance(),
+                "src/test/resources/validator/duplicate_column_args");
+        testClass.readConfigs();
+
+        Exception e = assertThrows(IllegalStateException.class, () -> testClass.validateConfigs());
+        assertEquals("Multiple Arguments found with the same name: foo", e.getMessage());
+    }
+
+    @Test
+    public void testDuplicateArgumentNameInTableFilter() throws Exception {
         DynamicConfigValidator testClass = new DynamicConfigValidator(DefaultClassScanner.getInstance(),
                 "src/test/resources/validator/valid");
         testClass.readConfigs();
@@ -436,7 +446,7 @@ public class DynamicConfigValidatorTest {
     }
 
     @Test
-    public void testDuplicateArgumentNameInComplexFilter() throws Exception {
+    public void testDuplicateArgumentNameInComplexTableFilter() throws Exception {
         DynamicConfigValidator testClass = new DynamicConfigValidator(DefaultClassScanner.getInstance(),
                 "src/test/resources/validator/valid");
         testClass.readConfigs();

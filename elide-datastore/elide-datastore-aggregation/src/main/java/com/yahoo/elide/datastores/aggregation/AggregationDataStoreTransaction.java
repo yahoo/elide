@@ -22,6 +22,8 @@ import com.yahoo.elide.datastores.aggregation.core.QueryLogger;
 import com.yahoo.elide.datastores.aggregation.core.QueryResponse;
 import com.yahoo.elide.datastores.aggregation.filter.visitor.MatchesTemplateVisitor;
 import com.yahoo.elide.datastores.aggregation.metadata.MetaDataStore;
+import com.yahoo.elide.datastores.aggregation.metadata.models.Column;
+import com.yahoo.elide.datastores.aggregation.metadata.models.RequiresFilter;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.Query;
 import com.yahoo.elide.datastores.aggregation.query.QueryResult;
@@ -33,7 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Transaction handler for {@link AggregationDataStore}.
@@ -154,33 +155,84 @@ public class AggregationDataStoreTransaction implements DataStoreTransaction {
 
         Query query = translator.getQuery();
 
-        FilterExpression filterTemplate = table.getRequiredFilter(scope.getDictionary());
+        Query modifiedQuery = addTableFilterArguments(table, query, scope.getDictionary());
+        modifiedQuery = addColumnFilterArguments(table, modifiedQuery, scope.getDictionary());
+
+        return modifiedQuery;
+    }
+
+    @VisibleForTesting
+    Query addTableFilterArguments(Table table, Query query, EntityDictionary dictionary) {
+        FilterExpression filterTemplate = table.getRequiredFilter(dictionary);
+
+        Query modifiedQuery = query;
         if (filterTemplate != null) {
+            Map<String, Argument> allArguments = validateRequiredFilter(filterTemplate, query, table);
 
-            Map<String, Argument> templateFilterArguments = new HashMap<>();
-            if (!MatchesTemplateVisitor.isValid(filterTemplate, query.getWhereFilter(), templateFilterArguments)
-                    && (!MatchesTemplateVisitor.isValid(filterTemplate, query.getHavingFilter(),
-                            templateFilterArguments))) {
-                String message = String.format("Querying %s requires a mandatory filter: %s",
-                        table.getName(), table.getRequiredFilter());
+            if (!allArguments.isEmpty()) {
+                if (query.getArguments() != null) {
+                    allArguments.putAll(query.getArguments());
+                }
 
-                throw new BadRequestException(message);
-            }
-
-            if (! templateFilterArguments.isEmpty()) {
-                Map<String, Argument> tableArguments = Stream.concat(
-                        templateFilterArguments.entrySet().stream(),
-                                query.getArguments().entrySet().stream()
-                        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-                return Query.builder()
+                modifiedQuery = Query.builder()
                         .query(query)
-                        .arguments(tableArguments)
+                        .arguments(allArguments)
                         .build();
             }
         }
 
-        return query;
+        return modifiedQuery;
+    }
+
+    @VisibleForTesting
+    Query addColumnFilterArguments(Table table, Query query, EntityDictionary dictionary) {
+
+        Query.QueryBuilder queryBuilder = Query.builder();
+
+        query.getColumnProjections().stream().forEach(projection -> {
+            Column column = table.getColumn(Column.class, projection.getName());
+
+            FilterExpression requiredFilter = column.getRequiredFilter(dictionary);
+
+            if (requiredFilter != null) {
+                Map<String, Argument> allArguments = validateRequiredFilter(requiredFilter, query, column);
+                if (projection.getArguments() != null) {
+                    allArguments.putAll(projection.getArguments());
+                }
+                queryBuilder.column(projection.withArguments(allArguments));
+            } else {
+                queryBuilder.column(projection);
+            }
+        });
+
+        return queryBuilder
+                .arguments(query.getArguments())
+                .havingFilter(query.getHavingFilter())
+                .whereFilter(query.getWhereFilter())
+                .sorting(query.getSorting())
+                .pagination(query.getPagination())
+                .bypassingCache(query.isBypassingCache())
+                .source(query.getSource())
+                .scope(query.getScope())
+                .build();
+    }
+
+    private Map<String, Argument> validateRequiredFilter(
+            FilterExpression filterTemplate,
+            Query query,
+            RequiresFilter requiresFilter
+    ) {
+        Map<String, Argument> templateFilterArguments = new HashMap<>();
+        if (!MatchesTemplateVisitor.isValid(filterTemplate, query.getWhereFilter(), templateFilterArguments)
+                && (!MatchesTemplateVisitor.isValid(filterTemplate, query.getHavingFilter(),
+                templateFilterArguments))) {
+            String message = String.format("Querying %s requires a mandatory filter: %s",
+                    requiresFilter.getName(), requiresFilter.getRequiredFilter());
+
+            throw new BadRequestException(message);
+        }
+
+        return templateFilterArguments;
     }
 
     @Override

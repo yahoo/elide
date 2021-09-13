@@ -120,6 +120,7 @@ public class HandlebarsHydratorTest {
             + "           friendlyName : Created On\n"
             + "           type : TIME\n"
             + "           definition : '{{create_on}}'\n"
+            + "           filterTemplate : 'createdOn=={{createdOn}}'\n"
             + "           grains:\n"
             + "            [{\n"
             + "             type : DaY\n"

@@ -127,7 +127,7 @@ public class PlayerStatsWithRequiredFilter {
     }
 
     @MetricFormula("MAX(highScore)")
-    @ColumnMeta(description = "very awesome score", category = "Score Category")
+    @ColumnMeta(description = "very awesome score", category = "Score Category", filterTemplate = "recordedDate>{{recordedDate}}")
     public long getHighScore() {
         return highScore;
     }

@@ -43,7 +43,7 @@ import javax.persistence.OneToOne;
 @Getter
 @EqualsAndHashCode
 @ToString
-public abstract class Column implements Versioned, Named {
+public abstract class Column implements Versioned, Named, RequiresFilter {
 
     @Id
     private final String id;
@@ -72,6 +72,8 @@ public abstract class Column implements Versioned, Named {
     private final ValueSourceType valueSourceType;
 
     private final Set<String> values;
+
+    private String requiredFilter;
 
     @OneToOne
     @Setter
@@ -111,6 +113,7 @@ public abstract class Column implements Versioned, Named {
             this.tableSourceDefinition = meta.tableSource();
             this.valueSourceType = ValueSourceType.getValueSourceType(this.values, this.tableSourceDefinition);
             this.cardinality = meta.size();
+            this.requiredFilter = meta.filterTemplate();
         } else {
             this.friendlyName = name;
             this.description = null;
@@ -120,6 +123,7 @@ public abstract class Column implements Versioned, Named {
             this.tableSourceDefinition = null;
             this.valueSourceType = ValueSourceType.NONE;
             this.cardinality = CardinalitySize.UNKNOWN;
+            this.requiredFilter = null;
         }
 
         if (dictionary.attributeOrRelationAnnotationExists(tableClass, fieldName, MetricFormula.class)) {

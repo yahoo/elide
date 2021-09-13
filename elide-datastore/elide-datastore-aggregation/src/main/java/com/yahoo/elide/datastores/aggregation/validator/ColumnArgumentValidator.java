@@ -76,7 +76,7 @@ public class ColumnArgumentValidator {
                         .flatMap(Set::stream)
                         .map(ColumnArgReference::getArgName)
                         .forEach(argName -> {
-                            if (!column.hasArgumentDefinition(argName)) {
+                            if (!column.hasArgumentDefinition(argName) && !hasTemplateFilterArgument(argName)) {
                                 throw new IllegalStateException(String.format(errorMsgPrefix
                                                 + "Argument '%s' is not defined but found '{{$$column.args.%s}}'.",
                                                 argName, argName));
@@ -140,5 +140,9 @@ public class ColumnArgumentValidator {
                             errorMsgPrefix + "Pinned ");
             }
         });
+    }
+
+    private boolean hasTemplateFilterArgument(String argName) {
+        return column.getRequiredFilter() != null && column.getRequiredFilter().contains("{{" + argName + "}}");
     }
 }
