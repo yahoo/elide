@@ -19,6 +19,10 @@ import static com.yahoo.elide.test.graphql.GraphQLDSL.variableDefinition;
 import static com.yahoo.elide.test.graphql.GraphQLDSL.variableDefinitions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.audit.AuditLogger;
@@ -76,6 +80,8 @@ public class GraphQLEndpointTest {
     private final UriInfo uriInfo = Mockito.mock(UriInfo.class);
     private final HttpHeaders requestHeaders = Mockito.mock(HttpHeaders.class);
 
+    private Elide elide;
+
     public static class User implements Principal {
         String log = "";
         String name;
@@ -123,11 +129,13 @@ public class GraphQLEndpointTest {
         checkMappings.put(UserChecks.IS_USER_2, UserChecks.IsUserId.Two.class);
         checkMappings.put(CommitChecks.IS_NOT_USER_3, CommitChecks.IsNotUser3.class);
 
-        Elide elide = new Elide(
-                new ElideSettingsBuilder(inMemoryStore)
-                        .withEntityDictionary(EntityDictionary.builder().checks(checkMappings).build())
-                        .withAuditLogger(audit)
-                        .build());
+        elide = spy(
+                new Elide(
+                    new ElideSettingsBuilder(inMemoryStore)
+                            .withEntityDictionary(EntityDictionary.builder().checks(checkMappings).build())
+                            .withAuditLogger(audit)
+                            .build())
+                );
         endpoint = new GraphQLEndpoint(elide);
 
         DataStoreTransaction tx = inMemoryStore.beginTransaction();
@@ -341,6 +349,7 @@ public class GraphQLEndpointTest {
 
         Response response = endpoint.post(uriInfo, requestHeaders, user2, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
+        verify(elide).mapError(any());
     }
 
     @Test
@@ -370,6 +379,7 @@ public class GraphQLEndpointTest {
         Iterator<JsonNode> errors = node.get("errors").elements();
         assertTrue(errors.hasNext());
         assertTrue(errors.next().get("message").asText().contains("No id provided, cannot persist incidents"));
+        verify(elide).mapError(any());
     }
 
     @Test
@@ -596,9 +606,9 @@ public class GraphQLEndpointTest {
 
         endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
 
-        Mockito.verify(audit, Mockito.times(1)).log(Mockito.any());
-        Mockito.verify(audit, Mockito.times(1)).commit();
-        Mockito.verify(audit, Mockito.times(1)).clear();
+        verify(audit, Mockito.times(1)).log(Mockito.any());
+        verify(audit, Mockito.times(1)).commit();
+        verify(audit, Mockito.times(1)).clear();
     }
 
     @Test
@@ -727,6 +737,7 @@ public class GraphQLEndpointTest {
 
         Response response = endpoint.post(uriInfo, requestHeaders, user3, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
+        verify(elide).mapError(any());
     }
 
     @Test
@@ -806,6 +817,7 @@ public class GraphQLEndpointTest {
 
         Response response = endpoint.post(uriInfo, requestHeaders, user1, graphQLRequestToJSON(graphQLRequest));
         assertHasErrors(response);
+        verify(elide).mapError(any());
     }
 
 
