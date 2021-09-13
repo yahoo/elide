@@ -15,7 +15,6 @@ import com.yahoo.elide.core.exceptions.ForbiddenAccessException;
 import com.yahoo.elide.core.exceptions.HttpStatus;
 import com.yahoo.elide.core.exceptions.HttpStatusException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
-import com.yahoo.elide.core.exceptions.TimeoutException;
 import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
@@ -308,11 +307,31 @@ public class QueryRunner {
         } catch (IOException e) {
             log.error("Uncaught IO Exception by Elide in GraphQL", e);
             return buildErrorResponse(elide, new TransactionException(e), isVerbose);
-        } catch (WebApplicationException e) {
+        } catch (RuntimeException e) {
+            return handleRuntimeException(e, isVerbose);
+        } finally {
+            elide.getTransactionRegistry().removeRunningTransaction(requestId);
+            elide.getAuditLogger().clear();
+        }
+    }
+
+    private ElideResponse handleRuntimeException(RuntimeException error, boolean isVerbose) {
+        CustomErrorException mappedException = elide.mapError(error);
+
+        if (mappedException != null) {
+            return buildErrorResponse(elide, mappedException, isVerbose);
+        }
+
+        if (error instanceof WebApplicationException) {
+            WebApplicationException e = (WebApplicationException) error;
             log.debug("WebApplicationException", e);
             String body = e.getResponse().getEntity() != null ? e.getResponse().getEntity().toString() : e.getMessage();
             return ElideResponse.builder().responseCode(e.getResponse().getStatus()).body(body).build();
-        } catch (HttpStatusException e) {
+        }
+
+        if (error instanceof HttpStatusException) {
+            HttpStatusException e = (HttpStatusException) error;
+
             if (e instanceof ForbiddenAccessException) {
                 if (log.isDebugEnabled()) {
                     log.debug("{}", ((ForbiddenAccessException) e).getLoggedMessage());
@@ -320,6 +339,7 @@ public class QueryRunner {
             } else {
                 log.debug("Caught HTTP status exception {}", e.getStatus(), e);
             }
+
             return buildErrorResponse(elide, new HttpStatusException(200, e.getMessage()) {
                 @Override
                 public int getStatus() {
@@ -346,7 +366,10 @@ public class QueryRunner {
                     return e.toString();
                 }
             }, isVerbose);
-        } catch (ConstraintViolationException e) {
+        }
+
+        if (error instanceof ConstraintViolationException) {
+            ConstraintViolationException e = (ConstraintViolationException) error;
             log.debug("Constraint violation exception caught", e);
             String message = "Constraint violation";
             final ErrorObjects.ErrorObjectsBuilder errorObjectsBuilder = ErrorObjects.builder();
@@ -360,22 +383,17 @@ public class QueryRunner {
                     errorObjectsBuilder.with("source", source);
                 }
             }
-            return buildErrorResponse(elide,
-                    new CustomErrorException(HttpStatus.SC_BAD_REQUEST, message, errorObjectsBuilder.build()),
+            return buildErrorResponse(
+                    elide,
+                    new CustomErrorException(HttpStatus.SC_OK, message, errorObjectsBuilder.build()),
                     isVerbose
             );
-        } catch (Exception | Error e) {
-            if (e instanceof InterruptedException) {
-                log.debug("Request Thread interrupted.", e);
-                return buildErrorResponse(elide, new TimeoutException(e), isVerbose);
-            }
-            log.error("Unhandled error or exception.", e);
-            throw e;
-        } finally {
-            elide.getTransactionRegistry().removeRunningTransaction(requestId);
-            elide.getAuditLogger().clear();
         }
+
+        log.error("Error or exception uncaught by Elide", error);
+        throw new RuntimeException(error);
     }
+
     public static ElideResponse buildErrorResponse(Elide elide, HttpStatusException error, boolean isVerbose) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
         JsonNode errorNode;

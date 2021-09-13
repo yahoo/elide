@@ -575,7 +575,7 @@ public class Elide {
         throw new RuntimeException(error);
     }
 
-    protected CustomErrorException mapError(RuntimeException error) {
+    public CustomErrorException mapError(RuntimeException error) {
         if (errorMapper != null) {
             log.trace("Attempting to map unknown exception of type {}", error.getClass());
             CustomErrorException customizedError = errorMapper.map(error);
