@@ -10,6 +10,7 @@ import static io.quarkus.deployment.annotations.ExecutionTime.STATIC_INIT;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.SecurityCheck;
+import com.yahoo.elide.core.Path;
 import com.yahoo.elide.core.exceptions.ErrorObjects;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
@@ -17,12 +18,16 @@ import com.yahoo.elide.extension.runtime.ElideConfig;
 import com.yahoo.elide.extension.runtime.ElideRecorder;
 import com.yahoo.elide.extension.runtime.ElideResourceBuilder;
 import com.yahoo.elide.graphql.GraphQLEndpoint;
+import com.yahoo.elide.jsonapi.models.Data;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
+import com.yahoo.elide.jsonapi.models.Meta;
+import com.yahoo.elide.jsonapi.models.Resource;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
 import com.yahoo.elide.jsonapi.serialization.DataSerializer;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.DotName;
+import org.jboss.jandex.Type;
 import org.jboss.resteasy.plugins.server.servlet.ResteasyContextParameters;
 import org.jboss.resteasy.spi.ResteasyDeployment;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
@@ -32,12 +37,23 @@ import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
-import io.quarkus.deployment.builditem.nativeimage.ReflectiveHierarchyIgnoreWarningBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveHierarchyBuildItem;
 import io.quarkus.hibernate.orm.deployment.JpaModelIndexBuildItem;
 import io.quarkus.resteasy.server.common.deployment.ResteasyDeploymentCustomizerBuildItem;
 import io.quarkus.undertow.deployment.ServletInitParamBuildItem;
+import io.swagger.models.ExternalDocs;
+import io.swagger.models.Info;
+import io.swagger.models.Model;
+import io.swagger.models.Response;
+import io.swagger.models.Scheme;
+import io.swagger.models.Swagger;
+import io.swagger.models.Tag;
+import io.swagger.models.auth.SecuritySchemeDefinition;
+import io.swagger.models.parameters.Parameter;
+import io.swagger.util.Json;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -138,6 +154,7 @@ class ElideExtensionProcessor {
             JpaModelIndexBuildItem index,
             ElideRecorder elideRecorder,
             BuildProducer<ReflectiveClassBuildItem> reflectionBuildItems,
+            BuildProducer<ReflectiveHierarchyBuildItem> reflectionHierarchiesBuildItems,
             BuildProducer<SyntheticBeanBuildItem> synthenticBean
     ) {
         List<Class<?>> elideClasses = new ArrayList<>();
@@ -160,7 +177,8 @@ class ElideExtensionProcessor {
                     Class<?> beanClass = Class.forName(classInfo.name().toString(), false,
                             Thread.currentThread().getContextClassLoader());
 
-                    reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, beanClass));
+                    //reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, beanClass));
+                    reflectionHierarchiesBuildItems.produce(new ReflectiveHierarchyBuildItem.Builder().type(convertToType(beanClass)).build());
                     elideClasses.add(beanClass);
                 } catch (ClassNotFoundException e) {
                     //TODO - logging
@@ -176,6 +194,23 @@ class ElideExtensionProcessor {
 
         reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, DataSerializer.class));
         reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, JsonApiDocument.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, Data.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, Meta.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, Resource.class));
         reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, ErrorObjects.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, Swagger.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, ExternalDocs.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, Info.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, Model.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, Path.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, Response.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, Scheme.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, Tag.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, SecuritySchemeDefinition.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, Parameter.class));
+    }
+
+    private Type convertToType(Class<?> cls) {
+        return Type.create(DotName.createSimple(cls.getCanonicalName()), Type.Kind.CLASS);
     }
 }

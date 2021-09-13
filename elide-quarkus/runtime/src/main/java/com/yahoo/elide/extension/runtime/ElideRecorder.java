@@ -44,6 +44,7 @@ public class ElideRecorder {
         return new Supplier<ClassScanner>() {
             @Override
             public ClassScanner get() {
+                System.out.println("Scanning classes");
                 Map<String, Set<Class<?>>> cache = new HashMap<>();
                 Arrays.stream(ANNOTATIONS).forEach(annotationClass -> {
                     String key = annotationClass.getCanonicalName();

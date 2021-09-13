@@ -70,6 +70,19 @@
           </annotationProcessorPaths>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.jboss.jandex</groupId>
+        <artifactId>jandex-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>index</id>
+            <goals>
+              <goal>jandex</goal>
+            </goals>
+            <inherited>true</inherited>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 </project>
