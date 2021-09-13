@@ -23,6 +23,7 @@ import com.yahoo.elide.swagger.resources.DocEndpoint;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.hibernate.Session;
 
+import io.quarkus.runtime.Startup;
 import io.swagger.models.Info;
 
 import java.util.ArrayList;
@@ -50,6 +51,7 @@ public class ElideBeans {
     @Produces
     @Named("elide")
     @ApplicationScoped
+    @Startup
     public Elide produceElide(
             DataStore store,
             EntityDictionary dictionary) {
@@ -120,8 +122,11 @@ public class ElideBeans {
     @Produces
     @Named("swagger")
     @ApplicationScoped
-    public List<DocEndpoint.SwaggerRegistration> buildSwagger(EntityDictionary dictionary) {
+    public List<DocEndpoint.SwaggerRegistration> buildSwagger(Elide elide) {
         System.out.println("produceSwagger");
+
+        EntityDictionary dictionary = elide.getElideSettings().getDictionary();
+
         List<DocEndpoint.SwaggerRegistration> registrations = new ArrayList<>();
 
         Info info = new Info()

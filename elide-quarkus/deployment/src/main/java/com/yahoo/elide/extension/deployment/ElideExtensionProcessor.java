@@ -144,7 +144,7 @@ class ElideExtensionProcessor {
 
             for (Class annotationClass : ElideRecorder.ANNOTATIONS) {
                 AnnotationInstance instance =
-                        classInfo.classAnnotation(DotName.createSimple(annotationClass.getSimpleName()));
+                        classInfo.classAnnotation(DotName.createSimple(annotationClass.getCanonicalName()));
 
                 if (instance != null) {
                     found = true;
