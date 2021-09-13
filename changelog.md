@@ -1,4 +1,20 @@
 # Change Log
+## 5.0.12
+**Features**
+   * [view commit](https://github.com/yahoo/elide/commit/0b7eb0cb8b9fbb37fa412863a6d6fd1ac5734948) Add ability to retrieve data store properties in life cycle hooks. (#2278) 
+   * [view commit](https://github.com/yahoo/elide/commit/55e61646f17d5bdb94d4519ab210ac56840778db) Aggregation Store: Templated filter table arguments (#2290) 
+   * [view commit](https://github.com/yahoo/elide/commit/cc0dffc51428b5b9ee255896169de91c69af0314) AggregationStore: Templated filter column arguments (#2297) 
+   * [view commit](https://github.com/yahoo/elide/commit/65eaaa12fc2b805135285287d4912d2329bc676d) Add ability to map unknown exceptions to custom exceptions (#2205) 
+
+**Fixes**
+   * [view commit](https://github.com/yahoo/elide/commit/fe7009353573baf0206f7bb58617db97e067f900) Refactor class scanning for quarkus (#2284) 
+   * [view commit](https://github.com/yahoo/elide/commit/2a477c4fcf16d001e1ab87cc35e54662d77da870) Fixed bug where multiplex manager was not copying complex attributes from subordinate dictionaries (#2285) 
+   * [view commit](https://github.com/yahoo/elide/commit/84ea9f15d9783a981027061c47a2873a59c410f4) Updating screwdriver build for JDK11 and Elide 6 (#2286) 
+   * [view commit](https://github.com/yahoo/elide/commit/6f0435be5f2a4467ecb8be17b5393bbb54b3e690) Bump checkstyle from 8.45.1 to 9.0 (#2289) 
+   * [view commit](https://github.com/yahoo/elide/commit/65fa257e9af0a39fa1a1d23b66085f6edebfca59) Aggregation Store: Fix hjson metric projection maker config (#2295) 
+   * [view commit](https://github.com/yahoo/elide/commit/dc9d533f4a0709c8442a20716b742a1aea95d76d) Bump graphql-java from 17.1 to 17.2 (#2281) 
+   * [view commit](https://github.com/yahoo/elide/commit/ba8776d20bb345fae477f9a83987654087e28c0a) Bump version.jackson from 2.12.4 to 2.12.5 (#2280) 
+
 ## 5.0.11
 **Features**
    * [view commit](https://github.com/yahoo/elide/commit/798c66204779a03bb4e34554ae243f9c4ea25bc7) Added support for filtering & sorting on complex model attributes. (#2273) 
