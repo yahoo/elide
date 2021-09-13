@@ -10,13 +10,16 @@ import static io.quarkus.deployment.annotations.ExecutionTime.STATIC_INIT;
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.SecurityCheck;
+import com.yahoo.elide.core.exceptions.ErrorObjects;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.extension.runtime.ElideConfig;
 import com.yahoo.elide.extension.runtime.ElideRecorder;
 import com.yahoo.elide.extension.runtime.ElideResourceBuilder;
 import com.yahoo.elide.graphql.GraphQLEndpoint;
+import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
+import com.yahoo.elide.jsonapi.serialization.DataSerializer;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.DotName;
@@ -131,12 +134,12 @@ class ElideExtensionProcessor {
 
     @BuildStep
     @Record(STATIC_INIT)
-    public List<ReflectiveHierarchyIgnoreWarningBuildItem> configureElideModels(
+    public void configureElideModels(
             JpaModelIndexBuildItem index,
             ElideRecorder elideRecorder,
+            BuildProducer<ReflectiveClassBuildItem> reflectionBuildItems,
             BuildProducer<SyntheticBeanBuildItem> synthenticBean
     ) {
-        List<ReflectiveHierarchyIgnoreWarningBuildItem> reflectionBuildItems = new ArrayList<>();
         List<Class<?>> elideClasses = new ArrayList<>();
 
         index.getIndex().getKnownClasses().forEach(classInfo -> {
@@ -157,11 +160,11 @@ class ElideExtensionProcessor {
                     Class<?> beanClass = Class.forName(classInfo.name().toString(), false,
                             Thread.currentThread().getContextClassLoader());
 
+                    reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, beanClass));
                     elideClasses.add(beanClass);
                 } catch (ClassNotFoundException e) {
                     //TODO - logging
                 }
-                reflectionBuildItems.add(new ReflectiveHierarchyIgnoreWarningBuildItem(classInfo.name()));
             }
         });
 
@@ -171,6 +174,8 @@ class ElideExtensionProcessor {
                 .addQualifier(Default.class)
                 .done());
 
-        return reflectionBuildItems;
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, DataSerializer.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, JsonApiDocument.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, ErrorObjects.class));
     }
 }
