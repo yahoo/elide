@@ -4,12 +4,12 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.yahoo.elide</groupId>
-    <artifactId>elide-extension-parent</artifactId>
+    <artifactId>elide-quarkus-extension-parent</artifactId>
     <version>6.0.0-pr1-SNAPSHOT</version>
   </parent>
-  <artifactId>elide-extension-deployment</artifactId>
+  <artifactId>elide-quarkus-extension-deployment</artifactId>
   <packaging>jar</packaging>
-  <name>Elide Extension - Deployment</name>
+  <name>Elide Quarkus Extension - Deployment</name>
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
@@ -55,7 +55,7 @@
     </dependency>
     <dependency>
       <groupId>com.yahoo.elide</groupId>
-      <artifactId>elide-extension</artifactId>
+      <artifactId>elide-quarkus-extension</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

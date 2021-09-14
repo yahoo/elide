@@ -7,8 +7,8 @@
     <artifactId>elide-extension-parent</artifactId>
     <version>6.0.0-pr1-SNAPSHOT</version>
   </parent>
-  <artifactId>elide-extension</artifactId>
-  <name>Elide Extension - Runtime</name>
+  <artifactId>elide-quarkus-extension</artifactId>
+  <name>Elide Quarkus Extension - Runtime</name>
   <packaging>jar</packaging>
   <licenses>
     <license>

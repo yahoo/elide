@@ -4,11 +4,11 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.yahoo.elide</groupId>
-    <artifactId>elide-extension-parent</artifactId>
+    <artifactId>elide-quarkus-extension-parent</artifactId>
     <version>6.0.0-pr1-SNAPSHOT</version>
   </parent>
-  <artifactId>elide-extension-integration-tests</artifactId>
-  <name>Elide Extension - Integration Tests</name>
+  <artifactId>elide-quarkus-extension-integration-tests</artifactId>
+  <name>Elide Quarkus Extension - Integration Tests</name>
 
   <licenses>
     <license>
