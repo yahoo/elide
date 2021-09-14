@@ -6,6 +6,10 @@
 
 package com.yahoo.elide.datastores.jms;
 
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.CREATE;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.DELETE;
+import static com.yahoo.elide.annotation.LifeCycleHookBinding.Operation.UPDATE;
+import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.type.Type;
 import lombok.Getter;
@@ -15,18 +19,20 @@ import lombok.Getter;
  */
 @Getter
 public enum TopicType {
-    ADDED("Added"),
-    DELETED("Deleted"),
-    UPDATED("Updated");
+    ADDED("Added", CREATE),
+    DELETED("Deleted", DELETE),
+    UPDATED("Updated", UPDATE);
 
-    private String topicSuffix;
+    private final String topicSuffix;
+    private final LifeCycleHookBinding.Operation operation;
 
     /**
      * Constructor.
      * @param topicSuffix The suffix of the topic name.
      */
-    TopicType(String topicSuffix) {
+    TopicType(String topicSuffix, LifeCycleHookBinding.Operation operation) {
         this.topicSuffix = topicSuffix;
+        this.operation = operation;
     }
 
     /**
@@ -37,5 +43,24 @@ public enum TopicType {
      */
     public String toTopicName(Type<?> type, EntityDictionary dictionary) {
         return dictionary.getJsonAliasFor(type) + topicSuffix;
+    }
+
+    /**
+     * Converts a LifeCycleHookBinding to a topic type.
+     * @param op The lifecyle operation
+     * @return The corresponding topic type.
+     */
+    public static TopicType fromOperation(LifeCycleHookBinding.Operation op) {
+        switch (op) {
+            case CREATE: {
+                return ADDED;
+            }
+            case DELETE: {
+                return DELETED;
+            }
+            default : {
+                return UPDATED;
+            }
+        }
     }
 }
