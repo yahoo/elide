@@ -21,8 +21,14 @@ import com.yahoo.elide.graphql.DeferredId;
 import com.yahoo.elide.graphql.GraphQLEndpoint;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
+import com.yahoo.elide.jsonapi.serialization.DataDeserializer;
 import com.yahoo.elide.jsonapi.serialization.DataSerializer;
+import com.yahoo.elide.jsonapi.serialization.KeySerializer;
+import com.yahoo.elide.jsonapi.serialization.MetaDeserializer;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
+import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.impl.LogFactoryImpl;
+import org.apache.commons.logging.impl.SimpleLog;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.Type;
@@ -64,6 +70,9 @@ class ElideExtensionProcessor {
     public void indexDependencies(BuildProducer<IndexDependencyBuildItem> dependencies) {
         dependencies.produce(new IndexDependencyBuildItem("com.yahoo.elide", "elide-core"));
         dependencies.produce(new IndexDependencyBuildItem("io.swagger", "swagger-models"));
+
+        /* Needed for CoerceUtil which loads LogFactoryImpl */
+        dependencies.produce(new IndexDependencyBuildItem("commons-logging", "commons-logging"));
     }
 
     @BuildStep
@@ -198,10 +207,24 @@ class ElideExtensionProcessor {
         reflectionHierarchiesBuildItems.produce(new ReflectiveHierarchyBuildItem.Builder()
                 .type(convertToType(Swagger.class))
                 .build());
+
+        //JSON-API Serialization Classes:
         reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, DataSerializer.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, DataDeserializer.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, MetaDeserializer.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, KeySerializer.class));
+
+        //Prefabbed Checks:
         reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, Collections.AppendOnly.class));
         reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, Collections.RemoveOnly.class));
+
+        //GraphQL:
         reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, DeferredId.class));
+
+        //Needed by elide dependency coerce utils which pulls in commons logging.
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, LogFactoryImpl.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, LogFactory.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, SimpleLog.class));
     }
 
     private Type convertToType(Class<?> cls) {

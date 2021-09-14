@@ -23,6 +23,7 @@ import com.yahoo.elide.swagger.resources.DocEndpoint;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.hibernate.Session;
 
+import io.quarkus.arc.properties.IfBuildProperty;
 import io.quarkus.runtime.Startup;
 import io.swagger.models.Info;
 
