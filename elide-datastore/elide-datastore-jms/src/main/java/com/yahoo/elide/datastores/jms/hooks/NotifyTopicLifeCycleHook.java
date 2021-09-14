@@ -20,6 +20,8 @@ import com.yahoo.elide.datastores.jms.TopicType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -35,9 +37,16 @@ import javax.jms.JMSProducer;
 
 /**
  * Life cycle hook that sends serialized model events to a JMS topic.
+ * This will be registered automatically by Elide for all models that:
+ *  1. Have the Subscription annotation.
+ *  2. Have the SubscriptionField annotation, are related to a model with Subscription annotation,
+ *  and are in the request lineage of the Subscription model.
+ *
  * @param <T> The model type.
  */
 @Slf4j
+@AllArgsConstructor //For testing
+@NoArgsConstructor  //For injection
 public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
 
     @Inject
@@ -99,11 +108,6 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
             return modelType;
         }
 
-        //If the type is not 'owned' and doesn't have a topic, it isn't managed.
-        if (! dictionary.isTransferable(modelType)) {
-            return null;
-        }
-
         //Invert the resource lineage to work backwards...
         List<ResourceLineage.LineagePath> inversePath = new ArrayList<>();
         inversePath.addAll(resource.getLineage().getResourcePath());
@@ -113,8 +117,6 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
             modelType = pathElement.getResource().getResourceType();
             if (modelsWithTopics.contains(modelType)) {
                 return modelType;
-            } else if (! dictionary.isTransferable(modelType)) {
-                return null;
             }
         }
 
