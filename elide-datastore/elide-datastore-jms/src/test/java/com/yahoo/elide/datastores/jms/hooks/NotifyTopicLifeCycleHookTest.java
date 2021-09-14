@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Optional;
+import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
@@ -33,6 +34,7 @@ import javax.jms.Topic;
 
 public class NotifyTopicLifeCycleHookTest {
 
+    private ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
     private JMSContext context = mock(JMSContext.class);
     private JMSProducer producer = mock(JMSProducer.class);
     private RequestScope scope = mock(RequestScope.class);
@@ -45,8 +47,9 @@ public class NotifyTopicLifeCycleHookTest {
 
         Topic destination = mock(Topic.class);
         reset(scope);
-        reset(context);
+        reset(connectionFactory);
         reset(producer);
+        when(connectionFactory.createContext()).thenReturn(context);
         when(context.createProducer()).thenReturn(producer);
         when(context.createTopic(any())).thenReturn(destination);
         when(scope.getDictionary()).thenReturn(dictionary);
@@ -56,7 +59,7 @@ public class NotifyTopicLifeCycleHookTest {
     public void testManagedModelNotification() {
 
         NotifyTopicLifeCycleHook<Book> bookHook = new NotifyTopicLifeCycleHook(
-                context,
+                connectionFactory,
                 new ObjectMapper());
 
         Book book = new Book();

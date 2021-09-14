@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 import javax.inject.Inject;
+import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
@@ -40,7 +41,7 @@ import javax.jms.JMSProducer;
 public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
 
     @Inject
-    private JMSContext context;
+    private ConnectionFactory connectionFactory;
 
     @Inject
     private ObjectMapper mapper;
@@ -50,6 +51,8 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
             LifeCycleHookBinding.Operation operation,
             LifeCycleHookBinding.TransactionPhase phase,
             CRUDEvent event) {
+
+        JMSContext context = connectionFactory.createContext();
 
         PersistentResource<T> resource = (PersistentResource<T>) event.getResource();
 
