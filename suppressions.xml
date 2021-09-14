@@ -28,4 +28,8 @@
         <cve>CVE-2019-14900</cve>
     </suppress>
 
+    <!-- Only related to Windows language pack installer -->
+    <suppress until="2031-06-01Z">
+        <cve>CVE-2020-0822</cve>
+    </suppress>
 </suppressions>
