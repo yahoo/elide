@@ -210,6 +210,9 @@ class ElideExtensionProcessor {
         reflectionHierarchiesBuildItems.produce(new ReflectiveHierarchyBuildItem.Builder()
                 .type(convertToType(Swagger.class))
                 .build());
+        reflectionHierarchiesBuildItems.produce(new ReflectiveHierarchyBuildItem.Builder()
+                .type(convertToType(GraphQLSchema.class))
+                .build());
 
         //JSON-API Serialization Classes:
         reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, DataSerializer.class));
@@ -224,7 +227,6 @@ class ElideExtensionProcessor {
         //GraphQL Schema:
         reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, DeferredId.class));
         reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, DeferredId.SerializeId.class));
-        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, GraphQLSchema.class));
 
         //Needed by elide dependency coerce utils which pulls in commons logging.
         reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, LogFactoryImpl.class));
