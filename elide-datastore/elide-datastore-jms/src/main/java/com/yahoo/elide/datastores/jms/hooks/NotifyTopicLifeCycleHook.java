@@ -8,8 +8,6 @@ package com.yahoo.elide.datastores.jms.hooks;
 
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.core.PersistentResource;
-import com.yahoo.elide.core.ResourceLineage;
-import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.lifecycle.CRUDEvent;
 import com.yahoo.elide.core.lifecycle.LifeCycleHook;
 import com.yahoo.elide.core.security.ChangeSpec;
@@ -24,9 +22,6 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
@@ -37,10 +32,7 @@ import javax.jms.JMSProducer;
 
 /**
  * Life cycle hook that sends serialized model events to a JMS topic.
- * This will be registered automatically by Elide for all models that:
- *  1. Have the Subscription annotation.
- *  2. Have the SubscriptionField annotation, are related to a model with Subscription annotation,
- *  and are in the request lineage of the Subscription model.
+ * This will be registered automatically by Elide for all models that have the Subscription annotation.
  *
  * @param <T> The model type.
  */
@@ -67,8 +59,7 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
 
         PersistentResource<T> resource = (PersistentResource<T>) event.getResource();
 
-        //We only have topics for models managed by this store.  If an ancestor model
-        //triggered the hook, we need to locate the managed model through its lineage.
+        //We only have topics for models managed by this store.
         Type<?> modelType = findManagedModel(resource);
 
         //Ignore the lifecycle change if the model is not managed.
@@ -101,23 +92,10 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
     }
 
     private Type<?> findManagedModel(PersistentResource<T> resource) {
-        EntityDictionary dictionary = resource.getDictionary();
         Type<?> modelType = resource.getResourceType();
 
         if (modelsWithTopics.contains(modelType)) {
             return modelType;
-        }
-
-        //Invert the resource lineage to work backwards...
-        List<ResourceLineage.LineagePath> inversePath = new ArrayList<>();
-        inversePath.addAll(resource.getLineage().getResourcePath());
-        Collections.reverse(inversePath);
-
-        for (ResourceLineage.LineagePath pathElement : inversePath) {
-            modelType = pathElement.getResource().getResourceType();
-            if (modelsWithTopics.contains(modelType)) {
-                return modelType;
-            }
         }
 
         return null;
