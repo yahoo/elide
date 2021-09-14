@@ -1,3 +1,9 @@
+/*
+ * Copyright 2021, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+
 package com.yahoo.elide.datastores.jms.hooks;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -97,34 +103,5 @@ public class NotifyTopicLifeCycleHookTest {
 
         verify(context, never()).createTopic(any());
         verify(producer, never()).send(isA(Destination.class), isA(String.class));
-    }
-
-    @Test
-    public void testLineageModelNotification() {
-
-        NotifyTopicLifeCycleHook<Book> bookHook = new NotifyTopicLifeCycleHook(
-                context,
-                Set.of(ClassType.of(Book.class)),
-                new ObjectMapper());
-
-
-        Book book = new Book();
-        PersistentResource<Book> bookResource = new PersistentResource<>(book, "123", scope);
-
-        Author author = new Author();
-        PersistentResource<Author> authorResource = new PersistentResource<>(author, bookResource, "authors", "1", scope);
-
-        bookHook.execute(LifeCycleHookBinding.Operation.CREATE, LifeCycleHookBinding.TransactionPhase.PRECOMMIT,
-                new CRUDEvent(
-                        LifeCycleHookBinding.Operation.CREATE,
-                        authorResource,
-                        "",
-                        Optional.empty()
-                ));
-
-        ArgumentCaptor<String> topicCaptor = ArgumentCaptor.forClass(String.class);
-        verify(context).createTopic(topicCaptor.capture());
-        assertEquals("bookAdded", topicCaptor.getValue());
-        verify(producer, times(1)).send(isA(Destination.class), isA(String.class));
     }
 }

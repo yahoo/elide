@@ -51,7 +51,7 @@ public enum TopicType {
      * @return The corresponding topic type.
      */
     public static TopicType fromOperation(LifeCycleHookBinding.Operation op) {
-        switch (op){
+        switch (op) {
             case CREATE: {
                 return ADDED;
             }
