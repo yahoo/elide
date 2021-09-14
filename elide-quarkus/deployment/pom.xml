@@ -8,7 +8,34 @@
     <version>6.0.0-pr1-SNAPSHOT</version>
   </parent>
   <artifactId>elide-extension-deployment</artifactId>
+  <packaging>jar</packaging>
   <name>Elide Extension - Deployment</name>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>Yahoo! Inc.</name>
+    <url>http://www.yahoo.com</url>
+  </organization>
+
+  <developers>
+    <developer>
+      <name>Yahoo Inc.</name>
+      <url>https://github.com/yahoo</url>
+    </developer>
+  </developers>
+
+  <scm>
+    <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
+    <url>https://github.com/yahoo/elide.git</url>
+    <tag>HEAD</tag>
+  </scm>
+
   <dependencies>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -71,17 +98,11 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.jboss.jandex</groupId>
-        <artifactId>jandex-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>index</id>
-            <goals>
-              <goal>jandex</goal>
-            </goals>
-            <inherited>true</inherited>
-          </execution>
-        </executions>
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-maven</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
       </plugin>
     </plugins>
   </build>

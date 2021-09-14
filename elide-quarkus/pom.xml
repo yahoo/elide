@@ -7,6 +7,39 @@
   <version>6.0.0-pr1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Elide Extension - Parent</name>
+  <url>https://github.com/yahoo/elide</url>
+  <parent>
+    <groupId>com.yahoo.elide</groupId>
+    <artifactId>elide-parent-pom</artifactId>
+    <version>6.0.0-pr1-SNAPSHOT</version>
+  </parent>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>Yahoo! Inc.</name>
+    <url>http://www.yahoo.com</url>
+  </organization>
+
+  <developers>
+    <developer>
+      <name>Yahoo Inc.</name>
+      <url>https://github.com/yahoo</url>
+    </developer>
+  </developers>
+
+  <scm>
+    <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
+    <url>https://github.com/yahoo/elide.git</url>
+    <tag>HEAD</tag>
+  </scm>
+
   <modules>
     <module>deployment</module>
     <module>runtime</module>
@@ -88,6 +121,13 @@
               <maven.repo>${settings.localRepository}</maven.repo>
             </systemPropertyVariables>
           </configuration>
+        </plugin>
+        <plugin>
+            <groupId>org.owasp</groupId>
+            <artifactId>dependency-check-maven</artifactId>
+            <configuration>
+                <skip>true</skip>
+            </configuration>
         </plugin>
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>

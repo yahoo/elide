@@ -9,6 +9,33 @@
   </parent>
   <artifactId>elide-extension-integration-tests</artifactId>
   <name>Elide Extension - Integration Tests</name>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>Yahoo! Inc.</name>
+    <url>http://www.yahoo.com</url>
+  </organization>
+
+  <developers>
+    <developer>
+      <name>Yahoo Inc.</name>
+      <url>https://github.com/yahoo</url>
+    </developer>
+  </developers>
+
+  <scm>
+    <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
+    <url>https://github.com/yahoo/elide.git</url>
+    <tag>HEAD</tag>
+  </scm>
+
   <dependencies>
     <dependency>
       <groupId>io.quarkus</groupId>

@@ -9,6 +9,33 @@
   </parent>
   <artifactId>elide-extension</artifactId>
   <name>Elide Extension - Runtime</name>
+  <packaging>jar</packaging>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>Yahoo! Inc.</name>
+    <url>http://www.yahoo.com</url>
+  </organization>
+
+  <developers>
+    <developer>
+      <name>Yahoo Inc.</name>
+      <url>https://github.com/yahoo</url>
+    </developer>
+  </developers>
+
+  <scm>
+    <developerConnection>scm:git:ssh://git@github.com/yahoo/elide.git</developerConnection>
+    <url>https://github.com/yahoo/elide.git</url>
+    <tag>HEAD</tag>
+  </scm>
+
   <dependencies>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -81,6 +108,13 @@
               <version>${quarkus.version}</version>
             </path>
           </annotationProcessorPaths>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-maven</artifactId>
+        <configuration>
+          <skip>true</skip>
         </configuration>
       </plugin>
     </plugins>
