@@ -188,6 +188,13 @@ public class EntityDictionary {
         }
 
         checkNames.put(alias, checkClass);
+
+        try {
+            checkInstances.put(checkClass, checkClass.getDeclaredConstructor().newInstance());
+        } catch (NoSuchMethodException | InvocationTargetException
+                | IllegalAccessException | InstantiationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private static Package getParentPackage(Package pkg) {
