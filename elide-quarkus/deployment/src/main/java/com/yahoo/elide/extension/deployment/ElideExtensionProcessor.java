@@ -11,11 +11,13 @@ import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.annotation.LifeCycleHookBinding;
 import com.yahoo.elide.annotation.SecurityCheck;
 import com.yahoo.elide.core.exceptions.ErrorObjects;
+import com.yahoo.elide.core.security.checks.prefab.Collections;
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.coerce.converters.ElideTypeConverter;
 import com.yahoo.elide.extension.runtime.ElideConfig;
 import com.yahoo.elide.extension.runtime.ElideRecorder;
 import com.yahoo.elide.extension.runtime.ElideResourceBuilder;
+import com.yahoo.elide.graphql.DeferredId;
 import com.yahoo.elide.graphql.GraphQLEndpoint;
 import com.yahoo.elide.jsonapi.models.JsonApiDocument;
 import com.yahoo.elide.jsonapi.resources.JsonApiEndpoint;
@@ -197,6 +199,9 @@ class ElideExtensionProcessor {
                 .type(convertToType(Swagger.class))
                 .build());
         reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, DataSerializer.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, Collections.AppendOnly.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, Collections.RemoveOnly.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, DeferredId.class));
     }
 
     private Type convertToType(Class<?> cls) {
