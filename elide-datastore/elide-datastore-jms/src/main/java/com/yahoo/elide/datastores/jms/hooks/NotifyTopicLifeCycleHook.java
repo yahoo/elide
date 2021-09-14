@@ -23,9 +23,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
-import java.util.Set;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.jms.Destination;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
@@ -45,10 +43,6 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
     private JMSContext context;
 
     @Inject
-    @Named("subscriptionModels")
-    private Set<Type<?>> modelsWithTopics;
-
-    @Inject
     private ObjectMapper mapper;
 
     @Override
@@ -59,14 +53,7 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
 
         PersistentResource<T> resource = (PersistentResource<T>) event.getResource();
 
-        //We only have topics for models managed by this store.
-        Type<?> modelType = findManagedModel(resource);
-
-        //Ignore the lifecycle change if the model is not managed.
-        if (modelType == null) {
-            log.debug("Ignoring life cycle event {} {} {}", operation, phase, event);
-            return;
-        }
+        Type<?> modelType = resource.getResourceType();
 
         TopicType topicType = TopicType.fromOperation(operation);
         String topicName = topicType.toTopicName(modelType, resource.getDictionary());
@@ -89,15 +76,5 @@ public class NotifyTopicLifeCycleHook<T> implements LifeCycleHook<T> {
             RequestScope requestScope,
             Optional<ChangeSpec> changes) {
         //NOOP
-    }
-
-    private Type<?> findManagedModel(PersistentResource<T> resource) {
-        Type<?> modelType = resource.getResourceType();
-
-        if (modelsWithTopics.contains(modelType)) {
-            return modelType;
-        }
-
-        return null;
     }
 }

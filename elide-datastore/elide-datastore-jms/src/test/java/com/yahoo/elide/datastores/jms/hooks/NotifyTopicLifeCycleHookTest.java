@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -20,16 +19,13 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.lifecycle.CRUDEvent;
-import com.yahoo.elide.core.type.ClassType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import example.Author;
 import example.Book;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Optional;
-import java.util.Set;
 import javax.jms.Destination;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
@@ -46,7 +42,6 @@ public class NotifyTopicLifeCycleHookTest {
         EntityDictionary dictionary;
         dictionary = EntityDictionary.builder().build();
         dictionary.bindEntity(Book.class);
-        dictionary.bindEntity(Author.class);
 
         Topic destination = mock(Topic.class);
         reset(scope);
@@ -62,7 +57,6 @@ public class NotifyTopicLifeCycleHookTest {
 
         NotifyTopicLifeCycleHook<Book> bookHook = new NotifyTopicLifeCycleHook(
                 context,
-                Set.of(ClassType.of(Book.class)),
                 new ObjectMapper());
 
         Book book = new Book();
@@ -80,28 +74,5 @@ public class NotifyTopicLifeCycleHookTest {
         verify(context).createTopic(topicCaptor.capture());
         assertEquals("bookAdded", topicCaptor.getValue());
         verify(producer, times(1)).send(isA(Destination.class), isA(String.class));
-    }
-
-    @Test
-    public void testUnmanagedModelIgnored() {
-
-        NotifyTopicLifeCycleHook<Book> bookHook = new NotifyTopicLifeCycleHook(
-                context,
-                Set.of(ClassType.of(Book.class)),
-                new ObjectMapper());
-
-        Author author = new Author();
-        PersistentResource<Author> resource = new PersistentResource<>(author, "123", scope);
-
-        bookHook.execute(LifeCycleHookBinding.Operation.CREATE, LifeCycleHookBinding.TransactionPhase.PRECOMMIT,
-                new CRUDEvent(
-                        LifeCycleHookBinding.Operation.CREATE,
-                        resource,
-                        "",
-                        Optional.empty()
-                ));
-
-        verify(context, never()).createTopic(any());
-        verify(producer, never()).send(isA(Destination.class), isA(String.class));
     }
 }
