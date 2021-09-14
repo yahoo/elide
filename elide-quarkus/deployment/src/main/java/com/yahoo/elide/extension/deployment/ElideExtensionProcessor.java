@@ -34,6 +34,8 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.Type;
 import org.jboss.resteasy.plugins.server.servlet.ResteasyContextParameters;
 import org.jboss.resteasy.spi.ResteasyDeployment;
+import graphql.language.SchemaDefinition;
+import graphql.schema.GraphQLSchema;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.BeanContainerListenerBuildItem;
 import io.quarkus.arc.deployment.BeanDefiningAnnotationBuildItem;
@@ -73,6 +75,7 @@ class ElideExtensionProcessor {
 
         /* Needed for CoerceUtil which loads LogFactoryImpl */
         dependencies.produce(new IndexDependencyBuildItem("commons-logging", "commons-logging"));
+        dependencies.produce(new IndexDependencyBuildItem("com.graphql-java", "graphql-java"));
     }
 
     @BuildStep
@@ -218,8 +221,10 @@ class ElideExtensionProcessor {
         reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, Collections.AppendOnly.class));
         reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, Collections.RemoveOnly.class));
 
-        //GraphQL:
+        //GraphQL Schema:
         reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, DeferredId.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, DeferredId.SerializeId.class));
+        reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, GraphQLSchema.class));
 
         //Needed by elide dependency coerce utils which pulls in commons logging.
         reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, LogFactoryImpl.class));

@@ -20,22 +20,22 @@ import java.io.IOException;
  * This class wraps a {@link PersistentResource} object and allows deferred deserialization of the ID field until
  * when it is populated and when the GraphQL response is generated.
  */
-@JsonSerialize(using = SerializeId.class)
+@JsonSerialize(using = DeferredId.SerializeId.class)
 public class DeferredId {
     @Getter private PersistentResource resource;
 
     public DeferredId(PersistentResource resource) {
         this.resource = resource;
     }
-}
 
-/**
- * Serializer for the id value of a {@link DeferredId} object.
- */
-class SerializeId extends JsonSerializer<DeferredId> {
-    @Override
-    public void serialize(DeferredId deferredId, JsonGenerator jsonGenerator,
-                          SerializerProvider serializerProvider) throws IOException {
-        jsonGenerator.writeObject(deferredId.getResource().getId());
+    /**
+     * Serializer for the id value of a {@link DeferredId} object.
+     */
+    public static class SerializeId extends JsonSerializer<DeferredId> {
+        @Override
+        public void serialize(DeferredId deferredId, JsonGenerator jsonGenerator,
+                              SerializerProvider serializerProvider) throws IOException {
+            jsonGenerator.writeObject(deferredId.getResource().getId());
+        }
     }
 }
