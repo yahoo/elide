@@ -55,6 +55,7 @@
     <quarkus.version>2.2.1.Final</quarkus.version>
     <elide.version>6.0.0-pr1-SNAPSHOT</elide.version>
     <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
+    <parent.pom.dir>${project.basedir}/../..</parent.pom.dir>
   </properties>
   <dependencyManagement>
     <dependencies>

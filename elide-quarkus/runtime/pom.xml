@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.yahoo.elide</groupId>
-    <artifactId>elide-extension-parent</artifactId>
+    <artifactId>elide-quarkus-extension-parent</artifactId>
     <version>6.0.0-pr1-SNAPSHOT</version>
   </parent>
   <artifactId>elide-quarkus-extension</artifactId>
@@ -116,6 +116,10 @@
         <configuration>
           <skip>true</skip>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
       </plugin>
     </plugins>
   </build>

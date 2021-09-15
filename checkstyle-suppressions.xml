@@ -15,6 +15,7 @@
   <suppress files="[/\\]src[/\\]main[/\\]webapp[/\\]WEB-INF[/\\]api-docs[/\\]" checks=".*"/>
   <suppress files="[/\\]target[/\\]" checks=".*"/>
   <suppress files="\.csv" checks=".*"/>
+  <suppress files="beans.xml" checks=".*"/>
   <suppress files="\.json" checks="LineLength"/>
   <suppress files="\.hbs" checks="LineLength"/>
 </suppressions>
