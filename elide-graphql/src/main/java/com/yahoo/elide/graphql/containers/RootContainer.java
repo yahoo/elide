@@ -12,8 +12,9 @@ import com.yahoo.elide.graphql.Environment;
  * Root container for GraphQL requests.
  */
 public class RootContainer implements GraphQLContainer {
+
     @Override
-    public Object processFetch(Environment context, ElideDataFetcher fetcher) {
+    public GraphQLContainer processFetch(Environment context, ElideDataFetcher fetcher) {
         String entityName = context.field.getName();
         String aliasName = context.field.getAlias();
 

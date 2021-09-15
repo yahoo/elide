@@ -17,11 +17,11 @@ import lombok.Getter;
  * Container for edges.
  */
 @AllArgsConstructor
-public class EdgesContainer implements PersistentResourceContainer, GraphQLContainer {
+public class EdgesContainer implements PersistentResourceContainer, GraphQLContainer<NodeContainer> {
     @Getter private final PersistentResource persistentResource;
 
     @Override
-    public Object processFetch(Environment context, ElideDataFetcher fetcher) {
+    public NodeContainer processFetch(Environment context, ElideDataFetcher fetcher) {
         String fieldName = context.field.getName();
 
         // TODO: Cursor

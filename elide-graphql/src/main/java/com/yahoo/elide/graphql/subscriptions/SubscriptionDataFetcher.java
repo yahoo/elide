@@ -11,42 +11,84 @@ import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.graphql.ElideDataFetcher;
+import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.NonEntityDictionary;
-import com.yahoo.elide.graphql.containers.CollectionContainer;
+import com.yahoo.elide.graphql.subscriptions.containers.SubscriptionCollectionContainer;
+import org.reactivestreams.Publisher;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
-public class SubscriptionDataFetcher extends ElideDataFetcher implements DataFetcher<Object> {
+/**
+ * Data Fetcher which fetches Elide subscription models.
+ */
+@Slf4j
+public class SubscriptionDataFetcher extends ElideDataFetcher implements DataFetcher<Publisher<Object>> {
 
+    private final Integer bufferSize;
+
+    /**
+     * Constructor
+     * @param nonEntityDictionary Entity dictionary for types that are not Elide models.
+     */
     public SubscriptionDataFetcher(NonEntityDictionary nonEntityDictionary) {
+        this(nonEntityDictionary, 100);
+    }
+
+    /**
+     * Constructor
+     * @param nonEntityDictionary Entity dictionary for types that are not Elide models.
+     * @param bufferSize Internal buffer for reactive streams.
+     */
+    public SubscriptionDataFetcher(NonEntityDictionary nonEntityDictionary, int bufferSize) {
         super(nonEntityDictionary);
+        this.bufferSize = bufferSize;
     }
 
     @Override
-    public Object get(DataFetchingEnvironment environment) throws Exception {
-        /* fetch arguments in mutation/query */
-        Map<String, Object> args = environment.getArguments();
+    public Publisher<Object> get(DataFetchingEnvironment environment) throws Exception {
+        /* build environment object, extracts required fields */
+        Environment context = new Environment(environment);
 
-        return null;
+        /* safe enable debugging */
+        if (log.isDebugEnabled()) {
+            //TODO refactor logging for common logging.
+        }
+
+        // Process fetch object for this container
+        return (Publisher<Object>) context.container.processFetch(context, this);
     }
 
     @Override
-    public CollectionContainer fetchRelationship(
+    public SubscriptionCollectionContainer fetchRelationship(
             PersistentResource<?> parentResource,
             Relationship relationship,
-            Optional<List<String>> ids) {
-        return null;
+            Optional<List<String>> unused) {
+
+        Flowable<PersistentResource> recordPublisher = parentResource.getRelationCheckedFiltered(relationship)
+                .toFlowable(BackpressureStrategy.BUFFER)
+                .onBackpressureBuffer(bufferSize, true, false);
+
+        return new SubscriptionCollectionContainer(recordPublisher);
     }
 
     @Override
-    public CollectionContainer fetchObject(
+    public SubscriptionCollectionContainer fetchObject(
             RequestScope requestScope,
             EntityProjection projection,
-            Optional<List<String>> ids) {
-        return null;
+            Optional<List<String>> unused) {
+
+        Flowable<PersistentResource> recordPublisher =
+                PersistentResource.loadRecords(projection, new ArrayList<>(), requestScope)
+                        .toFlowable(BackpressureStrategy.BUFFER)
+                        .onBackpressureBuffer(bufferSize, true, false);
+
+        return new SubscriptionCollectionContainer(recordPublisher);
     }
 }

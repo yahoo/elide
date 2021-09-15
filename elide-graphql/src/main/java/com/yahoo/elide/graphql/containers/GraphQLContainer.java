@@ -10,7 +10,8 @@ import com.yahoo.elide.graphql.Environment;
 
 /**
  * Interface describing how to process GraphQL request at each step.
+ * @param <T> The type returned by the container.
  */
-public interface GraphQLContainer {
-    Object processFetch(Environment context, ElideDataFetcher fetcher);
+public interface GraphQLContainer<T> {
+    T processFetch(Environment context, ElideDataFetcher fetcher);
 }

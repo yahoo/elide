@@ -17,7 +17,6 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
-import com.yahoo.elide.graphql.containers.CollectionContainer;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
 import com.yahoo.elide.graphql.containers.MapEntryContainer;
 import com.google.common.collect.Sets;
@@ -179,7 +178,7 @@ public class PersistentResourceFetcher extends ElideDataFetcher implements DataF
      * @param ids List of ids (can be NULL)
      * @return {@link PersistentResource} object(s)
      */
-    public CollectionContainer fetchObject(
+    public ConnectionContainer fetchObject(
             RequestScope requestScope,
             EntityProjection projection,
             Optional<List<String>> ids
@@ -209,7 +208,7 @@ public class PersistentResourceFetcher extends ElideDataFetcher implements DataF
      * @param ids List of ids
      * @return persistence resource object(s)
      */
-    public CollectionContainer fetchRelationship(
+    public ConnectionContainer fetchRelationship(
             PersistentResource<?> parentResource,
             @NotNull Relationship relationship,
             Optional<List<String>> ids
