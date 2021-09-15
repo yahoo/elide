@@ -17,6 +17,7 @@ import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.type.ClassType;
 import com.yahoo.elide.core.type.Type;
+import com.yahoo.elide.graphql.containers.CollectionContainer;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
 import com.yahoo.elide.graphql.containers.MapEntryContainer;
 import com.google.common.collect.Sets;
@@ -29,7 +30,6 @@ import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLType;
 import io.reactivex.Observable;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayDeque;
@@ -49,12 +49,10 @@ import javax.validation.constraints.NotNull;
  * Invoked by GraphQL Java to fetch/mutate data from Elide.
  */
 @Slf4j
-public class PersistentResourceFetcher implements DataFetcher<Object> {
-    @Getter
-    private final NonEntityDictionary nonEntityDictionary;
+public class PersistentResourceFetcher extends ElideDataFetcher implements DataFetcher<Object> {
 
     public PersistentResourceFetcher(NonEntityDictionary nonEntityDictionary) {
-        this.nonEntityDictionary = nonEntityDictionary;
+        super(nonEntityDictionary);
     }
 
     /**
@@ -181,7 +179,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
      * @param ids List of ids (can be NULL)
      * @return {@link PersistentResource} object(s)
      */
-    public ConnectionContainer fetchObject(
+    public CollectionContainer fetchObject(
             RequestScope requestScope,
             EntityProjection projection,
             Optional<List<String>> ids
@@ -211,7 +209,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
      * @param ids List of ids
      * @return persistence resource object(s)
      */
-    public Object fetchRelationship(
+    public CollectionContainer fetchRelationship(
             PersistentResource<?> parentResource,
             @NotNull Relationship relationship,
             Optional<List<String>> ids

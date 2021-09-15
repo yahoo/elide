@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  * Container representing a GraphQL "connection" object.
  */
 @AllArgsConstructor
-public class ConnectionContainer implements GraphQLContainer {
+public class ConnectionContainer implements GraphQLContainer, CollectionContainer {
     @Getter private final Set<PersistentResource> persistentResources;
     @Getter private final Optional<Pagination> pagination;
     // Refers to the type of persistentResources
