@@ -8,6 +8,7 @@ package com.yahoo.elide.extension.runtime;
 
 import com.yahoo.elide.core.utils.ClassScanner;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
+import org.jboss.logging.Logger;
 import io.quarkus.arc.runtime.BeanContainerListener;
 import io.quarkus.runtime.annotations.Recorder;
 
@@ -21,6 +22,7 @@ import java.util.function.Supplier;
 
 @Recorder
 public class ElideRecorder {
+    private static final Logger LOG = Logger.getLogger(ElideRecorder.class.getName());
 
     public static final Class[] ANNOTATIONS = {
         com.yahoo.elide.annotation.Include.class,
@@ -44,7 +46,7 @@ public class ElideRecorder {
         return new Supplier<ClassScanner>() {
             @Override
             public ClassScanner get() {
-                System.out.println("Scanning classes");
+                LOG.debug("Scanning Classes");
                 Map<String, Set<Class<?>>> cache = new HashMap<>();
                 Arrays.stream(ANNOTATIONS).forEach(annotationClass -> {
                     String key = annotationClass.getCanonicalName();

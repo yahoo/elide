@@ -21,9 +21,9 @@ import com.yahoo.elide.swagger.SwaggerBuilder;
 import com.yahoo.elide.swagger.resources.DocEndpoint;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.hibernate.Session;
+import org.jboss.logging.Logger;
 import io.quarkus.runtime.Startup;
 import io.swagger.models.Info;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
@@ -37,6 +37,8 @@ import javax.persistence.EntityManagerFactory;
 
 @ApplicationScoped
 public class ElideBeans {
+    private static final Logger LOG = Logger.getLogger(ElideBeans.class.getName());
+
     private ElideConfig config;
 
     @ConfigProperty(name = "quarkus.http.root-path")
@@ -53,7 +55,7 @@ public class ElideBeans {
     public Elide produceElide(
             DataStore store,
             EntityDictionary dictionary) {
-        System.out.println("produceElide");
+        LOG.debug("Creating Elide bean");
         ElideSettingsBuilder builder = new ElideSettingsBuilder(store)
                 .withEntityDictionary(dictionary)
                 .withDefaultMaxPageSize(config.defaultMaxPageSize)
@@ -76,7 +78,7 @@ public class ElideBeans {
     @Produces
     @ApplicationScoped
     public Injector produceInjector(BeanManager manager) {
-        System.out.println("produceInjector");
+        LOG.debug("Creating Injector bean");
         return new Injector() {
             @Override
             public void inject(Object entity) {
@@ -93,7 +95,7 @@ public class ElideBeans {
     @Produces
     @ApplicationScoped
     public EntityDictionary produceDictionary(ClassScanner scanner, Injector injector) {
-        System.out.println("produceDictionary");
+        LOG.debug("Creating EntityDictionary bean");
         return EntityDictionary.builder()
                 .scanner(scanner)
                 .injector(injector)
@@ -106,7 +108,7 @@ public class ElideBeans {
             EntityDictionary dictionary,
             EntityManagerFactory entityManagerFactory
     ) {
-        System.out.println("produceDataStore");
+        LOG.debug("Creating DataStore bean");
         final Consumer<EntityManager> txCancel = em -> em.unwrap(Session.class).cancelQuery();
 
         DataStore store = new JpaDataStore(
@@ -121,7 +123,7 @@ public class ElideBeans {
     @Named("swagger")
     @ApplicationScoped
     public List<DocEndpoint.SwaggerRegistration> buildSwagger(Elide elide) {
-        System.out.println("produceSwagger");
+        LOG.debug("Creating SwaggerRegistration bean");
 
         EntityDictionary dictionary = elide.getElideSettings().getDictionary();
 

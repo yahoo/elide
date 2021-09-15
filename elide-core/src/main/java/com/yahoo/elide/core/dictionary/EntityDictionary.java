@@ -1426,7 +1426,7 @@ public class EntityDictionary {
      * @param objClass class
      * @return True if it is a JPA entity
      */
-    public final boolean isJPAEntity(Type<?> objClass) {
+    public boolean isJPAEntity(Type<?> objClass) {
         try {
             lookupEntityClass(objClass);
             return true;

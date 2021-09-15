@@ -32,6 +32,7 @@ import org.apache.commons.logging.impl.SimpleLog;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.Type;
+import org.jboss.logging.Logger;
 import org.jboss.resteasy.plugins.server.servlet.ResteasyContextParameters;
 import graphql.schema.GraphQLSchema;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
@@ -57,6 +58,7 @@ import javax.enterprise.inject.Default;
 import javax.inject.Singleton;
 
 class ElideExtensionProcessor {
+    private static final Logger LOG = Logger.getLogger(ElideExtensionProcessor.class.getName());
 
     private static final String FEATURE = "elide-extension";
 
@@ -80,17 +82,17 @@ class ElideExtensionProcessor {
         AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder();
 
         if (config.baseJsonapi != null) {
-            System.out.println("Adding JSON-API");
+            LOG.info("Enabling JSON-API Endpoint");
             builder = builder.addBeanClass(JsonApiEndpoint.class);
         }
 
         if (config.baseGraphql != null) {
-            System.out.println("Adding GraphQL API");
+            LOG.info("Enabling GraphQL Endpoint");
             builder = builder.addBeanClass(GraphQLEndpoint.class);
         }
 
         if (config.baseSwagger != null && config.baseJsonapi != null) {
-            System.out.println("Adding Swagger API");
+            LOG.info("Enabling Swagger Endpoint");
             builder = builder.addBeanClass(DocEndpoint.class);
         }
 
@@ -183,13 +185,12 @@ class ElideExtensionProcessor {
                     Class<?> beanClass = Class.forName(classInfo.name().toString(), false,
                             Thread.currentThread().getContextClassLoader());
 
-                    //reflectionBuildItems.produce(new ReflectiveClassBuildItem(true, true, beanClass));
                     reflectionHierarchiesBuildItems.produce(new ReflectiveHierarchyBuildItem.Builder()
                             .type(convertToType(beanClass))
                             .build());
                     elideClasses.add(beanClass);
                 } catch (ClassNotFoundException e) {
-                    //TODO - logging
+                    LOG.error("Unable to load class from Jandex Index: " + classInfo.name());
                 }
             }
         });
