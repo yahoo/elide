@@ -5,12 +5,12 @@
  */
 package com.yahoo.elide.graphql.containers;
 
+import com.yahoo.elide.graphql.ElideDataFetcher;
 import com.yahoo.elide.graphql.Environment;
-import com.yahoo.elide.graphql.PersistentResourceFetcher;
 
 /**
  * Interface describing how to process GraphQL request at each step.
  */
 public interface GraphQLContainer {
-    Object processFetch(Environment context, PersistentResourceFetcher fetcher);
+    Object processFetch(Environment context, ElideDataFetcher fetcher);
 }

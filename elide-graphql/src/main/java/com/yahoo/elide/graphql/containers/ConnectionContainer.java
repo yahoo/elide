@@ -8,9 +8,9 @@ package com.yahoo.elide.graphql.containers;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.Pagination;
+import com.yahoo.elide.graphql.ElideDataFetcher;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.KeyWord;
-import com.yahoo.elide.graphql.PersistentResourceFetcher;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -29,7 +29,7 @@ public class ConnectionContainer implements GraphQLContainer, CollectionContaine
     @Getter private final String typeName;
 
     @Override
-    public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
+    public Object processFetch(Environment context, ElideDataFetcher fetcher) {
         String fieldName = context.field.getName();
 
         switch (KeyWord.byName(fieldName)) {

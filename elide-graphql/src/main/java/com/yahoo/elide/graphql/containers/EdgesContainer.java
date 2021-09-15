@@ -8,8 +8,8 @@ package com.yahoo.elide.graphql.containers;
 import static com.yahoo.elide.graphql.KeyWord.NODE;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.BadRequestException;
+import com.yahoo.elide.graphql.ElideDataFetcher;
 import com.yahoo.elide.graphql.Environment;
-import com.yahoo.elide.graphql.PersistentResourceFetcher;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -21,7 +21,7 @@ public class EdgesContainer implements PersistentResourceContainer, GraphQLConta
     @Getter private final PersistentResource persistentResource;
 
     @Override
-    public Object processFetch(Environment context, PersistentResourceFetcher fetcher) {
+    public Object processFetch(Environment context, ElideDataFetcher fetcher) {
         String fieldName = context.field.getName();
 
         // TODO: Cursor
