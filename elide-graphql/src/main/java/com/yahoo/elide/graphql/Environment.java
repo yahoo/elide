@@ -41,7 +41,7 @@ public class Environment {
     public Environment(DataFetchingEnvironment environment) {
         Map<String, Object> args = environment.getArguments();
 
-        requestScope = environment.getContext();
+        requestScope = environment.getLocalContext();
 
         filters = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_FILTER));
         offset = Optional.ofNullable((String) args.get(ModelBuilder.ARGUMENT_AFTER));
