@@ -20,14 +20,9 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
 import com.yahoo.elide.graphql.containers.MapEntryContainer;
 import com.google.common.collect.Sets;
-import org.apache.commons.collections4.CollectionUtils;
-import graphql.language.Field;
-import graphql.language.FragmentSpread;
 import graphql.language.OperationDefinition;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.GraphQLNamedType;
-import graphql.schema.GraphQLType;
 import io.reactivex.Observable;
 import lombok.extern.slf4j.Slf4j;
 
