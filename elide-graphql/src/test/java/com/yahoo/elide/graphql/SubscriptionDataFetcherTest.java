@@ -27,6 +27,7 @@ import com.yahoo.elide.graphql.subscriptions.SubscriptionDataFetcher;
 import com.yahoo.elide.graphql.subscriptions.SubscriptionModelBuilder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import example.Address;
 import example.Author;
 import example.Book;
 import org.junit.jupiter.api.BeforeEach;
@@ -125,6 +126,31 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
     }
 
     @Test
+    void testComplexAttribute() {
+        Author author1 = new Author();
+        author1.setId(1L);
+        author1.setHomeAddress(new Address());
+
+        Author author2 = new Author();
+        author2.setId(2L);
+        Address address = new Address();
+        address.setStreet1("123");
+        address.setStreet2("XYZ");
+        author2.setHomeAddress(address);
+
+        when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(author1, author2));
+
+        List<String> responses = List.of(
+                "{\"authorUpdated\":{\"id\":\"1\",\"homeAddress\":{\"street1\":null,\"street2\":null}}}",
+                "{\"authorUpdated\":{\"id\":\"2\",\"homeAddress\":{\"street1\":\"123\",\"street2\":\"XYZ\"}}}"
+        );
+
+        String graphQLRequest = "subscription {authorUpdated {id homeAddress { street1 street2 }}}";
+
+        assertSubscriptionEquals(graphQLRequest, responses);
+    }
+
+    @Test
     void testRelationshipSubscription() {
         Book book1 = new Book();
         book1.setTitle("Book 1");
@@ -170,7 +196,7 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
     }
 
     @Test
-    void testErrorInSubscription() {
+    void testErrorInSubscriptionStream() {
         Book book1 = new Book();
         book1.setTitle("Book 1");
         book1.setId(1);
@@ -189,6 +215,26 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         );
 
         List<String> errors = List.of("Bad Request", "Bad Request");
+
+        String graphQLRequest = "subscription {bookAdded {id title}}";
+
+        assertSubscriptionEquals(graphQLRequest, responses, errors);
+    }
+
+    @Test
+    void testErrorBeforeStream() {
+        Book book1 = new Book();
+        book1.setTitle("Book 1");
+        book1.setId(1);
+
+        Book book2 = new Book();
+        book2.setTitle("Book 2");
+        book2.setId(2);
+
+        when(dataStoreTransaction.loadObjects(any(), any())).thenThrow(new BadRequestException("Bad Request"));
+
+        List<String> responses = List.of("null");
+        List<String> errors = List.of("Bad Request");
 
         String graphQLRequest = "subscription {bookAdded {id title}}";
 
@@ -244,6 +290,10 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         Publisher<ExecutionResult> resultPublisher = executionResult.getData();
 
         requestScope.getTransaction().commit(requestScope);
+
+        if (resultPublisher == null) {
+            return List.of(executionResult);
+        }
 
         List<ExecutionResult> results = new ArrayList<>();
         AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
