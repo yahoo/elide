@@ -48,7 +48,7 @@ import javax.validation.constraints.NotNull;
  * Invoked by GraphQL Java to fetch/mutate data from Elide.
  */
 @Slf4j
-public class PersistentResourceFetcher implements DataFetcher<Object> {
+public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogger {
     private final NonEntityDictionary nonEntityDictionary;
 
     public PersistentResourceFetcher(NonEntityDictionary nonEntityDictionary) {
@@ -74,7 +74,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
 
         /* safe enable debugging */
         if (log.isDebugEnabled()) {
-            logContext(operation, context);
+            logContext(log, operation, context);
         }
 
         if (operation != RelationshipOp.FETCH) {
@@ -119,41 +119,6 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         if (environment.filters.isPresent() || environment.sort.isPresent() || environment.offset.isPresent()
                 || environment.first.isPresent()) {
             throw new BadRequestException("Pagination/Filtering/Sorting is only supported with FETCH operation");
-        }
-    }
-
-    /**
-     * log current context for debugging.
-     * @param operation Current operation
-     * @param environment Environment encapsulating graphQL's request environment
-     */
-    private void logContext(RelationshipOp operation, Environment environment) {
-        List<?> children = (environment.field.getSelectionSet() != null)
-                ? (List) environment.field.getSelectionSet().getChildren()
-                : new ArrayList<>();
-        List<String> fieldName = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(children)) {
-            children.stream().forEach(i -> {
-                if (i.getClass().equals(Field.class)) {
-                    fieldName.add(((Field) i).getName());
-                } else if (i.getClass().equals(FragmentSpread.class)) {
-                    fieldName.add(((FragmentSpread) i).getName());
-                } else {
-                    log.debug("A new type of Selection, other than Field and FragmentSpread was encountered, {}",
-                            i.getClass());
-                }
-            });
-        }
-
-        String requestedFields = environment.field.getName() + fieldName;
-
-        GraphQLType parent = environment.parentType;
-        if (log.isDebugEnabled()) {
-            String typeName = (parent instanceof GraphQLNamedType)
-                    ? ((GraphQLNamedType) parent).getName()
-                    : parent.toString();
-            log.debug("{} {} fields with parent {}<{}>", operation, requestedFields,
-                    EntityDictionary.getSimpleName(EntityDictionary.getType(parent)), typeName);
         }
     }
 

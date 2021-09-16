@@ -10,6 +10,8 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.NonEntityDictionary;
+import com.yahoo.elide.graphql.QueryLogger;
+import com.yahoo.elide.graphql.RelationshipOp;
 import com.yahoo.elide.graphql.subscriptions.containers.SubscriptionNodeContainer;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -23,7 +25,7 @@ import java.util.ArrayList;
  * Data Fetcher which fetches Elide subscription models.
  */
 @Slf4j
-public class SubscriptionDataFetcher implements DataFetcher<Object> {
+public class SubscriptionDataFetcher implements DataFetcher<Object>, QueryLogger {
 
     private final NonEntityDictionary nonEntityDictionary;
     private final Integer bufferSize;
@@ -53,7 +55,7 @@ public class SubscriptionDataFetcher implements DataFetcher<Object> {
 
         /* safe enable debugging */
         if (log.isDebugEnabled()) {
-            //TODO refactor logging for common logging.
+            logContext(log, RelationshipOp.FETCH, context);
         }
 
         if (context.isRoot()) {
