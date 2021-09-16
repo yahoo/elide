@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  */
 @AllArgsConstructor
 public class NodeContainer implements PersistentResourceContainer, GraphQLContainer {
-    @Getter private final PersistentResource persistentResource;
+    @Getter protected final PersistentResource persistentResource;
 
     @Override
     public Object processFetch(Environment context) {
@@ -78,12 +78,16 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
                                 + context.parentResource.getTypeName() + "." + fieldName);
             }
 
-            return PersistentResourceFetcher.fetchRelationship(context.parentResource, relationship, context.ids);
+            return fetchRelationship(context, relationship);
         }
         if (Objects.equals(idFieldName, fieldName)) {
             return new DeferredId(context.parentResource);
         }
         throw new BadRequestException("Unrecognized object: " + fieldName + " for: "
                 + parentClass.getName() + " in node");
+    }
+
+    protected Object fetchRelationship(Environment context, Relationship relationship) {
+        return PersistentResourceFetcher.fetchRelationship(context.parentResource, relationship, context.ids);
     }
 }

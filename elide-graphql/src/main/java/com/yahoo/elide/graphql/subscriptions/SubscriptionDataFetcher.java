@@ -10,7 +10,7 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.NonEntityDictionary;
-import com.yahoo.elide.graphql.containers.NodeContainer;
+import com.yahoo.elide.graphql.subscriptions.containers.SubscriptionNodeContainer;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import io.reactivex.BackpressureStrategy;
@@ -68,7 +68,7 @@ public class SubscriptionDataFetcher implements DataFetcher<Object> {
                             .toFlowable(BackpressureStrategy.BUFFER)
                             .onBackpressureBuffer(bufferSize, true, false);
 
-            return recordPublisher.map(NodeContainer::new);
+            return recordPublisher.map(SubscriptionNodeContainer::new);
         }
 
         //If this is not the root, instead of retuning a reactive publisher, we process same

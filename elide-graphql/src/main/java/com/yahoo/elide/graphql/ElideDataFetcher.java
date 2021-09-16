@@ -10,20 +10,12 @@ import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.request.EntityProjection;
 import com.yahoo.elide.core.request.Relationship;
-import com.yahoo.elide.graphql.containers.GraphQLContainer;
-import lombok.Getter;
 
 import java.util.List;
 import java.util.Optional;
 import javax.validation.constraints.NotNull;
 
-public abstract class ElideDataFetcher {
-    @Getter
-    NonEntityDictionary nonEntityDictionary;
-
-    public ElideDataFetcher(NonEntityDictionary nonEntityDictionary) {
-        this.nonEntityDictionary = nonEntityDictionary;
-    }
+public interface ElideDataFetcher<T> {
 
     /**
      * Fetches a relationship for a top-level entity.
@@ -33,10 +25,11 @@ public abstract class ElideDataFetcher {
      * @param ids            List of ids
      * @return persistence resource object(s)
      */
-    public abstract GraphQLContainer fetchRelationship(
+    T fetchRelationship(
             PersistentResource<?> parentResource,
             @NotNull Relationship relationship,
-            Optional<List<String>> ids);
+            Optional<List<String>> ids
+    );
 
     /**
      * Fetches a root-level entity.
@@ -45,7 +38,7 @@ public abstract class ElideDataFetcher {
      * @param ids List of ids (can be NULL)
      * @return {@link PersistentResource} object(s)
      */
-    public abstract GraphQLContainer fetchObject(
+    T fetchObject(
             RequestScope requestScope,
             EntityProjection projection,
             Optional<List<String>> ids

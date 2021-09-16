@@ -25,6 +25,7 @@ import com.yahoo.elide.graphql.subscriptions.SubscriptionDataFetcher;
 import com.yahoo.elide.graphql.subscriptions.SubscriptionModelBuilder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import example.Author;
 import example.Book;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -88,7 +89,7 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
     }
 
     @BeforeEach
-    public void clearTestData() {
+    public void resetMocks() {
         reset(dataStore);
         reset(dataStoreTransaction);
         when(dataStore.beginTransaction()).thenReturn(dataStoreTransaction);
@@ -98,7 +99,7 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
     }
 
     @Test
-    void testSubscription() {
+    void testRootSubscription() {
         Book book1 = new Book();
         book1.setTitle("Book 1");
         book1.setId(1);
@@ -116,11 +117,39 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
 
         String graphQLRequest = "subscription {bookAdded {id title}}";
 
-        assertQueryEquals(graphQLRequest, responses);
+        assertSubscriptionEquals(graphQLRequest, responses);
     }
 
-    protected void assertQueryEquals(String graphQLRequest, List<String> expectedResponses) {
-        List<ExecutionResult> results = runSubscriptionQuery(graphQLRequest);
+    @Test
+    void testRelationshipSubscription() {
+        Book book1 = new Book();
+        book1.setTitle("Book 1");
+        book1.setId(1);
+        Author author1 = new Author();
+        author1.setName("John Doe");
+
+        Author author2 = new Author();
+        author1.setName("Jane Doe");
+        book1.setAuthors(List.of(author1, author2));
+
+        Book book2 = new Book();
+        book2.setTitle("Book 2");
+        book2.setId(2);
+
+        when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(book1, book2));
+
+        List<String> responses = List.of(
+                "{\"bookAdded\":{\"id\":\"1\",\"title\":\"Book 1\",\"authors\":[{\"name\":\"Jane Doe\"},{\"name\":null}]}}",
+                "{\"bookAdded\":{\"id\":\"2\",\"title\":\"Book 2\",\"authors\":[]}}"
+        );
+
+        String graphQLRequest = "subscription {bookAdded {id title authors { name }}}";
+
+        assertSubscriptionEquals(graphQLRequest, responses);
+    }
+
+    protected void assertSubscriptionEquals(String graphQLRequest, List<String> expectedResponses) {
+        List<ExecutionResult> results = runSubscription(graphQLRequest);
 
         assertEquals(expectedResponses.size(), results.size());
 
@@ -140,7 +169,7 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         }
     }
 
-    protected List<ExecutionResult> runSubscriptionQuery(String request) {
+    protected List<ExecutionResult> runSubscription(String request) {
         DataStoreTransaction tx = dataStore.beginTransaction();
         GraphQLProjectionInfo projectionInfo =
                 new SubscriptionEntityProjectionMaker(settings, new HashMap<>(), NO_VERSION).make(request);
