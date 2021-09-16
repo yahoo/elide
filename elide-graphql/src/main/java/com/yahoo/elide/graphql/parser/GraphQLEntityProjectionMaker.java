@@ -128,6 +128,11 @@ public class GraphQLEntityProjectionMaker {
                 // Operations would be converted into EntityProjection tree
                 OperationDefinition operationDefinition = (OperationDefinition) definition;
 
+                //Only allow supported operations.
+                if (! supportsOperationType(operationDefinition.getOperation())) {
+                    return;
+                }
+
                 // resolve variable definitions in this operation
                 variableResolver.newScope(operationDefinition);
 
@@ -576,5 +581,12 @@ public class GraphQLEntityProjectionMaker {
 
     protected Type<?> getRootEntity(String entityName, String apiVersion) {
         return entityDictionary.getEntityClass(entityName, apiVersion);
+    }
+
+    protected boolean supportsOperationType(OperationDefinition.Operation operation) {
+        if (operation != OperationDefinition.Operation.SUBSCRIPTION) {
+            return true;
+        }
+        return false;
     }
 }

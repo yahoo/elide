@@ -9,6 +9,8 @@ package com.yahoo.elide.graphql.parser;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.type.Type;
 
+import graphql.language.OperationDefinition;
+
 import java.util.Map;
 
 public class SubscriptionEntityProjectionMaker extends GraphQLEntityProjectionMaker {
@@ -19,6 +21,7 @@ public class SubscriptionEntityProjectionMaker extends GraphQLEntityProjectionMa
         super(elideSettings, variables, apiVersion);
     }
 
+    @Override
     protected Type<?> getRootEntity(String entityName, String apiVersion) {
         String [] suffixes = {"Added", "Deleted", "Updated"};
 
@@ -30,5 +33,13 @@ public class SubscriptionEntityProjectionMaker extends GraphQLEntityProjectionMa
         }
 
         return entityDictionary.getEntityClass(entityName, apiVersion);
+    }
+
+    @Override
+    protected boolean supportsOperationType(OperationDefinition.Operation operation) {
+        if (operation != OperationDefinition.Operation.MUTATION) {
+            return true;
+        }
+        return false;
     }
 }
