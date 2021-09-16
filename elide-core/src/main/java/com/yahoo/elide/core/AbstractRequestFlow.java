@@ -1,3 +1,9 @@
+/*
+ * Copyright 2021, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+
 package com.yahoo.elide.core;
 
 import com.yahoo.elide.ElideSettings;
@@ -11,30 +17,30 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 @Slf4j
-public abstract class AbstractRequestFlow<T> {
+public abstract class AbstractRequestFlow<QueryResult, QueryToken> {
     protected ElideSettings settings;
 
-    AbstractRequestFlow(ElideSettings settings) {
+    public AbstractRequestFlow(ElideSettings settings) {
         this.settings = settings;
 
         //TODO - Grab isVerbose from ElideSettings instead of request scope.
     }
 
-    T processRequest(
+    public QueryResult processRequest(
             AuditLogger auditLogger,
             TransactionRegistry transactionRegistry,
             boolean isReadOnly,
             User user,
             Supplier<DataStoreTransaction> transaction,
             UUID requestId,
-            QueryRunner<T> runner,
-            ExceptionHandler<T> errorHandler
+            RequestScopeFactory requestScopeMaker,
+            QueryRunner<QueryToken> queryRunner
     ) {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = transaction.get()) {
             transactionRegistry.addRunningTransaction(requestId, tx);
-            RequestScope requestScope = createRequestScope(tx);
-            T result = runner.runQuery(user, requestScope, tx);
+            RequestScope requestScope = requestScopeMaker.create(tx);
+            QueryToken token = queryRunner.runQuery(user, requestScope, tx);
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
             tx.preCommit(requestScope);
             requestScope.runQueuedPreSecurityTriggers();
@@ -47,6 +53,8 @@ public abstract class AbstractRequestFlow<T> {
 
             requestScope.runQueuedPreCommitTriggers();
 
+            QueryResult result = completeQuery(token);
+
             auditLogger.commit();
             tx.commit(requestScope);
             requestScope.runQueuedPostCommitTriggers();
@@ -57,22 +65,23 @@ public abstract class AbstractRequestFlow<T> {
 
             return result;
         } catch (Exception e) {
-            return errorHandler.handleError(user, e, isVerbose);
+            return handleError(user, e, isVerbose);
         } finally {
             transactionRegistry.removeRunningTransaction(requestId);
             auditLogger.clear();
         }
     }
 
-    protected abstract RequestScope createRequestScope(DataStoreTransaction tx);
+    protected abstract QueryResult completeQuery(QueryToken token);
+    protected abstract QueryResult handleError(User user, Exception e, boolean isVerbose);
 
     @FunctionalInterface
-    public interface QueryRunner<T> {
-        T runQuery(User user, RequestScope scope, DataStoreTransaction tx);
+    public interface QueryRunner<QueryToken> {
+        public QueryToken runQuery(User user, RequestScope scope, DataStoreTransaction tx);
     }
 
     @FunctionalInterface
-    public interface ExceptionHandler<T> {
-        T handleError(User user, Exception e, boolean isVerbose);
+    public interface RequestScopeFactory {
+        public RequestScope create(DataStoreTransaction tx);
     }
 }

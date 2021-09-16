@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide;
 
+import com.yahoo.elide.core.AbstractRequestFlow;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.TransactionRegistry;
 import com.yahoo.elide.core.audit.AuditLogger;
@@ -70,7 +71,7 @@ import javax.ws.rs.core.MultivaluedMap;
  * REST Entry point handler.
  */
 @Slf4j
-public class Elide {
+public class Elide extends AbstractRequestFlow<ElideResponse, Elide.HandlerResult> {
     public static final String JSONAPI_CONTENT_TYPE = "application/vnd.api+json";
     public static final String JSONAPI_CONTENT_TYPE_WITH_JSON_PATCH_EXTENSION =
             "application/vnd.api+json; ext=jsonpatch";
@@ -92,6 +93,21 @@ public class Elide {
         this(elideSettings, elideSettings.getDictionary().getScanner());
     }
 
+    @Override
+    protected ElideResponse completeQuery(Elide.HandlerResult token) {
+        Supplier<Pair<Integer, JsonNode>> responder = token.getResponder();
+        return buildResponse(responder.get());
+    }
+
+    @Override
+    protected ElideResponse handleError(User user, Exception e, boolean isVerbose) {
+        if (e instanceof IOException) {
+            log.error("IO Exception uncaught by Elide", e);
+            return buildErrorResponse(new TransactionException(e), isVerbose);
+        }
+        return handleRuntimeException((RuntimeException) e, isVerbose);
+    }
+
     /**
      * Instantiates a new Elide instance.
      *
@@ -99,6 +115,7 @@ public class Elide {
      * @param scanner Scans classes for Elide annotations.
      */
     public Elide(ElideSettings elideSettings, ClassScanner scanner) {
+        super(elideSettings);
         this.elideSettings = elideSettings;
         this.scanner = scanner;
         this.auditLogger = elideSettings.getAuditLogger();
@@ -215,15 +232,32 @@ public class Elide {
                 return buildErrorResponse(e, false);
             }
         }
-        return handleRequest(true, opaqueUser, dataStore::beginReadTransaction, requestId, (tx, user) -> {
-            JsonApiDocument jsonApiDoc = new JsonApiDocument();
+
+        JsonApiDocument jsonApiDoc = new JsonApiDocument();
+
+        RequestScopeFactory requestScopeFactory = (tx) -> {
             RequestScope requestScope = new RequestScope(baseUrlEndPoint, path, apiVersion, jsonApiDoc,
-                    tx, user, queryParams, requestHeaders, requestId, elideSettings);
+                    tx, opaqueUser, queryParams, requestHeaders, requestId, elideSettings);
             requestScope.setEntityProjection(new EntityProjectionMaker(elideSettings.getDictionary(),
                     requestScope).parsePath(path));
+
+            return requestScope;
+        };
+
+        QueryRunner queryRunner = (user, requestScope, tx) -> {
             BaseVisitor visitor = new GetVisitor(requestScope);
             return visit(path, requestScope, visitor);
-        });
+        };
+
+        return processRequest(
+                auditLogger,
+                transactionRegistry,
+                true,
+                opaqueUser,
+                dataStore::beginReadTransaction,
+                requestId,
+                requestScopeFactory,
+                queryRunner);
     }
 
     /**
@@ -463,6 +497,7 @@ public class Elide {
     protected ElideResponse handleRequest(boolean isReadOnly, User user,
                                           Supplier<DataStoreTransaction> transaction, UUID requestId,
                                           Handler<DataStoreTransaction, User, HandlerResult> handler) {
+
         boolean isVerbose = false;
         try (DataStoreTransaction tx = transaction.get()) {
             transactionRegistry.addRunningTransaction(requestId, tx);
