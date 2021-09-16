@@ -199,7 +199,7 @@ public abstract class PersistentResourceFetcherTest extends GraphQLTest {
 
         ExecutionInput executionInput = ExecutionInput.newExecutionInput()
                 .query(graphQLRequest)
-                .context(requestScope)
+                .localContext(requestScope)
                 .variables(variables)
                 .build();
 

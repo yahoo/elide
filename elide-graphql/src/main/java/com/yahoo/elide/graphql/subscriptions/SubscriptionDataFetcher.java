@@ -13,12 +13,14 @@ import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.graphql.ElideDataFetcher;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.NonEntityDictionary;
+import com.yahoo.elide.graphql.containers.NodeContainer;
 import com.yahoo.elide.graphql.subscriptions.containers.SubscriptionCollectionContainer;
 import org.reactivestreams.Publisher;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
+import io.reactivex.Single;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -29,7 +31,7 @@ import java.util.Optional;
  * Data Fetcher which fetches Elide subscription models.
  */
 @Slf4j
-public class SubscriptionDataFetcher extends ElideDataFetcher implements DataFetcher<Publisher<Object>> {
+public class SubscriptionDataFetcher extends ElideDataFetcher implements DataFetcher<Object> {
 
     private final Integer bufferSize;
 
@@ -52,7 +54,7 @@ public class SubscriptionDataFetcher extends ElideDataFetcher implements DataFet
     }
 
     @Override
-    public Publisher<Object> get(DataFetchingEnvironment environment) throws Exception {
+    public Object get(DataFetchingEnvironment environment) throws Exception {
         /* build environment object, extracts required fields */
         Environment context = new Environment(environment);
 
@@ -61,8 +63,24 @@ public class SubscriptionDataFetcher extends ElideDataFetcher implements DataFet
             //TODO refactor logging for common logging.
         }
 
+        if (context.isRoot()) {
+            String entityName = context.field.getName();
+            String aliasName = context.field.getAlias();
+            EntityProjection projection = context.requestScope
+                    .getProjectionInfo()
+                    .getProjection(aliasName, entityName);
+
+            Flowable<PersistentResource> recordPublisher =
+                    PersistentResource.loadRecords(projection, new ArrayList<>(), context.requestScope)
+                            .toFlowable(BackpressureStrategy.BUFFER)
+                            .onBackpressureBuffer(bufferSize, true, false);
+
+            return recordPublisher.map(NodeContainer::new);
+        }
+
         // Process fetch object for this container
-        return (Publisher<Object>) context.container.processFetch(context, this);
+        //return Flowable.fromArray(context.container.processFetch(context, this));
+        return context.container.processFetch(context, this);
     }
 
     @Override
@@ -88,6 +106,7 @@ public class SubscriptionDataFetcher extends ElideDataFetcher implements DataFet
                 PersistentResource.loadRecords(projection, new ArrayList<>(), requestScope)
                         .toFlowable(BackpressureStrategy.BUFFER)
                         .onBackpressureBuffer(bufferSize, true, false);
+
 
         return new SubscriptionCollectionContainer(recordPublisher);
     }

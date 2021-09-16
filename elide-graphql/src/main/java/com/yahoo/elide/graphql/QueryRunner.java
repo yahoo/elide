@@ -262,7 +262,7 @@ public class QueryRunner {
             // the "variables" section of your query. Variable values are not logged.
             log.info("Processing GraphQL query:\n{}", query);
 
-            ExecutionInput.Builder executionInput = new ExecutionInput.Builder().context(requestScope).query(query);
+            ExecutionInput.Builder executionInput = new ExecutionInput.Builder().localContext(requestScope).query(query);
 
             String operationName = extractOperation(jsonDocument);
 

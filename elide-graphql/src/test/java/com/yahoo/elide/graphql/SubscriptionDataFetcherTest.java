@@ -6,10 +6,6 @@
 package com.yahoo.elide.graphql;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
-import static com.yahoo.elide.test.graphql.GraphQLDSL.document;
-import static com.yahoo.elide.test.graphql.GraphQLDSL.field;
-import static com.yahoo.elide.test.graphql.GraphQLDSL.selections;
-import static com.yahoo.elide.test.graphql.GraphQLDSL.subscription;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,7 +19,6 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
-import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.graphql.parser.SubscriptionEntityProjectionMaker;
 import com.yahoo.elide.graphql.subscriptions.SubscriptionDataFetcher;
@@ -88,7 +83,7 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
                 new SubscriptionDataFetcher(nonEntityDictionary), NO_VERSION);
 
         api = GraphQL.newGraphQL(builder.build())
-                .queryExecutionStrategy(new SubscriptionExecutionStrategy())
+                .subscriptionExecutionStrategy(new SubscriptionExecutionStrategy())
                 .build();
     }
 
@@ -98,6 +93,8 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         reset(dataStoreTransaction);
         when(dataStore.beginTransaction()).thenReturn(dataStoreTransaction);
         when(dataStore.beginReadTransaction()).thenReturn(dataStoreTransaction);
+        when(dataStoreTransaction.getAttribute(any(), any(), any())).thenCallRealMethod();
+        when(dataStoreTransaction.getRelation(any(), any(), any(), any())).thenCallRealMethod();
     }
 
     @Test
@@ -107,14 +104,14 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         book1.setId(1);
 
         Book book2 = new Book();
-        book2.setTitle("Book 1");
-        book2.setId(1);
+        book2.setTitle("Book 2");
+        book2.setId(2);
 
         when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(book1, book2));
 
         List<String> responses = List.of(
-                "",
-                ""
+                "{\"bookAdded\":{\"id\":\"1\",\"title\":\"Book 1\"}}",
+                "{\"bookAdded\":{\"id\":\"2\",\"title\":\"Book 2\"}}"
         );
 
         String graphQLRequest = "subscription {bookAdded {id title}}";
