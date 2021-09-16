@@ -7,7 +7,6 @@ package com.yahoo.elide.graphql.containers;
 
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.BadRequestException;
-import com.yahoo.elide.graphql.ElideDataFetcher;
 import com.yahoo.elide.graphql.Entity;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.NonEntityDictionary;
@@ -35,8 +34,8 @@ public class MapEntryContainer implements GraphQLContainer {
     }
 
     @Override
-    public Object processFetch(Environment context, ElideDataFetcher fetcher) {
-        NonEntityDictionary nonEntityDictionary = fetcher.getNonEntityDictionary();
+    public Object processFetch(Environment context) {
+        NonEntityDictionary nonEntityDictionary = context.nonEntityDictionary;
         String fieldName = context.field.getName();
 
         Object returnObject;

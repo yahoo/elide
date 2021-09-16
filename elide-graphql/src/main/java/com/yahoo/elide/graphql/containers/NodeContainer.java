@@ -12,9 +12,9 @@ import com.yahoo.elide.core.request.Attribute;
 import com.yahoo.elide.core.request.Relationship;
 import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.DeferredId;
-import com.yahoo.elide.graphql.ElideDataFetcher;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.NonEntityDictionary;
+import com.yahoo.elide.graphql.PersistentResourceFetcher;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -31,9 +31,9 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
     @Getter private final PersistentResource persistentResource;
 
     @Override
-    public Object processFetch(Environment context, ElideDataFetcher fetcher) {
+    public Object processFetch(Environment context) {
         EntityDictionary entityDictionary = context.requestScope.getDictionary();
-        NonEntityDictionary nonEntityDictionary = fetcher.getNonEntityDictionary();
+        NonEntityDictionary nonEntityDictionary = context.nonEntityDictionary;
 
         Type parentClass = context.parentResource.getResourceType();
         String fieldName = context.field.getName();
@@ -78,7 +78,7 @@ public class NodeContainer implements PersistentResourceContainer, GraphQLContai
                                 + context.parentResource.getTypeName() + "." + fieldName);
             }
 
-            return fetcher.fetchRelationship(context.parentResource, relationship, context.ids);
+            return PersistentResourceFetcher.fetchRelationship(context.parentResource, relationship, context.ids);
         }
         if (Objects.equals(idFieldName, fieldName)) {
             return new DeferredId(context.parentResource);

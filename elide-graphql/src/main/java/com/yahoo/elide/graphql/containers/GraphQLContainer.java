@@ -5,7 +5,6 @@
  */
 package com.yahoo.elide.graphql.containers;
 
-import com.yahoo.elide.graphql.ElideDataFetcher;
 import com.yahoo.elide.graphql.Environment;
 
 /**
@@ -13,5 +12,5 @@ import com.yahoo.elide.graphql.Environment;
  * @param <T> The type returned by the container.
  */
 public interface GraphQLContainer<T> {
-    T processFetch(Environment context, ElideDataFetcher fetcher);
+    T processFetch(Environment context);
 }

@@ -8,7 +8,6 @@ package com.yahoo.elide.graphql.containers;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.request.Pagination;
-import com.yahoo.elide.graphql.ElideDataFetcher;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.KeyWord;
 import lombok.Getter;
@@ -28,7 +27,7 @@ public class PageInfoContainer implements GraphQLContainer {
     }
 
     @Override
-    public Object processFetch(Environment context, ElideDataFetcher fetcher) {
+    public Object processFetch(Environment context) {
         String fieldName = context.field.getName();
         ConnectionContainer connectionContainer = getConnectionContainer();
         Optional<Pagination> pagination = connectionContainer.getPagination();

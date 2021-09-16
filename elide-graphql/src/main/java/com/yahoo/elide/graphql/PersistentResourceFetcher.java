@@ -48,10 +48,11 @@ import javax.validation.constraints.NotNull;
  * Invoked by GraphQL Java to fetch/mutate data from Elide.
  */
 @Slf4j
-public class PersistentResourceFetcher extends ElideDataFetcher implements DataFetcher<Object> {
+public class PersistentResourceFetcher implements DataFetcher<Object> {
+    private final NonEntityDictionary nonEntityDictionary;
 
     public PersistentResourceFetcher(NonEntityDictionary nonEntityDictionary) {
-        super(nonEntityDictionary);
+        this.nonEntityDictionary = nonEntityDictionary;
     }
 
     /**
@@ -69,7 +70,7 @@ public class PersistentResourceFetcher extends ElideDataFetcher implements DataF
         RelationshipOp operation = (RelationshipOp) args.getOrDefault(ARGUMENT_OPERATION, RelationshipOp.FETCH);
 
         /* build environment object, extracts required fields */
-        Environment context = new Environment(environment);
+        Environment context = new Environment(environment, nonEntityDictionary);
 
         /* safe enable debugging */
         if (log.isDebugEnabled()) {
@@ -168,7 +169,7 @@ public class PersistentResourceFetcher extends ElideDataFetcher implements DataF
         }
 
         // Process fetch object for this container
-        return context.container.processFetch(context, this);
+        return context.container.processFetch(context);
     }
 
     /**
@@ -178,7 +179,7 @@ public class PersistentResourceFetcher extends ElideDataFetcher implements DataF
      * @param ids List of ids (can be NULL)
      * @return {@link PersistentResource} object(s)
      */
-    public ConnectionContainer fetchObject(
+    public static ConnectionContainer fetchObject(
             RequestScope requestScope,
             EntityProjection projection,
             Optional<List<String>> ids
@@ -208,7 +209,7 @@ public class PersistentResourceFetcher extends ElideDataFetcher implements DataF
      * @param ids List of ids
      * @return persistence resource object(s)
      */
-    public ConnectionContainer fetchRelationship(
+    public static ConnectionContainer fetchRelationship(
             PersistentResource<?> parentResource,
             @NotNull Relationship relationship,
             Optional<List<String>> ids
@@ -557,7 +558,7 @@ public class PersistentResourceFetcher extends ElideDataFetcher implements DataF
         }
 
         ConnectionContainer existingObjects =
-                (ConnectionContainer) context.container.processFetch(context, this);
+                (ConnectionContainer) context.container.processFetch(context);
         ConnectionContainer upsertedObjects = upsertObjects(context);
         Set<PersistentResource> toDelete =
                 Sets.difference(existingObjects.getPersistentResources(), upsertedObjects.getPersistentResources());
