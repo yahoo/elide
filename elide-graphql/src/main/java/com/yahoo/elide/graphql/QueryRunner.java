@@ -7,6 +7,9 @@ package com.yahoo.elide.graphql;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
+import com.yahoo.elide.core.AbstractRequestFlow;
+import com.yahoo.elide.core.TransactionRegistry;
+import com.yahoo.elide.core.audit.AuditLogger;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.dictionary.EntityDictionary;
 import com.yahoo.elide.core.exceptions.CustomErrorException;
@@ -42,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.validation.ConstraintViolation;
@@ -53,7 +57,7 @@ import javax.ws.rs.core.Response;
  * Entry point for REST endpoints to execute GraphQL queries.
  */
 @Slf4j
-public class QueryRunner {
+public class QueryRunner extends AbstractRequestFlow<ElideResponse, ExecutionResult> {
     private final Elide elide;
     private GraphQL api;
     private String apiVersion;
@@ -68,6 +72,7 @@ public class QueryRunner {
      * @param elide The singular elide instance for this service.
      */
     public QueryRunner(Elide elide, String apiVersion) {
+        super(elide.getElideSettings());
         this.elide = elide;
         this.apiVersion = apiVersion;
 
@@ -421,5 +426,20 @@ public class QueryRunner {
                 .responseCode(error.getStatus())
                 .body(errorBody)
                 .build();
+    }
+
+    @Override
+    public ElideResponse processRequest(AuditLogger auditLogger, TransactionRegistry transactionRegistry, boolean isReadOnly, User user, Supplier<DataStoreTransaction> transaction, UUID requestId, RequestScopeFactory requestScopeMaker, QueryRunner<ExecutionResult> queryRunner) {
+        return super.processRequest(auditLogger, transactionRegistry, isReadOnly, user, transaction, requestId, requestScopeMaker, queryRunner);
+    }
+
+    @Override
+    protected ElideResponse completeQuery(ExecutionResult executionResult) {
+        return null;
+    }
+
+    @Override
+    protected ElideResponse handleError(User user, Exception e, boolean isVerbose) {
+        return null;
     }
 }

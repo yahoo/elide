@@ -46,6 +46,9 @@ public abstract class AbstractRequestFlow<QueryResult, QueryToken> {
             requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
             if (!isReadOnly) {
+
+                //This will throw an exception if there is a problem prior to writing.
+                validateBeforeWrite(token);
                 requestScope.saveOrCreateObjects();
             }
             requestScope.runQueuedPreFlushTriggers();
@@ -74,6 +77,10 @@ public abstract class AbstractRequestFlow<QueryResult, QueryToken> {
 
     protected abstract QueryResult completeQuery(QueryToken token);
     protected abstract QueryResult handleError(User user, Exception e, boolean isVerbose);
+
+    protected void validateBeforeWrite(QueryToken token) {
+        //NOOP
+    }
 
     @FunctionalInterface
     public interface QueryRunner<QueryToken> {
