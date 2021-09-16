@@ -179,7 +179,7 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
     }
 
     @Test
-    void testSchemaQuery() {
+    void testSchemaSubscription() {
         String graphQLRequest =
                 "{"
                         + "__schema {"
@@ -189,10 +189,7 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
                         + "}"
                         + "}";
 
-        ExecutionResult result = runQuery(graphQLRequest);
-
-        assertTrue(result.getErrors().isEmpty());
-        assertTrue(result.getData().toString().contains("[{name=Author}"));
+        assertSubscriptionEquals(graphQLRequest, List.of("{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]}}\n"));
     }
 
     @Test
@@ -292,6 +289,11 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
                 .build();
 
         ExecutionResult executionResult = api.execute(executionInput);
+
+        if (! (executionResult.getData() instanceof Publisher)) {
+            return List.of(executionResult);
+        }
+
         Publisher<ExecutionResult> resultPublisher = executionResult.getData();
 
         requestScope.getTransaction().commit(requestScope);
@@ -329,18 +331,5 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         });
 
         return results;
-    }
-
-    /**
-     * Runs a schema query (not a subscription)
-     * @param request The GraphQL request.
-     * @return The result.
-     */
-    protected ExecutionResult runQuery(String request) {
-        ExecutionInput executionInput = ExecutionInput.newExecutionInput()
-                .query(request)
-                .build();
-
-        return api.execute(executionInput);
     }
 }
