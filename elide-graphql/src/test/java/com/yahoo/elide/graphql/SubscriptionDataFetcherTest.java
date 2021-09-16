@@ -7,6 +7,7 @@ package com.yahoo.elide.graphql;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -16,6 +17,7 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
@@ -38,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
+import graphql.execution.AsyncSerialExecutionStrategy;
 import graphql.execution.SubscriptionExecutionStrategy;
 
 import java.util.ArrayList;
@@ -84,6 +87,7 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
                 new SubscriptionDataFetcher(nonEntityDictionary), NO_VERSION);
 
         api = GraphQL.newGraphQL(builder.build())
+                .queryExecutionStrategy(new AsyncSerialExecutionStrategy())
                 .subscriptionExecutionStrategy(new SubscriptionExecutionStrategy())
                 .build();
     }
@@ -148,21 +152,77 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         assertSubscriptionEquals(graphQLRequest, responses);
     }
 
+    @Test
+    void testSchemaQuery() {
+        String graphQLRequest =
+                "{"
+                        + "__schema {"
+                        + "types {"
+                        + "   name"
+                        + "}"
+                        + "}"
+                        + "}";
+
+        ExecutionResult result = runQuery(graphQLRequest);
+
+        assertTrue(result.getErrors().isEmpty());
+        assertTrue(result.getData().toString().contains("[{name=Author}"));
+    }
+
+    @Test
+    void testErrorInSubscription() {
+        Book book1 = new Book();
+        book1.setTitle("Book 1");
+        book1.setId(1);
+
+        Book book2 = new Book();
+        book2.setTitle("Book 2");
+        book2.setId(2);
+
+        reset(dataStoreTransaction);
+        when(dataStoreTransaction.getAttribute(any(), any(), any())).thenThrow(new BadRequestException("Bad Request"));
+        when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(book1, book2));
+
+        List<String> responses = List.of(
+                "{\"bookAdded\":{\"id\":\"1\",\"title\":null}}",
+                "{\"bookAdded\":{\"id\":\"2\",\"title\":null}}"
+        );
+
+        List<String> errors = List.of("Bad Request", "Bad Request");
+
+        String graphQLRequest = "subscription {bookAdded {id title}}";
+
+        assertSubscriptionEquals(graphQLRequest, responses, errors);
+    }
+
     protected void assertSubscriptionEquals(String graphQLRequest, List<String> expectedResponses) {
-        List<ExecutionResult> results = runSubscription(graphQLRequest);
+        assertSubscriptionEquals(graphQLRequest, expectedResponses, new ArrayList<>());
+    }
+
+    protected void assertSubscriptionEquals(
+            String graphQLRequest,
+            List<String> expectedResponses,
+            List<String> expectedErrors) {
+            List<ExecutionResult> results = runSubscription(graphQLRequest);
 
         assertEquals(expectedResponses.size(), results.size());
 
         for (int i = 0; i < expectedResponses.size(); i++) {
             String expectedResponse = expectedResponses.get(i);
-            Object actualResponse = results.get(i).getData();
+            String expectedError = "[]";
+            if (!expectedErrors.isEmpty()) {
+                    expectedError = expectedErrors.get(i);
+            }
+            ExecutionResult actualResponse = results.get(i);
 
             try {
                 LOG.info(mapper.writeValueAsString(actualResponse));
                 assertEquals(
                         mapper.readTree(expectedResponse),
-                        mapper.readTree(mapper.writeValueAsString(actualResponse))
+                        mapper.readTree(mapper.writeValueAsString(actualResponse.getData()))
                 );
+
+                assertTrue(actualResponse.getErrors().toString().contains(expectedError));
             } catch (JsonProcessingException e) {
                 fail("JSON parsing exception", e);
             }
@@ -214,5 +274,13 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         });
 
         return results;
+    }
+
+    protected ExecutionResult runQuery(String request) {
+        ExecutionInput executionInput = ExecutionInput.newExecutionInput()
+                .query(request)
+                .build();
+
+        return api.execute(executionInput);
     }
 }
