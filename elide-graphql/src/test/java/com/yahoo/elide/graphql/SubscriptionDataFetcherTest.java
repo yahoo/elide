@@ -275,6 +275,11 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         }
     }
 
+    /**
+     * Run a subscription
+     * @param request The subscription query.
+     * @return A discrete list of results returned from the subscription.
+     */
     protected List<ExecutionResult> runSubscription(String request) {
         DataStoreTransaction tx = dataStore.beginTransaction();
         GraphQLProjectionInfo projectionInfo =
@@ -326,6 +331,11 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
         return results;
     }
 
+    /**
+     * Runs a schema query (not a subscription)
+     * @param request The GraphQL request.
+     * @return The result.
+     */
     protected ExecutionResult runQuery(String request) {
         ExecutionInput executionInput = ExecutionInput.newExecutionInput()
                 .query(request)
