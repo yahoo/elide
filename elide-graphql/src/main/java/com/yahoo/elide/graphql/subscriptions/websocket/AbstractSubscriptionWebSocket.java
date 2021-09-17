@@ -1,24 +1,53 @@
+/*
+ * Copyright 2021, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+
 package com.yahoo.elide.graphql.subscriptions.websocket;
 
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.Closeable;
 import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
-public class AbstractSubscriptionWebSocket {
-    //TODO - add a set of open sessions and add session management.
+@Slf4j
+public abstract class AbstractSubscriptionWebSocket<T extends Closeable> {
+    ConcurrentMap<T, AbstractSession> openSessions = new ConcurrentHashMap<>();
 
-    public void onOpen(AbstractSession session) throws IOException {
-        //NOOP
+    public void onOpen(T session) throws IOException {
+        AbstractSession<T> subscriptionSession = createSession(session);
+
+        openSessions.put(session, subscriptionSession);
     }
 
-    public void onMessage(AbstractSession session, String message) throws IOException {
-        session.handleRequest(message);
+    public void onMessage(T session, String message) throws IOException {
+        findSession(session).handleRequest(message);
     }
 
-    public void onClose(AbstractSession session) throws IOException {
-        session.safeClose();
+    public void onClose(T session) throws IOException {
+        findSession(session).safeClose();
+        openSessions.remove(session);
     }
 
-    public void onError(AbstractSession session, Throwable throwable) {
-        //LOG
-        session.safeClose();
+    public void onError(T session, Throwable throwable) {
+        log.error(throwable.getMessage());
+        findSession(session).safeClose();
+        openSessions.remove(session);
     }
+
+    private AbstractSession<T> findSession(T wrappedSession) {
+        AbstractSession<T> subscriptionSession = openSessions.getOrDefault(wrappedSession, null);
+
+        String message = "Unable to locate active session associated with: " + wrappedSession.toString();
+        log.error(message);
+        if (subscriptionSession == null) {
+            throw new IllegalStateException(message);
+        }
+        return subscriptionSession;
+    }
+
+    protected abstract AbstractSession<T> createSession(T wrappedSession);
 }
