@@ -161,8 +161,6 @@ public class QueryRunner {
                 (node) -> executeGraphQLRequest(baseUrlEndPoint, mapper, user, graphQLDocument, node, requestId,
                                                 requestHeaders);
 
-
-
         if (topLevel.isArray()) {
             Iterator<JsonNode> nodeIterator = topLevel.iterator();
             Iterable<JsonNode> nodeIterable = () -> nodeIterator;
