@@ -17,6 +17,7 @@ import com.yahoo.elide.graphql.GraphQLRequestScope;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.graphql.parser.SubscriptionEntityProjectionMaker;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -175,7 +176,14 @@ public abstract class AbstractSession<T extends Closeable> implements Closeable 
 
     protected void sendMessage(ExecutionResult result) {
         try {
-            sendMessage(result.toString());
+            ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
+            String output;
+            if (result.getErrors().isEmpty()) {
+                output = mapper.writeValueAsString(result.getData());
+            } else {
+                output = mapper.writeValueAsString(result.getErrors());
+            }
+            sendMessage(output);
         } catch (IOException e) {
             safeClose();
         }
