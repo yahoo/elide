@@ -310,14 +310,14 @@ public class QueryRunner {
             log.error("Uncaught IO Exception by Elide in GraphQL", e);
             return buildErrorResponse(elide, new TransactionException(e), isVerbose);
         } catch (RuntimeException e) {
-            return handleRuntimeException(e, isVerbose);
+            return handleRuntimeException(elide, e, isVerbose);
         } finally {
             elide.getTransactionRegistry().removeRunningTransaction(requestId);
             elide.getAuditLogger().clear();
         }
     }
 
-    private ElideResponse handleRuntimeException(RuntimeException error, boolean isVerbose) {
+    public static ElideResponse handleRuntimeException(Elide elide, RuntimeException error, boolean isVerbose) {
         CustomErrorException mappedException = elide.mapError(error);
 
         if (mappedException != null) {

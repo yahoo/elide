@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.graphql;
+package com.yahoo.elide.graphql.subscriptions;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,10 +21,11 @@ import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
+import com.yahoo.elide.graphql.GraphQLRequestScope;
+import com.yahoo.elide.graphql.GraphQLTest;
+import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.graphql.parser.SubscriptionEntityProjectionMaker;
-import com.yahoo.elide.graphql.subscriptions.SubscriptionDataFetcher;
-import com.yahoo.elide.graphql.subscriptions.SubscriptionModelBuilder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Address;

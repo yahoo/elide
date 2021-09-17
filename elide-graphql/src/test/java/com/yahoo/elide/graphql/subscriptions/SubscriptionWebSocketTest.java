@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.graphql;
+package com.yahoo.elide.graphql.subscriptions;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,8 +21,8 @@ import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
-import com.yahoo.elide.graphql.subscriptions.SubscriptionDataFetcher;
-import com.yahoo.elide.graphql.subscriptions.SubscriptionModelBuilder;
+import com.yahoo.elide.graphql.GraphQLTest;
+import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionEndpoint;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Address;
@@ -119,8 +119,8 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(book1, book2));
 
         List<String> responses = List.of(
-                "{\"bookAdded\":{\"id\":\"1\",\"title\":\"Book 1\"}}",
-                "{\"bookAdded\":{\"id\":\"2\",\"title\":\"Book 2\"}}"
+                "{\"data\":{\"bookAdded\":{\"id\":\"1\",\"title\":\"Book 1\"}}}",
+                "{\"data\":{\"bookAdded\":{\"id\":\"2\",\"title\":\"Book 2\"}}}"
         );
 
         String graphQLRequest = "subscription {bookAdded {id title}}";
@@ -144,8 +144,8 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(author1, author2));
 
         List<String> responses = List.of(
-                "{\"authorUpdated\":{\"id\":\"1\",\"homeAddress\":{\"street1\":null,\"street2\":null}}}",
-                "{\"authorUpdated\":{\"id\":\"2\",\"homeAddress\":{\"street1\":\"123\",\"street2\":\"XYZ\"}}}"
+                "{\"data\":{\"authorUpdated\":{\"id\":\"1\",\"homeAddress\":{\"street1\":null,\"street2\":null}}}}",
+                "{\"data\":{\"authorUpdated\":{\"id\":\"2\",\"homeAddress\":{\"street1\":\"123\",\"street2\":\"XYZ\"}}}}"
         );
 
         String graphQLRequest = "subscription {authorUpdated {id homeAddress { street1 street2 }}}";
@@ -172,8 +172,8 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(book1, book2));
 
         List<String> responses = List.of(
-                "{\"bookAdded\":{\"id\":\"1\",\"title\":\"Book 1\",\"authors\":[{\"name\":\"Jane Doe\"},{\"name\":null}]}}",
-                "{\"bookAdded\":{\"id\":\"2\",\"title\":\"Book 2\",\"authors\":[]}}"
+                "{\"data\":{\"bookAdded\":{\"id\":\"1\",\"title\":\"Book 1\",\"authors\":[{\"name\":\"Jane Doe\"},{\"name\":null}]}}}",
+                "{\"data\":{\"bookAdded\":{\"id\":\"2\",\"title\":\"Book 2\",\"authors\":[]}}}"
         );
 
         String graphQLRequest = "subscription {bookAdded {id title authors { name }}}";
@@ -192,7 +192,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                         + "}"
                         + "}";
 
-        assertSubscriptionEquals(graphQLRequest, List.of("{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]}}"));
+        assertSubscriptionEquals(graphQLRequest, List.of("{\"data\":{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]}}}"));
     }
 
     protected void assertSubscriptionEquals(String graphQLRequest, List<String> expectedResponses) throws IOException {

@@ -27,7 +27,7 @@ public class SubscriptionEndpoint extends AbstractSubscriptionWebSocket<Session>
     private GraphQL api;
 
     public SubscriptionEndpoint(DataStore topicStore, Elide elide, GraphQL api) {
-        super();
+        super(elide);
         this.topicStore = topicStore;
         this.elide = elide;
         this.api = api;

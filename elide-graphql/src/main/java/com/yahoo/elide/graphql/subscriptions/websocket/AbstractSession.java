@@ -8,12 +8,14 @@ package com.yahoo.elide.graphql.subscriptions.websocket;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.Elide;
+import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
+import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.graphql.parser.SubscriptionEntityProjectionMaker;
 
@@ -35,7 +37,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Given that web socket APIs are all different (across platforms), this class provides an abstraction
+ * Given that web socket APIs are all different across platforms, this class provides an abstraction
  * with all the common logic needed to pull subscription messages from Elide.
  * @param <T> The platform specific session type.
  */
@@ -48,6 +50,14 @@ public abstract class AbstractSession<T extends Closeable> implements Closeable 
     protected UUID requestID;
     protected T wrappedSession;
 
+    /**
+     * Constructor.
+     * @param wrappedSession The underlying platform session object.
+     * @param topicStore The JMS data store.
+     * @param elide Elide instance.
+     * @param api GraphQL api.
+     * @param requestID The request UUID for this request.
+     */
     public AbstractSession(
             T wrappedSession,
             DataStore topicStore,
@@ -100,91 +110,80 @@ public abstract class AbstractSession<T extends Closeable> implements Closeable 
         wrappedSession.close();
     }
 
-    public void handleRequest(String request) {
-        synchronized (this) {
-            if (transaction != null) {
-                throw new BadRequestException("Cannot handle more than a single simultaneous request.");
-            }
+    public synchronized void handleRequest(String request) {
+        if (transaction != null) {
+            throw new BadRequestException("Cannot handle more than a single simultaneous request.");
+        }
+
+        boolean isVerbose = false;
+
+        try {
             transaction = topicStore.beginTransaction();
             elide.getTransactionRegistry().addRunningTransaction(requestID, transaction);
-        }
 
-        ElideSettings settings = elide.getElideSettings();
+            ElideSettings settings = elide.getElideSettings();
 
-        GraphQLProjectionInfo projectionInfo =
-                new SubscriptionEntityProjectionMaker(settings, new HashMap<>(), NO_VERSION)
-                        .make(request);
+            GraphQLProjectionInfo projectionInfo =
+                    new SubscriptionEntityProjectionMaker(settings, new HashMap<>(), NO_VERSION)
+                            .make(request);
 
-        GraphQLRequestScope requestScope = new GraphQLRequestScope(
-                getBaseUrl(),
-                transaction,
-                getUser(),
-                NO_VERSION,
-                settings,
-                projectionInfo,
-                requestID,
-                getParameters());
+            GraphQLRequestScope requestScope = new GraphQLRequestScope(
+                    getBaseUrl(),
+                    transaction,
+                    getUser(),
+                    NO_VERSION,
+                    settings,
+                    projectionInfo,
+                    requestID,
+                    getParameters());
 
-        ExecutionInput executionInput = ExecutionInput.newExecutionInput()
-                .query(request)
-                .localContext(requestScope)
-                .build();
+            isVerbose = requestScope.getPermissionExecutor().isVerbose();
 
-        ExecutionResult executionResult = api.execute(executionInput);
+            ExecutionInput executionInput = ExecutionInput.newExecutionInput()
+                    .query(request)
+                    .localContext(requestScope)
+                    .build();
 
-        if (! (executionResult.getData() instanceof Publisher)) {
-            sendMessage(executionResult);
-            safeClose();
-            return;
-        }
+            ExecutionResult executionResult = api.execute(executionInput);
 
-        Publisher<ExecutionResult> resultPublisher = executionResult.getData();
-
-        if (resultPublisher == null) {
-            sendMessage(executionResult);
-            safeClose();
-            return;
-        }
-
-        AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
-
-        resultPublisher.subscribe(new Subscriber<ExecutionResult>() {
-            @Override
-            public void onSubscribe(Subscription subscription) {
-                subscriptionRef.set(subscription);
-                subscription.request(1);
+            //GraphQL schema requests or other queries will take this route.
+            //There is no need to close the transaction or session.
+            if (!(executionResult.getData() instanceof Publisher)) {
+                safeSendMessage(executionResult);
+                return;
             }
 
-            @Override
-            public void onNext(ExecutionResult executionResult) {
-                sendMessage(executionResult);
-                subscriptionRef.get().request(1);
-            }
+            Publisher<ExecutionResult> resultPublisher = executionResult.getData();
 
-            @Override
-            public void onError(Throwable t) {
-                log.error(t.getMessage());
+            if (resultPublisher == null) {
+                safeSendMessage(executionResult);
                 safeClose();
+                return;
             }
 
-            @Override
-            public void onComplete() {
-                safeClose();
-            }
-        });
+            resultPublisher.subscribe(new ExecutionResultSubscriber());
+        } catch (RuntimeException e) {
+            ElideResponse response = QueryRunner.handleRuntimeException(elide, e, isVerbose);
+            safeSendMessage(response.getBody());
+            safeClose();
+        }
     }
 
-    protected void sendMessage(ExecutionResult result) {
+    protected void safeSendMessage(ExecutionResult result) {
+        ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
         try {
-            ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
-            String output;
-            if (result.getErrors().isEmpty()) {
-                output = mapper.writeValueAsString(result.getData());
-            } else {
-                output = mapper.writeValueAsString(result.getErrors());
-            }
-            sendMessage(output);
+            safeSendMessage(mapper.writeValueAsString(result));
         } catch (IOException e) {
+            log.error(e.getMessage());
+            safeClose();
+        }
+    }
+
+    protected void safeSendMessage(String message) {
+        try {
+            sendMessage(message);
+        } catch (IOException e) {
+            log.error(e.getMessage());
             safeClose();
         }
     }
@@ -194,6 +193,38 @@ public abstract class AbstractSession<T extends Closeable> implements Closeable 
             close();
         } catch (IOException e) {
             log.error(e.getMessage());
+        }
+    }
+
+    /**
+     * Reactive subscriber for GraphQL results.
+     */
+    private class ExecutionResultSubscriber implements Subscriber<ExecutionResult> {
+
+        AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
+
+        @Override
+        public void onSubscribe(Subscription subscription) {
+            subscriptionRef.set(subscription);
+            subscription.request(1);
+        }
+
+        @Override
+        public void onNext(ExecutionResult executionResult) {
+            safeSendMessage(executionResult);
+            subscriptionRef.get().request(1);
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            log.error(t.getMessage());
+            safeClose();
+        }
+
+        @Override
+        public void onComplete() {
+            log.debug("Topic was terminated");
+            safeClose();
         }
     }
 }
