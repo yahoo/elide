@@ -13,10 +13,13 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
 import com.yahoo.elide.core.exceptions.BadRequestException;
+import com.yahoo.elide.core.exceptions.ErrorObjects;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
+import com.yahoo.elide.graphql.parser.GraphQLQuery;
+import com.yahoo.elide.graphql.parser.QueryParser;
 import com.yahoo.elide.graphql.parser.SubscriptionEntityProjectionMaker;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,17 +123,39 @@ public abstract class AbstractSession<T extends Closeable> implements Closeable 
             throw new BadRequestException("Cannot handle more than a single simultaneous request.");
         }
 
+        ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
+
+        List<GraphQLQuery> queries = new ArrayList<>();
+        try {
+            queries = new QueryParser() {
+            }.parseDocument(request, mapper);
+        } catch (IOException e) {
+            safeSendErrorMessage(ErrorObjects.builder().addError()
+                    .withDetail("Bad Request Body'" + request + "'").build());
+            return;
+        }
+
+        if (queries.size() != 1) {
+            safeSendErrorMessage(ErrorObjects.builder().addError()
+                    .withDetail("No valid queries found '" + request + "'").build());
+            return;
+        }
+
+        //TODO - check for 'query' in the query.
+        GraphQLQuery query = queries.get(0);
+
         boolean isVerbose = false;
 
         try {
-            transaction = topicStore.beginTransaction();
+            transaction = topicStore.beginReadTransaction();
             elide.getTransactionRegistry().addRunningTransaction(requestID, transaction);
 
             ElideSettings settings = elide.getElideSettings();
 
+            //TODO - API version is needed here.
             GraphQLProjectionInfo projectionInfo =
                     new SubscriptionEntityProjectionMaker(settings, new HashMap<>(), NO_VERSION)
-                            .make(request);
+                            .make(query.getQuery());
 
             GraphQLRequestScope requestScope = new GraphQLRequestScope(
                     getBaseUrl(),
@@ -144,9 +170,13 @@ public abstract class AbstractSession<T extends Closeable> implements Closeable 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
 
             ExecutionInput executionInput = ExecutionInput.newExecutionInput()
-                    .query(request)
+                    .query(query.getQuery())
+                    .operationName(query.getOperationName())
+                    .variables(query.getVariables())
                     .localContext(requestScope)
                     .build();
+
+            //TODO - log the query.
 
             ExecutionResult executionResult = api.execute(executionInput);
 
@@ -177,6 +207,19 @@ public abstract class AbstractSession<T extends Closeable> implements Closeable 
         ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
         try {
             safeSendMessage(mapper.writeValueAsString(result));
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            safeClose();
+        }
+    }
+
+
+    protected void safeSendErrorMessage(ErrorObjects errorObjects) {
+        ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
+        try {
+            String errorMessage = mapper.writeValueAsString(errorObjects);
+            safeSendMessage(errorMessage);
+            log.debug("Invalid Request: {}", errorMessage);
         } catch (IOException e) {
             log.error(e.getMessage());
             safeClose();

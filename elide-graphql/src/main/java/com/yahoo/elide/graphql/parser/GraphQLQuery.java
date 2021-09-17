@@ -6,6 +6,7 @@
 
 package com.yahoo.elide.graphql.parser;
 
+import lombok.Builder;
 import lombok.Value;
 
 import java.util.Map;
@@ -14,6 +15,7 @@ import java.util.Map;
  * Represents a complete GraphQL query including its envelope.
  */
 @Value
+@Builder
 public class GraphQLQuery {
     private String query;
     private String operationName;

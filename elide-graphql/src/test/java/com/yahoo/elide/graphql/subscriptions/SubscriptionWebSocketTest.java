@@ -23,6 +23,7 @@ import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.graphql.GraphQLTest;
 import com.yahoo.elide.graphql.NonEntityDictionary;
+import com.yahoo.elide.graphql.parser.GraphQLQuery;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionEndpoint;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Address;
@@ -222,8 +223,11 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
      * @return A discrete list of results returned from the subscription.
      */
     protected List<String> runSubscription(String request, int expectedResponseCount) throws IOException {
+        GraphQLQuery query = GraphQLQuery.builder().query(request).build();
+        String queryWithEnvelope = mapper.writeValueAsString(query);
+
         endpoint.onOpen(session);
-        endpoint.onMessage(session, request);
+        endpoint.onMessage(session, queryWithEnvelope);
 
         ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
         verify(remote, times(expectedResponseCount)).sendText(argumentCaptor.capture());
