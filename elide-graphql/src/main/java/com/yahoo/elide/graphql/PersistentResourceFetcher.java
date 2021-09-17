@@ -20,16 +20,10 @@ import com.yahoo.elide.core.type.Type;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
 import com.yahoo.elide.graphql.containers.MapEntryContainer;
 import com.google.common.collect.Sets;
-import org.apache.commons.collections4.CollectionUtils;
-import graphql.language.Field;
-import graphql.language.FragmentSpread;
 import graphql.language.OperationDefinition;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.GraphQLNamedType;
-import graphql.schema.GraphQLType;
 import io.reactivex.Observable;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayDeque;
@@ -49,8 +43,7 @@ import javax.validation.constraints.NotNull;
  * Invoked by GraphQL Java to fetch/mutate data from Elide.
  */
 @Slf4j
-public class PersistentResourceFetcher implements DataFetcher<Object> {
-    @Getter
+public class PersistentResourceFetcher implements DataFetcher<Object>, QueryLogger {
     private final NonEntityDictionary nonEntityDictionary;
 
     public PersistentResourceFetcher(NonEntityDictionary nonEntityDictionary) {
@@ -72,11 +65,11 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         RelationshipOp operation = (RelationshipOp) args.getOrDefault(ARGUMENT_OPERATION, RelationshipOp.FETCH);
 
         /* build environment object, extracts required fields */
-        Environment context = new Environment(environment);
+        Environment context = new Environment(environment, nonEntityDictionary);
 
         /* safe enable debugging */
         if (log.isDebugEnabled()) {
-            logContext(operation, context);
+            logContext(log, operation, context);
         }
 
         if (operation != RelationshipOp.FETCH) {
@@ -125,41 +118,6 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
     }
 
     /**
-     * log current context for debugging.
-     * @param operation Current operation
-     * @param environment Environment encapsulating graphQL's request environment
-     */
-    private void logContext(RelationshipOp operation, Environment environment) {
-        List<?> children = (environment.field.getSelectionSet() != null)
-                ? (List) environment.field.getSelectionSet().getChildren()
-                : new ArrayList<>();
-        List<String> fieldName = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(children)) {
-            children.stream().forEach(i -> {
-                if (i.getClass().equals(Field.class)) {
-                    fieldName.add(((Field) i).getName());
-                } else if (i.getClass().equals(FragmentSpread.class)) {
-                    fieldName.add(((FragmentSpread) i).getName());
-                } else {
-                    log.debug("A new type of Selection, other than Field and FragmentSpread was encountered, {}",
-                            i.getClass());
-                }
-            });
-        }
-
-        String requestedFields = environment.field.getName() + fieldName;
-
-        GraphQLType parent = environment.parentType;
-        if (log.isDebugEnabled()) {
-            String typeName = (parent instanceof GraphQLNamedType)
-                    ? ((GraphQLNamedType) parent).getName()
-                    : parent.toString();
-            log.debug("{} {} fields with parent {}<{}>", operation, requestedFields,
-                    EntityDictionary.getSimpleName(EntityDictionary.getType(parent)), typeName);
-        }
-    }
-
-    /**
      * handle FETCH operation.
      * @param context Environment encapsulating graphQL's request environment
      * @return list of {@link PersistentResource} objects
@@ -171,7 +129,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         }
 
         // Process fetch object for this container
-        return context.container.processFetch(context, this);
+        return context.container.processFetch(context);
     }
 
     /**
@@ -181,7 +139,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
      * @param ids List of ids (can be NULL)
      * @return {@link PersistentResource} object(s)
      */
-    public ConnectionContainer fetchObject(
+    public static ConnectionContainer fetchObject(
             RequestScope requestScope,
             EntityProjection projection,
             Optional<List<String>> ids
@@ -211,7 +169,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
      * @param ids List of ids
      * @return persistence resource object(s)
      */
-    public Object fetchRelationship(
+    public static ConnectionContainer fetchRelationship(
             PersistentResource<?> parentResource,
             @NotNull Relationship relationship,
             Optional<List<String>> ids
@@ -560,7 +518,7 @@ public class PersistentResourceFetcher implements DataFetcher<Object> {
         }
 
         ConnectionContainer existingObjects =
-                (ConnectionContainer) context.container.processFetch(context, this);
+                (ConnectionContainer) context.container.processFetch(context);
         ConnectionContainer upsertedObjects = upsertObjects(context);
         Set<PersistentResource> toDelete =
                 Sets.difference(existingObjects.getPersistentResources(), upsertedObjects.getPersistentResources());
