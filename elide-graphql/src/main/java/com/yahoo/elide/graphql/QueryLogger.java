@@ -17,6 +17,9 @@ import graphql.schema.GraphQLType;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Logs an incoming GraphQL query.
+ */
 public interface QueryLogger {
     /**
      * log current context for debugging.

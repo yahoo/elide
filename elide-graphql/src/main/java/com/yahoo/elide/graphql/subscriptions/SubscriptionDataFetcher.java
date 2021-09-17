@@ -73,7 +73,7 @@ public class SubscriptionDataFetcher implements DataFetcher<Object>, QueryLogger
             return recordPublisher.map(SubscriptionNodeContainer::new);
         }
 
-        //If this is not the root, instead of retuning a reactive publisher, we process same
+        //If this is not the root, instead of returning a reactive publisher, we process same
         //as the PersistentResourceFetcher.
         return context.container.processFetch(context);
     }
