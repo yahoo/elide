@@ -19,6 +19,8 @@ import com.yahoo.elide.core.exceptions.TransactionException;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.parser.GraphQLEntityProjectionMaker;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
+import com.yahoo.elide.graphql.parser.GraphQLQuery;
+import com.yahoo.elide.graphql.parser.QueryParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -36,14 +38,11 @@ import graphql.execution.AsyncSerialExecutionStrategy;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.ws.rs.WebApplicationException;
@@ -146,10 +145,10 @@ public class QueryRunner {
                              Map<String, List<String>> requestHeaders) {
         ObjectMapper mapper = elide.getMapper().getObjectMapper();
 
-        JsonNode topLevel;
-
+        List<GraphQLQuery> queries;
         try {
-            topLevel = getTopLevelNode(mapper, graphQLDocument);
+            queries = new QueryParser() {
+            }.parseDocument(graphQLDocument, mapper);
         } catch (IOException e) {
             log.debug("Invalid json body provided to GraphQL", e);
             // NOTE: Can't get at isVerbose setting here for hardcoding to false. If necessary, we can refactor
@@ -157,44 +156,43 @@ public class QueryRunner {
             return buildErrorResponse(elide, new InvalidEntityBodyException(graphQLDocument), false);
         }
 
-        Function<JsonNode, ElideResponse> executeRequest =
-                (node) -> executeGraphQLRequest(baseUrlEndPoint, mapper, user, graphQLDocument, node, requestId,
-                                                requestHeaders);
-
-        if (topLevel.isArray()) {
-            Iterator<JsonNode> nodeIterator = topLevel.iterator();
-            Iterable<JsonNode> nodeIterable = () -> nodeIterator;
-            // NOTE: Create a non-parallel stream
-            // It's unclear whether or not the expectations of the caller would be that requests are intended
-            // to run serially even outside of a single transaction. We should revisit this.
-            Stream<JsonNode> nodeStream = StreamSupport.stream(nodeIterable.spliterator(), false);
-            ArrayNode result = nodeStream
-                    .map(executeRequest)
-                    .map(response -> {
-                        try {
-                            return mapper.readTree(response.getBody());
-                        } catch (IOException e) {
-                            log.debug("Caught an IO exception while trying to read response body");
-                            return JsonNodeFactory.instance.objectNode();
-                        }
-                    })
-                    .reduce(JsonNodeFactory.instance.arrayNode(),
-                            (arrayNode, node) -> arrayNode.add(node),
-                            (left, right) -> left.addAll(right));
-            try {
-                return ElideResponse.builder()
-                        .responseCode(HttpStatus.SC_OK)
-                        .body(mapper.writeValueAsString(result))
-                        .build();
-            } catch (IOException e) {
-                log.error("An unexpected error occurred trying to serialize array response.", e);
-                return ElideResponse.builder()
-                        .responseCode(HttpStatus.SC_INTERNAL_SERVER_ERROR)
-                        .build();
-            }
+        List<ElideResponse> responses = new ArrayList<>();
+        for (GraphQLQuery query : queries) {
+            responses.add(executeGraphQLRequest(baseUrlEndPoint, mapper, user,
+                    graphQLDocument, query, requestId, requestHeaders));
         }
 
-        return executeRequest.apply(topLevel);
+        if (responses.size() == 1) {
+            return responses.get(0);
+        }
+
+        //Convert the list of responses into a single JSON Array.
+        ArrayNode result = responses.stream()
+                .map(response -> {
+                    try {
+                        return mapper.readTree(response.getBody());
+                    } catch (IOException e) {
+                        log.debug("Caught an IO exception while trying to read response body");
+                        return JsonNodeFactory.instance.objectNode();
+                    }
+                })
+                .reduce(JsonNodeFactory.instance.arrayNode(),
+                        (arrayNode, node) -> arrayNode.add(node),
+                        (left, right) -> left.addAll(right));
+
+        try {
+
+            //Build and elide response from the array of responses.
+            return ElideResponse.builder()
+                    .responseCode(HttpStatus.SC_OK)
+                    .body(mapper.writeValueAsString(result))
+                    .build();
+        } catch (IOException e) {
+            log.error("An unexpected error occurred trying to serialize array response.", e);
+            return ElideResponse.builder()
+                    .responseCode(HttpStatus.SC_INTERNAL_SERVER_ERROR)
+                    .build();
+        }
     }
 
     /**
@@ -236,23 +234,24 @@ public class QueryRunner {
     }
 
     private ElideResponse executeGraphQLRequest(String baseUrlEndPoint, ObjectMapper mapper, User principal,
-                                                String graphQLDocument, JsonNode jsonDocument, UUID requestId,
+                                                String graphQLDocument, GraphQLQuery query, UUID requestId,
                                                 Map<String, List<String>> requestHeaders) {
         boolean isVerbose = false;
         try (DataStoreTransaction tx = elide.getDataStore().beginTransaction()) {
             elide.getTransactionRegistry().addRunningTransaction(requestId, tx);
-            if (!jsonDocument.has(QUERY)) {
+            if (query.getQuery() == null || query.getQuery().isEmpty()) {
                 return ElideResponse.builder().responseCode(HttpStatus.SC_BAD_REQUEST)
                         .body("A `query` key is required.").build();
             }
-            String query = extractQuery(jsonDocument);
+
+            String queryText = query.getQuery();
 
             // get variables from request for constructing entityProjections
-            Map<String, Object> variables = extractVariables(mapper, jsonDocument);
+            Map<String, Object> variables = query.getVariables();
 
             //TODO - get API version.
             GraphQLProjectionInfo projectionInfo = new GraphQLEntityProjectionMaker(elide.getElideSettings(), variables,
-                    apiVersion).make(query);
+                    apiVersion).make(queryText);
             GraphQLRequestScope requestScope = new GraphQLRequestScope(baseUrlEndPoint, tx, principal, apiVersion,
                     elide.getElideSettings(), projectionInfo, requestId, requestHeaders);
 
@@ -260,16 +259,14 @@ public class QueryRunner {
 
             // Logging all queries. It is recommended to put any private information that shouldn't be logged into
             // the "variables" section of your query. Variable values are not logged.
-            log.info("Processing GraphQL query:\n{}", query);
+            log.info("Processing GraphQL query:\n{}", queryText);
 
             ExecutionInput.Builder executionInput = new ExecutionInput.Builder()
                     .localContext(requestScope)
-                    .query(query);
+                    .query(queryText);
 
-            String operationName = extractOperation(jsonDocument);
-
-            if (operationName != null) {
-                executionInput.operationName(operationName);
+            if (query.getOperationName() != null) {
+                executionInput.operationName(query.getOperationName());
             }
             executionInput.variables(variables);
 
@@ -278,7 +275,7 @@ public class QueryRunner {
             tx.preCommit(requestScope);
             requestScope.runQueuedPreSecurityTriggers();
             requestScope.getPermissionExecutor().executeCommitChecks();
-            if (isMutation(query)) {
+            if (isMutation(queryText)) {
                 if (!result.getErrors().isEmpty()) {
                     HashMap<String, Object> abortedResponseObject = new HashMap<>();
                     abortedResponseObject.put("errors", result.getErrors());

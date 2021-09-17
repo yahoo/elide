@@ -43,16 +43,9 @@ public interface QueryParser {
                 JsonNode document = nodeIterator.next();
 
                 results.add(parseQuery(document, mapper));
-
-                String query = document.has(QUERY) ? document.get(QUERY).asText() : null;
-
-                Map<String, Object> variables = new HashMap<>();
-                if (document.has(VARIABLES) && !document.get(VARIABLES).isNull()) {
-                    variables = mapper.convertValue(document.get(VARIABLES), Map.class);
-                }
-
-                results.add(new GraphQLQuery(query, "", variables));
             }
+        } else {
+            results.add(parseQuery(topLevel, mapper));
         }
 
         return results;
