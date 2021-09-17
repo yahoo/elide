@@ -18,7 +18,19 @@ import java.util.Map;
 import java.util.UUID;
 import javax.websocket.Session;
 
+/**
+ * Concrete AbstractSession implementation that wraps JSR 356 session.
+ */
 public class SubscriptionSession extends AbstractSession<Session> {
+
+    /**
+     * Constructor.
+     * @param topicStore JMS Store
+     * @param elide Elide Instance
+     * @param api GraphQL API
+     * @param wrappedSession underlying JSR 356 session.
+     * @param requestId a unique request/session ID.
+     */
     public SubscriptionSession(DataStore topicStore,
                                Elide elide,
                                GraphQL api,

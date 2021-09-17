@@ -274,7 +274,7 @@ public class SubscriptionDataFetcherTest extends GraphQLTest {
     }
 
     /**
-     * Run a subscription
+     * Run a subscription.
      * @param request The subscription query.
      * @return A discrete list of results returned from the subscription.
      */

@@ -20,12 +20,21 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-@ServerEndpoint(value = "/subscription")
+/**
+ * JSR 356 Implementation of a web socket endpoint.  Default endpoint for Elide subscriptions.
+ */
+@ServerEndpoint(value = "/")
 public class SubscriptionEndpoint extends AbstractSubscriptionWebSocket<Session> {
     private DataStore topicStore;
     private Elide elide;
     private GraphQL api;
 
+    /**
+     * Constructor.
+     * @param topicStore The JMS data store
+     * @param elide Elide instance
+     * @param api GraphQL API
+     */
     public SubscriptionEndpoint(DataStore topicStore, Elide elide, GraphQL api) {
         super(elide);
         this.topicStore = topicStore;

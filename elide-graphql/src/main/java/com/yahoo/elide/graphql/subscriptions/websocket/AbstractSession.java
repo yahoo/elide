@@ -110,6 +110,10 @@ public abstract class AbstractSession<T extends Closeable> implements Closeable 
         wrappedSession.close();
     }
 
+    /**
+     * Handles an incoming GraphQL query.
+     * @param request The GraphyQL query.
+     */
     public synchronized void handleRequest(String request) {
         if (transaction != null) {
             throw new BadRequestException("Cannot handle more than a single simultaneous request.");
