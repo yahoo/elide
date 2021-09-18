@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 @Slf4j
 public abstract class AbstractSubscriptionWebSocket<T extends Closeable> {
-    ConcurrentMap<T, RequestHandler> openSessions = new ConcurrentHashMap<>();
+    ConcurrentMap<T, SessionHandler> openSessions = new ConcurrentHashMap<>();
 
     public AbstractSubscriptionWebSocket(Elide elide) {
         GraphQLErrorSerializer errorSerializer = new GraphQLErrorSerializer();
@@ -43,7 +43,7 @@ public abstract class AbstractSubscriptionWebSocket<T extends Closeable> {
      * @throws IOException If there is an underlying error.
      */
     public void onOpen(T session) throws IOException {
-        RequestHandler<T> subscriptionSession = createSession(session);
+        SessionHandler<T> subscriptionSession = createSession(session);
 
         openSessions.put(session, subscriptionSession);
     }
@@ -64,7 +64,7 @@ public abstract class AbstractSubscriptionWebSocket<T extends Closeable> {
      * @throws IOException If there is an underlying error.
      */
     public void onClose(T session) throws IOException {
-        findSession(session).safeClose();
+        findSession(session).safeClose(1000, "Normal Closure");
         openSessions.remove(session);
     }
 
@@ -75,20 +75,20 @@ public abstract class AbstractSubscriptionWebSocket<T extends Closeable> {
      */
     public void onError(T session, Throwable throwable) {
         log.error(throwable.getMessage());
-        findSession(session).safeClose();
+        findSession(session).safeClose(5000, throwable.getMessage());
         openSessions.remove(session);
     }
 
-    private RequestHandler<T> findSession(T wrappedSession) {
-        RequestHandler<T> subscriptionSession = openSessions.getOrDefault(wrappedSession, null);
+    private SessionHandler<T> findSession(T wrappedSession) {
+        SessionHandler<T> sessionHandler = openSessions.getOrDefault(wrappedSession, null);
 
         String message = "Unable to locate active session associated with: " + wrappedSession.toString();
         log.error(message);
-        if (subscriptionSession == null) {
+        if (sessionHandler == null) {
             throw new IllegalStateException(message);
         }
-        return subscriptionSession;
+        return sessionHandler;
     }
 
-    protected abstract RequestHandler<T> createSession(T wrappedSession);
+    protected abstract SessionHandler<T> createSession(T wrappedSession);
 }

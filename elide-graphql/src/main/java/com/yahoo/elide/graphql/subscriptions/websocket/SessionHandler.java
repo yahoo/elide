@@ -8,7 +8,6 @@ package com.yahoo.elide.graphql.subscriptions.websocket;
 
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.datastore.DataStore;
-import com.yahoo.elide.graphql.subscriptions.ConnectionInfo;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.ConnectionAck;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.MessageType;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Pong;

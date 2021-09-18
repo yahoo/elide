@@ -13,15 +13,13 @@ import com.yahoo.elide.core.security.User;
 import graphql.GraphQL;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import javax.websocket.Session;
 
 /**
  * Concrete AbstractSession implementation that wraps JSR 356 session.
  */
-public class SubscriptionSession extends RequestHandler<Session> {
+public class SubscriptionSession extends SessionHandler<Session> {
 
     /**
      * Constructor.
@@ -36,27 +34,16 @@ public class SubscriptionSession extends RequestHandler<Session> {
                                GraphQL api,
                                Session wrappedSession,
                                UUID requestId) {
-        super(wrappedSession, topicStore, elide, api, requestId);
-    }
-
-    @Override
-    public User getUser() {
-        //TODO - we should find a standard way to suck in role information.
-        return new User(wrappedSession.getUserPrincipal());
+        super(wrappedSession, topicStore, elide, api, 10000,
+                ConnectionInfo.builder()
+                        .user(new User(wrappedSession.getUserPrincipal()))
+                        .baseUrl(wrappedSession.getRequestURI().getPath())
+                        .parameters(wrappedSession.getRequestParameterMap())
+                        .build());
     }
 
     @Override
     public void sendMessage(String message) throws IOException {
         wrappedSession.getBasicRemote().sendText(message);
-    }
-
-    @Override
-    public String getBaseUrl() {
-        return wrappedSession.getRequestURI().getPath();
-    }
-
-    @Override
-    public Map<String, List<String>> getParameters() {
-        return wrappedSession.getRequestParameterMap();
     }
 }

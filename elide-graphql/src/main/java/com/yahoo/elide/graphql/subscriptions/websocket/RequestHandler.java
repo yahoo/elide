@@ -16,7 +16,6 @@ import com.yahoo.elide.graphql.GraphQLRequestScope;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.graphql.parser.SubscriptionEntityProjectionMaker;
-import com.yahoo.elide.graphql.subscriptions.ConnectionInfo;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Complete;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Error;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Next;
