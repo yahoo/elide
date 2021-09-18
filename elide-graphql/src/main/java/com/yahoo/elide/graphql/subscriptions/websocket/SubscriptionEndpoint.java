@@ -67,7 +67,7 @@ public class SubscriptionEndpoint extends AbstractSubscriptionWebSocket<Session>
     }
 
     @Override
-    protected AbstractSession<Session> createSession(Session wrappedSession) {
+    protected RequestHandler<Session> createSession(Session wrappedSession) {
         UUID requestId = UUID.randomUUID();
 
         return new SubscriptionSession(topicStore, elide, api, wrappedSession, requestId);

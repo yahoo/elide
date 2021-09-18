@@ -84,6 +84,7 @@ public class JMSDataStoreTransaction implements DataStoreTransaction {
     @Override
     public void cancel(RequestScope scope) {
         context.stop();
+        context.close();
     }
 
     @Override

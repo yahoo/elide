@@ -12,28 +12,30 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
-import com.yahoo.elide.core.exceptions.BadRequestException;
-import com.yahoo.elide.core.exceptions.ErrorObjects;
 import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
-import com.yahoo.elide.graphql.parser.GraphQLQuery;
-import com.yahoo.elide.graphql.parser.QueryParser;
 import com.yahoo.elide.graphql.parser.SubscriptionEntityProjectionMaker;
+import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Complete;
+import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Error;
+import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Next;
+import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import graphql.ErrorClassification;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
+import graphql.GraphQLError;
+import graphql.language.SourceLocation;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,12 +48,13 @@ import java.util.concurrent.atomic.AtomicReference;
  * @param <T> The platform specific session type.
  */
 @Slf4j
-public abstract class AbstractSession<T extends Closeable> implements Closeable {
+public abstract class RequestHandler<T extends Closeable> implements Closeable {
     protected DataStore topicStore;
     protected DataStoreTransaction transaction;
     protected Elide elide;
     protected GraphQL api;
     protected UUID requestID;
+    protected String protocolID;
     protected T wrappedSession;
 
     /**
@@ -60,19 +63,22 @@ public abstract class AbstractSession<T extends Closeable> implements Closeable 
      * @param topicStore The JMS data store.
      * @param elide Elide instance.
      * @param api GraphQL api.
-     * @param requestID The request UUID for this request.
+     * @param protocolID The graphql-ws protocol message ID this request.
+     * @param requestID The Elide request UUID for this request.
      */
-    public AbstractSession(
+    public RequestHandler(
             T wrappedSession,
             DataStore topicStore,
             Elide elide,
             GraphQL api,
+            String protocolID,
             UUID requestID) {
         this.wrappedSession = wrappedSession;
         this.topicStore = topicStore;
         this.elide = elide;
         this.api = api;
         this.requestID = requestID;
+        this.protocolID = protocolID;
         this.transaction = null;
     }
 
@@ -109,40 +115,20 @@ public abstract class AbstractSession<T extends Closeable> implements Closeable 
         if (transaction != null) {
             transaction.close();
             elide.getTransactionRegistry().removeRunningTransaction(requestID);
-            transaction = null;
         }
         wrappedSession.close();
     }
 
     /**
      * Handles an incoming GraphQL query.
-     * @param request The GraphyQL query.
+     * @param subscribeRequest The GraphyQL query.
      */
-    public synchronized void handleRequest(String request) {
+    public synchronized void handleRequest(Subscribe subscribeRequest) {
         if (transaction != null) {
-            throw new BadRequestException("Cannot handle more than a single simultaneous request.");
+            throw new IllegalStateException("Already handling an active request.");
         }
 
         ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
-
-        List<GraphQLQuery> queries = new ArrayList<>();
-        try {
-            queries = new QueryParser() {
-            }.parseDocument(request, mapper);
-        } catch (IOException e) {
-            safeSendErrorMessage(ErrorObjects.builder().addError()
-                    .withDetail("Bad Request Body'" + request + "'").build());
-            return;
-        }
-
-        if (queries.size() != 1) {
-            safeSendErrorMessage(ErrorObjects.builder().addError()
-                    .withDetail("No valid queries found '" + request + "'").build());
-            return;
-        }
-
-        //TODO - check for 'query' in the query.
-        GraphQLQuery query = queries.get(0);
 
         boolean isVerbose = false;
 
@@ -155,13 +141,13 @@ public abstract class AbstractSession<T extends Closeable> implements Closeable 
             //TODO - API version is needed here.
             GraphQLProjectionInfo projectionInfo =
                     new SubscriptionEntityProjectionMaker(settings, new HashMap<>(), NO_VERSION)
-                            .make(query.getQuery());
+                            .make(subscribeRequest.getQuery());
 
             GraphQLRequestScope requestScope = new GraphQLRequestScope(
                     getBaseUrl(),
                     transaction,
                     getUser(),
-                    NO_VERSION,
+                    NO_VERSION, //TODO - API version needs to be set correctly.
                     settings,
                     projectionInfo,
                     requestID,
@@ -170,9 +156,9 @@ public abstract class AbstractSession<T extends Closeable> implements Closeable 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
 
             ExecutionInput executionInput = ExecutionInput.newExecutionInput()
-                    .query(query.getQuery())
-                    .operationName(query.getOperationName())
-                    .variables(query.getVariables())
+                    .query(subscribeRequest.getQuery())
+                    .operationName(subscribeRequest.getOperationName())
+                    .variables(subscribeRequest.getVariables())
                     .localContext(requestScope)
                     .build();
 
@@ -181,16 +167,17 @@ public abstract class AbstractSession<T extends Closeable> implements Closeable 
             ExecutionResult executionResult = api.execute(executionInput);
 
             //GraphQL schema requests or other queries will take this route.
-            //There is no need to close the transaction or session.
             if (!(executionResult.getData() instanceof Publisher)) {
-                safeSendMessage(executionResult);
+                safeSendNext(executionResult);
+                safeSendComplete();
+                safeClose();
                 return;
             }
 
             Publisher<ExecutionResult> resultPublisher = executionResult.getData();
 
             if (resultPublisher == null) {
-                safeSendMessage(executionResult);
+                safeSendError(executionResult.getErrors().toArray(GraphQLError[]::new));
                 safeClose();
                 return;
             }
@@ -198,41 +185,75 @@ public abstract class AbstractSession<T extends Closeable> implements Closeable 
             resultPublisher.subscribe(new ExecutionResultSubscriber());
         } catch (RuntimeException e) {
             ElideResponse response = QueryRunner.handleRuntimeException(elide, e, isVerbose);
-            safeSendMessage(response.getBody());
+            safeSendError(response.getBody());
             safeClose();
+            return;
         }
     }
 
-    protected void safeSendMessage(ExecutionResult result) {
+    protected void safeSendNext(ExecutionResult result) {
         ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
+        Next next = Next.builder()
+                .result(result)
+                .id(protocolID)
+                .build();
         try {
-            safeSendMessage(mapper.writeValueAsString(result));
+            sendMessage(mapper.writeValueAsString(next));
         } catch (IOException e) {
             log.error(e.getMessage());
             safeClose();
         }
     }
 
-
-    protected void safeSendErrorMessage(ErrorObjects errorObjects) {
+    protected void safeSendComplete() {
         ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
+        Complete complete = Complete.builder()
+                .id(protocolID)
+                .build();
         try {
-            String errorMessage = mapper.writeValueAsString(errorObjects);
-            safeSendMessage(errorMessage);
-            log.debug("Invalid Request: {}", errorMessage);
+            sendMessage(mapper.writeValueAsString(complete));
         } catch (IOException e) {
             log.error(e.getMessage());
             safeClose();
         }
     }
 
-    protected void safeSendMessage(String message) {
+    protected void safeSendError(GraphQLError[] errors) {
+        ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
+        Error error = Error.builder()
+                .id(protocolID)
+                .payload(errors)
+                .build();
         try {
-            sendMessage(message);
+            sendMessage(mapper.writeValueAsString(error));
         } catch (IOException e) {
             log.error(e.getMessage());
             safeClose();
         }
+    }
+
+
+    protected void safeSendError(String message) {
+        GraphQLError error = new GraphQLError() {
+            @Override
+            public String getMessage() {
+                return message;
+            }
+
+            @Override
+            public List<SourceLocation> getLocations() {
+                return null;
+            }
+
+            @Override
+            public ErrorClassification getErrorType() {
+                return null;
+            }
+        };
+
+        GraphQLError[] errors = new GraphQLError[1];
+        errors[0] = error;
+        safeSendError(errors);
     }
 
     protected void safeClose() {
@@ -258,19 +279,21 @@ public abstract class AbstractSession<T extends Closeable> implements Closeable 
 
         @Override
         public void onNext(ExecutionResult executionResult) {
-            safeSendMessage(executionResult);
+            safeSendNext(executionResult);
             subscriptionRef.get().request(1);
         }
 
         @Override
         public void onError(Throwable t) {
             log.error(t.getMessage());
+            safeSendError(t.getMessage());
             safeClose();
         }
 
         @Override
         public void onComplete() {
             log.debug("Topic was terminated");
+            safeSendComplete();
             safeClose();
         }
     }

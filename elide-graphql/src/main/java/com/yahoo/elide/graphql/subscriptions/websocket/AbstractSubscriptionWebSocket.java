@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 @Slf4j
 public abstract class AbstractSubscriptionWebSocket<T extends Closeable> {
-    ConcurrentMap<T, AbstractSession> openSessions = new ConcurrentHashMap<>();
+    ConcurrentMap<T, RequestHandler> openSessions = new ConcurrentHashMap<>();
 
     public AbstractSubscriptionWebSocket(Elide elide) {
         GraphQLErrorSerializer errorSerializer = new GraphQLErrorSerializer();
@@ -43,7 +43,7 @@ public abstract class AbstractSubscriptionWebSocket<T extends Closeable> {
      * @throws IOException If there is an underlying error.
      */
     public void onOpen(T session) throws IOException {
-        AbstractSession<T> subscriptionSession = createSession(session);
+        RequestHandler<T> subscriptionSession = createSession(session);
 
         openSessions.put(session, subscriptionSession);
     }
@@ -79,8 +79,8 @@ public abstract class AbstractSubscriptionWebSocket<T extends Closeable> {
         openSessions.remove(session);
     }
 
-    private AbstractSession<T> findSession(T wrappedSession) {
-        AbstractSession<T> subscriptionSession = openSessions.getOrDefault(wrappedSession, null);
+    private RequestHandler<T> findSession(T wrappedSession) {
+        RequestHandler<T> subscriptionSession = openSessions.getOrDefault(wrappedSession, null);
 
         String message = "Unable to locate active session associated with: " + wrappedSession.toString();
         log.error(message);
@@ -90,5 +90,5 @@ public abstract class AbstractSubscriptionWebSocket<T extends Closeable> {
         return subscriptionSession;
     }
 
-    protected abstract AbstractSession<T> createSession(T wrappedSession);
+    protected abstract RequestHandler<T> createSession(T wrappedSession);
 }

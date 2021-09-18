@@ -6,9 +6,18 @@
 
 package com.yahoo.elide.graphql.subscriptions.websocket.protocol;
 
+import graphql.GraphQLError;
+import lombok.Builder;
+import lombok.Value;
+
+@Value
 public class Error extends AbstractProtocolMessageWithID {
 
-    public Error(String id) {
+    GraphQLError[] payload;
+
+    @Builder
+    public Error(String id, GraphQLError[] payload) {
         super(id, MessageType.ERROR);
+        this.payload = payload;
     }
 }

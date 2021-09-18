@@ -21,7 +21,7 @@ import javax.websocket.Session;
 /**
  * Concrete AbstractSession implementation that wraps JSR 356 session.
  */
-public class SubscriptionSession extends AbstractSession<Session> {
+public class SubscriptionSession extends RequestHandler<Session> {
 
     /**
      * Constructor.
