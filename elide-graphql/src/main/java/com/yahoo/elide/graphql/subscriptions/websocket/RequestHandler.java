@@ -12,11 +12,11 @@ import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
-import com.yahoo.elide.core.security.User;
 import com.yahoo.elide.graphql.GraphQLRequestScope;
 import com.yahoo.elide.graphql.QueryRunner;
 import com.yahoo.elide.graphql.parser.GraphQLProjectionInfo;
 import com.yahoo.elide.graphql.parser.SubscriptionEntityProjectionMaker;
+import com.yahoo.elide.graphql.subscriptions.ConnectionInfo;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Complete;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Error;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Next;
@@ -38,28 +38,27 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Given that web socket APIs are all different across platforms, this class provides an abstraction
  * with all the common logic needed to pull subscription messages from Elide.
- * @param <T> The platform specific session type.
  */
 @Slf4j
-public abstract class RequestHandler<T extends Closeable> implements Closeable {
+public class RequestHandler implements Closeable {
     protected DataStore topicStore;
     protected DataStoreTransaction transaction;
     protected Elide elide;
     protected GraphQL api;
     protected UUID requestID;
     protected String protocolID;
-    protected T wrappedSession;
+    protected SessionHandler sessionHandler;
+    protected ConnectionInfo connectionInfo;
 
     /**
      * Constructor.
-     * @param wrappedSession The underlying platform session object.
+     * @param sessionHandler Handles all requests for the given session.
      * @param topicStore The JMS data store.
      * @param elide Elide instance.
      * @param api GraphQL api.
@@ -67,68 +66,44 @@ public abstract class RequestHandler<T extends Closeable> implements Closeable {
      * @param requestID The Elide request UUID for this request.
      */
     public RequestHandler(
-            T wrappedSession,
+            SessionHandler sessionHandler,
             DataStore topicStore,
             Elide elide,
             GraphQL api,
             String protocolID,
-            UUID requestID) {
-        this.wrappedSession = wrappedSession;
+            UUID requestID,
+            ConnectionInfo connectionInfo) {
+        this.sessionHandler = sessionHandler;
         this.topicStore = topicStore;
         this.elide = elide;
         this.api = api;
         this.requestID = requestID;
         this.protocolID = protocolID;
+        this.connectionInfo = connectionInfo;
         this.transaction = null;
     }
-
-    /**
-     * Return an Elide user object for the session.
-     * @return Elide user.
-     */
-    public abstract User getUser();
-
-    /**
-     * Send a text message on the native session.
-     * @param message The message to send.
-     * @throws IOException
-     */
-    public abstract void sendMessage(String message) throws IOException;
-
-    /**
-     * Return the URL path for this request.
-     * @return URL path.
-     */
-    public abstract String getBaseUrl();
-
-    /**
-     * Get a map of parameters for the session.
-     * @return map of parameters.
-     */
-    public abstract Map<String, List<String>> getParameters();
 
     /**
      * Close this session.
      * @throws IOException
      */
-    public synchronized void close() throws IOException {
+    public void close() throws IOException {
         if (transaction != null) {
             transaction.close();
             elide.getTransactionRegistry().removeRunningTransaction(requestID);
         }
-        wrappedSession.close();
+        sessionHandler.close(protocolID);
     }
 
     /**
      * Handles an incoming GraphQL query.
      * @param subscribeRequest The GraphyQL query.
+     * @return true if the request is still active.
      */
-    public synchronized void handleRequest(Subscribe subscribeRequest) {
+    public boolean handleRequest(Subscribe subscribeRequest) {
         if (transaction != null) {
             throw new IllegalStateException("Already handling an active request.");
         }
-
-        ObjectMapper mapper = elide.getElideSettings().getMapper().getObjectMapper();
 
         boolean isVerbose = false;
 
@@ -144,14 +119,14 @@ public abstract class RequestHandler<T extends Closeable> implements Closeable {
                             .make(subscribeRequest.getQuery());
 
             GraphQLRequestScope requestScope = new GraphQLRequestScope(
-                    getBaseUrl(),
+                    connectionInfo.getBaseUrl(),
                     transaction,
-                    getUser(),
+                    connectionInfo.getUser(),
                     NO_VERSION, //TODO - API version needs to be set correctly.
                     settings,
                     projectionInfo,
                     requestID,
-                    getParameters());
+                    connectionInfo.getParameters());
 
             isVerbose = requestScope.getPermissionExecutor().isVerbose();
 
@@ -171,7 +146,7 @@ public abstract class RequestHandler<T extends Closeable> implements Closeable {
                 safeSendNext(executionResult);
                 safeSendComplete();
                 safeClose();
-                return;
+                return false;
             }
 
             Publisher<ExecutionResult> resultPublisher = executionResult.getData();
@@ -179,7 +154,7 @@ public abstract class RequestHandler<T extends Closeable> implements Closeable {
             if (resultPublisher == null) {
                 safeSendError(executionResult.getErrors().toArray(GraphQLError[]::new));
                 safeClose();
-                return;
+                return false;
             }
 
             resultPublisher.subscribe(new ExecutionResultSubscriber());
@@ -187,8 +162,10 @@ public abstract class RequestHandler<T extends Closeable> implements Closeable {
             ElideResponse response = QueryRunner.handleRuntimeException(elide, e, isVerbose);
             safeSendError(response.getBody());
             safeClose();
-            return;
+            return false;
         }
+
+        return true;
     }
 
     protected void safeSendNext(ExecutionResult result) {
@@ -198,7 +175,7 @@ public abstract class RequestHandler<T extends Closeable> implements Closeable {
                 .id(protocolID)
                 .build();
         try {
-            sendMessage(mapper.writeValueAsString(next));
+            sessionHandler.sendMessage(mapper.writeValueAsString(next));
         } catch (IOException e) {
             log.error(e.getMessage());
             safeClose();
@@ -211,7 +188,7 @@ public abstract class RequestHandler<T extends Closeable> implements Closeable {
                 .id(protocolID)
                 .build();
         try {
-            sendMessage(mapper.writeValueAsString(complete));
+            sessionHandler.sendMessage(mapper.writeValueAsString(complete));
         } catch (IOException e) {
             log.error(e.getMessage());
             safeClose();
@@ -225,7 +202,7 @@ public abstract class RequestHandler<T extends Closeable> implements Closeable {
                 .payload(errors)
                 .build();
         try {
-            sendMessage(mapper.writeValueAsString(error));
+            sessionHandler.sendMessage(mapper.writeValueAsString(error));
         } catch (IOException e) {
             log.error(e.getMessage());
             safeClose();
