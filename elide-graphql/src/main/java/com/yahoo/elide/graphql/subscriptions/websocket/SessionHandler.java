@@ -21,10 +21,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Given that web socket APIs are all different across platforms, this class provides an abstraction
@@ -40,9 +39,9 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
     Map<String, RequestHandler> activeRequests;
     ConnectionInfo connectionInfo;
     ObjectMapper mapper;
-    AtomicLong lastActiveEpoch;
-    long inactivityTimeoutMs = 10000;
-    boolean intialized = false;
+    long connectionTimeoutMs;
+    Thread timeoutThread;
+    boolean initialized = false;
 
     /**
      * Constructor.
@@ -57,6 +56,7 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
             DataStore topicStore,
             Elide elide,
             GraphQL api,
+            long connectionTimeoutMs,
             ConnectionInfo connectionInfo) {
         this.wrappedSession = wrappedSession;
         this.topicStore = topicStore;
@@ -64,8 +64,10 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
         this.api = api;
         this.connectionInfo = connectionInfo;
         this.mapper = elide.getMapper().getObjectMapper();
-        this.activeRequests = new ConcurrentHashMap<>();
-        this.lastActiveEpoch.set(System.currentTimeMillis());
+        this.activeRequests = new HashMap<>();
+        this.connectionTimeoutMs = connectionTimeoutMs;
+        this.timeoutThread = new Thread(new ConnectionTimer());
+        timeoutThread.run();
     }
 
     /**
@@ -83,14 +85,6 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
         activeRequests.remove(protocolID);
     }
 
-    public synchronized void closeIfInactive() throws IOException {
-        long currentEpoch = System.currentTimeMillis();
-        if (currentEpoch - inactivityTimeoutMs > lastActiveEpoch.get()) {
-            log.debug("Inactivity timeout");
-            close();
-        }
-    }
-
     /**
      * Handles an incoming graphql-ws protocol message.
      * @param message The protocol message.
@@ -100,7 +94,7 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
             JsonNode type = mapper.readTree(message).get("type");
 
             if (type == null) {
-                log.error("No type field. Web socket not following graphql-js protocol");
+                safeClose(4400, "Missing type field");
                 return;
             }
 
@@ -108,50 +102,57 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
             try {
                 messageType = MessageType.valueOf(type.textValue());
             } catch (IllegalArgumentException e) {
-                log.error("Unknown protocol message type {}", type.textValue());
+                safeClose(4400, "Unknown protocol message type " + type.textValue());
                 return;
             }
 
             switch (messageType) {
                 case PING: {
-                    if (intialized) {
-                        lastActiveEpoch.set(System.currentTimeMillis());
-                    }
                     safeSendPong();
                     break;
                 }
                 case CONNECTION_INIT: {
-                    intialized = true;
-                    lastActiveEpoch.set(System.currentTimeMillis());
+                    if (initialized) {
+                        safeClose(4429, "Too many initialization requests");
+                        return;
+                    }
+
                     safeSendConnectionAck();
+                    initialized = true;
                     break;
                 }
                 case SUBSCRIBE: {
 
+                    if (!initialized) {
+                        safeClose(4401, "Unauthorized");
+                        return;
+                    }
+
                     Subscribe subscribe = mapper.readValue(message, Subscribe.class);
                     String protocolID = subscribe.getId();
 
-                    if (activeRequests.containsKey(protocolID)) {
-                        log.error("Active request already exists with ID: {}", protocolID);
-                        break;
-                    }
+                    synchronized(this) {
+                        if (activeRequests.containsKey(protocolID)) {
+                            safeClose(4409, "Subscriber for " + protocolID + " already exists");
+                            return;
+                        }
 
-                    intialized = true;
-                    lastActiveEpoch.set(System.currentTimeMillis());
+                        timeoutThread.interrupt();
 
-                    RequestHandler requestHandler = new RequestHandler(this,
-                            topicStore, elide, api, protocolID, UUID.randomUUID(), connectionInfo);
+                        RequestHandler requestHandler = new RequestHandler(this,
+                                topicStore, elide, api, protocolID, UUID.randomUUID(), connectionInfo);
 
-                    if (requestHandler.handleRequest(subscribe)) {
-                        activeRequests.put(protocolID, requestHandler);
+                        if (requestHandler.handleRequest(subscribe)) {
+                            activeRequests.put(protocolID, requestHandler);
+                        }
                     }
                     break;
                 } default: {
-                    log.error("Invalid protocol message type {}", type.textValue());
+                    safeClose(4400, "Invalid protocol message type " + type.textValue());
                 }
             }
         } catch (JsonProcessingException e) {
-            log.error(e.getMessage());
+            safeClose(4400, "Invalid message body");
         }
     }
 
@@ -162,8 +163,7 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
         try {
             sendMessage(mapper.writeValueAsString(ack));
         } catch (IOException e) {
-            log.error(e.getMessage());
-            safeClose();
+            safeClose(5000, e.getMessage());
         }
     }
 
@@ -174,12 +174,18 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
         try {
             sendMessage(mapper.writeValueAsString(pong));
         } catch (IOException e) {
-            log.error(e.getMessage());
-            safeClose();
+            safeClose(5000, e.getMessage());
         }
     }
 
-    protected void safeClose() {
+    protected void safeClose(Integer code, String message) {
+        String errorMessage = code.toString() + ": " + message;
+        log.debug(errorMessage);
+        try {
+            sendMessage(errorMessage);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
         try {
             close();
         } catch (IOException e) {
@@ -193,4 +199,21 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
      * @throws IOException
      */
     public abstract void sendMessage(String message) throws IOException;
+
+    private class ConnectionTimer implements Runnable {
+
+        @Override
+        public void run() {
+            try {
+                Thread.sleep(connectionTimeoutMs);
+                synchronized (SessionHandler.this) {
+                    if (activeRequests.size() == 0) {
+                        safeClose(4408, "Connection initialisation timeout");
+                    }
+                }
+            } catch (InterruptedException e) {
+                log.debug("Timeout thread interrupted: " + e.getMessage());
+            }
+        }
+    }
 }
