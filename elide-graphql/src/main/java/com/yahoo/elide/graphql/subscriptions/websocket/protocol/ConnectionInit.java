@@ -6,7 +6,18 @@
 
 package com.yahoo.elide.graphql.subscriptions.websocket.protocol;
 
+import lombok.EqualsAndHashCode;
+import lombok.Value;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Value
+@EqualsAndHashCode(callSuper = true)
 public class ConnectionInit extends AbstractProtocolMessage {
+    //Will contain authentication credentials.
+    Map<String, Object> payload = new HashMap<>();
+
     public ConnectionInit() {
         super(MessageType.CONNECTION_INIT);
     }
