@@ -66,7 +66,7 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
         this.activeRequests = new HashMap<>();
         this.connectionTimeoutMs = connectionTimeoutMs;
         this.timeoutThread = new Thread(new ConnectionTimer());
-        timeoutThread.run();
+        timeoutThread.start();
     }
 
     /**

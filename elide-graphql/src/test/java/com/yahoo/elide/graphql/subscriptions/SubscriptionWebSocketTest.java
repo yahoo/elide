@@ -25,6 +25,7 @@ import com.yahoo.elide.graphql.GraphQLTest;
 import com.yahoo.elide.graphql.NonEntityDictionary;
 import com.yahoo.elide.graphql.parser.GraphQLQuery;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionEndpoint;
+import com.yahoo.elide.graphql.subscriptions.websocket.protocol.ConnectionInit;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import example.Address;
 import example.Author;
@@ -63,6 +64,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     protected Session session;
     protected RemoteEndpoint.Basic remote;
     protected SubscriptionEndpoint endpoint;
+    protected Elide elide;
 
     public SubscriptionWebSocketTest() {
         RSQLFilterDialect filterDialect = new RSQLFilterDialect(dictionary);
@@ -78,7 +80,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 .withISO8601Dates("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
                 .build();
 
-        Elide elide = new Elide(settings);
+        elide = new Elide(settings);
 
         NonEntityDictionary nonEntityDictionary =
                 new NonEntityDictionary(DefaultClassScanner.getInstance(), CoerceUtil::lookup);
@@ -105,6 +107,23 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         when(dataStore.beginReadTransaction()).thenReturn(dataStoreTransaction);
         when(dataStoreTransaction.getAttribute(any(), any(), any())).thenCallRealMethod();
         when(dataStoreTransaction.getRelation(any(), any(), any(), any())).thenCallRealMethod();
+    }
+
+    @Test
+    void testConnectionSetupAndTeardown() throws IOException {
+        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+
+        ConnectionInit init = new ConnectionInit();
+        endpoint.onOpen(session);
+        endpoint.onMessage(session, mapper.writeValueAsString(init));
+
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        endpoint.onClose(session);
+
+        verify(remote, times(2)).sendText(argumentCaptor.capture());
+        assertEquals("{\"type\":\"CONNECTION_ACK\"}" ,argumentCaptor.getAllValues().get(0));
+        assertEquals("1000: Normal Closure" ,argumentCaptor.getAllValues().get(1));
     }
 
     @Test
