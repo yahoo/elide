@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -120,6 +121,63 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     }
 
     @Test
+    void testMissingType() throws IOException {
+        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+
+        String invalid = "{ \"id\": 123 }";
+        endpoint.onOpen(session);
+        endpoint.onMessage(session, invalid);
+
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(remote, times(1)).sendText(argumentCaptor.capture()); assertEquals("4400: Missing type field", argumentCaptor.getAllValues().get(0));
+    }
+
+    @Test
+    void testInvalidType() throws IOException {
+        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+
+        String invalid = "{ \"type\": \"foo\", \"id\": 123 }";
+        endpoint.onOpen(session);
+        endpoint.onMessage(session, invalid);
+
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(remote, times(1)).sendText(argumentCaptor.capture());
+        assertEquals("4400: Unknown protocol message type 'foo'", argumentCaptor.getAllValues().get(0));
+    }
+
+    @Test
+    void testInvalidJson() throws IOException {
+        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+
+        //Missing payload field
+        String invalid = "{ \"type\": \"SUBSCRIBE\"}";
+        ConnectionInit init = new ConnectionInit();
+        endpoint.onOpen(session);
+        endpoint.onMessage(session, mapper.writeValueAsString(init));
+        endpoint.onMessage(session, invalid);
+
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(remote, times(2)).sendText(argumentCaptor.capture());
+        assertEquals("{\"type\":\"CONNECTION_ACK\"}", argumentCaptor.getAllValues().get(0));
+        assertEquals("4400: Invalid message body", argumentCaptor.getAllValues().get(1));
+    }
+
+    @Test
+    void testConnectionTimeout() throws Exception {
+        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api, 0);
+
+        endpoint.onOpen(session);
+
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(remote, timeout(1000).times(1)).sendText(argumentCaptor.capture());
+        assertEquals("4408: Connection initialisation timeout", argumentCaptor.getAllValues().get(0));
+    }
+
+    @Test
     void testDoubleInit() throws IOException {
         SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
 
@@ -133,6 +191,52 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         verify(remote, times(2)).sendText(argumentCaptor.capture());
         assertEquals("{\"type\":\"CONNECTION_ACK\"}", argumentCaptor.getAllValues().get(0));
         assertEquals("4429: Too many initialization requests", argumentCaptor.getAllValues().get(1));
+    }
+
+    @Test
+    void testSubscribeBeforeInit() throws IOException {
+        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+
+        endpoint.onOpen(session);
+
+        Subscribe subscribe = Subscribe.builder()
+                .id("1")
+                .query("subscription {bookAdded {id title}}")
+                .build();
+
+        endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
+
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(remote, times(1)).sendText(argumentCaptor.capture());
+        assertEquals("4401: Unauthorized", argumentCaptor.getAllValues().get(0));
+    }
+
+    @Test
+    void testDoubleSubscribe() throws IOException {
+        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+
+        ConnectionInit init = new ConnectionInit();
+        endpoint.onOpen(session);
+        endpoint.onMessage(session, mapper.writeValueAsString(init));
+
+        Subscribe subscribe = Subscribe.builder()
+                .id("1")
+                .query("subscription {bookAdded {id title}}")
+                .build();
+
+        endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
+        endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
+
+        List<String> expected = List.of(
+                "{\"type\":\"CONNECTION_ACK\"}",
+                "{\"type\":\"COMPLETE\",\"id\":\"1\"}",
+                "4409: Subscriber for 1 already exists"
+        );
+
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+        verify(remote, times(3)).sendText(argumentCaptor.capture());
+        assertEquals(expected, argumentCaptor.getAllValues());
     }
 
     @Test
@@ -162,8 +266,8 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         List<String> expected = List.of(
                 "{\"type\":\"CONNECTION_ACK\"}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"result\":{\"data\":{\"bookAdded\":{\"id\":\"1\",\"title\":\"Book 1\"}}}}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"result\":{\"data\":{\"bookAdded\":{\"id\":\"2\",\"title\":\"Book 2\"}}}}",
+                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"bookAdded\":{\"id\":\"1\",\"title\":\"Book 1\"}}}}",
+                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"bookAdded\":{\"id\":\"2\",\"title\":\"Book 2\"}}}}",
                 "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
         );
 
@@ -205,7 +309,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         List<String> expected = List.of(
                 "{\"type\":\"CONNECTION_ACK\"}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"result\":{\"data\":{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]},\"__type\":{\"name\":\"Author\",\"fields\":[{\"name\":\"id\",\"type\":{\"name\":\"DeferredID\"}},{\"name\":\"homeAddress\",\"type\":{\"name\":\"address\"}},{\"name\":\"name\",\"type\":{\"name\":\"String\"}},{\"name\":\"type\",\"type\":{\"name\":\"AuthorType\"}}]}}}}",
+                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]},\"__type\":{\"name\":\"Author\",\"fields\":[{\"name\":\"id\",\"type\":{\"name\":\"DeferredID\"}},{\"name\":\"homeAddress\",\"type\":{\"name\":\"address\"}},{\"name\":\"name\",\"type\":{\"name\":\"String\"}},{\"name\":\"type\",\"type\":{\"name\":\"AuthorType\"}}]}}}}",
                 "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
         );
 

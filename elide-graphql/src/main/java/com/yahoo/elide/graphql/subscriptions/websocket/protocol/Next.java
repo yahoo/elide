@@ -18,15 +18,16 @@ import lombok.Value;
 @EqualsAndHashCode(callSuper = true)
 @JsonPropertyOrder({ "type", "id", "result"})
 public class Next extends AbstractProtocolMessageWithID {
-    ExecutionResult result;
+    @JsonProperty(required = true)
+    ExecutionResult payload;
 
     @Builder
     @JsonCreator
     public Next(
-            @JsonProperty("id") String id,
-            @JsonProperty("result") ExecutionResult result
+            @JsonProperty(value = "id", required = true) String id,
+            @JsonProperty(value = "result", required = true) ExecutionResult result
     ) {
         super(id, MessageType.NEXT);
-        this.result = result;
+        this.payload = result;
     }
 }

@@ -25,21 +25,28 @@ import javax.websocket.server.ServerEndpoint;
  */
 @ServerEndpoint(value = "/")
 public class SubscriptionEndpoint extends AbstractSubscriptionWebSocket<Session> {
-    private DataStore topicStore;
-    private Elide elide;
-    private GraphQL api;
+    private final DataStore topicStore;
+    private final Elide elide;
+    private final GraphQL api;
+    private final int connectTimeoutMs;
+
+    public SubscriptionEndpoint(DataStore topicStore, Elide elide, GraphQL api) {
+        this(topicStore, elide, api, 10000);
+    }
 
     /**
      * Constructor.
      * @param topicStore The JMS data store
      * @param elide Elide instance
      * @param api GraphQL API
+     * @param connectTimeoutMs Connection timeout
      */
-    public SubscriptionEndpoint(DataStore topicStore, Elide elide, GraphQL api) {
+    public SubscriptionEndpoint(DataStore topicStore, Elide elide, GraphQL api, int connectTimeoutMs) {
         super(elide);
         this.topicStore = topicStore;
         this.elide = elide;
         this.api = api;
+        this.connectTimeoutMs = connectTimeoutMs;
     }
 
     @OnOpen
@@ -70,6 +77,6 @@ public class SubscriptionEndpoint extends AbstractSubscriptionWebSocket<Session>
     protected SessionHandler<Session> createSession(Session wrappedSession) {
         UUID requestId = UUID.randomUUID();
 
-        return new SubscriptionSession(topicStore, elide, api, wrappedSession, requestId);
+        return new SubscriptionSession(topicStore, elide, api, wrappedSession, connectTimeoutMs, requestId);
     }
 }

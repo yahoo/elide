@@ -19,13 +19,14 @@ import lombok.Value;
 @JsonPropertyOrder({ "type", "id", "payload"})
 public class Error extends AbstractProtocolMessageWithID {
 
+    @JsonProperty(required = true)
     GraphQLError[] payload;
 
     @Builder
     @JsonCreator
     public Error(
-            @JsonProperty("id") String id,
-            @JsonProperty("payload") GraphQLError[] payload
+            @JsonProperty(value = "id", required = true) String id,
+            @JsonProperty(value = "payload", required = true) GraphQLError[] payload
     ) {
         super(id, MessageType.ERROR);
         this.payload = payload;

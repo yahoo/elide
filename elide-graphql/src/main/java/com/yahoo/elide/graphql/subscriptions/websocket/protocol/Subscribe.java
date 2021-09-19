@@ -21,15 +21,18 @@ import java.util.Map;
 @JsonPropertyOrder({"type", "id", "operationName", "query", "variables"})
 public class Subscribe extends AbstractProtocolMessageWithID {
     String operationName;
+
+    @JsonProperty(required = true)
     String query;
+
     Map<String, Object> variables;
 
     @Builder
     @JsonCreator
     public Subscribe(
-            @JsonProperty("id") String id,
+            @JsonProperty(value = "id", required = true) String id,
             @JsonProperty("operationName") String operationName,
-            @JsonProperty("query") String query,
+            @JsonProperty(value = "query", required = true) String query,
             @JsonProperty("variables") Map<String, Object> variables) {
         super(id, MessageType.SUBSCRIBE);
         this.operationName = operationName;

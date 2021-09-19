@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
@@ -74,9 +75,15 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
      * @throws IOException
      */
     public synchronized void close() throws IOException {
-        activeRequests.forEach((protocolID, handler) -> {
+
+        //Iterator here to avoid concurrent modification exceptions.
+        Iterator<Map.Entry<String, RequestHandler>> iterator = activeRequests.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, RequestHandler> item = iterator.next();
+            RequestHandler handler = item.getValue();
             handler.safeClose();
-        });
+
+        }
         wrappedSession.close();
     }
 
@@ -101,7 +108,7 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
             try {
                 messageType = MessageType.valueOf(type.textValue());
             } catch (IllegalArgumentException e) {
-                safeClose(4400, "Unknown protocol message type " + type.textValue());
+                safeClose(4400, "Unknown protocol message type '" + type.textValue() + "'");
                 return;
             }
 

@@ -6,11 +6,14 @@
 
 package com.yahoo.elide.graphql.subscriptions.websocket.protocol;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
 public abstract class AbstractProtocolMessage {
+
+    @JsonProperty(required = true)
     final MessageType type;
 }
