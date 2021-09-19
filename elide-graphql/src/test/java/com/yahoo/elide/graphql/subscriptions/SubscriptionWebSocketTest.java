@@ -19,6 +19,7 @@ import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.ElideSettingsBuilder;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.core.datastore.DataStoreTransaction;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.filter.dialect.RSQLFilterDialect;
 import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
@@ -232,6 +233,74 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 "{\"type\":\"CONNECTION_ACK\"}",
                 "{\"type\":\"COMPLETE\",\"id\":\"1\"}",
                 "4409: Subscriber for 1 already exists"
+        );
+
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+        verify(remote, times(3)).sendText(argumentCaptor.capture());
+        assertEquals(expected, argumentCaptor.getAllValues());
+    }
+
+    @Test
+    void testErrorInStream() throws IOException {
+        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+
+        Book book1 = new Book();
+        book1.setTitle("Book 1");
+        book1.setId(1);
+
+        Book book2 = new Book();
+        book2.setTitle("Book 2");
+        book2.setId(2);
+
+        reset(dataStoreTransaction);
+        when(dataStoreTransaction.getAttribute(any(), any(), any())).thenThrow(new BadRequestException("Bad Request"));
+        when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(book1, book2));
+
+        ConnectionInit init = new ConnectionInit();
+        endpoint.onOpen(session);
+        endpoint.onMessage(session, mapper.writeValueAsString(init));
+
+        Subscribe subscribe = Subscribe.builder()
+                .id("1")
+                .query("subscription {bookAdded {id title}}")
+                .build();
+
+        endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
+
+        List<String> expected = List.of(
+                "{\"type\":\"CONNECTION_ACK\"}",
+                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"bookAdded\":{\"id\":\"1\",\"title\":null}},\"errors\":[{\"message\":\"Exception while fetching data (/bookAdded/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":29}],\"path\":[\"bookAdded\",\"title\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
+                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":{\"bookAdded\":{\"id\":\"2\",\"title\":null}},\"errors\":[{\"message\":\"Exception while fetching data (/bookAdded/title) : Bad Request\",\"locations\":[{\"line\":1,\"column\":29}],\"path\":[\"bookAdded\",\"title\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
+                "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
+        );
+
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+        verify(remote, times(4)).sendText(argumentCaptor.capture());
+        assertEquals(expected, argumentCaptor.getAllValues());
+    }
+
+    @Test
+    void testErrorPriorToStream() throws IOException {
+        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+
+        reset(dataStoreTransaction);
+        when(dataStoreTransaction.loadObjects(any(), any())).thenThrow(new BadRequestException("Bad Request"));
+
+        ConnectionInit init = new ConnectionInit();
+        endpoint.onOpen(session);
+        endpoint.onMessage(session, mapper.writeValueAsString(init));
+
+        Subscribe subscribe = Subscribe.builder()
+                .id("1")
+                .query("subscription {bookAdded {id title}}")
+                .build();
+
+        endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
+
+        List<String> expected = List.of(
+                "{\"type\":\"CONNECTION_ACK\"}",
+                "{\"type\":\"NEXT\",\"id\":\"1\",\"payload\":{\"data\":null,\"errors\":[{\"message\":\"Exception while fetching data (/bookAdded) : Bad Request\",\"locations\":[{\"line\":1,\"column\":15}],\"path\":[\"bookAdded\"],\"extensions\":{\"classification\":\"DataFetchingException\"}}]}}",
+                "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
         );
 
         ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
