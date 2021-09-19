@@ -115,8 +115,8 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         endpoint.onClose(session);
 
         verify(remote, times(2)).sendText(argumentCaptor.capture());
-        assertEquals("{\"type\":\"CONNECTION_ACK\"}" ,argumentCaptor.getAllValues().get(0));
-        assertEquals("1000: Normal Closure" ,argumentCaptor.getAllValues().get(1));
+        assertEquals("{\"type\":\"CONNECTION_ACK\"}", argumentCaptor.getAllValues().get(0));
+        assertEquals("1000: Normal Closure", argumentCaptor.getAllValues().get(1));
     }
 
     @Test
@@ -131,8 +131,8 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
 
         verify(remote, times(2)).sendText(argumentCaptor.capture());
-        assertEquals("{\"type\":\"CONNECTION_ACK\"}" ,argumentCaptor.getAllValues().get(0));
-        assertEquals("4429: Too many initialization requests" ,argumentCaptor.getAllValues().get(1));
+        assertEquals("{\"type\":\"CONNECTION_ACK\"}", argumentCaptor.getAllValues().get(0));
+        assertEquals("4429: Too many initialization requests", argumentCaptor.getAllValues().get(1));
     }
 
     @Test
@@ -183,6 +183,13 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                         + "   name"
                         + "}"
                         + "}"
+                        + "__type(name: \"Author\") {"
+                        + "   name"
+                        + "   fields {"
+                        + "     name"
+                        + "     type { name }"
+                        + "   }"
+                        + "}"
                         + "}";
 
         ConnectionInit init = new ConnectionInit();
@@ -198,7 +205,7 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         List<String> expected = List.of(
                 "{\"type\":\"CONNECTION_ACK\"}",
-                "{\"type\":\"NEXT\",\"id\":\"1\",\"result\":{\"data\":{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]}}}}",
+                "{\"type\":\"NEXT\",\"id\":\"1\",\"result\":{\"data\":{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]},\"__type\":{\"name\":\"Author\",\"fields\":[{\"name\":\"id\",\"type\":{\"name\":\"DeferredID\"}},{\"name\":\"homeAddress\",\"type\":{\"name\":\"address\"}},{\"name\":\"name\",\"type\":{\"name\":\"String\"}},{\"name\":\"type\",\"type\":{\"name\":\"AuthorType\"}}]}}}}",
                 "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
         );
 

@@ -130,7 +130,7 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
                     Subscribe subscribe = mapper.readValue(message, Subscribe.class);
                     String protocolID = subscribe.getId();
 
-                    synchronized(this) {
+                    synchronized (this) {
                         if (activeRequests.containsKey(protocolID)) {
                             safeClose(4409, "Subscriber for " + protocolID + " already exists");
                             return;
