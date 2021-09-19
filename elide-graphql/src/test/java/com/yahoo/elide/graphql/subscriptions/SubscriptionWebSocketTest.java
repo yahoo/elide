@@ -23,12 +23,10 @@ import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.graphql.GraphQLTest;
 import com.yahoo.elide.graphql.NonEntityDictionary;
-import com.yahoo.elide.graphql.parser.GraphQLQuery;
 import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionEndpoint;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.ConnectionInit;
+import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import example.Address;
-import example.Author;
 import example.Book;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +40,6 @@ import graphql.execution.SubscriptionExecutionStrategy;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 import javax.websocket.RemoteEndpoint;
@@ -56,14 +53,12 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     protected GraphQL api;
     protected ObjectMapper mapper = new ObjectMapper();
     private static final Logger LOG = LoggerFactory.getLogger(GraphQL.class);
-    private final String baseUrl = "http://localhost:8080/graphql";
 
     protected DataStore dataStore;
     protected DataStoreTransaction dataStoreTransaction;
     protected ElideSettings settings;
     protected Session session;
     protected RemoteEndpoint.Basic remote;
-    protected SubscriptionEndpoint endpoint;
     protected Elide elide;
 
     public SubscriptionWebSocketTest() {
@@ -92,8 +87,6 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 .queryExecutionStrategy(new AsyncSerialExecutionStrategy())
                 .subscriptionExecutionStrategy(new SubscriptionExecutionStrategy())
                 .build();
-
-        endpoint = new SubscriptionEndpoint(dataStore, elide, api);
     }
 
     @BeforeEach
@@ -127,7 +120,25 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
     }
 
     @Test
+    void testDoubleInit() throws IOException {
+        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+
+        ConnectionInit init = new ConnectionInit();
+        endpoint.onOpen(session);
+        endpoint.onMessage(session, mapper.writeValueAsString(init));
+        endpoint.onMessage(session, mapper.writeValueAsString(init));
+
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(remote, times(2)).sendText(argumentCaptor.capture());
+        assertEquals("{\"type\":\"CONNECTION_ACK\"}" ,argumentCaptor.getAllValues().get(0));
+        assertEquals("4429: Too many initialization requests" ,argumentCaptor.getAllValues().get(1));
+    }
+
+    @Test
     void testRootSubscription() throws IOException {
+        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+
         Book book1 = new Book();
         book1.setTitle("Book 1");
         book1.setId(1);
@@ -138,71 +149,33 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(book1, book2));
 
-        List<String> responses = List.of(
-                "{\"data\":{\"bookAdded\":{\"id\":\"1\",\"title\":\"Book 1\"}}}",
-                "{\"data\":{\"bookAdded\":{\"id\":\"2\",\"title\":\"Book 2\"}}}"
+        ConnectionInit init = new ConnectionInit();
+        endpoint.onOpen(session);
+        endpoint.onMessage(session, mapper.writeValueAsString(init));
+
+        Subscribe subscribe = Subscribe.builder()
+                .id("1")
+                .query("subscription {bookAdded {id title}}")
+                .build();
+
+        endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
+
+        List<String> expected = List.of(
+                "{\"type\":\"CONNECTION_ACK\"}",
+                "{\"type\":\"NEXT\",\"id\":\"1\",\"result\":{\"data\":{\"bookAdded\":{\"id\":\"1\",\"title\":\"Book 1\"}}}}",
+                "{\"type\":\"NEXT\",\"id\":\"1\",\"result\":{\"data\":{\"bookAdded\":{\"id\":\"2\",\"title\":\"Book 2\"}}}}",
+                "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
         );
 
-        String graphQLRequest = "subscription {bookAdded {id title}}";
-
-        assertSubscriptionEquals(graphQLRequest, responses);
+        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+        verify(remote, times(4)).sendText(argumentCaptor.capture());
+        assertEquals(expected, argumentCaptor.getAllValues());
     }
 
     @Test
-    void testComplexAttribute() throws IOException {
-        Author author1 = new Author();
-        author1.setId(1L);
-        author1.setHomeAddress(new Address());
+    void testSchemaQuery() throws IOException {
+        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
 
-        Author author2 = new Author();
-        author2.setId(2L);
-        Address address = new Address();
-        address.setStreet1("123");
-        address.setStreet2("XYZ");
-        author2.setHomeAddress(address);
-
-        when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(author1, author2));
-
-        List<String> responses = List.of(
-                "{\"data\":{\"authorUpdated\":{\"id\":\"1\",\"homeAddress\":{\"street1\":null,\"street2\":null}}}}",
-                "{\"data\":{\"authorUpdated\":{\"id\":\"2\",\"homeAddress\":{\"street1\":\"123\",\"street2\":\"XYZ\"}}}}"
-        );
-
-        String graphQLRequest = "subscription {authorUpdated {id homeAddress { street1 street2 }}}";
-
-        assertSubscriptionEquals(graphQLRequest, responses);
-    }
-
-    @Test
-    void testRelationshipSubscription() throws IOException {
-        Book book1 = new Book();
-        book1.setTitle("Book 1");
-        book1.setId(1);
-        Author author1 = new Author();
-        author1.setName("John Doe");
-
-        Author author2 = new Author();
-        author1.setName("Jane Doe");
-        book1.setAuthors(List.of(author1, author2));
-
-        Book book2 = new Book();
-        book2.setTitle("Book 2");
-        book2.setId(2);
-
-        when(dataStoreTransaction.loadObjects(any(), any())).thenReturn(List.of(book1, book2));
-
-        List<String> responses = List.of(
-                "{\"data\":{\"bookAdded\":{\"id\":\"1\",\"title\":\"Book 1\",\"authors\":[{\"name\":\"Jane Doe\"},{\"name\":null}]}}}",
-                "{\"data\":{\"bookAdded\":{\"id\":\"2\",\"title\":\"Book 2\",\"authors\":[]}}}"
-        );
-
-        String graphQLRequest = "subscription {bookAdded {id title authors { name }}}";
-
-        assertSubscriptionEquals(graphQLRequest, responses);
-    }
-
-    @Test
-    void testSchemaSubscription() throws IOException {
         String graphQLRequest =
                 "{"
                         + "__schema {"
@@ -212,45 +185,25 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                         + "}"
                         + "}";
 
-        assertSubscriptionEquals(graphQLRequest, List.of("{\"data\":{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]}}}"));
-    }
-
-    protected void assertSubscriptionEquals(String graphQLRequest, List<String> expectedResponses) throws IOException {
-        assertSubscriptionEquals(graphQLRequest, expectedResponses, new ArrayList<>());
-    }
-
-    protected void assertSubscriptionEquals(
-            String graphQLRequest,
-            List<String> expectedResponses,
-            List<String> expectedErrors) throws IOException {
-        List<String> results = runSubscription(graphQLRequest, expectedResponses.size());
-
-        assertEquals(expectedResponses.size(), results.size());
-
-        for (int i = 0; i < expectedResponses.size(); i++) {
-            String expectedResponse = expectedResponses.get(i);
-            String actualResponse = results.get(i);
-
-            LOG.info(mapper.writeValueAsString(actualResponse));
-            assertEquals(expectedResponse, actualResponse);
-        }
-    }
-
-    /**
-     * Run a subscription.
-     * @param request The subscription query.
-     * @return A discrete list of results returned from the subscription.
-     */
-    protected List<String> runSubscription(String request, int expectedResponseCount) throws IOException {
-        GraphQLQuery query = GraphQLQuery.builder().query(request).build();
-        String queryWithEnvelope = mapper.writeValueAsString(query);
-
+        ConnectionInit init = new ConnectionInit();
         endpoint.onOpen(session);
-        endpoint.onMessage(session, queryWithEnvelope);
+        endpoint.onMessage(session, mapper.writeValueAsString(init));
+
+        Subscribe subscribe = Subscribe.builder()
+                .id("1")
+                .query(graphQLRequest)
+                .build();
+
+        endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
+
+        List<String> expected = List.of(
+                "{\"type\":\"CONNECTION_ACK\"}",
+                "{\"type\":\"NEXT\",\"id\":\"1\",\"result\":{\"data\":{\"__schema\":{\"types\":[{\"name\":\"Author\"},{\"name\":\"AuthorType\"},{\"name\":\"Book\"},{\"name\":\"Boolean\"},{\"name\":\"DeferredID\"},{\"name\":\"String\"},{\"name\":\"Subscription\"},{\"name\":\"__Directive\"},{\"name\":\"__DirectiveLocation\"},{\"name\":\"__EnumValue\"},{\"name\":\"__Field\"},{\"name\":\"__InputValue\"},{\"name\":\"__Schema\"},{\"name\":\"__Type\"},{\"name\":\"__TypeKind\"},{\"name\":\"address\"}]}}}}",
+                "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
+        );
 
         ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
-        verify(remote, times(expectedResponseCount)).sendText(argumentCaptor.capture());
-
-        return argumentCaptor.getAllValues();
+        verify(remote, times(3)).sendText(argumentCaptor.capture());
+        assertEquals(expected, argumentCaptor.getAllValues());
     }
 }

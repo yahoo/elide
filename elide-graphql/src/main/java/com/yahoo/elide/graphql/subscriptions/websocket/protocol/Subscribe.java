@@ -6,10 +6,14 @@
 
 package com.yahoo.elide.graphql.subscriptions.websocket.protocol;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Value;
 
+import java.util.HashMap;
 import java.util.Map;
+
 @Value
 public class Subscribe extends AbstractProtocolMessageWithID {
     String operationName;
@@ -17,10 +21,19 @@ public class Subscribe extends AbstractProtocolMessageWithID {
     Map<String, Object> variables;
 
     @Builder
-    public Subscribe(String id, String operationName, String query, Map<String, Object> variables) {
+    @JsonCreator
+    public Subscribe(
+            @JsonProperty("id") String id,
+            @JsonProperty("operationName") String operationName,
+            @JsonProperty("query") String query,
+            @JsonProperty("variables") Map<String, Object> variables) {
         super(id, MessageType.SUBSCRIBE);
         this.operationName = operationName;
         this.query = query;
-        this.variables = variables;
+        if (variables == null) {
+            this.variables = new HashMap<>();
+        } else {
+            this.variables = variables;
+        }
     }
 }
