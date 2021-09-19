@@ -8,13 +8,17 @@ package com.yahoo.elide.graphql.subscriptions.websocket.protocol;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Value
+@EqualsAndHashCode(callSuper = true)
+@JsonPropertyOrder({"type", "id", "operationName", "query", "variables"})
 public class Subscribe extends AbstractProtocolMessageWithID {
     String operationName;
     String query;
