@@ -6,7 +6,6 @@
 
 package com.yahoo.elide.graphql.subscriptions.websocket;
 
-import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.ElideResponse;
 import com.yahoo.elide.ElideSettings;
