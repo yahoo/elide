@@ -1,0 +1,167 @@
+/*
+ * Copyright 2021, Yahoo Inc.
+ * Licensed under the Apache License, Version 2.0
+ * See LICENSE file in project root for terms.
+ */
+
+package com.yahoo.elide.graphql.subscriptions.websocket;
+
+import com.yahoo.elide.Elide;
+import com.yahoo.elide.core.datastore.DataStore;
+import com.yahoo.elide.core.security.User;
+import com.yahoo.elide.graphql.ExecutionResultSerializer;
+import com.yahoo.elide.graphql.GraphQLErrorSerializer;
+import com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons;
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import graphql.ExecutionResult;
+import graphql.GraphQL;
+import graphql.GraphQLError;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import javax.websocket.OnClose;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
+
+/**
+ * Given that web socket APIs are all different across platforms, this class provides an abstraction
+ * with all the common logic needed to pull subscription messages from Elide.
+ */
+@Slf4j
+@ServerEndpoint(value = "/")
+public class SubscriptionWebSocket {
+    private final ConcurrentMap<Session, SessionHandler> openSessions = new ConcurrentHashMap<>();
+    private final DataStore topicStore;
+    private final Elide elide;
+    private final GraphQL api;
+    private final int connectTimeoutMs;
+    private final int maxSubscriptions;
+    private final UserFactory userFactory;
+
+    public static final UserFactory DEFAULT_USER_FACTORY = session -> new User(session.getUserPrincipal());
+
+    @FunctionalInterface
+    public interface UserFactory {
+        User create(Session session);
+    }
+
+    public SubscriptionWebSocket(
+            DataStore topicStore,
+            Elide elide,
+            GraphQL api
+    ) {
+        this(topicStore, elide, api, 10000, 30, DEFAULT_USER_FACTORY);
+    }
+
+    public SubscriptionWebSocket(
+            DataStore topicStore,
+            Elide elide,
+            GraphQL api,
+            UserFactory userFactory
+    ) {
+        this(topicStore, elide, api, 10000, 30, userFactory);
+    }
+
+    /**
+     * Constructor.
+     * @param topicStore The JMS data store
+     * @param elide Elide instance
+     * @param api GraphQL API
+     * @param connectTimeoutMs Connection timeout
+     */
+    public SubscriptionWebSocket(
+            DataStore topicStore,
+            Elide elide,
+            GraphQL api,
+            int connectTimeoutMs,
+            int maxSubscriptions, UserFactory userFactory
+    ) {
+        this.topicStore = topicStore;
+        this.elide = elide;
+        this.api = api;
+        this.connectTimeoutMs = connectTimeoutMs;
+        this.maxSubscriptions = maxSubscriptions;
+        this.userFactory = userFactory;
+
+        GraphQLErrorSerializer errorSerializer = new GraphQLErrorSerializer();
+        SimpleModule module = new SimpleModule("ExecutionResultSerializer", Version.unknownVersion());
+        module.addSerializer(ExecutionResult.class, new ExecutionResultSerializer(errorSerializer));
+        module.addSerializer(GraphQLError.class, errorSerializer);
+        elide.getElideSettings().getMapper().getObjectMapper().registerModule(module);
+    }
+
+    /**
+     * Called on session open.
+     * @param session The platform specific session object.
+     * @throws IOException If there is an underlying error.
+     */
+    @OnOpen
+    public void onOpen(Session session) throws IOException {
+        SessionHandler subscriptionSession = createSessionHandler(session);
+
+        openSessions.put(session, subscriptionSession);
+    }
+
+    /**
+     * Called on a new web socket message.
+     * @param session The platform specific session object.
+     * @param message THe new message.
+     * @throws IOException If there is an underlying error.
+     */
+    @OnMessage
+    public void onMessage(Session session, String message) throws IOException {
+        findSession(session).handleRequest(message);
+    }
+
+    /**
+     * Called on session close.
+     * @param session The platform specific session object.
+     * @throws IOException If there is an underlying error.
+     */
+    @OnClose
+    public void onClose(Session session) throws IOException {
+        findSession(session).safeClose(WebSocketCloseReasons.NORMAL_CLOSE);
+        openSessions.remove(session);
+    }
+
+    /**
+     * Called on a session error.
+     * @param session The platform specific session object.
+     * @param throwable The error that occurred.
+     */
+    @OnError
+    public void onError(Session session, Throwable throwable) {
+        log.error(throwable.getMessage());
+        findSession(session).safeClose(WebSocketCloseReasons.INTERNAL_ERROR);
+        openSessions.remove(session);
+    }
+
+    private SessionHandler findSession(Session wrappedSession) {
+        SessionHandler sessionHandler = openSessions.getOrDefault(wrappedSession, null);
+
+        String message = "Unable to locate active session associated with: " + wrappedSession.toString();
+        log.error(message);
+        if (sessionHandler == null) {
+            throw new IllegalStateException(message);
+        }
+        return sessionHandler;
+    }
+
+    protected SessionHandler createSessionHandler(Session session) {
+        User user = userFactory.create(session);
+
+        return new SessionHandler(session, topicStore, elide, api,
+                connectTimeoutMs, maxSubscriptions,
+                ConnectionInfo.builder()
+                        .user(user)
+                        .baseUrl(session.getRequestURI().getPath())
+                        .parameters(session.getRequestParameterMap())
+                        .build());
+    }
+}

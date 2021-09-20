@@ -6,36 +6,43 @@
 
 package com.yahoo.elide.graphql.subscriptions.websocket;
 
+import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.CONNECTION_TIMEOUT;
+import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.INTERNAL_ERROR;
+import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.INVALID_MESSAGE;
+import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.MAX_SUBSCRIPTIONS;
+import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.MULTIPLE_INIT;
+import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.UNAUTHORIZED;
 import com.yahoo.elide.Elide;
 import com.yahoo.elide.core.datastore.DataStore;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.ConnectionAck;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.MessageType;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Pong;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
+import com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.GraphQL;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
+import javax.websocket.CloseReason;
+import javax.websocket.Session;
 
 /**
  * Given that web socket APIs are all different across platforms, this class provides an abstraction
  * with all the common logic needed to pull subscription messages from Elide.
- * @param <T> The platform specific session type.
  */
 @Slf4j
-public abstract class SessionHandler<T extends Closeable> implements Closeable {
+public class SessionHandler {
     protected DataStore topicStore;
     protected Elide elide;
     protected GraphQL api;
-    protected T wrappedSession;
+    protected Session wrappedSession;
     Map<String, RequestHandler> activeRequests;
     ConnectionInfo connectionInfo;
     ObjectMapper mapper;
@@ -53,7 +60,7 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
      * @param connectionInfo Connection metadata.
      */
     public SessionHandler(
-            T wrappedSession,
+            Session wrappedSession,
             DataStore topicStore,
             Elide elide,
             GraphQL api,
@@ -77,7 +84,7 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
      * Close this session.
      * @throws IOException
      */
-    public synchronized void close() throws IOException {
+    public synchronized void close(CloseReason reason) throws IOException {
 
         //Iterator here to avoid concurrent modification exceptions.
         Iterator<Map.Entry<String, RequestHandler>> iterator = activeRequests.entrySet().iterator();
@@ -87,7 +94,7 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
             handler.safeClose();
 
         }
-        wrappedSession.close();
+        wrappedSession.close(reason);
     }
 
     public synchronized void close(String protocolID) {
@@ -103,7 +110,7 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
             JsonNode type = mapper.readTree(message).get("type");
 
             if (type == null) {
-                safeClose(4400, "Missing type field");
+                safeClose(INVALID_MESSAGE);
                 return;
             }
 
@@ -111,7 +118,7 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
             try {
                 messageType = MessageType.valueOf(type.textValue());
             } catch (IllegalArgumentException e) {
-                safeClose(4400, "Unknown protocol message type '" + type.textValue() + "'");
+                safeClose(INVALID_MESSAGE);
                 return;
             }
 
@@ -122,7 +129,7 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
                 }
                 case CONNECTION_INIT: {
                     if (initialized) {
-                        safeClose(4429, "Too many initialization requests");
+                        safeClose(MULTIPLE_INIT);
                         return;
                     }
 
@@ -133,7 +140,7 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
                 case SUBSCRIBE: {
 
                     if (!initialized) {
-                        safeClose(4401, "Unauthorized");
+                        safeClose(UNAUTHORIZED);
                         return;
                     }
 
@@ -142,12 +149,14 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
 
                     synchronized (this) {
                         if (activeRequests.containsKey(protocolID)) {
-                            safeClose(4409, "Subscriber for " + protocolID + " already exists");
+
+                            safeClose(new CloseReason(WebSocketCloseReasons.createCloseCode(4409),
+                                    "Subscriber for " + protocolID + " already exists"));
                             return;
                         }
 
                         if (activeRequests.size() >= maxSubscriptions) {
-                            safeClose(4300, "Maximum number of subscriptions reached");
+                            safeClose(MAX_SUBSCRIPTIONS);
                             return;
                         }
 
@@ -162,11 +171,11 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
                     }
                     break;
                 } default: {
-                    safeClose(4400, "Invalid protocol message type " + type.textValue());
+                    safeClose(INVALID_MESSAGE);
                 }
             }
         } catch (JsonProcessingException e) {
-            safeClose(4400, "Invalid message body");
+            safeClose(INVALID_MESSAGE);
         }
     }
 
@@ -177,7 +186,7 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
         try {
             sendMessage(mapper.writeValueAsString(ack));
         } catch (IOException e) {
-            safeClose(5000, e.getMessage());
+            safeClose(INTERNAL_ERROR);
         }
     }
 
@@ -188,20 +197,13 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
         try {
             sendMessage(mapper.writeValueAsString(pong));
         } catch (IOException e) {
-            safeClose(5000, e.getMessage());
+            safeClose(INTERNAL_ERROR);
         }
     }
 
-    protected void safeClose(Integer code, String message) {
-        String errorMessage = code.toString() + ": " + message;
-        log.debug(errorMessage);
+    protected void safeClose(CloseReason reason) {
         try {
-            sendMessage(errorMessage);
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-        try {
-            close();
+            close(reason);
         } catch (IOException e) {
             log.error(e.getMessage());
         }
@@ -212,7 +214,9 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
      * @param message The message to send.
      * @throws IOException
      */
-    public abstract void sendMessage(String message) throws IOException;
+    public void sendMessage(String message) throws IOException {
+        wrappedSession.getBasicRemote().sendText(message);
+    }
 
     private class ConnectionTimer implements Runnable {
 
@@ -222,7 +226,7 @@ public abstract class SessionHandler<T extends Closeable> implements Closeable {
                 Thread.sleep(connectionTimeoutMs);
                 synchronized (SessionHandler.this) {
                     if (activeRequests.size() == 0) {
-                        safeClose(4408, "Connection initialisation timeout");
+                        safeClose(CONNECTION_TIMEOUT);
                     }
                 }
             } catch (InterruptedException e) {

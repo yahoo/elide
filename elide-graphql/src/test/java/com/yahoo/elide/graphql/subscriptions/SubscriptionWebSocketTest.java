@@ -6,9 +6,16 @@
 package com.yahoo.elide.graphql.subscriptions;
 
 import static com.yahoo.elide.core.dictionary.EntityDictionary.NO_VERSION;
+import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.CONNECTION_TIMEOUT;
+import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.INVALID_MESSAGE;
+import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.MAX_SUBSCRIPTIONS;
+import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.MULTIPLE_INIT;
+import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.NORMAL_CLOSE;
+import static com.yahoo.elide.graphql.subscriptions.websocket.protocol.WebSocketCloseReasons.UNAUTHORIZED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
@@ -25,7 +32,7 @@ import com.yahoo.elide.core.utils.DefaultClassScanner;
 import com.yahoo.elide.core.utils.coerce.CoerceUtil;
 import com.yahoo.elide.graphql.GraphQLTest;
 import com.yahoo.elide.graphql.NonEntityDictionary;
-import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionEndpoint;
+import com.yahoo.elide.graphql.subscriptions.websocket.SubscriptionWebSocket;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.ConnectionInit;
 import com.yahoo.elide.graphql.subscriptions.websocket.protocol.Subscribe;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,6 +51,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.TimeZone;
+import javax.websocket.CloseReason;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 
@@ -106,51 +114,57 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
     @Test
     void testConnectionSetupAndTeardown() throws IOException {
-        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+        SubscriptionWebSocket endpoint = new SubscriptionWebSocket(dataStore, elide, api);
 
         ConnectionInit init = new ConnectionInit();
         endpoint.onOpen(session);
         endpoint.onMessage(session, mapper.writeValueAsString(init));
 
-        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
 
         endpoint.onClose(session);
 
-        verify(remote, times(2)).sendText(argumentCaptor.capture());
-        assertEquals("{\"type\":\"CONNECTION_ACK\"}", argumentCaptor.getAllValues().get(0));
-        assertEquals("1000: Normal Closure", argumentCaptor.getAllValues().get(1));
+        verify(remote, times(1)).sendText(message.capture());
+        assertEquals("{\"type\":\"CONNECTION_ACK\"}", message.getAllValues().get(0));
+
+        ArgumentCaptor<CloseReason> closeReason = ArgumentCaptor.forClass(CloseReason.class);
+        verify(session, times(1)).close(closeReason.capture());
+        assertEquals(NORMAL_CLOSE, closeReason.getValue());
     }
 
     @Test
     void testMissingType() throws IOException {
-        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+        SubscriptionWebSocket endpoint = new SubscriptionWebSocket(dataStore, elide, api);
 
         String invalid = "{ \"id\": 123 }";
         endpoint.onOpen(session);
         endpoint.onMessage(session, invalid);
 
-        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+        verify(remote, never()).sendText(any());
 
-        verify(remote, times(1)).sendText(argumentCaptor.capture()); assertEquals("4400: Missing type field", argumentCaptor.getAllValues().get(0));
+        ArgumentCaptor<CloseReason> closeReason = ArgumentCaptor.forClass(CloseReason.class);
+        verify(session, times(1)).close(closeReason.capture());
+        assertEquals(INVALID_MESSAGE, closeReason.getValue());
     }
 
     @Test
     void testInvalidType() throws IOException {
-        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+        SubscriptionWebSocket endpoint = new SubscriptionWebSocket(dataStore, elide, api);
 
         String invalid = "{ \"type\": \"foo\", \"id\": 123 }";
         endpoint.onOpen(session);
         endpoint.onMessage(session, invalid);
 
-        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+        verify(remote, never()).sendText(any());
 
-        verify(remote, times(1)).sendText(argumentCaptor.capture());
-        assertEquals("4400: Unknown protocol message type 'foo'", argumentCaptor.getAllValues().get(0));
+        ArgumentCaptor<CloseReason> closeReason = ArgumentCaptor.forClass(CloseReason.class);
+        verify(session, times(1)).close(closeReason.capture());
+        assertEquals(INVALID_MESSAGE, closeReason.getValue());
     }
 
     @Test
     void testInvalidJson() throws IOException {
-        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+        SubscriptionWebSocket endpoint = new SubscriptionWebSocket(dataStore, elide, api);
 
         //Missing payload field
         String invalid = "{ \"type\": \"SUBSCRIBE\"}";
@@ -159,30 +173,32 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
         endpoint.onMessage(session, mapper.writeValueAsString(init));
         endpoint.onMessage(session, invalid);
 
-        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
 
-        verify(remote, times(2)).sendText(argumentCaptor.capture());
-        assertEquals("{\"type\":\"CONNECTION_ACK\"}", argumentCaptor.getAllValues().get(0));
-        assertEquals("4400: Invalid message body", argumentCaptor.getAllValues().get(1));
+        verify(remote, times(1)).sendText(message.capture());
+        assertEquals("{\"type\":\"CONNECTION_ACK\"}", message.getAllValues().get(0));
+
+        ArgumentCaptor<CloseReason> closeReason = ArgumentCaptor.forClass(CloseReason.class);
+        verify(session, times(1)).close(closeReason.capture());
+        assertEquals(INVALID_MESSAGE, closeReason.getValue());
     }
 
     @Test
     void testConnectionTimeout() throws Exception {
-        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api, 0, 10,
-                SubscriptionEndpoint.DEFAULT_USER_FACTORY);
+        SubscriptionWebSocket endpoint = new SubscriptionWebSocket(dataStore, elide, api, 0, 10,
+                SubscriptionWebSocket.DEFAULT_USER_FACTORY);
 
         endpoint.onOpen(session);
 
-        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
-
-        verify(remote, timeout(1000).times(1)).sendText(argumentCaptor.capture());
-        assertEquals("4408: Connection initialisation timeout", argumentCaptor.getAllValues().get(0));
+        ArgumentCaptor<CloseReason> closeReason = ArgumentCaptor.forClass(CloseReason.class);
+        verify(session, timeout(1000).times(1)).close(closeReason.capture());
+        assertEquals(CONNECTION_TIMEOUT, closeReason.getValue());
     }
 
     @Test
     void textMaxSubscriptions() throws IOException {
-        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api, 1000, 0,
-                SubscriptionEndpoint.DEFAULT_USER_FACTORY);
+        SubscriptionWebSocket endpoint = new SubscriptionWebSocket(dataStore, elide, api, 1000, 0,
+                SubscriptionWebSocket.DEFAULT_USER_FACTORY);
 
         ConnectionInit init = new ConnectionInit();
         endpoint.onOpen(session);
@@ -194,32 +210,38 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
 
-        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
 
-        verify(remote, times(2)).sendText(argumentCaptor.capture());
-        assertEquals("{\"type\":\"CONNECTION_ACK\"}", argumentCaptor.getAllValues().get(0));
-        assertEquals("4300: Maximum number of subscriptions reached", argumentCaptor.getAllValues().get(1));
+        verify(remote, times(1)).sendText(message.capture());
+        assertEquals("{\"type\":\"CONNECTION_ACK\"}", message.getAllValues().get(0));
+
+        ArgumentCaptor<CloseReason> closeReason = ArgumentCaptor.forClass(CloseReason.class);
+        verify(session, times(1)).close(closeReason.capture());
+        assertEquals(MAX_SUBSCRIPTIONS, closeReason.getValue());
     }
 
     @Test
     void testDoubleInit() throws IOException {
-        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+        SubscriptionWebSocket endpoint = new SubscriptionWebSocket(dataStore, elide, api);
 
         ConnectionInit init = new ConnectionInit();
         endpoint.onOpen(session);
         endpoint.onMessage(session, mapper.writeValueAsString(init));
         endpoint.onMessage(session, mapper.writeValueAsString(init));
 
-        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
 
-        verify(remote, times(2)).sendText(argumentCaptor.capture());
-        assertEquals("{\"type\":\"CONNECTION_ACK\"}", argumentCaptor.getAllValues().get(0));
-        assertEquals("4429: Too many initialization requests", argumentCaptor.getAllValues().get(1));
+        verify(remote, times(1)).sendText(message.capture());
+        assertEquals("{\"type\":\"CONNECTION_ACK\"}", message.getAllValues().get(0));
+
+        ArgumentCaptor<CloseReason> closeReason = ArgumentCaptor.forClass(CloseReason.class);
+        verify(session, times(1)).close(closeReason.capture());
+        assertEquals(MULTIPLE_INIT, closeReason.getValue());
     }
 
     @Test
     void testSubscribeBeforeInit() throws IOException {
-        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+        SubscriptionWebSocket endpoint = new SubscriptionWebSocket(dataStore, elide, api);
 
         endpoint.onOpen(session);
 
@@ -230,15 +252,16 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         endpoint.onMessage(session, mapper.writeValueAsString(subscribe));
 
-        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
+        verify(remote, never()).sendText(any());
 
-        verify(remote, times(1)).sendText(argumentCaptor.capture());
-        assertEquals("4401: Unauthorized", argumentCaptor.getAllValues().get(0));
+        ArgumentCaptor<CloseReason> closeReason = ArgumentCaptor.forClass(CloseReason.class);
+        verify(session, times(1)).close(closeReason.capture());
+        assertEquals(UNAUTHORIZED, closeReason.getValue());
     }
 
     @Test
     void testDoubleSubscribe() throws IOException {
-        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+        SubscriptionWebSocket endpoint = new SubscriptionWebSocket(dataStore, elide, api);
 
         ConnectionInit init = new ConnectionInit();
         endpoint.onOpen(session);
@@ -254,18 +277,21 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
 
         List<String> expected = List.of(
                 "{\"type\":\"CONNECTION_ACK\"}",
-                "{\"type\":\"COMPLETE\",\"id\":\"1\"}",
-                "4409: Subscriber for 1 already exists"
+                "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
         );
 
-        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
-        verify(remote, times(3)).sendText(argumentCaptor.capture());
-        assertEquals(expected, argumentCaptor.getAllValues());
+        ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
+        verify(remote, times(2)).sendText(message.capture());
+        assertEquals(expected, message.getAllValues());
+
+        ArgumentCaptor<CloseReason> closeReason = ArgumentCaptor.forClass(CloseReason.class);
+        verify(session, times(1)).close(closeReason.capture());
+        assertEquals(4409, closeReason.getValue().getCloseCode().getCode());
     }
 
     @Test
     void testErrorInStream() throws IOException {
-        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+        SubscriptionWebSocket endpoint = new SubscriptionWebSocket(dataStore, elide, api);
 
         Book book1 = new Book();
         book1.setTitle("Book 1");
@@ -297,14 +323,14 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
         );
 
-        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
-        verify(remote, times(4)).sendText(argumentCaptor.capture());
-        assertEquals(expected, argumentCaptor.getAllValues());
+        ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
+        verify(remote, times(4)).sendText(message.capture());
+        assertEquals(expected, message.getAllValues());
     }
 
     @Test
     void testErrorPriorToStream() throws IOException {
-        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+        SubscriptionWebSocket endpoint = new SubscriptionWebSocket(dataStore, elide, api);
 
         reset(dataStoreTransaction);
         when(dataStoreTransaction.loadObjects(any(), any())).thenThrow(new BadRequestException("Bad Request"));
@@ -326,14 +352,14 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
         );
 
-        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
-        verify(remote, times(3)).sendText(argumentCaptor.capture());
-        assertEquals(expected, argumentCaptor.getAllValues());
+        ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
+        verify(remote, times(3)).sendText(message.capture());
+        assertEquals(expected, message.getAllValues());
     }
 
     @Test
     void testRootSubscription() throws IOException {
-        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+        SubscriptionWebSocket endpoint = new SubscriptionWebSocket(dataStore, elide, api);
 
         Book book1 = new Book();
         book1.setTitle("Book 1");
@@ -363,14 +389,14 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
         );
 
-        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
-        verify(remote, times(4)).sendText(argumentCaptor.capture());
-        assertEquals(expected, argumentCaptor.getAllValues());
+        ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
+        verify(remote, times(4)).sendText(message.capture());
+        assertEquals(expected, message.getAllValues());
     }
 
     @Test
     void testSchemaQuery() throws IOException {
-        SubscriptionEndpoint endpoint = new SubscriptionEndpoint(dataStore, elide, api);
+        SubscriptionWebSocket endpoint = new SubscriptionWebSocket(dataStore, elide, api);
 
         String graphQLRequest =
                 "{"
@@ -405,8 +431,8 @@ public class SubscriptionWebSocketTest extends GraphQLTest {
                 "{\"type\":\"COMPLETE\",\"id\":\"1\"}"
         );
 
-        ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
-        verify(remote, times(3)).sendText(argumentCaptor.capture());
-        assertEquals(expected, argumentCaptor.getAllValues());
+        ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
+        verify(remote, times(3)).sendText(message.capture());
+        assertEquals(expected, message.getAllValues());
     }
 }
